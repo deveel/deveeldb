@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.configuration\dbconfigtests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+using System.Text;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.Configuration {
+	[TestFixture]
+	public class DbConfigTests {
+		[Test]
+		public void DefaultConfig() {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Default);
+			Assert.IsNotNull(config);
+			Assert.IsNull(config.Parent);
+			Assert.IsNull(config.Source);
+		}
+
+		[Test]
+		public void GetKeysFromRoot() {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Empty);
+			Assert.IsNotNull(config);
+			Assert.DoesNotThrow(() =&gt; config.SetKey(new ConfigKey(&quot;test.oneKey&quot;, 54, typeof(int))));
+			Assert.DoesNotThrow(() =&gt; config.SetKey(new ConfigKey(&quot;test.twoKeys&quot;, typeof(string))));
+
+			ConfigKey key1 = null;
+			ConfigKey key2 = null;
+
+			Assert.DoesNotThrow(() =&gt; key1 = config.GetKey(&quot;test.oneKey&quot;));
+			Assert.IsNotNull(key1);
+			Assert.IsNotNull(key1.DefaultValue);
+			Assert.AreEqual(typeof(int), key1.ValueType);
+			Assert.AreEqual(54, key1.DefaultValue);
+
+			Assert.DoesNotThrow(() =&gt; key2 = config.GetKey(&quot;test.twoKeys&quot;));
+			Assert.IsNotNull(key2);
+			Assert.AreEqual(typeof(string), key2.ValueType);
+			Assert.IsNull(key2.DefaultValue);
+		}
+
+		[Test]
+		public void GetKeysFromChild() {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			Assert.DoesNotThrow(() =&gt; config.SetKey(new ConfigKey(&quot;test.oneKey&quot;, &quot;one&quot;, typeof(string))));
+
+			IDbConfig child = null;
+			Assert.DoesNotThrow(() =&gt; child = new DbConfig(config));
+			Assert.IsNotNull(child);
+			Assert.IsNotNull(child.Parent);
+
+			Assert.DoesNotThrow(() =&gt; config.SetKey(new ConfigKey(&quot;test.oneKey&quot;, 45, typeof(int))));
+
+			ConfigKey key = null;
+			Assert.DoesNotThrow(() =&gt; key = config.GetKey(&quot;test.oneKey&quot;));
+			Assert.IsNotNull(key);
+			Assert.AreEqual(typeof(int), key.ValueType);
+			Assert.AreEqual(45, key.DefaultValue);
+		}
+
+		[Test]
+		public void GetValueAsInt32() {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			ConfigKey key = new ConfigKey(&quot;test.oneKey&quot;, &quot;one&quot;, typeof(string));
+			Assert.DoesNotThrow(() =&gt; config.SetKey(key));
+			Assert.DoesNotThrow(() =&gt; config.SetValue(key, &quot;22&quot;));
+
+			ConfigValue value = null;
+			Assert.DoesNotThrow(() =&gt; value = config.GetValue(key));
+			Assert.IsNotNull(value);
+			Assert.IsNotNull(value.Value);
+
+			int iValue = -1;
+			Assert.DoesNotThrow(() =&gt; iValue = value.ToType&lt;int&gt;());
+			Assert.AreEqual(22, iValue);
+		}
+
+		[TestCase(&quot;test&quot;,&quot;true&quot;, true)]
+		[TestCase(&quot;test&quot;,&quot;false&quot;, false)]
+		[TestCase(&quot;test&quot;, &quot;off&quot;, false)]
+		[TestCase(&quot;test&quot;, &quot;on&quot;, true)]
+		[TestCase(&quot;test&quot;, &quot;enabled&quot;, true)]
+		public void GetBooleanValue(string key, string value, bool expected) {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			ConfigKey configKey = new ConfigKey(key, typeof(string));
+			Assert.DoesNotThrow(() =&gt; config.SetKey(configKey));
+			Assert.DoesNotThrow(() =&gt; config.SetValue(configKey, value));
+
+			ConfigValue configValue = null;
+			Assert.DoesNotThrow(() =&gt; configValue = config.GetValue(configKey));
+			Assert.IsNotNull(value);
+			Assert.IsNotNull(configValue.Value);
+
+			bool bValue = false;
+			Assert.DoesNotThrow(() =&gt; bValue = configValue.ToType&lt;bool&gt;());
+			Assert.AreEqual(expected, bValue);
+		}
+
+		[TestCase(1, TestEnum.One)]
+		[TestCase(&quot;one&quot;, TestEnum.One)]
+		[TestCase(&quot;TWO&quot;, TestEnum.Two)]
+		[TestCase(null, TestEnum.Default)]
+		public void GetEnumValue(object value, TestEnum expected) {
+			IDbConfig config = null;
+			Assert.DoesNotThrow(() =&gt; config = DbConfig.Default);
+			Assert.IsNotNull(config);
+
+			ConfigKey configKey = new ConfigKey(&quot;test&quot;, typeof(TestEnum));
+			Assert.DoesNotThrow(() =&gt; config.SetKey(configKey));
+			Assert.DoesNotThrow(() =&gt; config.SetValue(configKey, value));
+
+			ConfigValue configValue = null;
+			Assert.DoesNotThrow(() =&gt; configValue = config.GetValue(configKey));
+
+			TestEnum enumValue = new TestEnum();
+			Assert.DoesNotThrow(() =&gt; enumValue = configValue.ToType&lt;TestEnum&gt;());
+			Assert.AreEqual(expected, enumValue);
+		}
+
+		public enum TestEnum {
+			One = 1,
+			Two = 2,
+			Default = 0
+		}
+
+		[Test]
+		public void Extensions_LoadFromProperties() {
+			var properties = new StringBuilder();
+			properties.AppendLine(&quot;system.readOnly = false&quot;);
+			properties.AppendLine(&quot;caching.type = Memory&quot;);
+
+			IDbConfig dbConfig = null;
+			Assert.DoesNotThrow(() =&gt; dbConfig = new DbConfig(new StringConfigSource(properties.ToString())));
+			Assert.IsNotNull(dbConfig);
+			Assert.DoesNotThrow(() =&gt; dbConfig.Load(new PropertiesConfigFormatter()));
+
+			Assert.DoesNotThrow(() =&gt; Assert.IsNotNull(dbConfig.GetKey(&quot;system.readOnly&quot;)));
+
+			bool readOnly = true;
+			Assert.DoesNotThrow(() =&gt; readOnly = dbConfig.GetBoolean(&quot;system.readOnly&quot;));
+			Assert.IsFalse(readOnly);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,4,26,28,1],[27,4,27,30,1],[27,55,27,57,1],[28,4,28,29,1],[29,4,29,33,1],[30,4,30,33,1],[31,3,31,4,1],[35,4,35,28,1],[36,4,36,30,1],[36,53,36,55,1],[37,4,37,29,1],[38,4,38,30,1],[38,90,38,92,1],[39,4,39,30,1],[39,90,39,92,1],[41,4,41,26,1],[42,4,42,26,1],[44,4,44,30,1],[44,65,44,67,1],[45,4,45,27,1],[46,4,46,40,1],[47,4,47,49,1],[48,4,48,43,1],[50,4,50,30,1],[50,66,50,68,1],[51,4,51,27,1],[52,4,52,52,1],[53,4,53,37,1],[54,3,54,4,1],[58,4,58,28,1],[59,4,59,30,1],[59,55,59,57,1],[60,4,60,29,1],[62,4,62,30,1],[62,96,62,98,1],[64,4,64,27,1],[65,4,65,30,1],[65,58,65,60,1],[66,4,66,28,1],[67,4,67,35,1],[69,4,69,30,1],[69,90,69,92,1],[71,4,71,25,1],[72,4,72,30,1],[72,64,72,66,1],[73,4,73,26,1],[74,4,74,48,1],[75,4,75,42,1],[76,3,76,4,1],[80,4,80,28,1],[81,4,81,30,1],[81,55,81,57,1],[82,4,82,29,1],[84,4,84,72,1],[85,4,85,30,1],[85,48,85,50,1],[86,4,86,30,1],[86,56,86,58,1],[88,4,88,29,1],[89,4,89,30,1],[89,58,89,60,1],[90,4,90,28,1],[91,4,91,34,1],[93,4,93,20,1],[94,4,94,30,1],[94,58,94,60,1],[95,4,95,32,1],[96,3,96,4,1],[104,4,104,28,1],[105,4,105,30,1],[105,55,105,57,1],[106,4,106,29,1],[108,4,108,61,1],[109,4,109,30,1],[109,54,109,56,1],[110,4,110,30,1],[110,63,110,65,1],[112,4,112,35,1],[113,4,113,30,1],[113,70,113,72,1],[114,4,114,28,1],[115,4,115,40,1],[117,4,117,24,1],[118,4,118,30,1],[118,65,118,67,1],[119,4,119,38,1],[120,3,120,4,1],[127,4,127,28,1],[128,4,128,30,1],[128,55,128,57,1],[129,4,129,29,1],[131,4,131,66,1],[132,4,132,30,1],[132,54,132,56,1],[133,4,133,30,1],[133,63,133,65,1],[135,4,135,35,1],[136,4,136,30,1],[136,70,136,72,1],[138,4,138,40,1],[139,4,139,30,1],[139,72,139,74,1],[140,4,140,41,1],[141,3,141,4,1],[151,4,151,41,1],[152,4,152,53,1],[153,4,153,51,1],[155,4,155,30,1],[156,4,156,30,1],[156,100,156,102,1],[157,4,157,31,1],[158,4,158,30,1],[158,76,158,78,1],[160,4,160,30,1],[160,82,160,84,1],[162,4,162,25,1],[163,4,163,30,1],[163,79,163,81,1],[164,4,164,29,1],[165,3,165,4,1],[27,30,27,55,1],[36,30,36,53,1],[38,30,38,90,1],[39,30,39,90,1],[44,30,44,65,1],[50,30,50,66,1],[59,30,59,55,1],[62,30,62,96,1],[65,30,65,58,1],[69,30,69,90,1],[72,30,72,64,1],[81,30,81,55,1],[85,30,85,48,1],[86,30,86,56,1],[89,30,89,58,1],[94,30,94,58,1],[105,30,105,55,1],[109,30,109,54,1],[110,30,110,63,1],[113,30,113,70,1],[118,30,118,65,1],[128,30,128,55,1],[132,30,132,54,1],[133,30,133,63,1],[136,30,136,70,1],[139,30,139,72,1],[156,30,156,100,1],[158,30,158,76,1],[160,30,160,82,1],[163,30,163,79,1]]);
+    </script>
+  </body>
+</html>

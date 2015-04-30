@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.objects\sqlarray.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Objects {
+	/// &lt;summary&gt;
+	/// An object that provides methods for accessing a
+	/// finite collection of SQL expressions.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SqlArray : ISqlObject, IEnumerable&lt;SqlExpression&gt; {
+		private readonly SqlExpression[] expressions;
+
+		/// &lt;summary&gt;
+		/// A SQL array that is equivalent to &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		public static readonly SqlArray Null = new SqlArray(null);
+
+		/// &lt;summary&gt;
+		/// Constructs a new &lt;see cref=&quot;SqlArray&quot;/&gt; on the given array
+		/// of expressions.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expressions&quot;&gt;The array of &lt;see cref=&quot;SqlExpression&quot;/&gt; that
+		/// is the source of this array.&lt;/param&gt;
+		public SqlArray(SqlExpression[] expressions) {
+			if (expressions == null) {
+				this.expressions = null;
+				IsNull = true;
+			} else {
+				this.expressions = new SqlExpression[expressions.Length];
+				Array.Copy(expressions, this.expressions, expressions.Length);
+			}
+		}
+
+		int IComparable.CompareTo(object obj) {
+			throw new NotSupportedException();
+		}
+
+		int IComparable&lt;ISqlObject&gt;.CompareTo(ISqlObject other) {
+			throw new NotSupportedException();
+		}
+
+		public bool IsNull { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the length of the array.
+		/// &lt;/summary&gt;
+		/// &lt;exception cref=&quot;NullReferenceException&quot;&gt;
+		/// If the array is &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/exception&gt;
+		public int Length {
+			get {
+				AssertNotNull();
+				return expressions.Length;
+			}
+		}
+
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return false;
+		}
+
+		private void AssertNotNull() {
+			if (IsNull)
+				throw new NullReferenceException(&quot;The array is null&quot;);
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the expression at the given index of the array.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;index&quot;&gt;The zero-based index in the array at 
+		/// which to get the expression&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;SqlExpression&quot;/&gt; at the index
+		/// given within the array.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;NullReferenceException&quot;&gt;
+		/// If the array is &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/exception&gt;
+		/// &lt;exception cref=&quot;ArgumentOutOfRangeException&quot;&gt;
+		/// If the given &lt;paramref name=&quot;index&quot;/&gt; is lower than zero
+		/// or greater or equal than &lt;see cref=&quot;Length&quot;/&gt;.
+		/// &lt;/exception&gt;
+		/// &lt;seealso cref=&quot;GetValue&quot;/&gt;
+		public SqlExpression this[int index] {
+			get { return GetValue(index); }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the expression at the given index of the array.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;index&quot;&gt;The zero-based index in the array at 
+		/// which to get the expression&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;SqlExpression&quot;/&gt; at the index
+		/// given within the array.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;NullReferenceException&quot;&gt;
+		/// If the array is &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/exception&gt;
+		/// &lt;exception cref=&quot;ArgumentOutOfRangeException&quot;&gt;
+		/// If the given &lt;paramref name=&quot;index&quot;/&gt; is lower than zero
+		/// or greater or equal than &lt;see cref=&quot;Length&quot;/&gt;.
+		/// &lt;/exception&gt;
+		/// &lt;seealso cref=&quot;GetValue&quot;/&gt;
+		public SqlExpression GetValue(int index) {
+			AssertNotNull();
+
+			if (index &lt; 0 || index &gt;= Length)
+				throw new ArgumentOutOfRangeException(&quot;index&quot;);
+
+			return expressions[index];
+		}
+
+		public IEnumerator&lt;SqlExpression&gt; GetEnumerator() {
+			AssertNotNull();
+			return new Enumerator(this);
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		#region Enumerator
+
+		class Enumerator : IEnumerator&lt;SqlExpression&gt; {
+			private int index;
+			private int length;
+			private readonly SqlArray array;
+
+			public Enumerator(SqlArray array) {
+				this.array = array;
+				length = array.Length;
+				index = -1;
+			}
+
+			public void Dispose() {
+			}
+
+			public bool MoveNext() {
+				array.AssertNotNull();
+				return ++index &lt; length;
+			}
+
+			public void Reset() {
+				array.AssertNotNull();
+
+				index = -1;
+				length = array.Length;
+			}
+
+			public SqlExpression Current {
+				get {
+					array.AssertNotNull();
+					return array.GetValue(index);
+				}
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+		}
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[43,3,43,47,0],[44,4,44,28,0],[45,5,45,29,0],[46,5,46,19,0],[48,5,48,62,0],[49,5,49,67,0],[51,3,51,4,0],[54,4,54,38,0],[58,4,58,38,0],[71,5,71,21,0],[72,5,72,31,0],[77,4,77,17,0],[81,4,81,15,0],[82,5,82,59,0],[83,3,83,4,0],[103,10,103,33,0],[124,4,124,20,0],[126,4,126,37,0],[127,5,127,52,0],[129,4,129,30,0],[133,4,133,20,0],[134,4,134,32,0],[138,4,138,27,0],[35,3,35,61,0],[148,4,148,37,0],[149,5,149,24,0],[150,5,150,27,0],[151,5,151,16,0],[152,4,152,5,0],[155,4,155,5,0],[158,5,158,27,0],[159,5,159,29,0],[163,5,163,27,0],[165,5,165,16,0],[166,5,166,27,0],[167,4,167,5,0],[171,6,171,28,0],[172,6,172,35,0],[177,11,177,26,0]]);
+    </script>
+  </body>
+</html>

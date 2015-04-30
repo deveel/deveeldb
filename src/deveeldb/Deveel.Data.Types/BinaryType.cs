@@ -24,9 +24,7 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
-	public sealed class BinaryType : DataType {
-		public int MaxSize { get; private set; }
-
+	public sealed class BinaryType : DataType, ISizeableType {
 		public BinaryType(SqlTypeCode sqlType) 
 			: this(sqlType, -1) {
 		}
@@ -36,6 +34,12 @@ namespace Deveel.Data.Types {
 			MaxSize = maxSize;
 			AssertIsBinary(sqlType);
 		}
+
+		int ISizeableType.Size {
+			get { return MaxSize; }
+		}
+
+		public int MaxSize { get; private set; }
 
 		public override bool IsIndexable {
 			get { return false; }

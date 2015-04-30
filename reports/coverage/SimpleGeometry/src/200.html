@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.statements\addconstraintaction.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public sealed class AddConstraintAction : IAlterTableAction {
+		public AddConstraintAction(ConstraintInfo constraint) {
+			if (constraint == null)
+				throw new ArgumentNullException(&quot;constraint&quot;);
+
+			Constraint = constraint;
+		}
+
+		public ConstraintInfo Constraint { get; private set; }
+
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			ConstraintInfo constraint;
+
+			if (Constraint.ConstraintType == ConstraintType.Check) {
+				var exp = Constraint.CheckExpression;
+				if (exp != null)
+					exp = exp.Prepare(preparer);
+
+				constraint = ConstraintInfo.Check(Constraint.ConstraintName, Constraint.TableName, exp, Constraint.ColumnNames);
+			} else if (Constraint.ConstraintType == ConstraintType.Unique) {
+				constraint = ConstraintInfo.Unique(Constraint.ConstraintName, Constraint.TableName, Constraint.ColumnNames);
+			} else if (Constraint.ConstraintType == ConstraintType.PrimaryKey) {
+				constraint = ConstraintInfo.PrimaryKey(Constraint.ConstraintName, Constraint.TableName, Constraint.ColumnNames);
+			} else if (Constraint.ConstraintType == ConstraintType.ForeignKey) {
+				constraint = ConstraintInfo.ForeignKey(Constraint.ConstraintName, Constraint.TableName, Constraint.ColumnNames,
+					Constraint.ForeignTable, Constraint.ForeignColumnNames);
+				constraint.OnDelete = Constraint.OnDelete;
+				constraint.OnUpdate = Constraint.OnUpdate;
+			} else {
+				throw new InvalidOperationException();
+			}
+
+			return new AddConstraintAction(constraint);
+		}
+
+		AlterTableActionType IAlterTableAction.ActionType {
+			get { return AlterTableActionType.AddConstraint; }
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,5,26,51,0],[36,4,36,58,0],[37,5,37,42,0],[38,5,38,21,0],[39,6,39,34,0],[41,5,41,117,0],[42,11,42,66,0],[43,5,43,113,0],[44,11,44,70,0],[45,5,45,117,0],[46,11,46,70,0],[47,5,48,62,0],[49,5,49,47,0],[50,5,50,47,0],[52,5,52,43,0],[55,4,55,47,0],[59,10,59,52,0],[24,3,24,56,1],[25,4,25,27,1],[28,4,28,28,1],[29,3,29,4,1]]);
+    </script>
+  </body>
+</html>

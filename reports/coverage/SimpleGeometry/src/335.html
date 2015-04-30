@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.types\booleantype.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+
+namespace Deveel.Data.Types {
+	[Serializable]
+	public sealed class BooleanType : DataType {
+		public BooleanType(SqlTypeCode sqlType) 
+			: base(&quot;BOOLEAN&quot;, sqlType) {
+			AssertIsBoolean(sqlType);
+		}
+
+		private static void AssertIsBoolean(SqlTypeCode sqlType) {
+			if (!IsBooleanType(sqlType))
+				throw new ArgumentException(String.Format(&quot;The SQL type {0} is not BOOLEAN.&quot;, sqlType));
+		}
+
+		internal static bool IsBooleanType(SqlTypeCode sqlType) {
+			return (sqlType == SqlTypeCode.Bit ||
+			        sqlType == SqlTypeCode.Boolean);
+		}
+
+		public override int Compare(ISqlObject x, ISqlObject y) {
+			if (!(x is SqlBoolean))
+				throw new ArgumentException();
+
+			var a = (SqlBoolean) x;
+			SqlBoolean b;
+
+			if (y is SqlNumber) {
+				b = ((SqlNumber) y) == SqlNumber.One ? SqlBoolean.True : ((SqlNumber) y) == SqlNumber.Zero ? SqlBoolean.False : SqlBoolean.Null;
+			} else if (y is SqlBoolean) {
+				b = (SqlBoolean) y;
+			} else {
+				throw new ArgumentException();
+			}
+
+			return a.CompareTo(b);
+		}
+
+		public override bool IsComparable(DataType type) {
+			return type is BooleanType || type is NumericType;
+		}
+
+		public override bool CanCastTo(DataType type) {
+			return type is StringType ||
+			       type is NumericType ||
+			       type is BinaryType ||
+				   type is BooleanType;
+		}
+
+		public override DataObject CastTo(DataObject value, DataType destType) {
+			var bValue = ((SqlBoolean) value.Value);
+			if (destType is StringType) {
+				var s = Convert.ToString(bValue);
+				// TODO: Provide a method in StringType to build a string specific to the type
+				return new DataObject(destType, new SqlString(s));
+			}
+			if (destType is NumericType) {
+				SqlNumber num;
+				if (bValue == SqlBoolean.Null) {
+					num = SqlNumber.Null;
+				} else if (bValue) {
+					num = SqlNumber.One;
+				} else {
+					num = SqlNumber.Zero;
+				}
+
+				return new DataObject(destType, num);
+			}
+			if (destType is BinaryType) {
+				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]));
+				return new DataObject(destType, new SqlBinary(bytes));
+			}
+			if (destType is BooleanType)
+				return value;
+
+			return base.CastTo(value, destType);
+		}
+
+		public override ISqlObject Negate(ISqlObject value) {
+			var b = (SqlBoolean) value;
+			if (b.Equals(SqlBoolean.True))
+				return SqlBoolean.False;
+			if (b.Equals(SqlBoolean.False))
+				return SqlBoolean.True;
+
+			return base.Negate(value);
+		}
+
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			var b = (SqlBoolean) obj;
+			var writer = new BinaryWriter(stream);
+
+			if (b.IsNull) {
+				writer.Write((byte)0);
+			} else {
+				var value = (bool) b;
+				writer.Write((byte)1);
+				writer.Write((byte)(value ? 1 : 0));
+			}
+		}
+
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+			if (type == 0)
+				return SqlBoolean.Null;
+
+			var value = reader.ReadByte();
+			return new SqlBoolean(value);
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			return obj.IsNull ? 1 : 1 + 1;
+		}
+
+		public override ISqlObject Reverse(ISqlObject value) {
+			return Negate(value);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,5,33,93,0],[43,5,43,35,0],[53,5,53,35,0],[73,5,73,38,0],[75,5,75,55,0],[89,4,89,31,0],[90,5,90,70,0],[91,5,91,59,0],[93,4,93,32,0],[94,5,94,18,0],[96,4,96,40,0],[106,4,106,30,0],[114,5,114,27,0],[127,5,127,28,0],[138,4,138,25,0],[26,3,27,30,1],[28,4,28,29,1],[29,3,29,4,1],[32,4,32,32,1],[34,3,34,4,1],[37,4,38,44,1],[42,4,42,27,1],[45,4,45,27,1],[48,4,48,23,1],[49,5,49,133,1],[50,11,50,31,1],[51,5,51,24,1],[56,4,56,26,1],[60,4,60,54,1],[64,4,67,28,1],[71,4,71,44,1],[72,4,72,31,1],[77,4,77,32,1],[79,5,79,35,1],[80,6,80,27,1],[81,12,81,23,1],[82,6,82,26,1],[84,6,84,27,1],[87,5,87,42,1],[100,4,100,31,1],[101,4,101,34,1],[102,5,102,29,1],[103,4,103,35,1],[104,5,104,28,1],[110,4,110,29,1],[111,4,111,42,1],[113,4,113,17,1],[116,5,116,26,1],[117,5,117,27,1],[118,5,118,41,1],[120,3,120,4,1],[123,4,123,42,1],[125,4,125,33,1],[126,4,126,18,1],[129,4,129,34,1],[130,4,130,33,1],[134,4,134,34,1]]);
+    </script>
+  </body>
+</html>

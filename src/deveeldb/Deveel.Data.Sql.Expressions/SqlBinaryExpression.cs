@@ -22,6 +22,11 @@ namespace Deveel.Data.Sql.Expressions {
 		private readonly SqlExpressionType expressionType;
 
 		internal SqlBinaryExpression(SqlExpression left, SqlExpressionType expressionType, SqlExpression right) {
+			if (left == null)
+				throw new ArgumentNullException("left");
+			if (right == null)
+				throw new ArgumentNullException("right");
+
 			this.expressionType = expressionType;
 
 			Left = left;

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.transactions\lock.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Threading;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Transactions {
+	public sealed class Lock {
+		private bool exclusiveMode;
+		private int sharedAccess;
+
+		internal Lock(LockingQueue queue, LockingMode mode, AccessType accessType) {
+			Queue = queue;
+			AccessType = accessType;
+			Mode = mode;
+			Queue.Acquire(this);
+		}
+
+		private LockingQueue Queue { get; set; }
+
+		public AccessType AccessType { get; private set; }
+
+		public LockingMode Mode { get; private set; }
+
+		private bool WasChecked { get; set; }
+
+		internal ILockable Lockable {
+			get { return Queue.Lockable; }
+		}
+
+		private void StartMode() {
+			lock (this) {
+				// If currently in exclusive mode, block until not.
+
+				while (exclusiveMode) {
+					try {
+						Monitor.Wait(this);
+					} catch (ThreadInterruptedException) {
+					}
+				}
+
+				if (Mode == LockingMode.Exclusive) {
+					// Set this thread to exclusive mode, and wait until all shared modes
+					// have completed.
+
+					exclusiveMode = true;
+					while (sharedAccess &gt; 0) {
+						try {
+							Monitor.Wait(this);
+						} catch (ThreadInterruptedException) {
+						}
+					}
+				} else if (Mode == LockingMode.Shared) {
+					// Increase the threads counter that are in shared mode.
+
+					++sharedAccess;
+				} else {
+					throw new ApplicationException(&quot;Invalid mode&quot;);
+				}
+			}
+		}
+
+		private void EndMode() {
+			lock (this) {
+				if (Mode == LockingMode.Exclusive) {
+					exclusiveMode = false;
+					Monitor.PulseAll(this);
+				} else if (Mode == LockingMode.Shared) {
+					--sharedAccess;
+					if (sharedAccess == 0 &amp;&amp; exclusiveMode) {
+						Monitor.PulseAll(this);
+					} else if (sharedAccess &lt; 0) {
+						sharedAccess = 0;
+						Monitor.PulseAll(this);
+						throw new Exception(&quot;Too many &#39;Sahred Locks Release&#39; calls&quot;);
+					}
+				} else {
+					throw new ApplicationException(&quot;Invalid mode&quot;);
+				}
+			}
+		}
+
+		internal void Acquire() {
+			StartMode();
+		}
+
+		internal void Release() {
+			EndMode();
+			Queue.Release(this);
+
+			// TODO: if the lock was not check, silently report the error to the system
+		}
+
+		internal void CheckAccess(AccessType accessType) {
+			if (AccessType == AccessType.Write &amp;&amp; 
+				accessType != AccessType.Write)
+				throw new ApplicationException(&quot;Access error on Lock: Tried to Write to a non Write Lock.&quot;);
+
+			if (!WasChecked) {
+				Queue.CheckAccess(this);
+				WasChecked = true;
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[43,10,43,32,0],[52,7,52,26,0],[53,8,53,42,0],[64,8,64,27,0],[65,9,65,43,0],[68,12,68,43,0],[71,6,71,21,0],[73,6,73,53,0],[83,12,83,43,0],[84,6,84,21,0],[85,6,85,45,0],[86,7,86,30,0],[87,13,87,34,0],[88,7,88,24,0],[89,7,89,30,0],[90,7,90,68,0],[93,6,93,53,0],[110,4,111,36,0],[112,5,112,97,0],[114,4,114,20,0],[115,5,115,29,0],[116,5,116,23,0],[118,3,118,4,0],[27,3,27,77,1],[28,4,28,18,1],[29,4,29,28,1],[30,4,30,16,1],[31,4,31,24,1],[32,3,32,4,1],[47,4,47,15,1],[50,5,50,26,1],[57,5,57,39,1],[61,6,61,27,1],[62,6,62,30,1],[76,3,76,4,1],[79,4,79,15,1],[80,5,80,39,1],[81,6,81,28,1],[82,6,82,29,1],[96,3,96,4,1],[99,4,99,16,1],[100,3,100,4,1],[103,4,103,14,1],[104,4,104,24,1],[107,3,107,4,1]]);
+    </script>
+  </body>
+</html>

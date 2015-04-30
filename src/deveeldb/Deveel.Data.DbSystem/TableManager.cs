@@ -586,7 +586,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			// Is it a visable table (match case insensitive)
+			// Is it a visible table (match case insensitive)
 			var table = FindVisibleTable(objName, ignoreCase);
 			if (table != null)
 				return table.TableName;

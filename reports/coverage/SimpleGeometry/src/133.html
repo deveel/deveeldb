@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.security\user.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Security {
+	/// &lt;summary&gt;
+	/// Provides the information for a user in a database system
+	/// &lt;/summary&gt;
+	public sealed class User {
+		public readonly static User System = new User(SystemName);
+		public readonly static User Public = new User(PublicName);
+
+		private Dictionary&lt;ObjectName, Privileges&gt; grantCache;
+
+		/// &lt;summary&gt;
+		/// Constructs a new user with the given name.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
+		public User(string name) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException(&quot;name&quot;);
+
+			Name = name;
+		}
+
+		/// &lt;summary&gt;
+		/// The name of the &lt;c&gt;PUBLIC&lt;/c&gt; special user.
+		/// &lt;/summary&gt;
+		public const string PublicName = &quot;@PUBLIC&quot;;
+
+		/// &lt;summary&gt;
+		/// The name of the &lt;c&gt;SYSTEM&lt;/c&gt; special user.
+		/// &lt;/summary&gt;
+		public const string SystemName = &quot;@SYSTEM&quot;;
+
+		/// &lt;summary&gt;
+		/// Gets the name that uniquely identify a user within a database system.
+		/// &lt;/summary&gt;
+		public string Name { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if this user represents the
+		/// &lt;c&gt;SYSTEM&lt;/c&gt; special user.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;SystemName&quot;/&gt;
+		public bool IsSystem {
+			get { return Name.Equals(SystemName); }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if this user represents the
+		/// &lt;c&gt;PUBLIC&lt;/c&gt; special user.
+		/// &lt;/summary&gt;
+		public bool IsPublic {
+			get { return Name.Equals(PublicName); }
+		}
+
+		internal bool TryGetObjectGrant(ObjectName objectName, out Privileges grant) {
+			if (grantCache == null) {
+				grant = Privileges.None;
+				return false;
+			}
+
+			return grantCache.TryGetValue(objectName, out grant);
+		}
+
+		internal void CacheObjectGrant(ObjectName objectName, Privileges grant) {
+			if (grantCache == null)
+				grantCache = new Dictionary&lt;ObjectName, Privileges&gt;();
+
+			grantCache[objectName] = grant;
+		}
+
+		internal void ClearGrantCache(ObjectName objName) {
+			if (grantCache.Remove(objName)) {
+				if (grantCache.Count == 0)
+					grantCache = null;
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[38,5,38,45,0],[72,10,72,41,0],[36,3,36,27,1],[37,4,37,35,1],[40,4,40,16,1],[41,3,41,4,1],[64,10,64,41,1],[76,4,76,27,1],[77,5,77,29,1],[78,5,78,18,1],[81,4,81,57,1],[85,4,85,27,1],[86,5,86,59,1],[88,4,88,35,1],[89,3,89,4,1],[92,4,92,35,1],[93,5,93,31,1],[94,6,94,24,1],[96,3,96,4,1],[27,3,27,61,1],[28,3,28,61,1]]);
+    </script>
+  </body>
+</html>

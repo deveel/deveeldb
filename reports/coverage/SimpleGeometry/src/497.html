@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\sortcolumn.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// Object used to represent a column in the &lt;c&gt;ORDER BY&lt;/c&gt; clauses 
+	/// of a select statement.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SortColumn : IPreparable {
+		/// &lt;summary&gt;
+		/// Constructs the &lt;c&gt;BY&lt;/c&gt; column reference with the expression
+		/// and the sort order given.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The expression of the column reference.&lt;/param&gt;
+		/// &lt;param name=&quot;ascending&quot;&gt;The sort order for the column. If this is
+		/// set to &lt;b&gt;true&lt;/b&gt;, the column will be used to sort the results of
+		/// a query in ascending order.&lt;/param&gt;
+		public SortColumn(SqlExpression expression, bool ascending) {
+			Expression = expression;
+			Ascending = ascending;
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;c&gt;BY&lt;/c&gt; column reference with the expression
+		/// given and the ascending sort order.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The expression of the column reference.&lt;/param&gt;
+		public SortColumn(SqlExpression expression)
+			: this(expression, true) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;c&gt;BY&lt;/c&gt; column reference with the expression
+		/// and the sort order given.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The expression of the column reference.&lt;/param&gt;
+		/// &lt;param name=&quot;ascending&quot;&gt;The sort order for the column. If this is
+		/// set to &lt;b&gt;true&lt;/b&gt;, the column will be used to sort the results of
+		/// a query in ascending order.&lt;/param&gt;
+		public SortColumn(string expression, bool ascending)
+			: this(SqlExpression.Parse(expression), ascending) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;c&gt;BY&lt;/c&gt; column reference with the expression
+		/// given and the ascending sort order.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The expression of the column reference.&lt;/param&gt;
+		public SortColumn(string expression)
+			: this(expression, true) {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the expression used to order the result of a query.
+		/// &lt;/summary&gt;
+		public SqlExpression Expression { get; internal set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating whether we&#39;re sorting in ascending
+		/// or descending order.
+		/// &lt;/summary&gt;
+		public bool Ascending { get; private set; }
+
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			var exp = Expression;
+			if (exp != null) {
+				exp = exp.Prepare(preparer);
+			}
+
+			return new SortColumn(exp, Ascending);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[36,3,36,62,0],[37,4,37,28,0],[38,4,38,26,0],[39,3,39,4,0],[46,3,47,28,0],[48,3,48,4,0],[58,3,59,54,0],[60,3,60,4,0],[67,3,68,28,0],[69,3,69,4,0],[83,4,83,25,0],[84,4,84,20,0],[85,5,85,33,0],[88,4,88,42,0]]);
+    </script>
+  </body>
+</html>

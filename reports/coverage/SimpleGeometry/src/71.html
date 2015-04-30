@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\filtertable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+
+namespace Deveel.Data.Sql {
+	class FilterTable : Table {
+		private ColumnIndex[] columnIndices;
+
+		public FilterTable(ITable parent) {
+			Parent = parent;
+		}
+
+		protected ITable Parent { get; private set; }
+
+		public override IEnumerator&lt;Row&gt; GetEnumerator() {
+			return Parent.GetEnumerator();
+		}
+
+		public override IDatabaseContext DatabaseContext {
+			get { return Parent.DatabaseContext; }
+		}
+
+		public override TableInfo TableInfo {
+			get { return Parent.TableInfo; }
+		}
+
+		public override int RowCount {
+			get { return Parent.RowCount; }
+		}
+
+		public override void LockRoot(int lockKey) {
+			Parent.LockRoot(lockKey);
+		}
+
+		public override void UnlockRoot(int lockKey) {
+			Parent.UnlockRoot(lockKey);
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			return Parent.GetRawTableInfo(rootInfo);
+		}
+
+		protected override ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
+			if (columnIndices == null) {
+				columnIndices = new ColumnIndex[Parent.ColumnCount()];
+			}
+
+			// Is there a local index available?
+			var index = columnIndices[column];
+			if (index == null) {
+				// If we are asking for the index of this table we must
+				// tell the parent we are looking for its index.
+				var t = table;
+				if (table == this)
+					t = Parent;
+
+				// Index is not cached in this table so ask the parent.
+				index = Parent.GetIndex(column, originalColumn, t);
+				if (table == this)
+					columnIndices[column] = index;
+
+			} else {
+				// If this has a cached scheme and we are in the correct domain then
+				// return it.
+				if (table == this)
+					return index;
+
+				// Otherwise we must calculate the subset of the scheme
+				return index.GetSubset(table, originalColumn);
+			}
+
+			return index;
+		}
+
+		protected override IEnumerable&lt;int&gt; ResolveRows(int column, IEnumerable&lt;int&gt; rowSet, ITable ancestor) {
+			if (ancestor == this || ancestor == Parent)
+				return rowSet;
+
+			return Parent.ResolveRows(column, rowSet, ancestor);
+		}
+
+		public override DataObject GetValue(long rowNumber, int columnOffset) {
+			return Parent.GetValue(rowNumber, columnOffset);
+		}
+
+		protected override ObjectName GetResolvedColumnName(int column) {
+			return Parent.GetResolvedColumnName(column);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[34,4,34,34,0],[38,10,38,40,0],[42,10,42,34,0],[50,4,50,29,0],[51,3,51,4,0],[54,4,54,31,0],[55,3,55,4,0],[58,4,58,44,0],[62,4,62,30,0],[63,5,63,59,0],[67,4,67,38,0],[68,4,68,22,0],[71,5,71,19,0],[72,5,72,23,0],[73,6,73,17,0],[76,5,76,56,0],[77,5,77,23,0],[78,6,78,36,0],[83,5,83,23,0],[84,6,84,19,0],[87,5,87,51,0],[90,4,90,17,0],[94,4,94,47,0],[95,5,95,19,0],[97,4,97,56,0],[101,4,101,52,0],[105,4,105,48,0],[27,3,27,36,1],[28,4,28,20,1],[29,3,29,4,1],[46,10,46,33,1]]);
+    </script>
+  </body>
+</html>

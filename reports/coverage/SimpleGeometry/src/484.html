@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\simplepatternselectnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	[Serializable]
+	class SimplePatternSelectNode : SingleQueryPlanNode {
+		public SimplePatternSelectNode(IQueryPlanNode child, SqlExpression expression) 
+			: base(child) {
+			Expression = expression;
+		}
+
+		public SqlExpression Expression { get; private set; }
+
+		public override ITable Evaluate(IQueryContext context) {
+			var t = Child.Evaluate(context);
+
+			if (Expression is SqlBinaryExpression) {
+				var binary = (SqlBinaryExpression) Expression;
+
+				// Perform the pattern search expression on the table.
+				// Split the expression,
+				var leftRef = binary.Left.AsReferenceName();
+				if (leftRef != null)
+					// LHS is a simple variable so do a simple select
+					return t.SimpleSelect(context, leftRef, binary.ExpressionType, binary.Right);
+			}
+
+			// LHS must be a constant so we can just evaluate the expression
+			// and see if we get true, false, null, etc.
+			var v = Expression.EvaluateToConstant(context, null);
+
+			// If it evaluates to NULL or FALSE then return an empty set
+			if (v.IsNull || v == false)
+				return t.EmptySelect();
+
+			return t;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[9,3,10,17,0],[11,4,11,28,0],[12,3,12,4,0],[17,4,17,36,0],[19,4,19,42,0],[20,5,20,51,0],[24,5,24,49,0],[25,5,25,25,0],[27,6,27,83,0],[32,4,32,57,0],[35,4,35,31,0],[36,5,36,28,0],[38,4,38,13,0]]);
+    </script>
+  </body>
+</html>

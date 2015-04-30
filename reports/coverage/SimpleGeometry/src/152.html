@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\tableconstraintnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Compile {
+	[Serializable]
+	public sealed class TableConstraintNode : SqlNode, ITableElementNode {
+		private bool notSeen;
+		private readonly IList&lt;string&gt; columns;
+		private readonly IList&lt;string&gt; refColumns;
+
+		internal TableConstraintNode() {
+			columns = new List&lt;string&gt;();
+			refColumns = new List&lt;string&gt;();
+		}
+
+		public string ConstraintName { get; private set; }
+
+		public string ConstraintType { get; private set; }
+
+		public IEnumerable&lt;string&gt; Columns {
+			get { return columns.AsEnumerable(); }
+		}
+
+		public IExpressionNode CheckExpression { get; private set; }
+
+		public ObjectNameNode ReferencedTableName { get; private set; }
+
+		public IEnumerable&lt;string&gt; ReferencedColumns {
+			get { return refColumns.AsEnumerable(); }
+		}
+
+		public string OnUpdateAction { get; private set; }
+
+		public string OnDeleteAction { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == &quot;table_constraint_name_opt&quot;) {
+				ReadConstraintName(node.ChildNodes);
+			} else if (node.NodeName == &quot;def_table_constraint&quot;) {
+				ReadConstraintDefinition(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void ReadConstraintDefinition(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					var keyNode = (SqlKeyNode)childNode;
+					if (String.Equals(keyNode.Text, &quot;NULL&quot;, StringComparison.OrdinalIgnoreCase)) {
+						if (notSeen) {
+							ConstraintType = &quot;NOT NULL&quot;;
+						} else {
+							ConstraintType = &quot;NULL&quot;;
+						}
+					} else if (String.Equals(keyNode.Text, &quot;NOT&quot;, StringComparison.OrdinalIgnoreCase)) {
+						notSeen = true;
+					} else if (String.Equals(keyNode.Text, &quot;REFERENCES&quot;, StringComparison.OrdinalIgnoreCase)) {
+						ConstraintType = ConstraintTypeNames.ForeignKey;
+					} else if (String.Equals(keyNode.Text, &quot;CHECK&quot;, StringComparison.OrdinalIgnoreCase)) {
+						ConstraintType = ConstraintTypeNames.Check;
+					} else if (String.Equals(keyNode.Text, &quot;PRIMARY&quot;, StringComparison.OrdinalIgnoreCase)) {
+						ConstraintType = ConstraintTypeNames.PrimaryKey;
+					} else if (String.Equals(keyNode.Text, &quot;UNIQUE&quot;, StringComparison.OrdinalIgnoreCase)) {
+						ConstraintType = ConstraintTypeNames.UniqueKey;
+					}
+				} else if (childNode.NodeName == &quot;column_list&quot;) {
+					ReadColumnList(childNode.ChildNodes);
+				}				
+			}
+		}
+
+		private void ReadConstraintName(IEnumerable&lt;ISqlNode&gt; nodes) {
+			foreach (var node in nodes) {
+				if (node is IdentifierNode) {
+					ConstraintName = ((IdentifierNode) node).Text;
+				} else {
+					ReadConstraintName(node.ChildNodes);
+				}
+			}
+		}
+
+		private void ReadColumnList(IEnumerable&lt;ISqlNode&gt; nodes) {
+			foreach (var node in nodes) {
+				if (node is IdentifierNode) {
+					columns.Add(((IdentifierNode)node).Text);
+				} else {
+					ReadColumnList(node.ChildNodes);
+				}
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[46,10,46,43,0],[68,7,68,19,0],[69,8,69,36,0],[71,8,71,32,0],[74,7,74,22,0],[76,7,76,55,0],[78,7,78,50,0],[80,7,80,55,0],[105,6,105,38,0],[28,3,28,33,1],[29,4,29,33,1],[30,4,30,36,1],[31,3,31,4,1],[38,10,38,40,1],[54,4,54,53,1],[55,5,55,41,1],[56,11,56,55,1],[57,5,57,36,1],[60,4,60,34,1],[64,30,64,45,1],[64,13,64,26,1],[65,5,65,33,1],[66,6,66,42,1],[67,6,67,82,1],[73,13,73,88,1],[75,13,75,95,1],[77,13,77,90,1],[79,13,79,92,1],[81,13,81,91,1],[82,7,82,54,1],[84,12,84,52,1],[85,6,85,43,1],[64,27,64,29,1],[88,3,88,4,1],[91,25,91,30,1],[91,13,91,21,1],[92,5,92,32,1],[93,6,93,52,1],[95,6,95,42,1],[91,22,91,24,1],[98,3,98,4,1],[101,25,101,30,1],[101,13,101,21,1],[102,5,102,32,1],[103,6,103,47,1],[101,22,101,24,1],[108,3,108,4,1]]);
+    </script>
+  </body>
+</html>

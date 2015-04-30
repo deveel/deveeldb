@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\systemquerycontext.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Security;
+using Deveel.Data.Transactions;
+
+namespace Deveel.Data.DbSystem {
+	public sealed class SystemQueryContext : QueryContextBase {
+		private IUserSession session;
+		private readonly string currentSchema;
+
+		public SystemQueryContext(ITransaction transaction, string currentSchema) {
+			this.currentSchema = currentSchema;
+
+			session = new UserSession(transaction.Database, transaction, new SessionInfo(User.System, TransactionIsolation.Serializable));
+		}
+
+		public override string CurrentSchema {
+			get { return currentSchema; }
+		}
+
+		public override IUserSession Session {
+			get { return session; }
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				session.Dispose();
+			}
+
+			session = null;
+			base.Dispose(disposing);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,3,27,76,1],[28,4,28,39,1],[30,4,30,130,1],[31,3,31,4,1],[34,10,34,31,1],[38,10,38,25,1],[42,4,42,18,1],[43,5,43,23,1],[46,4,46,19,1],[47,4,47,28,1],[48,3,48,4,1]]);
+    </script>
+  </body>
+</html>

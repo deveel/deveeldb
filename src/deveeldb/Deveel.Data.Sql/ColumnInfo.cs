@@ -92,9 +92,31 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the zero-based offset of the column within the containing table.
 		/// </summary>
-		/// <seealso cref="Sql.TableInfo.IndexOfColumn"/>
+		/// <seealso cref="Sql.TableInfo.IndexOfColumn(string)"/>
 		public int Offset {
 			get { return TableInfo == null ? -1 : TableInfo.IndexOfColumn(ColumnName); }
+		}
+
+		public bool HasSize {
+			get { return ColumnType is ISizeableType; }
+		}
+
+		public int Size {
+			get {
+				var sizeable = ColumnType as ISizeableType;
+				return sizeable == null ? -1 : sizeable.Size;
+			}
+		}
+
+		public bool HasScale {
+			get { return ColumnType is NumericType; }
+		}
+
+		public int Scale {
+			get {
+				var numericType = ColumnType as NumericType;
+				return numericType == null ? -1 : numericType.Scale;
+			}
 		}
 
 		/// <summary>

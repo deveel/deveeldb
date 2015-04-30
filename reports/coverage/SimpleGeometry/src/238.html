@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\querycompositenode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Composes two queries to obtain a set that is the result of a
+	/// given composition function.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class QueryCompositeNode : SqlNode {
+		internal QueryCompositeNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the function used to compose the two queries.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This value can be only one of &lt;c&gt;UNION&lt;/c&gt;, &lt;c&gt;EXCEPT&lt;/c&gt;
+		/// or &lt;c&gt;INTERSECT&lt;/c&gt;
+		/// &lt;/remarks&gt;
+		public string CompositeFunction { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating whether the composition
+		/// will be done on all records.
+		/// &lt;/summary&gt;
+		public bool IsAll { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the other query to compose the results.
+		/// &lt;/summary&gt;
+		public SqlQueryExpressionNode QueryExpression { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is SqlKeyNode) {
+
+			} else if (node is SqlQueryExpressionNode) {
+				
+			}
+
+			return base.OnChildNode(node);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,26,32,0],[27,3,27,4,0],[51,4,51,27,0],[53,11,53,46,0],[57,4,57,34,0]]);
+    </script>
+  </body>
+</html>

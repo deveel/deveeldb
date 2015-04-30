@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
 	[Serializable]
-	public sealed class NumericType : DataType {
+	public sealed class NumericType : DataType, ISizeableType {
 		public NumericType(SqlTypeCode sqlType, int size, byte scale) 
 			: base("NUMERIC", sqlType) {
 			AssertIsNumeric(sqlType);

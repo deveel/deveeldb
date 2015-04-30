@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.objects\sqldatetime.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Globalization;
+
+namespace Deveel.Data.Sql.Objects {
+	[Serializable]
+	public struct SqlDateTime : ISqlObject, IEquatable&lt;SqlDateTime&gt;, IConvertible, IComparable&lt;SqlDateTime&gt; {
+		private readonly DateTimeOffset? value;
+
+		public static readonly SqlDateTime Null = new SqlDateTime(true);
+
+		private const int DateSize = 7;
+		private const int TimeStampSize = 11;
+		private const int FullTimeStampSize = 13;
+
+		public static readonly string[] SqlDateFormats = new[] {
+			&quot;yyyy-MM-dd&quot;,
+			&quot;yyyy MM dd&quot;
+		};
+
+		public static readonly string[] SqlTimeStampFormats = new[] {
+			&quot;yyyy-MM-dd HH:mm:ss.fff&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff z&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff zz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff zzz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss z&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss zz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss zzz&quot;,
+
+			&quot;yyyy-MM-ddTHH:mm:ss.fff&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff z&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff zz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff zzz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss z&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss zz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss zzz&quot;,
+		};
+
+		public static readonly string[] SqlTimeFormats = new[] {
+			&quot;HH:mm:ss.fff z&quot;,
+			&quot;HH:mm:ss.fff zz&quot;,
+			&quot;HH:mm:ss.fff zzz&quot;,
+			&quot;HH:mm:ss.fff&quot;,
+			&quot;HH:mm:ss z&quot;,
+			&quot;HH:mm:ss zz&quot;,
+			&quot;HH:mm:ss zzz&quot;,
+			&quot;HH:mm:ss&quot;
+		};
+
+		public static readonly SqlDateTime MaxDate = new SqlDateTime(9999, 12, 31, 23, 59, 59, 999);
+		public static readonly SqlDateTime MinDate = new SqlDateTime(1, 1, 1, 0, 0, 0, 0);
+
+		public SqlDateTime(int year, int month, int day)
+			: this(year, month, day, 0, 0, 0, 0, SqlDayToSecond.Zero) {
+		}
+
+		public SqlDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+			: this(year, month, day, hour, minute, second, millisecond, SqlDayToSecond.Zero) {
+		}
+
+		public SqlDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond, SqlDayToSecond offset)
+			: this() {
+			if (year &lt;= 0 || year &gt; 9999)
+				throw new ArgumentOutOfRangeException(&quot;year&quot;);
+			if (month &lt;= 0 || month &gt; 12)
+				throw new ArgumentOutOfRangeException(&quot;month&quot;);
+			if (day &lt;= 0 || day &gt; 31)
+				throw new ArgumentOutOfRangeException(&quot;day&quot;);
+
+			if (hour &lt; 0 || hour &gt; 23)
+				throw new ArgumentOutOfRangeException(&quot;hour&quot;);
+			if (minute &lt; 0 || minute &gt; 59)
+				throw new ArgumentOutOfRangeException(&quot;minute&quot;);
+			if (second &lt; 0 || second &gt; 59)
+				throw new ArgumentOutOfRangeException(&quot;second&quot;);
+			if (millisecond &lt; 0 || millisecond &gt; 999)
+				throw new ArgumentOutOfRangeException(&quot;millisecond&quot;);
+
+			var tsOffset = new TimeSpan(0, offset.Hours, offset.Minutes, 0, 0);
+			value = new DateTimeOffset(year, month, day, hour, minute, second, millisecond, tsOffset);
+		}
+
+		public SqlDateTime(long ticks)
+			: this(ticks, SqlDayToSecond.Zero) {
+		}
+
+		public SqlDateTime(long ticks, SqlDayToSecond offset)
+			: this() {
+			var tsOffset = new TimeSpan(0, offset.Hours, offset.Minutes, 0);
+			value = new DateTimeOffset(ticks, tsOffset);
+		}
+
+		private SqlDateTime(bool isNull)
+			: this() {
+			if (isNull)
+				value = null;
+		}
+
+		public SqlDateTime(byte[] bytes)
+			: this() {
+			var year = ((bytes[0] - 100)*100) + (bytes[1] - 100);
+			var month = (int) bytes[2];
+			var day = (int) bytes[3];
+			var hour = (int) bytes[4] - 1;
+            var minute  = (int)bytes[5] - 1;
+            var second  = (int)bytes[6] - 1;
+			int millis;
+			int tzh = 0, tzm = 0;
+
+            if (bytes.Length == DateSize) {
+                millis = 0;
+            } else {
+                millis = bytes[7] &lt;&lt; 24 | bytes[8] &lt;&lt; 16 | bytes[9] &lt;&lt;  8 | bytes[10];
+                if (bytes.Length == TimeStampSize) {
+                    tzh = tzm = 0;
+                } else {
+                    tzh = bytes[11] - 20;
+                    tzm = bytes[12] - 60;
+                }
+            }
+
+			value = new DateTimeOffset(year, month, day, hour, minute, second, millis, new TimeSpan(0, tzh, tzm, 0, 0));
+		}
+
+		int IComparable.CompareTo(object obj) {
+			return CompareTo((SqlDateTime) obj);
+		}
+
+		int IComparable&lt;ISqlObject&gt;.CompareTo(ISqlObject other) {
+			return CompareTo((SqlDateTime) other);
+		}
+
+		public bool IsNull {
+			get { return value == null; }
+		}
+
+		private void AssertNotNull() {
+			if (value == null)
+				throw new InvalidOperationException();
+		}
+
+		public int Year {
+			get {
+				AssertNotNull();
+				return value.Value.Year;
+			}
+		}
+
+		public int Month {
+			get {
+				AssertNotNull();
+				return value.Value.Month;
+			}
+		}
+
+		public int Day {
+			get {
+				AssertNotNull();
+				return value.Value.Day;
+			}
+		}
+
+		public int Hour {
+			get {
+				AssertNotNull();
+				return value.Value.Hour;
+			}
+		}
+
+		public int Minute {
+			get {
+				AssertNotNull();
+				return value.Value.Minute;
+			}
+		}
+
+		public int Second {
+			get {
+				AssertNotNull();
+				return value.Value.Second;
+			}
+		}
+
+		public int Millisecond {
+			get {
+				AssertNotNull();
+				return value.Value.Millisecond;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the offset between the date-time instance and the UTC time.
+		/// &lt;/summary&gt;
+		public SqlDayToSecond Offset {
+			get {
+				AssertNotNull();
+				return new SqlDayToSecond(0, value.Value.Offset.Hours, value.Value.Offset.Minutes, 0, 0);
+			}
+		}
+
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return other is SqlDateTime;
+		}
+
+		TypeCode IConvertible.GetTypeCode() {
+			return TypeCode.DateTime;
+		}
+
+		bool IConvertible.ToBoolean(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		char IConvertible.ToChar(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		sbyte IConvertible.ToSByte(IFormatProvider provider) {
+			throw new NotImplementedException();
+		}
+
+		byte IConvertible.ToByte(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		short IConvertible.ToInt16(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		ushort IConvertible.ToUInt16(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		int IConvertible.ToInt32(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		uint IConvertible.ToUInt32(IFormatProvider provider) {
+			throw new InvalidCastException();
+		}
+
+		long IConvertible.ToInt64(IFormatProvider provider) {
+			return ToInt64();
+		}
+
+		ulong IConvertible.ToUInt64(IFormatProvider provider) {
+			return (ulong) ToInt64();
+		}
+
+		float IConvertible.ToSingle(IFormatProvider provider) {
+			return ToInt64();
+		}
+
+		double IConvertible.ToDouble(IFormatProvider provider) {
+			return ToInt64();
+		}
+
+		decimal IConvertible.ToDecimal(IFormatProvider provider) {
+			throw new NotImplementedException();
+		}
+
+		DateTime IConvertible.ToDateTime(IFormatProvider provider) {
+			if (value == null)
+				throw new NullReferenceException();
+
+			return value.Value.DateTime;
+		}
+
+		string IConvertible.ToString(IFormatProvider provider) {
+			return ToString();
+		}
+
+		object IConvertible.ToType(Type conversionType, IFormatProvider provider) {
+			if (conversionType == typeof (long))
+				return ToInt64();
+			if (conversionType == typeof (float))
+				return (float) ToInt64();
+			if (conversionType == typeof (double))
+				return (double) ToInt64();
+
+			if (conversionType == typeof (string))
+				return ToString();
+
+			if (conversionType == typeof (byte[]))
+				return ToByteArray();
+
+			throw new InvalidCastException();
+		}
+
+		public bool Equals(SqlDateTime other) {
+			if (IsNull &amp;&amp; other.IsNull)
+				return true;
+
+			return value.Equals(other.value);
+		}
+
+		public override bool Equals(object obj) {
+			return Equals((SqlDateTime) obj);
+		}
+
+		public override int GetHashCode() {
+			return value == null ? 0 : value.GetHashCode();
+		}
+
+		public int CompareTo(SqlDateTime other) {
+			if (!value.HasValue &amp;&amp; !other.value.HasValue)
+				return 0;
+			if (!value.HasValue)
+				return 1;
+			if (!other.value.HasValue)
+				return -1;
+
+			return value.Value.CompareTo(other.value.Value);
+		}
+
+		public long ToInt64() {
+			AssertNotNull();
+			return value.Value.Ticks;
+		}
+
+		public byte[] ToByteArray() {
+			return ToByteArray(false);
+		}
+
+		public byte[] ToByteArray(bool timeZone) {
+			var size = timeZone ? 13 : 11;
+			if (IsNull)
+				return new byte[size];
+
+			var bytes = new byte[size];
+			bytes[0] = (byte)((Year / 100) + 100);
+            bytes[1] = (byte)((Year % 100) + 100);
+            bytes[2] = (byte)(Month);
+            bytes[3] = (byte)(Day);
+            bytes[4] = (byte)(Hour   + 1);
+            bytes[5] = (byte)(Minute + 1);
+            bytes[6] = (byte)(Second + 1);
+            bytes[7] = (byte)((Millisecond &gt;&gt; 24));
+            bytes[8] = (byte)((Millisecond &gt;&gt; 16) &amp; 0xff);
+            bytes[9] = (byte)((Millisecond &gt;&gt;  8) &amp; 0xff);
+            bytes[10]= (byte)(Millisecond &amp; 0xff);
+			if (timeZone) {
+				var tsOffset = Offset;
+				bytes[11] = (byte) tsOffset.Hours;
+				bytes[12] = (byte) tsOffset.Minutes;
+			}
+			return bytes;
+		}
+
+		/// &lt;summary&gt;
+		/// Adds the given interval of time to this date-time.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;interval&quot;&gt;The interval of time to add.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This method will return &lt;see cref=&quot;Null&quot;/&gt; if either the given 
+		/// &lt;paramref name=&quot;interval&quot;/&gt; is &lt;see cref=&quot;SqlDayToSecond.Null&quot;/&gt;
+		/// or if this instance is equivalent to &lt;c&gt;NULL&lt;/c&gt;.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;SqlDateTime&quot;/&gt; that is the result of
+		/// the addition to this date of the given interval of time.
+		/// &lt;/returns&gt;
+		public SqlDateTime Add(SqlDayToSecond interval) {
+			if (IsNull)
+				return Null;
+			if (interval.IsNull)
+				return this;
+
+			var result = value.Value.AddMilliseconds(interval.TotalMilliseconds);
+			return new SqlDateTime(result.Ticks);
+		}
+
+		/// &lt;summary&gt;
+		/// Subtracts a given interval of time from this date.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;interval&quot;&gt;The interval to subtract from this date.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;SqlDateTime&quot;/&gt; that is the result
+		/// of the subtraction of the given interval of time from this date value.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;SqlDayToSecond&quot;/&gt;
+		public SqlDateTime Subtract(SqlDayToSecond interval) {
+			if (IsNull)
+				return Null;
+			if (interval.IsNull)
+				return this;
+
+			var result = value.Value.AddMilliseconds(-(interval.TotalMilliseconds));
+			return new SqlDateTime(result.Ticks);
+		}
+
+		/// &lt;summary&gt;
+		/// Adds the given months to this date.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;interval&quot;&gt;The month-base interval of time to add.&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		/// &lt;seealso cref=&quot;SqlYearToMonth&quot;/&gt;
+		public SqlDateTime Add(SqlYearToMonth interval) {
+			if (IsNull)
+				return Null;
+			if (interval.IsNull)
+				return this;
+
+			var result = value.Value.AddMonths(interval.TotalMonths);
+			return new SqlDateTime(result.Ticks);
+		}
+
+		public SqlDateTime Subtract(SqlYearToMonth interval) {
+			if (IsNull)
+				return Null;
+			if (interval.IsNull)
+				return this;
+
+			var result = value.Value.AddMonths(-interval.TotalMonths);
+			return new SqlDateTime(result.Ticks);			
+		}
+
+		public static bool operator ==(SqlDateTime a, SqlDateTime b) {
+			return a.Equals(b);
+		}
+
+		public static bool operator !=(SqlDateTime a, SqlDateTime b) {
+			return !(a == b);
+		}
+
+		public static bool operator &gt;(SqlDateTime a, SqlDateTime b) {
+			return a.CompareTo(b) &lt; 0;
+		}
+
+		public static bool operator &lt;(SqlDateTime a, SqlDateTime b) {
+			return a.CompareTo(b) &gt; 0;
+		}
+
+		public static bool operator &gt;=(SqlDateTime a, SqlDateTime b) {
+			var i = a.CompareTo(b);
+			return i == 0 || i &lt; 0;
+		}
+
+		public static bool operator &lt;=(SqlDateTime a, SqlDateTime b) {
+			var i = a.CompareTo(b);
+			return i == 0 || i &gt; 0;
+		}
+
+		public static SqlDateTime operator +(SqlDateTime a, SqlDayToSecond b) {
+			return a.Add(b);
+		}
+
+		public static SqlDateTime operator -(SqlDateTime a, SqlDayToSecond b) {
+			return a.Subtract(b);
+		}
+
+		public static SqlDateTime operator +(SqlDateTime a, SqlYearToMonth b) {
+			return a.Add(b);
+		}
+
+		public static SqlDateTime operator -(SqlDateTime a, SqlYearToMonth b) {
+			return a.Subtract(b);
+		}
+
+		public static SqlDateTime Parse(string s) {
+			SqlDateTime date;
+			if (!TryParse(s, out date))
+				throw new FormatException(String.Format(&quot;Cannot convert string {0} to a valid SQL DATE&quot;, s));
+
+			return date;
+		}
+
+		public static bool TryParse(string s, out SqlDateTime value) {
+			value = new SqlDateTime();
+
+			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
+			DateTimeOffset date;
+			if (DateTimeOffset.TryParseExact(s, SqlDateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				value = new SqlDateTime(date.Year, date.Month, date.Day, 0, 0, 0, 0, SqlDayToSecond.Zero);
+				return true;
+			}
+
+			if (DateTimeOffset.TryParseExact(s, SqlTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes);
+				value = new SqlDateTime(1, 1, 1, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
+				return true;
+			}
+
+			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes, 0);
+				value = new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
+				return true;
+			}
+
+			return false;
+		}
+
+		public static implicit operator SqlDateTime(DateTimeOffset? a) {
+			if (a == null)
+				return Null;
+
+			return a.Value;
+		}
+
+		public static implicit operator SqlDateTime(DateTimeOffset a) {
+			var date = a;
+			var offset = new SqlDayToSecond(date.Offset.Days, date.Offset.Hours, date.Offset.Minutes, date.Offset.Seconds);
+			return new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);			
+		}
+
+		public static implicit operator DateTimeOffset?(SqlDateTime a) {
+			if (a == null || a.IsNull)
+				return null;
+
+			var offset = new TimeSpan(a.Offset.Hours, a.Offset.Minutes, a.Offset.Seconds);
+			return new DateTimeOffset(a.Year, a.Month, a.Day, a.Hour, a.Minute, a.Second, a.Millisecond, offset);
+		}
+
+		public static implicit operator DateTimeOffset(SqlDateTime a) {
+			if (a == null || a.IsNull)
+				throw new NullReferenceException();
+
+			var offset = new TimeSpan(a.Offset.Hours, a.Offset.Minutes, a.Offset.Seconds);
+			return new DateTimeOffset(a.Year, a.Month, a.Day, a.Hour, a.Minute, a.Second, a.Millisecond, offset);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[81,5,81,51,0],[83,5,83,52,0],[85,5,85,50,0],[88,5,88,51,0],[90,5,90,53,0],[92,5,92,53,0],[94,5,94,58,0],[117,6,117,12,0],[118,4,118,57,0],[119,4,119,31,0],[120,4,120,29,0],[121,4,121,34,0],[122,13,122,45,0],[123,13,123,45,0],[125,4,125,16,0],[125,17,125,25,0],[127,13,127,42,0],[128,17,128,28,0],[130,17,130,87,0],[131,17,131,51,0],[132,21,132,35,0],[134,21,134,42,0],[135,21,135,42,0],[139,4,139,112,0],[140,3,140,4,0],[147,4,147,42,0],[156,5,156,43,0],[223,4,223,29,0],[227,4,227,37,0],[231,4,231,37,0],[235,4,235,40,0],[239,4,239,37,0],[243,4,243,37,0],[247,4,247,37,0],[251,4,251,37,0],[255,4,255,37,0],[259,4,259,21,0],[263,4,263,29,0],[267,4,267,21,0],[271,4,271,21,0],[275,4,275,40,0],[279,4,279,22,0],[280,5,280,40,0],[282,4,282,32,0],[286,4,286,22,0],[290,4,290,40,0],[291,5,291,22,0],[292,4,292,41,0],[293,5,293,30,0],[294,4,294,42,0],[295,5,295,31,0],[297,4,297,42,0],[298,5,298,23,0],[300,4,300,42,0],[301,5,301,26,0],[303,4,303,37,0],[308,5,308,17,0],[314,4,314,37,0],[318,4,318,51,0],[323,5,323,14,0],[325,5,325,14,0],[327,5,327,15,0],[333,4,333,20,0],[334,4,334,29,0],[338,4,338,30,0],[344,5,344,27,0],[381,5,381,17,0],[383,5,383,17,0],[400,5,400,17,0],[402,5,402,17,0],[416,5,416,17,0],[418,5,418,17,0],[426,5,426,17,0],[428,5,428,17,0],[443,4,443,30,0],[447,4,447,30,0],[451,4,451,27,0],[452,4,452,27,0],[456,4,456,27,0],[457,4,457,27,0],[469,4,469,20,0],[473,4,473,25,0],[478,4,478,31,0],[479,5,479,98,0],[481,4,481,16,0],[506,4,506,17,0],[510,4,510,18,0],[511,5,511,17,0],[513,4,513,19,0],[517,4,517,17,0],[518,4,518,115,0],[519,4,519,123,0],[523,4,523,30,0],[524,5,524,17,0],[526,4,526,82,0],[527,4,527,105,0],[531,4,531,30,0],[532,5,532,40,0],[534,4,534,82,0],[535,4,535,105,0],[70,3,71,61,1],[72,3,72,4,1],[74,3,75,84,1],[76,3,76,4,1],[79,6,79,12,1],[80,4,80,33,1],[82,4,82,33,1],[84,4,84,29,1],[87,4,87,30,1],[89,4,89,34,1],[91,4,91,34,1],[93,4,93,45,1],[96,4,96,71,1],[97,4,97,94,1],[98,3,98,4,1],[100,3,101,38,1],[102,3,102,4,1],[105,6,105,12,1],[106,4,106,68,1],[107,4,107,48,1],[108,3,108,4,1],[111,6,111,12,1],[112,4,112,15,1],[113,5,113,18,1],[114,3,114,4,1],[143,4,143,40,1],[151,10,151,31,1],[155,4,155,22,1],[157,3,157,4,1],[161,5,161,21,1],[162,5,162,29,1],[168,5,168,21,1],[169,5,169,30,1],[175,5,175,21,1],[176,5,176,28,1],[182,5,182,21,1],[183,5,183,29,1],[189,5,189,21,1],[190,5,190,31,1],[196,5,196,21,1],[197,5,197,31,1],[203,5,203,21,1],[204,5,204,36,1],[213,5,213,21,1],[214,5,214,94,1],[219,4,219,32,1],[307,4,307,31,1],[310,4,310,37,1],[322,4,322,49,1],[324,4,324,24,1],[326,4,326,30,1],[329,4,329,52,1],[342,4,342,34,1],[343,4,343,15,1],[346,4,346,31,1],[347,4,347,42,1],[348,13,348,51,1],[349,13,349,38,1],[350,13,350,36,1],[351,13,351,43,1],[352,13,352,43,1],[353,13,353,43,1],[354,13,354,52,1],[355,13,355,59,1],[356,13,356,59,1],[357,13,357,51,1],[358,4,358,17,1],[359,5,359,27,1],[360,5,360,39,1],[361,5,361,41,1],[363,4,363,17,1],[380,4,380,15,1],[382,4,382,24,1],[385,4,385,73,1],[386,4,386,41,1],[399,4,399,15,1],[401,4,401,24,1],[404,4,404,76,1],[405,4,405,41,1],[415,4,415,15,1],[417,4,417,24,1],[420,4,420,61,1],[421,4,421,41,1],[425,4,425,15,1],[427,4,427,24,1],[430,4,430,62,1],[431,4,431,41,1],[435,4,435,23,1],[439,4,439,21,1],[461,4,461,20,1],[465,4,465,25,1],[485,4,485,30,1],[489,4,489,117,1],[490,5,490,95,1],[491,5,491,17,1],[494,4,494,117,1],[495,5,495,80,1],[496,5,496,101,1],[497,5,497,17,1],[500,4,500,122,1],[501,5,501,83,1],[502,5,502,125,1],[503,5,503,17,1],[25,3,25,67,1],[31,3,34,5,1],[36,3,54,5,1],[56,3,65,5,1],[67,3,67,95,1],[68,3,68,85,1]]);
+    </script>
+  </body>
+</html>

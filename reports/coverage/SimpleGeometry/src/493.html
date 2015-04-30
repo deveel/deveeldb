@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\viewinfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
+
+namespace Deveel.Data.Sql {
+	public sealed class ViewInfo : IObjectInfo {
+		public ViewInfo(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
+			if (tableInfo == null)
+				throw new ArgumentNullException(&quot;tableInfo&quot;);
+			if (queryExpression == null)
+				throw new ArgumentNullException(&quot;queryExpression&quot;);
+
+			TableInfo = tableInfo;
+			QueryExpression = queryExpression;
+			QueryPlan = queryPlan;
+		}
+
+		public TableInfo TableInfo { get; private set; }
+
+		public ObjectName ViewName {
+			get { return TableInfo.TableName; }
+		}
+
+		public SqlQueryExpression QueryExpression { get; private set; }
+
+		public IQueryPlanNode QueryPlan { get; private set; }
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.View; }
+		}
+
+		ObjectName IObjectInfo.FullName {
+			get { return ViewName; }
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,3,24,101,0],[25,4,25,26,0],[26,5,26,50,0],[27,4,27,32,0],[28,5,28,56,0],[30,4,30,26,0],[31,4,31,38,0],[32,4,32,26,0],[33,3,33,4,0],[38,10,38,37,0],[46,10,46,35,0],[50,10,50,26,0]]);
+    </script>
+  </body>
+</html>

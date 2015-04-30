@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.fluid\queryconfigurationextensions.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Fluid {
+	public static class QueryConfigurationExtensions {
+		public static IQueryConfiguration All(this IQueryConfiguration configuration) {
+			return configuration.All(true);
+		}
+
+		public static IQueryConfiguration Distinct(this IQueryConfiguration configuration) {
+			return configuration.Distinct(true);
+		}
+
+		public static ISelectListConfiguration Column(this ISelectListConfiguration configuration, ObjectName columnName) {
+			return Column(configuration, columnName, null);
+		}
+
+		public static ISelectListConfiguration Column(this ISelectListConfiguration configuration, ObjectName columnName, string alias) {
+			return configuration.Expression(SqlExpression.Reference(columnName), alias);
+		}
+
+		public static ISelectListConfiguration Column(this ISelectListConfiguration configuration, string columnName) {
+			return Column(configuration, columnName, null);
+		}
+
+		public static ISelectListConfiguration Column(this ISelectListConfiguration configuration, string columnName, string alias) {
+			return configuration.Column(ObjectName.Parse(columnName), alias);
+		}
+
+		public static ISelectListConfiguration Expression(this ISelectListConfiguration configuration, SqlExpression expression) {
+			return Expression(configuration, expression, null);
+		}
+
+		public static ISelectListConfiguration Expression(this ISelectListConfiguration configuration, SqlExpression expression, string alias) {
+			return configuration.Item(x =&gt; x.Expression(expression).As(alias));
+		}
+
+		public static IQueryConfiguration From(this IQueryConfiguration configuration, string tableName) {
+			return From(configuration, null, tableName);
+		}
+
+		public static IQueryConfiguration From(this IQueryConfiguration configuration, string alias, string tableName) {
+			configuration.From(sources =&gt; sources.Table(ObjectName.Parse(tableName)).As(alias));
+			return configuration;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,4,24,35,0],[28,4,28,40,0],[32,4,32,51,0],[36,4,36,80,0],[40,4,40,51,0],[44,4,44,69,0],[48,4,48,55,0],[52,4,52,35,0],[52,69,52,71,0],[56,4,56,48,0],[60,4,60,34,0],[60,86,60,88,0],[61,4,61,25,0],[52,35,52,69,0],[60,34,60,86,0]]);
+    </script>
+  </body>
+</html>

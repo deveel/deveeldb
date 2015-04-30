@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.types\booleantypetest.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+
+using Deveel.Data.Sql.Objects;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.Types {
+	[TestFixture]
+	[Category(&quot;Booleans&quot;)]
+	[Category(&quot;Data Types&quot;)]
+	public class BooleanTypeTest {
+		[Test]
+		[Category(&quot;Comparison&quot;)]
+		public void Compare_Booleans() {
+			var type = PrimitiveTypes.Boolean();
+			Assert.IsNotNull(type);
+
+			Assert.AreEqual(1, type.Compare(SqlBoolean.True, SqlBoolean.False));
+			Assert.AreEqual(-1, type.Compare(SqlBoolean.False, SqlBoolean.True));
+			Assert.AreEqual(0, type.Compare(SqlBoolean.True, SqlBoolean.True));
+			Assert.AreEqual(0, type.Compare(SqlBoolean.False, SqlBoolean.False));
+		}
+
+		[Test]
+		[Category(&quot;Numbers&quot;)]
+		[Category(&quot;Comparison&quot;)]
+		public void Compare_BooleanToNumeric() {
+			var type = PrimitiveTypes.Boolean();
+			Assert.IsNotNull(type);
+
+			Assert.AreEqual(0, type.Compare(SqlBoolean.True, SqlNumber.One));
+			Assert.AreEqual(0, type.Compare(SqlBoolean.False, SqlNumber.Zero));
+		}
+
+		[Test]
+		[Category(&quot;Numbers&quot;)]
+		[Category(&quot;Comparison&quot;)]
+		public void Compare_BooleanToNumeric_Invalid() {
+			var type = PrimitiveTypes.Boolean();
+			Assert.IsNotNull(type);
+
+			int result = -2;
+			Assert.DoesNotThrow(() =&gt; result = type.Compare(SqlBoolean.True, new SqlNumber(22)));
+			Assert.AreEqual(1, result);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[30,4,30,40,1],[31,4,31,27,1],[33,4,33,72,1],[34,4,34,73,1],[35,4,35,71,1],[36,4,36,73,1],[37,3,37,4,1],[43,4,43,40,1],[44,4,44,27,1],[46,4,46,69,1],[47,4,47,71,1],[48,3,48,4,1],[54,4,54,40,1],[55,4,55,27,1],[57,4,57,20,1],[58,4,58,30,1],[58,87,58,89,1],[59,4,59,31,1],[60,3,60,4,1],[58,30,58,87,1]]);
+    </script>
+  </body>
+</html>

@@ -210,7 +210,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			private static SqlStatement MakeCreateTable(ObjectName tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {
-				var tree = new SqlCreateTableStatement(tableName, columns.ToList());
+				var tree = new CreateTableStatement(tableName, columns.ToList());
 				tree.IfNotExists = ifNotExists;
 				tree.Temporary = temporary;
 				return tree;

@@ -79,19 +79,13 @@ namespace Deveel.Data.Transactions {
 			IntTableInfo = new TableInfo[9];
 			IntTableInfo[0] = SystemSchema.TableInfoTableInfo;
 			IntTableInfo[1] = SystemSchema.TableColumnsTableInfo;
-
-			/*
-			TODO:
 			IntTableInfo[2] = SystemSchema.ProductInfoTableInfo;
 			IntTableInfo[3] = SystemSchema.VariablesTableInfo;
 			IntTableInfo[4] = SystemSchema.StatisticsTableInfo;
-			IntTableInfo[5] = SystemSchema.ConnectionInfoTableInfo;
+			IntTableInfo[5] = SystemSchema.SessionInfoTableInfo;
 			IntTableInfo[6] = SystemSchema.OpenSessionsTableInfo;
-			*/
 			IntTableInfo[7] = SystemSchema.SqlTypesTableInfo;
-			/*
 			IntTableInfo[8] = SystemSchema.PrivilegesTableInfo;
-			*/
 		}
 
 		public long CommitId { get; private set; }
@@ -140,7 +134,6 @@ namespace Deveel.Data.Transactions {
 			// OLD and NEW system tables (if applicable)
 			tableManager.AddInternalTable(new OldAndNewTableContainer(this));
 
-			// TODO:
 			// Model views as tables (obviously)
 			tableManager.AddInternalTable(viewManager.CreateInternalTableInfo());
 
@@ -262,9 +255,9 @@ namespace Deveel.Data.Transactions {
 			private readonly Transaction transaction;
 			private readonly TableInfo[] tableInfos;
 
-			public TransactionTableContainer(Transaction transaction, TableInfo[] tableInfo) {
+			public TransactionTableContainer(Transaction transaction, TableInfo[] tableInfos) {
 				this.transaction = transaction;
-				this.tableInfos = tableInfo;
+				this.tableInfos = tableInfos;
 			}
 
 			public int TableCount {
@@ -308,9 +301,6 @@ namespace Deveel.Data.Transactions {
 			public ITable GetTable(int offset) {
 				if (offset == 0)
 					return SystemSchema.GetTableInfoTable(transaction);
-
-				/*
-				TODO:
 				if (offset == 1)
 					return SystemSchema.GetTableColumnsTable(transaction);
 				if (offset == 2)
@@ -319,17 +309,17 @@ namespace Deveel.Data.Transactions {
 					return SystemSchema.GetVariablesTable(transaction);
 				if (offset == 4)
 					return SystemSchema.GetStatisticsTable(transaction);
+				/*
+				TODO:
 				if (offset == 5)
-					return SystemSchema.GetConnectionInfoTable(transaction);
-				if (offset == 6)
-					return SystemSchema.GetCurrentConnectionsTable(transaction);
+					return SystemSchema.GetSessionInfoTable(transaction);
 				*/
+				if (offset == 6)
+					return SystemSchema.GetOpenSessionsTable(transaction);
 				if (offset == 7)
 					return SystemSchema.GetSqlTypesTable(transaction);
-				/*
 				if (offset == 8)
 					return SystemSchema.GetPrivilegesTable(transaction);
-				*/
 
 				throw new ArgumentOutOfRangeException("offset");
 			}

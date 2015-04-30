@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\returntypevisitor.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Routines;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql.Expressions {
+	class ReturnTypeVisitor : SqlExpressionVisitor {
+		private readonly IQueryContext queryContext;
+		private readonly IVariableResolver variableResolver;
+
+		private DataType dataType;
+
+		public ReturnTypeVisitor(IQueryContext queryContext, IVariableResolver variableResolver) {
+			this.queryContext = queryContext;
+			this.variableResolver = variableResolver;
+
+			dataType = PrimitiveTypes.Null();
+		}
+
+		public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
+			switch (binaryEpression.ExpressionType) {
+				case SqlExpressionType.Add:
+				case SqlExpressionType.Subtract:
+				case SqlExpressionType.Multiply:
+				case SqlExpressionType.Modulo:
+				case SqlExpressionType.Divide:
+					dataType = PrimitiveTypes.Numeric();
+					break;
+				default:
+					// we assume the expression type is already been check to be binary.
+					dataType = PrimitiveTypes.Boolean();
+					break;
+
+			}
+			
+			return base.VisitBinary(binaryEpression);
+		}
+
+		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
+			dataType = constant.Value.Type;
+
+			return base.VisitConstant(constant);
+		}
+
+		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
+			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
+			var function = invoke.ResolveRoutine(queryContext) as IFunction;
+			if (function != null)
+				dataType = function.ReturnType(invoke, queryContext, variableResolver);
+
+			return base.VisitFunctionCall(expression);
+		}
+
+		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+			var name = reference.ReferenceName;
+			dataType = variableResolver.ReturnType(name);
+
+			return base.VisitReference(reference);
+		}
+
+		public override SqlExpression Visit(SqlExpression expression) {
+			if (expression is QueryReferenceExpression)
+				return VisitQueryReference((QueryReferenceExpression) expression);
+
+			return base.Visit(expression);
+		}
+
+		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
+			dataType = expression.Reference.ReturnType;
+			return expression;
+		}
+
+		public DataType GetType(SqlExpression expression) {
+			Visit(expression);
+			return dataType;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[38,4,38,43,0],[44,6,44,42,0],[45,6,45,12,0],[48,6,48,42,0],[53,4,53,45,0],[63,4,63,74,0],[64,4,64,68,0],[65,4,65,25,0],[66,5,66,76,0],[68,4,68,46,0],[72,4,72,39,0],[73,4,73,49,0],[75,4,75,42,0],[80,5,80,71,0],[86,4,86,47,0],[87,4,87,22,0],[30,3,30,91,1],[31,4,31,37,1],[32,4,32,45,1],[34,4,34,37,1],[35,3,35,4,1],[57,4,57,35,1],[59,4,59,40,1],[79,4,79,47,1],[82,4,82,34,1],[91,4,91,22,1],[92,4,92,20,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\simpleselectnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	/// &lt;summary&gt;
+	/// The node for performing a simple select operation on a table.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// The simple select requires a LHS variable, an operator, and an expression 
+	/// representing the RHS.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	class SimpleSelectNode : SingleQueryPlanNode {
+		public SimpleSelectNode(IQueryPlanNode child, ObjectName columnName, SqlExpressionType op, SqlExpression expression)
+			: base(child) {
+			ColumnName = columnName;
+			OperatorType = op;
+			Expression = expression;
+		}
+
+		public ObjectName ColumnName { get; private set; }
+
+		public SqlExpressionType OperatorType { get; private set; }
+
+		public SqlExpression Expression { get; private set; }
+
+		public override ITable Evaluate(IQueryContext context) {
+			throw new NotImplementedException();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[32,3,33,17,0],[34,4,34,28,0],[35,4,35,22,0],[36,4,36,28,0],[37,3,37,4,0],[46,4,46,40,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\functiontable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+using Deveel.Data.Caching;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql {
+	class FunctionTable : BaseDataTable {
+		private readonly IQueryContext context;
+		private readonly ITableVariableResolver varResolver;
+		private readonly TableInfo funTableInfo;
+		private bool wholeTableIsSimpleEnum;
+		private readonly int uniqueId;
+		private readonly byte[] expInfo;
+		private readonly SqlExpression[] expList;
+		private readonly int rowCount;
+
+		private IList&lt;int&gt; groupLinks;
+		private IList&lt;int&gt; groupLookup;
+		private TableGroupResolver groupResolver;
+		private bool wholeTableAsGroup;
+		private IList&lt;int&gt; wholeTableGroup;
+		private int wholeTableGroupSize;
+
+		private static readonly ObjectName FunctionTableName = new ObjectName(null, &quot;FUNCTIONTABLE&quot;);
+
+		private static int uniqueKeySeq = 0;
+
+		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
+			: this(queryContext.Session.Database.SingleRowTable, functionList, columnNames, queryContext) {
+		}
+
+		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
+			: base(queryContext.DatabaseContext) {
+			// Make sure we are synchronized over the class.
+			lock (typeof(FunctionTable)) {
+				uniqueId = uniqueKeySeq;
+				++uniqueKeySeq;
+			}
+
+			uniqueId = (uniqueId &amp; 0x0FFFFFFF) | 0x010000000;
+
+			context = queryContext;
+
+			ReferenceTable = table;
+			varResolver = table.GetVariableResolver();
+			varResolver = varResolver.ForRow(0);
+
+			// Create a DataTableInfo object for this function table.
+			funTableInfo = new TableInfo(FunctionTableName);
+
+			expList = new SqlExpression[functionList.Length];
+			expInfo = new byte[functionList.Length];
+
+			// Create a new DataColumnInfo for each expression, and work out if the
+			// expression is simple or not.
+			for (int i = 0; i &lt; functionList.Length; ++i) {
+				var expr = functionList[i];
+				// Examine the expression and determine if it is simple or not
+				if (expr.IsConstant() &amp;&amp; !expr.HasAggregate(context)) {
+					// If expression is a constant, solve it
+					var result = expr.Evaluate(context, null);
+					if (result.ExpressionType != SqlExpressionType.Constant)
+						throw new InvalidOperationException();
+
+					expr = result;
+					expList[i] = expr;
+					expInfo[i] = 1;
+				} else {
+					// Otherwise must be dynamic
+					expList[i] = expr;
+					expInfo[i] = 0;
+				}
+
+				// Make the column info
+				funTableInfo.AddColumn(columnNames[i], expr.ReturnType(context, varResolver));
+			}
+
+			// Make sure the table info isn&#39;t changed from this point on.
+			funTableInfo = funTableInfo.AsReadOnly();
+
+			// routine tables are the size of the referring table.
+			rowCount = table.RowCount;
+
+			// Set schemes to &#39;blind search&#39;.
+			SetupIndexes(DefaultIndexTypes.BlindSearch);
+		}
+
+		public override IEnumerator&lt;Row&gt; GetEnumerator() {
+			return new SimpleRowEnumerator(this);
+		}
+
+		public ITable ReferenceTable { get; private set; }
+
+		public override TableInfo TableInfo {
+			get { return funTableInfo; }
+		}
+
+		public override int RowCount {
+			get { return rowCount; }
+		}
+
+		public override void LockRoot(int lockKey) {
+			// We Lock the reference table.
+			// NOTE: This cause the reference table to Lock twice when we use the
+			//  &#39;MergeWithReference&#39; method.  While this isn&#39;t perfect behaviour, it
+			//  means if &#39;MergeWithReference&#39; isn&#39;t used, we still maintain a safe
+			//  level of locking.
+			ReferenceTable.LockRoot(lockKey);
+		}
+
+		public override void UnlockRoot(int lockKey) {
+			// We unlock the reference table.
+			// NOTE: This cause the reference table to unlock twice when we use the
+			//  &#39;MergeWithReference&#39; method.  While this isn&#39;t perfect behaviour, it
+			//  means if &#39;MergeWithReference&#39; isn&#39;t used, we still maintain a safe
+			//  level of locking.
+			ReferenceTable.UnlockRoot(lockKey);
+		}
+
+		public override DataObject GetValue(long rowNumber, int columnOffset) {
+			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
+			// Check if in the cache,
+			var cache = DatabaseContext.CellCache;
+
+			// Is the column worth caching, and is caching enabled?
+			if (expInfo[columnOffset] == 0 &amp;&amp; cache != null) {
+				var cell = cache.Get(uniqueId, (int)rowNumber, columnOffset);
+				if (cell != null)
+					// In the cache so return the cell.
+					return cell;
+
+				// Not in the cache so calculate the value and write it in the cache.
+				return CalcValue((int)rowNumber, columnOffset, cache);
+			}
+
+			// Caching is not enabled
+			return CalcValue((int)rowNumber, columnOffset, null);
+
+		}
+
+		private DataObject CalcValue(int row, int column, TableCellCache cache) {
+			var resolver = varResolver.ForRow(row);
+
+			if (groupResolver != null) {
+				groupResolver.SetUpGroupForRow(row);
+			}
+
+			var expr = expList[column];
+			var exp = expr.Evaluate(context, resolver, groupResolver);
+			if (exp.ExpressionType != SqlExpressionType.Constant)
+				throw new ArgumentException();
+
+			var value = ((SqlConstantExpression) exp).Value;
+			if (cache != null)
+				cache.Set(uniqueId, row, column, value);
+
+			return value;
+		}
+
+		private int GetRowGroup(int rowIndex) {
+			return groupLookup[rowIndex];
+		}
+
+		private int GetGroupSize(int groupNumber) {
+			int groupSize = 1;
+			int i = groupLinks[groupNumber];
+			while ((i &amp; 0x040000000) == 0) {
+				++groupSize;
+				++groupNumber;
+				i = groupLinks[groupNumber];
+			}
+			return groupSize;
+		}
+
+		private IList&lt;int&gt; GetGroupRows(int groupNumber) {
+			var rows = new List&lt;int&gt;();
+			var row = groupLinks[groupNumber];
+
+			while ((row &amp; 0x040000000) == 0) {
+				rows.Add(row);
+				++groupNumber;
+				row = groupLinks[groupNumber];
+			}
+
+			rows.Add(row &amp; 0x03FFFFFFF);
+			return rows;
+		}
+
+		private IList&lt;int&gt; GetTopRowsFromEachGroup() {
+			var extractRows = new List&lt;int&gt;();
+			var size = groupLinks.Count;
+			var take = true;
+
+			for (int i = 0; i &lt; size; ++i) {
+				int r = groupLinks[i];
+				if (take)
+					extractRows.Add(r &amp; 0x03FFFFFFF);
+
+				take = (r &amp; 0x040000000) != 0;
+			}
+
+			return extractRows;
+		}
+
+		private IList&lt;int&gt; GetMaxFromEachGroup(int colNum) {
+			var refTab = ReferenceTable;
+
+			var extractRows = new List&lt;int&gt;();
+			var size = groupLinks.Count;
+
+			int toTakeInGroup = -1;
+			DataObject max = null;
+
+			for (int i = 0; i &lt; size; ++i) {
+				int row = groupLinks[i];
+
+				int actRIndex = row &amp; 0x03FFFFFFF;
+				var cell = refTab.GetValue(actRIndex, colNum);
+
+				if (max == null || cell.CompareTo(max) &gt; 0) {
+					max = cell;
+					toTakeInGroup = actRIndex;
+				}
+
+				if ((row &amp; 0x040000000) != 0) {
+					extractRows.Add(toTakeInGroup);
+					max = null;
+				}
+			}
+
+			return extractRows;
+		}
+
+		public ITable MergeWith(ObjectName maxColumn) {
+			var table = ReferenceTable;
+
+			IList&lt;int&gt; rowList;
+
+			if (wholeTableAsGroup) {
+				// Whole table is group, so take top entry of table.
+
+				rowList = new List&lt;int&gt;(1);
+				var rowEnum = table.GetEnumerator();
+				if (rowEnum.MoveNext()) {
+					rowList.Add(rowEnum.Current.RowId.RowNumber);
+				} else {
+					// MAJOR HACK: If the referencing table has no elements then we choose
+					//   an arbitary index from the reference table to merge so we have
+					//   at least one element in the table.
+					//   This is to fix the &#39;SELECT COUNT(*) FROM empty_table&#39; bug.
+					rowList.Add(Int32.MaxValue - 1);
+				}
+			} else if (table.RowCount == 0) {
+				rowList = new List&lt;int&gt;(0);
+			} else if (groupLinks != null) {
+				// If we are grouping, reduce down to only include one row from each
+				// group.
+				if (maxColumn == null) {
+					rowList = GetTopRowsFromEachGroup();
+				} else {
+					var colNum = ReferenceTable.FindColumn(maxColumn);
+					rowList = GetMaxFromEachGroup(colNum);
+				}
+			} else {
+				// OPTIMIZATION: This should be optimized.  It should be fairly trivial
+				//   to generate a Table implementation that efficiently merges this
+				//   function table with the reference table.
+
+				// This means there is no grouping, so merge with entire table,
+				int rowCount = table.RowCount;
+				rowList = new List&lt;int&gt;(rowCount);
+				var en = table.GetEnumerator();
+				while (en.MoveNext()) {
+					rowList.Add(en.Current.RowId.RowNumber);
+				}
+			}
+
+			// Create a virtual table that&#39;s the new group table merged with the
+			// functions in this...
+
+			var tabs = new [] { table, this };
+			var rowSets = new[] { rowList, rowList };
+
+			return new VirtualTable(tabs, rowSets);
+		}
+
+		public FunctionTable AsGroup() {
+			// TODO: create a new table ...
+			wholeTableAsGroup = true;
+
+			wholeTableGroupSize = ReferenceTable.RowCount;
+
+			// Set up &#39;whole_table_group&#39; to the list of all rows in the reference
+			// table.
+			var en = ReferenceTable.GetEnumerator();
+			wholeTableIsSimpleEnum = en is SimpleRowEnumerator;
+			if (!wholeTableIsSimpleEnum) {
+				wholeTableGroup = new List&lt;int&gt;(ReferenceTable.RowCount);
+				while (en.MoveNext()) {
+					wholeTableGroup.Add(en.Current.RowId.RowNumber);
+				}
+			}
+
+			// Set up a group resolver for this method.
+			groupResolver = new TableGroupResolver(this);
+			return this;
+		}
+
+		public FunctionTable CreateGroupMatrix(ObjectName[] columns) {
+			// If we have zero rows, then don&#39;t bother creating the matrix.
+			if (RowCount &lt;= 0 || columns.Length &lt;= 0)
+				return this;
+
+			var rootTable = ReferenceTable;
+			int rowCount = rootTable.RowCount;
+			int[] colLookup = new int[columns.Length];
+			for (int i = columns.Length - 1; i &gt;= 0; --i) {
+				colLookup[i] = rootTable.IndexOfColumn(columns[i]);
+			}
+
+			var rowList = rootTable.OrderedRows(colLookup).ToList();
+
+			// &#39;row_list&#39; now contains rows in this table sorted by the columns to
+			// group by.
+
+			// This algorithm will generate two lists.  The group_lookup list maps
+			// from rows in this table to the group number the row belongs in.  The
+			// group number can be used as an index to the &#39;group_links&#39; list that
+			// contains consequtive links to each row in the group until -1 is reached
+			// indicating the end of the group;
+
+			groupLookup = new List&lt;int&gt;(rowCount);
+			groupLinks = new List&lt;int&gt;(rowCount);
+			int currentGroup = 0;
+			int previousRow = -1;
+			for (int i = 0; i &lt; rowCount; i++) {
+				var rowIndex = rowList[i];
+
+				if (previousRow != -1) {
+					bool equal = true;
+					// Compare cell in column in this row with previous row.
+					for (int n = 0; n &lt; colLookup.Length &amp;&amp; equal; ++n) {
+						var c1 = rootTable.GetValue(rowIndex, colLookup[n]);
+						var c2 = rootTable.GetValue(previousRow, colLookup[n]);
+						equal = (c1.CompareTo(c2) == 0);
+					}
+
+					if (!equal) {
+						// If end of group, set bit 15
+						groupLinks.Add(previousRow | 0x040000000);
+						currentGroup = groupLinks.Count;
+					} else {
+						groupLinks.Add(previousRow);
+					}
+				}
+
+				// groupLookup.Insert(row_index, current_group);
+				PlaceAt(groupLookup, rowIndex, currentGroup);
+
+				previousRow = rowIndex;
+			}
+
+			// Add the final row.
+			groupLinks.Add(previousRow | 0x040000000);
+
+			// Set up a group resolver for this method.
+			groupResolver = new TableGroupResolver(this);
+
+			return this;
+		}
+
+		private static void PlaceAt(IList&lt;int&gt; list, int index, int value) {
+			while (index &gt; list.Count) {
+				list.Add(0);
+			}
+
+			list.Insert(index, value);
+		}
+
+		public static ITable ResultTable(IQueryContext context, SqlExpression expression) {
+			var exp = new [] { expression };
+			var names = new[] { &quot;result&quot; };
+			var table = new FunctionTable(exp, names, context);
+
+			return new SubsetColumnTable(table, new int[0], new []{new ObjectName(&quot;result&quot;) });
+		}
+
+		public static ITable ResultTable(IQueryContext context, DataObject value) {
+			return ResultTable(context, SqlExpression.Constant(value));
+		}
+
+		public static ITable ResultTable(IQueryContext context, int value) {
+			return ResultTable(context, DataObject.Integer(value));
+		}
+
+		#region TableGroupResolver
+
+		class TableGroupResolver : IGroupResolver {
+			private IList&lt;int&gt; group;
+			private ITableVariableResolver groupVarResolver;
+
+			public TableGroupResolver(FunctionTable table) {
+				Table = table;
+				GroupId = -1;
+			}
+
+			public FunctionTable Table { get; private set; }
+
+			public int GroupId { get; private set; }
+
+			public int Count {
+				get {
+					if (GroupId == -2)
+						return Table.wholeTableGroupSize;
+					if (group != null)
+						return group.Count;
+
+					return Table.GetGroupSize(GroupId);
+				}
+			}
+
+			private void EnsureGroup() {
+				if (group == null) {
+					if (GroupId == -2) {
+						group = Table.wholeTableGroup;
+					} else {
+						group = Table.GetGroupRows(GroupId);
+					}
+				}
+			}
+
+			public DataObject Resolve(ObjectName variable, int setIndex) {
+				int colIndex = Table.ReferenceTable.FindColumn(variable);
+				if (colIndex == -1)
+					throw new ApplicationException(String.Format(&quot;Column {0} not found in table {1}.&quot;, variable, Table.TableName));
+
+				EnsureGroup();
+
+				int rowIndex = setIndex;
+				if (group != null)
+					rowIndex = group[setIndex];
+
+				return Table.ReferenceTable.GetValue(rowIndex, colIndex);
+			}
+
+			private ITableVariableResolver CreateVariableResolver() {
+				if (groupVarResolver == null)
+					groupVarResolver = new GroupVariableResolver(this);
+
+				return groupVarResolver;
+			}
+
+			public IVariableResolver GetVariableResolver(int setIndex) {
+				var resolver = CreateVariableResolver();
+				resolver = resolver.ForRow(setIndex);
+				return resolver;
+			}
+
+			public void SetUpGroupForRow(int rowIndex) {
+				if (Table.wholeTableAsGroup) {
+					if (GroupId != -2) {
+						GroupId = -2;
+						group = null;
+					}
+				} else {
+					int g = Table.GetRowGroup(rowIndex);
+					if (g != GroupId) {
+						GroupId = g;
+						group = null;
+					}
+				}
+			}
+
+			#region GroupVariableResolver
+
+			class GroupVariableResolver : ITableVariableResolver {
+				private readonly TableGroupResolver groupResolver;
+				private readonly int rowIndex;
+
+				public GroupVariableResolver(TableGroupResolver groupResolver) 
+					: this(groupResolver, -1) {
+				}
+
+				public GroupVariableResolver(TableGroupResolver groupResolver, int rowIndex) {
+					this.groupResolver = groupResolver;
+					this.rowIndex = rowIndex;
+				}
+
+				public DataObject Resolve(ObjectName variable) {
+					if (rowIndex &lt; 0)
+						throw new InvalidOperationException();
+
+					return groupResolver.Resolve(variable, rowIndex);
+				}
+
+				public DataType ReturnType(ObjectName variable) {
+					var columnOffset = groupResolver.Table.FindColumn(variable);
+					if (columnOffset &lt; 0)
+						throw new InvalidOperationException(String.Format(&quot;Cannot find column {0} in table {1}&quot;, variable,
+							groupResolver.Table.TableName));
+
+					return groupResolver.Table.TableInfo[columnOffset].ColumnType;
+				}
+
+				public ITableVariableResolver ForRow(int rowNum) {
+					return new GroupVariableResolver(groupResolver, rowNum);
+				}
+			}
+
+			#endregion
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[85,7,85,45,0],[92,6,92,24,0],[93,6,93,21,0],[111,4,111,41,0],[130,4,130,37,0],[131,3,131,4,0],[139,4,139,39,0],[140,3,140,4,0],[145,4,145,42,0],[148,4,148,52,0],[149,5,149,66,0],[150,5,150,22,0],[152,6,152,18,0],[155,5,155,59,0],[159,4,159,57,0],[164,4,164,43,0],[166,4,166,30,0],[167,5,167,41,0],[170,4,170,31,0],[171,4,171,62,0],[172,4,172,57,0],[173,5,173,35,0],[175,4,175,52,0],[176,4,176,22,0],[177,5,177,45,0],[179,4,179,17,0],[183,4,183,33,0],[187,4,187,22,0],[188,4,188,36,0],[190,5,190,17,0],[191,5,191,19,0],[192,5,192,33,0],[189,4,189,34,0],[194,4,194,21,0],[198,4,198,31,0],[199,4,199,38,0],[202,5,202,19,0],[203,5,203,19,0],[204,5,204,35,0],[201,4,201,36,0],[207,4,207,32,0],[208,4,208,16,0],[212,4,212,38,0],[213,4,213,32,0],[214,4,214,20,0],[216,9,216,19,0],[217,5,217,27,0],[218,5,218,14,0],[219,6,219,39,0],[221,5,221,35,0],[216,30,216,33,0],[216,20,216,28,0],[224,4,224,23,0],[228,4,228,32,0],[230,4,230,38,0],[231,4,231,32,0],[233,4,233,27,0],[234,4,234,26,0],[236,9,236,19,0],[237,5,237,29,0],[239,5,239,39,0],[240,5,240,51,0],[242,5,242,48,0],[243,6,243,17,0],[244,6,244,32,0],[247,5,247,34,0],[248,6,248,37,0],[249,6,249,17,0],[236,30,236,33,0],[236,20,236,28,0],[253,4,253,23,0],[257,4,257,31,0],[261,4,261,26,0],[264,5,264,32,0],[265,5,265,41,0],[266,5,266,28,0],[267,6,267,51,0],[273,6,273,38,0],[275,11,275,35,0],[276,5,276,32,0],[277,11,277,34,0],[280,5,280,27,0],[281,6,281,42,0],[283,6,283,56,0],[284,6,284,44,0],[292,5,292,35,0],[293,5,293,39,0],[294,5,294,36,0],[296,6,296,46,0],[295,5,295,26,0],[303,4,303,38,0],[304,4,304,45,0],[306,4,306,43,0],[311,4,311,29,0],[313,4,313,50,0],[317,4,317,44,0],[318,4,318,55,0],[319,4,319,32,0],[320,5,320,62,0],[322,6,322,54,0],[321,5,321,26,0],[327,4,327,49,0],[328,4,328,16,0],[333,4,333,45,0],[334,5,334,17,0],[336,4,336,35,0],[337,4,337,38,0],[338,4,338,46,0],[339,9,339,36,0],[340,5,340,56,0],[339,45,339,48,0],[339,37,339,43,0],[343,4,343,60,0],[354,4,354,42,0],[355,4,355,41,0],[356,4,356,25,0],[357,4,357,25,0],[358,9,358,19,0],[359,5,359,31,0],[361,5,361,27,0],[362,6,362,24,0],[364,11,364,21,0],[365,7,365,59,0],[366,7,366,62,0],[367,7,367,39,0],[364,53,364,56,0],[364,22,364,51,0],[370,6,370,17,0],[372,7,372,49,0],[373,7,373,39,0],[375,7,375,35,0],[380,5,380,50,0],[382,5,382,28,0],[358,34,358,37,0],[358,20,358,32,0],[386,4,386,46,0],[389,4,389,49,0],[391,4,391,16,0],[396,5,396,17,0],[395,4,395,30,0],[399,4,399,30,0],[400,3,400,4,0],[424,4,424,50,0],[425,5,425,19,0],[426,5,426,18,0],[427,4,427,5,0],[435,6,435,24,0],[436,7,436,40,0],[437,6,437,24,0],[438,7,438,26,0],[440,6,440,41,0],[445,5,445,23,0],[446,6,446,24,0],[447,7,447,37,0],[449,7,449,43,0],[452,4,452,5,0],[455,5,455,62,0],[456,5,456,24,0],[457,6,457,117,0],[459,5,459,19,0],[461,5,461,29,0],[462,5,462,23,0],[463,6,463,33,0],[465,5,465,62,0],[469,5,469,34,0],[470,6,470,57,0],[472,5,472,29,0],[476,5,476,45,0],[477,5,477,42,0],[478,5,478,21,0],[482,5,482,33,0],[483,6,483,24,0],[484,7,484,20,0],[485,7,485,20,0],[488,6,488,42,0],[489,6,489,23,0],[490,7,490,19,0],[491,7,491,20,0],[494,4,494,5,0],[502,5,503,31,0],[504,5,504,6,0],[506,5,506,81,0],[507,6,507,41,0],[508,6,508,31,0],[509,5,509,6,0],[512,6,512,23,0],[513,7,513,45,0],[515,6,515,55,0],[519,6,519,66,0],[520,6,520,27,0],[521,7,522,40,0],[524,6,524,68,0],[528,6,528,62,0],[50,3,51,97,1],[52,3,52,4,1],[54,3,55,40,1],[57,4,57,32,1],[58,5,58,29,1],[59,5,59,20,1],[62,4,62,53,1],[64,4,64,27,1],[66,4,66,27,1],[67,4,67,46,1],[68,4,68,40,1],[71,4,71,52,1],[73,4,73,53,1],[74,4,74,44,1],[78,9,78,19,1],[79,5,79,32,1],[81,5,81,58,1],[83,6,83,48,1],[84,6,84,62,1],[87,6,87,20,1],[88,6,88,24,1],[89,6,89,21,1],[97,5,97,83,1],[78,45,78,48,1],[78,20,78,43,1],[101,4,101,45,1],[104,4,104,30,1],[107,4,107,48,1],[108,3,108,4,1],[117,10,117,30,1],[121,10,121,26,1],[403,4,403,36,1],[404,4,404,35,1],[405,4,405,55,1],[407,4,407,87,1],[411,4,411,63,1],[415,4,415,59,1],[46,3,46,96,1],[48,3,48,39,1]]);
+    </script>
+  </body>
+</html>

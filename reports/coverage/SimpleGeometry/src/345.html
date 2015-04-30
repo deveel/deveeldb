@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.types\stringtype.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
+
+namespace Deveel.Data.Types {
+	[Serializable]
+	public sealed class StringType : DataType, ISizeableType {
+		private CompareInfo collator;
+
+		public const int DefaultMaxSize = Int16.MaxValue;
+
+		public StringType(SqlTypeCode sqlType) 
+			: this(sqlType, DefaultMaxSize) {
+		}
+
+		public StringType(SqlTypeCode sqlType, int maxSize) 
+			: this(sqlType, maxSize, null) {
+		}
+
+		public StringType(SqlTypeCode sqlType, CultureInfo locale) 
+			: this(sqlType, DefaultMaxSize, locale) {
+		}
+
+		public StringType(SqlTypeCode sqlType, int maxSize, CultureInfo locale) 
+			: base(&quot;STRING&quot;, sqlType) {
+			AssertIsString(sqlType);
+			MaxSize = maxSize;
+			Locale = locale;
+		}
+
+		private static void AssertIsString(SqlTypeCode sqlType) {
+			if (!IsStringType(sqlType))
+				throw new ArgumentException(String.Format(&quot;The type {0} is not a valid STRING type.&quot;, sqlType), &quot;sqlType&quot;);
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the maximum number of characters that strings
+		/// handled by this type can handle.
+		/// &lt;/summary&gt;
+		public int MaxSize { get; private set; }
+
+		int ISizeableType.Size {
+			get { return MaxSize; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the locale used to compare string values.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// When this value is not specified, the schema or database locale
+		/// is used to compare string values.
+		/// &lt;/remarks&gt;
+		public CultureInfo Locale { get; private set; }
+
+		private CompareInfo Collator {
+			get {
+				lock (this) {
+					if (collator != null) {
+						return collator;
+					} else {
+						//TODO:
+						collator = Locale.CompareInfo;
+						return collator;
+					}
+				}
+			}
+		}
+
+		public Encoding Encoding {
+			get {
+				if (Locale == null)
+					return Encoding.Unicode;
+
+				return Encoding.GetEncoding(Locale.TextInfo.OEMCodePage);
+			}
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override string ToString() {
+			var sb = new StringBuilder(Name);
+			if (MaxSize &gt;= 0)
+				sb.AppendFormat(&quot;({0})&quot;, MaxSize);
+
+			return sb.ToString();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool Equals(DataType other) {
+			if (!base.Equals(other))
+				return false;
+
+			var stringType = (StringType) other;
+			if (stringType.MaxSize != MaxSize)
+				return false;
+
+			if (Locale == null &amp;&amp; stringType.Locale == null)
+				return true;
+			if (Locale == null &amp;&amp; stringType.Locale != null)
+				return false;
+			if (Locale != null &amp;&amp; stringType.Locale == null)
+				return false;
+
+			if (Locale != null &amp;&amp; stringType.Locale != null)
+				return Locale.NativeName.Equals(stringType.Locale.NativeName);
+
+			return true;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override int GetHashCode() {
+			return SqlType.GetHashCode() ^ MaxSize.GetHashCode();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool IsComparable(DataType type) {
+			// Are we comparing with another string type?
+			if (type is StringType) {
+				var stringType = (StringType) type;
+				// If either locale is null return true
+				if (Locale == null || stringType.Locale == null)
+					return true;
+
+				//TODO: Check batter on the locale comparison: we could compare
+				//      neutral cultures
+
+				// If the locales are the same return true
+				return Locale.Equals(stringType.Locale);
+			}
+
+			// Only string types can be comparable
+			return false;
+		}
+
+		public SqlBoolean IsLike(ISqlString value, ISqlString pattern) {
+			if (value == null &amp;&amp; IsNull)
+				return true;
+			if (!IsNull &amp;&amp; value == null)
+				return false;
+			if (value == null)
+				return false;
+
+			var s1 = value.ToString();
+			var s2 = pattern.ToString();
+			return PatternSearch.FullPatternMatch(s1, s2, &#39;\\&#39;);
+		}
+
+		public SqlBoolean IsNotLike(ISqlObject value) {
+			throw new NotImplementedException();
+		}
+
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			if (!(obj is ISqlString))
+				throw new ArgumentException();
+
+			var s = (ISqlString) obj;
+			if (s.IsNull)
+				return null;
+
+			if (destType == typeof (string))
+				return s.ToString();
+
+			throw new InvalidCastException();
+		}
+
+		#region Operators
+
+		/// &lt;inheritdoc/&gt;
+		public override ISqlObject Add(ISqlObject a, ISqlObject b) {
+			if (!(a is ISqlString))
+				throw new ArgumentException();
+
+			if (!(b is ISqlString)) {
+				//TODO: convert to a ISqlString
+				throw new NotSupportedException();
+			}
+
+			if (a is SqlString) {
+				var x = (SqlString) a;
+				var y = (ISqlString) b;
+				return x.Concat(y);
+			}
+
+			return base.Add(a, b);
+		}
+
+		#endregion
+
+		private static SqlNumber ToNumber(String str) {
+			SqlNumber value;
+			if (!SqlNumber.TryParse(str, out value))
+				value = SqlNumber.Null;
+
+			return value;
+		}
+
+
+		/// &lt;summary&gt;
+		/// Parses a String as an SQL date.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;str&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		private static SqlDateTime ToDate(string str) {
+			DateTime result;
+			if (!DateTime.TryParseExact(str, DateType.DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Date, DateType.DateFormatSql));
+
+			return new SqlDateTime(result.Ticks);
+		}
+
+		/// &lt;summary&gt;
+		/// Parses a String as an SQL time.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;str&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		private static SqlDateTime ToTime(String str) {
+			DateTime result;
+			if (!DateTime.TryParseExact(str, DateType.TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out result))
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Time, DateType.TimeFormatSql));
+
+			return new SqlDateTime(result.Ticks);
+
+		}
+
+		/// &lt;summary&gt;
+		/// Parses a String as an SQL timestamp.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;str&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		private static SqlDateTime ToTimeStamp(String str) {
+			DateTime result;
+			if (!DateTime.TryParseExact(str, DateType.TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));
+
+			return new SqlDateTime(result.Ticks);
+		}
+
+		private static string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
+			return String.Format(&quot;The input string {0} is not compatible with any of the formats for SQL Type {1} ( {2} )&quot;,
+				str,
+				sqlType.ToString().ToUpperInvariant(),
+				String.Join(&quot;, &quot;, formats));
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool CanCastTo(DataType type) {
+			return type.SqlType != SqlTypeCode.Array &amp;&amp;
+			       type.SqlType != SqlTypeCode.ColumnType &amp;&amp;
+			       type.SqlType != SqlTypeCode.RowType &amp;&amp;
+			       type.SqlType != SqlTypeCode.Object;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override DataObject CastTo(DataObject value, DataType destType) {
+			string str = value.Value.ToString();
+			var sqlType = destType.SqlType;
+			ISqlObject castedValue;
+
+			switch (sqlType) {
+				case (SqlTypeCode.Bit):
+				case (SqlTypeCode.Boolean):
+					castedValue = (SqlBoolean) (String.Compare(str, &quot;true&quot;, StringComparison.OrdinalIgnoreCase) == 0 ||
+					                        String.Compare(str, &quot;1&quot;, StringComparison.OrdinalIgnoreCase) == 0);
+					break;
+				case (SqlTypeCode.TinyInt):
+				case (SqlTypeCode.SmallInt):
+				case (SqlTypeCode.Integer): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToInt32());
+					}
+
+					break;
+				}
+				case (SqlTypeCode.BigInt): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToInt64());
+					}
+
+					break;
+				}
+				case (SqlTypeCode.Float):
+				case (SqlTypeCode.Double): {
+					var num = ToNumber(str);
+					if (num.IsNull) {
+						castedValue = num;
+					} else {
+						castedValue = new SqlNumber(num.ToDouble());
+					}
+
+					break;
+				}
+				case (SqlTypeCode.Real):
+				case (SqlTypeCode.Numeric):
+				case (SqlTypeCode.Decimal):
+					castedValue = ToNumber(str);
+					break;
+				case (SqlTypeCode.Char):
+					castedValue = new SqlString(str.PadRight(((StringType)destType).MaxSize));
+					break;
+				case (SqlTypeCode.VarChar):
+				case (SqlTypeCode.LongVarChar):
+				case (SqlTypeCode.String):
+					//TODO: get the dest encoding and convert the string
+					castedValue = new SqlString(str);
+					break;
+				case (SqlTypeCode.Date):
+					castedValue = ToDate(str);
+					break;
+				case (SqlTypeCode.Time):
+					castedValue = ToTime(str);
+					break;
+				case (SqlTypeCode.TimeStamp):
+					castedValue = ToTimeStamp(str);
+					break;
+				case (SqlTypeCode.Blob):
+				case (SqlTypeCode.Binary):
+				case (SqlTypeCode.VarBinary):
+				case (SqlTypeCode.LongVarBinary):
+					castedValue = new SqlBinary(Encoding.Unicode.GetBytes(str));
+					break;
+				case (SqlTypeCode.Null):
+					castedValue = SqlNull.Value;
+					break;
+				case (SqlTypeCode.Clob):
+					// TODO: have a context where to get a new CLOB
+					castedValue = new SqlString(str);
+					break;
+				default:
+					throw new InvalidCastException();
+			}
+
+			return new DataObject(destType, castedValue);
+		}
+
+		public override int Compare(ISqlObject x, ISqlObject y) {
+			if (x == null)
+				throw new ArgumentNullException(&quot;x&quot;);
+
+			if (!(x is ISqlString) ||
+				!(y is ISqlString))
+				throw new ArgumentException(&quot;Cannot compare objects that are not strings.&quot;);
+
+			if (x.IsNull &amp;&amp; y.IsNull)
+				return 0;
+			if (x.IsNull &amp;&amp; !y.IsNull)
+				return 1;
+			if (!x.IsNull &amp;&amp; y.IsNull)
+				return -1;
+
+			// If lexicographical ordering,
+			if (Locale == null)
+				return LexicographicalOrder((ISqlString)x, (ISqlString)y);
+
+			return Collator.Compare(x.ToString(), y.ToString());
+		}
+
+		private static int LexicographicalOrder(ISqlString str1, ISqlString str2) {
+			if (str1.CodePage != str2.CodePage)
+				return -1;
+
+			// If both strings are small use the &#39;toString&#39; method to compare the
+			// strings.  This saves the overhead of having to store very large string
+			// objects in memory for all comparisons.
+			long str1Size = str1.Length;
+			long str2Size = str2.Length;
+			if (str1Size &lt; 32 * 1024 &amp;&amp;
+				str2Size &lt; 32 * 1024) {
+				return String.Compare(str1.ToString(), str2.ToString(), StringComparison.Ordinal);
+			}
+
+			// The minimum size
+			long size = System.Math.Min(str1Size, str2Size);
+			TextReader r1 = str1.GetInput();
+			TextReader r2 = str2.GetInput();
+			try {
+				try {
+					while (size &gt; 0) {
+						int c1 = r1.Read();
+						int c2 = r2.Read();
+						if (c1 != c2) {
+							return c1 - c2;
+						}
+						--size;
+					}
+					// They compare equally up to the limit, so now compare sizes,
+					if (str1Size &gt; str2Size) {
+						// If str1 is larger
+						return 1;
+					} else if (str1Size &lt; str2Size) {
+						// If str1 is smaller
+						return -1;
+					}
+					// Must be equal
+					return 0;
+				} finally {
+					r1.Close();
+					r2.Close();
+				}
+			} catch (IOException e) {
+				throw new Exception(&quot;IO Error: &quot; + e.Message);
+			}
+		}
+
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			var writer = new BinaryWriter(stream);
+
+			if (obj.IsNull) {
+				if (SqlType == SqlTypeCode.Clob ||
+				    SqlType == SqlTypeCode.LongVarChar) {
+					writer.Write((byte)3);
+				} else {
+					writer.Write((byte)1);
+				}
+
+				return;
+			}
+
+			var sqlString = (ISqlString)obj;
+
+			if (obj is SqlString) {
+				var bytes = ((SqlString) sqlString).ToByteArray();
+				writer.Write((byte) 2);
+				writer.Write(sqlString.CodePage);
+				writer.Write(bytes.Length);
+				writer.Write(bytes);
+			} else if (obj is SqlLongString) {
+				var longString = (SqlLongString) sqlString;
+				writer.Write((byte) 4);
+				writer.Write(longString.ObjectId.StoreId);
+				writer.Write(longString.ObjectId.Id);
+			} else {
+				throw new FormatException(String.Format(&quot;The object of type &#39;{0}&#39; is not handled by {1}&quot;, obj.GetType(), ToString()));
+			}
+		}
+
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+			var type = reader.ReadByte();
+
+			if (type == 1)
+				return SqlString.Null;
+			if (type == 3)
+				return SqlLongString.Null;
+
+			if (type == 2) {
+				var codePage = reader.ReadInt32();
+				var length = reader.ReadInt32();
+				var bytes = reader.ReadBytes(length);
+
+				return SqlString.Decode(codePage, bytes);
+			}
+
+			if (type == 4) {
+				var storeId = reader.ReadInt32();
+				var objId = reader.ReadInt64();
+				var refObjId = new ObjectId(storeId, objId);
+
+				// TODO: find the store and get the object
+				throw new NotImplementedException();
+			}
+
+			throw new FormatException(&quot;Invalid type code in deserialization.&quot;);
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			if (obj.IsNull)
+				return 1;
+			if (obj is SqlString) {
+				var s = (SqlString) obj;
+				var length = s.ToByteArray().Length;
+
+				// Type + Code Page + Byte Length + Bytes
+				return 1 + 4 + 4 + length;
+			} 
+			if (obj is SqlLongString) {
+				// Type + Store ID + Object ID
+				return 1 + 4 + 8;
+			}
+
+			throw new ArgumentException();
+		}
+
+		internal static bool IsStringType(SqlTypeCode typeCode) {
+			return typeCode == SqlTypeCode.String ||
+			typeCode == SqlTypeCode.VarChar ||
+			typeCode == SqlTypeCode.Char ||
+			typeCode == SqlTypeCode.LongVarChar ||
+			typeCode == SqlTypeCode.Clob;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,3,34,35,0],[35,3,35,4,0],[41,3,42,43,0],[43,3,43,4,0],[54,5,54,112,0],[64,10,64,25,0],[78,5,78,16,0],[79,6,79,27,0],[80,7,80,23,0],[83,7,83,37,0],[84,7,84,23,0],[87,4,87,5,0],[92,5,92,24,0],[93,6,93,30,0],[95,5,95,62,0],[101,4,101,37,0],[102,4,102,21,0],[103,5,103,39,0],[105,4,105,25,0],[119,4,119,52,0],[120,5,120,18,0],[121,4,121,52,0],[122,5,122,18,0],[124,4,124,52,0],[125,5,125,67,0],[127,4,127,16,0],[132,4,132,57,0],[148,5,148,45,0],[157,5,157,17,0],[159,5,159,18,0],[161,5,161,18,0],[169,4,169,40,0],[174,5,174,35,0],[178,5,178,17,0],[183,4,183,37,0],[191,5,191,35,0],[195,5,195,39,0],[204,4,204,26,0],[225,4,225,124,0],[226,5,226,101,0],[228,4,228,41,0],[238,4,238,140,0],[239,5,239,101,0],[241,4,241,41,0],[252,4,252,122,0],[253,5,253,104,0],[255,4,255,41,0],[259,4,262,33,0],[298,6,298,30,0],[299,6,299,21,0],[300,7,300,25,0],[302,7,302,50,0],[305,6,305,12,0],[309,6,309,30,0],[310,6,310,21,0],[311,7,311,25,0],[313,7,313,51,0],[316,6,316,12,0],[321,6,321,34,0],[322,6,322,12,0],[324,6,324,80,0],[325,6,325,12,0],[333,6,333,32,0],[334,6,334,12,0],[336,6,336,32,0],[337,6,337,12,0],[339,6,339,37,0],[340,6,340,12,0],[345,6,345,66,0],[346,6,346,12,0],[348,6,348,34,0],[349,6,349,12,0],[352,6,352,39,0],[353,6,353,12,0],[355,6,355,39,0],[363,5,363,42,0],[367,5,367,81,0],[370,5,370,14,0],[372,5,372,14,0],[374,5,374,15,0],[380,4,380,56,0],[385,5,385,15,0],[398,4,398,52,0],[399,4,399,36,0],[400,4,400,36,0],[404,7,404,26,0],[405,7,405,26,0],[406,7,406,20,0],[407,8,407,23,0],[409,7,409,14,0],[403,6,403,22,0],[412,6,412,30,0],[414,7,414,16,0],[415,13,415,37,0],[417,7,417,17,0],[420,6,420,15,0],[422,6,422,17,0],[423,6,423,17,0],[425,6,425,27,0],[426,5,426,51,0],[428,3,428,4,0],[436,6,436,28,0],[452,11,452,36,0],[453,5,453,48,0],[454,5,454,28,0],[455,5,455,47,0],[456,5,456,42,0],[458,5,458,123,0],[469,5,469,31,0],[479,4,479,18,0],[480,5,480,38,0],[481,5,481,36,0],[482,5,482,49,0],[485,5,485,41,0],[488,4,488,71,0],[501,4,501,29,0],[503,5,503,22,0],[506,4,506,34,0],[37,3,38,34,1],[39,3,39,4,1],[45,3,46,29,1],[47,4,47,28,1],[48,4,48,22,1],[49,4,49,20,1],[50,3,50,4,1],[53,4,53,31,1],[55,3,55,4,1],[110,4,110,28,1],[111,5,111,18,1],[113,4,113,40,1],[114,4,114,38,1],[115,5,115,18,1],[117,4,117,52,1],[118,5,118,17,1],[138,4,138,27,1],[139,5,139,40,1],[141,5,141,53,1],[142,6,142,18,1],[152,4,152,17,1],[156,4,156,32,1],[158,4,158,33,1],[160,4,160,22,1],[163,4,163,30,1],[164,4,164,32,1],[165,4,165,56,1],[173,4,173,29,1],[176,4,176,29,1],[177,4,177,17,1],[180,4,180,36,1],[181,5,181,25,1],[190,4,190,27,1],[193,4,193,27,1],[198,4,198,23,1],[199,5,199,27,1],[200,5,200,28,1],[201,5,201,24,1],[211,4,211,44,1],[212,5,212,28,1],[214,4,214,17,1],[267,4,270,46,1],[275,4,275,40,1],[276,4,276,35,1],[279,4,279,20,1],[282,6,283,97,1],[284,6,284,12,1],[288,6,288,30,1],[289,6,289,21,1],[290,7,290,25,1],[292,7,292,50,1],[295,6,295,12,1],[330,6,330,39,1],[331,6,331,12,1],[358,4,358,49,1],[362,4,362,18,1],[365,4,366,24,1],[369,4,369,29,1],[371,4,371,30,1],[373,4,373,30,1],[377,4,377,23,1],[378,5,378,63,1],[384,4,384,39,1],[390,4,390,32,1],[391,4,391,32,1],[392,4,393,26,1],[394,5,394,87,1],[431,4,431,42,1],[433,4,433,19,1],[434,5,435,44,1],[438,6,438,28,1],[441,5,441,12,1],[444,4,444,36,1],[446,4,446,25,1],[447,5,447,55,1],[448,5,448,28,1],[449,5,449,38,1],[450,5,450,32,1],[451,5,451,25,1],[463,4,463,42,1],[464,4,464,33,1],[466,4,466,18,1],[467,5,467,27,1],[468,4,468,18,1],[471,4,471,18,1],[472,5,472,39,1],[473,5,473,37,1],[474,5,474,42,1],[476,5,476,46,1],[492,4,492,19,1],[493,5,493,14,1],[494,4,494,25,1],[495,5,495,29,1],[496,5,496,41,1],[499,5,499,31,1],[510,4,514,33,1]]);
+    </script>
+  </body>
+</html>

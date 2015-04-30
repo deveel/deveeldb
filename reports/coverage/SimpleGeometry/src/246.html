@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlexpressiontuplenode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// An expression containing a set of other expressions.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SqlExpressionTupleNode : SqlNode, IExpressionNode {
+		internal SqlExpressionTupleNode() {
+		}
+
+		public SqlExpressionTupleNode(IEnumerable&lt;IExpressionNode&gt; expressions) {
+			Expressions = expressions;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a read-only list of &lt;see cref=&quot;IExpressionNode&quot;&gt;expression&lt;/see&gt; that
+		/// are contained within this tuple.
+		/// &lt;/summary&gt;
+		public IEnumerable&lt;IExpressionNode&gt; Expressions { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == &quot;sql_expression_list&quot;)
+				GetExpressions(node);
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetExpressions(ISqlNode node) {
+			var exps = new List&lt;IExpressionNode&gt;();
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode)
+					exps.Add((IExpressionNode)childNode);
+			}
+
+			Expressions = exps.AsReadOnly();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[29,3,29,74,0],[30,4,30,30,0],[31,3,31,4,0],[26,3,26,36,1],[27,3,27,4,1],[41,4,41,47,1],[42,5,42,26,1],[44,4,44,34,1],[48,4,48,43,1],[49,30,49,45,1],[49,13,49,26,1],[50,5,50,38,1],[51,6,51,43,1],[49,27,49,29,1],[54,4,54,36,1],[55,3,55,4,1]]);
+    </script>
+  </body>
+</html>

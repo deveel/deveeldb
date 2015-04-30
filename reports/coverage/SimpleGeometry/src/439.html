@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.linq\tablequerytests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+using Deveel.Data.Types;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.Linq {
+	[TestFixture]
+	public class TableQueryTests {
+		private ITable table;
+
+		[SetUp]
+		public void TestSetup() {
+			var tableInfo = new TableInfo(ObjectName.Parse(&quot;APP.people&quot;));
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Bit());
+			tableInfo.AddColumn(&quot;first_name&quot;, PrimitiveTypes.String(), true);
+			tableInfo.AddColumn(&quot;last_name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;age&quot;, PrimitiveTypes.TinyInt());
+			table = new TemporaryTable(tableInfo);
+
+			var tempTable = (TemporaryTable) table;
+			tempTable.NewRow(new[] {
+				DataObject.BigInt(1), 
+				DataObject.String(&quot;Antonello&quot;), 
+				DataObject.String(&quot;Provenzano&quot;),
+				DataObject.Null()
+			});
+			tempTable.NewRow(new[] {
+				DataObject.BigInt(2), 
+				DataObject.String(&quot;Moritz&quot;), 
+				DataObject.String(&quot;Krull&quot;), 
+				DataObject.TinyInt(31)
+			});
+
+			tempTable.BuildIndexes();
+		}
+
+		[Test]
+		public void ProjectFirst() {
+			IQueryable&lt;Person&gt; queryable = null;
+			Assert.DoesNotThrow(() =&gt; queryable = table.AsQueryable&lt;Person&gt;());
+			Assert.IsNotNull(queryable);
+
+			Person first = null;
+			Assert.DoesNotThrow(() =&gt; first = queryable.First());
+			Assert.IsNotNull(first);
+			Assert.AreEqual(&quot;Antonello&quot;, first.FirstName);
+			Assert.AreEqual(&quot;Provenzano&quot;, first.LastName);
+			Assert.AreEqual(1, first.Id);
+			Assert.AreEqual(0, first.Age);
+		}
+
+		class Person {
+			[Column(&quot;id&quot;)]
+			public int Id;
+
+			[Column(&quot;first_name&quot;)]
+			public string FirstName { get; set; }
+
+			[Column(&quot;last_name&quot;)]
+			public string LastName { get; set; }
+
+			[Column(&quot;age&quot;)]
+			public int Age { get; set; }
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[17,4,17,66,1],[18,4,18,52,1],[19,4,19,69,1],[20,4,20,62,1],[21,4,21,57,1],[22,4,22,42,1],[24,4,24,43,1],[25,4,30,7,1],[31,4,36,7,1],[38,4,38,29,1],[39,3,39,4,1],[43,4,43,40,1],[44,4,44,30,1],[44,69,44,71,1],[45,4,45,32,1],[47,4,47,24,1],[48,4,48,30,1],[48,55,48,57,1],[49,4,49,28,1],[50,4,50,50,1],[51,4,51,50,1],[52,4,52,33,1],[53,4,53,34,1],[54,3,54,4,1],[44,30,44,69,1],[48,30,48,55,1]]);
+    </script>
+  </body>
+</html>

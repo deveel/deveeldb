@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.spatial\wkbreader.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+
+namespace Deveel.Data.Spatial {
+	public sealed class WkbReader : IGeometryReader {
+		public WkbReader(IGeometryFactory factory) {
+			Factory = factory;
+		}
+
+		public IGeometryFactory Factory { get; private set; }
+
+		GeometryFormat IGeometryReader.Format {
+			get { return GeometryFormat.WellKnownBinary; }
+		}
+
+		IGeometry IGeometryReader.Read(object input) {
+			throw new NotImplementedException();
+		}
+
+		public IGeometry Read(Stream stream) {
+			var reader = new BinaryReader(stream);
+			return Read(reader);
+		}
+
+		public IGeometry Read(byte[] bytes) {
+			using (var stream = new MemoryStream(bytes)) {
+				return Read(stream);
+			}
+		}
+
+		public IGeometry Read(BinaryReader reader) {
+			throw new NotImplementedException();
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[22,3,22,45,0],[23,4,23,22,0],[24,3,24,4,0],[29,10,29,48,0],[33,4,33,40,0],[37,4,37,42,0],[38,4,38,24,0],[42,11,42,47,0],[43,5,43,25,0],[45,3,45,4,0],[48,4,48,40,0]]);
+    </script>
+  </body>
+</html>

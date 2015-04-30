@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\columninfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+using System.Text;
+
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// Defines the metadata properties of a column within a
+	/// table of a database.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// Columns have unique names within a table and a given
+	/// &lt;see cref=&quot;DataType&quot;/&gt; that is used to define the type
+	/// of data cells in the table will handle.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class ColumnInfo {
+		/// &lt;summary&gt;
+		/// Constructs a new column with the given name and type.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;columnName&quot;&gt;The name of the column, as case-sensitive and unique 
+		/// within the table.&lt;/param&gt;
+		/// &lt;param name=&quot;columnType&quot;&gt;The &lt;see cref=&quot;DataType&quot;/&gt; that this column will handle.&lt;/param&gt;
+		/// &lt;exception cref=&quot;ArgumentNullException&quot;&gt;
+		/// If either one of &lt;paramref name=&quot;columnName&quot;/&gt; or &lt;paramref name=&quot;columnType&quot;/&gt;
+		/// is &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/exception&gt;
+		public ColumnInfo(string columnName, DataType columnType) {
+			if (String.IsNullOrEmpty(columnName))
+				throw new ArgumentNullException(&quot;columnName&quot;);
+			if (columnType == null) 
+				throw new ArgumentNullException(&quot;columnType&quot;);
+
+
+			ColumnType = columnType;
+			ColumnName = columnName;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the &lt;see cref=&quot;TableInfo&quot;&gt;table&lt;/see&gt; where the column
+		/// is attached to.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This value is set when this object is added to a table.
+		/// &lt;/remarks&gt;
+		/// &lt;seealso cref=&quot;Sql.TableInfo.AddColumn(ColumnInfo)&quot;/&gt;
+		public TableInfo TableInfo { get; internal set; }
+
+		/// &lt;summary&gt;
+		/// Gets the name of the column.
+		/// &lt;/summary&gt;
+		public string ColumnName { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the fully qualified name of the column within the
+		/// database system.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// When &lt;see cref=&quot;TableInfo&quot;/&gt; is set, the value returned is the
+		/// fully qualified name of the column, otherwise this returns an
+		/// instance of &lt;see cref=&quot;ObjectName&quot;/&gt; that defines only &lt;see cref=&quot;ColumnName&quot;/&gt;.
+		/// &lt;/remarks&gt;
+		public ObjectName FullColumnName {
+			get { return TableInfo == null ? new ObjectName(ColumnName) : new ObjectName(TableInfo.TableName, ColumnName); }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the &lt;see cref=&quot;DataType&quot;/&gt; that cells within a table for this
+		/// column will handle.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;DataType&quot;/&gt;
+		public DataType ColumnType { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the zero-based offset of the column within the containing table.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Sql.TableInfo.IndexOfColumn(string)&quot;/&gt;
+		public int Offset {
+			get { return TableInfo == null ? -1 : TableInfo.IndexOfColumn(ColumnName); }
+		}
+
+		public bool HasSize {
+			get { return ColumnType is ISizeableType; }
+		}
+
+		public int Size {
+			get {
+				var sizeable = ColumnType as ISizeableType;
+				return sizeable == null ? -1 : sizeable.Size;
+			}
+		}
+
+		public bool HasScale {
+			get { return ColumnType is NumericType; }
+		}
+
+		public int Scale {
+			get {
+				var numericType = ColumnType as NumericType;
+				return numericType == null ? -1 : numericType.Scale;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a boolean vale indicating if the value of a column
+		/// can participate to an index.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;DataType.IsIndexable&quot;/&gt;
+		public bool IsIndexable {
+			get { return ColumnType.IsIndexable; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets or sets a boolean value indicating if the column values 
+		/// are constrained to be ony &lt;c&gt;NOT NULL&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		public bool IsNotNull { get; set; }
+
+		/// &lt;summary&gt;
+		/// Gets or sets a &lt;see cref=&quot;SqlExpression&quot;/&gt; used as a &lt;c&gt;DEFAULT&lt;/c&gt;
+		/// when a constraint for the column is to &lt;c&gt;SET DEFAULT&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;SqlExpression&quot;/&gt;
+		public SqlExpression DefaultExpression { get; set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the column has a &lt;see cref=&quot;DefaultExpression&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;DefaultExpression&quot;/&gt;
+		public bool HasDefaultExpression {
+			get { return DefaultExpression != null; }
+		}
+
+		public string IndexType { get; internal set; }
+
+		internal void SerializeTo(Stream stream) {
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+			writer.Write(3);	// Version
+			writer.Write(ColumnName);
+
+			TypeSerializer.SerializeTo(stream, ColumnType);
+
+			writer.Write(IsNotNull ? (byte)1 : (byte)0);
+
+			if (DefaultExpression != null) {
+				writer.Write((byte) 1);
+				SqlExpressionSerializer.SerializeTo(stream, DefaultExpression);
+			} else {
+				writer.Write((byte)0);
+			}
+		}
+
+		internal static ColumnInfo DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+
+			var version = reader.ReadInt32();
+			if (version != 3)
+				throw new FormatException(&quot;Invalid version of the Column-Info&quot;);
+
+			var columnName = reader.ReadString();
+			var columnType = TypeSerializer.DeserializeFrom(stream, typeResolver);
+
+			var notNull = reader.ReadByte() == 1;
+
+			var columnInfo = new ColumnInfo(columnName, columnType);
+			columnInfo.IsNotNull = notNull;
+
+			var hasDefault = reader.ReadByte() == 1;
+			if (hasDefault)
+				columnInfo.DefaultExpression = SqlExpressionSerializer.DeserializeFrom(stream);
+
+			return columnInfo;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[48,5,48,51,0],[50,5,50,51,0],[82,10,82,114,0],[97,10,97,78,0],[101,10,101,45,0],[106,5,106,48,0],[107,5,107,50,0],[112,10,112,43,0],[117,5,117,49,0],[118,5,118,57,0],[149,10,149,43,0],[176,5,176,69,0],[188,5,188,84,0],[46,3,46,60,1],[47,4,47,41,1],[49,4,49,27,1],[53,4,53,28,1],[54,4,54,28,1],[55,3,55,4,1],[128,10,128,40,1],[155,4,155,60,1],[156,4,156,20,1],[157,4,157,29,1],[159,4,159,51,1],[161,4,161,48,1],[163,4,163,34,1],[164,5,164,28,1],[165,5,165,68,1],[167,5,167,27,1],[169,3,169,4,1],[172,4,172,60,1],[174,4,174,37,1],[175,4,175,21,1],[178,4,178,41,1],[179,4,179,74,1],[181,4,181,41,1],[183,4,183,60,1],[184,4,184,35,1],[186,4,186,44,1],[187,4,187,19,1],[190,4,190,22,1]]);
+    </script>
+  </body>
+</html>

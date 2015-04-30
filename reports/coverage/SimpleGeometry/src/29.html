@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.caching\memorycache.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Configuration;
+
+namespace Deveel.Data.Caching {
+	public class MemoryCache : Cache {
+		public MemoryCache(int hashSize, int maxSize, int cleanPercentage)
+			: base(maxSize, cleanPercentage) {
+			nodeHash = new ListNode[hashSize];
+
+			listStart = null;
+			listEnd = null;
+		}
+
+		///&lt;summary&gt;
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;maxSize&quot;&gt;&lt;/param&gt;
+		///&lt;param name=&quot;cleanPercentage&quot;&gt;&lt;/param&gt;
+		public MemoryCache(int maxSize, int cleanPercentage)
+			: this((maxSize * 2) + 1, maxSize, cleanPercentage) {
+		}
+
+		/// &lt;summary&gt;
+		/// The array of ListNode objects arranged by hashing value.
+		/// &lt;/summary&gt;
+		private ListNode[] nodeHash;
+
+		/// &lt;summary&gt;
+		/// A pointer to the start of the list.
+		/// &lt;/summary&gt;
+		private ListNode listStart;
+
+		/// &lt;summary&gt;
+		/// A pointer to the end of the list.
+		/// &lt;/summary&gt;
+		private ListNode listEnd;
+
+		// Some statistics about the hashing algorithm.
+		private long totalGets = 0;
+		private long getTotal = 0;
+
+		/// &lt;summary&gt;
+		/// Creates a new ListNode.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// If there is a free ListNode on the &#39;recycled_nodes&#39; then it obtains 
+		/// one from there, else it creates a new blank one.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		private ListNode CreateListNode() {
+			return new ListNode();
+		}
+
+		/// &lt;summary&gt;
+		/// Clears the entire hashtable of all entries.
+		/// &lt;/summary&gt;
+		private void ClearHash() {
+			for (int i = nodeHash.Length - 1; i &gt;= 0; --i) {
+				nodeHash[i] = null;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Removes the given node from the hash table.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns the entry removed from the hash table or &lt;b&gt;null&lt;/b&gt; if 
+		/// none was found for the given key.
+		/// &lt;/returns&gt;
+		private ListNode RemoveFromHash(Object key) {
+			// Makes sure the key is not already in the HashMap.
+			int hash = key.GetHashCode();
+			int index = (hash &amp; 0x7FFFFFFF) % nodeHash.Length;
+			ListNode prev = null;
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
+					// Found entry, so remove it baby!
+					if (prev == null) {
+						nodeHash[index] = e.NextHashEntry;
+					} else {
+						prev.NextHashEntry = e.NextHashEntry;
+					}
+					return e;
+				}
+				prev = e;
+			}
+
+			// Not found so return &#39;null&#39;
+			return null;
+		}
+
+		/// &lt;summary&gt;
+		/// Puts the node with the given key into the hash table.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;node&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns the list node added.
+		/// &lt;/returns&gt;
+		private ListNode PutIntoHash(ListNode node) {
+			// Makes sure the key is not already in the HashMap.
+			int hash = node.Key.GetHashCode();
+			int index = (hash &amp; 0x7FFFFFFF) % nodeHash.Length;
+			Object key = node.Key;
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
+					throw new ApplicationException(&quot;ListNode with same key already in the hash - remove first.&quot;);
+				}
+			}
+
+			// Stick it in the hash list.
+			node.NextHashEntry = nodeHash[index];
+			nodeHash[index] = node;
+
+			return node;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the node with the given key in the hash table.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns the node with the given key in the hash table or &lt;b&gt;null&lt;/b&gt;
+		/// if none value was found.
+		/// &lt;/returns&gt;
+		private ListNode GetFromHash(Object key) {
+			int hash = key.GetHashCode();
+			int index = (hash &amp; 0x7FFFFFFF) % nodeHash.Length;
+			int getCount = 1;
+
+			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
+				if (key.Equals(e.Key)) {
+					++totalGets;
+					getTotal += getCount;
+
+					// Every 8192 gets, call the &#39;OnGetWalks&#39; method with the
+					// statistical info.
+					if ((totalGets &amp; 0x01FFF) == 0) {
+						try {
+							OnGetWalks(getTotal, totalGets);
+							// Reset stats if we overflow on an int
+							if (getTotal &gt; unchecked(65536 * 65536)) {
+								getTotal = 0;
+								totalGets = 0;
+							}
+						} catch (Exception) { /* ignore */ }
+					}
+
+					// Bring to head if get_count &gt; 1
+					if (getCount &gt; 1) {
+						BringToHead(e);
+					}
+					return e;
+				}
+				++getCount;
+			}
+			return null;
+		}
+
+		/// &lt;summary&gt;
+		/// Brings the given node to the start of the list.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;node&quot;&gt;The node to move up.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// Only nodes at the end of the list are cleaned.
+		/// &lt;/remarks&gt;
+		private void BringToHead(ListNode node) {
+			if (listStart != node) {
+
+				ListNode nextNode = node.Next;
+				ListNode previousNode = node.Previous;
+
+				node.Next = listStart;
+				node.Previous = null;
+				listStart = node;
+				node.Next.Previous = node;
+
+				if (nextNode != null) {
+					nextNode.Previous = previousNode;
+				} else {
+					listEnd = previousNode;
+				}
+				previousNode.Next = nextNode;
+
+			}
+		}
+
+		public override void Configure(IDbConfig config) {
+			base.Configure(config);
+
+			// Find a prime hash size depending on the size of the cache.
+			int hashSize = ClosestPrime(MaxCacheSize / 55);
+			nodeHash = new ListNode[hashSize];
+
+			listStart = null;
+			listEnd = null;
+		}
+
+		protected override bool SetObject(object key, object value) {
+			// Check whether the given key is already in the Hashtable.
+
+			ListNode node = GetFromHash(key);
+			if (node == null) {
+
+				node = CreateListNode();
+				node.Key = key;
+				node.Contents = value;
+
+				// Add node to top.
+				node.Next = listStart;
+				node.Previous = null;
+				listStart = node;
+				if (node.Next == null) {
+					listEnd = node;
+				} else {
+					node.Next.Previous = node;
+				}
+
+				// Add node to key mapping
+				PutIntoHash(node);
+
+				// this was added to the cache
+				return true;
+			}
+
+			// If key already in Hashtable, all we need to do is set node with
+			// the new contents and bring the node to the start of the list.
+
+			node.Contents = value;
+			BringToHead(node);
+
+			return false;
+		}
+
+		protected override object GetObject(object key) {
+			ListNode node = GetFromHash(key);
+
+			if (node != null) {
+				// Bring node to start of list.
+				//      BringToHead(node);
+
+				return node.Contents;
+			}
+
+			return null;
+		}
+
+		protected override object RemoveObject(object key) {
+			object value = null;
+			ListNode node = RemoveFromHash(key);
+
+			if (node != null) {
+				// If removed node at head.
+				if (listStart == node) {
+					listStart = node.Next;
+					if (listStart != null) {
+						listStart.Previous = null;
+					} else {
+						listEnd = null;
+					}
+				}
+					// If removed node at end.
+				else if (listEnd == node) {
+					listEnd = node.Previous;
+					if (listEnd != null) {
+						listEnd.Next = null;
+					} else {
+						listStart = null;
+					}
+				} else {
+					node.Previous.Next = node.Next;
+					node.Next.Previous = node.Previous;
+				}
+
+				value = node.Contents;
+
+				// Set internals to null to ensure objects get gc&#39;d
+				node.Contents = null;
+				node.Key = null;
+			}
+
+			return value;
+		}
+
+		protected override int Clean() {
+			ListNode node = listEnd;
+			if (node == null) {
+				return 0;
+			}
+
+			int actualCount = 0;
+			while (node != null &amp;&amp; WipeMoreNodes()) {
+				object nkey = node.Key;
+				object ncontents = node.Contents;
+
+				OnWipingNode(ncontents);
+
+				RemoveFromHash(nkey);
+				// Help garbage collector with old objects
+				node.Contents = null;
+				node.Key = null;
+				ListNode oldNode = node;
+				// Move to previous node
+				node = node.Previous;
+
+				// Help the GC by clearing away the linked list nodes
+				oldNode.Next = null;
+				oldNode.Previous = null;
+
+				OnObjectRemoved(nkey, ncontents);
+				++actualCount;
+			}
+
+			if (node != null) {
+				node.Next = null;
+				listEnd = node;
+			} else {
+				listStart = null;
+				listEnd = null;
+			}
+
+			return actualCount;
+		}
+
+		public override void Clear() {
+			ClearHash();
+			listStart = null;
+			listEnd = null;
+			base.Clear();
+		}
+
+		/// &lt;summary&gt;
+		/// An element in the linked list structure.
+		/// &lt;/summary&gt;
+		sealed class ListNode {
+			// Links to the next and previous nodes. The ends of the list are &#39;null&#39;
+			public ListNode Next;
+			public ListNode Previous;
+			// The next node in the hash link on this hash value, or &#39;null&#39; if last
+			// hash entry.
+			public ListNode NextHashEntry;
+
+			// The key in the Hashtable for this object.
+			public object Key;
+			// The object contents for this element.
+			public object Contents;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[35,3,36,55,0],[37,3,37,4,0],[74,9,74,37,0],[75,5,75,24,0],[74,46,74,49,0],[74,38,74,44,0],[77,3,77,4,0],[89,4,89,33,0],[90,4,90,54,0],[91,4,91,25,0],[92,9,92,38,0],[93,5,93,27,0],[95,6,95,23,0],[96,7,96,41,0],[98,7,98,44,0],[100,6,100,15,0],[102,5,102,14,0],[92,50,92,69,0],[92,39,92,48,0],[106,4,106,16,0],[122,5,122,27,0],[123,6,123,99,0],[121,50,121,69,0],[156,8,156,40,0],[158,8,158,48,0],[159,9,159,22,0],[160,9,160,23,0],[162,9,162,26,0],[167,7,167,22,0],[171,5,171,16,0],[147,50,147,69,0],[184,4,184,26,0],[186,5,186,35,0],[187,5,187,43,0],[189,5,189,27,0],[190,5,190,26,0],[191,5,191,22,0],[192,5,192,31,0],[194,5,194,26,0],[195,6,195,39,0],[197,6,197,29,0],[199,5,199,34,0],[202,3,202,4,0],[205,4,205,27,0],[208,4,208,51,0],[209,4,209,38,0],[211,4,211,21,0],[212,4,212,19,0],[213,3,213,4,0],[245,4,245,26,0],[246,4,246,22,0],[248,4,248,17,0],[265,4,265,24,0],[266,4,266,40,0],[268,4,268,21,0],[270,5,270,27,0],[271,6,271,28,0],[272,6,272,28,0],[273,7,273,33,0],[275,7,275,22,0],[279,10,279,30,0],[280,6,280,30,0],[281,6,281,26,0],[282,7,282,27,0],[284,7,284,24,0],[287,6,287,37,0],[288,6,288,41,0],[291,5,291,27,0],[294,5,294,26,0],[295,5,295,21,0],[298,4,298,17,0],[302,4,302,28,0],[303,4,303,21,0],[304,5,304,14,0],[307,4,307,24,0],[309,5,309,28,0],[310,5,310,38,0],[312,5,312,29,0],[314,5,314,26,0],[316,5,316,26,0],[317,5,317,21,0],[318,5,318,29,0],[320,5,320,26,0],[323,5,323,25,0],[324,5,324,29,0],[326,5,326,38,0],[327,5,327,19,0],[308,4,308,43,0],[330,4,330,21,0],[331,5,331,22,0],[332,5,332,20,0],[334,5,334,22,0],[335,5,335,20,0],[338,4,338,23,0],[342,4,342,16,0],[343,4,343,21,0],[344,4,344,19,0],[345,4,345,17,0],[346,3,346,4,0],[23,3,24,36,1],[25,4,25,38,1],[27,4,27,21,1],[28,4,28,19,1],[29,3,29,4,1],[67,4,67,26,1],[118,4,118,38,1],[119,4,119,54,1],[120,4,120,26,1],[121,9,121,38,1],[121,39,121,48,1],[128,4,128,41,1],[129,4,129,27,1],[131,4,131,16,1],[143,4,143,33,1],[144,4,144,54,1],[145,4,145,21,1],[147,9,147,38,1],[148,5,148,27,1],[149,6,149,18,1],[150,6,150,27,1],[154,6,154,37,1],[166,6,166,23,1],[169,6,169,15,1],[147,39,147,48,1],[173,4,173,16,1],[218,4,218,37,1],[219,4,219,21,1],[221,5,221,29,1],[222,5,222,20,1],[223,5,223,27,1],[226,5,226,27,1],[227,5,227,26,1],[228,5,228,22,1],[229,5,229,27,1],[230,6,230,21,1],[232,6,232,32,1],[236,5,236,23,1],[239,5,239,17,1],[252,4,252,37,1],[254,4,254,21,1],[258,5,258,26,1],[261,4,261,16,1]]);
+    </script>
+  </body>
+</html>

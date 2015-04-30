@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.statements\sqlselectstatement.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
+
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public sealed class SqlSelectStatement : SqlStatement {
+		public SqlSelectStatement(SqlQueryExpression queryExpression) 
+			: this(queryExpression, null) {
+		}
+
+		public SqlSelectStatement(SqlQueryExpression queryExpression, IEnumerable&lt;SortColumn&gt; orderBy) {
+			if (queryExpression == null)
+				throw new ArgumentNullException(&quot;queryExpression&quot;);
+
+			QueryExpression = queryExpression;
+			OrderBy = new List&lt;SortColumn&gt;();
+		}
+
+		public SqlQueryExpression QueryExpression { get; private set; }
+
+		public IList&lt;SortColumn&gt; OrderBy { get; private set; }
+
+		public override StatementType StatementType {
+			get { return StatementType.Select; }
+		}
+
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+			// Prepare this object from the StatementTree,
+			// The select expression itself
+			var selectExpression = QueryExpression;
+			// The order by information
+			var orderBy = OrderBy;
+
+			// Form the plan
+			var plan = context.DatabaseContext.QueryPlanner().PlanQuery(context, selectExpression, orderBy);
+
+			return new PreparedSelectStatement(plan);
+		}
+
+		#region Keys
+
+		internal static class Keys {
+			public const string QueryExpression = &quot;QueryExpression&quot;;
+			public const string OrderBy = &quot;OrderBy&quot;;
+		}
+
+		#endregion
+
+		#region PreparedSelectStatement
+
+		[Serializable]
+		sealed class PreparedSelectStatement : SqlPreparedStatement {
+			public PreparedSelectStatement(IQueryPlanNode queryPlan) {
+				if (queryPlan == null)
+					throw new ArgumentNullException(&quot;queryPlan&quot;);
+
+				QueryPlan = queryPlan;
+			}
+
+			public IQueryPlanNode QueryPlan { get; private set; }
+
+			public override ITable Evaluate(IQueryContext context) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,5,33,56,0],[44,10,44,38,0],[50,4,50,43,0],[52,4,52,26,0],[55,4,55,100,0],[57,4,57,45,0],[73,4,73,60,0],[74,5,74,27,0],[75,6,75,51,0],[77,5,77,27,0],[78,4,78,5,0],[83,5,83,41,0],[27,3,28,33,1],[29,3,29,4,1],[31,3,31,97,1],[32,4,32,32,1],[35,4,35,38,1],[36,4,36,37,1],[37,3,37,4,1]]);
+    </script>
+  </body>
+</html>

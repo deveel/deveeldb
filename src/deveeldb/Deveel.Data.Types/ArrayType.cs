@@ -18,12 +18,16 @@ using System;
 
 namespace Deveel.Data.Types {
 	[Serializable]
-	public sealed class ArrayType : DataType {
+	public sealed class ArrayType : DataType, ISizeableType {
 		public ArrayType(int length) 
 			: base("ARRAY", SqlTypeCode.Array) {
 			Length = length;
 		}
 
-		public int Length { get; set; }
+		public int Length { get; private set; }
+
+		int ISizeableType.Size {
+			get { return Length; }
+		}
 	}
 }

@@ -81,7 +81,10 @@ namespace Deveel.Data.Sql {
 				if (expr.IsConstant() && !expr.HasAggregate(context)) {
 					// If expression is a constant, solve it
 					var result = expr.Evaluate(context, null);
-					expr = SqlExpression.Constant(result);
+					if (result.ExpressionType != SqlExpressionType.Constant)
+						throw new InvalidOperationException();
+
+					expr = result;
 					expList[i] = expr;
 					expInfo[i] = 1;
 				} else {

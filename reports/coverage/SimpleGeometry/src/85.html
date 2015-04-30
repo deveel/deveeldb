@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\temporarytable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+using Deveel.Data.Index;
+using Deveel.Data.Sql;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.DbSystem {
+	public class TemporaryTable : BaseDataTable {
+		private readonly TableInfo tableInfo;
+		private int rowCount;
+		private List&lt;DataObject[]&gt; rows;
+
+		public TemporaryTable(TableInfo tableInfo)
+			: this((IDatabaseContext)null, tableInfo) {
+		}
+
+		public TemporaryTable(IDatabaseContext context, TableInfo tableInfo)
+			: base(context) {
+			this.tableInfo = tableInfo.AsReadOnly();
+			rows = new List&lt;DataObject[]&gt;();
+		}
+
+		public TemporaryTable(string name, TableInfo sourceTableInfo)
+			: this(null, name, sourceTableInfo) {
+		}
+
+		public TemporaryTable(IDatabaseContext context, string name, TableInfo sourceTableInfo)
+			: this(context, sourceTableInfo.Alias(new ObjectName(name))) {
+		}
+
+		public TemporaryTable(IDatabaseContext context, string name, IEnumerable&lt;ColumnInfo&gt; columns)
+			: this(context, name, MakeTableInfo(name, columns)) {
+		}
+
+		public override TableInfo TableInfo {
+			get { return tableInfo; }
+		}
+
+		public override int RowCount {
+			get { return rowCount; }
+		}
+
+		public override void LockRoot(int lockKey) {
+		}
+
+		public override void UnlockRoot(int lockKey) {
+		}
+
+		private static TableInfo MakeTableInfo(string tableName, IEnumerable&lt;ColumnInfo&gt; columns) {
+			var tableInfo = new TableInfo(ObjectName.Parse(tableName));
+			foreach (var columnInfo in columns) {
+				tableInfo.AddColumn(columnInfo);
+			}
+			return tableInfo;
+		}
+
+		public int NewRow() {
+			rows.Add(new DataObject[ColumnCount]);
+			++rowCount;
+			return rowCount - 1;
+		}
+
+		public int NewRow(DataObject[] row) {
+			if (row == null)
+				throw new ArgumentNullException(&quot;row&quot;);
+			if (row.Length != ColumnCount)
+				throw new ArgumentException();
+
+			var rowNumber = NewRow();
+			for (int i = 0; i &lt; row.Length; i++) {
+				SetValue(rowNumber, i, row[i]);
+			}
+
+			return rowNumber;
+		}
+
+		public override DataObject GetValue(long rowNumber, int columnOffset) {
+			if (rowNumber &gt;= rows.Count)
+				throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+			if (columnOffset &lt; 0 || columnOffset &gt; ColumnCount)
+				throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+
+			var row = rows[(int) rowNumber];
+			return row[columnOffset];
+		}
+
+		public void SetValue(long rowNumber, int columnOffset, DataObject value) {
+			if (rowNumber &lt; 0 || rowNumber &gt;= rows.Count)
+				throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+			if (columnOffset &lt; 0 || columnOffset &gt;= ColumnCount)
+				throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+
+			var row = rows[(int) rowNumber];
+			row[columnOffset] = value;
+		}
+
+		public void SetValue(int columnOffset, DataObject value) {
+			SetValue(rowCount - 1, columnOffset, value);
+		}
+
+		public void BuildIndexes() {
+			BuildIndexes(DefaultIndexTypes.InsertSearch);
+		}
+
+		public void BuildIndexes(string indexName) {
+			SetupIndexes(indexName);
+
+			for (int i = 0; i &lt; rowCount; i++) {
+				AddRowToIndex(i);
+			}			
+		}
+
+		public void CopyFrom(ITable table, int row) {
+			NewRow();
+
+			var columnNames = new ObjectName[table.ColumnCount()];
+			for (int i = 0; i &lt; columnNames.Length; ++i) {
+				columnNames[i] = table.GetResolvedColumnName(i);
+			}
+
+			for (int i = 0; i &lt; ColumnCount; ++i) {
+				var v = GetResolvedColumnName(i);
+				var colName = v.Name;
+
+				try {
+					int columnOffset = -1;
+					for (int n = 0; n &lt; columnNames.Length || columnOffset == -1; ++n) {
+						if (columnNames[n].Name.Equals(colName)) {
+							columnOffset = n;
+						}
+					}
+
+					var value = table.GetValue(row, columnOffset);
+					SetValue(rowCount-1, i, value);
+				} catch (Exception e) {
+					throw new ApplicationException(e.Message, e);
+				}
+			}
+		}
+
+
+		public override IEnumerator&lt;Row&gt; GetEnumerator() {
+			return new SimpleRowEnumerator(this);
+		}
+
+		public static TemporaryTable SingleColumnTable(IDatabaseContext database, string columnName, DataType columnType) {
+			var tableInfo = new TableInfo(new ObjectName(&quot;single&quot;));
+			tableInfo.AddColumn(columnName, columnType);
+			tableInfo = tableInfo.AsReadOnly();
+			return new TemporaryTable(database, tableInfo);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,3,41,39,0],[42,3,42,4,0],[61,3,61,4,0],[64,3,64,4,0],[68,13,68,27,0],[69,5,69,37,0],[82,5,82,44,0],[84,5,84,35,0],[96,5,96,56,0],[98,5,98,59,0],[106,5,106,56,0],[108,5,108,59,0],[115,4,115,48,0],[116,3,116,4,0],[131,4,131,13,0],[133,4,133,58,0],[134,9,134,19,0],[135,5,135,53,0],[134,44,134,47,0],[134,20,134,42,0],[138,9,138,19,0],[139,5,139,38,0],[140,5,140,26,0],[143,6,143,28,0],[144,11,144,21,0],[145,7,145,47,0],[146,8,146,25,0],[144,68,144,71,0],[144,22,144,66,0],[150,6,150,52,0],[151,6,151,37,0],[152,7,152,26,0],[153,6,153,51,0],[138,37,138,40,0],[138,20,138,35,0],[156,3,156,4,0],[164,4,164,60,0],[165,4,165,48,0],[166,4,166,39,0],[167,4,167,51,0],[30,3,31,45,1],[32,3,32,4,1],[34,3,35,19,1],[36,4,36,44,1],[37,4,37,36,1],[38,3,38,4,1],[44,3,45,64,1],[46,3,46,4,1],[48,3,49,55,1],[50,3,50,4,1],[53,10,53,27,1],[57,10,57,26,1],[67,4,67,63,1],[68,31,68,38,1],[68,28,68,30,1],[71,4,71,21,1],[75,4,75,42,1],[76,4,76,15,1],[77,4,77,24,1],[81,4,81,20,1],[83,4,83,34,1],[86,4,86,29,1],[87,9,87,19,1],[88,5,88,36,1],[87,36,87,39,1],[87,20,87,34,1],[91,4,91,21,1],[95,4,95,32,1],[97,4,97,55,1],[100,4,100,36,1],[101,4,101,29,1],[105,4,105,49,1],[107,4,107,56,1],[110,4,110,36,1],[111,4,111,30,1],[112,3,112,4,1],[119,4,119,49,1],[120,3,120,4,1],[123,4,123,28,1],[125,9,125,19,1],[126,5,126,22,1],[125,34,125,37,1],[125,20,125,32,1],[128,3,128,4,1],[160,4,160,41,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\systemschema.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Index;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+using Deveel.Data.Util;
+
+namespace Deveel.Data.DbSystem {
+	/// &lt;summary&gt;
+	/// Provides utilities and properties for handling the &lt;c&gt;SYSTEN&lt;/c&gt; schema of a database.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// The &lt;c&gt;SYSTEM&lt;/c&gt; schema holds all the core tables and views for making a database system to
+	/// be able to work.
+	/// &lt;/remarks&gt;
+	public static class SystemSchema {
+		static SystemSchema() {
+			// SYSTEM.TABLE_INFO
+			TableInfoTableInfo = new TableInfo(TableInfoTableName);
+			TableInfoTableInfo.AddColumn(&quot;catalog&quot;, PrimitiveTypes.String());
+			TableInfoTableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			TableInfoTableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			TableInfoTableInfo.AddColumn(&quot;type&quot;, PrimitiveTypes.String());
+			TableInfoTableInfo.AddColumn(&quot;other&quot;, PrimitiveTypes.String());
+			TableInfoTableInfo = TableInfoTableInfo.AsReadOnly();
+
+			// SYSTEM.TABLE_COLUMNS
+			TableColumnsTableInfo = new TableInfo(TableColumnsTableName);
+			TableColumnsTableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;table&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;column&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;sql_type&quot;, PrimitiveTypes.Numeric());
+			TableColumnsTableInfo.AddColumn(&quot;type_desc&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;size&quot;, PrimitiveTypes.Numeric());
+			TableColumnsTableInfo.AddColumn(&quot;scale&quot;, PrimitiveTypes.Numeric());
+			TableColumnsTableInfo.AddColumn(&quot;not_null&quot;, PrimitiveTypes.Boolean());
+			TableColumnsTableInfo.AddColumn(&quot;default&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;index_str&quot;, PrimitiveTypes.String());
+			TableColumnsTableInfo.AddColumn(&quot;seq_no&quot;, PrimitiveTypes.Numeric());
+			TableColumnsTableInfo = TableColumnsTableInfo.AsReadOnly();
+
+			// SYSTEM.VARIABLES
+			VariablesTableInfo = new TableInfo(VariablesTableName);
+			VariablesTableInfo.AddColumn(&quot;var&quot;, PrimitiveTypes.String());
+			VariablesTableInfo.AddColumn(&quot;type&quot;, PrimitiveTypes.String());
+			VariablesTableInfo.AddColumn(&quot;value&quot;, PrimitiveTypes.String());
+			VariablesTableInfo.AddColumn(&quot;constant&quot;, PrimitiveTypes.Boolean());
+			VariablesTableInfo.AddColumn(&quot;not_null&quot;, PrimitiveTypes.Boolean());
+			VariablesTableInfo.AddColumn(&quot;is_set&quot;, PrimitiveTypes.Boolean());
+			VariablesTableInfo = VariablesTableInfo.AsReadOnly();
+
+			// SYSTEM.PRODUCT_INFO
+			ProductInfoTableInfo = new TableInfo(ProductInfoTableName);
+			ProductInfoTableInfo.AddColumn(&quot;var&quot;, PrimitiveTypes.String());
+			ProductInfoTableInfo.AddColumn(&quot;value&quot;, PrimitiveTypes.String());
+			ProductInfoTableInfo = ProductInfoTableInfo.AsReadOnly();
+
+			// SYSTEM.STATS
+			StatisticsTableInfo = new TableInfo(StatisticsTableName);
+			StatisticsTableInfo.AddColumn(&quot;stat_name&quot;, PrimitiveTypes.String());
+			StatisticsTableInfo.AddColumn(&quot;value&quot;, PrimitiveTypes.String());
+			StatisticsTableInfo = StatisticsTableInfo.AsReadOnly();
+
+			// SYSTEM.SQL_TYPES
+			SqlTypesTableInfo = new TableInfo(SqlTypesTableName);
+			SqlTypesTableInfo.AddColumn(&quot;TYPE_NAME&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;DATA_TYPE&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;PRECISION&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;LITERAL_PREFIX&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;LITERAL_SUFFIX&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;CREATE_PARAMS&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;NULLABLE&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;CASE_SENSITIVE&quot;, PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn(&quot;SEARCHABLE&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;UNSIGNED_ATTRIBUTE&quot;, PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn(&quot;FIXED_PREC_SCALE&quot;, PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn(&quot;AUTO_INCREMENT&quot;, PrimitiveTypes.Boolean());
+			SqlTypesTableInfo.AddColumn(&quot;LOCAL_TYPE_NAME&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;MINIMUM_SCALE&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;MAXIMUM_SCALE&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo.AddColumn(&quot;SQL_DATA_TYPE&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;SQL_DATETIME_SUB&quot;, PrimitiveTypes.String());
+			SqlTypesTableInfo.AddColumn(&quot;NUM_PREC_RADIX&quot;, PrimitiveTypes.Numeric());
+			SqlTypesTableInfo = SqlTypesTableInfo.AsReadOnly();
+
+			// SYSTEM.OPEN_SESSIONS
+			OpenSessionsTableInfo = new TableInfo(OpenSessionsTableName);
+			OpenSessionsTableInfo.AddColumn(&quot;username&quot;, PrimitiveTypes.String());
+			OpenSessionsTableInfo.AddColumn(&quot;host_string&quot;, PrimitiveTypes.String());
+			OpenSessionsTableInfo.AddColumn(&quot;last_command&quot;, PrimitiveTypes.Date());
+			OpenSessionsTableInfo.AddColumn(&quot;time_connected&quot;, PrimitiveTypes.Date());
+			OpenSessionsTableInfo = OpenSessionsTableInfo.AsReadOnly();
+
+			// CONNECTION_INFO
+			SessionInfoTableInfo = new TableInfo(SessionInfoTableName);
+			SessionInfoTableInfo.AddColumn(&quot;var&quot;, PrimitiveTypes.String());
+			SessionInfoTableInfo.AddColumn(&quot;value&quot;, PrimitiveTypes.String());
+			SessionInfoTableInfo = SessionInfoTableInfo.AsReadOnly();
+
+			// SYSTEM.PRIVS
+			PrivilegesTableInfo = new TableInfo(PrivilegesTableName);
+			PrivilegesTableInfo.AddColumn(&quot;priv_bit&quot;, PrimitiveTypes.Numeric());
+			PrivilegesTableInfo.AddColumn(&quot;description&quot;, PrimitiveTypes.String());
+			PrivilegesTableInfo = PrivilegesTableInfo.AsReadOnly();
+		}
+
+		/// &lt;summary&gt;
+		/// The name of the system schema that contains tables referring to 
+		/// system information.
+		/// &lt;/summary&gt;
+		public const string Name = &quot;SYSTEM&quot;;
+
+		/// &lt;summary&gt;
+		/// The name of the system schema as &lt;see cref=&quot;ObjectName&quot;/&gt;.
+		/// &lt;/summary&gt;
+		public static readonly ObjectName SchemaName = new ObjectName(Name);
+
+		#region Table Names
+
+		public static readonly ObjectName SchemaInfoTableName = new ObjectName(SchemaName, &quot;schema_info&quot;);
+
+		public static readonly  ObjectName TableInfoTableName = new ObjectName(SchemaName, &quot;table_info&quot;);
+
+		public static readonly ObjectName TableColumnsTableName = new ObjectName(SchemaName, &quot;table_cols&quot;);
+
+		public static readonly ObjectName ViewTableName = new ObjectName(SchemaName, &quot;view&quot;);
+
+		public static readonly ObjectName VariablesTableName = new ObjectName(SchemaName, &quot;vars&quot;);
+
+		public static readonly ObjectName ProductInfoTableName = new ObjectName(SchemaName, &quot;product_info&quot;);
+
+		public static readonly ObjectName StatisticsTableName = new ObjectName(SchemaName, &quot;stats&quot;);
+
+		///&lt;summary&gt;
+		/// 
+		///&lt;/summary&gt;
+		public static readonly ObjectName SequenceInfoTableName = new ObjectName(SchemaName, &quot;sequence_info&quot;);
+
+		///&lt;summary&gt;
+		///&lt;/summary&gt;
+		public static readonly ObjectName SequenceTableName = new ObjectName(SchemaName, &quot;sequence&quot;);
+
+		public static readonly ObjectName PrimaryKeyInfoTableName = new ObjectName(SchemaName, &quot;pkey_info&quot;);
+
+		public static readonly ObjectName PrimaryKeyColumnsTableName = new ObjectName(SchemaName, &quot;pkey_cols&quot;);
+
+		public static readonly ObjectName ForeignKeyInfoTableName = new ObjectName(SchemaName, &quot;fkey_info&quot;);
+
+		public static readonly ObjectName ForeignKeyColumnsTableName = new ObjectName(SchemaName, &quot;fkey_cols&quot;);
+
+		public static readonly  ObjectName UniqueKeyInfoTableName = new ObjectName(SchemaName, &quot;unique_info&quot;);
+
+		public static readonly ObjectName UniqueKeyColumnsTableName = new ObjectName(SchemaName, &quot;unique_cols&quot;);
+
+		public static readonly ObjectName CheckInfoTableName = new ObjectName(SchemaName, &quot;check_info&quot;);
+
+		public static readonly ObjectName OldTriggerTableName = new ObjectName(SchemaName, &quot;OLD&quot;);
+
+		public static readonly ObjectName NewTriggerTableName = new ObjectName(SchemaName, &quot;NEW&quot;);
+
+		public static readonly ObjectName SqlTypesTableName = new ObjectName(SchemaName, &quot;sql_types&quot;);
+
+		public static readonly ObjectName SessionInfoTableName = new ObjectName(SchemaName, &quot;session_info&quot;);
+
+		public static readonly ObjectName OpenSessionsTableName = new ObjectName(SchemaName, &quot;open_sessions&quot;);
+
+		public static readonly ObjectName PrivilegesTableName = new ObjectName(SchemaName, &quot;privs&quot;);
+
+
+		/// &lt;summary&gt;
+		/// Gets the fully qualified name of the &lt;c&gt;user&lt;/c&gt; table.
+		/// &lt;/summary&gt;
+		public static readonly ObjectName UserTableName = new ObjectName(SchemaName, &quot;user&quot;);
+
+		public static readonly ObjectName PasswordTableName = new ObjectName(SchemaName, &quot;password&quot;);
+
+		public static readonly ObjectName UserConnectPrivilegesTableName = new ObjectName(SchemaName, &quot;user_connect_priv&quot;);
+
+		public static readonly ObjectName UserPrivilegesTableName = new ObjectName(SchemaName, &quot;user_priv&quot;);
+
+		public static readonly ObjectName UserGrantsTableName = new ObjectName(SchemaName, &quot;grants&quot;);
+
+		#endregion
+
+		#region Table Info
+
+		internal static readonly TableInfo TableInfoTableInfo;
+
+		internal static readonly TableInfo TableColumnsTableInfo;
+
+		internal static readonly TableInfo SqlTypesTableInfo;
+
+		internal static readonly TableInfo VariablesTableInfo;
+
+		internal static readonly TableInfo ProductInfoTableInfo;
+
+		internal static readonly TableInfo StatisticsTableInfo;
+
+		internal static readonly TableInfo SessionInfoTableInfo;
+
+		internal static readonly TableInfo OpenSessionsTableInfo;
+
+		internal static readonly TableInfo PrivilegesTableInfo;
+
+		#endregion
+
+		public static void CreateSystemTables(ITransaction transaction) {
+			// SYSTEM.SCHEMA_INFO
+			var tableInfo = new TableInfo(SchemaInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;type&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;culture&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;other&quot;, PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.SEQUENCE_INFO
+			tableInfo = new TableInfo(SequenceInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;type&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.SEQUENCE
+			tableInfo = new TableInfo(SequenceTableName);
+			tableInfo.AddColumn(&quot;seq_id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;last_value&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;increment&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;minvalue&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;maxvalue&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;start&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;cache&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;cycle&quot;, PrimitiveTypes.Boolean());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.PKEY_INFO
+			tableInfo = new TableInfo(PrimaryKeyInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;table&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;deferred&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.PKEY_COLS
+			tableInfo = new TableInfo(PrimaryKeyColumnsTableName);
+			tableInfo.AddColumn(&quot;pk_id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;column&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;seq_no&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.FKEY_INFO
+			tableInfo = new TableInfo(ForeignKeyInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;table&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;ref_schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;ref_table&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;update_rule&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;delete_rule&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;deferred&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.FKEY_COLS
+			tableInfo = new TableInfo(ForeignKeyColumnsTableName);
+			tableInfo.AddColumn(&quot;fk_id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;fcolumn&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;pcolumn&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;seq_no&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.UNIQUE_INFO
+			tableInfo = new TableInfo(UniqueKeyInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;table&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;deferred&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.UNIQUE_COLS
+			tableInfo = new TableInfo(UniqueKeyColumnsTableName);
+			tableInfo.AddColumn(&quot;un_id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;column&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;seq_no&quot;, PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.CHECK_INFO
+			tableInfo = new TableInfo(CheckInfoTableName);
+			tableInfo.AddColumn(&quot;id&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;schema&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;table&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;expression&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;deferred&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;serialized_expression&quot;, PrimitiveTypes.Binary());
+			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+		}
+
+		private static void CreateSecurityTables(IUserSession session) {
+			var tableInfo = new TableInfo(UserTableName);
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			// TODO: User table must be completed ...
+			tableInfo = tableInfo.AsReadOnly();
+			session.CreateTable(tableInfo);
+
+			session.AddPrimaryKey(UserTableName, new []{&quot;name&quot;}, &quot;SYSTEM_USER_PK&quot;);
+
+			tableInfo = new TableInfo(PasswordTableName);
+			tableInfo.AddColumn(&quot;user&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;type&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;hash&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;salt&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;hash_algorithm&quot;, PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			session.CreateTable(tableInfo);
+
+			tableInfo = new TableInfo(UserPrivilegesTableName);
+			tableInfo.AddColumn(&quot;user&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;group&quot;, PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			session.CreateTable(tableInfo);
+
+			tableInfo = new TableInfo(UserConnectPrivilegesTableName);
+			tableInfo.AddColumn(&quot;user&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;protocol&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;host&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;access&quot;, PrimitiveTypes.Boolean());
+			tableInfo = tableInfo.AsReadOnly();
+			session.CreateTable(tableInfo);
+
+			tableInfo = new TableInfo(UserGrantsTableName);
+			tableInfo.AddColumn(&quot;priv_bit&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;object&quot;, PrimitiveTypes.Numeric());
+			tableInfo.AddColumn(&quot;name&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;user&quot;, PrimitiveTypes.String());
+			tableInfo.AddColumn(&quot;grant_option&quot;, PrimitiveTypes.Boolean());
+			tableInfo.AddColumn(&quot;granter&quot;, PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			session.CreateTable(tableInfo);
+
+			var fkCol = new[] {&quot;user&quot;};
+			var refCol = new[] {&quot;name&quot;};
+			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
+			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
+			session.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, &quot;USER_PASSWORD_FK&quot;);
+			session.AddForeignKey(UserPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, &quot;USER_PRIV_FK&quot;);
+			session.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, &quot;USER_CONNPRIV_FK&quot;);
+			session.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, &quot;USER_GRANTS_FK&quot;);
+		}
+
+		public static void CreateTables(IUserSession session) {
+			CreateSecurityTables(session);
+		}
+
+		public static void Setup(ITransaction transaction) {
+			// -- Primary Keys --
+			// The &#39;id&#39; columns are primary keys on all the system tables,
+			var idCol = new[] { &quot;id&quot; };
+			transaction.AddPrimaryKey(PrimaryKeyInfoTableName, idCol, &quot;SYSTEM_PK_PK&quot;);
+			transaction.AddPrimaryKey(ForeignKeyInfoTableName, idCol, &quot;SYSTEM_FK_PK&quot;);
+			transaction.AddPrimaryKey(UniqueKeyInfoTableName, idCol, &quot;SYSTEM_UNIQUE_PK&quot;);
+			transaction.AddPrimaryKey(CheckInfoTableName, idCol, &quot;SYSTEM_CHECK_PK&quot;);
+			transaction.AddPrimaryKey(SchemaInfoTableName, idCol, &quot;SYSTEM_SCHEMA_PK&quot;);
+
+			// -- Foreign Keys --
+			// Create the foreign key references,
+			var fkCol = new string[1];
+			var fkRefCol = new[] { &quot;id&quot; };
+
+			fkCol[0] = &quot;pk_id&quot;;
+			transaction.AddForeignKey(PrimaryKeyColumnsTableName, fkCol, PrimaryKeyInfoTableName, fkRefCol, &quot;SYSTEM_PK_FK&quot;);
+
+			fkCol[0] = &quot;fk_id&quot;;
+			transaction.AddForeignKey(ForeignKeyColumnsTableName, fkCol, ForeignKeyInfoTableName, fkRefCol, &quot;SYSTEM_FK_FK&quot;);
+
+			fkCol[0] = &quot;un_id&quot;;
+			transaction.AddForeignKey(UniqueKeyColumnsTableName, fkCol, UniqueKeyInfoTableName, fkRefCol, &quot;SYSTEM_UNIQUE_FK&quot;);
+
+			// pkey_info &#39;schema&#39;, &#39;table&#39; column is a unique set,
+			// (You are only allowed one primary key per table).
+			var columns = new[] { &quot;schema&quot;, &quot;table&quot; };
+			transaction.AddUniqueKey(PrimaryKeyInfoTableName, columns, &quot;SYSTEM_PKEY_ST_UNIQUE&quot;);
+
+			// schema_info &#39;name&#39; column is a unique column,
+			columns = new String[] { &quot;name&quot; };
+			transaction.AddUniqueKey(SchemaInfoTableName, columns, &quot;SYSTEM_SCHEMA_UNIQUE&quot;);
+
+			//    columns = new String[] { &quot;name&quot; };
+			columns = new String[] { &quot;name&quot;, &quot;schema&quot; };
+			// pkey_info &#39;name&#39; column is a unique column,
+			transaction.AddUniqueKey(PrimaryKeyInfoTableName, columns, &quot;SYSTEM_PKEY_UNIQUE&quot;);
+
+			// fkey_info &#39;name&#39; column is a unique column,
+			transaction.AddUniqueKey(ForeignKeyInfoTableName, columns, &quot;SYSTEM_FKEY_UNIQUE&quot;);
+
+			// unique_info &#39;name&#39; column is a unique column,
+			transaction.AddUniqueKey(UniqueKeyInfoTableName, columns, &quot;SYSTEM_UNIQUE_UNIQUE&quot;);
+
+			// check_info &#39;name&#39; column is a unique column,
+			transaction.AddUniqueKey(CheckInfoTableName, columns, &quot;SYSTEM_CHECK_UNIQUE&quot;);
+		}
+
+		public static ITable GetTableInfoTable(ITransaction transaction) {
+			return new TableInfoTable(transaction);
+		}
+
+		public static ITable GetTableColumnsTable(ITransaction transaction) {
+			return new TableColumnsTable(transaction);
+		}
+
+		public static ITable GetSqlTypesTable(ITransaction transaction) {
+			return new SqlTypesTable(transaction);
+		}
+
+		public static ITable GetProductInfoTable(ITransaction transaction) {
+			return new ProductInfoTable(transaction);
+		}
+
+		public static ITable GetOpenSessionsTable(ITransaction transaction) {
+			return new OpenSessionsTable(transaction);
+		}
+
+		public static ITable GetVariablesTable(ITransaction transaction) {
+			return new VariablesTable(transaction);
+		}
+
+		public static ITable GetPrivilegesTable(ITransaction transaction) {
+			return new PrivilegesTable(transaction);
+		}
+
+		public static ITable GetSessionInfoTable(IUserSession session) {
+			return new SessionInfoTable(session);
+		}
+
+		public static ITable GetStatisticsTable(ITransaction transaction) {
+			return new StatisticsTable(transaction);
+		}
+
+		#region TableInfoTable
+
+		class TableInfoTable : GeneratedTable {
+			private List&lt;TableInfoObject&gt; tableInfoObjects;
+			private int rowCount;
+
+			public TableInfoTable(ITransaction transaction)
+				: base(transaction.Database.Context) {
+				Transaction = transaction;
+				tableInfoObjects = new List&lt;TableInfoObject&gt;();
+
+				Init();
+			}
+
+			public ITransaction Transaction { get; private set; }
+
+			public override TableInfo TableInfo {
+				get { return TableInfoTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return rowCount; }
+			}
+
+			private void Init() {
+				// All the tables
+				var manager = Transaction.GetTableManager();
+				var tableNames = manager.GetTableNames();
+
+				var tableList = tableNames.ToArray();
+				Array.Sort(tableList);
+				rowCount = tableList.Length;
+
+				foreach (var tableName in tableList) {
+					string curType = Transaction.GetTableType(tableName);
+
+					// If the table is in the SYSTEM schema, the type is defined as a
+					// SYSTEM TABLE.
+					if (curType.Equals(&quot;TABLE&quot;) &amp;&amp;
+						tableName.Parent.Name.Equals(Name)) {
+						curType = &quot;SYSTEM TABLE&quot;;
+					}
+
+					tableInfoObjects.Add(new TableInfoObject(null, tableName.Parent.Name, tableName.Name, curType, null));
+				}
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				if (rowNumber &lt; 0 || rowNumber &gt;= tableInfoObjects.Count)
+					throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+
+				var tableInfo = tableInfoObjects[(int) rowNumber];
+
+				switch (columnOffset) {
+					case 0:
+						return DataObject.String(tableInfo.Catalog);
+					case 1:
+						return DataObject.String(tableInfo.Schema);
+					case 2:
+						return DataObject.String(tableInfo.Name);
+					case 3:
+						return DataObject.String(tableInfo.Type);
+					case 4:
+						return DataObject.String(tableInfo.Comments);
+					default:
+						throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+				}
+			}
+
+			#region TableInfoObject
+
+			class TableInfoObject {
+				public TableInfoObject(string catalog, string schema, string name, string type, string comments) {
+					Catalog = catalog;
+					Schema = schema;
+					Name = name;
+					Type = type;
+					Comments = comments;
+				}
+
+				public string Name { get; private set; }
+				public string Schema { get; private set; }
+				public string Catalog { get; private set; }
+				public string Type { get; private set; }
+				public string Comments { get; private set; }
+			}
+			#endregion
+		}
+
+		#endregion
+
+		#region TableColumnsTable
+
+		class TableColumnsTable : GeneratedTable {
+			private ITransaction transaction;
+
+			public TableColumnsTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+			}
+
+			public override TableInfo TableInfo {
+				get { return TableColumnsTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return GetRowCount(); }
+			}
+
+			private int GetRowCount() {
+				// All the tables
+				var tableManager = transaction.GetTableManager();
+				var list = tableManager.GetTableNames();
+				return list.Select(tableName =&gt; tableManager.GetTableInfo(tableName)).Sum(info =&gt; info.ColumnCount);
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				// All the tables
+				var tableManager = transaction.GetTableManager();
+				var list = tableManager.GetTableNames();
+				var visibleTables = list.Select(name =&gt; transaction.GetTableInfo(name)).ToList();
+
+				int sz = visibleTables.Count;
+				int rs = 0;
+				for (int n = 0; n &lt; sz; ++n) {
+					var info = visibleTables[n];
+
+					var schemaName = info.SchemaName == null ? null : info.SchemaName.FullName;
+
+					int b = rs;
+					rs += info.ColumnCount;
+					if (rowNumber &gt;= b &amp;&amp; rowNumber &lt; rs) {
+						// This is the column that was requested,
+						var seqNo = rowNumber - b;
+						var colInfo = info[(int)seqNo];
+
+						var defaultExpression = colInfo.HasDefaultExpression ? colInfo.DefaultExpression.ToString() : null;
+
+						switch (columnOffset) {
+							case 0:  // schema
+								return GetColumnValue(columnOffset, SqlString.Unicode(schemaName));
+							case 1:  // table
+								return GetColumnValue(columnOffset, SqlString.Unicode(info.Name));
+							case 2:  // column
+								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.ColumnName));
+							case 3:  // sql_type
+								return GetColumnValue(columnOffset, new SqlNumber((int)colInfo.ColumnType.SqlType));
+							case 4:  // type_desc
+								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.ColumnType.ToString()));
+							case 5:  // size
+								return GetColumnValue(columnOffset, new SqlNumber(colInfo.Size));
+							case 6:  // scale
+								return GetColumnValue(columnOffset, new SqlNumber(colInfo.Scale));
+							case 7:  // not_null
+								return GetColumnValue(columnOffset, (SqlBoolean) colInfo.IsNotNull);
+							case 8:  // default
+								return GetColumnValue(columnOffset, SqlString.Unicode(defaultExpression));
+							case 9:  // index_str
+								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.IndexType));
+							case 10:  // seq_no
+								return GetColumnValue(columnOffset, new SqlNumber(seqNo));
+							default:
+								throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+						}
+					}
+
+				}  // for each visible table
+
+				throw new ApplicationException(&quot;Row out of bounds.&quot;);
+			}
+
+			protected override void Dispose(bool disposing) {
+				transaction = null;
+				base.Dispose(disposing);
+			}
+		}
+
+		#endregion
+
+		#region SqlTypesTable
+
+		class SqlTypesTable : GeneratedTable {
+			private ITransaction transaction;
+			private List&lt;SqlTypeInfo&gt; sqlTypes;
+
+			public SqlTypesTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+
+				sqlTypes = new List&lt;SqlTypeInfo&gt;();
+
+				Init();
+			}
+
+			public override TableInfo TableInfo {
+				get { return SqlTypesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return sqlTypes.Count; }
+			}
+
+			private void AddType(string name, string localName, SqlTypeCode type, byte precision, string prefix, string suffix, bool searchable) {
+				sqlTypes.Add(new SqlTypeInfo {
+					TypeName = name,
+					LocalName = localName,
+					Type = type,
+					Precision = precision,
+					LiteralPrefix = prefix,
+					LiteralSuffix = suffix,
+					Searchable = (byte)(searchable ? 3 : 0)
+				});
+			}
+
+			private void Init() {
+				AddType(&quot;BIT&quot;, &quot;BOOLEAN&quot;, SqlTypeCode.Bit, 1, null, null, true);
+				AddType(&quot;BOOLEAN&quot;, &quot;BOOLEAN&quot;, SqlTypeCode.Boolean, 1, null, null, true);
+				AddType(&quot;TINYINT&quot;, &quot;NUMBER&quot;, SqlTypeCode.TinyInt, 9, null, null, true);
+				AddType(&quot;SMALLINT&quot;, &quot;NUMBER&quot;, SqlTypeCode.SmallInt, 9, null, null, true);
+				AddType(&quot;INTEGER&quot;, &quot;NUMBER&quot;, SqlTypeCode.Integer, 9, null, null, true);
+				AddType(&quot;BIGINT&quot;, &quot;NUMBER&quot;, SqlTypeCode.BigInt, 9, null, null, true);
+				AddType(&quot;FLOAT&quot;, &quot;NUMBER&quot;, SqlTypeCode.Float, 9, null, null, true);
+				AddType(&quot;REAL&quot;, &quot;NUMBER&quot;, SqlTypeCode.Real, 9, null, null, true);
+				AddType(&quot;DOUBLE&quot;, &quot;NUMBER&quot;, SqlTypeCode.Double, 9, null, null, true);
+				AddType(&quot;NUMERIC&quot;, &quot;NUMBER&quot;, SqlTypeCode.Numeric, 9, null, null, true);
+				AddType(&quot;DECIMAL&quot;, &quot;NUMBER&quot;, SqlTypeCode.Decimal, 9, null, null, true);
+				AddType(&quot;CHAR&quot;, &quot;STRING&quot;, SqlTypeCode.Char, 9, &quot;&#39;&quot;, &quot;&#39;&quot;, true);
+				AddType(&quot;VARCHAR&quot;, &quot;STRING&quot;, SqlTypeCode.VarChar, 9, &quot;&#39;&quot;, &quot;&#39;&quot;, true);
+				AddType(&quot;LONGVARCHAR&quot;, &quot;STRING&quot;, SqlTypeCode.LongVarChar, 9, &quot;&#39;&quot;, &quot;&#39;&quot;, true);
+				AddType(&quot;DATE&quot;, &quot;DATETIME&quot;, SqlTypeCode.Date, 9, null, null, true);
+				AddType(&quot;TIME&quot;, &quot;DATETIME&quot;, SqlTypeCode.Time, 9, null, null, true);
+				AddType(&quot;TIMESTAMP&quot;, &quot;DATETIME&quot;, SqlTypeCode.TimeStamp, 9, null, null, true);
+				AddType(&quot;BINARY&quot;, &quot;BINARY&quot;, SqlTypeCode.Binary, 9, null, null, false);
+				AddType(&quot;VARBINARY&quot;, &quot;BINARY&quot;, SqlTypeCode.VarBinary, 9, null, null, false);
+				AddType(&quot;LONGVARBINARY&quot;, &quot;BINARY&quot;, SqlTypeCode.LongVarBinary, 9, null, null, false);
+				AddType(&quot;OBJECT&quot;, &quot;OBJECT&quot;, SqlTypeCode.Object, 9, null, null, false);
+				AddType(&quot;GEOMETRY&quot;, &quot;GEOMETRY&quot;, SqlTypeCode.Geometry, 9, null, null, false);
+				AddType(&quot;XML&quot;, &quot;XML&quot;, SqlTypeCode.Xml, 9, null, null, false);
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				// TODO: handle also the user-types here?
+
+				if (rowNumber &lt; 0 || rowNumber &gt;= sqlTypes.Count)
+					throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+
+				var typeInfo = sqlTypes[(int)rowNumber];
+				switch (columnOffset) {
+					case 0:  // type_name
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.TypeName));
+					case 1:  // data_type
+						return GetColumnValue(columnOffset, new SqlNumber((int)typeInfo.Type));
+					case 2:  // precision
+						return GetColumnValue(columnOffset, new SqlNumber(typeInfo.Precision));
+					case 3:  // literal_prefix
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralPrefix));
+					case 4:  // literal_suffix
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralSuffix));
+					case 5:  // create_params
+						return GetColumnValue(columnOffset, SqlString.Null);
+					case 6:  // nullable
+						return GetColumnValue(columnOffset, SqlNumber.One);
+					case 7:  // case_sensitive
+						return GetColumnValue(columnOffset, SqlBoolean.True);
+					case 8:  // searchable
+						return GetColumnValue(columnOffset, new SqlNumber(typeInfo.Searchable));
+					case 9:  // unsigned_attribute
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 10:  // fixed_prec_scale
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 11:  // auto_increment
+						return GetColumnValue(columnOffset, SqlBoolean.False);
+					case 12:  // local_type_name
+						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LocalName));
+					case 13:  // minimum_scale
+						return GetColumnValue(columnOffset, SqlNumber.Zero);
+					case 14:  // maximum_scale
+						return GetColumnValue(columnOffset, new SqlNumber(10000000));
+					case 15:  // sql_data_type
+						return GetColumnValue(columnOffset, SqlNull.Value);
+					case 16:  // sql_datetype_sub
+						return GetColumnValue(columnOffset, SqlNull.Value);
+					case 17:  // num_prec_radix
+						return GetColumnValue(columnOffset, new SqlNumber(10));
+					default:
+						throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+
+				}
+			}
+
+			protected override void Dispose(bool disposing) {
+				transaction = null;
+				sqlTypes = null;
+
+				base.Dispose(disposing);
+			}
+
+			#region SqlTypeInfo
+
+			class SqlTypeInfo {
+				public string TypeName;
+				public string LocalName;
+				public SqlTypeCode Type;
+				public byte Precision;
+				public string LiteralPrefix;
+				public string LiteralSuffix;
+				public byte Searchable;
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region OpenSessionsTable
+
+		private class OpenSessionsTable : GeneratedTable {
+			private ITransaction transaction;
+
+			public OpenSessionsTable(ITransaction transaction)
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+			}
+
+			public override TableInfo TableInfo {
+				get { return OpenSessionsTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return transaction.Database.ActiveSessions.Count; }
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				if (rowNumber &lt; 0 || rowNumber &gt;= transaction.Database.ActiveSessions.Count)
+					throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+
+				var session = transaction.Database.ActiveSessions[(int) rowNumber].SessionInfo;
+
+				switch (columnOffset) {
+					case 0:
+						return GetColumnValue(0, SqlString.Unicode(session.User.Name));
+					case 1:
+						return GetColumnValue(1, SqlString.Unicode(session.EndPoint.ToString()));
+					case 2:
+						return GetColumnValue(2, ((SqlDateTime)session.LastCommandTime));
+					case 3:
+						return GetColumnValue(3, (SqlDateTime)session.StartedOn);
+					default:
+						throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+				}
+			}
+
+			protected override void Dispose(bool disposing) {
+				transaction = null;
+				base.Dispose(disposing);
+			}
+		}
+
+		#endregion
+
+		#region ProductInfoTable
+
+		class ProductInfoTable : GeneratedTable {
+			private List&lt;ISqlString&gt; keyValuePairs;
+
+			public ProductInfoTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+				Init();
+			}
+
+			public override TableInfo TableInfo {
+				get { return ProductInfoTableInfo; }
+			}
+
+			public override int RowCount {
+				get { return keyValuePairs.Count/2; }
+			}
+
+			private void Init() {
+				keyValuePairs = new List&lt;ISqlString&gt;();
+
+				var productInfo = ProductInfo.Current;
+
+				// Set up the product variables.
+				keyValuePairs.Add(SqlString.Unicode(&quot;title&quot;));
+				keyValuePairs.Add(SqlString.Unicode(productInfo.Title));
+
+				keyValuePairs.Add(SqlString.Unicode(&quot;version&quot;));
+				keyValuePairs.Add(SqlString.Unicode(productInfo.Version.ToString()));
+
+				keyValuePairs.Add(SqlString.Unicode(&quot;copyright&quot;));
+				keyValuePairs.Add(SqlString.Unicode(productInfo.Copyright));
+
+				keyValuePairs.Add(SqlString.Unicode(&quot;description&quot;));
+				keyValuePairs.Add(SqlString.Unicode(productInfo.Description));
+
+				keyValuePairs.Add(SqlString.Unicode(&quot;company&quot;));
+				keyValuePairs.Add(SqlString.Unicode(productInfo.Company));
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				switch (columnOffset) {
+					case 0:  // var
+						return GetColumnValue(columnOffset, keyValuePairs[(int)rowNumber * 2]);
+					case 1:  // value
+						return GetColumnValue(columnOffset, keyValuePairs[(int)(rowNumber * 2) + 1]);
+					default:
+						throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+				}
+			}
+		}
+		
+		#endregion
+
+		#region VariablesTable
+
+		class VariablesTable : GeneratedTable {
+			private ITransaction transaction;
+
+			public VariablesTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+				this.transaction = transaction;
+			}
+
+			public override TableInfo TableInfo {
+				get { return VariablesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				throw new NotImplementedException();
+			}
+
+			protected override void Dispose(bool disposing) {
+				transaction = null;
+				base.Dispose(disposing);
+			}
+		}
+
+		#endregion
+
+		#region PrivilegesTable
+
+		class PrivilegesTable : GeneratedTable {
+			public PrivilegesTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+			}
+
+			public override TableInfo TableInfo {
+				get { return PrivilegesTableInfo; }
+			}
+
+			public override int RowCount {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override ColumnIndex GetIndex(int columnOffset) {
+				return base.GetIndex(columnOffset);
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region SessionInfoTable
+
+		class SessionInfoTable : GeneratedTable {
+			public SessionInfoTable(IUserSession session) 
+				: base(session.Database.Context) {
+			}
+
+			public override TableInfo TableInfo {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override int RowCount {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region StatisticsTable
+
+		class StatisticsTable : GeneratedTable {
+			public StatisticsTable(ITransaction transaction) 
+				: base(transaction.Database.Context) {
+			}
+
+			public override TableInfo TableInfo {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override int RowCount {
+				get { throw new NotImplementedException(); }
+			}
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[437,4,437,43,0],[441,4,441,46,0],[445,4,445,42,0],[449,4,449,45,0],[453,4,453,46,0],[457,4,457,43,0],[461,4,461,44,0],[465,4,465,41,0],[469,4,469,44,0],[478,4,479,41,0],[480,5,480,31,0],[481,5,481,52,0],[483,5,483,12,0],[484,4,484,5,0],[489,11,489,37,0],[493,11,493,27,0],[498,5,498,49,0],[499,5,499,46,0],[501,5,501,42,0],[502,5,502,27,0],[503,5,503,33,0],[505,31,505,40,0],[505,14,505,27,0],[506,6,506,59,0],[510,6,511,42,0],[512,7,512,32,0],[515,6,515,108,0],[505,28,505,30,0],[517,4,517,5,0],[520,5,520,62,0],[521,6,521,57,0],[523,5,523,55,0],[525,5,525,26,0],[527,7,527,51,0],[529,7,529,50,0],[531,7,531,48,0],[533,7,533,48,0],[535,7,535,52,0],[537,7,537,61,0],[544,5,544,101,0],[545,6,545,24,0],[546,6,546,22,0],[547,6,547,18,0],[548,6,548,18,0],[549,6,549,26,0],[550,5,550,6,0],[568,4,569,41,0],[570,5,570,36,0],[571,4,571,5,0],[574,11,574,40,0],[578,11,578,32,0],[583,5,583,54,0],[584,5,584,45,0],[585,5,585,37,0],[585,103,585,105,0],[590,5,590,54,0],[591,5,591,45,0],[592,5,592,45,0],[592,75,592,86,0],[594,5,594,34,0],[595,5,595,16,0],[596,10,596,20,0],[597,6,597,34,0],[599,6,599,81,0],[601,6,601,17,0],[602,6,602,29,0],[603,6,603,43,0],[605,7,605,33,0],[606,7,606,38,0],[608,7,608,106,0],[610,7,610,28,0],[612,9,612,76,0],[614,9,614,75,0],[616,9,616,84,0],[618,9,618,93,0],[620,9,620,95,0],[622,9,622,74,0],[624,9,624,75,0],[626,9,626,77,0],[628,9,628,83,0],[630,9,630,83,0],[632,9,632,67,0],[634,9,634,63,0],[596,29,596,32,0],[596,21,596,27,0],[640,5,640,58,0],[644,5,644,24,0],[645,5,645,29,0],[646,4,646,5,0],[585,87,585,103,0],[592,45,592,75,0],[657,4,658,41,0],[659,5,659,36,0],[661,5,661,40,0],[663,5,663,12,0],[664,4,664,5,0],[667,11,667,36,0],[671,11,671,33,0],[675,5,683,8,0],[684,4,684,5,0],[687,5,687,69,0],[688,5,688,77,0],[689,5,689,76,0],[690,5,690,78,0],[691,5,691,76,0],[692,5,692,74,0],[693,5,693,72,0],[694,5,694,70,0],[695,5,695,74,0],[696,5,696,76,0],[697,5,697,76,0],[698,5,698,68,0],[699,5,699,74,0],[700,5,700,82,0],[701,5,701,72,0],[702,5,702,72,0],[703,5,703,82,0],[704,5,704,75,0],[705,5,705,81,0],[706,5,706,89,0],[707,5,707,75,0],[708,5,708,81,0],[709,5,709,66,0],[710,4,710,5,0],[715,5,715,54,0],[716,6,716,57,0],[718,5,718,45,0],[719,5,719,26,0],[721,7,721,81,0],[723,7,723,78,0],[725,7,725,78,0],[727,7,727,86,0],[729,7,729,86,0],[731,7,731,59,0],[733,7,733,58,0],[735,7,735,60,0],[737,7,737,79,0],[739,7,739,61,0],[741,7,741,61,0],[743,7,743,61,0],[745,7,745,82,0],[747,7,747,59,0],[749,7,749,68,0],[751,7,751,58,0],[753,7,753,58,0],[755,7,755,62,0],[757,7,757,61,0],[763,5,763,24,0],[764,5,764,21,0],[766,5,766,29,0],[767,4,767,5,0],[791,4,792,41,0],[793,5,793,36,0],[794,4,794,5,0],[797,11,797,40,0],[801,11,801,60,0],[805,5,805,81,0],[806,6,806,57,0],[808,5,808,84,0],[810,5,810,26,0],[812,7,812,70,0],[814,7,814,80,0],[816,7,816,72,0],[818,7,818,64,0],[820,7,820,61,0],[825,5,825,24,0],[826,5,826,29,0],[827,4,827,5,0],[837,4,838,41,0],[839,5,839,12,0],[840,4,840,5,0],[843,11,843,39,0],[847,11,847,40,0],[851,5,851,44,0],[853,5,853,43,0],[856,5,856,51,0],[857,5,857,61,0],[859,5,859,53,0],[860,5,860,74,0],[862,5,862,55,0],[863,5,863,65,0],[865,5,865,57,0],[866,5,866,67,0],[868,5,868,53,0],[869,5,869,63,0],[870,4,870,5,0],[873,5,873,26,0],[875,7,875,78,0],[877,7,877,84,0],[879,7,879,61,0],[891,4,892,41,0],[893,5,893,36,0],[894,4,894,5,0],[897,11,897,37,0],[901,11,901,47,0],[905,5,905,41,0],[909,5,909,24,0],[910,5,910,29,0],[911,4,911,5,0],[919,4,920,41,0],[921,4,921,5,0],[924,11,924,38,0],[928,11,928,47,0],[932,5,932,40,0],[936,5,936,41,0],[945,4,946,37,0],[947,4,947,5,0],[950,11,950,47,0],[954,11,954,47,0],[958,5,958,41,0],[967,4,968,41,0],[969,4,969,5,0],[972,11,972,47,0],[976,11,976,47,0],[980,5,980,41,0],[585,37,585,73,0],[136,3,136,71,1],[140,3,140,101,1],[142,3,142,100,1],[144,3,144,102,1],[146,3,146,88,1],[148,3,148,93,1],[150,3,150,103,1],[152,3,152,95,1],[157,3,157,105,1],[161,3,161,96,1],[163,3,163,103,1],[165,3,165,106,1],[167,3,167,103,1],[169,3,169,106,1],[171,3,171,105,1],[173,3,173,107,1],[175,3,175,99,1],[177,3,177,93,1],[179,3,179,93,1],[181,3,181,97,1],[183,3,183,103,1],[185,3,185,105,1],[187,3,187,95,1],[193,3,193,88,1],[195,3,195,96,1],[197,3,197,118,1],[199,3,199,103,1],[201,3,201,96,1],[39,4,39,59,1],[40,4,40,69,1],[41,4,41,68,1],[42,4,42,66,1],[43,4,43,66,1],[44,4,44,67,1],[45,4,45,57,1],[48,4,48,65,1],[49,4,49,71,1],[50,4,50,70,1],[51,4,51,71,1],[52,4,52,74,1],[53,4,53,74,1],[54,4,54,70,1],[55,4,55,71,1],[56,4,56,74,1],[57,4,57,72,1],[58,4,58,74,1],[59,4,59,72,1],[60,4,60,63,1],[63,4,63,59,1],[64,4,64,65,1],[65,4,65,66,1],[66,4,66,67,1],[67,4,67,71,1],[68,4,68,71,1],[69,4,69,69,1],[70,4,70,57,1],[73,4,73,63,1],[74,4,74,67,1],[75,4,75,69,1],[76,4,76,61,1],[79,4,79,61,1],[80,4,80,72,1],[81,4,81,68,1],[82,4,82,59,1],[85,4,85,57,1],[86,4,86,70,1],[87,4,87,71,1],[88,4,88,71,1],[89,4,89,75,1],[90,4,90,75,1],[91,4,91,74,1],[92,4,92,70,1],[93,4,93,76,1],[94,4,94,72,1],[95,4,95,80,1],[96,4,96,78,1],[97,4,97,76,1],[98,4,98,76,1],[99,4,99,75,1],[100,4,100,75,1],[101,4,101,74,1],[102,4,102,77,1],[103,4,103,76,1],[104,4,104,55,1],[107,4,107,65,1],[108,4,108,73,1],[109,4,109,76,1],[110,4,110,75,1],[111,4,111,77,1],[112,4,112,63,1],[115,4,115,63,1],[116,4,116,67,1],[117,4,117,69,1],[118,4,118,61,1],[121,4,121,61,1],[122,4,122,72,1],[123,4,123,74,1],[124,4,124,59,1],[125,3,125,4,1],[229,4,229,55,1],[230,4,230,56,1],[231,4,231,57,1],[232,4,232,57,1],[233,4,233,60,1],[234,4,234,58,1],[235,4,235,39,1],[236,4,236,39,1],[239,4,239,53,1],[240,4,240,56,1],[241,4,241,59,1],[242,4,242,57,1],[243,4,243,58,1],[244,4,244,39,1],[245,4,245,39,1],[248,4,248,49,1],[249,4,249,60,1],[250,4,250,64,1],[251,4,251,63,1],[252,4,252,62,1],[253,4,253,62,1],[254,4,254,59,1],[255,4,255,59,1],[256,4,256,59,1],[257,4,257,39,1],[258,4,258,39,1],[261,4,261,55,1],[262,4,262,56,1],[263,4,263,57,1],[264,4,264,59,1],[265,4,265,58,1],[266,4,266,62,1],[267,4,267,39,1],[268,4,268,39,1],[271,4,271,58,1],[272,4,272,59,1],[273,4,273,59,1],[274,4,274,60,1],[275,4,275,39,1],[276,4,276,39,1],[279,4,279,55,1],[280,4,280,56,1],[281,4,281,57,1],[282,4,282,59,1],[283,4,283,58,1],[284,4,284,63,1],[285,4,285,62,1],[286,4,286,65,1],[287,4,287,65,1],[288,4,288,62,1],[289,4,289,39,1],[290,4,290,39,1],[293,4,293,58,1],[294,4,294,59,1],[295,4,295,60,1],[296,4,296,60,1],[297,4,297,60,1],[298,4,298,39,1],[299,4,299,39,1],[302,4,302,54,1],[303,4,303,56,1],[304,4,304,57,1],[305,4,305,59,1],[306,4,306,58,1],[307,4,307,62,1],[308,4,308,39,1],[309,4,309,39,1],[312,4,312,57,1],[313,4,313,59,1],[314,4,314,59,1],[315,4,315,60,1],[316,4,316,39,1],[317,4,317,39,1],[320,4,320,50,1],[321,4,321,56,1],[322,4,322,57,1],[323,4,323,59,1],[324,4,324,58,1],[325,4,325,63,1],[326,4,326,62,1],[327,4,327,74,1],[328,4,328,39,1],[329,4,329,39,1],[330,3,330,4,1],[333,4,333,49,1],[334,4,334,57,1],[336,4,336,39,1],[337,4,337,35,1],[339,4,339,75,1],[341,4,341,49,1],[342,4,342,57,1],[343,4,343,58,1],[344,4,344,57,1],[345,4,345,57,1],[346,4,346,67,1],[347,4,347,39,1],[348,4,348,35,1],[350,4,350,55,1],[351,4,351,57,1],[352,4,352,58,1],[353,4,353,39,1],[354,4,354,35,1],[356,4,356,62,1],[357,4,357,57,1],[358,4,358,61,1],[359,4,359,57,1],[360,4,360,60,1],[361,4,361,39,1],[362,4,362,35,1],[364,4,364,51,1],[365,4,365,62,1],[366,4,366,60,1],[367,4,367,57,1],[368,4,368,57,1],[369,4,369,66,1],[370,4,370,60,1],[371,4,371,39,1],[372,4,372,35,1],[374,4,374,31,1],[375,4,375,32,1],[378,4,378,115,1],[379,4,379,117,1],[380,4,380,128,1],[381,4,381,115,1],[382,3,382,4,1],[385,4,385,34,1],[386,3,386,4,1],[391,4,391,31,1],[392,4,392,78,1],[393,4,393,78,1],[394,4,394,81,1],[395,4,395,76,1],[396,4,396,78,1],[400,4,400,30,1],[401,4,401,34,1],[403,4,403,23,1],[404,4,404,116,1],[406,4,406,23,1],[407,4,407,116,1],[409,4,409,23,1],[410,4,410,118,1],[414,4,414,46,1],[415,4,415,88,1],[418,4,418,38,1],[419,4,419,83,1],[422,4,422,48,1],[424,4,424,85,1],[427,4,427,85,1],[430,4,430,86,1],[433,4,433,81,1],[434,3,434,4,1]]);
+    </script>
+  </body>
+</html>

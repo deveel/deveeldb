@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\basedatatable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+
+namespace Deveel.Data.Sql {
+	public abstract class BaseDataTable : RootTable {
+		private readonly IDatabaseContext context;
+
+		private ColumnIndex[] indexes;
+
+		protected BaseDataTable() 
+			: this(null) {
+		}
+
+		protected BaseDataTable(IDatabaseContext context) {
+			this.context = context;
+		}
+
+		public override IDatabaseContext DatabaseContext {
+			get { return context; }
+		}
+
+		protected override ObjectName GetResolvedColumnName(int column) {
+			var columnName = TableInfo[column].ColumnName;
+			return new ObjectName(TableName, columnName);
+		}
+
+		protected override int IndexOfColumn(ObjectName columnName) {
+			// Check this is the correct table first...
+			var tableName = columnName.Parent;
+			var tableInfo = TableInfo;
+			if (tableName != null &amp;&amp; tableName.Equals(TableName)) {
+				// Look for the column name
+				string colName = columnName.Name;
+				int size = ColumnCount;
+				for (int i = 0; i &lt; size; ++i) {
+					var col = tableInfo[i];
+					if (col.ColumnName.Equals(colName)) {
+						return i;
+					}
+				}
+			}
+
+			return -1;
+		}
+
+		protected virtual ColumnIndex GetColumnIndex(int columnOffset) {
+			return indexes[columnOffset];
+		}
+
+		protected override ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
+			var index = GetColumnIndex(column);
+			if (table == this)
+				return index;
+
+			// Otherwise, get the scheme to calculate a subset of the given scheme.
+			return index.GetSubset(table, originalColumn);
+		}
+
+		protected void SetupIndexes(string indexTypeName) {
+			Type indexType;
+			if (String.Equals(indexTypeName, DefaultIndexTypes.BlindSearch)) {
+				indexType = typeof (BlindSearchIndex);
+			} else if (String.Equals(indexTypeName, DefaultIndexTypes.InsertSearch)) {
+				indexType = typeof (InsertSearchIndex);
+			} else {
+				indexType = Type.GetType(indexTypeName, false, true);
+			}
+
+			if (indexType == null) {
+				indexType = typeof (BlindSearchIndex);
+			} else if (!typeof (ColumnIndex).IsAssignableFrom(indexType)) {
+				throw new InvalidOperationException(String.Format(&quot;The type &#39;{0}&#39; is not a valid table index.&quot;, indexType));
+			}
+
+			SetupIndexes(indexType);
+		}
+
+		protected virtual void SetupIndexes(Type indexType) {
+			indexes = new ColumnIndex[ColumnCount];
+			for (int i = 0; i &lt; ColumnCount; i++) {
+				if (indexType == typeof (BlindSearchIndex)) {
+					indexes[i] = new BlindSearchIndex(this, i);
+				} else if (indexType == typeof (InsertSearchIndex)) {
+					indexes[i] = new InsertSearchIndex(this, i);
+				} else {
+					var index = Activator.CreateInstance(indexType, this, i) as ColumnIndex;
+					if (index == null)
+						throw new InvalidOperationException();
+
+					indexes[i] = index;
+				}
+			}			
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var rows = this.Select(row =&gt; row.RowId.RowNumber).ToList();
+			rootInfo.Add(this, rows);
+			return rootInfo;
+		}
+
+		protected override IEnumerable&lt;int&gt; ResolveRows(int column, IEnumerable&lt;int&gt; rowSet, ITable ancestor) {
+			if (ancestor != this)
+				throw new Exception(&quot;Method routed to incorrect table ancestor.&quot;);
+
+			return rowSet;
+		}
+
+		public void AddToIndex(int rowNumber, int columnNumber) {
+			bool indexableType = TableInfo[columnNumber].IsIndexable;
+			if (indexableType) {
+				var index = GetColumnIndex(columnNumber);
+				index.Insert(rowNumber);
+			}
+		}
+
+		public void AddRowToIndex(int rowNumber) {
+			int colCount = ColumnCount;
+			var tableInfo = TableInfo;
+			for (int i = 0; i &lt; colCount; ++i) {
+				if (tableInfo[i].IsIndexable) {
+					var index = GetColumnIndex(i);
+					index.Insert(rowNumber);
+				}
+			}
+		}
+
+		public void RemoveRowFromIndex(int rowNumber) {
+			int colCount = ColumnCount;
+			var tableInfo = TableInfo;
+			for (int i = 0; i &lt; colCount; ++i) {
+				if (tableInfo[i].IsIndexable) {
+					var index = GetColumnIndex(i);
+					index.Remove(rowNumber);
+				}
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[30,3,31,16,0],[32,3,32,4,0],[39,10,39,25,0],[43,4,43,50,0],[44,4,44,49,0],[49,4,49,38,0],[50,4,50,30,0],[51,4,51,57,0],[53,5,53,38,0],[54,5,54,28,0],[55,10,55,20,0],[56,6,56,29,0],[57,6,57,41,0],[58,7,58,16,0],[55,31,55,34,0],[55,21,55,29,0],[63,4,63,14,0],[76,4,76,50,0],[86,5,86,58,0],[90,5,90,43,0],[92,5,92,113,0],[106,6,106,78,0],[107,6,107,24,0],[108,7,108,45,0],[110,6,110,25,0],[116,4,116,34,0],[116,53,116,64,0],[117,4,117,29,0],[118,4,118,20,0],[122,4,122,25,0],[123,5,123,71,0],[125,4,125,18,0],[129,4,129,61,0],[130,4,130,22,0],[131,5,131,46,0],[132,5,132,29,0],[134,3,134,4,0],[148,4,148,31,0],[149,4,149,30,0],[150,9,150,19,0],[151,5,151,34,0],[152,6,152,36,0],[153,6,153,30,0],[150,34,150,37,0],[150,20,150,32,0],[156,3,156,4,0],[116,34,116,53,0],[34,3,34,52,1],[35,4,35,27,1],[36,3,36,4,1],[67,4,67,33,1],[71,4,71,39,1],[72,4,72,22,1],[73,5,73,18,1],[81,4,81,68,1],[82,5,82,43,1],[83,11,83,76,1],[84,5,84,44,1],[89,4,89,26,1],[91,11,91,65,1],[95,4,95,28,1],[96,3,96,4,1],[99,4,99,43,1],[100,9,100,19,1],[101,5,101,48,1],[102,6,102,49,1],[103,12,103,56,1],[104,6,104,50,1],[100,37,100,40,1],[100,20,100,35,1],[113,3,113,4,1],[137,4,137,31,1],[138,4,138,30,1],[139,9,139,19,1],[140,5,140,34,1],[141,6,141,36,1],[142,6,142,30,1],[139,34,139,37,1],[139,20,139,32,1],[145,3,145,4,1]]);
+    </script>
+  </body>
+</html>

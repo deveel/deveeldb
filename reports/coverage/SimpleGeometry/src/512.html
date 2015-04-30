@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.statements\sqlstatement.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Compile;
+
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public abstract class SqlStatement {
+		public SqlQuery SourceQuery { get; private set; }
+
+		public bool IsFromQuery { get; private set; }
+
+		internal void SetSource(SqlQuery query) {
+			SourceQuery = query;
+			IsFromQuery = true;
+		}
+
+		public abstract StatementType StatementType { get; }
+
+		protected abstract SqlPreparedStatement PrepareStatement(IQueryContext context);
+
+		public SqlPreparedStatement Prepare(IQueryContext context) {
+			SqlPreparedStatement prepared;
+
+			try {
+				prepared = PrepareStatement(context);
+
+				if (prepared == null)
+					throw new InvalidOperationException(&quot;Preparation was invalid.&quot;);
+
+				prepared.Source = this;
+			} catch (Exception ex) {
+				// TODO: throw a specialized exception
+				throw;
+			}
+
+			return prepared;
+		}
+
+		public ITable Evaluate(IQueryContext context) {
+			SqlPreparedStatement prepared;
+
+			try {
+				prepared = Prepare(context);
+			} catch (Exception ex) {
+				throw new InvalidOperationException(&quot;Unable to prepare the statement for execution.&quot;);
+			}
+
+			return prepared.Evaluate(context);
+		}
+
+		public static IEnumerable&lt;SqlStatement&gt; Parse(string sqlSource) {
+			var compiler = SqlParsers.Default;
+
+			try {
+				var result = compiler.Parse(sqlSource);
+				if (result.HasErrors)
+					throw new SqlParseException();
+
+				var builder = new StatementBuilder();
+				return builder.Build(result.RootNode, sqlSource);
+			} catch (SqlParseException) {
+				throw;
+			} catch (Exception ex) {
+				throw;
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[32,4,32,24,0],[33,4,33,23,0],[34,3,34,4,0],[47,6,47,70,0],[50,6,50,26,0],[52,5,52,11,0],[63,6,63,26,0],[64,5,64,91,0],[76,6,76,36,0],[80,6,80,31,0],[81,5,81,11,0],[82,6,82,26,0],[83,5,83,11,0],[44,5,44,42,1],[46,5,46,26,1],[49,5,49,28,1],[55,4,55,20,1],[62,5,62,33,1],[67,4,67,38,1],[71,4,71,38,1],[74,5,74,44,1],[75,5,75,26,1],[78,5,78,42,1],[79,5,79,54,1],[85,3,85,4,1]]);
+    </script>
+  </body>
+</html>

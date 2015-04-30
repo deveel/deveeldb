@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\table.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql {
+	[Serializable]
+	public abstract class Table : IQueryTable, ILockable {
+		// Stores col name -&gt; col index lookups
+		private Dictionary&lt;ObjectName, int&gt; colNameLookup;
+		private readonly object colLookupLock = new object();
+
+		~Table() {
+			Dispose(false);
+		}
+
+		public abstract IEnumerator&lt;Row&gt; GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing) {
+		}
+
+		public abstract IDatabaseContext DatabaseContext { get; }
+
+		public abstract TableInfo TableInfo { get; }
+
+		public bool IsLocked { get; private set; }
+
+		object ILockable.RefId {
+			get { return TableInfo.TableName; }
+		}
+
+		int IQueryTable.ColumnCount {
+			get { return ColumnCount; }
+		}
+
+		protected virtual int ColumnCount {
+			get { return TableInfo.ColumnCount; }
+		}
+
+		public abstract int RowCount { get; }
+
+		public abstract void LockRoot(int lockKey);
+
+		public abstract void UnlockRoot(int lockKey);
+
+		protected virtual void OnLockAcquired(Lock @lock) {
+			
+		}
+
+		protected virtual void OnLockReleased(Lock @lock) {
+			
+		}
+
+		void ILockable.Acquired(Lock @lock) {
+			try {
+				OnLockAcquired(@lock);
+			} finally {
+				IsLocked = true;
+			}
+		}
+
+		void ILockable.Released(Lock @lock) {
+			try {
+				OnLockReleased(@lock);
+			} finally {
+				IsLocked = true;
+			}
+		}
+
+		protected virtual int IndexOfColumn(ObjectName columnName) {
+			return TableInfo.IndexOfColumn(columnName.Name);
+		}
+
+		protected virtual ObjectName GetResolvedColumnName(int column) {
+			return TableInfo[column].FullColumnName;
+		}
+
+		ObjectName IQueryTable.GetResolvedColumnName(int column) {
+			return GetResolvedColumnName(column);
+		}
+
+		ColumnIndex IQueryTable.GetIndex(int column, int originalColumn, ITable table) {
+			return GetIndex(column, originalColumn, table);
+		}
+
+		protected virtual ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
+			return GetIndex(column);
+		}
+
+		protected abstract IEnumerable&lt;int&gt; ResolveRows(int column, IEnumerable&lt;int&gt; rowSet, ITable ancestor);
+
+		IEnumerable&lt;int&gt; IQueryTable.ResolveRows(int columnOffset, IEnumerable&lt;int&gt; rows, ITable ancestor) {
+			return ResolveRows(columnOffset, rows, ancestor);
+		}
+
+		protected abstract RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+
+		RawTableInfo IQueryTable.GetRawTableInfo(RawTableInfo rootInfo) {
+			return GetRawTableInfo(rootInfo);
+		}
+
+		public abstract DataObject GetValue(long rowNumber, int columnOffset);
+
+		public ColumnIndex GetIndex(int columnOffset) {
+			return GetIndex(columnOffset, columnOffset, this);
+		}
+
+		public ObjectName FullName {
+			get { return TableInfo.TableName; }
+		}
+
+		DbObjectType IDbObject.ObjectType {
+			get { return DbObjectType.Table; }
+		}
+
+		protected int FindColumn(ObjectName columnName) {
+			lock (colLookupLock) {
+				if (colNameLookup == null)
+					colNameLookup = new Dictionary&lt;ObjectName, int&gt;(30);
+
+				int index;
+				if (!colNameLookup.TryGetValue(columnName, out index)) {
+					index = IndexOfColumn(columnName);
+					colNameLookup[columnName] = index;
+				}
+
+				return index;
+			}
+		}
+
+		int IQueryTable.FindColumn(ObjectName columnName) {
+			return FindColumn(columnName);
+		}
+
+		private DataType GetColumnType(int columnOffset) {
+			return TableInfo[columnOffset].ColumnType;
+		}
+
+		private DataType GetColumnType(ObjectName columnName) {
+			return GetColumnType(FindColumn(columnName));
+		}
+
+		ITableVariableResolver IQueryTable.GetVariableResolver() {
+			return new TableVariableResolver(this);
+		}
+
+		#region TableVariableResolver
+
+		class TableVariableResolver : ITableVariableResolver {
+			public TableVariableResolver(Table table) 
+				: this(table, -1) {
+			}
+
+			public TableVariableResolver(Table table, int rowIndex) {
+				this.table = table;
+				this.rowIndex = rowIndex;
+			}
+
+			private readonly Table table;
+			private readonly int rowIndex;
+
+			private int FindColumnName(ObjectName columnName) {
+				int colIndex = table.FindColumn(columnName);
+				if (colIndex == -1) {
+					throw new ApplicationException(&quot;Can&#39;t find column: &quot; + columnName);
+				}
+				return colIndex;
+			}
+
+			public DataObject Resolve(ObjectName columnName) {
+				return table.GetValue(rowIndex, FindColumnName(columnName));
+			}
+
+			public DataType ReturnType(ObjectName columnName) {
+				return table.GetColumnType(columnName);
+			}
+
+			public ITableVariableResolver ForRow(int row) {
+				return new TableVariableResolver(table, row);
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,4,40,27,0],[44,4,44,18,0],[45,4,45,30,0],[46,3,46,4,0],[58,10,58,37,0],[77,3,77,4,0],[81,3,81,4,0],[85,5,85,27,0],[87,5,87,21,0],[89,3,89,4,0],[93,5,93,27,0],[95,5,95,21,0],[97,3,97,4,0],[100,4,100,52,0],[104,4,104,44,0],[108,4,108,41,0],[116,4,116,28,0],[128,4,128,37,0],[138,10,138,37,0],[142,10,142,36,0],[165,4,165,46,0],[169,4,169,49,0],[194,6,194,73,0],[204,5,204,44,0],[34,4,34,19,1],[35,3,35,4,1],[49,3,49,4,1],[62,10,62,29,1],[66,10,66,39,1],[112,4,112,51,1],[122,4,122,53,1],[134,4,134,54,1],[146,4,146,24,1],[147,5,147,31,1],[148,6,148,58,1],[151,5,151,59,1],[152,6,152,40,1],[153,6,153,40,1],[156,5,156,18,1],[158,3,158,4,1],[161,4,161,34,1],[173,4,173,43,1],[31,3,31,56,1],[179,4,180,22,1],[181,4,181,5,1],[183,4,183,59,1],[184,5,184,24,1],[185,5,185,30,1],[186,4,186,5,1],[192,5,192,49,1],[193,5,193,24,1],[196,5,196,21,1],[200,5,200,65,1],[208,5,208,50,1]]);
+    </script>
+  </body>
+</html>

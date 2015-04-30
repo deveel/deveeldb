@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.routines\routinenotfouncexception.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Text;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Routines {
+	[Serializable]
+	public class RoutineNotFouncException : ObjectNotFoundException {
+		public RoutineNotFouncException(ObjectName routineName)
+			: this(routineName, new SqlExpression[0]) {
+		}
+
+		public RoutineNotFouncException(string message)
+			: this(null, message) {
+		}
+
+		public RoutineNotFouncException(ObjectName routineName, string message)
+			: this(routineName, new SqlExpression[0], message) {
+		}
+
+		public RoutineNotFouncException(ObjectName routineName, SqlExpression[] args)
+			: this(routineName, args, FormMessage(routineName, args)) {
+		}
+
+		public RoutineNotFouncException(ObjectName routineName, SqlExpression[] args, string message)
+			: base(routineName, message) {
+			Arguments = args;
+		}
+
+		public SqlExpression[] Arguments { get; private set; }
+
+		private static string FormMessage(ObjectName name, SqlExpression[] args) {
+			var sb = new StringBuilder(name.FullName);
+			sb.Append(&quot;(&quot;);
+			if (args != null) {
+				for (int i = 0; i &lt; args.Length; i++) {
+					sb.Append(args[i]);
+
+					if (i &lt; args.Length - 1)
+						sb.Append(&quot;, &quot;);
+				}
+			}
+			sb.Append(&quot;)&quot;);
+
+			return String.Format(&quot;Unable to resolve {0} to any routine within the system.&quot;, sb);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,27,45,0],[28,3,28,4,0],[30,3,31,25,0],[32,3,32,4,0],[34,3,35,54,0],[36,3,36,4,0],[38,3,39,61,0],[40,3,40,4,0],[42,3,43,32,0],[44,4,44,21,0],[45,3,45,4,0],[50,4,50,46,0],[51,4,51,19,0],[52,4,52,21,0],[53,10,53,20,0],[54,6,54,25,0],[56,6,56,30,0],[57,7,57,23,0],[53,38,53,41,0],[53,21,53,36,0],[60,4,60,19,0],[62,4,62,88,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\fromtabledirectsource.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Query {
+	/// &lt;summary&gt;
+	/// An implementation of &lt;see cref=&quot;IFromTableSource&quot;/&gt; that wraps around a 
+	/// &lt;see cref=&quot;ObjectName&quot;/&gt;/&lt;see cref=&quot;ITable&quot;/&gt; object.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// The handles case insensitive resolution.
+	/// &lt;/remarks&gt;
+	public class FromTableDirectSource : IFromTableSource {
+		private readonly ITableQueryInfo tableQuery;
+		private readonly TableInfo tableInfo;
+
+		/// &lt;summary&gt;
+		/// Constructs the source.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;caseInsensitive&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;tableQuery&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;uniqueName&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;givenName&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;rootName&quot;&gt;&lt;/param&gt;
+		public FromTableDirectSource(bool caseInsensitive, ITableQueryInfo tableQuery, string uniqueName, ObjectName givenName, ObjectName rootName) {
+			this.UniqueName = uniqueName;
+			tableInfo = tableQuery.TableInfo;
+			RootTableName = rootName;
+			if (givenName != null) {
+				GivenTableName = givenName;
+			} else {
+				GivenTableName = rootName;
+			}
+
+			IgnoreCase = caseInsensitive;
+			this.tableQuery = tableQuery;
+		}
+
+		public bool IgnoreCase { get; private set; }
+
+		public ObjectName GivenTableName { get; private set; }
+
+		public ObjectName RootTableName { get; private set; }
+
+		public IQueryPlanNode QueryPlan {
+			get { return tableQuery.QueryPlanNode; }
+		}
+
+		public string UniqueName { get; private set; }
+
+		public ObjectName[] ColumnNames {
+			get {
+				int colCount = tableInfo.ColumnCount;
+				var vars = new ObjectName[colCount];
+				for (int i = 0; i &lt; colCount; ++i) {
+					vars[i] = new ObjectName(GivenTableName, tableInfo[i].ColumnName);
+				}
+				return vars;
+			}
+		}
+
+		private bool StringCompare(string str1, string str2) {
+			var comparison = IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return String.Equals(str1, str2, comparison);
+		}
+
+
+		public bool MatchesReference(string catalog, string schema, string table) {
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+
+			// Does this table name represent the correct schema?
+			var givenSchema = schemaName != null ? schemaName.Name : null;
+			if (schema != null &amp;&amp; !StringCompare(schema, givenSchema)) {
+				// If schema is present and we can&#39;t resolve to this schema then false
+				return false;
+			}
+
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null &amp;&amp; !StringCompare(catalog, givenCatalog))
+				return false;
+
+			if (table != null &amp;&amp; !StringCompare(table, GivenTableName.Name)) {
+				// If table name is present and we can&#39;t resolve to this table name
+				// then return false
+				return false;
+			}
+
+			// Match was successful,
+			return true;
+		}
+
+		public int ResolveColumnCount(string catalog, string schema, string table, string column) {
+			// NOTE: With this type, we can only ever return either 1 or 0 because
+			//   it&#39;s impossible to have an ambiguous reference
+
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null &amp;&amp; !StringCompare(catalog, givenCatalog))
+				return 0;
+
+			var givenSchema = schemaName != null ? schemaName.Name : null;
+			if (schema != null &amp;&amp; !StringCompare(schema, givenSchema))
+				return 0;
+
+			if (table != null &amp;&amp; !StringCompare(table, GivenTableName.Name)) {
+				return 0;
+			}
+
+			if (column != null) {
+				// TODO: the case-insensitive search in TableInfo
+				if (!IgnoreCase) {
+					// Can we resolve the column in this table?
+					int i = tableInfo.IndexOfColumn(column);
+					// If i doesn&#39;t equal -1 then we&#39;ve found our column
+					return i == -1 ? 0 : 1;
+				}
+
+				return tableInfo.Count(columnInfo =&gt; StringCompare(columnInfo.ColumnName, column));
+			}
+
+			// Return the column count
+			return tableInfo.ColumnCount;
+		}
+
+		public ObjectName ResolveColumn(string catalog, string schema, string table, string column) {
+			var schemaName = GivenTableName.Parent;
+			var catalogName = schemaName == null ? null : schemaName.Parent;
+
+			var givenCatalog = catalogName != null ? catalogName.Name : null;
+			if (catalog != null &amp;&amp; !StringCompare(catalog, givenCatalog))
+				throw new ApplicationException(&quot;Incorrect catalog.&quot;);
+
+			// Does this table name represent the correct schema?
+			var givenSchema = GivenTableName.Parent != null ? GivenTableName.Parent.Name : null;
+			if (schema != null &amp;&amp; !StringCompare(schema, givenSchema))
+				// If schema is present and we can&#39;t resolve to this schema
+				throw new ApplicationException(&quot;Incorrect schema.&quot;);
+
+			if (table != null &amp;&amp; !StringCompare(table, GivenTableName.Name))
+				// If table name is present and we can&#39;t resolve to this table name
+				throw new ApplicationException(&quot;Incorrect table.&quot;);
+
+			if (column != null) {
+				if (!IgnoreCase) {
+					// Can we resolve the column in this table?
+					int i = tableInfo.IndexOfColumn(column);
+					if (i == -1)
+						throw new ApplicationException(&quot;Could not resolve &#39;&quot; + column + &quot;&#39;&quot;);
+
+					return new ObjectName(GivenTableName, column);
+				}
+
+				// Case insensitive search (this is slower than case sensitive).
+				var columnName =
+					tableInfo.Where(x =&gt; StringCompare(x.ColumnName, column))
+						.Select(x =&gt; x.ColumnName)
+						.FirstOrDefault();
+
+				if (String.IsNullOrEmpty(columnName))
+					throw new ApplicationException(String.Format(&quot;Could not resolve column &#39;{0}&#39; within the table &#39;{1}&#39;.&quot;, column,
+						GivenTableName));
+
+				return new ObjectName(GivenTableName, columnName);
+			}
+
+			// Return the first column in the table
+			return new ObjectName(GivenTableName, tableInfo[0].ColumnName);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[45,5,45,32,0],[84,4,84,43,0],[85,4,85,68,0],[88,4,88,66,0],[89,4,89,62,0],[91,5,91,18,0],[94,4,94,69,0],[95,4,95,65,0],[96,5,96,18,0],[98,4,98,68,0],[101,5,101,18,0],[105,4,105,16,0],[117,5,117,14,0],[121,5,121,14,0],[124,5,124,14,0],[131,6,131,46,0],[133,6,133,29,0],[140,4,140,33,0],[149,5,149,58,0],[155,5,155,57,0],[159,5,159,56,0],[164,6,164,46,0],[165,6,165,18,0],[166,7,166,76,0],[168,6,168,52,0],[178,6,179,24,0],[185,4,185,67,0],[40,3,40,143,1],[41,4,41,33,1],[42,4,42,37,1],[43,4,43,29,1],[44,4,44,26,1],[47,5,47,31,1],[50,4,50,33,1],[51,4,51,33,1],[52,3,52,4,1],[61,10,61,42,1],[68,5,68,42,1],[69,5,69,41,1],[70,10,70,20,1],[71,6,71,72,1],[70,35,70,38,1],[70,21,70,33,1],[73,5,73,17,1],[78,4,78,96,1],[79,4,79,49,1],[112,4,112,43,1],[113,4,113,68,1],[115,4,115,69,1],[116,4,116,65,1],[119,4,119,66,1],[120,4,120,62,1],[123,4,123,68,1],[127,4,127,23,1],[129,5,129,21,1],[136,5,136,42,1],[136,86,136,88,1],[144,4,144,43,1],[145,4,145,68,1],[147,4,147,69,1],[148,4,148,65,1],[152,4,152,88,1],[153,4,153,62,1],[157,4,157,68,1],[161,4,161,23,1],[162,5,162,21,1],[172,5,173,27,1],[174,32,175,25,1],[177,5,177,42,1],[181,5,181,55,1],[174,20,174,32,1],[136,42,136,86,1],[173,27,173,62,1]]);
+    </script>
+  </body>
+</html>

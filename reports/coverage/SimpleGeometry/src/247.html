@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlfunctioncallexpressionnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// A node in a SQL command tree that is used to request a function.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
+		internal SqlFunctionCallExpressionNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the name of the function to be invoked.
+		/// &lt;/summary&gt;
+		public ObjectName FunctionName { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an optional read-only list of arguments to be passed
+		/// to the function invoked.
+		/// &lt;/summary&gt;
+		public IEnumerable&lt;IExpressionNode&gt; Arguments { get; private set; }
+
+		private void GetArguments(ISqlNode node) {
+			var args = new List&lt;IExpressionNode&gt;();
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode)
+					args.Add((IExpressionNode)childNode);
+			}
+
+			Arguments = args.AsReadOnly();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is ObjectNameNode) {
+				FunctionName = ((ObjectNameNode) node).Name;
+			} else if (node.NodeName == &quot;function_call_args_list&quot;) {
+				GetArguments(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,26,43,1],[27,3,27,4,1],[41,4,41,43,1],[42,30,42,45,1],[42,13,42,26,1],[43,5,43,38,1],[44,6,44,43,1],[42,27,42,29,1],[47,4,47,34,1],[48,3,48,4,1],[52,4,52,31,1],[53,5,53,49,1],[54,11,54,58,1],[55,5,55,24,1],[58,4,58,34,1]]);
+    </script>
+  </body>
+</html>

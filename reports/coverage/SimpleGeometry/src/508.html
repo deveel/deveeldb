@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.security\invalidaccessexception.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+namespace Deveel.Data.Security {
+	[Serializable]
+	public class InvalidAccessException : SecurityException {
+		public InvalidAccessException(ObjectName objectName)
+			: this(objectName, BuildMessage(objectName)) {
+		}
+
+		public InvalidAccessException(ObjectName objectName, string message)
+			: base(SecurityErrorCodes.InvalidAccess, message) {
+			ObjectName = objectName;
+		}
+
+		public ObjectName ObjectName { get; private set; }
+
+		private static string BuildMessage(ObjectName objectName) {
+			if (objectName == null)
+				return &quot;Cannot access the object: possibly not enough privileges.&quot;;
+
+			return String.Format(&quot;Cannot access the &#39;{0}&#39;: possibly not enough privileges.&quot;, objectName);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[6,3,7,48,0],[8,3,8,4,0],[10,3,11,53,0],[12,4,12,28,0],[13,3,13,4,0],[18,4,18,27,0],[19,5,19,72,0],[21,4,21,97,0]]);
+    </script>
+  </body>
+</html>

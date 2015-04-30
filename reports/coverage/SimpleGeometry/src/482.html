@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\queryselectcolumns.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	sealed class QuerySelectColumns {
+		/// &lt;summary&gt;
+		/// The name of the table where functions are defined.
+		/// &lt;/summary&gt;
+		private static readonly ObjectName FunctionTableName = new ObjectName(&quot;FUNCTIONTABLE&quot;);
+
+		/// &lt;summary&gt;
+		/// The tables we are selecting from.
+		/// &lt;/summary&gt;
+		private readonly QueryExpressionFrom fromSet;
+
+		private readonly List&lt;SelectColumn&gt; selectedColumns;
+
+		// The count of aggregate and constant columns included in the result set.
+		// Aggregate columns are, (count(*), avg(cost_of) * 0.75, etc).  Constant
+		// columns are, (9 * 4, 2, (9 * 7 / 4) + 4, etc).
+
+		public QuerySelectColumns(QueryExpressionFrom fromSet) {
+			this.fromSet = fromSet;
+			selectedColumns = new List&lt;SelectColumn&gt;();
+		}
+
+		public void SelectSingleColumn(SelectColumn col) {
+			selectedColumns.Add(col);
+		}
+
+		private void AddAllFromTable(IFromTableSource table) {
+			// Select all the tables
+			var columns = table.ColumnNames;
+			foreach (ObjectName name in columns) {
+				// Make up the SelectColumn
+				SqlExpression e = SqlExpression.Reference(name);
+				var column = new SelectColumn(e) {
+					ResolvedName = name, 
+					InternalName = name
+				};
+
+				// Add to the list of columns selected
+				SelectSingleColumn(column);
+			}
+		}
+
+		public void SelectAllColumnsFromSource(ObjectName tableName) {
+			// Attempt to find the table in the from set.
+			string schema = null;
+			if (tableName.Parent != null)
+				schema = tableName.Parent.Name;
+
+			IFromTableSource table = fromSet.FindTable(schema, tableName.Name);
+			if (table == null)
+				throw new InvalidOperationException(tableName + &quot;.* is not a valid reference.&quot;);
+
+			AddAllFromTable(table);
+		}
+
+		public void SelectAllColumnsFromAllSources() {
+			for (int p = 0; p &lt; fromSet.SourceCount; ++p) {
+				IFromTableSource table = fromSet.GetTableSource(p);
+				AddAllFromTable(table);
+			}
+		}
+
+		private SelectColumn PrepareColumn(SelectColumn column, IQueryContext context, IList&lt;SelectColumn&gt; functionColumns,
+			ref int aggregateCount) {
+			if (column.Expression is SqlQueryExpression)
+				throw new InvalidOperationException(&quot;Sub-query expressions are invalid in select columns.&quot;);
+
+			SelectColumn newColumn;
+
+			var exp = column.Expression;
+			if (exp is SqlReferenceExpression) {
+				var sqlRef = (SqlReferenceExpression) exp;
+				var colName = sqlRef.ReferenceName;
+				ObjectName resolvedName = null;
+
+				var alias = column.Alias;
+				if (String.IsNullOrEmpty(alias)) {
+					resolvedName = colName;
+				} else {
+					resolvedName = new ObjectName(alias);
+				}
+
+				newColumn = new SelectColumn(exp, alias) {
+					InternalName = colName,
+					ResolvedName = resolvedName
+				};
+			} else {
+				var funcAlias = functionColumns.Count.ToString(CultureInfo.InvariantCulture);
+				if (column.Expression.HasAggregate(context)) {
+					aggregateCount++;
+					funcAlias += &quot;_A&quot;;
+				}
+
+				var alias = column.Alias;
+				if (string.IsNullOrEmpty(alias))
+					alias = exp.ToString();
+
+				newColumn = new SelectColumn(exp, alias) {
+					InternalName = new ObjectName(FunctionTableName, funcAlias),
+					ResolvedName = new ObjectName(alias)
+				};
+
+				functionColumns.Add(newColumn);
+			}
+
+			return newColumn;
+		}
+
+		public PreparedQuerySelectColumns Prepare(IQueryContext context) {
+			int aggregateCount = 0;
+			var functionColumns = new List&lt;SelectColumn&gt;();
+			var preparedColumns = new List&lt;SelectColumn&gt;();
+			foreach (var column in selectedColumns) {
+				var prepared = PrepareColumn(column, context, functionColumns, ref aggregateCount);
+				preparedColumns.Add(prepared);
+			}
+
+			return new PreparedQuerySelectColumns(preparedColumns, functionColumns, aggregateCount);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[69,4,69,25,0],[70,4,70,33,0],[71,5,71,36,0],[73,4,73,71,0],[74,4,74,22,0],[75,5,75,85,0],[77,4,77,27,0],[78,3,78,4,0],[90,5,90,97,0],[104,6,104,43,0],[112,5,112,82,0],[113,5,113,49,0],[114,6,114,23,0],[115,6,115,24,0],[118,5,118,30,0],[119,5,119,37,0],[120,6,120,29,0],[122,5,125,7,0],[127,5,127,36,0],[42,3,42,57,1],[43,4,43,27,1],[44,4,44,47,1],[45,3,45,4,1],[48,4,48,29,1],[49,3,49,4,1],[53,4,53,36,1],[54,32,54,39,1],[54,13,54,28,1],[56,5,56,53,1],[57,5,60,7,1],[63,5,63,32,1],[54,29,54,31,1],[65,3,65,4,1],[81,9,81,19,1],[82,5,82,56,1],[83,5,83,28,1],[81,45,81,48,1],[81,20,81,43,1],[85,3,85,4,1],[89,4,89,48,1],[94,4,94,32,1],[95,4,95,38,1],[96,5,96,47,1],[97,5,97,40,1],[98,5,98,36,1],[100,5,100,30,1],[101,5,101,37,1],[102,6,102,29,1],[107,5,110,7,1],[130,4,130,21,1],[134,4,134,27,1],[135,4,135,51,1],[136,4,136,51,1],[137,27,137,42,1],[137,13,137,23,1],[138,5,138,88,1],[139,5,139,35,1],[137,24,137,26,1],[142,4,142,92,1],[29,3,29,90,1]]);
+    </script>
+  </body>
+</html>

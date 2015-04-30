@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\tablestatestore.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+using Deveel.Data.Store;
+
+namespace Deveel.Data.DbSystem {
+	class TableStateStore {
+		private IArea headerArea;
+
+		private long delAreaPointer;
+		private Dictionary&lt;string, TableState&gt; deleteList;
+		private bool delListChange;
+
+		private long visAreaPointer;
+		private Dictionary&lt;string, TableState&gt; visibleList;
+		private bool visListChange;
+
+		private int currentTableId;
+
+		private const int Magic = 0x0BAC8001;
+
+		public TableStateStore(IStore store) {
+			if (store == null)
+				throw new ArgumentNullException(&quot;store&quot;);
+
+			Store = store;
+		}
+
+		public IStore Store { get; private set; }
+
+		private void ReadStateResourceList(Dictionary&lt;string, TableState&gt; list, long pointer) {
+			using (var reader = new BinaryReader(Store.GetAreaInputStream(pointer), Encoding.Unicode)) {
+				reader.ReadInt32(); // version
+
+				int count = (int) reader.ReadInt64();
+				for (int i = 0; i &lt; count; ++i) {
+					long tableId = reader.ReadInt64();
+					string name = reader.ReadString();
+
+					list.Add(name, new TableState((int)tableId, name));
+				}
+				reader.Close();
+			}
+		}
+
+		private static byte[] SerializeResources(IEnumerable&lt;TableState&gt; list) {
+			using (var stream = new MemoryStream()) {
+				using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
+					writer.Write(1); // version
+					int sz = list.Count();
+					writer.Write((long) sz);
+					foreach (var state in list) {
+						writer.Write((long)state.TableId);
+						writer.Write(state.SourceName);
+					}
+
+					writer.Flush();
+
+					return stream.ToArray();
+				}
+			}
+		}
+
+		private long WriteListToStore(IEnumerable&lt;TableState&gt; list) {
+			var bytes = SerializeResources(list);
+
+			var area = Store.CreateArea(bytes.Length);
+			long listP = area.Id;
+			area.Write(bytes, 0, bytes.Length);
+			area.Flush();
+
+			return listP;
+		}
+
+		public long Create() {
+			lock (this) {
+				// Allocate empty visible and deleted tables area
+				var visTablesArea = Store.CreateArea(12);
+				var delTablesArea = Store.CreateArea(12);
+				visAreaPointer = visTablesArea.Id;
+				delAreaPointer = delTablesArea.Id;
+
+				// Write empty entries for both of these
+				visTablesArea.WriteInt4(1);
+				visTablesArea.WriteInt8(0);
+				visTablesArea.Flush();
+				delTablesArea.WriteInt4(1);
+				delTablesArea.WriteInt8(0);
+				delTablesArea.Flush();
+
+				// Now allocate an empty state header
+				var headerWriter = Store.CreateArea(32);
+				long headerP = headerWriter.Id;
+				headerWriter.WriteInt4(Magic);
+				headerWriter.WriteInt4(0);
+				headerWriter.WriteInt8(0);
+				headerWriter.WriteInt8(visAreaPointer);
+				headerWriter.WriteInt8(delAreaPointer);
+				headerWriter.Flush();
+
+				headerArea = Store.GetArea(headerP, false);
+
+				// Reset currentTableId
+				currentTableId = 0;
+
+				visibleList = new Dictionary&lt;string, TableState&gt;();
+				deleteList = new Dictionary&lt;string, TableState&gt;();
+
+				// Return pointer to the header area
+				return headerP;
+			}
+		}
+
+		public void Open(long offset) {
+			lock (this) {
+				headerArea = Store.GetArea(offset);
+				int magicValue = headerArea.ReadInt4();
+				if (magicValue != Magic)
+					throw new IOException(&quot;Magic value for state header area is incorrect.&quot;);
+
+				if (headerArea.ReadInt4() != 0)
+					throw new IOException(&quot;Unknown version for state header area.&quot;);
+
+				currentTableId = (int)headerArea.ReadInt8();
+				visAreaPointer = headerArea.ReadInt8();
+				delAreaPointer = headerArea.ReadInt8();
+
+				// Setup the visible and delete list
+				visibleList = new Dictionary&lt;string, TableState&gt;();
+				deleteList = new Dictionary&lt;string, TableState&gt;();
+
+				// Read the resource list for the visible and delete list.
+				ReadStateResourceList(visibleList, visAreaPointer);
+				ReadStateResourceList(deleteList, delAreaPointer);
+			}
+		}
+
+		public int NextTableId() {
+			lock (this) {
+				int curCounter = currentTableId;
+				++currentTableId;
+
+				try {
+					Store.LockForWrite();
+
+					// Update the state in the file
+					headerArea.Position = 8;
+					headerArea.WriteInt8(currentTableId);
+
+					// Check out the change
+					headerArea.Flush();
+				} finally {
+					Store.UnlockForWrite();
+				}
+
+				return curCounter;
+			}
+		}
+
+		public IEnumerable&lt;TableState&gt; GetVisibleList() {
+			lock (this) {
+				return visibleList.Values.AsEnumerable();
+			}
+		}
+
+		public IEnumerable&lt;TableState&gt; GetDeleteList() {
+			lock (this) {
+				return deleteList.Values.AsEnumerable();
+			}
+		}
+
+		public bool ContainsVisibleResource(int tableId) {
+			lock (this) {
+				foreach (var resource in visibleList.Values) {
+					if (resource.TableId == tableId)
+						return true;
+				}
+				return false;
+			}
+		}
+
+		public void AddVisibleResource(TableState resource) {
+			lock (this) {
+				visibleList.Add(resource.SourceName, resource);
+				visListChange = true;
+			}
+		}
+
+		public void AddDeleteResource(TableState resource) {
+			lock (this) {
+				deleteList.Add(resource.SourceName, resource);
+				delListChange = true;
+			}
+		}
+
+		public void RemoveVisibleResource(string name) {
+			lock (this) {
+				if (visibleList.Remove(name))
+					visListChange = true;
+			}
+		}
+
+		public void RemoveDeleteResource(string name) {
+			lock (this) {
+				if (deleteList.Remove(name))
+					delListChange = true;
+			}
+		}
+
+		public void Flush() {
+			lock (this) {
+				bool changes = false;
+				long newVisP = visAreaPointer;
+				long newDelP = delAreaPointer;
+
+				try {
+					Store.LockForWrite();
+
+					// If the lists changed, then Write new state areas to the store.
+					if (visListChange) {
+						newVisP = WriteListToStore(visibleList.Values);
+						visListChange = false;
+						changes = true;
+					}
+					if (delListChange) {
+						newDelP = WriteListToStore(deleteList.Values);
+						delListChange = false;
+						changes = true;
+					}
+
+					// Commit the changes,
+					if (changes) {
+						headerArea.Position = 16;
+						headerArea.WriteInt8(newVisP);
+						headerArea.WriteInt8(newDelP);
+						headerArea.Flush();
+
+						if (visAreaPointer != newVisP) {
+							Store.DeleteArea(visAreaPointer);
+							visAreaPointer = newVisP;
+						}
+
+						if (delAreaPointer != newDelP) {
+							Store.DeleteArea(delAreaPointer);
+							delAreaPointer = newDelP;
+						}
+					}
+				} finally {
+					Store.UnlockForWrite();
+				}
+			}
+		}
+
+		#region TableState
+
+		public class TableState {
+			public TableState(int tableId, string sourceName) {
+				TableId = tableId;
+				SourceName = sourceName;
+			}
+
+			public int TableId { get; private set; }
+
+			public string SourceName { get; private set; }
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[43,5,43,46,0],[138,6,138,79,0],[141,6,141,70,0],[216,4,216,15,0],[217,5,217,34,0],[218,6,218,27,0],[220,3,220,4,0],[41,3,41,39,1],[42,4,42,22,1],[45,4,45,18,1],[46,3,46,4,1],[51,11,51,93,1],[52,5,52,24,1],[54,5,54,42,1],[55,10,55,20,1],[56,6,56,40,1],[57,6,57,40,1],[59,6,59,57,1],[55,32,55,35,1],[55,21,55,30,1],[61,5,61,20,1],[63,3,63,4,1],[66,11,66,42,1],[67,12,67,67,1],[68,6,68,22,1],[69,6,69,28,1],[70,6,70,30,1],[71,28,71,32,1],[71,15,71,24,1],[72,7,72,41,1],[73,7,73,38,1],[71,25,71,27,1],[76,6,76,21,1],[78,6,78,30,1],[81,3,81,4,1],[84,4,84,41,1],[86,4,86,46,1],[87,4,87,25,1],[88,4,88,39,1],[89,4,89,17,1],[91,4,91,17,1],[95,4,95,15,1],[97,5,97,46,1],[98,5,98,46,1],[99,5,99,39,1],[100,5,100,39,1],[103,5,103,32,1],[104,5,104,32,1],[105,5,105,27,1],[106,5,106,32,1],[107,5,107,32,1],[108,5,108,27,1],[111,5,111,45,1],[112,5,112,36,1],[113,5,113,35,1],[114,5,114,31,1],[115,5,115,31,1],[116,5,116,44,1],[117,5,117,44,1],[118,5,118,26,1],[120,5,120,48,1],[123,5,123,24,1],[125,5,125,56,1],[126,5,126,55,1],[129,5,129,20,1],[131,3,131,4,1],[134,4,134,15,1],[135,5,135,40,1],[136,5,136,44,1],[137,5,137,29,1],[140,5,140,36,1],[143,5,143,49,1],[144,5,144,44,1],[145,5,145,44,1],[148,5,148,56,1],[149,5,149,55,1],[152,5,152,56,1],[153,5,153,55,1],[155,3,155,4,1],[158,4,158,15,1],[159,5,159,37,1],[160,5,160,22,1],[163,6,163,27,1],[166,6,166,30,1],[167,6,167,43,1],[170,6,170,25,1],[172,6,172,29,1],[175,5,175,23,1],[177,3,177,4,1],[180,4,180,15,1],[181,5,181,46,1],[183,3,183,4,1],[186,4,186,15,1],[187,5,187,45,1],[189,3,189,4,1],[192,4,192,15,1],[193,30,193,48,1],[193,14,193,26,1],[194,6,194,38,1],[195,7,195,19,1],[193,27,193,29,1],[197,5,197,18,1],[199,3,199,4,1],[202,4,202,15,1],[203,5,203,52,1],[204,5,204,26,1],[206,3,206,4,1],[209,4,209,15,1],[210,5,210,51,1],[211,5,211,26,1],[213,3,213,4,1],[223,4,223,15,1],[224,5,224,33,1],[225,6,225,27,1],[227,3,227,4,1],[230,4,230,15,1],[231,5,231,26,1],[232,5,232,35,1],[233,5,233,35,1],[236,6,236,27,1],[239,6,239,24,1],[240,7,240,54,1],[241,7,241,29,1],[242,7,242,22,1],[244,6,244,24,1],[245,7,245,53,1],[246,7,246,29,1],[247,7,247,22,1],[251,6,251,18,1],[252,7,252,32,1],[253,7,253,37,1],[254,7,254,37,1],[255,7,255,26,1],[257,7,257,37,1],[258,8,258,41,1],[259,8,259,33,1],[262,7,262,37,1],[263,8,263,41,1],[264,8,264,33,1],[268,6,268,29,1],[271,3,271,4,1],[276,4,276,53,1],[277,5,277,23,1],[278,5,278,29,1],[279,4,279,5,1]]);
+    </script>
+  </body>
+</html>

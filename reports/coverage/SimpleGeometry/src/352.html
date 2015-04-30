@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.util\streamtokenizer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace Deveel.Data.Util {
+	/// &lt;summary&gt;
+	///     Read any Stream using a TextReader and move from token to token
+	///     First setup the syntax by specifying the word, number, special and whitespace characters
+	///     Then, repeat to call NextToken() to read each token until NextToken() returns TokenType.EOF
+	///     Once a token has been read, you can access it through the NVal (numeric) and SVal (string) properties
+	/// &lt;/summary&gt;
+	internal class StreamTokenizer {
+		#region Asserts
+
+		/// &lt;summary&gt;
+		///     Reads the next token and tests its type against the provided (expected) type
+		///     Throws an AssertException in case the types doesn&#39;t match!
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;type&quot;&gt;Expected type of next token&lt;/param&gt;
+		/// &lt;param name=&quot;peek&quot;&gt;If true, the read token is pushed back again (peek-mode)&lt;/param&gt;
+		public void AssertToken(int type, bool peek = false) {
+			// Peek at next token and push it back again (peek)
+			var token = NextToken();
+			if (peek)
+				PushBackToken();
+
+			// Test token type and throw excpetion
+			if (token != type)
+				throw new AssertException(string.Format(&quot;Assert token type &#39;{0}&#39; failed! Read token &#39;{1}&#39;.&quot;, type, token));
+		}
+
+		#endregion
+
+		#region Buffer-Filling
+
+		/// &lt;summary&gt;
+		///     Reads from the given TextReader to the char buffer used to tokenize.
+		///     Always refills the buffer with the next bytes read from the TextReader.
+		///     Adds only that much bytes to the buffer as the TextReader returns with one read operation!
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;Returns true if the buffer position isn&#39;t at the end of the buffer&lt;/returns&gt;
+		private bool RefillReadBuffer() {
+			// If buffer needs some refilling, do it!
+			if (buffer.Length &lt; MaxBufferSize || bufPos &gt;= RefillBufferPos) {
+				// Remaining unused bytes in buffer
+				var remain = buffer.Length - bufPos;
+
+				// Bytes to read from input stream and to refill buffer with
+				var toRead = MaxBufferSize - remain;
+				var buf = new char[toRead];
+
+				// Read from input buffer
+				var read = reader.Read(buf, 0, toRead);
+				if (read &gt; 0) {
+					// If something was read, merge the remaining buffer with the new read bytes
+					var fin = new char[(toRead == read) ? MaxBufferSize : (remain + read)];
+					if (remain &gt; 0)
+						Array.Copy(buffer, bufPos, fin, 0, remain);
+
+					Array.Copy(buf, 0, fin, remain, read);
+					bufPos = 0;
+					buffer = fin;
+				}
+			}
+
+			// Return false, if the buffer position is at the end of the buffer
+			return !(bufPos &gt; buffer.Length - 1);
+		}
+
+		#endregion
+
+		#region Char-Type
+
+		/// &lt;summary&gt;
+		///     Returns the CharType for a given character code
+		///     if no CharType is specified, the char code is return instead
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;chr&quot;&gt;Character code to get the CharType for&lt;/param&gt;
+		/// &lt;returns&gt;Returns CharType or char code, if no CharType is found&lt;/returns&gt;
+		private int GetCharType(int chr) {
+			if (CharTypes.ContainsKey(chr))
+				return (int) CharTypes[chr];
+
+			return chr;
+		}
+
+		#endregion
+
+		#region AssertException
+
+		/// &lt;summary&gt;
+		///     Exception throw if token type assertion fails
+		/// &lt;/summary&gt;
+		public class AssertException : Exception {
+			/// &lt;summary&gt;
+			///     Initializes a new instance of the &lt;see cref=&quot;AssertException&quot; /&gt; class
+			/// &lt;/summary&gt;
+			/// &lt;param name=&quot;s&quot;&gt;message text&lt;/param&gt;
+			public AssertException(string s)
+				: base(s) {
+			}
+		}
+
+		#endregion
+
+		#region PushbackType
+
+		/// &lt;summary&gt;
+		///     Stores type, SVal and NVal of a pushed back token
+		/// &lt;/summary&gt;
+		public class PushedBackToken {
+			/// &lt;summary&gt;
+			///     Gets the Token type of a pushed back token
+			/// &lt;/summary&gt;
+			public int Type { get; set; }
+
+			/// &lt;summary&gt;
+			///     Gets the string value of a pushed back token
+			/// &lt;/summary&gt;
+			public string SVal { get; set; }
+
+			/// &lt;summary&gt;
+			///     Gets the number value of a pushed back token
+			/// &lt;/summary&gt;
+			public double NVal { get; set; }
+		}
+
+		#endregion
+
+		#region constants
+
+		/// &lt;summary&gt;
+		///     Used buffer size used to read the stream in bytes
+		/// &lt;/summary&gt;
+		private const int MaxBufferSize = 2048;
+
+		/// &lt;summary&gt;
+		///     As soon as this position is reached within the buffer, the buffer is refilled
+		///     This ensures that a token is completely read before it is parsed
+		/// &lt;/summary&gt;
+		private const int RefillBufferPos = 1024;
+
+		#endregion
+
+		#region Private Vars
+
+		/// &lt;summary&gt;
+		///     TextReader used to read the input stream
+		/// &lt;/summary&gt;
+		private readonly TextReader reader;
+
+		/// &lt;summary&gt;
+		///     Current position in buffer
+		/// &lt;/summary&gt;
+		private int bufPos;
+
+		/// &lt;summary&gt;
+		///     Character buffer filled from input stream
+		/// &lt;/summary&gt;
+		private char[] buffer;
+
+		/// &lt;summary&gt;
+		///     NewLine flag
+		///     Used to skip repeating NewLine tokens (like in \r\n, only one NewLine token will be returned)
+		/// &lt;/summary&gt;
+		private bool newLine;
+
+		/// &lt;summary&gt;
+		///     Last char parsed
+		///     Used to skip repeating NewLine tokens (like in \r\n, only one NewLine token will be returned)
+		/// &lt;/summary&gt;
+		private int lastChar;
+
+		/// &lt;summary&gt;
+		///     Used for EolIsSignificant Property
+		/// &lt;/summary&gt;
+		private bool eolIsSignificant;
+
+		#endregion
+
+		#region Contructors
+
+		/// &lt;summary&gt;
+		///     Initializes a new instance of the &lt;see cref=&quot;StreamTokenizer&quot; /&gt; class
+		///     Creates a new StreamTokenizer, which helps to parse tokens from an input stream using a TextReader
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;reader&quot;&gt;TextReader to use as input for all the tokenizing work&lt;/param&gt;
+		public StreamTokenizer(TextReader reader)
+			: this() {
+			this.reader = reader;
+		}
+
+		/// &lt;summary&gt;
+		///     Prevents a default instance of the &lt;see cref=&quot;StreamTokenizer&quot; /&gt; class from being created
+		///     Private constructor used by public constructors to setup default values
+		/// &lt;/summary&gt;
+		private StreamTokenizer() {
+			Type = (int) TokenType.Undef;
+			PushedBackTokens = new Stack&lt;PushedBackToken&gt;();
+			LowerCaseMode = false;
+
+			LineNo = 1;
+			buffer = new char[0];
+
+			ResetSyntax();
+		}
+
+		#endregion
+
+		#region enums
+
+		/// &lt;summary&gt;
+		///     These are the token types supported
+		/// &lt;/summary&gt;
+		public enum TokenType {
+			/// &lt;summary&gt;
+			///     No token found. Initial token type.
+			/// &lt;/summary&gt;
+			Undef = -4,
+
+			/// &lt;summary&gt;
+			///     End of stream reached
+			/// &lt;/summary&gt;
+			EOF = -5,
+
+			/// &lt;summary&gt;
+			///     End of line reached
+			///     This token type is only used if EolIsSignificant is set to true
+			/// &lt;/summary&gt;
+			EOL = -3,
+
+			/// &lt;summary&gt;
+			///     The token is a number (access it through NVal)
+			///     Based on the setup char types the token is a number token (numeric value)
+			/// &lt;/summary&gt;
+			Number = -2,
+
+			/// &lt;summary&gt;
+			///     The token is a word (access it through SVal)
+			///     Based on the setup char types, the token is a word token (string value)
+			/// &lt;/summary&gt;
+			Word = -1
+		}
+
+		/// &lt;summary&gt;
+		///     These are the types of characters you may use to define the syntax
+		///     Each char (code: 0x00 - 0xFF) will have its own char type
+		/// &lt;/summary&gt;
+		public enum CharType : byte {
+			Ordinary,
+			Whitespace,
+			Word,
+			Number,
+			Quote,
+			NewLine,
+			Comment
+		}
+
+		#endregion
+
+		#region Token-Properties
+
+		/// &lt;summary&gt;
+		///     Gets the current token number value
+		/// &lt;/summary&gt;
+		public double NVal { get; private set; }
+
+		/// &lt;summary&gt;
+		///     Gets the current token string value
+		/// &lt;/summary&gt;
+		public string SVal { get; private set; }
+
+		/// &lt;summary&gt;
+		///     Gets the current token type
+		///     &lt;para&gt;
+		///         After a call to the NextToken() method, this field contains the type of the token just read.
+		///         For a single character token, its value is the single character, converted to an integer.
+		///         For a quoted string token, its value is the quote character.
+		///         Otherwise, its value is one of the following:
+		///         • TokenType.WORD indicates that the token is a word
+		///         • TokenType.NUMBER indicates that the token is a number
+		///         • TokenType.EOL indicates that the end of line has been read. The field can only have this value if
+		///         EolIsSignificant has been to true.
+		///         • TokenType.EOF indicates that the end of the input stream has been reached.
+		///         • TokenType.UNDEF initial value.
+		///     &lt;/para&gt;
+		/// &lt;/summary&gt;
+		public int Type { get; private set; }
+
+		/// &lt;summary&gt;
+		///     Gets the stack of pushed back tokens used to keep track of all pushed back tokens
+		/// &lt;/summary&gt;
+		public Stack&lt;PushedBackToken&gt; PushedBackTokens { get; private set; }
+
+		/// &lt;summary&gt;
+		///     Gets the line number within input stream (only useable if NewLine chars are setup!)
+		/// &lt;/summary&gt;
+		public int LineNo { get; private set; }
+
+		#endregion
+
+		#region Syntax-Properties
+
+		/// &lt;summary&gt;
+		///     Gets or sets a value indicating whether or not ends of lines are treated as EOL tokens
+		/// &lt;/summary&gt;
+		public bool EolIsSignificant {
+			get { return eolIsSignificant; }
+
+			set {
+				eolIsSignificant = value;
+				if (value) {
+					CharTypes[10] = CharType.NewLine; // \r
+					CharTypes[13] = CharType.NewLine; // \n
+				} else {
+					CharTypes[10] = CharType.Whitespace; // \r
+					CharTypes[13] = CharType.Whitespace; // \n
+				}
+			}
+		}
+
+		/// &lt;summary&gt;
+		///     Gets or sets a value indicating whether or not word token are automatically lowercased
+		/// &lt;/summary&gt;
+		public bool LowerCaseMode { get; set; }
+
+		/// &lt;summary&gt;
+		///     Gets a list all possible character codes (0x00 - 0xFF) with the associated CharType
+		/// &lt;/summary&gt;
+		public Dictionary&lt;int, CharType&gt; CharTypes { get; private set; }
+
+		#endregion
+
+		#region Syntax-Methods
+
+		#region Single Chars
+
+		/// &lt;summary&gt;
+		///     Sets a character to be treated as ordinary char
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;code&quot;&gt;the char value&lt;/param&gt;
+		public void SetOrdinaryChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Ordinary;
+			else
+				CharTypes.Add(code, CharType.Ordinary);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a character to be treated as whitespace char
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;code&quot;&gt;the char value&lt;/param&gt;
+		public void SetWhitespaceChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Whitespace;
+			else
+				CharTypes.Add(code, CharType.Whitespace);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a character to be treated as word char
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;code&quot;&gt;the char value&lt;/param&gt;
+		public void SetWordChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Word;
+			else
+				CharTypes.Add(code, CharType.Word);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a character to be treated as number char
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;code&quot;&gt;the char value&lt;/param&gt;
+		public void SetNumberChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Number;
+			else
+				CharTypes.Add(code, CharType.Number);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a character to be treated as quote char
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;code&quot;&gt;the char value&lt;/param&gt;
+		public void SetQuoteChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Quote;
+			else
+				CharTypes.Add(code, CharType.Quote);
+		}
+
+		public void SetCommentChar(int code) {
+			if (CharTypes.ContainsKey(code))
+				CharTypes[code] = CharType.Comment;
+			else
+				CharTypes.Add(code, CharType.Comment);
+		}
+
+		#endregion
+
+		#region Char Regions
+
+		/// &lt;summary&gt;
+		///     Sets a range of characters to be treated as ordinary chars
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;from&quot;&gt;range start value&lt;/param&gt;
+		/// &lt;param name=&quot;to&quot;&gt;range end value&lt;/param&gt;
+		public void SetOrdinaryChars(int from, int to) {
+			if (to &lt; from)
+				throw new ArgumentException(&quot;Character range error&quot;);
+
+			for (var c = from; c &lt;= to; c++)
+				SetOrdinaryChar(c);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a range of characters to be treated as whitespace chars
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;from&quot;&gt;range start value&lt;/param&gt;
+		/// &lt;param name=&quot;to&quot;&gt;range end value&lt;/param&gt;
+		public void SetWhitespaceChars(int from, int to) {
+			if (to &lt; from)
+				throw new ArgumentException(&quot;Character range error&quot;);
+
+			for (var c = from; c &lt;= to; c++)
+				SetWhitespaceChar(c);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a range of characters to be treated as word chars
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;from&quot;&gt;range start value&lt;/param&gt;
+		/// &lt;param name=&quot;to&quot;&gt;range end value&lt;/param&gt;
+		public void SetWordChars(int from, int to) {
+			if (to &lt; from)
+				throw new ArgumentException(&quot;Character range error&quot;);
+
+			for (var c = from; c &lt;= to; c++)
+				SetWordChar(c);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a range of characters to be treated as number chars
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;from&quot;&gt;range start value&lt;/param&gt;
+		/// &lt;param name=&quot;to&quot;&gt;range end value&lt;/param&gt;
+		public void SetNumberChars(int from, int to) {
+			if (to &lt; from)
+				throw new ArgumentException(&quot;Character range error&quot;);
+
+			for (var c = from; c &lt;= to; c++)
+				SetNumberChar(c);
+		}
+
+		/// &lt;summary&gt;
+		///     Sets a range of characters to be treated as quote chars
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;from&quot;&gt;range start value&lt;/param&gt;
+		/// &lt;param name=&quot;to&quot;&gt;range end value&lt;/param&gt;
+		public void SetQuoteChars(int from, int to) {
+			if (to &lt; from)
+				throw new ArgumentException(&quot;Character range error&quot;);
+
+			for (var c = from; c &lt;= to; c++)
+				SetQuoteChar(c);
+		}
+
+		#endregion
+
+		/// &lt;summary&gt;
+		///     Sets all chars from 0x00 to 0xFF to be ordinary
+		/// &lt;/summary&gt;
+		public void ResetSyntax() {
+			CharTypes = new Dictionary&lt;int, CharType&gt;();
+			for (var c = 0x00; c &lt;= 0xFF; c++)
+				SetOrdinaryChar(c);
+		}
+
+		/// &lt;summary&gt;
+		///     Specifies that numbers should be parsed by this tokenizer
+		///     These chars are treated as number chars: 0123456789.-
+		/// &lt;/summary&gt;
+		public void EnableParseNumbers() {
+			SetNumberChars(&#39;0&#39;, &#39;9&#39;);
+			SetNumberChar(&#39;.&#39;);
+			SetNumberChar(&#39;-&#39;);
+		}
+
+		#endregion
+
+		#region Token returning-Methods
+
+		/// &lt;summary&gt;
+		///     Causes the next call to the NextToken() method of this tokenizer
+		///     to return the current value in the Type field
+		///     and not to modify the values in the NVal or SVal fields
+		/// &lt;/summary&gt;
+		public void PushBackToken() {
+			PushedBackTokens.Push(new PushedBackToken {
+				NVal = NVal,
+				SVal = SVal,
+				Type = Type
+			});
+		}
+
+		/// &lt;summary&gt;
+		///     Reads the next token and returns its TokenType
+		///     If the last token was pushed back, this token is returned again
+		///     If there was a quote the returned value isn&#39;t the TokenType!
+		///     Its the char code used to start and end the quote
+		///     If the token is a ordinary single char token, the char code is returned instead of TokenType.Ordinary
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;TokenType of current token&lt;/returns&gt;
+		public int NextToken() {
+			// Return pushed back tokens first
+			if (PushedBackTokens.Count &gt; 0) {
+				// Get latest pushed back token from stack
+				var pbtoken = PushedBackTokens.Pop();
+
+				Type = pbtoken.Type;
+				SVal = pbtoken.SVal;
+				SVal = (LowerCaseMode ? SVal.ToLower() : SVal);
+				NVal = pbtoken.NVal;
+
+				return Type;
+			}
+
+			// Last token was NewLine =&gt; Return NewLine Token now
+			if (newLine) {
+				// skip in case of chr(13)+chr(10)
+				if (this.lastChar == 13 &amp;&amp; buffer[bufPos] == 10)
+					bufPos++;
+
+				newLine = false;
+				LineNo++;
+				if (EolIsSignificant) {
+					Type = (int) TokenType.EOL;
+					SVal = string.Empty;
+					NVal = 0;
+					return Type;
+				}
+			}
+
+			// Check and fill read buffer
+			if (!RefillReadBuffer()) {
+				// end of file reached
+				Type = (int) TokenType.EOF;
+				SVal = string.Empty;
+				NVal = 0;
+				return Type;
+			}
+
+			//// Setup some variables for the token parsing
+			// Char code of active quote char 
+			var quoteChar = -1;
+
+			// Keep parsing till true
+			var exitLoop = false;
+
+			// Current token builder
+			var token = new StringBuilder();
+
+			// Current tokens type. Initial TokenType: Undefined
+			var tokentype = (int) TokenType.Undef;
+
+			// Current char read from buffer
+			var chr = 0;
+
+			// Current chars type. Initial CharType: Ordinary
+			var chrtype = (int) CharType.Ordinary;
+
+			// Remember last character (as we override it soon)
+			var lastChar = this.lastChar;
+
+			// Loop through characters from buffer
+			while (!exitLoop) {
+				// Reached end of buffer and refilling the buffer doesn&#39;t work anymore =&gt; End reached!
+				if (bufPos &gt;= buffer.Length &amp;&amp; !RefillReadBuffer()) {
+					tokentype = (int) TokenType.EOF;
+
+					// Exit character parsing loop, NOW
+					exitLoop = true;
+					continue;
+				}
+
+				// If still (again) buffer filled take the next char
+				chr = buffer[bufPos++];
+				this.lastChar = chr;
+
+				// Aquire character type from defined syntax
+				chrtype = GetCharType(chr);
+
+				// Switch through all those CharTypes with the current characters type
+				switch (chrtype) {
+					// NewLine Char
+					case (int) CharType.NewLine:
+
+						// If within a quote, append new line to quote text (token)
+						if (quoteChar &gt;= 0)
+							token.Append((char) chr);
+						else {
+							// Set current token type to EOL
+							if (tokentype == (int) TokenType.Undef)
+								tokentype = (int) TokenType.EOL;
+							else
+								newLine = true;
+
+							exitLoop = true;
+						}
+
+						break;
+
+					// Whitespace Char
+					case (int) CharType.Whitespace:
+
+						// If within a quote, append char to quote text (token)
+						if (quoteChar &gt;= 0)
+							token.Append((char) chr);
+						else {
+							// There is no Whitespace TokenType, so just terminate the current token
+							if (tokentype != (int) TokenType.Undef)
+								exitLoop = true;
+						}
+
+						break;
+
+					// Quote Char
+					case (int) CharType.Quote:
+
+						// If not already within a quote, set current TokenType to Word (Quotes are Words!)
+						if (quoteChar == -1) {
+							tokentype = (int) TokenType.Word;
+
+							// Remember which quote char started the quote
+							quoteChar = chr;
+						} else {
+							// Within a quote 
+							// If current quote char isn&#39;t the same char that started the qoute, then it simply is part of the quote
+							if (quoteChar != chr)
+								token.Append((char) chr);
+							else {
+								// If the quote is ended by the right char, end parsing, as the quote (word) token is terminated, too
+								exitLoop = true;
+							}
+						}
+
+						break;
+
+					// Number Char
+					case (int) CharType.Number:
+
+						// Append current token with number char and set TokenType.Number, if no type set jet
+						token.Append((char) chr);
+						if (tokentype == (int) TokenType.Undef)
+							tokentype = (int) TokenType.Number;
+
+						break;
+
+					// Word Char
+					case (int) CharType.Word:
+
+						// Append current token with word char and set TokenType.Word, if no type set jet
+						token.Append((char) chr);
+						if (tokentype == (int) TokenType.Undef)
+							tokentype = (int) TokenType.Word;
+
+						break;
+
+					// Ordinary Char
+					case (int) CharType.Ordinary:
+
+						// If current token is empty, set this single char ordinary token
+						// or if in quote add char anyway
+						if (token.Length == 0 || quoteChar != -1)
+							token.Append((char) chr);
+						else {
+							// If there was a token ongoing, terminate it and push back this ordinary token
+							PushedBackTokens.Push(new PushedBackToken {
+								NVal = 0,
+								SVal = ((char) chr).ToString(),
+								Type = chr
+							});
+						}
+
+						// Exit loop, if not in quote
+						exitLoop = (quoteChar == -1);
+						break;
+
+					// Unkown Char (?!?!)
+					default:
+						exitLoop = true;
+						break;
+				}
+			}
+			//// End of character looping 
+
+			// If there was a quote the returned value isn&#39;t the TokenType! 
+			// Its the char code used to start and end the quote
+			// Token: Quote
+			if (quoteChar &gt;= 0) {
+				Type = quoteChar;
+				SVal = token.ToString();
+				SVal = (LowerCaseMode ? SVal.ToLower() : SVal);
+				NVal = 0;
+				return Type;
+			}
+
+			// Token: EOL / Word / Number / Ordinary single char 
+			Type = tokentype;
+			switch (tokentype) {
+				case (int) TokenType.Number:
+					SVal = string.Empty;
+					NVal = Convert.ToDouble(token.ToString());
+					break;
+
+				case (int) TokenType.Word:
+					SVal = token.ToString();
+					SVal = (LowerCaseMode ? SVal.ToLower() : SVal);
+					NVal = 0;
+					break;
+
+				case (int) TokenType.Undef:
+					SVal = token.ToString();
+					SVal = (LowerCaseMode ? SVal.ToLower() : SVal);
+					NVal = 0;
+					Type = chr; // Single char token (ordinary char) Return char code 
+					break;
+
+				case (int) TokenType.EOL:
+					SVal = string.Empty;
+					NVal = 0;
+					break;
+
+				case (int) TokenType.EOF:
+					SVal = string.Empty;
+					NVal = 0;
+					break;
+
+				default:
+					break;
+			}
+
+			// Retrun the Type specified before
+			return Type;
+		}
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,4,40,28,0],[41,4,41,13,0],[42,5,42,21,0],[45,4,45,22,0],[46,5,46,112,0],[47,3,47,4,0],[61,4,61,67,0],[63,5,63,41,0],[66,5,66,41,0],[67,5,67,32,0],[70,5,70,44,0],[71,5,71,18,0],[73,6,73,77,0],[74,6,74,21,0],[75,7,75,50,0],[77,6,77,44,0],[78,6,78,17,0],[79,6,79,19,0],[84,4,84,41,0],[98,4,98,35,0],[99,5,99,33,0],[101,4,101,15,0],[205,3,206,12,0],[207,4,207,25,0],[208,3,208,4,0],[214,3,214,28,0],[215,4,215,33,0],[216,4,216,52,0],[217,4,217,26,0],[219,4,219,15,0],[220,4,220,25,0],[222,4,222,18,0],[223,3,223,4,0],[325,10,325,34,0],[328,5,328,30,0],[329,5,329,15,0],[330,6,330,39,0],[331,6,331,39,0],[333,6,333,42,0],[334,6,334,42,0],[336,4,336,5,0],[360,4,360,36,0],[361,5,361,41,0],[363,5,363,44,0],[364,3,364,4,0],[371,4,371,36,0],[372,5,372,43,0],[374,5,374,46,0],[375,3,375,4,0],[382,4,382,36,0],[383,5,383,37,0],[385,5,385,40,0],[386,3,386,4,0],[393,4,393,36,0],[394,5,394,39,0],[396,5,396,42,0],[397,3,397,4,0],[404,4,404,36,0],[405,5,405,38,0],[407,5,407,41,0],[408,3,408,4,0],[411,4,411,36,0],[412,5,412,40,0],[414,5,414,43,0],[415,3,415,4,0],[427,4,427,18,0],[428,5,428,58,0],[430,9,430,22,0],[431,5,431,24,0],[430,32,430,35,0],[430,23,430,30,0],[432,3,432,4,0],[440,4,440,18,0],[441,5,441,58,0],[443,9,443,22,0],[444,5,444,26,0],[443,32,443,35,0],[443,23,443,30,0],[445,3,445,4,0],[453,4,453,18,0],[454,5,454,58,0],[456,9,456,22,0],[457,5,457,20,0],[456,32,456,35,0],[456,23,456,30,0],[458,3,458,4,0],[466,4,466,18,0],[467,5,467,58,0],[469,9,469,22,0],[470,5,470,22,0],[469,32,469,35,0],[469,23,469,30,0],[471,3,471,4,0],[479,4,479,18,0],[480,5,480,58,0],[482,9,482,22,0],[483,5,483,21,0],[482,32,482,35,0],[482,23,482,30,0],[484,3,484,4,0],[492,4,492,48,0],[493,9,493,22,0],[494,5,494,24,0],[493,34,493,37,0],[493,23,493,32,0],[495,3,495,4,0],[502,4,502,29,0],[503,4,503,23,0],[504,4,504,23,0],[505,3,505,4,0],[517,4,521,7,0],[522,3,522,4,0],[534,4,534,35,0],[536,5,536,42,0],[538,5,538,25,0],[539,5,539,25,0],[540,5,540,52,0],[541,5,541,25,0],[543,5,543,17,0],[547,4,547,16,0],[549,5,549,53,0],[550,6,550,15,0],[552,5,552,21,0],[553,5,553,14,0],[554,5,554,26,0],[555,6,555,33,0],[556,6,556,26,0],[557,6,557,15,0],[558,6,558,18,0],[563,4,563,28,0],[565,5,565,32,0],[566,5,566,25,0],[567,5,567,14,0],[568,5,568,17,0],[573,4,573,23,0],[576,4,576,25,0],[579,4,579,36,0],[582,4,582,42,0],[585,4,585,16,0],[588,4,588,42,0],[596,5,596,56,0],[597,6,597,38,0],[600,6,600,22,0],[601,6,601,15,0],[605,5,605,28,0],[606,5,606,25,0],[609,5,609,32,0],[612,5,612,21,0],[617,7,617,26,0],[618,8,618,33,0],[621,8,621,47,0],[622,9,622,41,0],[624,9,624,24,0],[626,8,626,24,0],[629,7,629,13,0],[635,7,635,26,0],[636,8,636,33,0],[639,8,639,47,0],[640,9,640,25,0],[643,7,643,13,0],[649,7,649,27,0],[650,8,650,41,0],[653,8,653,24,0],[657,8,657,29,0],[658,9,658,34,0],[661,9,661,25,0],[665,7,665,13,0],[671,7,671,32,0],[672,7,672,46,0],[673,8,673,43,0],[675,7,675,13,0],[681,7,681,32,0],[682,7,682,46,0],[683,8,683,41,0],[685,7,685,13,0],[692,7,692,48,0],[693,8,693,33,0],[696,8,700,11,0],[704,7,704,36,0],[705,7,705,13,0],[709,7,709,23,0],[594,4,594,21,0],[718,4,718,23,0],[719,5,719,22,0],[720,5,720,29,0],[721,5,721,52,0],[722,5,722,14,0],[723,5,723,17,0],[727,4,727,21,0],[728,4,728,22,0],[730,6,730,26,0],[731,6,731,48,0],[732,6,732,12,0],[735,6,735,30,0],[736,6,736,53,0],[737,6,737,15,0],[738,6,738,12,0],[741,6,741,30,0],[742,6,742,53,0],[743,6,743,15,0],[744,6,744,17,0],[745,6,745,12,0],[748,6,748,26,0],[749,6,749,15,0],[750,6,750,12,0],[753,6,753,26,0],[754,6,754,15,0],[762,4,762,16,0],[116,4,117,14,0],[118,4,118,5,0]]);
+    </script>
+  </body>
+</html>

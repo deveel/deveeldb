@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.linq\tablequeryprovider.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Linq {
+	class TableQueryProvider : IQueryProvider {
+		public TableQueryProvider(ITable table) {
+			if (table == null)
+				throw new ArgumentNullException(&quot;table&quot;);
+
+			Table = table;
+		}
+
+		public ITable Table { get; private set; }
+
+		public IQueryable CreateQuery(Expression expression) {
+			var elementType = TypeSystem.GetElementType(expression.Type);
+
+			try {
+				var type = typeof (QueryableTable&lt;&gt;).MakeGenericType(elementType);
+				return (IQueryable) Activator.CreateInstance(type, new object[] {this, expression});
+			} catch (TargetInvocationException ex) {
+				throw ex.InnerException;
+			}
+		}
+
+		public IQueryable&lt;TElement&gt; CreateQuery&lt;TElement&gt;(Expression expression) {
+			return new QueryableTable&lt;TElement&gt;(this, expression);
+		}
+
+		public object Execute(Expression expression) {
+			return Execute(expression, false);
+		}
+
+
+		private object Execute(Expression expression, bool isEnum) {
+			// The expression must represent a query over the data source.
+			if (!IsQueryOverDataSource(expression))
+				throw new InvalidProgramException(&quot;No query over the data source was specified.&quot;);
+
+			var elementType = TypeSystem.GetElementType(expression.Type);
+
+			IQueryable queryResult;
+
+			var builder = new QueryBuilder();
+
+			// Find the call to Where() and get the lambda expression predicate.
+			var whereFinder = new InnermostWhereFinder();
+			var whereExpression = whereFinder.GetInnermostWhere(expression);
+
+			if (whereExpression == null) {
+				var query = builder.Build();
+				queryResult = query.Execute(elementType, Table).AsQueryable();
+			} else {
+				var lambdaExpression = (LambdaExpression)((UnaryExpression)(whereExpression.Arguments[1])).Operand;
+
+				// Send the lambda expression through the partial evaluator.
+				lambdaExpression = (LambdaExpression)Evaluator.PartialEval(lambdaExpression);
+
+				var query = builder.Build(lambdaExpression.Body);
+				queryResult = query.Execute(elementType, Table).AsQueryable();
+			}
+
+			// Copy the expression tree that was passed in, changing only the first
+			// argument of the innermost MethodCallExpression.
+			var treeCopier = new ExpressionTreeModifier(queryResult, elementType);
+			var newExpressionTree = treeCopier.Visit(expression);
+
+			// This step creates an IQueryable that executes by replacing Queryable methods with Enumerable methods.
+			if (isEnum)
+				return queryResult.Provider.CreateQuery(newExpressionTree);
+			
+			return queryResult.Provider.Execute(newExpressionTree);
+		}
+
+		private static bool IsQueryOverDataSource(Expression expression) {
+			// If expression represents an unqueried IQueryable data source instance,
+			// expression is of type ConstantExpression, not MethodCallExpression.
+			return (expression is MethodCallExpression);
+		}
+
+		public TResult Execute&lt;TResult&gt;(Expression expression) {
+			bool isEnum = (typeof(TResult).Name == &quot;IEnumerable`1&quot;);
+			return (TResult) Execute(expression, isEnum);
+		}
+
+		public string GetQueryText(Expression expression) {
+			throw new NotImplementedException();
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,5,28,46,0],[36,4,36,65,0],[39,5,39,71,0],[40,5,40,89,0],[41,6,41,42,0],[42,5,42,29,0],[44,3,44,4,0],[47,4,47,58,0],[51,4,51,38,0],[58,5,58,87,0],[74,5,74,104,0],[77,5,77,82,0],[79,5,79,54,0],[80,5,80,67,0],[90,5,90,64,0],[107,4,107,40,0],[26,3,26,42,1],[27,4,27,22,1],[30,4,30,18,1],[31,3,31,4,1],[57,4,57,43,1],[60,4,60,65,1],[64,4,64,37,1],[67,4,67,49,1],[68,4,68,68,1],[70,4,70,32,1],[71,5,71,33,1],[72,5,72,67,1],[85,4,85,74,1],[86,4,86,57,1],[89,4,89,15,1],[92,4,92,59,1],[98,4,98,48,1],[102,4,102,60,1],[103,4,103,49,1]]);
+    </script>
+  </body>
+</html>

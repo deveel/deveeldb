@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.objects\sqlbinary.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+
+namespace Deveel.Data.Sql.Objects {
+	/// &lt;summary&gt;
+	/// Implements a &lt;c&gt;BINARY&lt;/c&gt; object that handles a limited number
+	/// of bytes, not exceding &lt;see cref=&quot;MaxLength&quot;/&gt;.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public struct SqlBinary : ISqlBinary {
+		private readonly byte[] bytes;
+
+		/// &lt;summary&gt;
+		/// A constant value defining the maximum allowed length of bytes
+		/// that this binary can handle.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Length&quot;/&gt;
+		public const int MaxLength = Int16.MaxValue;
+
+		public SqlBinary(byte[] source)
+			: this(source, source == null ? 0 : source.Length) {
+		}
+
+		public SqlBinary(byte[] source, int length)
+			: this(source, 0, length) {
+		}
+
+		public SqlBinary(byte[] source, int offset, int length)
+			: this() {
+			if (source == null) {
+				bytes = null;
+			} else {
+				if (length &gt; MaxLength)
+					throw new ArgumentOutOfRangeException(&quot;length&quot;);
+				
+				bytes = new byte[length];
+				Array.Copy(source, offset, bytes, 0, length);
+			}
+		}
+
+		int IComparable.CompareTo(object obj) {
+			return (this as IComparable&lt;ISqlObject&gt;).CompareTo((ISqlObject) obj);
+		}
+
+		int IComparable&lt;ISqlObject&gt;.CompareTo(ISqlObject other) {
+			throw new NotSupportedException();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public bool IsNull {
+			get { return bytes == null; }
+		}
+
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return false;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public IEnumerator&lt;byte&gt; GetEnumerator() {
+			throw new NotImplementedException();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public long Length {
+			get { return bytes == null ? 0L : bytes.LongLength; }
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public Stream GetInput() {
+			if (IsNull)
+				return Stream.Null;
+
+			return new MemoryStream(bytes, false);
+		}
+
+		/// &lt;summary&gt;
+		/// Materializes the contents of the binary into a finite object.
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;
+		/// Returns an &lt;seealso cref=&quot;object&quot;/&gt; that is the result of
+		/// the deserialization of the binary data handled by this object.
+		/// &lt;/returns&gt;
+		public object ToObject() {
+			using (var input = GetInput()) {
+				var fornatter = new BinaryFormatter();
+				return fornatter.Deserialize(input);
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Creates an instance of &lt;seealso cref=&quot;SqlBinary&quot;/&gt; from the
+		/// dematerialization of the given object into its binary
+		/// equivalent.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;obj&quot;&gt;The object to serialize.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// &lt;/returns&gt;
+		public static SqlBinary FromObject(object obj) {
+			using (var stream = new MemoryStream(1024 * 3)) {
+				var formatter = new BinaryFormatter();
+				formatter.Serialize(stream, obj);
+				stream.Flush();
+				stream.Seek(0, SeekOrigin.Begin);
+
+				return new SqlBinary(stream.ToArray());
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Returns an array of bytes representing the contents of the binary.
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public byte[] ToByteArray() {
+			if (bytes == null)
+				return new byte[0];
+
+			var destArray = new byte[bytes.Length];
+			Array.Copy(bytes, 0, destArray, 0, bytes.Length);
+			return destArray;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[39,3,40,54,0],[41,3,41,4,0],[43,3,44,29,0],[45,3,45,4,0],[48,6,48,12,0],[49,4,49,23,0],[50,5,50,18,0],[52,5,52,28,0],[53,6,53,54,0],[55,5,55,30,0],[56,5,56,50,0],[58,3,58,4,0],[61,4,61,73,0],[65,4,65,38,0],[70,10,70,31,0],[74,4,74,17,0],[79,4,79,40,0],[83,4,83,27,0],[88,10,88,55,0],[93,4,93,15,0],[94,5,94,24,0],[96,4,96,42,0],[107,11,107,33,0],[108,5,108,43,0],[109,5,109,41,0],[111,3,111,4,0],[122,11,122,50,0],[123,5,123,43,0],[124,5,124,38,0],[125,5,125,20,0],[126,5,126,38,0],[128,5,128,44,0],[130,3,130,4,0],[137,4,137,22,0],[138,5,138,24,0],[140,4,140,43,0],[141,4,141,53,0],[142,4,142,21,0]]);
+    </script>
+  </body>
+</html>

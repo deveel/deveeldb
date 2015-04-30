@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\numerliteralnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Linq;
+
+using Deveel.Data.Sql.Objects;
+using Deveel.Math;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Handles a numeric literal value, belonging to a wider group than
+	/// integer numbers, spanning from real to decimals.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class NumberLiteralNode : SqlNode {
+		internal NumberLiteralNode() {
+		}
+
+		internal BigDecimal BigValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the numeric value handled by the node.
+		/// &lt;/summary&gt;
+		public SqlNumber Value {
+			get { return BigValue == null ? SqlNumber.Null : new SqlNumber(BigValue); }
+		}
+
+		protected override void OnNodeInit() {
+			var token = Tokens.First();
+			BigValue = new BigDecimal(token.Text);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[39,10,39,77,0],[30,3,30,31,1],[31,3,31,4,1],[43,4,43,31,1],[44,4,44,42,1],[45,3,45,4,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\rowid.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// Defines the value of a &lt;c&gt;ROWID&lt;/c&gt; object, that is a unique reference
+	/// within a database system to a single row.
+	/// &lt;/summary&gt;
+	public struct RowId : IEquatable&lt;RowId&gt; {
+		/// &lt;summary&gt;
+		/// Gets a &lt;c&gt;NULL&lt;/c&gt; instance of &lt;see cref=&quot;RowId&quot;/&gt;.
+		/// &lt;/summary&gt;
+		public static readonly RowId Null = new RowId(true);
+
+		/// &lt;summary&gt;
+		/// Constructs the object with the references to the
+		/// given table unique ID and the number of the row
+		/// within the given table.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;tableId&quot;&gt;The table unique identifier with the 
+		/// database system.&lt;/param&gt;
+		/// &lt;param name=&quot;rowNumber&quot;&gt;The number of the row within the table.
+		/// This value is always unique, also after the row is removed.&lt;/param&gt;
+		public RowId(int tableId, int rowNumber) 
+			: this(false) {
+			RowNumber = rowNumber;
+			TableId = tableId;
+		}
+
+		private RowId(bool isNull)
+			: this() {
+			IsNull = isNull;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the unique identifier of the table the row is contained.
+		/// &lt;/summary&gt;
+		public int TableId { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the number of the column within the table referenced.
+		/// &lt;/summary&gt;
+		public int RowNumber { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the object equivales
+		/// to a &lt;c&gt;NULL&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		public bool IsNull { get; private set; }
+
+		public bool Equals(RowId other) {
+			if (IsNull &amp;&amp; other.IsNull)
+				return true;
+
+			return TableId.Equals(other.TableId) &amp;&amp;
+			       RowNumber.Equals(other.RowNumber);
+		}
+
+		public override bool Equals(object obj) {
+			if (!(obj is RowId))
+				return false;
+
+			return Equals((RowId) obj);
+		}
+
+		public override int GetHashCode() {
+			if (IsNull)
+				return 0;
+
+			return unchecked (TableId.GetHashCode() ^ RowNumber.GetHashCode());
+		}
+
+		public override string ToString() {
+			return String.Format(&quot;{0}-{1}&quot;, TableId, RowNumber);
+		}
+
+		/// &lt;summary&gt;
+		/// Attempts to parse the input string given into a valid
+		/// instance of &lt;see cref=&quot;RowId&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;s&quot;&gt;The input string to parse.&lt;/param&gt;
+		/// &lt;param name=&quot;value&quot;&gt;The out value from the parse.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns &lt;c&gt;true&lt;/c&gt; if the string was succesfully parsed
+		/// into a &lt;see cref=&quot;RowId&quot;/&gt;, otherwise &lt;c&gt;false&lt;/c&gt;.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;ToString&quot;/&gt;
+		public static bool TryParse(string s, out RowId value) {
+			value = Null;
+
+			if (String.IsNullOrEmpty(s))
+				return false;
+
+			var index = s.IndexOf(&quot;-&quot;, StringComparison.Ordinal);
+			if (index == -1)
+				return false;
+
+			var s1 = s.Substring(0, index);
+			var s2 = s.Substring(index + 1);
+
+			int v1;
+			int v2;
+			if (!Int32.TryParse(s1, out v1))
+				return false;
+			if (!Int32.TryParse(s2, out v2))
+				return false;
+
+			value = new RowId(v1, v2);
+			return true;
+		}
+
+		/// &lt;summary&gt;
+		/// Parses the given input string into an instance of &lt;see cref=&quot;RowId&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;s&quot;&gt;The input string to parse.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns a new instance of &lt;see cref=&quot;RowId&quot;/&gt; as a result of the parse
+		/// of the input string.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;FormatException&quot;&gt;
+		/// If the format of the input string is invalid.
+		/// &lt;/exception&gt;
+		public static RowId Parse(string s) {
+			RowId rowId;
+			if (!TryParse(s, out rowId))
+				throw new FormatException(&quot;Unable to parse the given string into a valid ROWID.&quot;);
+
+			return rowId;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[67,4,67,31,0],[68,5,68,17,0],[70,4,71,45,0],[75,4,75,24,0],[76,5,76,18,0],[78,4,78,31,0],[82,4,82,15,0],[83,5,83,14,0],[85,4,85,71,0],[89,4,89,56,0],[104,4,104,17,0],[106,4,106,32,0],[107,5,107,18,0],[109,4,109,57,0],[110,4,110,20,0],[111,5,111,18,0],[113,4,113,35,0],[114,4,114,36,0],[118,4,118,36,0],[119,5,119,18,0],[120,4,120,36,0],[121,5,121,18,0],[123,4,123,30,0],[124,4,124,16,0],[140,4,140,32,0],[141,5,141,87,0],[143,4,143,17,0],[39,3,40,17,1],[41,4,41,26,1],[42,4,42,22,1],[43,3,43,4,1],[46,6,46,12,1],[47,4,47,20,1],[48,3,48,4,1],[28,3,28,55,1]]);
+    </script>
+  </body>
+</html>

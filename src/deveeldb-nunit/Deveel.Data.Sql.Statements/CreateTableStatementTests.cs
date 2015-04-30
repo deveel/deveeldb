@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Configuration;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -10,6 +13,21 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateTableStatementTests {
+		private IUserSession session;
+		private IQueryContext context;
+
+		[SetUp]
+		public void SetUp() {
+			var systemContext = new SystemContext(DbConfig.Default);
+			var dbContext = new DatabaseContext(systemContext, "testdb");
+			var database = new Database(dbContext);
+			database.Create("SA", "12345");
+			database.Open();
+
+			session = database.CreateSession(User.System);
+			context = new SessionQueryContext(session);
+		}
+
 		[Test]
 		public void ParseSimpleCreate() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
@@ -25,9 +43,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
-			var createTable = (SqlCreateTableStatement) statement;
+			var createTable = (CreateTableStatement) statement;
 			Assert.AreEqual(2, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
@@ -37,6 +55,52 @@ namespace Deveel.Data.Sql.Statements {
 
 			Assert.AreEqual("name", columns[1].ColumnName);
 			Assert.IsInstanceOf<StringType>(columns[1].ColumnType);
+		}
+
+		[Test]
+		public void SimpleCreate() {
+			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
+
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var list = statements.ToList();
+
+			Assert.AreEqual(1, list.Count);
+
+			var statement = list[0];
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Evaluate(context));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+		}
+
+		[Test]
+		public void WithColumnDefault() {
+			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90)+22, date TIMESTAMP DEFAULT GetDate())";
+
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var list = statements.ToList();
+
+			Assert.AreEqual(1, list.Count);
+
+			var statement = list[0];
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Evaluate(context));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
 		}
 
 		[Test]
@@ -54,9 +118,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
-			var createTable = (SqlCreateTableStatement)statement;
+			var createTable = (CreateTableStatement)statement;
 			Assert.AreEqual(3, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
@@ -90,9 +154,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SqlCreateTableStatement>(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
-			var createTable = (SqlCreateTableStatement)statement;
+			var createTable = (CreateTableStatement)statement;
 			Assert.AreEqual(2, createTable.Columns.Count);
 
 			var columns = createTable.Columns;

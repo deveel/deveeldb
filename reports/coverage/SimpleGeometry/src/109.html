@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.routines\executecontext.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Routines {
+	/// &lt;summary&gt;
+	/// Encapsulates the 
+	/// &lt;/summary&gt;
+	public sealed class ExecuteContext : IDisposable {
+		private DataObject[] evaluatedArgs;
+		private Dictionary&lt;string, DataObject&gt; output; 
+
+		internal ExecuteContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IQueryContext queryContext) {
+			if (invoke == null)
+				throw new ArgumentNullException(&quot;invoke&quot;);
+			if (routine == null)
+				throw new ArgumentNullException(&quot;routine&quot;);
+
+			QueryContext = queryContext;
+			GroupResolver = group;
+			VariableResolver = resolver;
+			Invoke = invoke;
+			Routine = routine;
+		}
+
+		~ExecuteContext() {
+			Dispose(false);
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the information about the invoke of the routine.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Routines.Invoke&quot;/&gt;
+		public Invoke Invoke { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the instance of the &lt;see cref=&quot;IRoutine&quot;/&gt; being executed.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;IRoutine&quot;/&gt;
+		public IRoutine Routine { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the type of the routine being executed.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;RoutineType&quot;/&gt;
+		/// &lt;seealso cref=&quot;IRoutine.Type&quot;/&gt;
+		public RoutineType RoutineType {
+			get { return Routine.Type; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the array of expressions forming the arguments of the execution.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;SqlExpression&quot;/&gt;
+		/// &lt;seealso cref=&quot;Routines.Invoke.Arguments&quot;/&gt;
+		/// &lt;seealso cref=&quot;Invoke&quot;/&gt;
+		public SqlExpression[] Arguments {
+			get { return Invoke.Arguments; }
+		}
+
+		public IVariableResolver VariableResolver { get; private set; }
+
+		public IGroupResolver GroupResolver { get; private set; }
+
+		public IQueryContext QueryContext { get; private set; }
+
+		public DataObject[] EvaluatedArguments {
+			get {
+				if (evaluatedArgs == null) {
+					evaluatedArgs = new DataObject[Arguments.Length];
+					for (int i = 0; i &lt; Arguments.Length; i++) {
+						evaluatedArgs[i] = Arguments[i].EvaluateToConstant(QueryContext, VariableResolver);
+					}
+				}
+
+				return evaluatedArgs;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a count of the arguments passed to the routine.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Arguments&quot;/&gt;
+		public int ArgumentCount {
+			get { return Arguments == null ? 0 : Arguments.Length; }
+		}
+
+		public bool TryGetArgument(string argName, out SqlExpression value) {
+			var parameter = Routine.RoutineInfo.Parameters.FirstOrDefault(x =&gt; x.Name.Equals(argName, StringComparison.Ordinal));
+			if (parameter == null) {
+				value = null;
+				return false;
+			}
+
+			var offset = parameter.Offset;
+			if (parameter.IsUnbounded) {
+				// TODO: Copy all arguments starting at the given offset and make an Array
+				var tuple = SqlExpression.Tuple(new SqlExpression[0]);
+				value = tuple;
+			} else {
+				value = Invoke.Arguments[offset];
+			}
+
+			return true;
+		}
+
+		public bool TryGetArgument(string argName, out DataObject value) {
+			SqlExpression exp;
+			if (!TryGetArgument(argName, out exp)) {
+				value = DataObject.Null();
+				return false;
+			}
+
+			value = exp.EvaluateToConstant(QueryContext, VariableResolver);
+			return true;
+		}
+
+		public bool HasArgument(string argName) {
+			throw new NotImplementedException();
+		}
+
+		public ExecuteResult Result(DataObject value) {
+			if (Routine.Type != RoutineType.Function)
+				throw new InvalidOperationException(&quot;The routine is not a function.&quot;);
+
+			return new ExecuteResult(this, value);
+		}
+
+		public ExecuteResult Result() {
+			if (Routine.Type != RoutineType.Procedure)
+				throw new InvalidOperationException(&quot;The routine is not a procedure: a return value is required.&quot;);
+
+			return new ExecuteResult(this);
+		}
+
+		private RoutineParameter GetParameter(string name) {
+			return Routine.RoutineInfo.Parameters.FirstOrDefault(x =&gt; x.Name.Equals(name, StringComparison.Ordinal));
+		}
+
+		public void SetOutput(string argName, DataObject value) {
+			var parameter = GetParameter(argName);
+			if (parameter == null)
+				throw new InvalidOperationException(String.Format(&quot;Routine {0} has none parameter named &#39;{1}&#39;.&quot;, Routine.FullName, argName));
+			if (!parameter.IsOutput)
+				throw new InvalidOperationException();
+
+			if (!parameter.IsNullable &amp;&amp;
+				value.IsNull)
+				throw new ArgumentException();
+
+			if (!parameter.IsUnbounded)
+				throw new ArgumentException();
+
+			if (!parameter.Type.IsComparable(value.Type))
+				throw new ArgumentException();
+
+			if (output == null)
+				output = new Dictionary&lt;string, DataObject&gt;();
+
+			output[argName] = value;
+		}
+
+		private void Dispose(bool disposing) {
+			Routine = null;
+			Invoke = null;
+			evaluatedArgs = null;
+			output = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[35,5,35,47,0],[37,5,37,48,0],[68,10,68,30,0],[105,10,105,58,0],[109,4,109,71,0],[109,119,109,121,0],[110,4,110,26,0],[111,5,111,18,0],[112,5,112,18,0],[115,4,115,34,0],[116,4,116,30,0],[118,5,118,59,0],[119,5,119,19,0],[121,5,121,38,0],[124,4,124,16,0],[129,4,129,42,0],[130,5,130,31,0],[131,5,131,18,0],[134,4,134,67,0],[135,4,135,16,0],[139,4,139,40,0],[144,5,144,75,0],[150,4,150,46,0],[151,5,151,104,0],[153,4,153,35,0],[157,4,157,62,0],[157,107,157,109,0],[161,4,161,42,0],[162,4,162,26,0],[163,5,163,130,0],[164,4,164,28,0],[165,5,165,43,0],[167,4,168,18,0],[169,5,169,35,0],[171,4,171,31,0],[172,5,172,35,0],[174,4,174,49,0],[175,5,175,35,0],[177,4,177,23,0],[178,5,178,51,0],[180,4,180,28,0],[181,3,181,4,0],[191,4,191,18,0],[192,4,192,30,0],[193,3,193,4,0],[109,71,109,119,0],[157,62,157,107,0],[33,3,33,137,1],[34,4,34,23,1],[36,4,36,24,1],[39,4,39,32,1],[40,4,40,26,1],[41,4,41,32,1],[42,4,42,20,1],[43,4,43,22,1],[44,3,44,4,1],[47,4,47,19,1],[48,3,48,4,1],[78,10,78,34,1],[89,5,89,31,1],[90,6,90,55,1],[91,11,91,21,1],[92,7,92,90,1],[91,44,91,47,1],[91,22,91,42,1],[96,5,96,26,1],[143,4,143,45,1],[146,4,146,42,1],[184,4,184,19,1],[185,4,185,18,1],[186,4,186,25,1],[187,4,187,18,1],[188,3,188,4,1]]);
+    </script>
+  </body>
+</html>

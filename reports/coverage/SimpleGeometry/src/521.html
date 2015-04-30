@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\systemtablecontainer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+using Deveel.Data.Sql;
+using Deveel.Data.Transactions;
+
+namespace Deveel.Data.DbSystem {
+	abstract class SystemTableContainer : ITableContainer {
+		protected SystemTableContainer(ITransaction transaction, ObjectName tableName) {
+			Transaction = transaction;
+			TableName = tableName;
+		}
+
+		public ITransaction Transaction { get; private set; }
+
+		public ObjectName TableName { get; private set; }
+
+		public int TableCount {
+			get { return Transaction.TableExists(TableName) ? Transaction.GetTable(TableName).RowCount : 0; }
+		}
+
+		public int FindByName(ObjectName name) {
+			if (Transaction.RealTableExists(TableName)) {
+				// Search the table.  We assume that the schema and name of the object
+				// are in columns 0 and 1 respectively.
+				var table = Transaction.GetTable(TableName);
+				var rowE = table.GetEnumerator();
+				int p = 0;
+				while (rowE.MoveNext()) {
+					int rowIndex = rowE.Current.RowId.RowNumber;
+					var obName = table.GetValue(rowIndex, 1);
+					if (obName.Value.ToString().Equals(name.Name)) {
+						var obSchema = table.GetValue(rowIndex, 0);
+						if (obSchema.Value.ToString().Equals(name.ParentName)) {
+							// Match so return this
+							return p;
+						}
+					}
+					++p;
+				}
+			}
+
+			return -1;
+		}
+
+		public ObjectName GetTableName(int offset) {
+			if (Transaction.RealTableExists(TableName)) {
+				// Search the table.  We assume that the schema and name of the object
+				// are in columns 0 and 1 respectively.
+				var table = Transaction.GetTable(TableName);
+				var rowE = table.GetEnumerator();
+				int p = 0;
+				while (rowE.MoveNext()) {
+					int rowIndex = rowE.Current.RowId.RowNumber;
+					if (offset == p) {
+						var obSchema = table.GetValue(rowIndex, 0);
+						var obName = table.GetValue(rowIndex, 1);
+						return new ObjectName(new ObjectName(obSchema.Value.ToString()), obName.Value.ToString());
+					}
+					++p;
+				}
+			}
+
+			throw new Exception(&quot;Out of bounds.&quot;);
+		}
+
+		public abstract TableInfo GetTableInfo(int offset);
+
+		public abstract string GetTableType(int offset);
+
+		public bool ContainsTable(ObjectName name) {
+			// This set can not contain the table that is backing it, so we always
+			// return false for that.  This check stops an annoying recursive
+			// situation for table name resolution.
+			if (name.Equals(TableName))
+				return false;
+
+			return FindByName(name) != -1;
+		}
+
+		public abstract ITable GetTable(int offset);
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[25,5,25,49,0],[26,5,26,38,0],[27,5,27,15,0],[29,6,29,50,0],[30,6,30,47,0],[31,6,31,52,0],[32,7,32,50,0],[33,7,33,61,0],[35,8,35,17,0],[38,6,38,10,0],[28,5,28,28,0],[46,4,46,47,0],[49,5,49,49,0],[50,5,50,38,0],[51,5,51,15,0],[53,6,53,50,0],[54,6,54,22,0],[55,7,55,50,0],[56,7,56,48,0],[57,7,57,97,0],[59,6,59,10,0],[52,5,52,28,0],[63,4,63,42,0],[8,3,8,81,1],[9,4,9,30,1],[10,4,10,26,1],[11,3,11,4,1],[18,10,18,99,1],[22,4,22,47,1],[42,4,42,14,1],[74,4,74,31,1],[75,5,75,18,1],[77,4,77,34,1]]);
+    </script>
+  </body>
+</html>

@@ -112,7 +112,6 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			context.Session.CreateTable(tableInfo, temporary);			
-			context.GrantToUserOnTable(tableName, Privileges.TableAll);
 		}
 
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {

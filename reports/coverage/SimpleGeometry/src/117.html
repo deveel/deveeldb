@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.routines\functionfactory.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Fluid;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Routines {
+	public abstract class FunctionFactory : IRoutineResolver, IConfigurationContext {
+		private bool initd;
+		private readonly IList&lt;FunctionConfiguration&gt; configurations;
+		private IDictionary&lt;FunctionInfo, IFunction&gt; functions;
+
+		protected FunctionFactory() {
+			configurations = new List&lt;FunctionConfiguration&gt;();
+		}
+
+		public abstract string SchemaName { get; }
+
+		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
+			if (functions == null)
+				return null;
+
+			return (functions.Where(entry =&gt; entry.Key.MatchesInvoke(request, context))
+				.Select(entry =&gt; entry.Value))
+				.FirstOrDefault();
+		}
+
+		public void Init() {
+			if (!initd) {
+				OnInit();
+
+				BuildFunctions();
+				initd = true;
+			}
+		}
+
+		private void BuildFunctions() {
+			if (functions == null)
+				functions = new Dictionary&lt;FunctionInfo, IFunction&gt;();
+
+			foreach (var configuration in configurations) {
+				var functionInfo = configuration.FunctionInfo;
+				foreach (var info in functionInfo) {
+					var function = configuration.AsFunction();
+					functions.Add(info, function);
+				}
+			}
+		}
+
+		protected abstract void OnInit();
+
+		protected IFunctionConfiguration New() {
+			var config = new FunctionConfiguration(this);
+			configurations.Add(config);
+			return config;
+		}
+
+		protected IFunctionConfiguration New(string name) {
+			return New().Named(new ObjectName(new ObjectName(SchemaName), name));
+		}
+
+		#region FunctionConfiguration
+
+		class FunctionConfiguration : IAggregateFunctionConfiguration, IRoutineConfiguration {
+			private readonly FunctionFactory factory;
+			private readonly Dictionary&lt;string, RoutineParameter&gt; parameters;
+			private List&lt;ObjectName&gt; aliases;
+
+			private Func&lt;ExecuteContext, DataType&gt; returnTypeFunc;
+			private Func&lt;ExecuteContext, ExecuteResult&gt; executeFunc;
+			private Func&lt;DataObject, DataObject, DataObject&gt; simpleExecuteFunc;
+			private Func&lt;ExecuteContext, DataObject, DataObject&gt; afterAggregateFunc;
+
+			public FunctionConfiguration(FunctionFactory factory) {
+				this.factory = factory;
+				parameters = new Dictionary&lt;string, RoutineParameter&gt;();
+				FunctionType = FunctionType.Static;
+			}
+
+			public FunctionType FunctionType { get; private set; }
+
+			public FunctionInfo[] FunctionInfo {
+				get {
+					var result = new List&lt;FunctionInfo&gt; {new FunctionInfo(FunctionName, parameters.Values.ToArray())};
+					if (aliases != null &amp;&amp; aliases.Count &gt; 0)
+						result.AddRange(aliases.Select(name =&gt; new FunctionInfo(name, parameters.Values.ToArray())));
+
+					return result.ToArray();
+				}
+			}
+
+			public ObjectName FunctionName { get; private set; }
+
+			public RoutineParameter[] Parameters {
+				get { return parameters.Values.ToArray(); }
+			}
+
+			public bool HasParameter(string name) {
+				return parameters.ContainsKey(name);
+			}
+
+			public bool HasUnboundedParameter() {
+				return parameters.Values.Any(x =&gt; x.IsUnbounded);
+			}
+
+			public DataType ReturnType(ExecuteContext context) {
+				if (returnTypeFunc != null)
+					return returnTypeFunc(context);
+
+				throw new InvalidOperationException();
+			}
+
+			public IFunctionConfiguration Named(ObjectName name) {
+				if (name == null)
+					throw new ArgumentNullException(&quot;name&quot;);
+
+				var parent = name.ParentName;
+
+				if (!factory.SchemaName.Equals(parent))
+					throw new ArgumentException(String.Format(
+						&quot;The parent name ({0}) is not valid in this factory schema context ({1})&quot;, parent, factory.SchemaName));
+
+				FunctionName = name;
+				return this;
+			}
+
+			public IFunctionConfiguration WithAlias(ObjectName alias) {
+				if (alias == null)
+					throw new ArgumentNullException(&quot;alias&quot;);
+
+				if (FunctionName == null)
+					throw new ArgumentException(&quot;The function has no name configured and cannot be aliased.&quot;);
+
+				var parent = alias.ParentName;
+
+				if (!factory.SchemaName.Equals(parent))
+					throw new ArgumentException();
+
+				if (aliases == null)
+					aliases = new List&lt;ObjectName&gt;();
+
+				aliases.Add(alias);
+
+				return this;
+			}
+
+			public IFunctionConfiguration WithParameter(Action&lt;IFunctionParameterConfiguration&gt; config) {
+				var paramConfig = new FunctionParameterConfiguration(this);
+				if (config != null) {
+					config(paramConfig);
+
+					var param = paramConfig.AsParameter();
+					parameters.Add(param.Name, param);
+				}
+
+				return this;
+			}
+
+			public IAggregateFunctionConfiguration Aggregate() {
+				FunctionType = FunctionType.Aggregate;
+				return this;
+			}
+
+			public IFunctionConfiguration ReturnsType(Func&lt;ExecuteContext, DataType&gt; returns) {
+				returnTypeFunc = returns;
+				return this;
+			}
+
+			public IFunctionConfiguration WhenExecute(Func&lt;ExecuteContext, ExecuteResult&gt; execute) {
+				executeFunc = execute;
+				return this;
+			}
+
+			public IFunctionConfiguration WhenExecute(Func&lt;DataObject, DataObject, DataObject&gt; execute) {
+				simpleExecuteFunc = execute;
+				return this;
+			}
+
+			public IAggregateFunctionConfiguration OnAfterAggregate(Func&lt;ExecuteContext, DataObject, DataObject&gt; afterAggregate) {
+				if (FunctionType != FunctionType.Aggregate)
+					throw new InvalidOperationException(&quot;The function is not aggregate.&quot;);
+
+				afterAggregateFunc = afterAggregate;
+				return this;
+			}
+
+			public IFunction AsFunction() {
+				return new ConfiguredFunction(this);
+			}
+
+			public ExecuteResult Execute(ExecuteContext context) {
+				if (executeFunc == null)
+					throw new InvalidOperationException(&quot;The function has no body defined&quot;);
+
+				if (FunctionType == FunctionType.Aggregate) {
+					if (context.GroupResolver == null)
+						throw new InvalidOperationException(String.Format(&quot;routine &#39;{0}&#39; can only be used as an aggregate function.&quot;,
+							FunctionName));
+
+					DataObject result = null;
+
+					// All aggregates functions return &#39;null&#39; if group size is 0
+					int size = context.GroupResolver.Count;
+					if (size == 0) {
+						// Return a NULL of the return type
+						return context.Result(new DataObject(ReturnType(context), SqlNull.Value));
+					}
+
+					DataObject val;
+					var v = context.Arguments[0].AsReferenceName();
+
+					// If the aggregate parameter is a simple variable, then use optimal
+					// routine,
+					if (v != null) {
+						for (int i = 0; i &lt; size; ++i) {
+							val = context.GroupResolver.Resolve(v, i);
+
+							if (simpleExecuteFunc != null) {
+								result = simpleExecuteFunc(result, val);
+							} else {
+								var args = new SqlExpression[] {
+									SqlExpression.Constant(result),
+									SqlExpression.Constant(val)
+								};
+
+								var newRequest = new Invoke(FunctionName, args);
+								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
+									context.GroupResolver, context.QueryContext);
+
+								var execResult = executeFunc(tempContext);
+
+								if (!execResult.HasReturnValue)
+									throw new InvalidOperationException();
+
+								result = execResult.ReturnValue;
+							}
+						}
+					} else {
+						// Otherwise we must resolve the expression for each entry in group,
+						// This allows for expressions such as &#39;sum(quantity * price)&#39; to
+						// work for a group.
+						SqlExpression exp = context.Arguments[0];
+						for (int i = 0; i &lt; size; ++i) {
+							val = exp.EvaluateToConstant(context.QueryContext, context.GroupResolver.GetVariableResolver(i));
+
+							if (simpleExecuteFunc != null) {
+								result = simpleExecuteFunc(result, val);
+							} else {
+								var args = new SqlExpression[] {
+									SqlExpression.Constant(result),
+									SqlExpression.Constant(val)
+								};
+
+								var newRequest = new Invoke(FunctionName, args);
+								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
+									context.GroupResolver, context.QueryContext);
+
+								var execResult = executeFunc(tempContext);
+
+								if (!execResult.HasReturnValue)
+									throw new InvalidOperationException();
+
+								result = execResult.ReturnValue;
+							}
+						}
+					}
+
+					// Post method.
+					if (afterAggregateFunc != null)
+						result = afterAggregateFunc(context, result);
+
+					return context.Result(result);
+				}
+
+				return executeFunc(context);
+			}
+
+			public IConfigurationContext Context {
+				get { return factory; }
+			}
+		}
+
+		#endregion
+
+		#region FunctionParemeterConfiguration
+
+		class FunctionParameterConfiguration : IFunctionParameterConfiguration {
+			private readonly FunctionConfiguration configuration;
+
+			private string parameterName;
+			private DataType dataType;
+			private ParameterAttributes attributes;
+
+			public FunctionParameterConfiguration(FunctionConfiguration configuration) {
+				this.configuration = configuration;
+
+				attributes = new ParameterAttributes();
+				dataType = PrimitiveTypes.Numeric();
+			}
+
+			public IFunctionParameterConfiguration Named(string name) {
+				if (String.IsNullOrEmpty(name))
+					throw new ArgumentNullException(&quot;name&quot;);
+
+				if (configuration.HasParameter(name))
+					throw new ArgumentException(String.Format(&quot;A parameter with name &#39;{0}&#39; was already configured for the function&quot;, name), &quot;name&quot;);
+
+				parameterName = name;
+
+				return this;
+			}
+
+			public IFunctionParameterConfiguration OfType(DataType type) {
+				if (type == null)
+					throw new ArgumentNullException(&quot;type&quot;);
+
+				dataType = type;
+
+				return this;
+			}
+
+			public IFunctionParameterConfiguration Unbounded(bool flag) {
+				if (configuration.HasUnboundedParameter())
+					throw new ArgumentException(&quot;An unbounded parameter is already configured&quot;);
+
+				if (flag)
+					attributes |= ParameterAttributes.Unbounded;
+
+				return this;
+			}
+
+			public RoutineParameter AsParameter() {
+				return new RoutineParameter(parameterName, dataType, attributes);
+			}
+		}
+
+		#endregion
+
+		#region ConfiguredFunction
+
+		class ConfiguredFunction : IFunction {
+			private readonly FunctionConfiguration configuration;
+
+			public ConfiguredFunction(FunctionConfiguration configuration) {
+				this.configuration = configuration;
+			}
+
+			RoutineType IRoutine.Type {
+				get { return RoutineType.Function; }
+			}
+
+			private FunctionInfo FunctionInfo {
+				get { return new FunctionInfo(configuration.FunctionName, configuration.Parameters, configuration.FunctionType); }
+			}
+
+			RoutineInfo IRoutine.RoutineInfo {
+				get { return FunctionInfo; }
+			}
+
+			DbObjectType IDbObject.ObjectType {
+				get { return DbObjectType.Function; }
+			}
+
+			public ObjectName FullName {
+				get { return configuration.FunctionName; }
+			}
+
+			public ExecuteResult Execute(ExecuteContext context) {
+				return configuration.Execute(context);
+			}
+
+			public FunctionType FunctionType {
+				get { return configuration.FunctionType; }
+			}
+
+			public DataType ReturnType(ExecuteContext context) {
+				return configuration.ReturnType(context);
+			}
+		}
+
+		#endregion
+	} 
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[42,5,42,17,0],[107,7,107,46,0],[107,97,107,100,0],[116,11,116,46,0],[124,5,124,39,0],[124,52,124,54,0],[128,5,128,32,0],[129,6,129,37,0],[131,5,131,43,0],[136,6,136,46,0],[141,6,142,111,0],[149,5,149,23,0],[150,6,150,47,0],[152,5,152,30,0],[153,6,153,96,0],[155,5,155,35,0],[157,5,157,44,0],[158,6,158,36,0],[160,5,160,25,0],[161,6,161,39,0],[163,5,163,24,0],[165,5,165,17,0],[181,5,181,43,0],[182,5,182,17,0],[196,5,196,33,0],[197,5,197,17,0],[201,5,201,48,0],[202,6,202,76,0],[204,5,204,41,0],[205,5,205,17,0],[214,6,214,78,0],[217,6,217,40,0],[218,7,219,23,0],[221,6,221,31,0],[224,6,224,45,0],[225,6,225,20,0],[227,7,227,81,0],[231,6,231,53,0],[235,6,235,20,0],[236,12,236,22,0],[237,8,237,50,0],[239,8,239,38,0],[240,9,240,49,0],[242,9,245,11,0],[247,9,247,57,0],[248,9,249,55,0],[251,9,251,51,0],[253,9,253,40,0],[254,10,254,48,0],[256,9,256,41,0],[236,33,236,36,0],[236,23,236,31,0],[263,7,263,48,0],[264,12,264,22,0],[265,8,265,105,0],[267,8,267,38,0],[268,9,268,49,0],[270,9,273,11,0],[275,9,275,57,0],[276,9,277,55,0],[279,9,279,51,0],[281,9,281,40,0],[282,10,282,48,0],[284,9,284,41,0],[264,33,264,36,0],[264,23,264,31,0],[290,6,290,37,0],[291,7,291,52,0],[293,6,293,36,0],[300,11,300,26,0],[107,46,107,97,0],[124,39,124,52,0],[324,6,324,46,0],[327,6,327,134,0],[336,6,336,46,0],[344,5,344,47,0],[345,6,345,82,0],[347,5,347,14,0],[348,6,348,50,0],[350,5,350,17,0],[374,11,374,117,0],[378,11,378,31,0],[382,11,382,40,0],[394,11,394,45,0],[398,5,398,46,0],[34,3,34,30,1],[35,4,35,55,1],[36,3,36,4,1],[41,4,41,26,1],[44,4,44,37,1],[45,33,46,23,1],[50,4,50,15,1],[51,5,51,14,1],[53,5,53,22,1],[54,5,54,18,1],[56,3,56,4,1],[59,4,59,26,1],[60,5,60,59,1],[62,34,62,48,1],[62,13,62,30,1],[63,5,63,51,1],[64,26,64,38,1],[64,14,64,22,1],[65,6,65,48,1],[66,6,66,36,1],[64,23,64,25,1],[62,31,62,33,1],[69,3,69,4,1],[74,4,74,49,1],[75,4,75,31,1],[76,4,76,18,1],[80,4,80,73,1],[45,22,45,33,1],[95,4,95,57,1],[96,5,96,28,1],[97,5,97,61,1],[98,5,98,40,1],[99,4,99,5,1],[105,6,105,104,1],[106,6,106,47,1],[109,6,109,30,1],[120,5,120,41,1],[135,5,135,22,1],[138,5,138,34,1],[140,5,140,44,1],[144,5,144,25,1],[145,5,145,17,1],[169,5,169,64,1],[170,5,170,24,1],[171,6,171,26,1],[173,6,173,44,1],[174,6,174,40,1],[177,5,177,17,1],[186,5,186,30,1],[187,5,187,17,1],[191,5,191,27,1],[192,5,192,17,1],[209,5,209,41,1],[213,5,213,29,1],[216,5,216,48,1],[296,5,296,33,1],[315,4,315,78,1],[316,5,316,40,1],[318,5,318,44,1],[319,5,319,41,1],[320,4,320,5,1],[323,5,323,36,1],[326,5,326,42,1],[329,5,329,26,1],[331,5,331,17,1],[335,5,335,22,1],[338,5,338,21,1],[340,5,340,17,1],[354,5,354,70,1],[365,4,365,66,1],[366,5,366,40,1],[367,4,367,5,1],[370,11,370,39,1],[386,11,386,45,1],[390,5,390,43,1],[44,37,44,78,1]]);
+    </script>
+  </body>
+</html>

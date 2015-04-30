@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\sequencemanager.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.DbSystem {
+	/// &lt;summary&gt;
+	/// A default implementation of a sequence manager that is backed by 
+	/// a given transaction.
+	/// &lt;/summary&gt;
+	/// &lt;seealso cref=&quot;ISequenceManager&quot;/&gt;
+	public class SequenceManager : ISequenceManager {
+		/// &lt;summary&gt;
+		/// A static TObject that represents numeric 1.
+		/// &lt;/summary&gt;
+		private static readonly DataObject OneValue = DataObject.Integer(1);
+
+		private Dictionary&lt;ObjectName, Sequence&gt; sequenceKeyMap; 
+
+		/// &lt;summary&gt;
+		/// Construct a new instance of &lt;see cref=&quot;SequenceManager&quot;/&gt; that is backed by
+		/// the given transaction factory.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;transaction&quot;&gt;&lt;/param&gt;
+		public SequenceManager(ITransaction transaction) {
+			Transaction = transaction;
+			sequenceKeyMap = new Dictionary&lt;ObjectName, Sequence&gt;();
+		}
+
+		~SequenceManager() {
+			Dispose(false);
+		}
+
+		DbObjectType IObjectManager.ObjectType {
+			get { return DbObjectType.Sequence; }
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (sequenceKeyMap !=null)
+					sequenceKeyMap.Clear();
+
+				sequenceKeyMap = null;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the transaction where the manager is operating.
+		/// &lt;/summary&gt;
+		private ITransaction Transaction { get; set; }
+
+		public ITableContainer TableContainer {
+			get { return new SequenceTableContainer(this); }
+		}
+
+		#region SequenceTableContainer
+
+		class SequenceTableContainer : ITableContainer {
+			private readonly ITransaction transaction;
+			private readonly SequenceManager manager;
+
+			public SequenceTableContainer(SequenceManager manager) {
+				transaction = manager.Transaction;
+				this.manager = manager;
+			}
+
+			public int TableCount {
+				get {
+					var table = transaction.GetTable(SystemSchema.SequenceTableName);
+					return table != null ? table.RowCount : 0;
+				}
+			}
+
+			private static TableInfo CreateTableInfo(ObjectName schema, string name) {
+				var info = new TableInfo(new ObjectName(schema, name));
+				info.AddColumn(&quot;last_value&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;current_value&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;top_value&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;increment_by&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;min_value&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;max_value&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;start&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;cache&quot;, PrimitiveTypes.Numeric());
+				info.AddColumn(&quot;cycle&quot;, PrimitiveTypes.Boolean());
+				info = info.AsReadOnly();
+				return info;
+			}
+
+			public int FindByName(ObjectName tableName) {
+				var seqInfo = SystemSchema.SequenceInfoTableName;
+				if (transaction.RealTableExists(seqInfo)) {
+					// Search the table.
+					var table = transaction.GetTable(seqInfo);
+					var name = DataObject.VarChar(tableName.Name);
+					var schema = DataObject.VarChar(tableName.Parent.FullName);
+
+					int p = 0;
+					foreach (var row in table) {
+						var seqType = row.GetValue(3);
+						if (!seqType.IsEqualTo(OneValue)) {
+							var obName = row.GetValue(2);
+							if (obName.IsEqualTo(name)) {
+								var obSchema = row.GetValue(1);
+								if (obSchema.IsEqualTo(schema)) {
+									// Match so return this
+									return p;
+								}
+							}
+							++p;
+						}
+					}
+				}
+
+				return -1;
+			}
+
+			public ObjectName GetTableName(int offset) {
+				var seqInfo = SystemSchema.SequenceInfoTableName;
+				if (transaction.RealTableExists(seqInfo)) {
+					var table = transaction.GetTable(seqInfo);
+					int p = 0;
+					foreach (var row in table) {
+						var seqType = row.GetValue(3);
+						if (!seqType.IsEqualTo(OneValue)) {
+							if (offset == p) {
+								var obSchema = row.GetValue(1);
+								var obName = row.GetValue(2);
+								return new ObjectName(ObjectName.Parse(obSchema.Value.ToString()), obName.Value.ToString());
+							}
+							++p;
+						}
+					}
+				}
+
+				throw new ArgumentOutOfRangeException(&quot;offset&quot;);
+			}
+
+			public TableInfo GetTableInfo(int offset) {
+				var tableName = GetTableName(offset);
+				return CreateTableInfo(tableName.Parent, tableName.Name);
+			}
+
+			public string GetTableType(int offset) {
+				return TableTypes.Sequence;
+			}
+
+			public bool ContainsTable(ObjectName name) {
+				var seqInfo = SystemSchema.SequenceInfoTableName;
+
+				// This set can not contain the table that is backing it, so we always
+				// return false for that.  This check stops an annoying recursive
+				// situation for table name resolution.
+				if (name.Equals(seqInfo))
+					return false;
+
+				return FindByName(name) != -1;
+			}
+
+			public ITable GetTable(int offset) {
+				var table = transaction.GetTable(SystemSchema.SequenceInfoTableName);
+				int p = 0;
+				int rowIndex = -1;
+
+				foreach (var row in table) {
+					var seqType = row.GetValue(3);
+					if (seqType.IsEqualTo(OneValue)) {
+						if (p == offset) {
+							rowIndex = row.RowId.RowNumber;
+							break;
+						}
+
+						p++;
+					}
+				}
+
+				if (rowIndex == -1)
+					throw new ArgumentOutOfRangeException(&quot;offset&quot;);
+
+				var seqId = table.GetValue(rowIndex, 0);
+				var schema = ObjectName.Parse(table.GetValue(rowIndex, 1).Value.ToString());
+				var name = table.GetValue(rowIndex, 2).Value.ToString();
+
+				var tableName = new ObjectName(schema, name);
+
+				// Find this id in the &#39;sequence&#39; table
+				var seqTable = transaction.GetTable(SystemSchema.SequenceTableName);
+
+				var index = seqTable.GetIndex(0);
+				var list = index.SelectEqual(seqId);
+
+				if (!list.Any())
+					throw new Exception(&quot;No SEQUENCE table entry for sequence.&quot;);
+
+				int seqRowI = list.First();
+
+				// Generate the DataTableInfo
+				var tableInfo = CreateTableInfo(schema, name);
+
+				// Last value for this sequence generated by the transaction
+				DataObject lastValue;
+				try {
+					lastValue = DataObject.Number(transaction.LastValue(tableName));
+				} catch (Exception) {
+					lastValue = DataObject.BigInt(-1);
+				}
+
+				// The current value of the sequence generator
+				var currentValue = DataObject.Number(manager.GetCurrentValue(tableName));
+
+				// Read the rest of the values from the SEQUENCE table.
+				var topValue = seqTable.GetValue(seqRowI, 1);
+				var incrementBy = seqTable.GetValue(seqRowI, 2);
+				var minValue = seqTable.GetValue(seqRowI, 3);
+				var maxValue = seqTable.GetValue(seqRowI, 4);
+				var start = seqTable.GetValue(seqRowI, 5);
+				var cache = seqTable.GetValue(seqRowI, 6);
+				var cycle = seqTable.GetValue(seqRowI, 7);
+
+
+				return new SequenceTable(transaction.Database.Context, tableInfo) {
+					TopValue = topValue,
+					LastValue = lastValue,
+					CurrentValue = currentValue,
+					Increment = incrementBy,
+					MinValue = minValue,
+					MaxValue = maxValue,
+					Start = start,
+					Cache = cache,
+					Cycle = cycle
+				};
+			}
+		}
+
+		#endregion
+
+		#region SequenceTable
+
+		class SequenceTable : GeneratedTable {
+			private readonly TableInfo tableInfo;
+
+			public SequenceTable(IDatabaseContext dbContext, TableInfo tableInfo) 
+				: base(dbContext) {
+				this.tableInfo = tableInfo;
+			}
+
+			public override TableInfo TableInfo {
+				get { return tableInfo; }
+			}
+
+			public override int RowCount {
+				get { return 1; }
+			}
+
+			public DataObject TopValue { get; set; }
+
+			public DataObject LastValue { get; set; }
+
+			public DataObject CurrentValue { get; set; }
+
+			public DataObject Increment { get; set; }
+
+			public DataObject MinValue { get; set; }
+
+			public DataObject MaxValue { get; set; }
+
+			public DataObject Start { get; set; }
+
+			public DataObject Cache { get; set; }
+
+			public DataObject Cycle { get; set; }
+
+			public override DataObject GetValue(long rowNumber, int columnOffset) {
+				if (rowNumber != 0)
+					throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+
+				switch (columnOffset) {
+					case 0:
+						return LastValue;
+					case 1:
+						return CurrentValue;
+					case 2:
+						return TopValue;
+					case 3:
+						return Increment;
+					case 4:
+						return MinValue;
+					case 5:
+						return MaxValue;
+					case 6:
+						return Start;
+					case 7:
+						return Cache;
+					case 8:
+						return Cycle;
+					default:
+						throw new ArgumentOutOfRangeException(&quot;columnOffset&quot;);
+				}
+			}
+		}
+
+		#endregion
+
+		/// &lt;summary&gt;
+		/// Updates the state of the sequence key in the sequence tables in the
+		/// database.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;sequence&quot;&gt;&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// The update occurs on an independent transaction.
+		/// &lt;/remarks&gt;
+		private void UpdateSequenceState(Sequence sequence) {
+			// We need to update the sequence key state.
+
+			// The sequence table
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+
+			// Find the row with the id for this sequence.
+			var list = seq.SelectRowsEqual(0, DataObject.Number(sequence.Id)).ToList();
+
+			// Checks
+			var count = list.Count();
+			if (count == 0)
+				throw new ObjectNotFoundException(sequence.FullName);
+
+			if (count &gt; 1)
+				throw new Exception(&quot;Assert failed: multiple id for sequence.&quot;);
+
+			// Create the DataRow
+			var dataRow = seq.GetRow(list.First());
+
+			// Set the content of the row data
+			dataRow.SetValue(0, DataObject.Number(sequence.Id));
+			dataRow.SetValue(1, DataObject.Number(sequence.LastValue));
+			dataRow.SetValue(2, DataObject.Number(sequence.SequenceInfo.Increment));
+			dataRow.SetValue(3, DataObject.Number(sequence.SequenceInfo.MinValue));
+			dataRow.SetValue(4, DataObject.Number(sequence.SequenceInfo.MaxValue));
+			dataRow.SetValue(5, DataObject.Number(sequence.SequenceInfo.StartValue));
+			dataRow.SetValue(6, DataObject.BigInt(sequence.SequenceInfo.Cache));
+			dataRow.SetValue(7, DataObject.Boolean(sequence.SequenceInfo.Cycle));
+
+			// Update the row
+			seq.UpdateRow(dataRow);
+		}
+
+		void IObjectManager.CreateObject(IObjectInfo objInfo) {
+			var seqInfo = objInfo as SequenceInfo;
+			if (seqInfo == null)
+				throw new ArgumentException();
+
+			CreateSequence(seqInfo);
+		}
+
+		public ISequence CreateSequence(SequenceInfo sequenceInfo) {
+			if (sequenceInfo == null)
+				throw new ArgumentNullException(&quot;sequenceInfo&quot;);
+
+			var sequenceName = sequenceInfo.SequenceName;
+			
+			// If the Sequence or SequenceInfo tables don&#39;t exist then 
+			// We can&#39;t add or remove native tables
+			if (sequenceName.Equals(SystemSchema.SequenceTableName) ||
+				sequenceName.Equals(SystemSchema.SequenceInfoTableName) ||
+				!Transaction.TableExists(SystemSchema.SequenceTableName) ||
+				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
+				return null;
+			}
+
+			if (sequenceInfo.Type == SequenceType.Native)
+				return CreateNativeTableSequence(sequenceName);
+
+			return CreateCustomSequence(sequenceName, sequenceInfo);
+		}
+
+		private Sequence CreateCustomSequence(ObjectName sequenceName, SequenceInfo sequenceInfo) {
+			// The SEQUENCE and SEQUENCE_INFO table
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+
+			var list = seqi.SelectRowsEqual(2, DataObject.VarChar(sequenceName.Name), 1, DataObject.VarChar(sequenceName.Parent.FullName));
+			if (list.Any())
+				throw new Exception(String.Format(&quot;Sequence generator with name &#39;{0}&#39; already exists.&quot;, sequenceName));
+
+			// Generate a unique id for the sequence info table
+			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
+
+			// Insert the new row
+			var dataRow = seqi.NewRow();
+			dataRow.SetValue(0, DataObject.Number(uniqueId));
+			dataRow.SetValue(1, DataObject.VarChar(sequenceName.Parent.FullName));
+			dataRow.SetValue(2, DataObject.VarChar(sequenceName.Name));
+			dataRow.SetValue(3, DataObject.BigInt(2));
+			seqi.AddRow(dataRow);
+
+			// Insert into the SEQUENCE table.
+			dataRow = seq.NewRow();
+			dataRow.SetValue(0, DataObject.Number(uniqueId));
+			dataRow.SetValue(1, DataObject.Number(sequenceInfo.StartValue));
+			dataRow.SetValue(2, DataObject.Number(sequenceInfo.Increment));
+			dataRow.SetValue(3, DataObject.Number(sequenceInfo.MinValue));
+			dataRow.SetValue(4, DataObject.Number(sequenceInfo.MaxValue));
+			dataRow.SetValue(5, DataObject.Number(sequenceInfo.StartValue));
+			dataRow.SetValue(6, DataObject.BigInt(sequenceInfo.Cache));
+			dataRow.SetValue(7, DataObject.Boolean(sequenceInfo.Cycle));
+			seq.AddRow(dataRow);
+
+			return new Sequence(this, uniqueId, sequenceInfo);
+		}
+
+		private ISequence CreateNativeTableSequence(ObjectName tableName) {
+			var table = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
+
+			var dataRow = table.NewRow();
+			dataRow.SetValue(0, DataObject.Number(uniqueId));
+			dataRow.SetValue(1, DataObject.VarChar(tableName.Parent.FullName));
+			dataRow.SetValue(2, DataObject.VarChar(tableName.Name));
+			dataRow.SetValue(3, DataObject.BigInt(1));
+			table.AddRow(dataRow);
+
+			return new Sequence(this, uniqueId, new SequenceInfo(tableName));
+		}
+
+		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
+			throw new NotImplementedException();
+		}
+
+		bool IObjectManager.DropObject(ObjectName objName) {
+			return DropSequence(objName);
+		}
+
+		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			throw new NotImplementedException();
+		}
+
+		public bool DropSequence(ObjectName sequenceName) {
+			// If the Sequence or SequenceInfo tables don&#39;t exist then 
+			// we can&#39;t create the sequence sequence
+			if (!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+				throw new Exception(&quot;System sequence tables do not exist.&quot;);
+			}
+
+			// Remove the table sequence (delete SEQUENCE_INFO and SEQUENCE entry)
+			return RemoveNativeTableSequence(sequenceName);
+		}
+
+		private bool RemoveNativeTableSequence(ObjectName tableName) {
+			// If the Sequence or SequenceInfo tables don&#39;t exist then 
+			// We can&#39;t add or remove native tables
+			if (tableName.Equals(SystemSchema.SequenceTableName) ||
+				tableName.Equals(SystemSchema.SequenceInfoTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
+				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+				return false;
+			}
+
+			// The SEQUENCE and SEQUENCE_INFO table
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+
+			var list = seqi.SelectRowsEqual(2, DataObject.VarChar(tableName.Name), 1, DataObject.VarChar(tableName.Parent.FullName));
+
+			// Remove the corresponding entry in the SEQUENCE table
+			foreach (var rowIndex in list) {
+				var sid = seqi.GetValue(rowIndex, 0);
+				var list2 = seq.SelectRowsEqual(0, sid);
+				foreach (int rowIndex2 in list2) {
+					// Remove entry from the sequence table.
+					seq.RemoveRow(rowIndex2);
+				}
+
+				// Remove entry from the sequence info table
+				seqi.RemoveRow(rowIndex);
+			}
+
+			return true;
+		}
+
+		bool IObjectManager.ObjectExists(ObjectName objName) {
+			return SequenceExists(objName);
+		}
+
+		bool IObjectManager.RealObjectExists(ObjectName objName) {
+			return SequenceExists(objName);
+		}
+
+		public bool SequenceExists(ObjectName sequenceName) {
+			// If the Sequence or SequenceInfo tables don&#39;t exist then 
+			// we can&#39;t create the sequence generator
+			if (!Transaction.TableExists(SystemSchema.SequenceTableName) ||
+				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
+				throw new Exception(&quot;System sequence tables do not exist.&quot;);
+			}
+
+			// The SEQUENCE and SEQUENCE_INFO table
+			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+
+			return seqi.SelectRowsEqual(2, DataObject.VarChar(sequenceName.Parent.FullName), 1, DataObject.VarChar(sequenceName.Name)).Any();
+		}
+
+
+		private SqlNumber NextValue(ObjectName name) {
+			lock (this) {
+				var sequence = (Sequence)GetSequence(name);
+
+				if (sequence.SequenceInfo.Type == SequenceType.Native)
+					// Native generator
+					return Transaction.NextTableId(name);
+
+				// Custom sequence generator
+				var currentVal = sequence.CurrentValue;
+
+				// Increment the current value.
+				sequence.IncrementCurrentValue();
+
+				// Have we reached the current cached point?
+				if (currentVal == sequence.LastValue) {
+					// Increment the generator
+					for (int i = 0; i &lt; sequence.SequenceInfo.Cache; ++i) {
+						sequence.IncrementLastValue();
+					}
+
+					// Update the state
+					UpdateSequenceState(sequence);
+
+				}
+
+				return sequence.CurrentValue;
+			}
+		}
+
+		private SqlNumber SetValue(ObjectName name, SqlNumber value) {
+			lock (this) {
+				var sequence = (Sequence) GetSequence(name);
+
+				if (sequence.SequenceInfo.Type == SequenceType.Native)
+					return Transaction.SetTableId(name, value);
+
+				// Custom sequence generator
+				sequence.CurrentValue = value;
+				sequence.LastValue = value;
+
+				// Update the state
+				UpdateSequenceState(sequence);
+
+				return value;
+			}
+		}
+
+		private SqlNumber GetCurrentValue(ObjectName name) {
+			lock (this) {
+				var sequence = (Sequence) GetSequence(name);
+
+				if (sequence.SequenceInfo.Type == SequenceType.Native)
+					return Transaction.NextTableId(name);
+
+				// Custom sequence generator
+				return sequence.CurrentValue;
+			}
+		}
+
+		IDbObject IObjectManager.GetObject(ObjectName objName) {
+			return GetSequence(objName);
+		}
+
+		public ISequence GetSequence(ObjectName sequenceName) {
+			// Is the generator already in the cache?
+			Sequence sequence;
+
+			if (!sequenceKeyMap.TryGetValue(sequenceName, out sequence)) {
+				// This sequence generator is not in the cache so we need to query the
+				// sequence table for this.
+				var seqi = Transaction.GetTable(SystemSchema.SequenceInfoTableName);
+
+				var schemaVal = DataObject.VarChar(sequenceName.Parent.FullName);
+				var nameVal = DataObject.VarChar(sequenceName.Name);
+				var list = seqi.SelectRowsEqual(2, nameVal, 1, schemaVal).ToList();
+
+				if (list.Count == 0) {
+					throw new ArgumentException(String.Format(&quot;Sequence &#39;{0}&#39; not found.&quot;, sequenceName));
+				} else if (list.Count() &gt; 1) {
+					throw new Exception(&quot;Assert failed: multiple sequence keys with same name.&quot;);
+				}
+
+				int rowIndex = list.First();
+				var sid = seqi.GetValue(rowIndex, 0);
+				var sschema = seqi.GetValue(rowIndex, 1);
+				var sname = seqi.GetValue(rowIndex, 2);
+				var stype = seqi.GetValue(rowIndex, 3);
+
+				// Is this a custom sequence generator?
+				// (stype == 1) == true
+				if (stype.IsEqualTo(OneValue)) {
+					// Native generator.
+					sequence = new Sequence(this, (SqlNumber) sid.Value, new SequenceInfo(sequenceName));
+				} else {
+					// Query the sequence table.
+					var seq = Transaction.GetTable(SystemSchema.SequenceTableName);
+
+					list = seq.SelectRowsEqual(0, sid).ToList();
+
+					if (!list.Any())
+						throw new Exception(&quot;Sequence table does not contain sequence information.&quot;);
+					if (list.Count() &gt; 1)
+						throw new Exception(&quot;Sequence table contains multiple generators for id.&quot;);
+
+					rowIndex = list.First();
+					var lastValue = (SqlNumber) seq.GetValue(rowIndex, 1).Value;
+					var increment = (SqlNumber) seq.GetValue(rowIndex, 2).Value;
+					var minvalue = (SqlNumber) seq.GetValue(rowIndex, 3).Value;
+					var maxvalue = (SqlNumber) seq.GetValue(rowIndex, 4).Value;
+					var start = (SqlNumber) seq.GetValue(rowIndex, 5).Value;
+					var cache = (long) seq.GetValue(rowIndex, 6).AsBigInt();
+					bool cycle = seq.GetValue(rowIndex, 7).AsBoolean();
+
+					var info = new SequenceInfo(sequenceName, start, increment, minvalue, maxvalue, cache, cycle);
+					sequence = new Sequence(this, (SqlNumber) sid.Value, lastValue, info);
+
+					// Put the generator in the cache
+					sequenceKeyMap[sequenceName] = sequence;
+				}
+
+			}
+
+			// Return the generator
+			return sequence;
+
+		}
+
+		#region Sequence
+
+		class Sequence : ISequence {
+			private readonly SequenceManager manager;
+
+			public Sequence(SequenceManager manager, SqlNumber id, SequenceInfo sequenceInfo) 
+				: this(manager, id, SqlNumber.Null, sequenceInfo) {
+			}
+
+			public Sequence(SequenceManager manager, SqlNumber id, SqlNumber lastValue, SequenceInfo sequenceInfo) {
+				this.manager = manager;
+				Id = id;
+				FullName = sequenceInfo.SequenceName;
+				SequenceInfo = sequenceInfo;
+				LastValue = lastValue;
+				CurrentValue = lastValue;
+			}
+
+			public SqlNumber Id { get; private set; }
+
+			public ObjectName FullName { get; private set; }
+
+			DbObjectType IDbObject.ObjectType {
+				get { return DbObjectType.Sequence; }
+			}
+
+			public SequenceInfo SequenceInfo { get; private set; }
+
+			public SqlNumber LastValue { get; set; }
+
+			public SqlNumber CurrentValue { get; set; }
+
+			public SqlNumber GetCurrentValue() {
+				return manager.GetCurrentValue(FullName);
+			}
+
+			public SqlNumber NextValue() {
+				return manager.NextValue(FullName);
+			}
+
+			public SqlNumber SetValue(SqlNumber value) {
+				return manager.SetValue(FullName, value);
+			}
+
+			private SqlNumber IncrementValue(SqlNumber val) {
+				val += SequenceInfo.Increment;
+				if (val &gt; SequenceInfo.MaxValue) {
+					if (SequenceInfo.Cycle) {
+						val = SequenceInfo.MinValue;
+					} else {
+						throw new ApplicationException(&quot;Sequence out of bounds.&quot;);
+					}
+				}
+				if (val &lt; SequenceInfo.MinValue) {
+					if (SequenceInfo.Cycle) {
+						val = SequenceInfo.MaxValue;
+					} else {
+						throw new ApplicationException(&quot;Sequence out of bounds.&quot;);
+					}
+				}
+				return val;
+			}
+
+			public void IncrementCurrentValue() {
+				CurrentValue = IncrementValue(CurrentValue);
+			}
+
+			public void IncrementLastValue() {
+				LastValue = IncrementValue(LastValue);
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[60,5,60,31,0],[61,6,61,29,0],[63,5,63,27,0],[68,4,68,18,0],[69,4,69,30,0],[70,3,70,4,0],[348,5,348,58,0],[351,5,351,69,0],[373,5,373,35,0],[380,5,380,53,0],[406,5,406,108,0],[449,4,449,40,0],[453,4,453,33,0],[457,4,457,40,0],[463,4,464,67,0],[465,5,465,65,0],[469,4,469,51,0],[475,4,478,67,0],[479,5,479,18,0],[483,4,483,74,0],[484,4,484,79,0],[486,4,486,125,0],[489,29,489,33,0],[489,13,489,25,0],[490,5,490,42,0],[491,5,491,45,0],[492,31,492,36,0],[492,14,492,27,0],[494,6,494,31,0],[492,28,492,30,0],[498,5,498,30,0],[489,26,489,28,0],[501,4,501,16,0],[505,4,505,35,0],[509,4,509,35,0],[515,4,516,66,0],[517,5,517,65,0],[521,4,521,74,0],[522,4,522,79,0],[524,4,524,133,0],[534,6,534,43,0],[559,4,559,15,0],[560,5,560,49,0],[562,5,562,59,0],[563,6,563,49,0],[566,5,566,35,0],[567,5,567,32,0],[570,5,570,35,0],[572,5,572,18,0],[574,3,574,4,0],[577,4,577,15,0],[578,5,578,49,0],[580,5,580,59,0],[581,6,581,43,0],[584,5,584,34,0],[586,3,586,4,0],[589,4,589,32,0],[606,6,606,92,0],[608,6,608,83,0],[621,6,621,91,0],[629,7,629,84,0],[631,7,631,82,0],[100,5,100,60,0],[101,5,101,60,0],[102,5,102,63,0],[103,5,103,59,0],[104,5,104,62,0],[105,5,105,59,0],[106,5,106,59,0],[107,5,107,55,0],[108,5,108,55,0],[109,5,109,55,0],[110,5,110,30,0],[111,5,111,17,0],[128,9,128,40,0],[129,9,129,40,0],[131,10,131,19,0],[140,4,140,5,0],[143,5,143,54,0],[144,5,144,46,0],[145,6,145,48,0],[146,6,146,16,0],[147,26,147,31,0],[147,15,147,22,0],[148,7,148,37,0],[149,7,149,40,0],[150,8,150,24,0],[151,9,151,40,0],[152,9,152,38,0],[153,9,153,101,0],[155,8,155,12,0],[147,23,147,25,0],[160,5,160,53,0],[161,4,161,5,0],[164,5,164,42,0],[165,5,165,62,0],[169,5,169,32,0],[185,5,185,74,0],[186,5,186,15,0],[187,5,187,23,0],[189,25,189,30,0],[189,14,189,21,0],[190,6,190,36,0],[191,6,191,38,0],[192,7,192,23,0],[193,8,193,39,0],[194,8,194,14,0],[197,7,197,11,0],[189,22,189,24,0],[201,5,201,24,0],[202,6,202,54,0],[204,5,204,45,0],[205,5,205,81,0],[206,5,206,61,0],[208,5,208,50,0],[211,5,211,73,0],[213,5,213,38,0],[214,5,214,41,0],[216,5,216,21,0],[217,6,217,67,0],[219,5,219,32,0],[222,5,222,51,0],[227,6,227,70,0],[228,7,228,24,0],[229,6,229,40,0],[233,5,233,78,0],[236,5,236,50,0],[237,5,237,53,0],[238,5,238,50,0],[239,5,239,50,0],[240,5,240,47,0],[241,5,241,47,0],[242,5,242,47,0],[245,5,255,7,0],[266,4,267,22,0],[268,5,268,32,0],[269,4,269,5,0],[272,11,272,28,0],[276,11,276,20,0],[298,5,298,24,0],[299,6,299,57,0],[301,5,301,26,0],[303,7,303,24,0],[305,7,305,27,0],[307,7,307,23,0],[309,7,309,24,0],[311,7,311,23,0],[313,7,313,23,0],[315,7,315,20,0],[317,7,317,20,0],[319,7,319,20,0],[321,7,321,61,0],[679,11,679,40,0],[689,5,689,46,0],[697,5,697,46,0],[706,7,706,65,0],[710,6,710,29,0],[711,7,711,35,0],[713,7,713,65,0],[45,3,45,51,1],[46,4,46,30,1],[47,4,47,60,1],[48,3,48,4,1],[51,4,51,19,1],[52,3,52,4,1],[55,10,55,39,1],[59,4,59,18,1],[65,3,65,4,1],[78,10,78,50,1],[340,4,340,74,1],[343,4,343,79,1],[346,4,346,29,1],[347,4,347,19,1],[350,4,350,18,1],[354,4,354,43,1],[357,4,357,56,1],[358,4,358,63,1],[359,4,359,76,1],[360,4,360,75,1],[361,4,361,75,1],[362,4,362,77,1],[363,4,363,72,1],[364,4,364,73,1],[367,4,367,27,1],[368,3,368,4,1],[371,4,371,42,1],[372,4,372,24,1],[375,4,375,28,1],[376,3,376,4,1],[379,4,379,29,1],[382,4,382,49,1],[386,4,389,66,1],[390,5,390,17,1],[393,4,393,49,1],[394,5,394,52,1],[396,4,396,60,1],[401,4,401,74,1],[402,4,402,79,1],[404,4,404,131,1],[405,4,405,19,1],[409,4,409,79,1],[412,4,412,32,1],[413,4,413,53,1],[414,4,414,74,1],[415,4,415,63,1],[416,4,416,46,1],[417,4,417,25,1],[420,4,420,27,1],[421,4,421,53,1],[422,4,422,68,1],[423,4,423,67,1],[424,4,424,66,1],[425,4,425,66,1],[426,4,426,68,1],[427,4,427,63,1],[428,4,428,64,1],[429,4,429,24,1],[431,4,431,54,1],[435,4,435,80,1],[436,4,436,79,1],[438,4,438,33,1],[439,4,439,53,1],[440,4,440,71,1],[441,4,441,60,1],[442,4,442,46,1],[443,4,443,26,1],[445,4,445,69,1],[529,4,529,15,1],[530,5,530,48,1],[532,5,532,59,1],[537,5,537,44,1],[540,5,540,38,1],[543,5,543,42,1],[545,11,545,21,1],[546,7,546,37,1],[545,55,545,58,1],[545,22,545,53,1],[550,6,550,36,1],[554,5,554,34,1],[556,3,556,4,1],[596,4,596,64,1],[599,5,599,73,1],[601,5,601,70,1],[602,5,602,57,1],[603,5,603,72,1],[605,5,605,25,1],[607,12,607,33,1],[611,5,611,33,1],[612,5,612,42,1],[613,5,613,46,1],[614,5,614,44,1],[615,5,615,44,1],[619,5,619,35,1],[624,6,624,69,1],[626,6,626,50,1],[628,6,628,22,1],[630,6,630,27,1],[633,6,633,30,1],[634,6,634,66,1],[635,6,635,66,1],[636,6,636,65,1],[637,6,637,65,1],[638,6,638,62,1],[639,6,639,62,1],[640,6,640,57,1],[642,6,642,100,1],[643,6,643,76,1],[646,6,646,46,1],[652,4,652,20,1],[36,3,36,71,1],[87,4,87,58,1],[88,5,88,39,1],[89,5,89,28,1],[90,4,90,5,1],[94,6,94,71,1],[95,6,95,48,1],[115,5,115,54,1],[116,5,116,46,1],[118,6,118,48,1],[119,6,119,52,1],[120,6,120,65,1],[122,6,122,16,1],[123,26,123,31,1],[123,15,123,22,1],[124,7,124,37,1],[125,7,125,40,1],[126,8,126,37,1],[127,8,127,35,1],[134,8,134,12,1],[123,23,123,25,1],[139,5,139,15,1],[173,5,173,54,1],[178,5,178,30,1],[179,6,179,19,1],[181,5,181,35,1],[661,4,662,54,1],[663,4,663,5,1],[665,4,665,106,1],[666,5,666,28,1],[667,5,667,13,1],[668,5,668,42,1],[669,5,669,33,1],[670,5,670,27,1],[671,5,671,30,1],[672,4,672,5,1],[693,5,693,40,1],[701,5,701,35,1],[702,5,702,37,1],[703,6,703,29,1],[704,7,704,35,1],[709,5,709,37,1],[716,5,716,16,1],[720,5,720,49,1],[721,4,721,5,1],[724,5,724,43,1],[725,4,725,5,1]]);
+    </script>
+  </body>
+</html>

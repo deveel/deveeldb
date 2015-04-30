@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\selectcolumn.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// Represents a column selected to be in the output of a select
+	/// statement.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// This includes being either an aggregate function, a column or &quot;*&quot; 
+	/// which is the entire set of columns.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class SelectColumn : IPreparable {
+		/// &lt;summary&gt;
+		/// Constructs a new &lt;see cref=&quot;SelectColumn&quot;/&gt; for the given
+		/// expression and aliased with the given name.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The &lt;see cref=&quot;Expression&quot;/&gt; used for select
+		/// a column within a &lt;c&gt;SELECT&lt;/c&gt; statement.&lt;/param&gt;
+		/// &lt;param name=&quot;alias&quot;&gt;The name to alias the resulted expression.&lt;/param&gt;
+		public SelectColumn(SqlExpression expression, string alias) {
+			if (expression == null)
+				throw new ArgumentNullException(&quot;expression&quot;);
+
+			Expression = expression;
+			Alias = alias;
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs a new &lt;see cref=&quot;SelectColumn&quot;/&gt; for the given
+		/// expression.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The &lt;see cref=&quot;Expression&quot;/&gt; used for select
+		/// a column within a &lt;c&gt;SELECT&lt;/c&gt; statement.&lt;/param&gt;
+		public SelectColumn(SqlExpression expression)
+			: this(expression, null) {
+		}
+
+		private SelectColumn() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the expression used to select the column.
+		/// &lt;/summary&gt;
+		public SqlExpression Expression { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the name used to alias the select expression.
+		/// &lt;/summary&gt;
+		public string Alias { get; private set; }
+
+		public bool IsGlob {
+			get {
+				return (Expression is SqlReferenceExpression) &amp;&amp;
+				       ((SqlReferenceExpression) Expression).ReferenceName.IsGlob;
+			}
+		}
+
+		public bool IsAll {
+			get {
+				return (Expression is SqlReferenceExpression) &amp;&amp;
+				       ((SqlReferenceExpression) Expression).ReferenceName.IsGlob &amp;&amp;
+					   ((SqlReferenceExpression)Expression).ReferenceName.FullName == &quot;*&quot;;
+			}
+		}
+
+		public ObjectName TableName {
+			get {
+				var refExp = Expression as SqlReferenceExpression;
+				if (refExp == null)
+					return null;
+
+				return refExp.ReferenceName.Parent;
+			}
+		}
+
+		public ObjectName ReferenceName {
+			get {
+				var refExp = Expression as SqlReferenceExpression;
+				if (refExp == null)
+					return null;
+
+				return refExp.ReferenceName;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// The name of this column used internally to reference it.
+		/// &lt;/summary&gt;
+		internal ObjectName InternalName { get; set; }
+
+		/// &lt;summary&gt;
+		/// The fully resolved name that this column is given in the resulting table.
+		/// &lt;/summary&gt;
+		internal ObjectName ResolvedName { get; set; }
+
+		/// &lt;inheritdoc/&gt;
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			var exp = Expression;
+			if (exp != null) {
+				exp = exp.Prepare(preparer);
+			}
+
+			return new SelectColumn(exp, Alias);
+		}
+
+		/// &lt;summary&gt;
+		/// Creates a special &lt;see cref=&quot;SelectColumn&quot;/&gt; that is used to select
+		/// all the columns in a table.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;glob&quot;&gt;The &lt;i&gt;glob&lt;/i&gt; name for the column, which can be
+		/// a simple asterisk (*) or prefixed by a table name (eg. Table.*).&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;SelectColumn&quot;/&gt; that is specially used
+		/// for selecting all the columns from a table.
+		/// &lt;/returns&gt;
+		public static SelectColumn Glob(string glob) {
+			return new SelectColumn(SqlExpression.Reference(ObjectName.Parse(glob)));
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[41,5,41,51,0],[57,3,57,25,0],[58,3,58,4,0],[87,5,87,55,0],[88,5,88,24,0],[89,6,89,18,0],[91,5,91,40,0],[97,5,97,55,0],[98,5,98,24,0],[99,6,99,18,0],[101,5,101,33,0],[117,4,117,25,0],[118,4,118,20,0],[119,5,119,33,0],[122,4,122,40,0],[136,4,136,77,0],[39,3,39,62,1],[40,4,40,27,1],[43,4,43,28,1],[44,4,44,18,1],[45,3,45,4,1],[53,3,54,28,1],[55,3,55,4,1],[72,5,73,71,1],[79,5,81,76,1]]);
+    </script>
+  </body>
+</html>

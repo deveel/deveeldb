@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\tableeventregistry.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Sql;
+using Deveel.Data.Transactions;
+
+namespace Deveel.Data.DbSystem {
+	public sealed class TableEventRegistry : IEnumerable&lt;ITableEvent&gt; {
+		private readonly List&lt;ITableEvent&gt; events;
+
+		internal TableEventRegistry(TableSource tableSource) {
+			if (tableSource == null)
+				throw new ArgumentNullException(&quot;tableSource&quot;);
+
+			TableSource = tableSource;
+			CommitId = -1;
+
+			events = new List&lt;ITableEvent&gt;();
+		}
+
+		internal TableSource TableSource { get; private set; }
+
+		public int TableId {
+			get { return TableSource.TableId; }
+		}
+
+		public long CommitId { get; internal set; }
+
+		public IEnumerable&lt;int&gt; AddedRows {
+			get {
+				lock (this) {
+					var list = new List&lt;int&gt;();
+
+					foreach (var tableEvent in events.OfType&lt;TableRowEvent&gt;()) {
+						var eventType = tableEvent.EventType;
+						if (eventType == TableRowEventType.Add ||
+						    eventType == TableRowEventType.UpdateAdd) {
+							list.Add(tableEvent.RowNumber);
+						} else if (eventType == TableRowEventType.Remove ||
+						           eventType == TableRowEventType.UpdateRemove) {
+							var index = list.IndexOf(tableEvent.RowNumber);
+							if (index != -1)
+								list.RemoveAt(index);
+						}
+					}
+
+					return list.AsReadOnly();
+				}
+			}
+		}
+
+		public IEnumerable&lt;int&gt; RemovedRows {
+			get {
+				lock (this) {
+					var list = new List&lt;int&gt;();
+
+					foreach (var tableEvent in events.OfType&lt;TableRowEvent&gt;()) {
+						if (tableEvent.EventType == TableRowEventType.Remove ||
+							tableEvent.EventType == TableRowEventType.UpdateRemove)
+							list.Add(tableEvent.RowNumber);
+					}
+
+					return list.AsReadOnly();
+				}
+			}
+		}
+
+		public int EventCount {
+			get {
+				lock (this) {
+					return events.Count;
+				}
+			}
+		}
+
+		internal void Rollback(int count) {
+			lock (this) {
+				if (count &gt; events.Count)
+					throw new Exception(&quot;Trying to rollback more events than are in the registry.&quot;);
+
+				List&lt;int&gt; toAdd = new List&lt;int&gt;();
+
+				// Find all entries and added new rows to the table
+				foreach (var tableEvent in events.OfType&lt;TableRowEvent&gt;()) {
+					if (tableEvent.EventType == TableRowEventType.Add ||
+						tableEvent.EventType == TableRowEventType.UpdateAdd)
+						toAdd.Add(tableEvent.RowNumber);
+				}
+
+				events.RemoveRange(0, count);
+
+				// Mark all added entries to deleted.
+				for (int i = 0; i &lt; toAdd.Count; ++i) {
+					events.Add(new TableRowEvent(TableId, toAdd[i], TableRowEventType.Add));
+					events.Add(new TableRowEvent(TableId, toAdd[i], TableRowEventType.Remove));
+				}
+
+			}
+		}
+
+		internal void Register(ITableEvent tableEvent) {
+			lock (this) {
+				events.Add(tableEvent);
+			}
+		}
+
+		internal void TestCommitClash(TableInfo tableInfo, TableEventRegistry journal) {
+			lock (this) {
+				// Very nasty search here...
+				foreach (var rowEvent in events.OfType&lt;TableRowEvent&gt;()) {
+					if (rowEvent.EventType == TableRowEventType.Remove) {
+						var rowNum = rowEvent.RowNumber;
+						foreach (var otherRowEvent in journal.events.OfType&lt;TableRowEvent&gt;()) {
+							if (otherRowEvent.RowNumber == rowNum &amp;&amp;
+							    otherRowEvent.EventType == TableRowEventType.Remove) {
+								throw new TransactionException(TransactionErrorCodes.RowRemoveClash,
+									String.Format(&quot;Concurrent Serializable Transaction Conflict(1): &quot; +
+									&quot;Current row remove clash ( row: {0}, table: {1})&quot;, rowNum, tableInfo.TableName));
+							}
+						}
+					}
+				}				
+			}
+		}
+
+		public IEnumerator&lt;ITableEvent&gt; GetEnumerator() {
+			lock (this) {
+				return events.GetEnumerator();
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
+
+		public ITableEvent GetEvent(int index) {
+			lock (this) {
+				if (index &lt; 0 || index &gt;= events.Count)
+					throw new ArgumentOutOfRangeException(&quot;index&quot;);
+
+				return events[index];
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[31,5,31,52,0],[57,14,58,62,0],[59,8,59,55,0],[60,8,60,24,0],[61,9,61,30,0],[78,8,78,39,0],[95,4,95,15,0],[96,5,96,30,0],[97,6,97,86,0],[99,5,99,39,0],[102,32,102,62,0],[102,14,102,28,0],[103,6,104,59,0],[105,7,105,39,0],[102,29,102,31,0],[108,5,108,34,0],[111,10,111,20,0],[112,6,112,78,0],[113,6,113,81,0],[111,38,111,41,0],[111,21,111,36,0],[117,3,117,4,0],[126,4,126,15,0],[128,30,128,60,0],[128,14,128,26,0],[129,6,129,57,0],[130,7,130,39,0],[131,37,131,75,0],[131,16,131,33,0],[132,8,133,64,0],[134,9,136,92,0],[131,34,131,36,0],[128,27,128,29,0],[142,3,142,4,0],[151,4,151,27,0],[157,6,157,53,0],[29,3,29,55,1],[30,4,30,28,1],[33,4,33,30,1],[34,4,34,18,1],[36,4,36,37,1],[37,3,37,4,1],[42,10,42,37,1],[49,5,49,16,1],[50,6,50,33,1],[52,33,52,63,1],[52,15,52,29,1],[53,7,53,44,1],[54,7,55,52,1],[56,8,56,39,1],[52,30,52,32,1],[65,6,65,31,1],[67,4,67,5,1],[72,5,72,16,1],[73,6,73,33,1],[75,33,75,63,1],[75,15,75,29,1],[76,7,77,63,1],[75,30,75,32,1],[81,6,81,31,1],[83,4,83,5,1],[88,5,88,16,1],[89,6,89,26,1],[91,4,91,5,1],[120,4,120,15,1],[121,5,121,28,1],[123,3,123,4,1],[145,4,145,15,1],[146,5,146,35,1],[148,3,148,4,1],[155,4,155,15,1],[156,5,156,44,1],[159,5,159,26,1],[161,3,161,4,1]]);
+    </script>
+  </body>
+</html>

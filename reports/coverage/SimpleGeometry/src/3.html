@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.dbsystem\databasetests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+using Deveel.Data.Configuration;
+using Deveel.Data.Store;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.DbSystem {
+	[TestFixture]
+	public sealed class DatabaseTests {
+		private ISystemContext systemContext;
+		private IDatabaseContext databaseContext;
+		private IDatabase database;
+
+		private const string TestDbName = &quot;testdb&quot;;
+		private const string TestAdminUser = &quot;SA&quot;;
+		private const string TestAdminPass = &quot;123456&quot;;
+
+		[SetUp]
+		public void TestSetup() {
+			systemContext = new SystemContext();
+
+			var test = TestContext.CurrentContext.Test.Name;
+			if (test != &quot;CreateNewContext&quot;) {
+				databaseContext = new DatabaseContext(systemContext, TestDbName);
+			}
+
+			if (test != &quot;CreateNew&quot; &amp;&amp;
+				test != &quot;DatabaseNotExists&quot; &amp;&amp;
+				test != &quot;CreateNewContext&quot;) {
+				database = new Database(databaseContext);
+				database.Create(TestAdminUser, TestAdminPass);
+				database.Open();
+			}
+		}
+
+		[TearDown]
+		public void TearDown() {
+			database = null;
+		}
+
+		[Test]
+		public void CreateNewContext() {
+			IDatabaseContext context = null;
+			Assert.DoesNotThrow(() =&gt; context = new DatabaseContext(systemContext,TestDbName));
+			Assert.IsNotNull(context);
+			Assert.AreEqual(TestDbName, context.DatabaseName());
+			Assert.IsInstanceOf&lt;InMemoryStorageSystem&gt;(context.StoreSystem);
+		}
+
+		[Test]
+		public void DatabaseNotExists() {
+			database = new Database(databaseContext);
+			Assert.IsFalse(database.Exists);
+		}
+
+		[Test]
+		public void CreateNew() {
+			database = new Database(databaseContext);
+			Assert.DoesNotThrow(() =&gt; database.Create(TestAdminUser, TestAdminPass));
+		}
+
+		[Test]
+		public void AuthenticateAdmin() {
+			Assert.DoesNotThrow(() =&gt; database.Authenticate(TestAdminUser, TestAdminPass));
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[21,4,21,40,1],[23,4,23,52,1],[24,4,24,35,1],[25,5,25,70,1],[28,4,30,32,1],[31,5,31,46,1],[32,5,32,51,1],[33,5,33,21,1],[35,3,35,4,1],[39,4,39,20,1],[40,3,40,4,1],[44,4,44,36,1],[45,4,45,30,1],[45,85,45,87,1],[46,4,46,30,1],[47,4,47,56,1],[48,4,48,68,1],[49,3,49,4,1],[53,4,53,45,1],[54,4,54,36,1],[55,3,55,4,1],[59,4,59,45,1],[60,4,60,30,1],[60,75,60,77,1],[61,3,61,4,1],[65,4,65,30,1],[65,81,65,83,1],[66,3,66,4,1],[60,30,60,75,1],[65,30,65,81,1],[45,30,45,85,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\aggregatechecker.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Routines;
+
+namespace Deveel.Data.Sql.Expressions {
+	class AggregateChecker : SqlExpressionVisitor {
+		private readonly IQueryContext queryContext;
+		private bool aggFunFound;
+
+		public AggregateChecker(IQueryContext queryContext) {
+			this.queryContext = queryContext;
+		}
+
+		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
+			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
+			aggFunFound = invoke.IsAggregate(queryContext);
+
+			return base.VisitFunctionCall(expression);
+		}
+
+		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
+			// TODO: if the value is an array iterate
+			return base.VisitConstant(constant);
+		}
+
+		public bool HasAggregate(SqlExpression expression) {
+			Visit(expression);
+			return aggFunFound;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[32,4,32,74,0],[33,4,33,51,0],[35,4,35,46,0],[27,3,27,54,1],[28,4,28,37,1],[29,3,29,4,1],[40,4,40,40,1],[44,4,44,22,1],[45,4,45,23,1]]);
+    </script>
+  </body>
+</html>

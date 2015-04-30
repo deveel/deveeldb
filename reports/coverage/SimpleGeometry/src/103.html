@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.linq\tablequery.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Linq {
+	class TableQuery {
+		private readonly List&lt;ColumnQuery&gt; columnQueries;
+
+		public TableQuery() {
+			columnQueries = new List&lt;ColumnQuery&gt;();
+		}
+
+		public void Column(string columnName, SqlExpression expression) {
+			columnQueries.Add(new ColumnQuery(columnName, expression));
+		}
+
+		public void Column(string columnName, Expression expression) {
+			// TODO: convert the source Linq Expression to a SQL Expression
+			throw new NotImplementedException();
+		}
+
+		public IEnumerable Execute(Type elementType, ITable table) {
+			var mapping = new TableTypeMapper(elementType);
+
+			var finalTable = table;
+			foreach (var columnQuery in columnQueries) {
+				finalTable = ExecuteColumnQuery(finalTable, columnQuery);
+			}
+
+			mapping.BuildMap(finalTable);
+
+			var listType = typeof (List&lt;&gt;).MakeGenericType(elementType);
+			var result = (IList) Activator.CreateInstance(listType);
+
+			foreach (var row in finalTable) {
+				var rowNumber = row.RowId.RowNumber;
+				var mapped = mapping.Construct(finalTable, rowNumber);
+				result.Add(mapped);
+			}
+
+			return result;
+		}
+
+		private ITable ExecuteColumnQuery(ITable table, ColumnQuery columnQuery) {
+			var expression = columnQuery.Expression;
+			return table.ExhaustiveSelect(null, expression);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[34,4,34,63,0],[35,3,35,4,0],[39,4,39,40,0],[46,13,46,28,0],[47,5,47,62,0],[65,4,65,44,0],[66,4,66,52,0],[29,3,29,22,1],[30,4,30,44,1],[31,3,31,4,1],[43,4,43,51,1],[45,4,45,27,1],[46,32,46,45,1],[46,29,46,31,1],[50,4,50,33,1],[52,4,52,64,1],[53,4,53,60,1],[55,24,55,34,1],[55,13,55,20,1],[56,5,56,41,1],[57,5,57,59,1],[58,5,58,24,1],[55,21,55,23,1],[61,4,61,18,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\datatypenode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Linq;
+
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Describes the information of a data type as found in a SQL string.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class DataTypeNode : SqlNode {
+		/// &lt;summary&gt;
+		/// Constructs an empty &lt;see cref=&quot;DataTypeNode&quot;/&gt;.
+		/// &lt;/summary&gt;
+		internal DataTypeNode() {
+			IsPrimitive = true;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the data type found is a primitive.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;DataType.IsPrimitive&quot;/&gt;
+		/// &lt;seealso cref=&quot;PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)&quot;/&gt;
+		public bool IsPrimitive { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the name of the data type, if &lt;see cref=&quot;IsPrimitive&quot;/&gt; is &lt;c&gt;true&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		public string TypeName { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a fully-qualified name for user-defined data types.
+		/// &lt;/summary&gt;
+		public ObjectName UserTypeName { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the size specification of the data-type.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// In case the type is a &lt;c&gt;NUMERIC&lt;/c&gt; type, this value is not indicated:
+		/// rather check &lt;see cref=&quot;Scale&quot;/&gt; property.
+		/// &lt;/remarks&gt;
+		public int Size { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a value indicating if the data-type specification has
+		/// a size value.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Size&quot;/&gt;
+		public bool HasSize { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the scaling factor of a numberic data-type.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This value is present only if the data-type is &lt;c&gt;NUMERIC&lt;/c&gt;.
+		/// &lt;/remarks&gt;
+		/// &lt;seealso cref=&quot;HasScale&quot;/&gt;
+		/// &lt;seealso cref=&quot;SqlNumber.Scale&quot;/&gt;
+		/// &lt;seealso cref=&quot;NumericType.Scale&quot;/&gt;
+		public int Scale { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a value indicating if the data-type specification has
+		/// a scaling factor value indicated.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Scale&quot;/&gt;
+		public bool HasScale { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Get the precision of a data-type that is &lt;c&gt;NUMERIC&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;NumericType&quot;/&gt;
+		/// &lt;seealso cref=&quot;HasPrecision&quot;/&gt;
+		public int Precision { get; private set; }
+
+		/// &lt;summary&gt;
+		/// In case this data-type is a &lt;c&gt;NUMERIC&lt;/c&gt; type, this gets
+		/// a value indicating if a precision specification was defined.
+		/// &lt;/summary&gt;
+		public bool HasPrecision { get; private set; }
+
+		/// &lt;summary&gt;
+		/// In case the data-type is a &lt;c&gt;STRING&lt;/c&gt; type, this gets the
+		/// locale string used to collate the values handled by the type.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;StringType.Locale&quot;/&gt;
+		/// &lt;seealso cref=&quot;HasLocale&quot;/&gt;
+		public string Locale { get; private set; }
+
+		/// &lt;summary&gt;
+		/// In case the data-type is a &lt;c&gt;STRING&lt;/c&gt; type, this indicates if the
+		/// data-type specification includes a locale definition.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Locale&quot;/&gt;
+		public bool HasLocale { get; private set; }
+
+		public int Srid { get; private set; }
+
+		public bool HasSrid { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == &quot;decimal_type&quot;) {
+				GetNumberType(node);
+			} else if (node.NodeName == &quot;character_type&quot; ||
+			           node.NodeName == &quot;binary_type&quot;) {
+				GetSizedType(node);
+			} else if (node.NodeName == &quot;date_type&quot; ||
+			           node.NodeName == &quot;integer_type&quot; ||
+			           node.NodeName == &quot;float_type&quot;) {
+				GetSimpleType(node);
+			} else if (node.NodeName == &quot;interval_type&quot;) {
+			} else if (node.NodeName == &quot;user_type&quot;) {
+				GetUserType(node);
+			} else if (node.NodeName == &quot;row_type&quot;) {
+
+			} else if (node.NodeName == &quot;geometry_type&quot;) {
+				GetGeometryType(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetUserType(ISqlNode node) {
+			IsPrimitive = false;
+			UserTypeName = ((ObjectNameNode) node.ChildNodes.First()).Name;
+			TypeName = UserTypeName.FullName;
+		}
+
+		private void GetSimpleType(ISqlNode node) {
+			var type = node.ChildNodes.First();
+			TypeName = type.NodeName;
+		}
+
+		private void GetSizedType(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode.NodeName == &quot;long_varchar&quot;) {
+					TypeName = &quot;LONG VARCHAR&quot;;
+				} else if (childNode is SqlKeyNode) {
+					TypeName = ((SqlKeyNode) childNode).Text;
+				} else if (childNode.NodeName == &quot;datatype_size&quot;) {
+					GetDataSize(childNode);
+				} else if (childNode.NodeName == &quot;locale_opt&quot;) {
+					GetLocale(childNode);
+				}
+			}
+		}
+
+		private void GetLocale(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is StringLiteralNode) {
+					Locale = ((StringLiteralNode) childNode).Value;
+					HasLocale = true;
+				}
+			}
+		}
+
+		private void GetDataSize(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IntegerLiteralNode) {
+					Size = (int) ((IntegerLiteralNode) childNode).Value;
+					HasSize = true;
+				}
+			}
+		}
+
+		private void GetSrid(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IntegerLiteralNode) {
+					Srid = (int)((IntegerLiteralNode)childNode).Value;
+					HasSrid = true;
+				}
+			}
+		}
+
+		private void GetNumberType(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					TypeName = ((SqlKeyNode) childNode).Text;
+				} else if (childNode.NodeName == &quot;number_precision&quot;) {
+					GetNumberPrecision(childNode);
+				}
+			}
+
+		}
+
+		private void GetNumberPrecision(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (!HasScale) {
+					Scale = (int) ((IntegerLiteralNode) childNode).Value;
+					HasScale = true;
+				} else {
+					Precision = (int) ((IntegerLiteralNode) childNode).Value;
+					HasPrecision = true;
+				}
+			}
+		}
+
+		private void GetGeometryType(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					TypeName = ((SqlKeyNode)childNode).Text;
+				} else if (childNode.NodeName == &quot;datatype_size&quot;) {
+					GetSrid(childNode);
+				}
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[121,5,121,25,0],[131,5,131,23,0],[142,4,142,24,0],[143,4,143,67,0],[144,4,144,37,0],[145,3,145,4,0],[155,6,155,32,0],[194,30,194,45,0],[194,13,194,26,0],[195,5,195,33,0],[196,6,196,47,0],[197,12,197,57,0],[198,6,198,36,0],[194,27,194,29,0],[202,3,202,4,0],[205,30,205,45,0],[205,13,205,26,0],[206,5,206,19,0],[207,6,207,59,0],[208,6,208,22,0],[210,6,210,63,0],[211,6,211,26,0],[205,27,205,29,0],[214,3,214,4,0],[32,3,32,26,1],[33,4,33,23,1],[34,3,34,4,1],[120,4,120,40,1],[122,11,123,46,1],[124,5,124,24,1],[125,11,127,45,1],[128,5,128,25,1],[129,11,129,48,1],[130,11,130,44,1],[132,11,132,43,1],[134,11,134,48,1],[135,5,135,27,1],[138,4,138,34,1],[148,4,148,39,1],[149,4,149,29,1],[150,3,150,4,1],[153,30,153,45,1],[153,13,153,26,1],[154,5,154,46,1],[156,12,156,40,1],[157,6,157,47,1],[158,12,158,54,1],[159,6,159,29,1],[160,12,160,51,1],[161,6,161,27,1],[153,27,153,29,1],[164,3,164,4,1],[167,30,167,45,1],[167,13,167,26,1],[168,5,168,40,1],[169,6,169,53,1],[170,6,170,23,1],[167,27,167,29,1],[173,3,173,4,1],[176,30,176,45,1],[176,13,176,26,1],[177,5,177,41,1],[178,6,178,58,1],[179,6,179,21,1],[176,27,176,29,1],[182,3,182,4,1],[185,30,185,45,1],[185,13,185,26,1],[186,5,186,41,1],[187,6,187,56,1],[188,6,188,21,1],[185,27,185,29,1],[191,3,191,4,1],[217,30,217,45,1],[217,13,217,26,1],[218,5,218,33,1],[219,6,219,46,1],[220,12,220,54,1],[221,6,221,25,1],[217,27,217,29,1],[224,3,224,4,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.sql.expressions\sqlexpressionparsetests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+
+using Deveel.Data.Sql.Objects;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.Sql.Expressions {
+	[TestFixture]
+	public sealed class SqlExpressionParseException {
+		[Test]
+		public void SimpleNumericAdd() {
+			const string s = &quot;6578 + 76.32&quot;;
+
+			SqlExpression sqlExp = null;
+			Assert.DoesNotThrow(() =&gt; sqlExp = SqlExpression.Parse(s));
+			Assert.IsNotNull(sqlExp);
+			Assert.IsInstanceOf&lt;SqlBinaryExpression&gt;(sqlExp);
+			Assert.AreEqual(SqlExpressionType.Add, sqlExp.ExpressionType);
+
+			var binExp = (SqlBinaryExpression) sqlExp;
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(binExp.Left);
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(binExp.Right);
+			Assert.IsTrue(binExp.CanEvaluate);
+		}
+
+		[Test]
+		public void SimpleNumericSubtract() {
+			const string s = &quot;642.221 - 116.32&quot;;
+
+			SqlExpression sqlExp = null;
+			Assert.DoesNotThrow(() =&gt; sqlExp = SqlExpression.Parse(s));
+			Assert.IsNotNull(sqlExp);
+			Assert.IsInstanceOf&lt;SqlBinaryExpression&gt;(sqlExp);
+			Assert.AreEqual(SqlExpressionType.Subtract, sqlExp.ExpressionType);
+
+			var binExp = (SqlBinaryExpression) sqlExp;
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(binExp.Left);
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(binExp.Right);
+			Assert.IsTrue(binExp.CanEvaluate);			
+		}
+
+		[Test]
+		public void ChainedAddAndMultipleNumeric() {
+			const string s = &quot;75664 + 907 * 87&quot;;
+
+			SqlExpression sqlExp = null;
+			Assert.DoesNotThrow(() =&gt; sqlExp = SqlExpression.Parse(s));
+			Assert.IsNotNull(sqlExp);
+			Assert.IsInstanceOf&lt;SqlBinaryExpression&gt;(sqlExp);
+			Assert.AreEqual(SqlExpressionType.Add, sqlExp.ExpressionType);
+
+			var binExp = (SqlBinaryExpression) sqlExp;
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(binExp.Left);
+			Assert.IsInstanceOf&lt;SqlBinaryExpression&gt;(binExp.Right);
+			Assert.IsTrue(binExp.CanEvaluate);
+
+			SqlExpression evalExp = null;
+			Assert.DoesNotThrow(() =&gt; evalExp = binExp.Evaluate());
+			Assert.IsNotNull(evalExp);
+			Assert.IsInstanceOf&lt;SqlConstantExpression&gt;(evalExp);
+
+			var value = ((SqlConstantExpression) evalExp).Value;
+			Assert.IsInstanceOf&lt;SqlNumber&gt;(value.Value);
+			Assert.AreEqual(154573, ((SqlNumber)value.Value).ToInt32());
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[29,4,29,32,1],[30,4,30,30,1],[30,61,30,63,1],[31,4,31,29,1],[32,4,32,53,1],[33,4,33,66,1],[35,4,35,46,1],[36,4,36,60,1],[37,4,37,61,1],[38,4,38,38,1],[39,3,39,4,1],[45,4,45,32,1],[46,4,46,30,1],[46,61,46,63,1],[47,4,47,29,1],[48,4,48,53,1],[49,4,49,71,1],[51,4,51,46,1],[52,4,52,60,1],[53,4,53,61,1],[54,4,54,38,1],[55,3,55,4,1],[61,4,61,32,1],[62,4,62,30,1],[62,61,62,63,1],[63,4,63,29,1],[64,4,64,53,1],[65,4,65,66,1],[67,4,67,46,1],[68,4,68,60,1],[69,4,69,59,1],[70,4,70,38,1],[72,4,72,33,1],[73,4,73,30,1],[73,57,73,59,1],[74,4,74,30,1],[75,4,75,56,1],[77,4,77,56,1],[78,4,78,48,1],[79,4,79,64,1],[80,3,80,4,1],[30,30,30,61,1],[46,30,46,61,1],[62,30,62,61,1],[73,30,73,57,1]]);
+    </script>
+  </body>
+</html>

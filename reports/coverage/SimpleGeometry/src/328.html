@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.transactions\transaction.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Transactions {
+	public sealed class Transaction : ITransaction, ICallbackHandler {
+		private TableManager tableManager;
+		private SequenceManager sequenceManager;
+		private ViewManager viewManager;
+		private VariableManager variableManager;
+		private SchemaManager schemaManager;
+		private List&lt;TableCommitCallback&gt; callbacks;
+
+		private Action&lt;TableCommitInfo&gt; commitActions; 
+
+		private static readonly TableInfo[] IntTableInfo;
+
+		private string currentSchema;
+		private bool readOnly;
+		private readonly bool dbReadOnly;
+		private bool ignoreCase;
+		private bool autoCommit;
+
+		internal Transaction(Database database, long commitId, TransactionIsolation isolation, IEnumerable&lt;TableSource&gt; committedTables, IEnumerable&lt;IIndexSet&gt; indexSets) {
+			CommitId = commitId;
+			Database = database;
+			Isolation = isolation;
+
+			InitManagers();
+
+			Registry = new TransactionRegistry(this);
+			tableManager.AddVisibleTables(committedTables, indexSets);
+
+			AddInternalTables();
+
+			OldNewTableState = new OldNewTableState();
+
+			IsClosed = false;
+
+			Database.OpenTransactions.AddTransaction(this);
+
+			currentSchema = database.Context.DefaultSchema();
+			readOnly = dbReadOnly = database.Context.ReadOnly();
+			autoCommit = database.Context.AutoCommit();
+			ignoreCase = database.Context.IgnoreIdentifiersCase();
+		}
+
+		internal Transaction(Database database, long commitId, TransactionIsolation isolation)
+			: this(database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
+		}
+
+		~Transaction() {
+			Dispose(false);
+		}
+
+		static Transaction() {
+			IntTableInfo = new TableInfo[9];
+			IntTableInfo[0] = SystemSchema.TableInfoTableInfo;
+			IntTableInfo[1] = SystemSchema.TableColumnsTableInfo;
+			IntTableInfo[2] = SystemSchema.ProductInfoTableInfo;
+			IntTableInfo[3] = SystemSchema.VariablesTableInfo;
+			IntTableInfo[4] = SystemSchema.StatisticsTableInfo;
+			IntTableInfo[5] = SystemSchema.SessionInfoTableInfo;
+			IntTableInfo[6] = SystemSchema.OpenSessionsTableInfo;
+			IntTableInfo[7] = SystemSchema.SqlTypesTableInfo;
+			IntTableInfo[8] = SystemSchema.PrivilegesTableInfo;
+		}
+
+		public long CommitId { get; private set; }
+
+		object ILockable.RefId {
+			get { return CommitId; }
+		}
+
+		public TransactionIsolation Isolation { get; private set; }
+
+		private bool IsClosed { get; set; }
+
+		public OldNewTableState OldNewTableState { get; private set; }
+
+		IDatabase ITransaction.Database {
+			get { return Database; }
+		}
+
+		public Database Database { get; private set; }
+
+		public IDatabaseContext DatabaseContext {
+			get { return Database.Context; }
+		}
+
+		private TableSourceComposite TableComposite {
+			get { return Database.TableComposite; }
+		}
+
+		public IObjectManagerResolver ObjectManagerResolver { get; private set; }
+
+		public TransactionRegistry Registry { get; private set; }
+
+		private void InitManagers() {
+			schemaManager = new SchemaManager(this);
+			tableManager = new TableManager(this, TableComposite);
+			sequenceManager = new SequenceManager(this);
+			viewManager = new ViewManager(this);
+			variableManager = new VariableManager(this);
+
+			ObjectManagerResolver = new ObjectManagersResolver(this);
+		}
+
+		private void AddInternalTables() {
+			tableManager.AddInternalTable(new TransactionTableContainer(this, IntTableInfo));
+
+			// OLD and NEW system tables (if applicable)
+			tableManager.AddInternalTable(new OldAndNewTableContainer(this));
+
+			// Model views as tables (obviously)
+			tableManager.AddInternalTable(viewManager.CreateInternalTableInfo());
+
+			//// Model procedures as tables
+			//tableManager.AddInternalTable(routineManager.CreateInternalTableInfo());
+
+			// Model sequences as tables
+			tableManager.AddInternalTable(sequenceManager.TableContainer);
+
+			// Model triggers as tables
+			//tableManager.AddInternalTable(triggerManager.CreateInternalTableInfo());
+		}
+
+		private void AssertNotReadOnly() {
+			if (this.ReadOnly())
+				throw new TransactionException(TransactionErrorCodes.ReadOnly, &quot;The transaction is in read-only mode.&quot;);
+		}
+
+		public SqlNumber SetTableId(ObjectName tableName, SqlNumber value) {
+			AssertNotReadOnly();
+
+			return tableManager.SetUniqueId(tableName, value);
+		}
+
+		public SqlNumber NextTableId(ObjectName tableName) {
+			AssertNotReadOnly();
+
+			return tableManager.NextUniqueId(tableName);
+		}
+
+		void ILockable.Acquired(Lock @lock) {
+		}
+
+		void ILockable.Released(Lock @lock) {
+		}
+
+		public void Commit() {
+			if (!IsClosed) {
+				try {
+					var touchedTables = tableManager.AccessedTables.ToList();
+					var visibleTables = tableManager.GetVisibleTables().ToList();
+					var selected = tableManager.SelectedTables.ToArray();
+					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry, commitActions);
+				} finally {
+					Finish();
+				}
+			}
+		}
+
+		public void RegisterOnCommit(Action&lt;TableCommitInfo&gt; action) {
+			if (commitActions == null) {
+				commitActions = action;
+			} else {
+				commitActions = Delegate.Combine(commitActions, action) as Action&lt;TableCommitInfo&gt;;
+			}
+		}
+
+		public void UnregisterOnCommit(Action&lt;TableCommitInfo&gt; action) {
+			if (commitActions != null)
+				commitActions = Delegate.Remove(commitActions, action) as Action&lt;TableCommitInfo&gt;;
+		}
+
+
+		private void Finish() {
+			try {
+				// Dispose all the table we touched
+				try {
+					tableManager.Dispose();
+				} catch (Exception e) {
+					// TODO: report the error
+				}
+
+				Registry = null;
+
+				if (callbacks != null) {
+					foreach (var callback in callbacks) {
+						callback.OnTransactionEnd();
+						callback.DetachFrom(this);
+					}
+				}
+
+				callbacks = null;
+
+				// Dispose all the objects in the transaction
+			} finally {
+				IsClosed = true;
+			}
+		}
+
+		public void Rollback() {
+			if (!IsClosed) {
+				try {
+					var touchedTables = tableManager.AccessedTables.ToList();
+					TableComposite.Rollback(this, touchedTables, Registry);
+				} finally {
+					IsClosed = true;
+					Finish();
+				}
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				//if (!IsClosed)
+				//	Rollback();
+				// TODO: review this ...
+				Finish();
+			}
+		}
+
+		#region TransactionTableContainer
+
+		class TransactionTableContainer : ITableContainer {
+			private readonly Transaction transaction;
+			private readonly TableInfo[] tableInfos;
+
+			public TransactionTableContainer(Transaction transaction, TableInfo[] tableInfos) {
+				this.transaction = transaction;
+				this.tableInfos = tableInfos;
+			}
+
+			public int TableCount {
+				get { return tableInfos.Length; }
+			}
+
+			public int FindByName(ObjectName name) {
+				var ignoreCase = transaction.IgnoreIdentifiersCase();
+				for (int i = 0; i &lt; tableInfos.Length; i++) {
+					var info = tableInfos[i];
+					if (info != null &amp;&amp; 
+						info.TableName.Equals(name, ignoreCase))
+						return i;
+				}
+
+				return -1;
+			}
+
+			public ObjectName GetTableName(int offset) {
+				if (offset &lt; 0 || offset &gt;= tableInfos.Length)
+					throw new ArgumentOutOfRangeException(&quot;offset&quot;);
+
+				return tableInfos[offset].TableName;
+			}
+
+			public TableInfo GetTableInfo(int offset) {
+				if (offset &lt; 0 || offset &gt;= tableInfos.Length)
+					throw new ArgumentOutOfRangeException(&quot;offset&quot;);
+
+				return tableInfos[offset];
+			}
+
+			public string GetTableType(int offset) {
+				return TableTypes.SystemTable;
+			}
+
+			public bool ContainsTable(ObjectName name) {
+				return FindByName(name) &gt; 0;
+			}
+
+			public ITable GetTable(int offset) {
+				if (offset == 0)
+					return SystemSchema.GetTableInfoTable(transaction);
+				if (offset == 1)
+					return SystemSchema.GetTableColumnsTable(transaction);
+				if (offset == 2)
+					return SystemSchema.GetProductInfoTable(transaction);
+				if (offset == 3)
+					return SystemSchema.GetVariablesTable(transaction);
+				if (offset == 4)
+					return SystemSchema.GetStatisticsTable(transaction);
+				/*
+				TODO:
+				if (offset == 5)
+					return SystemSchema.GetSessionInfoTable(transaction);
+				*/
+				if (offset == 6)
+					return SystemSchema.GetOpenSessionsTable(transaction);
+				if (offset == 7)
+					return SystemSchema.GetSqlTypesTable(transaction);
+				if (offset == 8)
+					return SystemSchema.GetPrivilegesTable(transaction);
+
+				throw new ArgumentOutOfRangeException(&quot;offset&quot;);
+			}
+		}
+
+		#endregion
+
+		#region OldAndNewTableContainer
+
+		class OldAndNewTableContainer : ITableContainer {
+			private readonly Transaction transaction;
+
+			public OldAndNewTableContainer(Transaction transaction) {
+				this.transaction = transaction;
+			}
+
+			private bool HasOldTable {
+				get { return transaction.OldNewTableState.OldRowIndex != -1; }
+			}
+
+			private bool HasNewTable {
+				get { return transaction.OldNewTableState.NewDataRow != null; }
+			}
+
+
+			public int TableCount {
+				get {
+					int count = 0;
+					if (HasOldTable)
+						++count;
+					if (HasNewTable)
+						++count;
+					return count;
+				}
+			}
+
+			public int FindByName(ObjectName name) {
+				if (HasOldTable &amp;&amp;
+				    name.Equals(SystemSchema.OldTriggerTableName, transaction.IgnoreIdentifiersCase()))
+					return 0;
+				if (HasNewTable &amp;&amp;
+				    name.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
+					return HasOldTable ? 1 : 0;
+				return -1;
+			}
+
+			public ObjectName GetTableName(int offset) {
+				if (HasOldTable &amp;&amp; offset == 0)
+					return SystemSchema.OldTriggerTableName;
+
+				return SystemSchema.NewTriggerTableName;
+			}
+
+			public TableInfo GetTableInfo(int offset) {
+				var tableInfo = transaction.GetTableInfo(transaction.OldNewTableState.TableSource);
+				return tableInfo.Alias(GetTableName(offset));
+			}
+
+			public string GetTableType(int offset) {
+				return TableTypes.SystemTable;
+			}
+
+			public bool ContainsTable(ObjectName name) {
+				return FindByName(name) &gt; 0;
+			}
+
+			public ITable GetTable(int offset) {
+				var tableInfo = GetTableInfo(offset);
+
+				var table = new TriggeredOldNew(transaction.DatabaseContext, tableInfo);
+
+				if (HasOldTable) {
+					if (offset == 0) {
+						// Copy data from the table to the new table
+						var dtable = transaction.GetTable(transaction.OldNewTableState.TableSource);
+						var oldRow = new Row(table);
+						int rowIndex = transaction.OldNewTableState.OldRowIndex;
+						for (int i = 0; i &lt; tableInfo.ColumnCount; ++i) {
+							oldRow.SetValue(i, dtable.GetValue(rowIndex, i));
+						}
+
+						// All OLD tables are immutable
+						table.SetReadOnly(true);
+						table.SetData(oldRow);
+
+						return table;
+					}
+				}
+
+				table.SetReadOnly(!transaction.OldNewTableState.IsNewMutable);
+				table.SetData(transaction.OldNewTableState.NewDataRow);
+
+				return table;
+			}
+
+			#region TriggeredOldNew
+
+			class TriggeredOldNew : GeneratedTable, IMutableTable {
+				private readonly TableInfo tableInfo;
+				private Row data;
+				private bool readOnly;
+
+				public TriggeredOldNew(IDatabaseContext dbContext, TableInfo tableInfo) 
+					: base(dbContext) {
+					this.tableInfo = tableInfo;
+				}
+
+				public override TableInfo TableInfo {
+					get { return tableInfo; }
+				}
+
+				public override int RowCount {
+					get { return 1; }
+				}
+
+				public void SetData(Row row) {
+					data = row;
+				}
+
+				public void SetReadOnly(bool flag) {
+					readOnly = flag;
+				}
+
+				public override DataObject GetValue(long rowNumber, int columnOffset) {
+					if (rowNumber &lt; 0 || rowNumber &gt;= 1)
+						throw new ArgumentOutOfRangeException(&quot;rowNumber&quot;);
+
+					return data.GetValue(columnOffset);
+				}
+
+				public TableEventRegistry EventRegistry {
+					get { throw new InvalidOperationException(); }
+				}
+
+				public void AddRow(Row row) {
+					throw new NotSupportedException(String.Format(&quot;Inserting data into &#39;{0}&#39; is not allowed.&quot;, tableInfo.TableName));
+				}
+
+				public void UpdateRow(Row row) {
+					if (row.RowId.RowNumber &lt; 0 ||
+						row.RowId.RowNumber &gt;= 1)
+						throw new ArgumentOutOfRangeException();
+					if (readOnly)
+						throw new NotSupportedException(String.Format(&quot;Updating &#39;{0}&#39; is not permitted.&quot;, tableInfo.TableName));
+
+					int sz = TableInfo.ColumnCount;
+					for (int i = 0; i &lt; sz; ++i) {
+						data.SetValue(i, row.GetValue(i));
+					}
+				}
+
+				public bool RemoveRow(RowId rowId) {
+					throw new NotSupportedException(String.Format(&quot;Deleting data from &#39;{0}&#39; is not allowed.&quot;, tableInfo.TableName));
+				}
+
+				public void FlushIndexes() {
+				}
+
+				public void AssertConstraints() {
+				}
+
+				public void AddLock() {
+				}
+
+				public void RemoveLock() {
+				}
+			}
+
+			#endregion
+		}
+
+		#endregion
+
+		#region ObjectManagersResolver
+
+		class ObjectManagersResolver : IObjectManagerResolver {
+			private readonly Transaction transaction;
+
+			public ObjectManagersResolver(Transaction transaction) {
+				this.transaction = transaction;
+			}
+
+			public IEnumerable&lt;IObjectManager&gt; GetManagers() {
+				return new IObjectManager[] {
+					transaction.schemaManager,
+					transaction.tableManager,
+					transaction.sequenceManager,
+					transaction.variableManager,
+					transaction.viewManager
+				};
+			}
+
+			public IObjectManager ResolveForType(DbObjectType objType) {
+				if (objType == DbObjectType.Schema)
+					return transaction.schemaManager;
+				if (objType == DbObjectType.Table)
+					return transaction.tableManager;
+				if (objType == DbObjectType.Sequence)
+					return transaction.sequenceManager;
+				if (objType == DbObjectType.Variable)
+					return transaction.variableManager;
+
+				return null;
+			}
+		}
+
+		#endregion
+
+		DataObject IVariableResolver.Resolve(ObjectName variable) {
+			throw new NotImplementedException();
+		}
+
+		DataType IVariableResolver.ReturnType(ObjectName variable) {
+			throw new NotImplementedException();
+		}
+
+		void IVariableScope.OnVariableDefined(Variable variable) {
+			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
+				currentSchema = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase)) {
+				if (dbReadOnly)
+					throw new InvalidOperationException(&quot;The database is read-only: cannot change access of the transaction.&quot;);
+
+				// TODO: handle special cases like &quot;ON&quot;, &quot;OFF&quot;, &quot;ENABLE&quot; and &quot;DISABLE&quot;
+				readOnly = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
+				ignoreCase = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
+				autoCommit = variable.Value;
+			}
+		}
+
+		void IVariableScope.OnVariableDropped(Variable variable) {
+			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
+				currentSchema = Database.Context.DefaultSchema();
+			} else if (variable.Name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase)) {
+				readOnly = dbReadOnly;
+			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
+				ignoreCase = Database.Context.IgnoreIdentifiersCase();
+			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
+				autoCommit = Database.Context.AutoCommit();
+			}
+		}
+
+		private Variable MakeStringVariable(string name, string value) {
+			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.String(), false));
+			variable.SetValue(DataObject.String(value));
+			return variable;
+		}
+
+		private Variable MakeBooleanVariable(string name, bool value) {
+			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.Boolean(), false));
+			variable.SetValue(DataObject.Boolean(value));
+			return variable;
+		}
+
+		Variable IVariableScope.OnVariableGet(string name) {
+			if (name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase))
+				return MakeStringVariable(TransactionSettingKeys.CurrentSchema, currentSchema);
+			if (name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.ReadOnly, readOnly);
+			if (name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.IgnoreIdentifiersCase, ignoreCase);
+			if (name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase))
+				return MakeBooleanVariable(TransactionSettingKeys.AutoCommit, autoCommit);
+
+			return null;
+		}
+
+		void ICallbackHandler.OnCallbackAttached(TableCommitCallback callback) {
+			if (callbacks == null)
+				callbacks = new List&lt;TableCommitCallback&gt;();
+
+			callbacks.Add(callback);
+		}
+
+		void ICallbackHandler.OnCallbackDetached(TableCommitCallback callback) {
+			if (callbacks == null)
+				return;
+
+			for (int i = callbacks.Count - 1; i &gt;= 0; i--) {
+				var other = callbacks[i];
+				if (other.TableName.Equals(callback.TableName))
+					callbacks.RemoveAt(i);
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[70,3,71,79,0],[72,3,72,4,0],[110,10,110,34,0],[152,5,152,109,0],[156,4,156,24,0],[158,4,158,54,0],[168,3,168,4,0],[187,4,187,30,0],[188,5,188,28,0],[190,5,190,88,0],[192,3,192,4,0],[195,4,195,30,0],[196,5,196,87,0],[197,3,197,4,0],[205,7,205,26,0],[212,31,212,40,0],[212,15,212,27,0],[213,7,213,35,0],[214,7,214,33,0],[212,28,212,30,0],[532,4,532,40,0],[536,4,536,40,0],[540,4,540,103,0],[541,5,541,36,0],[542,11,542,105,0],[543,5,543,20,0],[544,6,544,113,0],[547,5,547,31,0],[548,11,548,118,0],[549,5,549,33,0],[550,11,550,107,0],[551,5,551,33,0],[553,3,553,4,0],[556,4,556,103,0],[557,5,557,54,0],[558,11,558,105,0],[559,5,559,27,0],[560,11,560,118,0],[561,5,561,59,0],[562,11,562,107,0],[563,5,563,48,0],[565,3,565,4,0],[593,4,593,26,0],[594,5,594,49,0],[596,4,596,28,0],[597,3,597,4,0],[600,4,600,26,0],[601,5,601,12,0],[603,9,603,37,0],[604,5,604,30,0],[605,5,605,52,0],[606,6,606,28,0],[603,46,603,49,0],[603,38,603,44,0],[608,3,608,4,0],[273,7,273,16,0],[281,6,281,54,0],[287,5,287,51,0],[288,6,288,54,0],[290,5,290,31,0],[294,5,294,35,0],[302,5,302,21,0],[303,6,303,57,0],[304,5,304,21,0],[305,6,305,60,0],[306,5,306,21,0],[307,6,307,59,0],[308,5,308,21,0],[309,6,309,57,0],[310,5,310,21,0],[311,6,311,58,0],[317,5,317,21,0],[318,6,318,60,0],[319,5,319,21,0],[320,6,320,56,0],[321,5,321,21,0],[322,6,322,58,0],[324,5,324,53,0],[352,7,352,15,0],[354,7,354,15,0],[362,6,362,15,0],[365,6,365,33,0],[370,5,370,36,0],[371,6,371,46,0],[373,5,373,45,0],[377,5,377,88,0],[378,5,378,50,0],[382,5,382,35,0],[390,5,390,42,0],[392,5,392,77,0],[394,5,394,21,0],[395,6,395,22,0],[397,7,397,83,0],[398,7,398,35,0],[399,7,399,63,0],[400,12,400,22,0],[401,8,401,57,0],[400,50,400,53,0],[400,23,400,48,0],[405,7,405,31,0],[406,7,406,29,0],[408,7,408,20,0],[412,5,412,67,0],[413,5,413,60,0],[415,5,415,18,0],[425,5,426,23,0],[427,6,427,33,0],[428,5,428,6,0],[431,12,431,29,0],[435,12,435,21,0],[439,6,439,17,0],[440,5,440,6,0],[443,6,443,22,0],[444,5,444,6,0],[447,6,447,42,0],[448,7,448,58,0],[450,6,450,41,0],[454,12,454,50,0],[458,6,458,119,0],[462,6,463,32,0],[464,7,464,47,0],[465,6,465,19,0],[466,7,466,111,0],[468,6,468,37,0],[469,11,469,21,0],[470,7,470,41,0],[469,30,469,33,0],[469,22,469,28,0],[472,5,472,6,0],[475,6,475,118,0],[479,5,479,6,0],[482,5,482,6,0],[485,5,485,6,0],[488,5,488,6,0],[506,5,512,7,0],[525,5,525,17,0],[46,3,46,165,1],[47,4,47,24,1],[48,4,48,24,1],[49,4,49,26,1],[51,4,51,19,1],[53,4,53,45,1],[54,4,54,62,1],[56,4,56,24,1],[58,4,58,46,1],[60,4,60,21,1],[62,4,62,51,1],[64,4,64,53,1],[65,4,65,56,1],[66,4,66,47,1],[67,4,67,58,1],[68,3,68,4,1],[75,4,75,19,1],[76,3,76,4,1],[79,4,79,36,1],[80,4,80,54,1],[81,4,81,57,1],[82,4,82,56,1],[83,4,83,54,1],[84,4,84,55,1],[85,4,85,56,1],[86,4,86,57,1],[87,4,87,53,1],[88,4,88,55,1],[89,3,89,4,1],[94,10,94,26,1],[104,10,104,26,1],[114,10,114,41,1],[122,4,122,44,1],[123,4,123,58,1],[124,4,124,48,1],[125,4,125,40,1],[126,4,126,48,1],[128,4,128,61,1],[129,3,129,4,1],[132,4,132,85,1],[135,4,135,69,1],[138,4,138,73,1],[144,4,144,66,1],[148,3,148,4,1],[151,4,151,24,1],[153,3,153,4,1],[162,4,162,24,1],[164,4,164,48,1],[171,3,171,4,1],[174,4,174,18,1],[176,6,176,63,1],[177,6,177,67,1],[178,6,178,59,1],[179,6,179,99,1],[181,6,181,15,1],[184,3,184,4,1],[204,6,204,29,1],[209,5,209,21,1],[211,5,211,27,1],[218,5,218,22,1],[222,5,222,21,1],[224,3,224,4,1],[227,4,227,18,1],[229,6,229,63,1],[230,6,230,61,1],[232,6,232,22,1],[233,6,233,15,1],[236,3,236,4,1],[239,4,239,18,1],[240,4,240,30,1],[241,3,241,4,1],[244,4,244,18,1],[248,5,248,14,1],[250,3,250,4,1],[568,4,568,88,1],[569,4,569,48,1],[570,4,570,20,1],[574,4,574,89,1],[575,4,575,49,1],[576,4,576,20,1],[580,4,580,94,1],[581,5,581,84,1],[582,4,582,89,1],[583,5,583,75,1],[584,4,584,102,1],[585,5,585,90,1],[586,4,586,91,1],[587,5,587,79,1],[589,4,589,16,1],[258,4,258,85,1],[259,5,259,36,1],[260,5,260,34,1],[261,4,261,5,1],[264,11,264,36,1],[268,5,268,58,1],[269,10,269,20,1],[270,6,270,31,1],[271,6,272,47,1],[269,44,269,47,1],[269,21,269,42,1],[276,5,276,15,1],[280,5,280,51,1],[283,5,283,41,1],[298,5,298,33,1],[335,4,335,59,1],[336,5,336,36,1],[337,4,337,5,1],[340,11,340,65,1],[344,11,344,66,1],[350,6,350,20,1],[351,6,351,22,1],[353,6,353,22,1],[355,6,355,19,1],[360,5,361,92,1],[363,5,364,92,1],[366,5,366,15,1],[386,5,386,33,1],[501,4,501,58,1],[502,5,502,36,1],[503,4,503,5,1],[516,5,516,40,1],[517,6,517,39,1],[518,5,518,39,1],[519,6,519,38,1],[520,5,520,42,1],[521,6,521,41,1],[522,5,522,42,1],[523,6,523,41,1]]);
+    </script>
+  </body>
+</html>

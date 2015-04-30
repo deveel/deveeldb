@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\sqlconstantexpression.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Types;
+
+namespace Deveel.Data.Sql.Expressions {
+	/// &lt;summary&gt;
+	/// An expression that holds a constant value.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// As constant, this expression cannot be reduced, so
+	/// that &lt;see cref=&quot;SqlExpression.CanEvaluate&quot;/&gt; will always
+	/// return &lt;c&gt;false&lt;/c&gt; and the value of &lt;see cref=&quot;SqlExpression.Evaluate(EvaluateContext)&quot;/&gt;
+	/// will return the expression itself.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class SqlConstantExpression : SqlExpression {
+		internal SqlConstantExpression(DataObject value) {
+			Value = value;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the SQL expression type of &lt;see cref=&quot;SqlExpressionType.Constant&quot;/&gt;
+		/// &lt;/summary&gt;
+		public override SqlExpressionType ExpressionType {
+			get { return SqlExpressionType.Constant; }
+		}
+
+		public override bool CanEvaluate {
+			get {
+				if (Value.Type is ArrayType ||
+				    Value.Type is QueryType)
+					return true;
+
+				return false;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the constant value of the expression.
+		/// &lt;/summary&gt;
+		public DataObject Value { get; private set; }
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[46,5,47,33,0],[48,6,48,18,0],[50,5,50,18,0],[33,3,33,51,1],[34,4,34,18,1],[35,3,35,4,1],[41,10,41,44,1]]);
+    </script>
+  </body>
+</html>

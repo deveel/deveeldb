@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.linq\typesystem.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Linq {
+	static class TypeSystem {
+		public static Type GetElementType(Type seqType) {
+			Type ienum = FindIEnumerable(seqType);
+
+			if (ienum == null)
+				return seqType;
+
+			return ienum.GetGenericArguments()[0];
+		}
+
+		private static Type FindIEnumerable(Type seqType) {
+			if (seqType == null || seqType == typeof(string))
+				return null;
+
+			if (seqType.IsArray)
+				return typeof(IEnumerable&lt;&gt;).MakeGenericType(seqType.GetElementType());
+
+			if (seqType.IsGenericType) {
+				foreach (Type arg in seqType.GetGenericArguments()) {
+					Type ienum = typeof(IEnumerable&lt;&gt;).MakeGenericType(arg);
+					if (ienum.IsAssignableFrom(seqType)) {
+						return ienum;
+					}
+				}
+			}
+
+			Type[] ifaces = seqType.GetInterfaces();
+
+			if (ifaces.Length &gt; 0) {
+				foreach (Type iface in ifaces) {
+					Type ienum = FindIEnumerable(iface);
+					if (ienum != null) return ienum;
+				}
+			}
+
+			if (seqType.BaseType != null &amp;&amp; seqType.BaseType != typeof(object)) {
+				return FindIEnumerable(seqType.BaseType);
+			}
+
+			return null;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,4,28,42,0],[33,5,33,17,0],[36,5,36,76,0],[39,26,39,55,0],[39,14,39,22,0],[40,6,40,62,0],[41,6,41,42,0],[42,7,42,20,0],[39,23,39,25,0],[50,28,50,34,0],[50,14,50,24,0],[51,6,51,42,0],[52,6,52,24,0],[52,25,52,38,0],[50,25,50,27,0],[57,5,57,46,0],[61,3,61,4,0],[23,4,23,42,1],[25,4,25,22,1],[26,5,26,20,1],[32,4,32,53,1],[35,4,35,24,1],[38,4,38,30,1],[47,4,47,44,1],[49,4,49,26,1],[56,4,56,71,1],[60,4,60,16,1]]);
+    </script>
+  </body>
+</html>

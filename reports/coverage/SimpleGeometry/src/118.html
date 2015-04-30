@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.routines\routineinfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Text;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Routines {
+	/// &lt;summary&gt;
+	/// Defines the metadata for a routine that are used to
+	/// resolve within a context.
+	/// &lt;/summary&gt;
+	public abstract class RoutineInfo : IObjectInfo {
+		/// &lt;summary&gt;
+		/// Constructs a routine info with the given name.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;routineName&quot;&gt;The name uniquely identifying the routine.&lt;/param&gt;
+		protected RoutineInfo(ObjectName routineName) 
+			: this(routineName, new RoutineParameter[] {}) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the routine info with the given signature.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;routineName&quot;&gt;The name uniquely identifying the routine.&lt;/param&gt;
+		/// &lt;param name=&quot;parameters&quot;&gt;The list of parameter information of the routine.&lt;/param&gt;
+		protected RoutineInfo(ObjectName routineName, RoutineParameter[] parameters) {
+			if (routineName == null)
+				throw new ArgumentNullException(&quot;routineName&quot;);
+
+			if (parameters == null)
+				parameters = new RoutineParameter[0];
+
+			RoutineName = routineName;
+			Parameters = parameters;
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return ObjectType; }
+		}
+
+		ObjectName IObjectInfo.FullName {
+			get { return RoutineName; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the name of the routine that uniquely identifies it in a system context.
+		/// &lt;/summary&gt;
+		public ObjectName RoutineName { get; private set; }
+
+		protected abstract DbObjectType ObjectType { get; }
+
+		/// &lt;summary&gt;
+		/// Gets an array of parameters for the routine.
+		/// &lt;/summary&gt;
+		public RoutineParameter[] Parameters { get; private set; }
+
+		public string ExternalMethodName { get; set; }
+
+		public Type ExternalType { get; set; }
+
+		internal abstract bool MatchesInvoke(Invoke request, IQueryContext queryContext);
+
+		public override string ToString() {
+			var sb = new StringBuilder();
+			sb.Append(RoutineName);
+			if (Parameters != null &amp;&amp; Parameters.Length &gt; 0) {
+				sb.Append(&#39;(&#39;);
+				for (int i = 0; i &lt; Parameters.Length; i++) {
+					sb.Append(Parameters[i]);
+
+					if (i &lt; Parameters.Length - 1)
+						sb.Append(&quot;, &quot;);
+				}
+				sb.Append(&#39;)&#39;);
+			}
+			return sb.ToString();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,3,34,50,0],[35,3,35,4,0],[44,5,44,52,0],[47,5,47,42,0],[54,10,54,28,0],[58,10,58,29,0],[80,4,80,33,0],[81,4,81,27,0],[82,4,82,52,0],[83,5,83,20,0],[84,10,84,20,0],[85,6,85,31,0],[87,6,87,36,0],[88,7,88,23,0],[84,44,84,47,0],[84,21,84,42,0],[90,5,90,20,0],[92,4,92,25,0],[42,3,42,79,1],[43,4,43,28,1],[46,4,46,27,1],[49,4,49,30,1],[50,4,50,28,1],[51,3,51,4,1]]);
+    </script>
+  </body>
+</html>

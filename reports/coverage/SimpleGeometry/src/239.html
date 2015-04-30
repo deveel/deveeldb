@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlqueryexpressionnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// The root node of an expression used to select a set of items
+	/// from a set of sources defined, given some conditions specified.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+		internal SqlQueryExpressionNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the selection will return
+		/// all columns from the sources specified in &lt;see cref=&quot;FromClause&quot;/&gt;.
+		/// &lt;/summary&gt;
+		public bool IsAll { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the selection will return
+		/// only results that are unique.
+		/// &lt;/summary&gt;
+		public bool IsDistinct { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a read-only list of &lt;see cref=&quot;SelectItemNode&quot;&gt;items&lt;/see&gt; that
+		/// will be returned by the query.
+		/// &lt;/summary&gt;
+		public IEnumerable&lt;SelectItemNode&gt; SelectItems { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the clause defining the sources from where to query.
+		/// &lt;/summary&gt;
+		public FromClauseNode FromClause { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an optional clause that is used to filter the queried objects.
+		/// &lt;/summary&gt;
+		public IExpressionNode WhereExpression { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an optional clause used to group and filter the results of
+		/// a query.
+		/// &lt;/summary&gt;
+		public GroupByNode GroupBy { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a read-oly list of &lt;see cref=&quot;OrderBy&quot;&gt;order&lt;/see&gt; criteria
+		/// for sorting the results of the query.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;OrderByNode&quot;/&gt;
+		public IEnumerable&lt;OrderByNode&gt; OrderBy { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an optional definition for a composition between this
+		/// query and another.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;QueryCompositeNode&quot;/&gt;
+		public QueryCompositeNode Composite { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == &quot;select_restrict_opt&quot;) {
+				GetRestrict(node);
+			} else if (node.NodeName == &quot;select_set&quot;) {
+				GetSelectSet(node);
+			} else if (node.NodeName == &quot;from_clause_opt&quot;) {
+				var clause = node.ChildNodes.FirstOrDefault();
+				if (clause != null)
+					FromClause = (FromClauseNode) clause;
+			} else if (node.NodeName == &quot;where_clause_opt&quot;) {
+				GetWhereClause(node);
+			} else if (node.NodeName == &quot;group_by_opt&quot;) {
+				GroupBy = node.ChildNodes.FirstOrDefault() as GroupByNode;
+			} else if (node.NodeName == &quot;query_composite_opt&quot;) {
+				var composite = node.ChildNodes.FirstOrDefault();
+				if (composite != null)
+					Composite = (QueryCompositeNode) composite;
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetWhereClause(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode) {
+					WhereExpression = childNode as IExpressionNode;
+					break;
+				}
+			}
+		}
+
+		private void GetRestrict(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					var value = ((SqlKeyNode) childNode).Text;
+					if (value == &quot;ALL&quot;) {
+						IsAll = true;
+					} else if (value == &quot;DISTINCT&quot;) {
+						IsDistinct = true;
+					}
+				}
+			}
+		}
+
+		private void GetSelectSet(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode &amp;&amp;
+				    ((SqlKeyNode) childNode).Text == &quot;*&quot;) {
+					IsAll = true;
+				} else if (childNode.NodeName == &quot;select_item_list&quot;) {
+					GetSelectItems(childNode);
+				}
+			}
+		}
+
+		private void GetSelectItems(ISqlNode node) {
+			var items = new List&lt;SelectItemNode&gt;();
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SelectItemNode)
+					items.Add((SelectItemNode)childNode);
+			}
+
+			SelectItems = items.AsReadOnly();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[96,6,96,49,0],[112,13,112,26,0],[113,5,113,33,0],[114,6,114,48,0],[115,6,115,25,0],[116,7,116,20,0],[117,13,117,37,0],[118,7,118,25,0],[28,3,28,36,1],[29,3,29,4,1],[81,4,81,47,1],[82,5,82,23,1],[83,11,83,45,1],[84,5,84,24,1],[85,11,85,50,1],[86,5,86,51,1],[87,5,87,24,1],[88,6,88,43,1],[89,11,89,51,1],[90,5,90,26,1],[91,11,91,47,1],[92,5,92,63,1],[93,11,93,54,1],[94,5,94,54,1],[95,5,95,27,1],[99,4,99,34,1],[103,30,103,45,1],[103,13,103,26,1],[104,5,104,38,1],[105,6,105,53,1],[106,6,106,12,1],[103,27,103,29,1],[109,3,109,4,1],[112,30,112,45,1],[112,27,112,29,1],[122,3,122,4,1],[125,30,125,45,1],[125,13,125,26,1],[126,5,127,46,1],[128,6,128,19,1],[129,12,129,57,1],[130,6,130,32,1],[125,27,125,29,1],[133,3,133,4,1],[136,4,136,43,1],[137,30,137,45,1],[137,13,137,26,1],[138,5,138,37,1],[139,6,139,43,1],[137,27,137,29,1],[142,4,142,37,1],[143,3,143,4,1]]);
+    </script>
+  </body>
+</html>

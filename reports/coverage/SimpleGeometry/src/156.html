@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlgrammar.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using Irony.Parsing;
+
+namespace Deveel.Data.Sql.Compile {
+	partial class SqlGrammar : SqlGrammarBase {
+		public override string Dialect {
+			get { return &quot;SQL-92&quot;; }
+		}
+
+		protected KeyTerm Semicolon { get; private set; }
+
+		protected override NonTerminal MakeRoot() {
+			Semicolon = ToTerm(&quot;.&quot;);
+
+			var root = new NonTerminal(&quot;root&quot;);
+			Productions(root);
+
+			return root;
+		}
+
+		private void Productions(NonTerminal root) {
+			// PL/SQL
+			var block = PlSqlBlock();
+			var blockList = new NonTerminal(&quot;block_list&quot;);
+			blockList.Rule = MakePlusRule(blockList, Semicolon, block);
+
+			root.Rule = SqlStatementList() + Eof | 
+				blockList + Eof;
+		}
+
+		private NonTerminal OrReplace() {
+			var orReplaceOpt = new NonTerminal(&quot;or_replace_opt&quot;);
+			orReplaceOpt.Rule = Empty | OR + REPLACE;
+			return orReplaceOpt;
+		}
+
+		private NonTerminal SqlStatementList() {
+			var commandList = new NonTerminal(&quot;command_list&quot;, typeof(SequenceOfStatementsNode));
+
+			commandList.Rule = MakePlusRule(commandList, Semicolon, SqlStatement());
+
+			return commandList;
+		}
+
+		private NonTerminal SqlStatement() {
+			var sqlStatement = new NonTerminal(&quot;sql_statement&quot;);
+
+			var toDefineData = new NonTerminal(&quot;to_define_data&quot;);
+			var toControlData = new NonTerminal(&quot;to_control_data&quot;);
+			var toModifyData = new NonTerminal(&quot;to_modify_data&quot;);
+
+			sqlStatement.Rule = toDefineData |
+			                    toControlData |
+			                    toModifyData;
+
+			toDefineData.Rule = Create() |
+			                    Drop();
+
+			toModifyData.Rule = Select() |
+			                    Insert() |
+			                    Update() |
+			                    Delete() |
+			                    Truncate() |
+								Set();
+
+			toControlData.Rule = Grant() |
+			                     Revoke();
+
+			return sqlStatement;
+		}
+
+		private NonTerminal PlSqlBlock() {
+			var plsqlBlock = new NonTerminal(&quot;plsql_block&quot;);
+			var labelStatement = new NonTerminal(&quot;plsql_label&quot;);
+			var labelStatementOpt = new NonTerminal(&quot;plsql_label_opt&quot;);
+			var declareStatementOpt = new NonTerminal(&quot;declare_statement_opt&quot;);
+			var declareSpec = new NonTerminal(&quot;declare_spec&quot;);
+			var declareSpecList = new NonTerminal(&quot;declare_spec_list&quot;);
+			var declare_variable = new NonTerminal(&quot;declare_variable&quot;);
+			var constant_opt = new NonTerminal(&quot;constant_opt&quot;);
+			var var_not_null_opt = new NonTerminal(&quot;var_not_null_opt&quot;);
+			var var_default_opt = new NonTerminal(&quot;var_default_opt&quot;);
+			var var_default_assign = new NonTerminal(&quot;var_default_assign&quot;);
+			var plsql_code_block = new NonTerminal(&quot;plsql_code_block&quot;);
+			var plsql_statement_list = new NonTerminal(&quot;plsql_statement_list&quot;);
+			var plsql_statement = new NonTerminal(&quot;plsql_statement&quot;);
+			var plsql_sql_statement = new NonTerminal(&quot;plsql_sql_statement&quot;);
+			var exit_statement = new NonTerminal(&quot;exit_statement&quot;);
+			var label_opt = new NonTerminal(&quot;label_opt&quot;);
+			var exit_when_opt = new NonTerminal(&quot;exit_when_opt&quot;);
+			var goto_statement = new NonTerminal(&quot;goto_statement&quot;);
+			var conditional_statement = new NonTerminal(&quot;conditional_statement&quot;);
+			var conditional_elsif_list = new NonTerminal(&quot;conditional_elsif_list&quot;);
+			var conditional_elsif = new NonTerminal(&quot;conditional_elsif&quot;);
+			var conditional_else_opt = new NonTerminal(&quot;conditional_else_opt&quot;);
+			var declare_exception = new NonTerminal(&quot;declare_exception&quot;);
+			var declare_pragma = new NonTerminal(&quot;declare_pragma&quot;);
+			var declare_cursor = new NonTerminal(&quot;declare_cursor&quot;);
+			var cursor_args_opt = new NonTerminal(&quot;cursor_args_opt&quot;);
+
+			plsqlBlock.Rule = labelStatementOpt + declareStatementOpt + plsql_code_block;
+			labelStatementOpt.Rule = Empty | labelStatement;
+			labelStatement.Rule = &quot;&lt;&lt;&quot; + Identifier + &quot;&gt;&gt;&quot;;
+			declareStatementOpt.Rule = Empty | DECLARE + declareSpecList;
+			declareSpecList.Rule = MakePlusRule(declareSpecList, Semicolon, declareSpec);
+			declareSpec.Rule = declare_variable | declare_exception | declare_pragma;
+			declare_variable.Rule = Identifier + constant_opt + DataType() + var_not_null_opt + var_default_opt;
+			constant_opt.Rule = Empty | CONSTANT;
+			var_not_null_opt.Rule = Empty | NOT + NULL;
+			var_default_opt.Rule = Empty | var_default_assign + SqlExpression();
+			var_default_assign.Rule = &quot;:=&quot; | DEFAULT;
+			declare_exception.Rule = Identifier + EXCEPTION;
+			declare_pragma.Rule = PRAGMA + EXCEPTION_INIT + Identifier + &quot;(&quot; + StringLiteral + &quot;,&quot; + PositiveLiteral + &quot;)&quot;;
+			declare_cursor.Rule = CURSOR + Identifier + cursor_args_opt + IS + SqlQueryExpression();
+
+			plsql_code_block.Rule = BEGIN + plsql_statement_list + END;
+			plsql_statement_list.Rule = MakePlusRule(plsql_statement_list, plsql_statement);
+			plsql_statement.Rule = plsql_sql_statement |
+			                       exit_statement |
+			                       goto_statement |
+			                       conditional_statement;
+
+			plsql_sql_statement.Rule = Select();
+
+			exit_statement.Rule = EXIT + label_opt + exit_when_opt;
+			label_opt.Rule = Empty | Identifier;
+			exit_when_opt.Rule = Empty | WHEN + SqlExpression();
+
+			goto_statement.Rule = GOTO + Identifier;
+
+			conditional_statement.Rule = IF + SqlExpression() + THEN + plsql_statement_list +
+			                             conditional_elsif_list +
+			                             conditional_else_opt +
+			                             END + IF;
+			conditional_elsif_list.Rule = MakeStarRule(conditional_elsif_list, conditional_elsif);
+			conditional_elsif.Rule = ELSIF + SqlExpression() + THEN + plsql_statement_list;
+			conditional_else_opt.Rule = Empty | ELSE + plsql_statement_list;
+
+			return plsqlBlock;
+		}
+
+		private NonTerminal Create() {
+			var createCommand = new NonTerminal(&quot;create_command&quot;);
+
+			// -- CREATE
+			createCommand.Rule = CreateSchema() |
+								  CreateTable() |
+								  CreateView() |
+								  CreateIndex() |
+								  CreateSequence() |
+								  CreateTrigger() |
+								  CreateUser() |
+								  CreateType();
+
+			return createCommand;
+		}
+
+		private NonTerminal CreateTable() {
+			var createTable = new NonTerminal(&quot;create_table&quot;, typeof(CreateTableNode));
+			var ifNotExistsOpt = new NonTerminal(&quot;if_not_exists_opt&quot;);
+			var temporaryOpt = new NonTerminal(&quot;temporary_opt&quot;);
+			var columnOrConstraintList = new NonTerminal(&quot;column_or_constraint_list&quot;);
+			var columnOrConstraint = new NonTerminal(&quot;column_or_constraint&quot;);
+			var tableColumn = new NonTerminal(&quot;table_column&quot;, typeof (TableColumnNode));
+			var columnDefaultOpt = new NonTerminal(&quot;column_default_opt&quot;);
+			var columnIdentityOpt = new NonTerminal(&quot;column_identity_opt&quot;);
+			var columnConstraintList = new NonTerminal(&quot;column_constraint_list&quot;);
+			var columnConstraint = new NonTerminal(&quot;column_constraint&quot;, typeof (ColumnConstraintNode));
+			var columnConstraintRefOpt = new NonTerminal(&quot;column_constraint_ref_opt&quot;);
+			var fkeyActionList = new NonTerminal(&quot;fkey_action_list&quot;);
+			var fkeyAction = new NonTerminal(&quot;fkey_action&quot;);
+			var fkeyActionType = new NonTerminal(&quot;fkey_action_type&quot;);
+			var tableConstraint = new NonTerminal(&quot;table_constraint&quot;, typeof (TableConstraintNode));
+			var constraintName = new NonTerminal(&quot;constraint_name&quot;);
+			var tableConstraintNameOpt = new NonTerminal(&quot;table_constraint_name_opt&quot;);
+			var defTableConstraint = new NonTerminal(&quot;def_table_constraint&quot;);
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+
+			createTable.Rule = CREATE + temporaryOpt + TABLE + ifNotExistsOpt + ObjectName() + &quot;(&quot; + columnOrConstraintList + &quot;)&quot;;
+			ifNotExistsOpt.Rule = Empty | IF + NOT + EXISTS;
+			temporaryOpt.Rule = Empty | Key(&quot;TEMPORARY&quot;);
+			columnOrConstraintList.Rule = MakePlusRule(columnOrConstraintList, Comma, columnOrConstraint);
+
+			columnOrConstraint.Rule = tableColumn | tableConstraint;
+
+			tableColumn.Rule = Identifier + DataType() + columnConstraintList + columnDefaultOpt + columnIdentityOpt;
+
+			columnConstraintList.Rule = MakeStarRule(columnConstraintList, columnConstraint);
+			columnConstraint.Rule = NULL |
+			                         NOT + NULL |
+			                         UNIQUE |
+			                         PRIMARY + KEY |
+			                         CHECK + SqlExpression() |
+			                         REFERENCES + ObjectName() + columnConstraintRefOpt + fkeyActionList;
+			columnConstraintRefOpt.Rule = Empty | &quot;(&quot; + Identifier + &quot;)&quot;;
+			columnDefaultOpt.Rule = Empty | DEFAULT + SqlExpression();
+			columnIdentityOpt.Rule = Empty | IDENTITY;
+			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
+			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
+			fkeyActionType.Rule = CASCADE | SET + NULL | SET + DEFAULT | NO + ACTION;
+
+			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
+			tableConstraintNameOpt.Rule = Empty | CONSTRAINT + constraintName;
+			constraintName.Rule = Identifier;
+			defTableConstraint.Rule = PRIMARY + KEY + &quot;(&quot; + columnList + &quot;)&quot; |
+			                            UNIQUE + &quot;(&quot; + columnList + &quot;)&quot; |
+			                            CHECK + &quot;(&quot; + SqlExpression() + &quot;)&quot; |
+			                            FOREIGN + KEY + &quot;(&quot; + columnList + &quot;)&quot; + REFERENCES + ObjectName() + &quot;(&quot; + columnList +
+			                            &quot;)&quot; +
+			                            fkeyActionList;
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
+
+			return createTable;
+		}
+
+		private NonTerminal CreateView() {
+			var createView = new NonTerminal(&quot;create_view&quot;, typeof(CreateViewNode));
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+			var columnName = new NonTerminal(&quot;column_name&quot;);
+			var columnListOpt = new NonTerminal(&quot;column_list_opt&quot;);
+
+			columnName.Rule = Identifier;
+			columnList.Rule = MakeStarRule(columnList, Comma, columnName);
+			columnListOpt.Rule = Empty | &quot;(&quot; + columnList + &quot;)&quot;;
+			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + columnListOpt + AS + SqlQueryExpression();
+			return createView;
+		}
+
+		private NonTerminal CreateUser() {
+			var createUser = new NonTerminal(&quot;create_user&quot;);
+
+			var identifiedRule = new NonTerminal(&quot;identified&quot;);
+			var setAccountLockOpt = new NonTerminal(&quot;set_account_lock_opt&quot;);
+			var setGroupsOpt = new NonTerminal(&quot;set_groups_opt&quot;);
+
+			createUser.Rule = CREATE + USER + Identifier + identifiedRule;
+			identifiedRule.Rule = IDENTIFIED + BY + PASSWORD + StringLiteral + setAccountLockOpt + setGroupsOpt |
+			                       IDENTIFIED + BY + StringLiteral + setAccountLockOpt + setGroupsOpt |
+			                       IDENTIFIED + EXTERNALLY;
+			setAccountLockOpt.Rule = SET + ACCOUNT + LOCK |
+			                            SET + ACCOUNT + UNLOCK |
+			                            Empty;
+			setGroupsOpt.Rule = SET + GROUPS + StringLiteral | Empty;
+
+			return createUser;
+		}
+
+		private NonTerminal CreateIndex() {
+			var createIndex = new NonTerminal(&quot;create_index&quot;);
+
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+			var columnName = new NonTerminal(&quot;column_name&quot;);
+
+			columnName.Rule = Identifier;
+			columnList.Rule = MakePlusRule(columnList, Comma, columnName);
+
+			createIndex.Rule = CREATE + INDEX + ObjectName() + ON + ObjectName() + &quot;(&quot; + columnList + &quot;)&quot;;
+
+			return createIndex;
+		}
+
+		private NonTerminal CreateSequence() {
+			var createSequence = new NonTerminal(&quot;create_sequence&quot;);
+
+			var incrementOpt = new NonTerminal(&quot;sequence_increment_opt&quot;);
+			var startOpt = new NonTerminal(&quot;sequence_start_opt&quot;);
+			var minvalueOpt = new NonTerminal(&quot;sequence_minvalue_opt&quot;);
+			var maxvalueOpt = new NonTerminal(&quot;sequence_maxvalue_opt&quot;);
+			var cacheOpt = new NonTerminal(&quot;sequence_cache_opt&quot;);
+			var cycleOpt = new NonTerminal(&quot;sequence_cycle_opt&quot;);
+
+			createSequence.Rule = CREATE + SEQUENCE + ObjectName() +
+			                       incrementOpt +
+			                       startOpt +
+			                       minvalueOpt +
+			                       maxvalueOpt +
+			                       cacheOpt +
+			                       cycleOpt;
+			incrementOpt.Rule = INCREMENT + BY + SqlExpression() | Empty;
+			startOpt.Rule = START + WITH + SqlExpression() | Empty;
+			minvalueOpt.Rule = MINVALUE + SqlExpression() | Empty;
+			maxvalueOpt.Rule = MAXVALUE + SqlExpression() | Empty;
+			cycleOpt.Rule = CYCLE | Empty;
+			cacheOpt.Rule = CACHE + SqlExpression() | Empty;
+
+			return createSequence;
+		}
+
+		private NonTerminal CreateSchema() {
+			var createSchema = new NonTerminal(&quot;create_schema&quot;);
+			createSchema.Rule = CREATE + SCHEMA + Identifier;
+
+			return createSchema;
+		}
+
+		private NonTerminal CreateTrigger() {
+			var createTrigger = new NonTerminal(&quot;create_trigger&quot;, typeof(CreateTriggerNode));
+			var createProcedureTrigger = new NonTerminal(&quot;create_procedure_trigger&quot;);
+			var createCallbackTrigger = new NonTerminal(&quot;create_callback_trigger&quot;);
+			var beforeOrAfter = new NonTerminal(&quot;before_or_after&quot;);
+			var triggerEvents = new NonTerminal(&quot;trigger_events&quot;);
+			var triggerEvent = new NonTerminal(&quot;trigger_event&quot;);
+			var triggerBody = new NonTerminal(&quot;trigger_body&quot;);
+
+			var functionCallArgsOpt = new NonTerminal(&quot;function_call_args_opt&quot;);
+			var functionCallArgsList = new NonTerminal(&quot;function_call_args_list&quot;);
+
+			createTrigger.Rule = createProcedureTrigger | createCallbackTrigger;
+			createCallbackTrigger.Rule = CREATE + OrReplace() + CALLBACK + TRIGGER +
+			                               beforeOrAfter + ON + ObjectName();
+			createProcedureTrigger.Rule = CREATE + OrReplace() + TRIGGER + ObjectName() +
+			                                beforeOrAfter + ON + ObjectName() +
+			                                FOR + EACH + ROW;
+			beforeOrAfter.Rule = BEFORE | AFTER;
+			triggerEvents.Rule = MakePlusRule(triggerEvents, OR, triggerEvent);
+			triggerEvent.Rule = INSERT | UPDATE | DELETE;
+			triggerBody.Rule = EXECUTE + PROCEDURE + ObjectName() + &quot;(&quot; + functionCallArgsList + &quot;)&quot; |
+			                    PlSqlBlock();
+
+			functionCallArgsOpt.Rule = Empty | &quot;(&quot; + functionCallArgsList + &quot;)&quot;;
+			functionCallArgsList.Rule = MakeStarRule(functionCallArgsList, Comma, SqlExpression());
+
+			return createTrigger;
+		}
+
+		private NonTerminal CreateType() {
+			var createType = new NonTerminal(&quot;create_type&quot;);
+
+			createType.Rule = CREATE + OrReplace() + TYPE + ObjectName();
+
+			return createType;
+		}
+
+		private NonTerminal Drop() {
+			var dropCommand = new NonTerminal(&quot;drop_command&quot;);
+
+			dropCommand.Rule = DropSchema() |
+			                   DropTable() |
+			                   DropView() |
+			                   DropIndex() |
+			                   DropSequence() |
+			                   DropTrigger() |
+			                   DropUser() |
+			                   DropType();
+
+			return dropCommand;
+		}
+
+		private NonTerminal DropSchema() {
+			var dropSchema = new NonTerminal(&quot;drop_schema&quot;);
+			dropSchema.Rule = Key(&quot;DROP&quot;) + Key(&quot;SCHEMA&quot;) + ObjectName();
+			return dropSchema;
+		}
+
+		private NonTerminal DropTable() {
+			var dropTable = new NonTerminal(&quot;drop_table&quot;);
+			dropTable.Rule = Key(&quot;DROP&quot;) + Key(&quot;TABLE&quot;) + ObjectName();
+			return dropTable;
+		}
+
+		private NonTerminal DropView() {
+			var dropView = new NonTerminal(&quot;drop_view&quot;);
+			dropView.Rule = Key(&quot;DROP&quot;) + Key(&quot;VIEW&quot;) + ObjectName();
+			return dropView;
+		}
+
+		private NonTerminal DropIndex() {
+			var dropIndex = new NonTerminal(&quot;drop_index&quot;);
+			dropIndex.Rule = Key(&quot;DROP&quot;) + Key(&quot;INDEX&quot;) + ObjectName();
+			return dropIndex;
+		}
+
+		private NonTerminal DropSequence() {
+			var dropSequence = new NonTerminal(&quot;drop_index&quot;);
+			dropSequence.Rule = Key(&quot;DROP&quot;) + Key(&quot;SEQUENCE&quot;) + ObjectName();
+			return dropSequence;
+		}
+
+		private NonTerminal DropTrigger() {
+			var dropTrigger = new NonTerminal(&quot;drop_trigger&quot;);
+			var dropProcedureTrigger = new NonTerminal(&quot;drop_procedure_trigger&quot;);
+			var dropCallbackTrigger = new NonTerminal(&quot;drop_callback_trigger&quot;);
+
+			dropTrigger.Rule = dropProcedureTrigger | dropCallbackTrigger;
+			dropProcedureTrigger.Rule = Key(&quot;DROP&quot;) + Key(&quot;TRIGGER&quot;) + ObjectName();
+			dropCallbackTrigger.Rule = Key(&quot;DROP&quot;) + Key(&quot;CALLBACK&quot;) + Key(&quot;TRIGGER&quot;) + Key(&quot;FROM&quot;) + ObjectName();
+			return dropTrigger;
+		}
+
+		private NonTerminal DropUser() {
+			var dropUser = new NonTerminal(&quot;drop_user&quot;);
+			dropUser.Rule = Key(&quot;DROP&quot;) + Key(&quot;USER&quot;) + Identifier;
+			return dropUser;
+		}
+
+		private NonTerminal DropType() {
+			var dropType = new NonTerminal(&quot;drop_type&quot;);
+			dropType.Rule = Key(&quot;DROP&quot;) + Key(&quot;TYPE&quot;) + ObjectName();
+			return dropType;
+		}
+
+		private NonTerminal Select() {
+			var selectCommand = new NonTerminal(&quot;select_command&quot;, typeof(SelectStatementNode));
+			selectCommand.Rule = SqlQueryExpression();
+			return selectCommand;
+		}
+
+		private NonTerminal Grant() {
+			var grant = new NonTerminal(&quot;grant&quot;);
+			var grantObject = new NonTerminal(&quot;grant_object&quot;);
+			var grantPriv = new NonTerminal(&quot;grant_priv&quot;);
+			var roleList = new NonTerminal(&quot;role_list&quot;);
+			var priv = new NonTerminal(&quot;priv&quot;);
+			var privList = new NonTerminal(&quot;priv_list&quot;);
+			var objPriv = new NonTerminal(&quot;object_priv&quot;);
+			var privilegeOpt = new NonTerminal(&quot;privilege_opt&quot;);
+			var privilegesOpt = new NonTerminal(&quot;privileges_opt&quot;);
+			var distributionList = new NonTerminal(&quot;distribution_list&quot;);
+			var withAdminOpt = new NonTerminal(&quot;with_admin_opt&quot;);
+			var withGrantOpt = new NonTerminal(&quot;with_grant_opt&quot;);
+			var optionOpt = new NonTerminal(&quot;option_opt&quot;);
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+			var columnListOpt = new NonTerminal(&quot;column_list_opt&quot;);
+			var referencePriv = new NonTerminal(&quot;reference_priv&quot;);
+			var updatePriv = new NonTerminal(&quot;update_priv&quot;);
+			var selectPriv = new NonTerminal(&quot;select_priv&quot;);
+
+			grant.Rule = grantObject | grantPriv;
+			grantPriv.Rule = Key(&quot;GRANT&quot;) + roleList + Key(&quot;TO&quot;) + distributionList + withAdminOpt;
+			roleList.Rule = MakePlusRule(roleList, Comma, Identifier);
+			withAdminOpt.Rule = Empty | Key(&quot;WITH&quot;) + Key(&quot;ADMIN&quot;) + optionOpt;
+			optionOpt.Rule = Empty | Key(&quot;OPTION&quot;);
+
+			grantObject.Rule = Key(&quot;GRANT&quot;) + objPriv + Key(&quot;ON&quot;) + ObjectName() + Key(&quot;TO&quot;) + distributionList + withGrantOpt;
+			objPriv.Rule = Key(&quot;ALL&quot;) + privilegesOpt | privList;
+			privilegesOpt.Rule = Empty | Key(&quot;PRIVILEGES&quot;);
+			privilegeOpt.Rule = Empty | Key(&quot;PRIVILEGE&quot;);
+			privList.Rule = MakePlusRule(privList, Comma, priv);
+			priv.Rule = Key(&quot;USAGE&quot;) + privilegeOpt|
+						Key(&quot;INSERT&quot;) + privilegeOpt |
+						Key(&quot;DELETE&quot;) + privilegeOpt |
+						Key(&quot;EXECUTE&quot;) + privilegeOpt |
+						Key(&quot;ALTER&quot;) + privilegeOpt |
+						Key(&quot;INDEX&quot;) + privilegeOpt |
+						updatePriv |
+						referencePriv |
+						selectPriv;
+			updatePriv.Rule = Key(&quot;UPDATE&quot;) + privilegeOpt + columnListOpt;
+			referencePriv.Rule = Key(&quot;REFERENCES&quot;) + privilegeOpt + columnListOpt;
+			selectPriv.Rule = Key(&quot;SELECT&quot;) + columnListOpt;
+			columnListOpt.Rule = Empty | &quot;(&quot; + columnList + &quot;)&quot;;
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
+			withGrantOpt.Rule = Key(&quot;WITH&quot;) + Key(&quot;GRANT&quot;) + optionOpt;
+			distributionList.Rule = MakePlusRule(distributionList, Comma, Identifier);
+
+			return grant;
+		}
+
+		private NonTerminal Revoke() {
+			var revoke = new NonTerminal(&quot;revoke&quot;);
+			var grantObject = new NonTerminal(&quot;grant_object&quot;);
+			var grantPriv = new NonTerminal(&quot;grant_priv&quot;);
+			var roleList = new NonTerminal(&quot;role_list&quot;);
+			var priv = new NonTerminal(&quot;priv&quot;);
+			var privList = new NonTerminal(&quot;priv_list&quot;);
+			var objPriv = new NonTerminal(&quot;object_priv&quot;);
+			var privilegeOpt = new NonTerminal(&quot;privilege_opt&quot;);
+			var privilegesOpt = new NonTerminal(&quot;privileges_opt&quot;);
+			var distributionList = new NonTerminal(&quot;distribution_list&quot;);
+
+			revoke.Rule = grantObject | grantPriv;
+			grantPriv.Rule = Key(&quot;REVOKE&quot;) + roleList + Key(&quot;FROM&quot;) + distributionList;
+			roleList.Rule = MakePlusRule(roleList, Comma, Identifier);
+
+			grantObject.Rule = Key(&quot;REVOKE&quot;) + objPriv + Key(&quot;ON&quot;) + ObjectName() + Key(&quot;TO&quot;) + distributionList;
+			objPriv.Rule = Key(&quot;ALL&quot;) + privilegesOpt | privList;
+			privilegesOpt.Rule = Empty | Key(&quot;PRIVILEGES&quot;);
+			privilegeOpt.Rule = Empty | Key(&quot;PRIVILEGE&quot;);
+			privList.Rule = MakePlusRule(privList, Comma, priv);
+			priv.Rule = Key(&quot;USAGE&quot;) + privilegeOpt |
+			            Key(&quot;INSERT&quot;) + privilegeOpt |
+			            Key(&quot;DELETE&quot;) + privilegeOpt |
+			            Key(&quot;EXECUTE&quot;) + privilegeOpt |
+			            Key(&quot;ALTER&quot;) + privilegeOpt |
+			            Key(&quot;INDEX&quot;) + privilegeOpt |
+			            Key(&quot;UPDATE&quot;) + privilegeOpt |
+			            Key(&quot;REFERENCES&quot;) + privilegeOpt |
+			            Key(&quot;SELECT&quot;) + privilegeOpt;
+			distributionList.Rule = MakePlusRule(distributionList, Comma, Identifier);
+
+			return revoke;
+		}
+
+		private NonTerminal Insert() {
+			var insert = new NonTerminal(&quot;insert_command&quot;);
+			var insertSwitch = new NonTerminal(&quot;insert_switch&quot;);
+			var fromValues = new NonTerminal(&quot;from_values&quot;);
+			var fromQuery = new NonTerminal(&quot;from_query&quot;);
+			var fromSet = new NonTerminal(&quot;from_set&quot;);
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+			var columnListOpt = new NonTerminal(&quot;column_list_opt&quot;);
+			var columnSet = new NonTerminal(&quot;column_set&quot;);
+			var columnSetList = new NonTerminal(&quot;column_set_list&quot;);
+			var insertTuple = new NonTerminal(&quot;inser_tuple&quot;);
+			var insertValue = new NonTerminal(&quot;insert_value&quot;);
+
+			insert.Rule = Key(&quot;INSERT&quot;) + Key(&quot;INTO&quot;) + ObjectName() + columnListOpt + insertSwitch;
+			columnListOpt.Rule = Empty | &quot;(&quot; + columnList + &quot;)&quot;;
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
+			insertSwitch.Rule = fromValues | fromQuery | fromSet;
+			fromValues.Rule = Key(&quot;VALUES&quot;) + insertTuple;
+			fromQuery.Rule = SqlQueryExpression();
+			insertTuple.Rule = MakePlusRule(insertTuple, Comma, insertValue);
+			insertValue.Rule = &quot;(&quot; + SqlExpressionList() + &quot;)&quot;;
+			fromSet.Rule = Key(&quot;SET&quot;) + columnSetList;
+			columnSetList.Rule = MakePlusRule(columnSetList, Comma, columnSet);
+			columnSet.Rule = Identifier + &quot;=&quot; + SqlExpression();
+			return insert;
+		}
+
+		private NonTerminal Delete() {
+			var deleteCommand = new NonTerminal(&quot;delete_command&quot;);
+			var whereOpt = new NonTerminal(&quot;where_opt&quot;);
+
+			deleteCommand.Rule = Key(&quot;DELETE&quot;) + Key(&quot;FROM&quot;) + ObjectName() + whereOpt;
+			whereOpt.Rule = Empty | Key(&quot;WHERE&quot;) + SqlQueryExpression();
+
+			return deleteCommand;
+		}
+
+		private NonTerminal Update() {
+			var update = new NonTerminal(&quot;update_command&quot;);
+			var updateSimple = new NonTerminal(&quot;update_simple&quot;);
+			var updateQuery = new NonTerminal(&quot;update_query&quot;);
+			var columnSet = new NonTerminal(&quot;column_set&quot;);
+			var columnSetList = new NonTerminal(&quot;column_set_list&quot;);
+			var columnList = new NonTerminal(&quot;column_list&quot;);
+			var updateWhere = new NonTerminal(&quot;update_where&quot;);
+
+			update.Rule = updateSimple | updateQuery;
+			updateSimple.Rule = Key(&quot;UPDATE&quot;) + ObjectName() + Key(&quot;SET&quot;) + columnSetList + updateWhere;
+			updateQuery.Rule = Key(&quot;UPDATE&quot;) + ObjectName() + Key(&quot;SET&quot;) + &quot;(&quot; + columnList + &quot;)&quot; + &quot;=&quot; + SqlQueryExpression() + updateWhere;
+			columnSetList.Rule = MakePlusRule(columnSetList, Comma, columnSet);
+			columnSet.Rule = Identifier + &quot;=&quot; + SqlExpression();
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
+			updateWhere.Rule = Key(&quot;WHERE&quot;) + SqlQueryExpression();
+
+			return update;
+		}
+
+		private NonTerminal Truncate() {
+			var truncate = new NonTerminal(&quot;truncate_command&quot;);
+			truncate.Rule = Key(&quot;TRUNCATE&quot;) + ObjectName();
+			return truncate;
+		}
+
+		private NonTerminal Set() {
+			var set = new NonTerminal(&quot;set_command&quot;);
+			set.Rule = Key(&quot;SET&quot;);
+			return set;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[22,10,22,26,1],[28,4,28,28,1],[30,4,30,39,1],[31,4,31,22,1],[33,4,33,16,1],[38,4,38,29,1],[39,4,39,50,1],[40,4,40,63,1],[42,4,43,21,1],[44,3,44,4,1],[47,4,47,57,1],[48,4,48,45,1],[49,4,49,24,1],[53,4,53,88,1],[55,4,55,76,1],[57,4,57,23,1],[61,4,61,56,1],[63,4,63,57,1],[64,4,64,59,1],[65,4,65,57,1],[67,4,69,37,1],[71,4,72,31,1],[74,4,79,15,1],[81,4,82,34,1],[84,4,84,24,1],[88,4,88,52,1],[89,4,89,56,1],[90,4,90,63,1],[91,4,91,71,1],[92,4,92,54,1],[93,4,93,63,1],[94,4,94,63,1],[95,4,95,55,1],[96,4,96,63,1],[97,4,97,61,1],[98,4,98,67,1],[99,4,99,63,1],[100,4,100,71,1],[101,4,101,61,1],[102,4,102,69,1],[103,4,103,59,1],[104,4,104,49,1],[105,4,105,57,1],[106,4,106,59,1],[107,4,107,73,1],[108,4,108,75,1],[109,4,109,65,1],[110,4,110,71,1],[111,4,111,65,1],[112,4,112,59,1],[113,4,113,59,1],[114,4,114,61,1],[116,4,116,81,1],[117,4,117,52,1],[118,4,118,51,1],[119,4,119,65,1],[120,4,120,81,1],[121,4,121,77,1],[122,4,122,104,1],[123,4,123,41,1],[124,4,124,47,1],[125,4,125,72,1],[126,4,126,45,1],[127,4,127,52,1],[128,4,128,115,1],[129,4,129,92,1],[131,4,131,63,1],[132,4,132,84,1],[133,4,136,49,1],[138,4,138,40,1],[140,4,140,59,1],[141,4,141,40,1],[142,4,142,56,1],[144,4,144,44,1],[146,4,149,42,1],[150,4,150,90,1],[151,4,151,83,1],[152,4,152,68,1],[154,4,154,22,1],[158,4,158,58,1],[161,4,168,24,1],[170,4,170,25,1],[174,4,174,79,1],[175,4,175,62,1],[176,4,176,56,1],[177,4,177,78,1],[178,4,178,69,1],[179,4,179,80,1],[180,4,180,65,1],[181,4,181,67,1],[182,4,182,73,1],[183,4,183,95,1],[184,4,184,78,1],[185,4,185,61,1],[186,4,186,52,1],[187,4,187,61,1],[188,4,188,92,1],[189,4,189,60,1],[190,4,190,78,1],[191,4,191,69,1],[192,4,192,52,1],[194,4,194,122,1],[195,4,195,52,1],[196,4,196,49,1],[197,4,197,98,1],[199,4,199,60,1],[201,4,201,109,1],[203,4,203,85,1],[204,4,209,97,1],[210,4,210,65,1],[211,4,211,62,1],[212,4,212,46,1],[213,4,213,67,1],[214,4,214,82,1],[215,4,215,77,1],[217,4,217,71,1],[218,4,218,70,1],[219,4,219,37,1],[220,4,225,47,1],[226,4,226,66,1],[228,4,228,23,1],[232,4,232,76,1],[233,4,233,52,1],[234,4,234,52,1],[235,4,235,59,1],[237,4,237,33,1],[238,4,238,66,1],[239,4,239,56,1],[240,4,240,109,1],[241,4,241,22,1],[245,4,245,52,1],[247,4,247,55,1],[248,4,248,68,1],[249,4,249,57,1],[251,4,251,66,1],[252,4,254,51,1],[255,4,257,38,1],[258,4,258,61,1],[260,4,260,22,1],[264,4,264,54,1],[266,4,266,52,1],[267,4,267,52,1],[269,4,269,33,1],[270,4,270,66,1],[272,4,272,98,1],[274,4,274,23,1],[278,4,278,60,1],[280,4,280,65,1],[281,4,281,57,1],[282,4,282,63,1],[283,4,283,63,1],[284,4,284,57,1],[285,4,285,57,1],[287,4,293,36,1],[294,4,294,65,1],[295,4,295,59,1],[296,4,296,58,1],[297,4,297,58,1],[298,4,298,34,1],[299,4,299,52,1],[301,4,301,26,1],[305,4,305,56,1],[306,4,306,53,1],[308,4,308,24,1],[312,4,312,85,1],[313,4,313,77,1],[314,4,314,75,1],[315,4,315,59,1],[316,4,316,58,1],[317,4,317,56,1],[318,4,318,54,1],[320,4,320,72,1],[321,4,321,74,1],[323,4,323,72,1],[324,4,325,69,1],[326,4,328,53,1],[329,4,329,40,1],[330,4,330,71,1],[331,4,331,49,1],[332,4,333,37,1],[335,4,335,72,1],[336,4,336,91,1],[338,4,338,25,1],[342,4,342,52,1],[344,4,344,65,1],[346,4,346,22,1],[350,4,350,54,1],[352,4,359,34,1],[361,4,361,23,1],[365,4,365,52,1],[366,4,366,65,1],[367,4,367,22,1],[371,4,371,50,1],[372,4,372,63,1],[373,4,373,21,1],[377,4,377,48,1],[378,4,378,61,1],[379,4,379,20,1],[383,4,383,50,1],[384,4,384,63,1],[385,4,385,21,1],[389,4,389,53,1],[390,4,390,69,1],[391,4,391,24,1],[395,4,395,54,1],[396,4,396,73,1],[397,4,397,71,1],[399,4,399,66,1],[400,4,400,76,1],[401,4,401,107,1],[402,4,402,23,1],[406,4,406,48,1],[407,4,407,59,1],[408,4,408,20,1],[412,4,412,48,1],[413,4,413,61,1],[414,4,414,20,1],[418,4,418,87,1],[419,4,419,46,1],[420,4,420,25,1],[424,4,424,41,1],[425,4,425,54,1],[426,4,426,50,1],[427,4,427,48,1],[428,4,428,39,1],[429,4,429,48,1],[430,4,430,49,1],[431,4,431,56,1],[432,4,432,58,1],[433,4,433,64,1],[434,4,434,57,1],[435,4,435,57,1],[436,4,436,50,1],[437,4,437,52,1],[438,4,438,59,1],[439,4,439,58,1],[440,4,440,52,1],[441,4,441,52,1],[443,4,443,41,1],[444,4,444,91,1],[445,4,445,62,1],[446,4,446,71,1],[447,4,447,43,1],[449,4,449,119,1],[450,4,450,57,1],[451,4,451,51,1],[452,4,452,49,1],[453,4,453,56,1],[454,4,462,18,1],[463,4,463,67,1],[464,4,464,74,1],[465,4,465,52,1],[466,4,466,56,1],[467,4,467,66,1],[468,4,468,63,1],[469,4,469,78,1],[471,4,471,17,1],[475,4,475,43,1],[476,4,476,54,1],[477,4,477,50,1],[478,4,478,48,1],[479,4,479,39,1],[480,4,480,48,1],[481,4,481,49,1],[482,4,482,56,1],[483,4,483,58,1],[484,4,484,64,1],[486,4,486,42,1],[487,4,487,79,1],[488,4,488,62,1],[490,4,490,105,1],[491,4,491,57,1],[492,4,492,51,1],[493,4,493,49,1],[494,4,494,56,1],[495,4,503,45,1],[504,4,504,78,1],[506,4,506,18,1],[510,4,510,51,1],[511,4,511,56,1],[512,4,512,52,1],[513,4,513,50,1],[514,4,514,46,1],[515,4,515,52,1],[516,4,516,59,1],[517,4,517,50,1],[518,4,518,59,1],[519,4,519,53,1],[520,4,520,54,1],[522,4,522,92,1],[523,4,523,56,1],[524,4,524,66,1],[525,4,525,57,1],[526,4,526,50,1],[527,4,527,42,1],[528,4,528,69,1],[529,4,529,55,1],[530,4,530,46,1],[531,4,531,71,1],[532,4,532,56,1],[533,4,533,18,1],[537,4,537,58,1],[538,4,538,48,1],[540,4,540,79,1],[541,4,541,64,1],[543,4,543,25,1],[547,4,547,51,1],[548,4,548,56,1],[549,4,549,54,1],[550,4,550,50,1],[551,4,551,59,1],[552,4,552,52,1],[553,4,553,54,1],[555,4,555,45,1],[556,4,556,96,1],[557,4,557,133,1],[558,4,558,71,1],[559,4,559,56,1],[560,4,560,66,1],[561,4,561,59,1],[563,4,563,18,1],[567,4,567,55,1],[568,4,568,51,1],[569,4,569,20,1],[573,4,573,45,1],[574,4,574,26,1],[575,4,575,15,1]]);
+    </script>
+  </body>
+</html>

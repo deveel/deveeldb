@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\identifiernode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// This is a simple identifier within a SQL grammar.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// This is the simplest expression of an identifier that has
+	/// no child nor parent identifier (like &lt;see cref=&quot;ObjectNameNode&quot;/&gt;).
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class IdentifierNode : SqlNode {
+		internal IdentifierNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the textual content of the identifier.
+		/// &lt;/summary&gt;
+		public string Text { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override void OnNodeInit() {
+			var text = Tokens.First().Text;
+			if (text[0] == &#39;\&quot;&#39; &amp;&amp;
+			    text[text.Length - 1] == &#39;\&quot;&#39;)
+				text = text.Substring(1, text.Length - 2);
+
+			Text = text;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[43,5,43,47,0],[30,3,30,28,1],[31,3,31,4,1],[40,4,40,35,1],[41,4,42,38,1],[45,4,45,16,1],[46,3,46,4,1]]);
+    </script>
+  </body>
+</html>

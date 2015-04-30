@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.statements\sqlaltertablestatement.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public sealed class SqlAlterTableStatement : SqlStatement {
+		public SqlAlterTableStatement(ObjectName tableName) 
+			: this(tableName, (IAlterTableAction) null) {
+		}
+
+		public SqlAlterTableStatement(ObjectName tableName, IAlterTableAction action)
+			: this(tableName, new[] {action}) {
+		}
+
+		public SqlAlterTableStatement(ObjectName tableName, IEnumerable&lt;IAlterTableAction&gt; actions) {
+			if (tableName == null)
+				throw new ArgumentNullException(&quot;tableName&quot;);
+
+			TableName = tableName;
+			Actions = new List&lt;IAlterTableAction&gt;();
+
+			if (actions != null) {
+				foreach (var action in actions) {
+					Actions.Add(action);
+				}
+			}
+		}
+
+		public override StatementType StatementType {
+			get { return StatementType.AlterTable; }
+		}
+
+		public ObjectName TableName { get; private set; }
+
+		public IList&lt;IAlterTableAction&gt; Actions { get; private set; } 
+
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+			throw new NotImplementedException();
+		}
+
+		#region AlterTablePreparedStatement
+
+		[Serializable]
+		class PreparedAlterTableStatement : SqlPreparedStatement {
+			public override ITable Evaluate(IQueryContext context) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region Keys
+
+		internal static class Keys {
+			public const string TableName = &quot;TableName&quot;;
+			public const string Actions = &quot;Actions&quot;;
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,27,47,0],[28,3,28,4,0],[30,3,31,37,0],[32,3,32,4,0],[36,5,36,50,0],[49,10,49,42,0],[57,4,57,40,0],[65,5,65,41,0],[34,3,34,94,1],[35,4,35,26,1],[38,4,38,26,1],[39,4,39,44,1],[41,4,41,24,1],[42,28,42,35,1],[42,14,42,24,1],[43,6,43,26,1],[42,25,42,27,1],[46,3,46,4,1]]);
+    </script>
+  </body>
+</html>

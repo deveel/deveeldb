@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\joinedtable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Index;
+
+namespace Deveel.Data.Sql {
+	[Serializable]
+	abstract class JoinedTable : Table {
+		private ITable[] referenceList;
+		private ColumnIndex[] indexes;
+
+		// These two arrays are lookup tables created in the constructor.  They allow
+		// for quick resolution of where a given column should be &#39;routed&#39; to in
+		// the ancestors.
+
+		private int[] columnTable;
+		private int[] columnFilter;
+
+		private TableInfo vtTableInfo;
+
+		private byte rootsLocked;
+
+		public JoinedTable(IEnumerable&lt;ITable&gt; tables) {
+			SortColumn = -1;
+			Init(tables);
+		}
+
+		public JoinedTable(ITable table)
+			: this(new[] {table}) {
+		}
+
+		protected ColumnIndex[] ColumnIndices {
+			get { return indexes; }
+		}
+
+		protected int[] ColumnTable {
+			get { return columnTable; }
+		}
+
+		protected int[] ColumnFilter {
+			get { return columnFilter; }
+		}
+
+		protected virtual void Init(IEnumerable&lt;ITable&gt; tables) {
+			var tablesArray = tables.ToArray();
+			referenceList = tablesArray;
+
+			int colCount = ColumnCount;
+			indexes = new ColumnIndex[colCount];
+
+			vtTableInfo = new TableInfo(new ObjectName(&quot;#VIRTUAL TABLE#&quot;));
+
+			// Generate look up tables for column_table and column_filter information
+
+			columnTable = new int[colCount];
+			columnFilter = new int[colCount];
+
+			int index = 0;
+			for (int i = 0; i &lt; referenceList.Length; ++i) {
+				var curTable = referenceList[i];
+				var curTableInfo = curTable.TableInfo;
+				int refColCount = curTable.ColumnCount();
+
+				// For each column
+				for (int n = 0; n &lt; refColCount; ++n) {
+					columnFilter[index] = n;
+					columnTable[index] = i;
+					++index;
+
+					// Add this column to the data table info of this table.
+					var columnInfo = curTableInfo[n];
+					var newColumnInfo = new ColumnInfo(columnInfo.ColumnName, columnInfo.ColumnType) {
+						DefaultExpression = columnInfo.DefaultExpression,
+						IsNotNull = columnInfo.IsNotNull,
+						IndexType = columnInfo.IndexType
+					};
+
+					vtTableInfo.AddColumnSafe(newColumnInfo);
+				}
+			}
+
+			vtTableInfo = vtTableInfo.AsReadOnly();
+		}
+
+		protected override int ColumnCount {
+			get {
+				int columnCountSum = 0;
+				for (int i = 0; i &lt; referenceList.Length; ++i) {
+					columnCountSum += referenceList[i].ColumnCount();
+				}
+				return columnCountSum;
+			}
+		}
+
+		public override IDatabaseContext DatabaseContext {
+			get { return referenceList[0].DatabaseContext; }
+		}
+
+		public override TableInfo TableInfo {
+			get { return vtTableInfo; }
+		}
+
+		protected ITable[] ReferenceTables {
+			get { return referenceList; }
+		}
+
+		public int SortColumn { get; set; }
+
+		public override void LockRoot(int lockKey) {
+			// For each table, recurse.
+			rootsLocked++;
+			for (int i = 0; i &lt; referenceList.Length; ++i) {
+				referenceList[i].LockRoot(lockKey);
+			}
+		}
+
+		public override void UnlockRoot(int lockKey) {
+			// For each table, recurse.
+			rootsLocked--;
+			for (int i = 0; i &lt; referenceList.Length; ++i) {
+				referenceList[i].UnlockRoot(lockKey);
+			}
+		}
+
+		private IList&lt;int&gt; CalculateRowReferenceList() {
+			int size = RowCount;
+			List&lt;int&gt; allList = new List&lt;int&gt;(size);
+			for (int i = 0; i &lt; size; ++i) {
+				allList.Add(i);
+			}
+			return allList;
+		}
+
+		protected override int IndexOfColumn(ObjectName columnName) {
+			int colIndex = 0;
+			for (int i = 0; i &lt; referenceList.Length; ++i) {
+				int col = referenceList[i].FindColumn(columnName);
+				if (col != -1)
+					return col + colIndex;
+
+				colIndex += referenceList[i].ColumnCount();
+			}
+			return -1;
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var allList = new List&lt;int&gt;();
+			int size = RowCount;
+			for (int i = 0; i &lt; size; ++i) {
+				allList.Add(i);
+			}
+
+			return GetRawTableInfo(rootInfo, allList);
+		}
+
+		private RawTableInfo GetRawTableInfo(RawTableInfo info, IEnumerable&lt;int&gt; rows) {
+			if (this is IRootTable) {
+				info.Add((IRootTable)this, CalculateRowReferenceList());
+			} else {
+				for (int i = 0; i &lt; referenceList.Length; ++i) {
+
+					IEnumerable&lt;int&gt; newRowSet = new List&lt;int&gt;(rows);
+
+					// Resolve the rows into the parents indices.
+					newRowSet = ResolveRowsForTable(newRowSet, i);
+
+					var table = referenceList[i];
+					if (table is IRootTable) {
+						info.Add((IRootTable)table, newRowSet.ToArray());
+					} else if (table is JoinedTable) {
+						((JoinedTable)table).GetRawTableInfo(info, newRowSet);
+					}
+				}
+			}
+
+			return info;
+		}
+
+		protected override ObjectName GetResolvedColumnName(int column) {
+			var parentTable = referenceList[columnTable[column]];
+			return parentTable.GetResolvedColumnName(columnFilter[column]);
+		}
+
+		public override DataObject GetValue(long rowNumber, int columnOffset) {
+			int tableNum = columnTable[columnOffset];
+			var parentTable = referenceList[tableNum];
+			rowNumber = ResolveRowForTable((int)rowNumber, tableNum);
+			return parentTable.GetValue(rowNumber, columnFilter[columnOffset]);
+		}
+
+		public override IEnumerator&lt;Row&gt; GetEnumerator() {
+			return new SimpleRowEnumerator(this);
+		}
+
+		protected override ColumnIndex GetIndex(int column, int originalColumn, ITable table) {
+			// First check if the given SelectableScheme is in the column_scheme array
+			var scheme = indexes[column];
+			if (scheme != null) {
+				if (table == this)
+					return scheme;
+
+				return scheme.GetSubset(table, originalColumn);
+			}
+
+			// If it isn&#39;t then we need to calculate it
+			ColumnIndex index;
+
+			// Optimization: The table may be naturally ordered by a column.  If it
+			// is we don&#39;t try to generate an ordered set.
+			if (SortColumn != -1 &amp;&amp;
+				SortColumn == column) {
+				var isop = new InsertSearchIndex(this, column, CalculateRowReferenceList());
+				isop.RecordUid = false;
+				index = isop;
+				indexes[column] = index;
+				if (table != this) {
+					index = index.GetSubset(table, originalColumn);
+				}
+
+			} else {
+				// Otherwise we must generate the ordered set from the information in
+				// a parent index.
+				var parentTable = referenceList[columnTable[column]];
+				index = parentTable.GetIndex(columnFilter[column], originalColumn, table);
+				if (table == this) {
+					indexes[column] = index;
+				}
+			}
+
+			return index;
+		}
+
+		protected override IEnumerable&lt;int&gt; ResolveRows(int column, IEnumerable&lt;int&gt; rowSet, ITable ancestor) {
+			if (ancestor == this)
+				return new int[0];
+
+			int tableNum = columnTable[column];
+			var parentTable = referenceList[tableNum];
+
+			// Resolve the rows into the parents indices
+			var rows = ResolveRowsForTable(rowSet, tableNum);
+
+			return parentTable.ResolveRows(columnFilter[column], rows, ancestor);
+		}
+
+		protected abstract IEnumerable&lt;int&gt; ResolveRowsForTable(IEnumerable&lt;int&gt; rowSet, int tableNum);
+
+		protected int ResolveRowForTable(int rowNumber, int tableNum) {
+			return ResolveRowsForTable(new[] {rowNumber}, tableNum).First();
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[51,10,51,25,0],[55,10,55,29,0],[59,10,59,30,0],[114,10,114,50,0],[129,4,129,18,0],[130,9,130,19,0],[131,5,131,40,0],[130,46,130,49,0],[130,20,130,44,0],[133,3,133,4,0],[137,4,137,18,0],[138,9,138,19,0],[139,5,139,42,0],[138,46,138,49,0],[138,20,138,44,0],[141,3,141,4,0],[144,4,144,24,0],[145,4,145,44,0],[146,9,146,19,0],[147,5,147,20,0],[146,30,146,33,0],[146,20,146,28,0],[149,4,149,19,0],[161,4,161,14,0],[165,4,165,34,0],[166,4,166,24,0],[167,9,167,19,0],[168,5,168,20,0],[167,30,167,33,0],[167,20,167,28,0],[171,4,171,46,0],[175,4,175,27,0],[176,5,176,61,0],[178,10,178,20,0],[180,6,180,55,0],[183,6,183,52,0],[185,6,185,35,0],[186,6,186,30,0],[187,7,187,56,0],[188,13,188,38,0],[189,7,189,61,0],[178,47,178,50,0],[178,21,178,45,0],[194,4,194,16,0],[198,4,198,57,0],[199,4,199,67,0],[220,5,220,52,0],[230,5,230,81,0],[231,5,231,28,0],[232,5,232,18,0],[233,5,233,29,0],[234,5,234,23,0],[235,6,235,53,0],[253,5,253,23,0],[41,3,41,49,1],[42,4,42,20,1],[43,4,43,17,1],[44,3,44,4,1],[46,3,47,25,1],[48,3,48,4,1],[63,4,63,39,1],[64,4,64,32,1],[66,4,66,31,1],[67,4,67,40,1],[69,4,69,67,1],[73,4,73,36,1],[74,4,74,37,1],[76,4,76,18,1],[77,9,77,19,1],[78,5,78,37,1],[79,5,79,43,1],[80,5,80,46,1],[83,10,83,20,1],[84,6,84,30,1],[85,6,85,29,1],[86,6,86,14,1],[89,6,89,39,1],[90,6,94,8,1],[96,6,96,47,1],[83,38,83,41,1],[83,21,83,36,1],[77,46,77,49,1],[77,20,77,44,1],[100,4,100,43,1],[101,3,101,4,1],[105,5,105,28,1],[106,10,106,20,1],[107,6,107,55,1],[106,47,106,50,1],[106,21,106,45,1],[109,5,109,27,1],[118,10,118,29,1],[122,10,122,31,1],[153,4,153,21,1],[154,9,154,19,1],[155,5,155,55,1],[156,5,156,19,1],[157,6,157,28,1],[159,5,159,48,1],[154,46,154,49,1],[154,20,154,44,1],[203,4,203,45,1],[204,4,204,46,1],[205,4,205,61,1],[206,4,206,71,1],[210,4,210,41,1],[215,4,215,33,1],[216,4,216,23,1],[217,5,217,23,1],[218,6,218,20,1],[228,4,229,26,1],[241,5,241,58,1],[242,5,242,79,1],[243,5,243,23,1],[244,6,244,30,1],[248,4,248,17,1],[252,4,252,25,1],[255,4,255,39,1],[256,4,256,46,1],[259,4,259,53,1],[261,4,261,73,1],[267,4,267,68,1]]);
+    </script>
+  </body>
+</html>

@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql {
@@ -42,6 +43,10 @@ namespace Deveel.Data.Sql {
 
 		DbObjectType IDbObject.ObjectType {
 			get { return DbObjectType.View; }
+		}
+
+		public static View Deserialize(ISqlBinary binary) {
+			throw new NotImplementedException();
 		}
 	}
 }

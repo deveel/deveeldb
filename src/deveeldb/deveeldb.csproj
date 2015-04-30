@@ -157,6 +157,7 @@
     <Compile Include="Deveel.Data.DbSystem\SequenceManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\SessionQueryContext.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data.DbSystem\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemContext.cs" />
@@ -267,6 +268,7 @@
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />
@@ -460,7 +462,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\AddConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlAlterTableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlCreateTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
@@ -678,6 +680,7 @@
     <Compile Include="Deveel.Data.Types\DateType.cs" />
     <Compile Include="Deveel.Data.Types\GeometryType.cs" />
     <Compile Include="Deveel.Data.Types\IntervalType.cs" />
+    <Compile Include="Deveel.Data.Types\ISizeableType.cs" />
     <Compile Include="Deveel.Data.Types\IUserTypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Types\NumericType.cs" />
@@ -695,6 +698,7 @@
     <Compile Include="Deveel.Data.Types\UserTypeManager.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeMember.cs" />
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
+    <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\StreamTokenizer.cs" />
     <Compile Include="Deveel.Data.Xml\IXmlAttribute.cs" />

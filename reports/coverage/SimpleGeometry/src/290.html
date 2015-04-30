@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.store\datastorageexception.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Diagnostics;
+
+namespace Deveel.Data.Store {
+	[Serializable]
+	public class DataStorageException : ErrorException {
+		public DataStorageException(int errorCode) 
+			: this(errorCode, null) {
+		}
+
+		public DataStorageException(int errorCode, string message) 
+			: this(errorCode, message, null) {
+		}
+
+		public DataStorageException() 
+			: this(null) {
+		}
+
+		public DataStorageException(string message) 
+			: this(message, null) {
+		}
+
+		public DataStorageException(string message, Exception innerException) 
+			: this(StorageErrorCodes.Unknown, message, innerException) {
+		}
+
+		public DataStorageException(int errorCode, string message, Exception innerException) 
+			: base(EventClasses.Storage, errorCode, message, innerException) {
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[25,3,26,27,0],[27,3,27,4,0],[29,3,30,36,0],[31,3,31,4,0],[33,3,34,16,0],[35,3,35,4,0],[37,3,38,25,0],[39,3,39,4,0],[41,3,42,62,0],[43,3,43,4,0],[45,3,46,68,0],[47,3,47,4,0]]);
+    </script>
+  </body>
+</html>

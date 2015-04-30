@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\evaluatecontext.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
+
+namespace Deveel.Data.Sql.Expressions {
+	/// &lt;summary&gt;
+	/// Encapsulates the elements needed to evaluate an &lt;see cref=&quot;SqlExpression&quot;/&gt;
+	/// &lt;/summary&gt;
+	public sealed class EvaluateContext {
+		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver) 
+			: this(queryContext, variableResolver, null) {
+		}
+
+		public EvaluateContext(IQueryContext queryContext, IVariableResolver variableResolver, IGroupResolver groupResolver) {
+			GroupResolver = groupResolver;
+			VariableResolver = variableResolver;
+			QueryContext = queryContext;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets an object used to resolve variables from within the expression.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// A variable can be resolved against an encapsulated context (for example a 
+		/// stored procedure or a statement within the procedure), or against the
+		/// global context of the system (for example a static variable of the database
+		/// or a session variable).
+		/// &lt;/remarks&gt;
+		public IVariableResolver VariableResolver { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the object that aggregate functions will use to resolve variable groups 
+		/// &lt;/summary&gt;
+		public IGroupResolver GroupResolver { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the query context in which an expression is evaluated.
+		/// &lt;/summary&gt;
+		public IQueryContext QueryContext { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the context of the system the evaluation happens.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISystemContext&quot;/&gt;
+		public ISystemContext SystemContext {
+			get { return DatabaseContext.SystemContext; }
+		}
+
+		public IDatabaseContext DatabaseContext {
+			get { return QueryContext.DatabaseContext; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the current user of the context.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;User&quot;/&gt;
+		/// &lt;seealso cref=&quot;Security.User&quot;/&gt;
+		public User User {
+			get { return QueryContext.User(); }
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[63,10,63,47,0],[76,10,76,37,0],[27,3,28,48,1],[29,3,29,4,1],[31,3,31,119,1],[32,4,32,34,1],[33,4,33,40,1],[34,4,34,32,1],[35,3,35,4,1],[67,10,67,46,1]]);
+    </script>
+  </body>
+</html>

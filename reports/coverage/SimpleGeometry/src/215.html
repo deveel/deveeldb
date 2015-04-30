@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data\errorexception.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Diagnostics;
+
+namespace Deveel.Data {
+	[Serializable]
+	public class ErrorException : ApplicationException {
+		public ErrorException(int eventClass, int errorCode)
+			: this(eventClass, errorCode, null) {
+		}
+
+		public ErrorException(int eventClass, int errorCode, string message)
+			: this(eventClass, errorCode, message, null) {
+		}
+
+		public ErrorException(int eventClass, int errorCode, string message, Exception innerException)
+			: base(message, innerException) {
+			ErrorCode = errorCode;
+			EventClass = eventClass;
+		}
+
+		public int EventClass { get; private set; }
+
+		public int ErrorCode { get; private set; }
+
+		protected virtual ErrorLevel ErrorLevel {
+			get { return ErrorLevel.Error; }
+		}
+
+		public ErrorEvent AsEvent(string databaseName, string userName) {
+			IDictionary&lt;string, object&gt; data = new Dictionary&lt;string, object&gt;();
+			foreach (DictionaryEntry entry in Data) {
+				data[entry.Key.ToString()] = entry.Value;
+			}
+
+			data[&quot;StackTrace&quot;] = StackTrace;
+			data[&quot;Source&quot;] = Source;
+
+			return new ErrorEvent(databaseName, userName, EventClass, ErrorCode, ErrorLevel.Error, Message, data);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,3,28,39,0],[29,3,29,4,0],[31,3,32,48,0],[33,3,33,4,0],[35,3,36,35,0],[37,4,37,26,0],[38,4,38,28,0],[39,3,39,4,0],[46,10,46,34,0],[50,4,50,72,0],[51,38,51,42,0],[51,13,51,34,0],[52,5,52,46,0],[51,35,51,37,0],[55,4,55,36,0],[56,4,56,28,0],[58,4,58,106,0]]);
+    </script>
+  </body>
+</html>

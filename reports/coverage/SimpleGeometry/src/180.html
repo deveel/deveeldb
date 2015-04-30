@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\createfunctionsnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	/// &lt;summary&gt;
+	/// The node for merging the child node with a set of new function 
+	/// columns over the entire result.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// For example, we may want to add an expression &lt;c&gt;a + 10&lt;/c&gt; or 
+	/// &lt;c&gt;coalesce(a, b, 1)&lt;/c&gt;.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	class CreateFunctionsNode : SingleQueryPlanNode {
+		public CreateFunctionsNode(IQueryPlanNode child, SqlExpression[] functionList, string[] nameList)
+			: base(child) {
+			Functions = functionList;
+			Names = nameList;
+		}
+
+		/// &lt;summary&gt;
+		/// The list of functions to create.
+		/// &lt;/summary&gt;
+		public SqlExpression[] Functions { get; private set; }
+
+		/// &lt;summary&gt;
+		/// The list of names to give each function table.
+		/// &lt;/summary&gt;
+		public string[] Names { get; private set; }
+
+
+		public override ITable Evaluate(IQueryContext context) {
+			var childTable = Child.Evaluate(context);
+			var funTable = new FunctionTable(childTable, Functions, Names, context);
+			return funTable.MergeWith(null);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[35,3,36,17,0],[37,4,37,29,0],[38,4,38,21,0],[39,3,39,4,0],[53,4,53,45,0],[54,4,54,76,0],[55,4,55,36,0]]);
+    </script>
+  </body>
+</html>

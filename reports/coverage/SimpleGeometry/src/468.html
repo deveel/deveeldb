@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\expressionbinaryserializer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.IO;
+using System.Text;
+
+namespace Deveel.Data.Sql.Expressions {
+	class ExpressionBinarySerializer : SqlExpressionVisitor {
+		private BinaryWriter writer;
+
+		public ExpressionBinarySerializer(Stream outputStream) {
+			writer = new BinaryWriter(outputStream, Encoding.Unicode);
+		}
+
+		public override SqlExpression Visit(SqlExpression expression) {
+			if (expression != null)
+				writer.Write((byte) expression.ExpressionType);
+
+			return base.Visit(expression);
+		}
+
+		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
+			var functionName = expression.FunctioName.FullName;
+			var argc = expression.Arguments != null ? expression.Arguments.Length : 0;
+
+			writer.Write(functionName);
+			writer.Write(argc);
+
+			return base.VisitFunctionCall(expression);
+		}
+
+		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+			var refName = reference.ReferenceName.FullName;
+			writer.Write(refName);
+
+			return base.VisitReference(reference);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[9,3,9,57,1],[10,4,10,62,1],[11,3,11,4,1],[14,4,14,27,1],[15,5,15,52,1],[17,4,17,34,1],[21,4,21,55,1],[22,4,22,78,1],[24,4,24,31,1],[25,4,25,23,1],[27,4,27,46,1],[31,4,31,51,1],[32,4,32,26,1],[34,4,34,42,1]]);
+    </script>
+  </body>
+</html>

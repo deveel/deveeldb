@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.types\datetype.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+
+namespace Deveel.Data.Types {
+	[Serializable]
+	public sealed class DateType : DataType {
+		public DateType(SqlTypeCode sqlType) 
+			: base(&quot;DATE&quot;, sqlType) {
+			AssertDateType(sqlType);
+		}
+
+		public static readonly string[] DateFormatSql = {
+			&quot;yyyy-MM-dd&quot;,
+			&quot;yyyy MM dd&quot;
+		};
+
+		public static readonly string[] TimeFormatSql = {
+			&quot;HH:mm:ss.fff z&quot;,
+			&quot;HH:mm:ss.fff zz&quot;,
+			&quot;HH:mm:ss.fff zzz&quot;,
+			&quot;HH:mm:ss.fff&quot;,
+			&quot;HH:mm:ss z&quot;,
+			&quot;HH:mm:ss zz&quot;,
+			&quot;HH:mm:ss zzz&quot;,
+			&quot;HH:mm:ss&quot;
+		};
+
+		public static readonly string[] TsFormatSql = {
+			&quot;yyyy-MM-dd HH:mm:ss.fff&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff z&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff zz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss.fff zzz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss z&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss zz&quot;,
+			&quot;yyyy-MM-dd HH:mm:ss zzz&quot;,
+
+			&quot;yyyy-MM-ddTHH:mm:ss.fff&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff z&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff zz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss.fff zzz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss z&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss zz&quot;,
+			&quot;yyyy-MM-ddTHH:mm:ss zzz&quot;,
+		};
+
+
+		private static void AssertDateType(SqlTypeCode sqlType) {
+			if (!IsDateType(sqlType))
+				throw new ArgumentException(String.Format(&quot;The SQL type {0} is not a valid DATE&quot;, sqlType), &quot;sqlType&quot;);
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as DataType;
+			if (other == null)
+				return false;
+
+			return SqlType == other.SqlType;
+		}
+
+		public override int GetHashCode() {
+			return SqlType.GetHashCode();
+		}
+
+		public override bool CanCastTo(DataType type) {
+			return base.CanCastTo(type);
+		}
+
+		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			var writer = new BinaryWriter(stream);
+
+			if (obj is SqlNull) {
+				writer.Write((byte) 0);
+			} else {
+				var date = (SqlDateTime) obj;
+
+				if (date.IsNull) {
+					writer.Write((byte)0);
+				} else {
+					var bytes = date.ToByteArray(true);
+
+					writer.Write((byte)1);
+					writer.Write(bytes.Length);
+					writer.Write(bytes);
+				}
+			}
+		}
+
+		public override int SizeOf(ISqlObject obj) {
+			if (obj is SqlNull)
+				return 1;
+
+			if (!(obj is SqlDateTime))
+				throw new ArgumentException(String.Format(&quot;Cannot determine the size of an object of type &#39;{0}&#39;&quot;, obj.GetType()));
+
+			if (obj.IsNull)
+				return 1;
+
+			// Type + Length + Bytes
+			return 1 + 4 + 13;
+		}
+
+		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+			var reader = new BinaryReader(stream);
+
+			var type = reader.ReadByte();
+			if (type == 0)
+				return SqlDateTime.Null;
+
+			var length = reader.ReadInt32();
+			var bytes = reader.ReadBytes(length);
+			return new SqlDateTime(bytes);
+		}
+
+		internal static bool IsDateType(SqlTypeCode sqlType) {
+			return sqlType == SqlTypeCode.Date ||
+			       sqlType == SqlTypeCode.Time ||
+			       sqlType == SqlTypeCode.TimeStamp;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[70,5,70,108,0],[74,4,74,32,0],[75,4,75,22,0],[76,5,76,18,0],[78,4,78,36,0],[82,4,82,33,0],[86,4,86,32,0],[93,5,93,28,0],[98,6,98,28,0],[111,5,111,14,0],[114,5,114,119,0],[117,5,117,14,0],[124,4,124,42,0],[126,4,126,33,0],[127,4,127,18,0],[128,5,128,29,0],[130,4,130,36,0],[131,4,131,41,0],[132,4,132,34,0],[26,3,27,27,1],[28,4,28,28,1],[29,3,29,4,1],[69,4,69,29,1],[71,3,71,4,1],[90,4,90,42,1],[92,4,92,23,1],[95,5,95,34,1],[97,5,97,21,1],[100,6,100,41,1],[102,6,102,28,1],[103,6,103,33,1],[104,6,104,26,1],[107,3,107,4,1],[110,4,110,23,1],[113,4,113,30,1],[116,4,116,19,1],[120,4,120,22,1],[136,4,138,44,1],[31,3,34,5,1],[36,3,45,5,1],[47,3,65,5,1]]);
+    </script>
+  </body>
+</html>

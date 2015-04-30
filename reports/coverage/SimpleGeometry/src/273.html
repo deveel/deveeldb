@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.objects\sqlstringextensions.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Text;
+
+namespace Deveel.Data.Sql.Objects {
+	public static class SqlStringExtensions {
+		// Statics for the tokens.
+		private const char ZeroOrMoreChars = &#39;%&#39;;
+		private const char OneChar = &#39;_&#39;;
+
+		private static bool IsWildCard(char ch) {
+			return (ch == OneChar || ch == ZeroOrMoreChars);
+		}
+
+		public static SqlBoolean PatternMatch(this ISqlString pattern, string expression, char escapeChar) {
+			throw new NotImplementedException();
+		}
+
+		public static SqlString Substring(this ISqlString source, int offset) {
+			return Substring(source, offset, (int)source.Length - offset);
+		}
+
+		public static SqlString Substring(this ISqlString source, int offset, int count) {
+			if (source == null || source.IsNull)
+				return SqlString.Null;
+
+			var en = source.GetEnumerator();
+			var sb = new StringBuilder(count);
+
+			int index = -1;
+			while (en.MoveNext()) {
+				if (++index &lt; offset)
+					continue;
+
+				sb.Append(en.Current);
+
+				if (index == count - 1)
+					break;
+			}
+
+			var chars = new char[count];
+			sb.CopyTo(0, chars, 0, count);
+			return new SqlString(chars);
+		}
+
+		public static SqlNumber IndexOf(this ISqlString pattern, SqlString expression) {
+			// TODO: Implement a version of the Boyer-Moore algorithm over a SQL String
+			throw new NotImplementedException();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,4,27,52,0],[31,4,31,40,0],[35,4,35,66,0],[39,4,39,40,0],[40,5,40,27,0],[42,4,42,36,0],[43,4,43,38,0],[45,4,45,19,0],[47,5,47,26,0],[50,5,50,27,0],[52,5,52,28,0],[46,4,46,25,0],[56,4,56,32,0],[57,4,57,34,0],[58,4,58,32,0],[63,4,63,40,0]]);
+    </script>
+  </body>
+</html>

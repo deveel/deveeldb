@@ -20,6 +20,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public DataType ColumnType { get; private set; }
 
+		public bool IsIdentity { get; set; }
+
 		public SqlExpression DefaultExpression { get; set; }
 
 		public bool HasDefaultExpression {

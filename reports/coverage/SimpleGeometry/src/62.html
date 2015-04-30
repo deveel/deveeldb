@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\database.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+
+using Deveel.Data.Diagnostics;
+using Deveel.Data.Protocol;
+using Deveel.Data.Security;
+using Deveel.Data.Sql;
+using Deveel.Data.Transactions;
+
+namespace Deveel.Data.DbSystem {
+	public sealed class Database : IDatabase, IDatabaseEventSource {
+		public Database(IDatabaseContext context) {
+			Context = context;
+
+			DiscoverDataVersion();
+
+			TableComposite = new TableSourceComposite(this);
+
+			ActiveSessions = new ActiveSessionList(this);
+
+			// Create the single row table
+			var t = new TemporaryTable(context, &quot;SINGLE_ROW_TABLE&quot;, new ColumnInfo[0]);
+			t.NewRow();
+			SingleRowTable = t;
+
+			EventRegistry = new DatabaseEventRegistry(this);
+			OpenTransactions = new TransactionCollection(this);
+		}
+
+		~Database() {
+			Dispose(false);
+		}
+
+		IDatabase ITransactionContext.Database {
+			get { return this; }
+		}
+
+		public TransactionCollection OpenTransactions { get; private set; }
+
+		string IDatabaseEventSource.DatabaseName {
+			get { return Context.DatabaseName(); }
+		}
+
+		ITransaction ITransactionContext.CreateTransaction(TransactionIsolation isolation) {
+			return CreateTransaction(isolation);
+		}
+
+		private void DiscoverDataVersion() {
+			var dataVerion = Attribute.GetCustomAttribute(typeof (Database).Assembly, typeof (DataVersionAttribute))
+				as DataVersionAttribute;
+			if (dataVerion != null)
+				Version = dataVerion.Version;
+		}
+
+		internal ITransaction DoCreateTransaction(TransactionIsolation isolation) {
+			lock (this) {
+				ITransaction transaction;
+
+				try {
+					transaction = TableComposite.CreateTransaction(isolation);
+				} catch (DatabaseSystemException) {
+					throw;
+				} catch (Exception ex) {
+					throw new DatabaseSystemException(&quot;Unable to create a transaction.&quot;, ex);
+				}
+
+				return transaction;
+			}
+		}
+
+		private ITransaction CreateTransaction(TransactionIsolation isolation) {
+			if (!IsOpen)
+				throw new InvalidOperationException(String.Format(&quot;Database {0} is not open.&quot;, this.Name()));
+
+			return DoCreateTransaction(isolation);
+		}
+
+		public IUserSession CreateSession(SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException(&quot;sessionInfo&quot;);
+
+			// TODO: if the isolation is not specified, use a configured default one
+			var isolation = sessionInfo.Isolation;
+			if (isolation == TransactionIsolation.Unspecified)
+				isolation = TransactionIsolation.Serializable;
+
+			if (sessionInfo.CommitId &gt;= 0)
+				throw new ArgumentException(&quot;Cannot create a session that reference an existing commit state.&quot;);
+
+			var transaction = CreateTransaction(isolation);
+			return new UserSession(this, transaction, sessionInfo);
+		}
+
+		public IUserSession OpenSession(SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException(&quot;sessionInfo&quot;);
+
+			var commitId = sessionInfo.CommitId;
+			
+			if (commitId &lt; 0)
+				throw new ArgumentException(&quot;Invalid commit reference specified.&quot;);
+
+			var transaction = OpenTransactions.FindById(commitId);
+			if (transaction == null)
+				throw new InvalidOperationException(String.Format(&quot;The request transaction with ID &#39;{0}&#39; is not open.&quot;, commitId));
+
+			return new UserSession(this, transaction, sessionInfo);
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (IsOpen) {
+					// TODO: Report the error
+				}
+
+				TableComposite.Dispose();
+				Context.Dispose();
+			}
+
+			TableComposite = null;
+			Context = null;
+		}
+
+		public IDatabaseContext Context { get; private set; }
+
+		public Version Version { get; private set; }
+
+		public ActiveSessionList ActiveSessions { get; private set; }
+
+		public bool Exists {
+			get {
+				if (IsOpen)
+					//throw new Exception(&quot;The database is initialized, so no point testing it&#39;s existence.&quot;);
+					return true;
+
+				try {
+					return TableComposite.Exists();
+				} catch (IOException e) {
+					throw new Exception(&quot;An error occurred while testing database existence.&quot;, e);
+				}
+			}
+		}
+
+		public bool IsOpen { get; private set; }
+
+		internal TableSourceComposite TableComposite { get; private set; }
+
+		public IEventRegistry EventRegistry { get; private set; }
+
+		public ITable SingleRowTable { get; private set; }
+
+		private IUserSession CreateInitialSystemSession() {
+			return new UserSession(this, DoCreateTransaction(TransactionIsolation.Serializable), new SessionInfo(User.System));
+		}
+
+		public void Create(string adminName, string adminPassword) {
+			if (Context.ReadOnly())
+				throw new DatabaseSystemException(&quot;Can not create database in Read only mode.&quot;);
+
+			if (String.IsNullOrEmpty(adminName))
+				throw new ArgumentNullException(&quot;adminName&quot;);
+			if (String.IsNullOrEmpty(adminPassword))
+				throw new ArgumentNullException(&quot;adminPassword&quot;);
+
+			try {
+				// Create the conglomerate
+				TableComposite.Create();
+
+				using (var session = CreateInitialSystemSession()) {
+					session.AutoCommit(false);
+
+					var context = new SessionQueryContext(session);
+					session.ExclusiveLock();
+					session.CurrentSchema(SystemSchema.Name);
+
+					// Create the schema information tables
+					CreateSchemata(session);
+
+					// The system tables that are present in every conglomerate.
+					SystemSchema.CreateTables(session);
+
+					// Create the system views
+					// TODO: InformationSchema.CreateSystemViews(session);
+
+					CreateAdminUser(context, adminName, adminPassword);
+
+					SetCurrentDataVersion(session);
+
+					// Set all default system procedures.
+					// TODO: SystemSchema.SetupSystemFunctions(session, username);
+
+					try {
+						// Close and commit this transaction.
+						session.Commit();
+					} catch (TransactionException e) {
+						throw new DatabaseSystemException(&quot;Could not commit the initial information&quot;, e);
+					}
+				}
+
+				// Close the conglomerate.
+				TableComposite.Close();
+			} catch (DatabaseSystemException e) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseSystemException(&quot;An error occurred while creating the database.&quot;, e);
+			}
+		}
+
+		private void SetCurrentDataVersion(IUserSession session) {
+			// TODO: Get the data version and then set it to the database table &#39;vars&#39;
+		}
+
+		private void CreateSchemata(IUserSession session) {
+			try {
+				// TODO: Create INFORMATION_SCHEMA
+				session.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
+			} catch (DatabaseSystemException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSystemException(&quot;Unable to create the default schema for the database.&quot;, ex);
+			}
+		}
+
+		private void CreateAdminUser(IQueryContext context, string adminName, string adminPassword) {
+			try {
+				var user = context.CreateUser(adminName, adminPassword);
+
+				// This is the admin user so add to the &#39;secure access&#39; table.
+				context.AddUserToGroup(adminName, SystemGroupNames.SecureGroup);
+
+				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, &quot;%&quot;);
+				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, &quot;%&quot;);
+
+				context.GrantToUserOnSchema(Context.DefaultSchema(), user, User.System, Privileges.SchemaAll, true);
+				context.GrantToUserOnSchema(SystemSchema.Name, user, User.System, Privileges.SchemaRead);
+
+				// TODO: Grant READ on INFORMATION_SCHEMA
+
+				context.GrantToUserOnSchemaTables(SystemSchema.Name, user, User.System, Privileges.TableRead);
+			} catch (DatabaseSystemException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSystemException(&quot;Could not create the database administrator.&quot;, ex);
+			}
+		}
+
+		public void Open() {
+			if (IsOpen)
+				throw new DatabaseSystemException(&quot;The database was already initialized.&quot;);
+
+			try {
+				// Check if the state file exists.  If it doesn&#39;t, we need to report
+				// incorrect version.
+				if (!TableComposite.Exists())
+					// If neither store or state file exist, assume database doesn&#39;t
+					// exist.
+					throw new DatabaseSystemException(String.Format(&quot;The database {0} does not exist.&quot;, this.Name()));
+
+				// Open the conglomerate
+				TableComposite.Open();
+
+				AssertDataVersion();
+			} catch (DatabaseSystemException) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseSystemException(&quot;An error occurred when initializing the database.&quot;, e);
+			}
+
+			IsOpen = true;
+		}
+
+		private void AssertDataVersion() {
+			// TODO:
+		}
+
+		public void Close() {
+			if (!IsOpen)
+				throw new DatabaseSystemException(&quot;The database is not initialized.&quot;);
+
+			try {
+				if (Context.DeleteOnClose()) {
+					// Delete the tables if the database is set to delete on
+					// shutdown.
+					TableComposite.Delete();
+				} else {
+					// Otherwise close the conglomerate.
+					TableComposite.Close();
+				}
+			} catch (DatabaseSystemException e) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseSystemException(&quot;An error occurred during database shutdown.&quot;, e);
+			} finally {
+				IsOpen = false;
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[51,10,51,22,0],[57,10,57,40,0],[68,5,68,34,0],[77,7,77,38,0],[78,6,78,12,0],[79,7,79,27,0],[80,6,80,79,0],[89,5,89,98,0],[96,5,96,52,0],[104,5,104,101,0],[111,4,111,28,0],[112,5,112,52,0],[114,4,114,40,0],[116,4,116,21,0],[117,5,117,72,0],[119,4,119,58,0],[120,4,120,28,0],[121,5,121,120,0],[123,4,123,59,0],[127,4,127,18,0],[128,4,128,30,0],[129,3,129,4,0],[133,5,133,16,0],[137,5,137,30,0],[138,5,138,23,0],[155,6,155,18,0],[159,7,159,28,0],[160,6,160,84,0],[179,5,179,85,0],[182,5,182,50,0],[184,5,184,54,0],[216,8,216,38,0],[217,7,217,88,0],[223,6,223,39,0],[224,5,224,11,0],[225,6,225,25,0],[226,5,226,92,0],[238,6,238,37,0],[239,5,239,11,0],[240,6,240,26,0],[241,5,241,100,0],[261,6,261,37,0],[262,5,262,11,0],[263,6,263,26,0],[264,5,264,91,0],[270,5,270,80,0],[278,6,278,104,0],[284,6,284,37,0],[285,5,285,11,0],[286,6,286,25,0],[287,5,287,95,0],[298,4,298,16,0],[299,5,299,75,0],[302,5,302,33,0],[305,6,305,30,0],[308,6,308,29,0],[310,6,310,39,0],[311,5,311,11,0],[312,6,312,25,0],[313,5,313,89,0],[315,5,315,20,0],[317,3,317,4,0],[28,3,28,44,1],[29,4,29,22,1],[31,4,31,26,1],[33,4,33,52,1],[35,4,35,49,1],[38,4,38,79,1],[39,4,39,15,1],[40,4,40,23,1],[42,4,42,52,1],[43,4,43,55,1],[44,3,44,4,1],[47,4,47,19,1],[48,3,48,4,1],[61,4,61,40,1],[65,4,66,29,1],[67,4,67,27,1],[69,3,69,4,1],[72,4,72,15,1],[76,6,76,64,1],[83,5,83,24,1],[85,3,85,4,1],[88,4,88,16,1],[91,4,91,42,1],[95,4,95,28,1],[99,4,99,42,1],[100,4,100,54,1],[101,5,101,51,1],[103,4,103,34,1],[106,4,106,51,1],[107,4,107,59,1],[132,4,132,18,1],[141,4,141,26,1],[142,4,142,19,1],[143,3,143,4,1],[153,5,153,16,1],[158,6,158,37,1],[162,4,162,5,1],[174,4,174,119,1],[178,4,178,27,1],[181,4,181,40,1],[183,4,183,44,1],[188,5,188,29,1],[190,12,190,54,1],[191,6,191,32,1],[193,6,193,53,1],[194,6,194,30,1],[195,6,195,47,1],[198,6,198,30,1],[201,6,201,41,1],[206,6,206,57,1],[208,6,208,37,1],[215,7,215,24,1],[222,5,222,28,1],[228,3,228,4,1],[232,3,232,4,1],[237,5,237,72,1],[243,3,243,4,1],[247,5,247,61,1],[250,5,250,69,1],[252,5,252,83,1],[253,5,253,83,1],[255,5,255,105,1],[256,5,256,94,1],[260,5,260,99,1],[266,3,266,4,1],[269,4,269,15,1],[275,5,275,34,1],[281,5,281,27,1],[283,5,283,25,1],[290,4,290,18,1],[291,3,291,4,1],[295,3,295,4,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.types\datatype.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
+
+namespace Deveel.Data.Types {
+	/// &lt;summary&gt;
+	/// Defines the properties of a specific SQL Type and handles the
+	/// &lt;see cref=&quot;ISqlObject&quot;&gt;values compatible&lt;/see&gt;.
+	/// &lt;/summary&gt;
+	public abstract class DataType : IComparer&lt;ISqlObject&gt;, IEquatable&lt;DataType&gt; {
+		/// &lt;summary&gt;
+		/// Constructs the &lt;see cref=&quot;DataType&quot;/&gt; for the given specific
+		/// &lt;see cref=&quot;SqlTypeCode&quot;&gt;SQL TYPE&lt;/see&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This constructor will set the &lt;see cref=&quot;Name&quot;/&gt; value to the equivalent
+		/// of the SQL Type specified.
+		/// &lt;/remarks&gt;
+		/// &lt;param name=&quot;sqlType&quot;&gt;The code of the SQL Type this object will represent.&lt;/param&gt;
+		protected DataType(SqlTypeCode sqlType)
+			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;see cref=&quot;DataType&quot;/&gt; for the given specific
+		/// &lt;see cref=&quot;SqlTypeCode&quot;&gt;SQL TYPE&lt;/see&gt; and a given name.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;name&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;sqlType&quot;&gt;&lt;/param&gt;
+		protected DataType(string name, SqlTypeCode sqlType) {
+			SqlType = sqlType;
+			Name = name;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the name of the data-type that is used to resolve it within the context.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This value is always unique within a database system and can be simple
+		/// (eg. for &lt;see cref=&quot;IsPrimitive&quot;&gt;primitive&lt;/see&gt; types like &lt;c&gt;NUMERIC&lt;/c&gt;),
+		/// or composed by multiple parts (eg. for user-defined types).
+		/// &lt;para&gt;
+		/// Some primitive types (for example &lt;c&gt;NUMERIC&lt;/c&gt;) can handle multiple SQL types,
+		/// so this property works as an identificator for the type handler.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		public string Name { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the kind of SQL type this data-type handles.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// The same instance of a &lt;see cref=&quot;DataType&quot;/&gt; can handle multiple
+		/// kind of &lt;see cref=&quot;SqlTypeCode&quot;&gt;SQL types&lt;/see&gt;, making such instances,
+		/// of the same kind, to be different in attributes.
+		/// &lt;para&gt;
+		/// In fact, for example a &lt;c&gt;NUMERIC&lt;/c&gt; data-type materialized as &lt;c&gt;INTEGER&lt;/c&gt;
+		/// is not equal to &lt;c&gt;NUMERIC&lt;/c&gt; data-type materialized as &lt;c&gt;BIGINT&lt;/c&gt;: the
+		/// two instances will be comparable, but they won&#39;t be considered coincident.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;see cref=&quot;IsComparable&quot;/&gt;
+		public SqlTypeCode SqlType { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Indicates if the values handled by the type can be part of an index.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// By default, this returns &lt;c&gt;true&lt;/c&gt;, since most of primitive types
+		/// are indexable (except for Long Objects).
+		/// &lt;/remarks&gt;
+		public virtual bool IsIndexable {
+			get { return true; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a value indicating if this data-type is primitive.
+		/// &lt;/summary&gt;
+		public bool IsPrimitive {
+			get { return IsPrimitiveType(SqlType); }
+		}
+
+		public bool IsNull {
+			get { return SqlType == SqlTypeCode.Null; }
+		}
+
+		/// &lt;summary&gt;
+		/// Verifies if a given &lt;see cref=&quot;DataType&quot;/&gt; is comparable to
+		/// this data-type.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;type&quot;&gt;The other data-type to verify the compatibility.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// It is not required two &lt;see cref=&quot;DataType&quot;/&gt; to be identical to be compared:
+		/// when overridden by a derived class, this methods verifies the properties of the
+		/// argument type, to see if values handled by the types can be compared.
+		/// &lt;para&gt;
+		/// By default, this method compares the values returned by &lt;see cref=&quot;SqlType&quot;/&gt;
+		/// to see if they are identical.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns &lt;c&gt;true&lt;/c&gt; if the values handled by this data-type can be compared to ones handled 
+		/// by the given &lt;paramref name=&quot;type&quot;/&gt;, or &lt;c&gt;false&lt;/c&gt; otherwise.
+		/// &lt;/returns&gt;
+		public virtual bool IsComparable(DataType type) {
+			return SqlType == type.SqlType;
+		}
+
+		/// &lt;summary&gt;
+		/// Verifies if this type can cast any value to the given &lt;see cref=&quot;DataType&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;type&quot;&gt;The other type, destination of the cast, to verify.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// By default, this method returns &lt;c&gt;false&lt;/c&gt;, because cast process must be
+		/// specified per type: when overriding the method &lt;see cref=&quot;CastTo&quot;/&gt;, pay attention
+		/// to also override this method accordingly.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// &lt;/returns&gt;
+		/// &lt;see cref=&quot;CastTo&quot;/&gt;
+		public virtual bool CanCastTo(DataType type) {
+			return false;
+		}
+
+		/// &lt;summary&gt;
+		/// Converts the given &lt;see cref=&quot;DataObject&quot;&gt;object value&lt;/see&gt; to a
+		/// &lt;see cref=&quot;DataType&quot;/&gt; specified.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;value&quot;&gt;The value to convert.&lt;/param&gt;
+		/// &lt;param name=&quot;destType&quot;&gt;The destination type of the conversion.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// If the given &lt;paramref name=&quot;destType&quot;&gt;destination type&lt;/paramref&gt; is equivalent
+		/// to this type, it will return the &lt;paramref name=&quot;value&quot;/&gt; provided, otherwise
+		/// it will throw an exception by default.
+		/// &lt;para&gt;
+		/// Casting values to specific types is specific to each data-type: override this
+		/// method to support type-specific conversions.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// When overriding this method, &lt;see cref=&quot;CanCastTo&quot;/&gt; should be overridden accordingly
+		/// to indicate the type supports casting.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;DataObject&quot;/&gt; that is the result
+		/// of the conversion from this data-type to the other type given.
+		/// &lt;/returns&gt;
+		public virtual DataObject CastTo(DataObject value, DataType destType) {
+			if (Equals(destType))
+				return value;
+
+			// TODO: Should we return a null value instead? NULL OF TYPE anyway is still a cast ...
+			throw new NotSupportedException();
+		}
+
+		public virtual object ConvertTo(ISqlObject obj, Type destType) {
+			throw new NotSupportedException();
+		}
+
+		public virtual ISqlObject Add(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Subtract(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Multiply(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Divide(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Modulus(ISqlObject a, ISqlObject b) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Negate(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual SqlBoolean IsEqualTo(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsNotEqualTo(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsGreatherThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsSmallerThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsGreaterOrEqualThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean IsSmallerOrEqualThan(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual SqlBoolean And(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual ISqlObject And(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual SqlBoolean Or(ISqlObject a, ISqlObject b) {
+			return SqlBoolean.Null;
+		}
+
+		public virtual ISqlObject XOr(ISqlObject x, ISqlObject y) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Or(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		public virtual ISqlObject Reverse(ISqlObject value) {
+			return SqlNull.Value;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the one data-type between this and the other one given
+		/// that handles the wider range of values.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;otherType&quot;&gt;The other type to verify.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This is very important for operations and functions, when
+		/// operating on &lt;see cref=&quot;DataObject&quot;&gt;objects&lt;/see&gt; with comparable
+		/// but different data-types, to ensure the result of the operation
+		/// will be capable to handle the final value.
+		/// &lt;para&gt;
+		/// By default, this method returns this instance, as it is not able
+		/// to dynamically define the wider type.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns this type if it handles a wider range of values or &lt;paramref name=&quot;otherType&quot;&gt;other 
+		/// type&lt;/paramref&gt; given otherwise.
+		/// &lt;/returns&gt;
+		public virtual DataType Wider(DataType otherType) {
+			return this;
+		}
+
+		/// &lt;summary&gt;
+		/// Parses a SQL formatted string that defines a data-type into
+		/// a constructed &lt;see cref=&quot;DataType&quot;/&gt; object equivalent.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;s&quot;&gt;The SQL formatted data-type string, defining the properties of the type.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This method only supports primitive types.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)&quot;/&gt;
+		/// &lt;seealso cref=&quot;ToString()&quot;/&gt;
+		public static DataType Parse(string s) {
+			var sqlCompiler = SqlParsers.DataType;
+
+			try {
+				var result = sqlCompiler.Parse(s);
+				if (result.HasErrors)
+					throw new SqlParseException();
+
+				var node = (DataTypeNode) result.RootNode;
+				if (!node.IsPrimitive)
+					throw new NotSupportedException(&quot;Cannot resolve the given string to a primitive type.&quot;);
+
+				var builder = new DataTypeBuilder();
+				return builder.Build(node);
+			} catch (SqlParseException) {
+				throw new FormatException(&quot;Unable to parse the given string to a valid data type.&quot;);
+			}
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public virtual int Compare(ISqlObject x, ISqlObject y) {
+			if (!x.IsComparableTo(y))
+				throw new NotSupportedException();
+
+			if (x.IsNull &amp;&amp; y.IsNull)
+				return 0;
+			if (x.IsNull &amp;&amp; !y.IsNull)
+				return 1;
+			if (!x.IsNull &amp;&amp; y.IsNull)
+				return -1;
+
+			return ((IComparable) x).CompareTo(y);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool Equals(object obj) {
+			var dataType = obj as DataType;
+			if (dataType == null)
+				return false;
+
+			return Equals(dataType);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override int GetHashCode() {
+			return SqlType.GetHashCode();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public virtual bool Equals(DataType other) {
+			if (other == null)
+				return false;
+
+			return SqlType == other.SqlType;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override string ToString() {
+			return Name;
+		}
+
+		public virtual void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+			throw new NotSupportedException(String.Format(&quot;Type {0} cannot serialize object of type {1}.&quot;, GetType(),
+				obj.GetType()));
+		}
+
+		public virtual ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+			throw new NotSupportedException(String.Format(&quot;Type {0} cannot deserialize types.&quot;, GetType()));
+		}
+
+		public virtual bool IsCacheable(ISqlObject value) {
+			return false;
+		}
+
+		public virtual int GetCacheUsage(ISqlObject value) {
+			return 0;
+		}
+
+		public virtual int SizeOf(ISqlObject obj) {
+			// TODO: should make this required?
+			return 0;
+		}
+
+		public virtual ISqlObject CreateFromLargeObject(ILargeObject objRef) {
+			throw new NotSupportedException(String.Format(&quot;SQL Type {0} cannot be created from a large object.&quot;, SqlType));
+		}
+
+		public static bool IsPrimitiveType(SqlTypeCode typeCode) {
+			return typeCode != SqlTypeCode.Object &amp;&amp;
+			       typeCode != SqlTypeCode.Unknown &amp;&amp;
+			       typeCode != SqlTypeCode.UserType &amp;&amp;
+			       typeCode != SqlTypeCode.Geometry &amp;&amp;
+			       typeCode != SqlTypeCode.Xml &amp;&amp;
+			       typeCode != SqlTypeCode.Array &amp;&amp;
+			       typeCode != SqlTypeCode.RowType &amp;&amp;
+			       typeCode != SqlTypeCode.ColumnType;
+
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[144,4,144,17,0],[171,4,171,25,0],[172,5,172,18,0],[175,4,175,38,0],[179,4,179,38,0],[183,4,183,25,0],[187,4,187,25,0],[191,4,191,25,0],[195,4,195,25,0],[199,4,199,25,0],[203,4,203,25,0],[207,4,207,27,0],[211,4,211,27,0],[215,4,215,27,0],[219,4,219,27,0],[223,4,223,27,0],[227,4,227,27,0],[231,4,231,27,0],[235,4,235,25,0],[239,4,239,27,0],[243,4,243,25,0],[247,4,247,25,0],[251,4,251,25,0],[295,6,295,36,0],[299,6,299,94,0],[303,6,303,31,0],[304,5,304,89,0],[311,5,311,39,0],[314,5,314,14,0],[316,5,316,14,0],[318,5,318,15,0],[325,4,325,35,0],[326,4,326,25,0],[327,5,327,18,0],[329,4,329,28,0],[334,4,334,33,0],[340,5,340,18,0],[347,4,347,16,0],[351,4,352,21,0],[356,4,356,100,0],[360,4,360,17,0],[364,4,364,13,0],[369,4,369,13,0],[373,4,373,115,0],[42,3,43,58,1],[44,3,44,4,1],[52,3,52,55,1],[53,4,53,22,1],[54,4,54,16,1],[55,3,55,4,1],[95,10,95,22,1],[102,10,102,42,1],[106,10,106,45,1],[128,4,128,35,1],[274,4,274,16,1],[290,4,290,42,1],[293,5,293,39,1],[294,5,294,26,1],[297,5,297,47,1],[298,5,298,27,1],[301,5,301,41,1],[302,5,302,32,1],[306,3,306,4,1],[310,4,310,29,1],[313,4,313,29,1],[315,4,315,30,1],[317,4,317,30,1],[320,4,320,42,1],[339,4,339,22,1],[342,4,342,36,1],[377,4,384,46,1]]);
+    </script>
+  </body>
+</html>

@@ -17,8 +17,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Numerics;
-using System.Runtime.Remoting.Channels;
 using System.Text;
 
 using Deveel.Data.DbSystem;
@@ -27,7 +25,7 @@ using Deveel.Data.Store;
 
 namespace Deveel.Data.Types {
 	[Serializable]
-	public sealed class StringType : DataType {
+	public sealed class StringType : DataType, ISizeableType {
 		private CompareInfo collator;
 
 		public const int DefaultMaxSize = Int16.MaxValue;
@@ -61,6 +59,10 @@ namespace Deveel.Data.Types {
 		/// handled by this type can handle.
 		/// </summary>
 		public int MaxSize { get; private set; }
+
+		int ISizeableType.Size {
+			get { return MaxSize; }
+		}
 
 		/// <summary>
 		/// Gets the locale used to compare string values.

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\preparervisitor.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Expressions {
+	class PreparerVisitor : SqlExpressionVisitor {
+		private readonly IExpressionPreparer preparer;
+
+		public PreparerVisitor(IExpressionPreparer preparer) {
+			this.preparer = preparer;
+		}
+
+		public override SqlExpression Visit(SqlExpression expression) {
+			if (preparer.CanPrepare(expression))
+				expression = preparer.Prepare(expression);
+
+			return base.Visit(expression);
+		}
+
+		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
+			var valueExpression = assign.ValueExpression;
+			if (valueExpression != null)
+				valueExpression = valueExpression.Prepare(preparer);
+
+			return SqlExpression.Assign(assign.Reference, valueExpression);
+		}
+
+		private static IEnumerable&lt;T&gt; Prepare&lt;T&gt;(IEnumerable&lt;T&gt; list, IExpressionPreparer preparer)
+			where T : IPreparable {
+			var newList = new List&lt;T&gt;();
+			foreach (var item in list) {
+				var newItem = item;
+				if (newItem != null) {
+					newItem = (T)newItem.Prepare(preparer);
+				}
+
+				newList.Add(newItem);
+			}
+
+			return newList.AsReadOnly();
+		}
+
+		public override SqlExpression VisitQuery(SqlQueryExpression query) {
+			var selectColumns = Prepare(query.SelectColumns, preparer);
+			var newExpression = new SqlQueryExpression(selectColumns);
+
+			var where = query.WhereExpression;
+			if (where != null)
+				where = where.Prepare(preparer);
+
+			newExpression.WhereExpression = where;
+
+			var having = query.HavingExpression;
+			if (having != null)
+				having = having.Prepare(preparer);
+
+			newExpression.HavingExpression = having;
+
+			var from = query.FromClause;
+			if (from != null)
+				from = (FromClause) ((IPreparable)from).Prepare(preparer);
+
+			query.FromClause = from;
+
+			var nextComposite = query.NextComposite;
+			if (nextComposite != null)
+				nextComposite = (SqlQueryExpression) nextComposite.Prepare(preparer);
+
+			query.NextComposite = nextComposite;
+
+			return newExpression;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,3,24,55,0],[25,4,25,29,0],[26,3,26,4,0],[29,4,29,40,0],[30,5,30,47,0],[32,4,32,34,0],[36,4,36,49,0],[37,4,37,32,0],[38,5,38,57,0],[40,4,40,67,0],[45,4,45,32,0],[46,25,46,29,0],[46,13,46,21,0],[47,5,47,24,0],[48,5,48,25,0],[49,6,49,45,0],[52,5,52,26,0],[46,22,46,24,0],[55,4,55,32,0],[59,4,59,63,0],[60,4,60,62,0],[62,4,62,38,0],[63,4,63,22,0],[64,5,64,37,0],[66,4,66,42,0],[68,4,68,40,0],[69,4,69,23,0],[70,5,70,39,0],[72,4,72,44,0],[74,4,74,32,0],[75,4,75,21,0],[76,5,76,63,0],[78,4,78,28,0],[80,4,80,44,0],[81,4,81,30,0],[82,5,82,74,0],[84,4,84,40,0],[86,4,86,25,0]]);
+    </script>
+  </body>
+</html>

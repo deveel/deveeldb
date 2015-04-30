@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.configuration\dbconfig.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Configuration {
+	[Serializable]
+	public class DbConfig : IDbConfig {
+		private readonly bool isRoot;
+		private readonly Dictionary&lt;string, ConfigKey&gt; keys;
+		private readonly Dictionary&lt;string, ConfigValue&gt; values;
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;see cref=&quot;DbConfig&quot;/&gt;.
+		/// &lt;/summary&gt;
+		private DbConfig(bool isRoot) {
+			Parent = null;
+			this.isRoot = isRoot;
+			keys = new Dictionary&lt;string, ConfigKey&gt;();
+			values = new Dictionary&lt;string, ConfigValue&gt;();
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs the &lt;see cref=&quot;DbConfig&quot;/&gt; from the given parent.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;parent&quot;&gt;The parent &lt;see cref=&quot;DbConfig&quot;/&gt; object that
+		/// will provide fallback configurations&lt;/param&gt;
+		/// &lt;param name=&quot;source&quot;&gt;&lt;/param&gt;
+		public DbConfig(IDbConfig parent, IConfigSource source)
+			: this(false) {
+			Parent = parent;
+			Source = source;
+
+			if (source != null)
+				this.Load(source);
+		}
+
+		public DbConfig(IConfigSource source)
+			: this(null, source) {
+		}
+
+		public DbConfig(IDbConfig parent)
+			: this(parent, null) {
+		}
+
+		static DbConfig() {
+			Empty = new DbConfig(true);
+
+			Default = new DbConfig(true);
+			SystemConfigKeys.SetTo(Default);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public IConfigSource Source { get; set; }
+
+		/// &lt;inheritdoc/&gt;
+		public IDbConfig Parent { get; set; }
+
+		/// &lt;summary&gt;
+		/// An empty configuration object, which does not contain any key nor value.
+		/// &lt;/summary&gt;
+		public static DbConfig Empty { get; private set; }
+
+		public static DbConfig Default { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		public IEnumerable&lt;ConfigKey&gt; GetKeys(ConfigurationLevel level) {
+			var returnKeys = new Dictionary&lt;string, ConfigKey&gt;();
+			if (!isRoot &amp;&amp; Parent != null &amp;&amp; level == ConfigurationLevel.Deep) {
+				var configKeys = Parent.GetKeys(level);
+				foreach (var pair in configKeys) {
+					returnKeys[pair.Name] = pair;
+				}
+			}
+
+			foreach (var configKey in keys) {
+				returnKeys[configKey.Key] = configKey.Value;
+			}
+
+			return returnKeys.Values.AsEnumerable();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public ConfigKey GetKey(string name) {
+			ConfigKey key;
+			if (keys.TryGetValue(name, out key))
+				return key;
+
+			if (!isRoot &amp;&amp; Parent != null &amp;&amp; (key = Parent.GetKey(name)) != null)
+				return key;
+
+			return null;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public void SetKey(ConfigKey key) {
+			if (key == null)
+				throw new ArgumentNullException(&quot;key&quot;);
+
+			keys[key.Name] = key;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public void SetValue(ConfigKey key, object value) {
+			if (key == null)
+				throw new ArgumentNullException(&quot;key&quot;);
+
+			if (!keys.ContainsKey(key.Name))
+				keys[key.Name] = key;
+
+			values[key.Name] = new ConfigValue(key, value);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public ConfigValue GetValue(ConfigKey key) {
+			if (key == null)
+				throw new ArgumentNullException(&quot;key&quot;);
+
+			ConfigValue value;
+			if (values.TryGetValue(key.Name, out value))
+				return value;
+
+			if (!isRoot &amp;&amp; Parent != null &amp;&amp; 
+				((value = Parent.GetValue(key)) != null))
+				return value;
+
+			return new ConfigValue(key, key.DefaultValue);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[85,4,85,57,0],[86,4,86,70,0],[87,5,87,44,0],[88,26,88,36,0],[88,14,88,22,0],[89,6,89,35,0],[88,23,88,25,0],[93,30,93,34,0],[93,13,93,26,0],[94,5,94,49,0],[93,27,93,29,0],[97,4,97,44,0],[107,5,107,16,0],[115,5,115,44,0],[123,5,123,44,0],[126,5,126,26,0],[134,5,134,44,0],[142,5,142,18,0],[33,3,33,32,1],[34,4,34,18,1],[35,4,35,25,1],[36,4,36,47,1],[37,4,37,51,1],[38,3,38,4,1],[46,3,47,17,1],[48,4,48,20,1],[49,4,49,20,1],[51,4,51,23,1],[52,5,52,23,1],[53,3,53,4,1],[55,3,56,24,1],[57,3,57,4,1],[59,3,60,24,1],[61,3,61,4,1],[64,4,64,31,1],[66,4,66,33,1],[67,4,67,36,1],[68,3,68,4,1],[103,4,103,40,1],[104,5,104,16,1],[106,4,106,73,1],[109,4,109,16,1],[114,4,114,20,1],[117,4,117,25,1],[118,3,118,4,1],[122,4,122,20,1],[125,4,125,36,1],[128,4,128,51,1],[129,3,129,4,1],[133,4,133,20,1],[137,4,137,48,1],[138,5,138,18,1],[140,4,141,46,1],[144,4,144,50,1]]);
+    </script>
+  </body>
+</html>

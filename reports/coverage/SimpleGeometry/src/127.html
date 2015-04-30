@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.security\grantmanager.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Caching;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Security {
+	public sealed class GrantManager {
+		private readonly IQueryContext context;
+		private ICache privCache;
+
+		public GrantManager(IUserSession session) {
+			Session = session;
+
+			context = new SessionQueryContext(session);
+			privCache = new MemoryCache(16, 256, 10);
+		}
+
+		public IUserSession Session { get; private set; }
+
+		#region GrantQuery
+
+		struct GrantQuery {
+			private readonly DbObjectType objType;
+			private readonly ObjectName objName;
+			private readonly string userName;
+			private readonly int flags;
+
+			public GrantQuery(DbObjectType objType, ObjectName objName, string userName, int flags) :
+				this() {
+				this.objType = objType;
+				this.objName = objName;
+				this.userName = userName;
+				this.flags = flags;
+			}
+
+			public override bool Equals(object obj) {
+				var other = (GrantQuery)obj;
+				return (objType == other.objType &amp;&amp;
+						objName.Equals(other.objName) &amp;&amp;
+						userName.Equals(other.userName) &amp;&amp;
+						flags == other.flags);
+			}
+
+			public override int GetHashCode() {
+				return (int)objType + objName.GetHashCode() + userName.GetHashCode() + flags;
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,3,28,44,0],[29,4,29,22,0],[31,4,31,47,0],[32,4,32,45,0],[33,3,33,4,0],[46,5,46,11,0],[47,5,47,28,0],[48,5,48,28,0],[49,5,49,30,0],[50,5,50,24,0],[51,4,51,5,0],[54,5,54,33,0],[55,5,58,29,0],[62,5,62,82,0]]);
+    </script>
+  </body>
+</html>

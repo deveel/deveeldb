@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\orderbynode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Within an SQL query node, this describes the ordering criteria
+	/// that will be applied when returning the results of the selection.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class OrderByNode : SqlNode {
+		internal OrderByNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the expression used to compare results and put in order.
+		/// &lt;/summary&gt;
+		public IExpressionNode Expression { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a value indicating whether the returned ordered set
+		/// will be presented in &lt;c&gt;ascending&lt;/c&gt; order.
+		/// &lt;/summary&gt;
+		public bool Ascending { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == &quot;sql_expression&quot;) {
+				Expression = (IExpressionNode) node;
+			} else if (node.NodeName == &quot;sort_order&quot;) {
+				GetOrder(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetOrder(ISqlNode node) {
+			if (node is SqlKeyNode) {
+				var keyNode = (SqlKeyNode) node;
+				if (String.Equals(keyNode.Text, &quot;ASC&quot;, StringComparison.OrdinalIgnoreCase)) {
+					Ascending = true;
+				} else if (String.Equals(keyNode.Text, &quot;DESC&quot;, StringComparison.OrdinalIgnoreCase)) {
+					Ascending = false;
+				}
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,26,25,0],[27,3,27,4,0],[42,4,42,42,0],[43,5,43,41,0],[44,11,44,45,0],[45,5,45,20,0],[48,4,48,34,0],[52,4,52,27,0],[53,5,53,37,0],[54,5,54,80,0],[55,6,55,23,0],[56,12,56,88,0],[57,6,57,24,0],[60,3,60,4,0]]);
+    </script>
+  </body>
+</html>

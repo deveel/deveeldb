@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.text\patternsearch.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Text;
+
+namespace Deveel.Data.Text {
+	/// &lt;summary&gt;
+	/// This is a static class that performs the operations to do a pattern 
+	/// search on a given column of a table.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// The pattern syntax is very simple and follows that of the SQL standard.
+	/// &lt;para&gt;
+	/// It works as follows:
+	/// The &#39;%&#39; character represents any sequence of characters.
+	/// The &#39;_&#39; character represents some character.
+	/// &lt;/para&gt;
+	/// &lt;para&gt;
+	/// Therefore, the pattern search &lt;c&gt;Anto%&lt;/c&gt; will find all rows that 
+	/// start with the string &lt;c&gt;Anto&lt;/c&gt; and end with any sequence of characters. 
+	/// The pattern &lt;c&gt;A% Proven%&lt;/c&gt; will find all names starting with &lt;i&gt;A&lt;/i&gt; 
+	/// and containing &lt;i&gt;Proven&lt;/i&gt; somewhere in the end. The pattern &lt;i&gt;_at&lt;/i&gt; 
+	/// will find all three letter words ending with &lt;i&gt;at&lt;/i&gt;.
+	/// &lt;/para&gt;
+	/// &lt;para&gt;
+	/// &lt;b&gt;Note&lt;/b&gt; A &lt;c&gt;ab%&lt;/c&gt; type search is faster than a &lt;c&gt;%bc&lt;/c&gt; type 
+	/// search. If the start of the search pattern is unknown then the entire 
+	/// contents of the column need to be accessed.
+	/// &lt;/para&gt;
+	/// &lt;/remarks&gt;
+	public static class PatternSearch {
+		// Statics for the tokens.
+		private const char ZeroOrMoreChars = &#39;%&#39;;
+		private const char OneChar = &#39;_&#39;;
+
+		/// &lt;summary&gt;
+		/// Returns true if the given character is a wild card (unknown).
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;ch&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public static bool IsWildCard(char ch) {
+			return (ch == OneChar || ch == ZeroOrMoreChars);
+		}
+
+		/// &lt;summary&gt;
+		/// Matches a pattern against a string and returns true if it matches 
+		/// or false otherwise.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This matches patterns that do not necessarily start with a wild 
+		/// card unlike the &lt;see cref=&quot;PatternMatch&quot;/&gt; method.
+		/// &lt;/remarks&gt;
+		public static bool FullPatternMatch(string pattern, string str, char escapeChar) {
+			StringBuilder start = new StringBuilder();
+			String rezt = null;
+			int len = pattern.Length;
+			int i = 0;
+			bool lastEscapeChar = false;
+			for (; i &lt; len &amp;&amp; rezt == null; ++i) {
+				char c = pattern[i];
+				if (lastEscapeChar) {
+					lastEscapeChar = false;
+					start.Append(c);
+				} else if (c == escapeChar) {
+					lastEscapeChar = true;
+				} else if (IsWildCard(c)) {
+					rezt = pattern.Substring(i);
+				} else {
+					start.Append(c);
+				}
+			}
+
+			if (rezt == null)
+				rezt = &quot;&quot;;
+
+			string st = start.ToString();
+
+			if (str.StartsWith(st)) {
+				string strRezt = str.Substring(st.Length); // (i)
+
+				return rezt.Length &gt; 0 ? PatternMatch(rezt, strRezt, escapeChar) : strRezt.Length == 0;
+			}
+
+			return false;
+		}
+
+		/// &lt;summary&gt;
+		/// This is the pattern match recurrsive method.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// It recurses on each wildcard expression in the pattern which makes 
+		/// for slightly better efficiency than a character recurse algorithm.
+		/// However, patterns such as &lt;c&gt;_%_a&lt;/c&gt; will result in many recursive 
+		/// calls.
+		/// &lt;para&gt;
+		/// &lt;b&gt;Note&lt;/b&gt; That &lt;c&gt;_%_&lt;/c&gt; will be less efficient than &lt;c&gt;__%&lt;/c&gt; 
+		/// and will produce the same result.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// &lt;b&gt;Note&lt;/b&gt; It requires that a wild card character is the first 
+		/// character in the expression.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// &lt;b&gt;Issue&lt;/b&gt; Pattern optimiser, we should optimize wild cards of 
+		/// type &lt;c&gt;%__&lt;/c&gt; to &lt;c&gt;__%&lt;/c&gt;, or &lt;c&gt;%__%_%_%&lt;/c&gt; to &lt;c&gt;____%&lt;/c&gt;. 
+		/// Optimised forms are identical in result and more efficient. This 
+		/// optimization could be performed by the client during parsing of 
+		/// the &lt;i&gt;LIKE&lt;/i&gt; statement.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// &lt;b&gt;Hacking Issue&lt;/b&gt; Badly formed wild cards may result in hogging 
+		/// of server side resources.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		public static bool PatternMatch(string pattern, string expression, char escapeChar) {
+			// Look at first character in pattern, if it&#39;s a ONE_CHAR wildcard then
+			// check expression and pattern match until next wild card.
+
+			if (pattern[0] == OneChar) {
+
+				// Else step through each character in pattern and see if it matches up
+				// with the expression until a wild card is found or the end is reached.
+				// When the end of the pattern is reached, &#39;finished&#39; is set to true.
+
+				int i = 1;
+				bool finished = (i &gt;= pattern.Length || expression.Length &lt; 1);
+				bool lastWasEscape = false;
+				int checkd = 0;
+				while (!finished) {
+					char c = pattern[i];
+					if (!lastWasEscape &amp;&amp; c == escapeChar) {
+						lastWasEscape = true;
+						if (i &gt;= expression.Length) {
+							return false;
+						}
+						++i;
+					} else if (lastWasEscape || !IsWildCard(c)) {
+						lastWasEscape = false;
+						// If expression and pattern character doesn&#39;t match or end of
+						// expression reached, search has failed.
+						if (i &gt;= expression.Length || c != expression[i]) {
+							return false;
+						}
+						++i;
+						++checkd;
+					} else {
+						// found a wildcard, so recurse on this wildcard
+						return PatternMatch(pattern.Substring(i), expression.Substring(i), escapeChar);
+					}
+
+					finished = (i &gt;= pattern.Length);
+				}
+
+				// The pattern length minus any escaped characters
+				int realPatternLength = 0;
+				int sz = pattern.Length;
+				for (int n = 0; n &lt; sz; ++n) {
+					if (pattern[n] != escapeChar) {
+						++realPatternLength;
+					} else {
+						++n;
+					}
+				}
+
+				// If pattern and expression lengths match then we have walked through
+				// the expression and found a match, otherwise no match.
+
+				return realPatternLength == expression.Length;
+			}
+
+			// Therefore we are doing a ZERO_OR_MORE_CHARS wildcard check.
+
+			// If the pattern is &#39;%&#39; (ie. pattern.Length == 1 because it&#39;s only 1
+			// character in length (the &#39;%&#39; character)) then it doesn&#39;t matter what the
+			// expression is, we have found a match.
+
+			if (pattern.Length == 1)
+				return true;
+
+			// Look at following character in pattern, and extract all the characters
+			// before the next wild card.
+
+			var nextString = new StringBuilder();
+			int i1 = 1;
+			bool finished1 = (i1 &gt;= pattern.Length);
+			bool lastWasEscape1 = false;
+			while (!finished1) {
+				char nextChar = pattern[i1];
+				if (!lastWasEscape1 &amp;&amp; nextChar == escapeChar) {
+					lastWasEscape1 = true;
+					++i1;
+					if (i1 &gt;= pattern.Length) {
+						finished1 = true;
+					}
+				} else if (lastWasEscape1 || !IsWildCard(nextChar)) {
+					lastWasEscape1 = false;
+					nextString.Append(nextChar);
+					++i1;
+					if (i1 &gt;= pattern.Length) {
+						finished1 = true;
+					}
+				} else {
+					finished1 = true;
+				}
+			}
+
+			string findString = nextString.ToString();
+
+			// Special case optimisation if we have found the end of the pattern, all
+			// we need to do is check if &#39;find_string&#39; is on the end of the expression.
+			// eg. pattern = &quot;%er&quot;, will have a &#39;find_string&#39; of &quot;er&quot; and it is saying
+			// &#39;does the expression end with &#39;er&#39;&#39;.
+
+			if (i1 &gt;= pattern.Length)
+				return (expression.EndsWith(findString));
+
+			// Otherwise we must have finished with another wild card.
+			// Try and find &#39;next_string&#39; in the expression.  If its found then
+			// recurse over the next pattern.
+
+			int findStrLength = findString.Length;
+			int strIndex = expression.IndexOf(findString, 0);
+
+			while (strIndex != -1) {
+				bool matched = PatternMatch(
+								pattern.Substring(1 + findStrLength),
+								expression.Substring(strIndex + findStrLength),
+								escapeChar);
+
+				if (matched)
+					return true;
+
+				strIndex = expression.IndexOf(findString, strIndex + 1);
+			}
+
+			return false;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[56,4,56,52,0],[68,4,68,46,0],[69,4,69,23,0],[70,4,70,29,0],[71,4,71,14,0],[72,4,72,32,0],[74,5,74,25,0],[75,5,75,24,0],[76,6,76,29,0],[77,6,77,22,0],[78,12,78,32,0],[79,6,79,28,0],[80,12,80,30,0],[81,6,81,34,0],[83,6,83,22,0],[73,36,73,39,0],[73,11,73,34,0],[87,4,87,21,0],[88,5,88,15,0],[90,4,90,33,0],[92,4,92,27,0],[93,5,93,47,0],[95,5,95,92,0],[98,4,98,17,0],[133,4,133,30,0],[139,5,139,15,0],[140,5,140,68,0],[141,5,141,32,0],[142,5,142,20,0],[144,6,144,26,0],[145,6,145,44,0],[146,7,146,28,0],[147,7,147,34,0],[148,8,148,21,0],[150,7,150,11,0],[151,13,151,49,0],[152,7,152,29,0],[155,7,155,56,0],[156,8,156,21,0],[158,7,158,11,0],[159,7,159,16,0],[162,7,162,86,0],[165,6,165,39,0],[143,5,143,22,0],[169,5,169,31,0],[170,5,170,29,0],[171,10,171,20,0],[172,6,172,35,0],[173,7,173,27,0],[175,7,175,11,0],[171,29,171,32,0],[171,21,171,27,0],[182,5,182,51,0],[191,4,191,28,0],[192,5,192,17,0],[197,4,197,41,0],[198,4,198,15,0],[199,4,199,44,0],[200,4,200,32,0],[202,5,202,33,0],[203,5,203,51,0],[204,6,204,28,0],[205,6,205,11,0],[206,6,206,31,0],[207,7,207,24,0],[209,12,209,56,0],[210,6,210,29,0],[211,6,211,34,0],[212,6,212,11,0],[213,6,213,31,0],[214,7,214,24,0],[217,6,217,23,0],[201,4,201,22,0],[221,4,221,46,0],[228,4,228,29,0],[229,5,229,46,0],[235,4,235,42,0],[236,4,236,53,0],[239,5,242,21,0],[244,5,244,17,0],[245,6,245,18,0],[247,5,247,61,0],[238,4,238,26,0],[250,4,250,17,0]]);
+    </script>
+  </body>
+</html>

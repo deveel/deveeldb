@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\sqlexpressionexception.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Diagnostics;
+
+namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
+	public class SqlExpressionException : ErrorException {
+		public SqlExpressionException() 
+			: this(null) {
+		}
+
+		public SqlExpressionException(string message) 
+			: this(message, null) {
+		}
+
+		public SqlExpressionException(string message, Exception innerException) 
+			: this(ExpressionErrorCodes.Unknown, message, innerException) {
+		}
+
+		public SqlExpressionException(ExpressionErrorCodes errorCode) 
+			: this(errorCode, null) {
+		}
+
+		public SqlExpressionException(ExpressionErrorCodes errorCode, string message) 
+			: this(errorCode, message, null) {
+		}
+
+		public SqlExpressionException(ExpressionErrorCodes errorCode, string message, Exception innerException) 
+			: base(EventClasses.Expressions, (int) errorCode, message, innerException) {
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,3,25,16,0],[26,3,26,4,0],[28,3,29,25,0],[30,3,30,4,0],[32,3,33,65,0],[34,3,34,4,0],[36,3,37,27,0],[38,3,38,4,0],[40,3,41,36,0],[42,3,42,4,0],[44,3,45,78,0],[46,3,46,4,0]]);
+    </script>
+  </body>
+</html>

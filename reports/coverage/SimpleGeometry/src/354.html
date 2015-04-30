@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data\dataobject.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Spatial;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
+
+using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
+using SqlString = Deveel.Data.Sql.Objects.SqlString;
+
+namespace Deveel.Data {
+	/// &lt;summary&gt;
+	/// Represents a dynamic object that encapsulates a defined
+	/// &lt;see cref=&quot;DataType&quot;/&gt; and a compatible constant &lt;see cref=&quot;ISqlObject&quot;/&gt; value.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class DataObject : IComparable, IComparable&lt;DataObject&gt;, IEquatable&lt;DataObject&gt; {
+		/// &lt;summary&gt;
+		/// The representation of a BOOLEAN &lt;c&gt;true&lt;/c&gt; as &lt;see cref=&quot;DataObject&quot;/&gt;
+		/// &lt;/summary&gt;
+		public static readonly DataObject BooleanTrue = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.True);
+
+		/// &lt;summary&gt;
+		/// The representation of a BOOLEAN &lt;c&gt;false&lt;/c&gt; as &lt;see cref=&quot;DataObject&quot;/&gt;
+		/// &lt;/summary&gt;
+		public static readonly DataObject BooleanFalse = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.False);
+
+		/// &lt;summary&gt;
+		/// The &lt;c&gt;null&lt;/c&gt; representation of a BOOLEAN object.
+		/// &lt;/summary&gt;
+		public static readonly DataObject BooleanNull = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.Null);
+
+		public DataObject(DataType type, ISqlObject value) {
+			if (type == null)
+				throw new ArgumentNullException(&quot;type&quot;);
+
+			Type = type;
+			Value = value;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the &lt;see cref=&quot;DataType&quot;/&gt; that defines the object properties
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;DataType&quot;/&gt;
+		public DataType Type { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the underlined &lt;see cref=&quot;ISqlObject&quot;&gt;value&lt;/see&gt; that is handled.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISqlObject&quot;/&gt;
+		public ISqlObject Value { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a value that indeicates if this object is materialized as &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;SqlNull.Value&quot;/&gt;
+		/// &lt;seealso cref=&quot;ISqlObject.IsNull&quot;/&gt;
+		public bool IsNull {
+			get {
+				return Type.IsNull || Value == null || SqlNull.Value == Value || Value.IsNull;
+			}
+		}
+
+		internal int CacheUsage {
+			get { return Type.GetCacheUsage(Value); }
+		}
+
+		internal bool IsCacheable {
+			get { return Type.IsCacheable(Value); }
+		}
+
+		internal int Size {
+			get { return Type.SizeOf(Value); }
+		}
+
+		/// &lt;summary&gt;
+		/// Checks if the given &lt;see cref=&quot;DataObject&quot;&gt;object&lt;/see&gt; is comparable
+		/// to this object,
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;obj&quot;&gt;The object to compare.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns &lt;c&gt;true&lt;/c&gt; if the given object is comparable to this object,
+		/// or &lt;c&gt;false&lt;/c&gt; otherwise.
+		/// &lt;/returns&gt;
+		public bool IsComparableTo(DataObject obj) {
+			return Type.IsComparable(obj.Type);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public int CompareTo(DataObject other) {
+			// If this is null
+			if (IsNull) {
+				// and value is null return 0 return less
+				if (other.IsNull)
+					return 0;
+				return -1;
+			}
+			// If this is not null and value is null return +1
+			if (ReferenceEquals(null, other) || 
+				other.IsNull)
+				return 1;
+
+			// otherwise both are non null so compare normally.
+			return CompareToNotNull(other);
+		}
+
+		private int CompareToNotNull(DataObject other) {
+			var type = Type;
+			// Strings must be handled as a special case.
+			if (type is StringType) {
+				// We must determine the locale to compare against and use that.
+				var stype = (StringType)type;
+				// If there is no locale defined for this type we use the locale in the
+				// given type.
+				if (stype.Locale == null) {
+					type = other.Type;
+				}
+			}
+			return type.Compare(Value, other.Value);
+
+		}
+
+		int IComparable.CompareTo(object obj) {
+			return CompareTo((DataObject)obj);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override int GetHashCode() {
+			unchecked {
+				var code = Type.GetHashCode()*23;
+				if (Value != null)
+					code = code ^ Value.GetHashCode();
+				return code;
+			}
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool Equals(object obj) {
+			if (!(obj is DataObject))
+				return false;
+
+			return Equals((DataObject) obj);
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public bool Equals(DataObject other) {
+			if (ReferenceEquals(other, null))
+				return IsNull;
+
+			var result = IsEqualTo(other);
+			if (result.IsNull)
+				return IsNull;
+
+			return result.AsBoolean();
+		}
+
+		/// &lt;summary&gt;
+		/// Compares to the given object to verify if is it compatible.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;other&quot;&gt;The other object to verify.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;DataObject&quot;/&gt; that defines
+		/// if the given object is compatible with the current one.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;IsComparableTo&quot;/&gt;
+		/// &lt;seealso cref=&quot;DataType.IsComparable&quot;/&gt;
+		public DataObject Is(DataObject other) {
+			if (IsNull &amp;&amp; other.IsNull)
+				return BooleanTrue;
+			if (IsComparableTo(other))
+				return Boolean(CompareTo(other) == 0);
+
+			return BooleanFalse;
+		}
+
+		public DataObject IsNot(DataObject other) {
+			return Is(other).Negate();
+		}
+
+		/// &lt;summary&gt;
+		/// Compares to the given object to verify if is it equal to the current.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;other&quot;&gt;The other object to verify.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This method returns a boolean value of &lt;c&gt;true&lt;/c&gt; or &lt;c&gt;false&lt;/c&gt;
+		/// only if the current object and the other object are not &lt;c&gt;null&lt;/c&gt;.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;DataObject&quot;/&gt; that defines
+		/// if the given object is equal to the current one, or a boolean
+		/// &lt;c&gt;null&lt;/c&gt; if it was impossible to determine the types.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;IsComparableTo&quot;/&gt;
+		/// &lt;seealso cref=&quot;DataType.IsComparable&quot;/&gt;
+		public DataObject IsEqualTo(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) == 0);
+
+			return BooleanNull;
+		}
+
+		public DataObject IsNotEqualTo(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) != 0);
+
+			return BooleanNull;
+		}
+
+		public DataObject IsGreaterThan(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) &lt; 0);
+
+			return BooleanNull;			
+		}
+
+		public DataObject IsSmallerThan(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) &gt; 0);
+
+			return BooleanNull;
+		}
+
+		public DataObject IsGreterOrEqualThan(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) &lt;= 0);
+
+			return BooleanNull;
+		}
+
+		public DataObject IsSmallerOrEqualThan(DataObject other) {
+			if (IsComparableTo(other) &amp;&amp; !IsNull &amp;&amp; !other.IsNull)
+				return Boolean(CompareTo(other) &gt;= 0);
+
+			return BooleanNull;
+		}
+
+		public DataObject IsLike(DataObject pattern) {
+			if (IsNull || !(Type is StringType))
+				return BooleanNull;
+
+			if (!(pattern.Type is StringType) ||
+			    pattern.IsNull)
+				return BooleanNull;
+
+			var valueString = (ISqlString) Value;
+			var patternString = (ISqlString) pattern.Value;
+			return Boolean((Type as StringType).IsLike(valueString, patternString));
+		}
+
+		public DataObject IsNotLike(DataObject other) {
+			if (IsNull || !(Type is StringType))
+				return BooleanNull;
+
+			return Boolean((Type as StringType).IsNotLike(other.Value));
+		}
+
+		/// &lt;summary&gt;
+		/// Negates the current underlying value of the object.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// The value negation is delegated to the underlying &lt;see cref=&quot;DataType&quot;/&gt;
+		/// implementation set to this object: this means not all the objects
+		/// will handle negation, but instead they will return a &lt;seealso cref=&quot;SqlNull&quot;/&gt; value.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// This returns an instance of &lt;see cref=&quot;DataObject&quot;/&gt; whose
+		/// &lt;see cref=&quot;Value&quot;/&gt; is the negation of the current handled value.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;DataType.Negate&quot;/&gt;
+		public DataObject Negate() {
+			if (IsNull)
+				return this;
+
+			return new DataObject(Type, Type.Negate(Value));
+		}
+
+		public DataObject Add(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Add(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject Subtract(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Subtract(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject Multiply(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Multiply(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject Divide(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Divide(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject Modulus(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Modulus(Value, other.Value);
+			return new DataObject(widerType, result);			
+		}
+
+		public DataObject Or(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.Or(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject And(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.And(Value, other.Value);
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject XOr(DataObject other) {
+			if (IsNull)
+				return this;
+
+			var widerType = Type.Wider(other.Type);
+			var result = widerType.XOr(Value, other.Value);
+			return new DataObject(widerType, result);			
+		}
+
+		public DataObject Reverse() {
+			if (IsNull)
+				return this;
+			
+			return new DataObject(Type, Type.Reverse(Value));
+		}
+
+		#region Conversion
+
+		/// &lt;summary&gt;
+		/// Converts this object to the given &lt;see cref=&quot;DataType&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;destType&quot;&gt;The destination &lt;see cref=&quot;DataType&quot;/&gt; to cast this
+		/// object to.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;DataObject&quot;/&gt; that has a &lt;see cref=&quot;Type&quot;/&gt;
+		/// equals to the given &lt;see cref=&quot;DataType&quot;/&gt; and &lt;see cref=&quot;Value&quot;/&gt; as a
+		/// &lt;see cref=&quot;ISqlObject&quot;/&gt; compatible with the given type.
+		/// &lt;/returns&gt;
+		public DataObject CastTo(DataType destType) {
+			if (!Type.CanCastTo(destType))
+				throw new InvalidCastException();
+
+			if (Type.Equals(destType))
+				return this;
+
+			return Type.CastTo(this, destType);
+		}
+
+		public DataObject AsBoolean() {
+			return CastTo(PrimitiveTypes.Boolean());
+		}
+
+		public DataObject AsInteger() {
+			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Integer));
+		}
+
+		public DataObject AsBigInt() {
+			return CastTo(PrimitiveTypes.Numeric(SqlTypeCode.BigInt));
+		}
+
+		public DataObject AsVarChar() {
+			return CastTo(PrimitiveTypes.String(SqlTypeCode.VarChar));
+		}
+
+		#endregion
+
+		#region Object Factory
+
+		public static DataObject Boolean(SqlBoolean value) {
+			return new DataObject(PrimitiveTypes.Boolean(), value);
+		}
+
+		public static DataObject Boolean(bool value) {
+			return Boolean((SqlBoolean)value);
+		}
+
+		public static DataObject Number(SqlNumber value) {
+			return Number(PrimitiveTypes.Numeric(), value);
+		}
+
+		public static DataObject Number(NumericType type, SqlNumber value) {
+			return new DataObject(type, value);
+		}
+
+		public static DataObject Number(NumericType type, int value) {
+			return new DataObject(type, new SqlNumber(value));
+		}
+
+		public static DataObject Number(NumericType type, long value) {
+			return new DataObject(type, new SqlNumber(value));
+		}
+
+		public static DataObject TinyInt(byte value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.TinyInt), value);
+		}
+
+		public static DataObject SmallInt(short value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.SmallInt), value);
+		}
+
+		public static DataObject Integer(int value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Integer), value);
+		}
+
+		public static DataObject BigInt(long value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.BigInt), value);
+		}
+
+		public static DataObject Float(float value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Float), new SqlNumber(value));
+		}
+
+		public static DataObject Double(double value) {
+			return Number(PrimitiveTypes.Numeric(SqlTypeCode.Double), new SqlNumber(value));
+		}
+
+		public static DataObject String(string s) {
+			return String(new SqlString(s));
+		}
+
+		public static DataObject String(SqlString s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.String), s);
+		}
+
+		public static DataObject Date(DateTimeOffset value) {
+			var offset = new SqlDayToSecond(value.Offset.Days, value.Offset.Hours, value.Offset.Minutes, value.Offset.Seconds, value.Offset.Milliseconds);
+			var sqlDate = new SqlDateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, offset);
+			return Date(sqlDate);
+		}
+
+		public static DataObject Date(SqlDateTime value) {
+			return new DataObject(PrimitiveTypes.Date(SqlTypeCode.Date), value);
+		}
+
+		public static DataObject VarChar(string s) {
+			return VarChar(new SqlString(s));
+		}
+
+		public static DataObject VarChar(SqlString s) {
+			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
+		}
+
+		public static DataObject Geometry(IGeometry geometry) {
+			return new DataObject(new GeometryType(geometry.Srid), geometry);
+		}
+
+		public static DataObject Null(DataType type) {
+			return new DataObject(type, SqlNull.Value);
+		}
+
+		public static DataObject Null() {
+			return Null(new NullType(SqlTypeCode.Null));
+		}
+
+		public static DataObject Create(object value) {
+			// Numeric values ...
+			if (value is bool)
+				return Boolean((bool) value);
+			if (value is byte)
+				return TinyInt((byte) value);
+			if (value is short)
+				return SmallInt((short) value);
+			if (value is int)
+				return Integer((int) value);
+			if (value is long)
+				return BigInt((long) value);
+			if (value is float)
+				return Float((float) value);
+			if (value is double)
+				return Double((double) value);
+
+			if (value is SqlNumber) {
+				var num = (SqlNumber) value;
+				if (num.IsNull)
+					return Null(PrimitiveTypes.Numeric());
+
+				if (num.CanBeInt32)
+					return Integer(num.ToInt32());
+				if (num.CanBeInt64)
+					return BigInt(num.ToInt64());
+
+				return Number(num);
+			}
+
+			// String values ...
+			if (value is string)
+				return String((string) value);
+			if (value is SqlString) {
+				var s = (SqlString) value;
+				if (s.IsNull)
+					return Null(PrimitiveTypes.String());
+
+				return String(s);
+			}
+
+			throw new NotSupportedException(&quot;Cannot build an object from the given value.&quot;);
+		}
+
+		#endregion
+
+		#region Operators
+
+		public static DataObject operator ==(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return BooleanNull;
+			if (Equals(a, null) || Equals(b, null))
+				return BooleanNull;
+
+			return a.IsEqualTo(b);
+		}
+
+		public static DataObject operator !=(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return BooleanNull;
+			if (Equals(a, null) || Equals(b, null))
+				return BooleanNull;
+
+			return a.IsNotEqualTo(b);
+		}
+
+		public static DataObject operator +(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Add(b);
+		}
+
+		public static DataObject operator -(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Subtract(b);
+		}
+
+		public static DataObject operator /(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Divide(b);
+		}
+
+		public static DataObject operator *(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Multiply(b);
+		}
+
+		public static DataObject operator %(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Modulus(b);
+		}
+
+		public static DataObject operator &amp;(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.And(b);
+		}
+
+		public static bool operator true(DataObject a) {
+			return a.IsEqualTo(DataObject.BooleanTrue);
+		}
+
+		public static bool operator false(DataObject a) {
+			return a.IsEqualTo(DataObject.BooleanFalse);
+		}
+
+		public static DataObject operator |(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.Or(b);
+		}
+
+		public static DataObject operator ^(DataObject a, DataObject b) {
+			if (Equals(a, null) &amp;&amp; Equals(b, null))
+				return Null();
+			if (Equals(a, null))
+				return Null();
+
+			return a.XOr(b);
+		}
+
+		public static DataObject operator !(DataObject value) {
+			return value.Negate();
+		}
+
+		public static DataObject operator -(DataObject value) {
+			return value.Negate();
+		}
+
+		public static DataObject operator ~(DataObject value) {
+			return value.Reverse();
+		}
+
+		#endregion
+
+		#region Implicit Operators
+
+		public static implicit operator bool(DataObject value) {
+			if (ReferenceEquals(value, null) || value.IsNull)
+				throw new InvalidCastException(&quot;Cannot convert a nullable value to a boolean.&quot;);
+
+			return (SqlBoolean) value.AsBoolean().Value;
+		}
+
+		public static implicit operator int(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				throw new NullReferenceException();
+
+			return ((SqlNumber)value.AsInteger().Value).ToInt32();
+		}
+
+		public static implicit operator long(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				throw new NullReferenceException();
+
+			return ((SqlNumber) value.AsBigInt().Value).ToInt64();
+		}
+
+		public static implicit operator string(DataObject value) {
+			if (Equals(value, null) || value.IsNull)
+				return null;
+
+			return ((SqlString) value.AsVarChar().Value).Value;
+		}
+
+		#endregion
+
+		internal void SerializeTo(Stream stream, ISystemContext systemContext) {
+			Type.SerializeObject(stream, Value, systemContext);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[52,5,52,45,0],[82,10,82,43,0],[86,10,86,41,0],[112,6,112,15,0],[118,5,118,14,0],[141,4,141,38,0],[147,5,147,38,0],[148,5,148,23,0],[149,6,149,40,0],[150,5,150,17,0],[156,4,156,29,0],[157,5,157,18,0],[159,4,159,36,0],[165,5,165,19,0],[185,4,185,31,0],[186,5,186,24,0],[187,4,187,30,0],[188,5,188,43,0],[190,4,190,24,0],[194,4,194,30,0],[220,4,220,58,0],[221,5,221,43,0],[223,4,223,23,0],[227,4,227,58,0],[228,5,228,42,0],[230,4,230,23,0],[234,4,234,58,0],[235,5,235,42,0],[237,4,237,23,0],[241,4,241,58,0],[242,5,242,43,0],[244,4,244,23,0],[248,4,248,58,0],[249,5,249,43,0],[251,4,251,23,0],[256,5,256,24,0],[260,5,260,24,0],[268,4,268,40,0],[269,5,269,24,0],[271,4,271,64,0],[289,5,289,17,0],[296,5,296,17,0],[305,5,305,17,0],[314,5,314,17,0],[322,4,322,15,0],[323,5,323,17,0],[325,4,325,43,0],[326,4,326,54,0],[327,4,327,45,0],[331,4,331,15,0],[332,5,332,17,0],[334,4,334,43,0],[335,4,335,55,0],[336,4,336,45,0],[340,4,340,15,0],[341,5,341,17,0],[343,4,343,43,0],[344,4,344,50,0],[345,4,345,45,0],[349,4,349,15,0],[350,5,350,17,0],[352,4,352,43,0],[353,4,353,51,0],[354,4,354,45,0],[358,4,358,15,0],[359,5,359,17,0],[361,4,361,43,0],[362,4,362,51,0],[363,4,363,45,0],[367,4,367,15,0],[368,5,368,17,0],[370,4,370,53,0],[387,5,387,38,0],[456,4,456,83,0],[460,4,460,84,0],[490,4,490,69,0],[504,5,504,34,0],[506,5,506,34,0],[508,5,508,36,0],[510,5,510,33,0],[512,5,512,33,0],[514,5,514,33,0],[516,5,516,35,0],[519,5,519,33,0],[520,5,520,20,0],[521,6,521,44,0],[523,5,523,24,0],[524,6,524,36,0],[525,5,525,24,0],[526,6,526,35,0],[528,5,528,24,0],[534,4,534,27,0],[535,5,535,31,0],[536,5,536,18,0],[537,6,537,43,0],[539,5,539,22,0],[542,4,542,84,0],[550,4,550,43,0],[551,5,551,24,0],[552,4,552,43,0],[553,5,553,24,0],[555,4,555,26,0],[559,4,559,43,0],[560,5,560,24,0],[561,4,561,43,0],[562,5,562,24,0],[564,4,564,29,0],[568,4,568,43,0],[569,5,569,19,0],[570,4,570,24,0],[571,5,571,19,0],[573,4,573,20,0],[577,4,577,43,0],[578,5,578,19,0],[579,4,579,24,0],[580,5,580,19,0],[582,4,582,25,0],[586,4,586,43,0],[587,5,587,19,0],[588,4,588,24,0],[589,5,589,19,0],[591,4,591,23,0],[595,4,595,43,0],[596,5,596,19,0],[597,4,597,24,0],[598,5,598,19,0],[600,4,600,25,0],[604,4,604,43,0],[605,5,605,19,0],[606,4,606,24,0],[607,5,607,19,0],[609,4,609,24,0],[613,4,613,43,0],[614,5,614,19,0],[615,4,615,24,0],[616,5,616,19,0],[618,4,618,20,0],[622,4,622,47,0],[626,4,626,48,0],[630,4,630,43,0],[631,5,631,19,0],[632,4,632,24,0],[633,5,633,19,0],[635,4,635,19,0],[639,4,639,43,0],[640,5,640,19,0],[641,4,641,24,0],[642,5,642,19,0],[644,4,644,20,0],[652,4,652,26,0],[656,4,656,27,0],[665,5,665,85,0],[672,5,672,40,0],[679,5,679,40,0],[686,5,686,17,0],[50,3,50,53,1],[51,4,51,21,1],[54,4,54,16,1],[55,4,55,18,1],[56,3,56,4,1],[77,5,77,83,1],[90,10,90,36,1],[103,4,103,39,1],[109,4,109,15,1],[111,5,111,22,1],[113,5,113,15,1],[116,4,117,18,1],[121,4,121,35,1],[125,4,125,20,1],[127,4,127,27,1],[129,5,129,34,1],[132,5,132,30,1],[133,6,133,24,1],[136,4,136,44,1],[164,4,164,37,1],[167,4,167,34,1],[168,4,168,22,1],[169,5,169,19,1],[171,4,171,30,1],[213,4,213,58,1],[214,5,214,43,1],[216,4,216,23,1],[255,4,255,40,1],[258,4,259,23,1],[262,4,262,41,1],[263,4,263,51,1],[264,4,264,76,1],[288,4,288,15,1],[291,4,291,52,1],[295,4,295,15,1],[298,4,298,43,1],[299,4,299,51,1],[300,4,300,45,1],[304,4,304,15,1],[307,4,307,43,1],[308,4,308,56,1],[309,4,309,45,1],[313,4,313,15,1],[316,4,316,43,1],[317,4,317,56,1],[318,4,318,45,1],[386,4,386,34,1],[389,4,389,30,1],[390,5,390,17,1],[392,4,392,39,1],[396,4,396,44,1],[400,4,400,63,1],[404,4,404,62,1],[408,4,408,62,1],[416,4,416,59,1],[420,4,420,38,1],[424,4,424,51,1],[428,4,428,39,1],[432,4,432,54,1],[436,4,436,54,1],[440,4,440,70,1],[444,4,444,71,1],[448,4,448,70,1],[452,4,452,69,1],[464,4,464,36,1],[468,4,468,72,1],[472,4,472,146,1],[473,4,473,137,1],[474,4,474,25,1],[478,4,478,72,1],[482,4,482,37,1],[486,4,486,73,1],[494,4,494,47,1],[498,4,498,48,1],[503,4,503,22,1],[505,4,505,22,1],[507,4,507,23,1],[509,4,509,21,1],[511,4,511,22,1],[513,4,513,23,1],[515,4,515,24,1],[518,4,518,27,1],[532,4,532,24,1],[533,5,533,35,1],[648,4,648,26,1],[664,4,664,53,1],[667,4,667,48,1],[671,4,671,44,1],[674,4,674,58,1],[678,4,678,44,1],[681,4,681,58,1],[685,4,685,44,1],[688,4,688,55,1],[694,4,694,55,1],[695,3,695,4,1],[38,3,38,109,1],[43,3,43,111,1],[48,3,48,109,1]]);
+    </script>
+  </body>
+</html>

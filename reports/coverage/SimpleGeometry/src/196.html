@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.query\queryexpressionfrom.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Query {
+	public sealed class QueryExpressionFrom {
+		private readonly List&lt;IFromTableSource&gt; tableSources;
+		private readonly List&lt;ExpressionReference&gt; expressionReferences;
+		private readonly List&lt;ObjectName&gt; exposedColumns;
+
+		public QueryExpressionFrom() 
+			: this(true) {
+		}
+
+		public QueryExpressionFrom(bool ignoreCase) {
+			IgnoreCase = ignoreCase;
+
+			tableSources = new List&lt;IFromTableSource&gt;();
+			expressionReferences = new List&lt;ExpressionReference&gt;();
+			exposedColumns = new List&lt;ObjectName&gt;();
+
+			ExpressionPreparer = new FromExpressionPreparer(this);
+		}
+
+		public bool IgnoreCase { get; private set; }
+
+		public QueryExpressionFrom Parent { get; set; }
+
+		public IExpressionPreparer ExpressionPreparer { get; private set; }
+
+		public int SourceCount {
+			get { return tableSources.Count; }
+		}
+
+		public bool CompareStrings(string str1, string str2) {
+			var compareType = IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return String.Equals(str1, str2, compareType);
+		}
+
+		public void AddTable(IFromTableSource tableSource) {
+			tableSources.Add(tableSource);
+		}
+
+		public void AddExpression(ExpressionReference expressionReference) {
+			expressionReferences.Add(expressionReference);
+		}
+
+		public void ExposeColumn(ObjectName columName) {
+			exposedColumns.Add(columName);
+		}
+
+		public void ExposeColumns(IFromTableSource tableSource) {
+			foreach (var column in tableSource.ColumnNames) {
+				exposedColumns.Add(column);
+			}
+		}
+
+		public void ExposeColumns(ObjectName tableName) {
+			var schema = tableName.Parent != null ? tableName.Parent.Name : null;
+			IFromTableSource table = FindTable(schema, tableName.Name);
+			if (table == null)
+				throw new InvalidOperationException(&quot;Table name found: &quot; + tableName);
+
+			ExposeColumns(table);
+		}
+
+		public void ExposeAllColumns() {
+			foreach (var source in tableSources) {
+				ExposeColumns(source);
+			}
+		}
+
+		public IFromTableSource GetTableSource(int offset) {
+			return tableSources[offset];
+		}
+
+		public IFromTableSource FindTable(string schema, string name) {
+			return tableSources.FirstOrDefault(x =&gt; x.MatchesReference(null, schema, name));
+		}
+
+		public ObjectName[] GetResolvedColumns() {
+			var columnNames = new ObjectName[exposedColumns.Count];
+			exposedColumns.CopyTo(columnNames, 0);
+			return columnNames;
+		}
+
+		public SqlExpression FindExpression(ObjectName alias) {
+			if (alias == null) 
+				throw new ArgumentNullException(&quot;alias&quot;);
+
+			if (alias.Parent != null)
+				return null;
+
+			var aliasName = alias.Name;
+
+			int matchCount = 0;
+			SqlExpression expToRetun = null;
+			foreach (var reference in expressionReferences) {
+				if (matchCount &gt; 1)
+					throw new AmbiguousMatchException(String.Format(&quot;Alias &#39;{0}&#39; resolves to multiple expressions in the plan&quot;, alias));
+
+				if (CompareStrings(reference.Alias, aliasName)) {
+					expToRetun = reference.Expression;
+					matchCount++;
+				}
+			}
+
+			return expToRetun;
+		}
+
+		private ObjectName ResolveColumnReference(ObjectName columnName) {
+			var parent = columnName.Parent;
+			var name = columnName.Name;
+			string schemaName = null;
+			string tableName = null;
+			if (parent != null) {
+				tableName = parent.Name;
+				parent = parent.Parent;
+				if (parent != null)
+					schemaName = parent.Name;
+			}
+
+			ObjectName matchedColumn = null;
+
+			foreach (var source in tableSources) {
+				int matchCount = source.ResolveColumnCount(null, schemaName, tableName, name);
+				if (matchCount &gt; 1)
+					throw new AmbiguousMatchException();
+
+				if (matchCount == 1)
+					matchedColumn = source.ResolveColumn(null, schemaName, tableName, name);
+			}
+
+			return matchedColumn;
+		}
+
+		private ObjectName ResolveAliasReference(ObjectName alias) {
+			if (alias.Parent != null)
+				return null;
+
+			var aliasName = alias.Name;
+
+			int matchCount = 0;
+			ObjectName matched = null;
+			foreach (var reference in expressionReferences) {
+				if (matchCount &gt; 1)
+					throw new AmbiguousMatchException();
+
+				if (CompareStrings(aliasName, reference.Alias)) {
+					matched = new ObjectName(reference.Alias);
+					matchCount++;
+				}
+			}
+
+			return matched;
+		}
+
+		public ObjectName ResolveReference(ObjectName refName) {
+			var refList = new List&lt;ObjectName&gt;();
+
+			var resolved = ResolveAliasReference(refName);
+			if (resolved != null)
+				refList.Add(resolved);
+
+			resolved = ResolveColumnReference(refName);
+			if (resolved != null)
+				refList.Add(resolved);
+
+			if (refList.Count &gt; 1)
+				throw new AmbiguousMatchException();
+
+			if (refList.Count == 0)
+				return null;
+
+			return refList[0];
+		}
+
+		private QueryReference GlobalResolveReference(int level, ObjectName name) {
+			ObjectName resolvedName = ResolveReference(name);
+			if (resolvedName == null &amp;&amp; Parent != null)
+				// If we need to descend to the parent, increment the level.
+				return Parent.GlobalResolveReference(level + 1, name);
+
+			if (resolvedName != null)
+				return new QueryReference(resolvedName, level);
+
+			return null;
+		}
+
+		private object QualifyReference(ObjectName name) {
+			var referenceName = ResolveReference(name);
+			if (referenceName == null) {
+				if (Parent == null)
+					throw new InvalidOperationException(String.Format(&quot;Reference {0} was not found in context.&quot;, name));
+
+				var queryRef = GlobalResolveReference(1, name);
+				if (queryRef == null)
+					throw new InvalidOperationException(String.Format(&quot;Reference {0} was not found in context.&quot;, name));
+
+				return queryRef;
+			}
+
+			return referenceName;
+		}
+
+		public static QueryExpressionFrom Create(IQueryContext context, SqlQueryExpression expression) {
+			// Get the &#39;from_clause&#39; from the table expression
+			var fromClause = expression.FromClause;
+			var ignoreCase = context.IgnoreIdentifiersCase();
+
+			var queryFrom = new QueryExpressionFrom(ignoreCase);
+			foreach (var fromTable in fromClause.AllTables) {
+				var uniqueKey = fromTable.UniqueKey;
+				var alias = fromTable.Alias;
+
+				if (fromTable.IsSubQuery) {
+					// eg. FROM ( SELECT id FROM Part )
+					var subQuery = fromTable.SubQuery;
+					var subQueryFrom = Create(context, subQuery);
+
+					// The aliased name of the table
+					ObjectName aliasTableName = null;
+					if (alias != null)
+						aliasTableName = new ObjectName(alias);
+
+					// Add to list of sub-query tables to add to command,
+					queryFrom.AddTable(new FromTableSubQuerySource(ignoreCase, uniqueKey, subQuery, subQueryFrom, aliasTableName));
+				} else {
+					// Else must be a standard command table,
+					string name = fromTable.Name;
+
+					// Resolve to full table name
+					var tableName = context.ResolveTableName(name);
+
+					if (!context.TableExists(tableName))
+						throw new InvalidOperationException(String.Format(&quot;Table &#39;{0}&#39; was not found.&quot;, tableName));
+
+					ObjectName givenName = null;
+					if (alias != null)
+						givenName = new ObjectName(alias);
+
+					// Get the ITableQueryInfo object for this table name (aliased).
+					ITableQueryInfo tableQueryInfo = context.GetTableQueryInfo(tableName, givenName);
+
+					queryFrom.AddTable(new FromTableDirectSource(ignoreCase, tableQueryInfo, uniqueKey, givenName, tableName));
+				}
+			}
+
+			// Set up functions, aliases and exposed variables for this from set,
+
+			foreach (var selectColumn in expression.SelectColumns) {
+				// Is this a glob?  (eg. Part.* )
+				if (selectColumn.IsGlob) {
+					// Find the columns globbed and add to the &#39;selectedColumns&#39; result.
+					if (selectColumn.IsAll) {
+						queryFrom.ExposeAllColumns();
+					} else {
+						// Otherwise the glob must be of the form &#39;[table name].*&#39;
+						queryFrom.ExposeColumns(selectColumn.TableName);
+					}
+				} else {
+					// Otherwise must be a standard column reference.  Note that at this
+					// time we aren&#39;t sure if a column expression is correlated and is
+					// referencing an outer source.  This means we can&#39;t verify if the
+					// column expression is valid or not at this point.
+
+					// If this column is aliased, add it as a function reference to the
+					// select expression
+
+					string alias = selectColumn.Alias;
+					var v = selectColumn.Expression.AsReferenceName();
+					bool aliasMatchV = (v != null &amp;&amp; alias != null &amp;&amp;
+										queryFrom.CompareStrings(v.Name, alias));
+					if (alias != null &amp;&amp; !aliasMatchV) {
+						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, alias));
+						queryFrom.ExposeColumn(new ObjectName(alias));
+					} else if (v != null) {
+						var resolved = queryFrom.ResolveReference(v);
+						queryFrom.ExposeColumn(resolved ?? v);
+					} else {
+						string funName = selectColumn.Expression.ToString();
+						queryFrom.AddExpression(new ExpressionReference(selectColumn.Expression, funName));
+						queryFrom.ExposeColumn(new ObjectName(funName));
+					}
+				}
+			}
+
+			return queryFrom;
+		}
+
+		#region FromExpressionPreparer
+
+		private class FromExpressionPreparer : IExpressionPreparer {
+			private readonly QueryExpressionFrom fromSet;
+
+			public FromExpressionPreparer(QueryExpressionFrom fromSet) {
+				this.fromSet = fromSet;
+			}
+
+			public bool CanPrepare(SqlExpression expression) {
+				return expression is SqlReferenceExpression;
+			}
+
+			public SqlExpression Prepare(SqlExpression expression) {
+				var refName = ((SqlReferenceExpression) expression).ReferenceName;
+
+				var reference = fromSet.QualifyReference(refName);
+				if (reference is ObjectName)
+					return SqlExpression.Reference((ObjectName) reference);
+				if (reference is QueryReference)
+					return new QueryReferenceExpression((QueryReference) reference);
+
+				throw new InvalidOperationException();
+			}
+		}
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[31,3,32,16,0],[33,3,33,4,0],[56,4,56,97,0],[57,4,57,50,0],[65,4,65,50,0],[66,3,66,4,0],[79,4,79,73,0],[80,4,80,63,0],[81,4,81,22,0],[82,5,82,75,0],[84,4,84,25,0],[85,3,85,4,0],[98,4,98,44,0],[98,82,98,84,0],[102,4,102,59,0],[103,4,103,42,0],[104,4,104,23,0],[108,4,108,22,0],[109,5,109,46,0],[111,4,111,29,0],[112,5,112,17,0],[114,4,114,31,0],[116,4,116,23,0],[117,4,117,36,0],[118,30,118,50,0],[118,13,118,26,0],[119,5,119,24,0],[120,6,120,122,0],[122,5,122,52,0],[123,6,123,40,0],[124,6,124,19,0],[118,27,118,29,0],[128,4,128,22,0],[137,5,137,29,0],[138,5,138,28,0],[139,5,139,24,0],[140,6,140,31,0],[148,6,148,42,0],[159,5,159,17,0],[165,13,165,26,0],[166,5,166,24,0],[167,6,167,42,0],[169,5,169,52,0],[170,6,170,48,0],[171,6,171,19,0],[183,5,183,27,0],[190,5,190,41,0],[193,5,193,17,0],[199,4,199,53,0],[200,4,200,47,0],[202,5,202,59,0],[204,4,204,29,0],[205,5,205,52,0],[207,4,207,16,0],[211,4,211,47,0],[212,4,212,30,0],[213,5,213,24,0],[214,6,214,106,0],[216,5,216,52,0],[217,5,217,26,0],[218,6,218,106,0],[220,5,220,21,0],[223,4,223,25,0],[238,6,238,40,0],[239,6,239,51,0],[242,6,242,39,0],[243,6,243,24,0],[244,7,244,46,0],[247,6,247,117,0],[256,7,256,99,0],[260,7,260,41,0],[279,7,279,55,0],[295,7,295,88,0],[296,7,296,53,0],[301,7,301,59,0],[302,7,302,90,0],[303,7,303,55,0],[321,5,321,49,0],[325,5,325,71,0],[327,5,327,55,0],[328,5,328,33,0],[329,6,329,61,0],[330,5,330,37,0],[331,6,331,70,0],[333,5,333,43,0],[98,44,98,82,0],[35,3,35,46,1],[36,4,36,28,1],[38,4,38,48,1],[39,4,39,59,1],[40,4,40,44,1],[42,4,42,58,1],[43,3,43,4,1],[52,10,52,36,1],[61,4,61,34,1],[62,3,62,4,1],[69,4,69,34,1],[70,3,70,4,1],[73,27,73,50,1],[73,13,73,23,1],[74,5,74,32,1],[73,24,73,26,1],[76,3,76,4,1],[88,27,88,39,1],[88,13,88,23,1],[89,5,89,27,1],[88,24,88,26,1],[91,3,91,4,1],[94,4,94,32,1],[132,4,132,35,1],[133,4,133,31,1],[134,4,134,29,1],[135,4,135,28,1],[136,4,136,23,1],[143,4,143,36,1],[145,27,145,39,1],[145,13,145,23,1],[146,5,146,83,1],[147,5,147,24,1],[150,5,150,25,1],[151,6,151,78,1],[145,24,145,26,1],[154,4,154,25,1],[158,4,158,29,1],[161,4,161,31,1],[163,4,163,23,1],[164,4,164,30,1],[165,30,165,50,1],[165,27,165,29,1],[175,4,175,19,1],[179,4,179,41,1],[181,4,181,50,1],[182,4,182,25,1],[185,4,185,47,1],[186,4,186,25,1],[187,5,187,27,1],[189,4,189,26,1],[192,4,192,27,1],[195,4,195,22,1],[228,4,228,43,1],[229,4,229,53,1],[231,4,231,56,1],[232,30,232,50,1],[232,13,232,26,1],[233,5,233,41,1],[234,5,234,33,1],[236,5,236,30,1],[250,6,250,35,1],[253,6,253,53,1],[255,6,255,42,1],[258,6,258,34,1],[259,6,259,24,1],[263,6,263,87,1],[265,6,265,113,1],[232,27,232,29,1],[271,33,271,57,1],[271,13,271,29,1],[273,5,273,29,1],[275,6,275,29,1],[276,7,276,36,1],[290,6,290,40,1],[291,6,291,56,1],[292,6,293,52,1],[294,6,294,40,1],[297,13,297,27,1],[298,7,298,52,1],[299,7,299,45,1],[271,30,271,32,1],[308,4,308,21,1],[316,4,316,62,1],[317,5,317,28,1],[318,4,318,5,1]]);
+    </script>
+  </body>
+</html>

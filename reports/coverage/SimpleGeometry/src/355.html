@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data\objectname.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Diagnostics;
+using System.Text;
+
+namespace Deveel.Data {
+	/// &lt;summary&gt;
+	/// Describes the name of an object within a database.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// The name of an object is composed by multiple parts, depending on the level
+	/// of nesting of the object this name references.
+	/// &lt;para&gt;
+	/// For example, a reference to a table will be composed by the name of
+	/// the schema and the name of the table: &lt;c&gt;Schema.Table&lt;/c&gt;, while a reference
+	/// to a column will be composed by the name of the schema, the name of the parent
+	/// table and the name of the column itself: &lt;c&gt;Schema.Table.Column&lt;/c&gt;.
+	/// &lt;/para&gt;
+	/// &lt;para&gt;
+	/// Depending on the xecution context, parts of the name can be omitted and will
+	/// be resolved at run-time.
+	/// &lt;/para&gt;
+	/// &lt;/remarks&gt;
+	[Serializable]
+	[DebuggerDisplay(&quot;{FullName}&quot;)]
+	public sealed class ObjectName : IEquatable&lt;ObjectName&gt;, IComparable&lt;ObjectName&gt;, ICloneable {
+		/// &lt;summary&gt;
+		/// The special name usedas a wilcard to indicate all the columns of a table
+		/// must be referenced in a given context.
+		/// &lt;/summary&gt;
+		public const string GlobName = &quot;*&quot;;
+
+		/// &lt;summary&gt;
+		/// The character that separates a name from its parent or child.
+		/// &lt;/summary&gt;
+		public const char Separator = &#39;.&#39;;
+
+		/// &lt;summary&gt;
+		/// Constructs a name reference without a parent.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;name&quot;&gt;The object name.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// &lt;b&gt;NOTE:&lt;/b&gt; This constructor is intended to be handling a name
+		/// with no parent: if the string provided as &lt;paramref name=&quot;name&quot;/&gt;
+		/// contains any &lt;see cref=&quot;Separator&quot;/&gt; character, this will make the
+		/// resolution to fail at run-time. User &lt;see cref=&quot;Parse&quot;/&gt; method to
+		/// obtain a reference tree.
+		/// &lt;/remarks&gt;
+		/// &lt;exception cref=&quot;ArgumentNullException&quot;&gt;
+		/// If &lt;paramref name=&quot;name&quot;/&gt; is &lt;c&gt;null&lt;/c&gt; or empty.
+		/// &lt;/exception&gt;
+		/// &lt;seealso cref=&quot;ObjectName(ObjectName, String)&quot;/&gt;
+		public ObjectName(string name) 
+			: this(null, name) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs a name reference with a given parent.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;parent&quot;&gt;The parent reference of the one being constructed&lt;/param&gt;
+		/// &lt;param name=&quot;name&quot;&gt;The name of the object.&lt;/param&gt;
+		/// &lt;exception cref=&quot;ArgumentNullException&quot;&gt;
+		/// If &lt;paramref name=&quot;name&quot;/&gt; is &lt;c&gt;null&lt;/c&gt; or empty.
+		/// &lt;/exception&gt;
+		public ObjectName(ObjectName parent, string name) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException(&quot;name&quot;);
+			
+			Name = name;
+			Parent = parent;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the parent reference of the current one, if any or &lt;c&gt;null&lt;/c&gt; if none.
+		/// &lt;/summary&gt;
+		public ObjectName Parent { get; private set; }
+
+		public string ParentName {
+			get { return Parent == null ? null : Parent.FullName; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the name of the object being referenced.
+		/// &lt;/summary&gt;
+		public string Name { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the full reference name formatted.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ToString()&quot;/&gt;
+		public string FullName {
+			get { return ToString(); }
+		}
+
+		/// &lt;summary&gt;
+		/// Indicates if this reference equivales to &lt;see cref=&quot;GlobName&quot;/&gt;.
+		/// &lt;/summary&gt;
+		public bool IsGlob {
+			get { return Name.Equals(GlobName); }
+		}
+
+		/// &lt;summary&gt;
+		/// Parses the given string into a &lt;see cref=&quot;ObjectName&quot;/&gt; object.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;s&quot;&gt;The string to parse&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;ObjectName&quot;/&gt; that is the result
+		/// of parsing of the string given.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;FormatException&quot;&gt;
+		/// If the given input string is of an invalid format.
+		/// &lt;/exception&gt;
+		/// &lt;exception cref=&quot;ArgumentNullException&quot;&gt;
+		/// If the given string is &lt;c&gt;null&lt;/c&gt; or empty.
+		/// &lt;/exception&gt;
+		public static ObjectName Parse(string s) {
+			if (String.IsNullOrEmpty(s))
+				throw new ArgumentNullException(&quot;s&quot;);
+
+			var sp = s.Split(new[] {&#39;.&#39;}, StringSplitOptions.RemoveEmptyEntries);
+			if (sp.Length == 0)
+				throw new FormatException(&quot;At least one part of the name must be provided&quot;);
+
+			if (sp.Length == 1)
+				return new ObjectName(sp[0]);
+
+			ObjectName finalName = null;
+			for (int i = 0; i &lt; sp.Length; i++) {
+				if (finalName == null) {
+					finalName = new ObjectName(sp[i]);
+				} else {
+					finalName = new ObjectName(finalName, sp[i]);
+				}				
+			}
+
+			return finalName;
+		}
+
+		/// &lt;summary&gt;
+		/// Creates a new reference to a table, given a schema and a table name.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;schemaName&quot;&gt;The name of the schema that is the parent of
+		/// the given table.&lt;/param&gt;
+		/// &lt;param name=&quot;name&quot;&gt;The name of the table to reference.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;see cref=&quot;ObjectName&quot;/&gt; that references a table
+		/// within the given schema.
+		/// &lt;/returns&gt;
+		public static ObjectName ResolveSchema(string schemaName, string name) {
+			var sb = new StringBuilder();
+			if (!String.IsNullOrEmpty(schemaName))
+				sb.Append(schemaName).Append(&#39;.&#39;);
+			sb.Append(name);
+
+			return Parse(sb.ToString());
+		}
+
+		/// &lt;summary&gt;
+		/// Creates a reference what is the child of the current one.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;name&quot;&gt;The name of the child rerefence.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an istance of &lt;see cref=&quot;ObjectName&quot;/&gt; that has this
+		/// one as parent, and is named by the given &lt;paramref name=&quot;name&quot;/&gt;.
+		/// &lt;/returns&gt;
+		public ObjectName Child(string name) {
+			return new ObjectName(this, name);
+		}
+
+		public ObjectName Child(ObjectName childName) {
+			var baseName = this;
+			ObjectName parent = childName.Parent;
+			while (parent != null) {
+				baseName = baseName.Child(parent.Name);
+				parent = parent.Parent;
+			}
+
+			baseName = baseName.Child(childName.Name);
+			return baseName;
+		}
+
+		/// &lt;summary&gt;
+		/// Compares this instance of the object reference to a given one and
+		/// returns a value indicating if the two instances equivales.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;other&quot;&gt;The other object reference to compare.&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public int CompareTo(ObjectName other) {
+			if (other == null)
+				return -1;
+
+			int v = 0;
+			if (Parent != null)
+				v = Parent.CompareTo(other.Parent);
+
+			if (v == 0)
+				v = String.Compare(Name, other.Name, StringComparison.Ordinal);
+
+			return v;
+		}
+
+		public override string ToString() {
+			var sb = new StringBuilder();
+			if (Parent != null) {
+				sb.Append(Parent);
+				sb.Append(&#39;.&#39;);
+			}
+
+			sb.Append(Name);
+			return sb.ToString();
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as ObjectName;
+			if (other == null)
+				return false;
+
+			return Equals(other);
+		}
+
+		public bool Equals(ObjectName other) {
+			return Equals(other, true);
+		}
+
+		/// &lt;summary&gt;
+		/// Compares this object name with the other one given, according to the
+		/// case sensitivity specified.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;other&quot;&gt;The other &lt;see cref=&quot;ObjectName&quot;/&gt; to compare.&lt;/param&gt;
+		/// &lt;param name=&quot;ignoreCase&quot;&gt;The specification to either ignore the case for comparison.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns &lt;c&gt;true&lt;/c&gt; if the two instances are equal, according to the case sensitivity
+		/// given, or &lt;c&gt;false&lt;/c&gt; otherwise.
+		/// &lt;/returns&gt;
+		public bool Equals(ObjectName other, bool ignoreCase) {
+			if (other == null)
+				return false;
+
+			if (Parent != null &amp;&amp; other.Parent == null)
+				return false;
+			if (Parent == null &amp;&amp; other.Parent != null)
+				return false;
+
+			if (Parent != null &amp;&amp; !Parent.Equals(other.Parent, ignoreCase))
+				return false;
+
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return String.Equals(Name, other.Name, comparison);
+		}
+
+		public override int GetHashCode() {
+			var code = Name.GetHashCode() ^ 5623;
+			if (Parent != null)
+				code ^= Parent.GetHashCode();
+
+			return code;
+		}
+
+		/// &lt;summary&gt;
+		/// Creates a shadown copy of this object.
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;
+		/// Returns a new instance of &lt;see cref=&quot;ObjectName&quot;/&gt; that is
+		/// a copy of this object.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;ICloneable.Clone&quot;/&gt;
+		public ObjectName Clone() {
+			return new ObjectName(Parent, Name);
+		}
+
+		object ICloneable.Clone() {
+			return Clone();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[82,5,82,45,0],[133,5,133,42,0],[137,5,137,81,0],[165,4,165,33,0],[166,4,166,42,0],[167,5,167,39,0],[168,4,168,20,0],[170,4,170,32,0],[182,4,182,38,0],[186,4,186,24,0],[187,4,187,41,0],[189,5,189,44,0],[190,5,190,28,0],[188,4,188,26,0],[193,4,193,46,0],[194,4,194,20,0],[205,5,205,15,0],[209,5,209,40,0],[229,4,229,34,0],[230,4,230,22,0],[231,5,231,18,0],[233,4,233,25,0],[252,5,252,18,0],[255,5,255,18,0],[257,5,257,18,0],[283,4,283,40,0],[287,4,287,19,0],[68,3,69,22,1],[70,3,70,4,1],[80,3,80,52,1],[81,4,81,35,1],[84,4,84,16,1],[85,4,85,20,1],[86,3,86,4,1],[94,10,94,57,1],[107,10,107,28,1],[114,10,114,39,1],[132,4,132,32,1],[135,4,135,73,1],[136,4,136,23,1],[139,4,139,23,1],[140,5,140,34,1],[142,4,142,32,1],[143,9,143,19,1],[144,5,144,27,1],[145,6,145,40,1],[147,6,147,51,1],[143,35,143,38,1],[143,20,143,33,1],[151,4,151,21,1],[204,4,204,22,1],[207,4,207,14,1],[208,4,208,23,1],[211,4,211,15,1],[212,5,212,68,1],[214,4,214,13,1],[218,4,218,33,1],[219,4,219,23,1],[220,5,220,23,1],[221,5,221,20,1],[224,4,224,20,1],[225,4,225,25,1],[237,4,237,31,1],[251,4,251,22,1],[254,4,254,47,1],[256,4,256,47,1],[259,4,259,67,1],[260,5,260,18,1],[262,4,262,96,1],[263,4,263,55,1],[267,4,267,41,1],[268,4,268,23,1],[269,5,269,34,1],[271,4,271,16,1]]);
+    </script>
+  </body>
+</html>

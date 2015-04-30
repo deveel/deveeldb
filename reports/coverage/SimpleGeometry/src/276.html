@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\fromclause.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// A container for the &lt;i&gt;FROM&lt;/i&gt; clause of a select statement.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// This handles the different types of joins.
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class FromClause : IPreparable {
+		internal FromClause() {
+			fromTables = new List&lt;FromTable&gt;();
+			joinParts = new List&lt;JoinPart&gt;();
+			tableNames = new List&lt;string&gt;();
+		}
+
+		private readonly List&lt;string&gt; tableNames;
+		private readonly List&lt;FromTable&gt; fromTables;
+		private readonly List&lt;JoinPart&gt; joinParts;
+
+		/// &lt;summary&gt;
+		/// An id used for making unique names for anonymous inner selects.
+		/// &lt;/summary&gt;
+		private int tableKey;
+
+		/// &lt;summary&gt;
+		/// Gets an enumeration of all the tables that are the source of the query.
+		/// &lt;/summary&gt;
+		public IEnumerable&lt;FromTable&gt; AllTables {
+			get { return fromTables.AsReadOnly(); }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a count of all the joins happening in the clause.
+		/// &lt;/summary&gt;
+		public int JoinPartCount {
+			get { return joinParts.Count; }
+		}
+
+		private String CreateNewKey() {
+			++tableKey;
+			return tableKey.ToString(CultureInfo.InvariantCulture);
+		}
+
+		/// &lt;summary&gt;
+		/// Adds a table as source to the query with a given alias.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;alias&quot;&gt;The unique name alias of the table source within the clause.&lt;/param&gt;
+		/// &lt;param name=&quot;table&quot;&gt;The table source object to query from.&lt;/param&gt;
+		public void AddTable(string alias, FromTable table) {
+			if (table == null) 
+				throw new ArgumentNullException(&quot;table&quot;);
+
+			if (!String.IsNullOrEmpty(alias)) {
+				if (tableNames.Contains(alias))
+					throw new ArgumentException(String.Format(&quot;Duplicated table name {0} is FROM clause.&quot;, alias));
+
+				tableNames.Add(alias);
+			}
+
+			// Create a new unique key for this table
+			string key = CreateNewKey();
+			table.UniqueKey = key;
+			fromTables.Add(table);
+		}
+
+		/// &lt;summary&gt;
+		/// Adds a simple table reference as the source of the query with a given alias.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;alias&quot;&gt;The unique name alias of the table source within the clause.&lt;/param&gt;
+		/// &lt;param name=&quot;tableName&quot;&gt;The name of the table in the database to query from.&lt;/param&gt;
+		/// &lt;seealso cref=&quot;AddTable(string, FromTable)&quot;/&gt;
+		public void AddTable(string alias, string tableName) {
+			AddTable(alias, new FromTable(tableName, alias));
+		}
+
+		/// &lt;summary&gt;
+		/// Adds a simple table reference as the source of the query.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;tableName&quot;&gt;The name of the table in the database to query from.&lt;/param&gt;
+		/// &lt;seealso cref=&quot;AddTable(string, string)&quot;/&gt;
+		public void AddTable(string tableName) {
+			AddTable(null, tableName);
+		}
+
+		/// &lt;summary&gt;
+		/// Adds a sub-query expression as source of the query.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;subQuery&quot;&gt;The sub-query expression as source of the query.&lt;/param&gt;
+		/// &lt;seealso cref=&quot;AddSubQuery(string, SqlQueryExpression)&quot;/&gt;
+		public void AddSubQuery(SqlQueryExpression subQuery) {
+			AddSubQuery(null, subQuery);
+		}
+
+		/// &lt;summary&gt;
+		/// Adds a sub-query expression as source of the query.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;alias&quot;&gt;The unique alias name of the expression within the clause.&lt;/param&gt;
+		/// &lt;param name=&quot;subQuery&quot;&gt;The sub-query expression as source of the query.&lt;/param&gt;
+		/// &lt;seealso cref=&quot;AddTable(string, FromTable)&quot;/&gt;
+		/// &lt;seealso cref=&quot;SqlQueryExpression&quot;/&gt;
+		public void AddSubQuery(string alias, SqlQueryExpression subQuery) {
+			AddTable(alias, new FromTable(subQuery, alias));
+		}
+
+		/// &lt;summary&gt;
+		/// Sets a join between the last added table and the one that preceeds it.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;joinType&quot;&gt;The type of join to apply to the two tables.&lt;/param&gt;
+		/// &lt;param name=&quot;onExpression&quot;&gt;The condition for the two tables to join.&lt;/param&gt;
+		public void Join(JoinType joinType, SqlExpression onExpression) {
+			var lastTable = fromTables[fromTables.Count - 1];
+			if (lastTable.IsSubQuery) {
+				var subQuery = lastTable.SubQuery;
+				joinParts.Add(new JoinPart(joinType, subQuery, onExpression));
+			} else {
+				var tableName = ObjectName.Parse(lastTable.Name);
+				joinParts.Add(new JoinPart(joinType, tableName, onExpression));
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the descriptor of the join at the given offset.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;offset&quot;&gt;The offset of the join descriptor to get.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns an instance of &lt;seealso cref=&quot;JoinPart&quot;/&gt; that describes the type
+		/// of join at the given offset within the clause.
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;Join&quot;/&gt;
+		public JoinPart GetJoinPart(int offset) {
+			return joinParts[offset];
+		}
+
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			var clause = new FromClause();
+
+			// Prepare expressions in the JoiningSet first
+			int size = joinParts.Count;
+			for (int i = 0; i &lt; size; ++i) {
+				var part = joinParts[i];
+				var exp = part.OnExpression;
+				if (exp != null) {
+					exp = exp.Prepare(preparer);
+					if (part.SubQuery != null) {
+						part = new JoinPart(part.JoinType, part.SubQuery,  exp);
+					} else {
+						part = new JoinPart(part.JoinType, part.TableName, exp);
+					}
+				}
+
+				clause.joinParts.Add(part);
+			}
+
+			// Prepare the StatementTree sub-queries in the from tables
+			for (int i = 0; i &lt; fromTables.Count; i++) {
+				var table = fromTables[i];
+				var preparedTable = (FromTable) ((IPreparable) table).Prepare(preparer);
+				var tableAlias = tableNames[i];
+				clause.tableNames.Insert(i, tableAlias);
+				clause.fromTables.Insert(i, preparedTable);
+			}
+
+			return clause;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[75,5,75,46,0],[79,6,79,101,0],[115,4,115,32,0],[116,3,116,4,0],[137,5,137,39,0],[138,5,138,67,0],[159,4,159,34,0],[162,4,162,31,0],[163,9,163,19,0],[164,5,164,29,0],[165,5,165,33,0],[166,5,166,21,0],[167,6,167,34,0],[168,6,168,32,0],[169,7,169,63,0],[171,7,171,63,0],[175,5,175,32,0],[163,30,163,33,0],[163,20,163,28,0],[179,9,179,19,0],[180,5,180,31,0],[181,5,181,77,0],[182,5,182,36,0],[183,5,183,45,0],[184,5,184,48,0],[179,42,179,45,0],[179,20,179,40,0],[187,4,187,18,0],[34,3,34,24,1],[35,4,35,39,1],[36,4,36,37,1],[37,4,37,36,1],[38,3,38,4,1],[53,10,53,41,1],[60,10,60,33,1],[64,4,64,15,1],[65,4,65,59,1],[74,4,74,22,1],[77,4,77,37,1],[78,5,78,36,1],[81,5,81,27,1],[85,4,85,32,1],[86,4,86,26,1],[87,4,87,26,1],[88,3,88,4,1],[97,4,97,53,1],[98,3,98,4,1],[106,4,106,30,1],[107,3,107,4,1],[126,4,126,52,1],[127,3,127,4,1],[135,4,135,53,1],[136,4,136,29,1],[140,5,140,54,1],[141,5,141,68,1],[143,3,143,4,1],[155,4,155,29,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlkeynode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Represents a keyword found during the compilation of a source text.
+	/// &lt;/summary&gt;
+	/// &lt;seealso cref=&quot;ISqlNode&quot;/&gt;
+	[Serializable]
+	public sealed class SqlKeyNode : ISqlChildNode {
+		internal SqlKeyNode(Token token) {
+			this.token = token;
+			Text = token.Text;
+		}
+
+		private readonly Token token;
+		private ISqlNode parent;
+
+		string ISqlNode.NodeName {
+			get { return Text; }
+		}
+
+		ISqlNode ISqlNode.Parent {
+			get { return parent; }
+		}
+
+		IEnumerable&lt;ISqlNode&gt; ISqlNode.ChildNodes {
+			get { return new ISqlNode[0]; }
+		}
+
+		IEnumerable&lt;Token&gt; ISqlNode.Tokens {
+			get { return new Token[] {token}; }
+		}
+
+		void ISqlChildNode.SetParent(ISqlNode node) {
+			parent = node;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the source text of the keyword.
+		/// &lt;/summary&gt;
+		public string Text { get; private set; }
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,10,40,24,0],[27,3,27,35,1],[28,4,28,23,1],[29,4,29,22,1],[30,3,30,4,1],[36,10,36,22,1],[44,10,44,33,1],[48,10,48,37,1],[52,4,52,18,1],[53,3,53,4,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.routines\executeresult.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Deveel.Data.Routines {
+	/// &lt;summary&gt;
+	/// Represents the result of the execution of a routine.
+	/// &lt;/summary&gt;
+	public sealed class ExecuteResult {
+		private Dictionary&lt;string, DataObject&gt; outputValues;
+
+		private ExecuteResult(ExecuteContext context, DataObject returnValue, bool hasReturn) {
+			Context = context;
+			ReturnValue = returnValue;
+			HasReturnValue = hasReturn;
+		}
+
+		internal ExecuteResult(ExecuteContext context) 
+			: this(context, DataObject.Null(), false) {
+		}
+
+		internal ExecuteResult(ExecuteContext context, DataObject returnValue)
+			: this(context, returnValue, true) {
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the parent context that originated the result.
+		/// &lt;/summary&gt;
+		public ExecuteContext Context { get; private set; }
+
+		/// &lt;summary&gt;
+		/// If the context of the result is a function, gets the return value of
+		/// the function.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// &lt;para&gt;
+		/// This is set to &lt;see cref=&quot;DataObject.Null()&quot;/&gt; by default: the property
+		/// &lt;see cref=&quot;HasReturnValue&quot;/&gt; assess a return value was really provided 
+		/// by the routine (if the routine is a function).
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;seealso cref=&quot;HasReturnValue&quot;/&gt;
+		public DataObject ReturnValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the function has a &lt;see cref=&quot;ReturnValue&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This is always set to &lt;c&gt;false&lt;/c&gt; when the routine context is of a
+		/// &lt;c&gt;PROCEDURE&lt;/c&gt;, that has no return value by definition.
+		/// &lt;/remarks&gt;
+		/// &lt;seealso cref=&quot;ReturnValue&quot;/&gt;
+		public bool HasReturnValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the routine has any &lt;c&gt;OUT&lt;/c&gt;
+		/// parameter set.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;OutputParameters&quot;/&gt;
+		public bool HasOutputParameters {
+			get { return outputValues != null &amp;&amp; outputValues.Count &gt; 0; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a dictionary of the &lt;c&gt;OUT&lt;/c&gt; parameters emitted byt the routine.
+		/// &lt;/summary&gt;
+		public IDictionary&lt;string, DataObject&gt; OutputParameters {
+			get {
+				if (outputValues == null)
+					return new Dictionary&lt;string, DataObject&gt;();
+
+				return outputValues.ToDictionary(x =&gt; x.Key, y =&gt; y.Value);
+			}
+		}  
+
+		internal void SetOutputParameter(string name, DataObject value) {
+			if (Context.RoutineType != RoutineType.Procedure)
+				throw new Exception(&quot;Cannot set an output parameter value for a function.&quot;);
+
+			if (outputValues == null)
+				outputValues = new Dictionary&lt;string, DataObject&gt;();
+
+			outputValues[name] = value;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[34,3,35,45,0],[36,3,36,4,0],[77,10,77,64,0],[85,5,85,30,0],[86,6,86,50,0],[88,5,88,43,0],[88,62,88,64,0],[93,4,93,53,0],[94,5,94,81,0],[96,4,96,29,0],[97,5,97,57,0],[99,4,99,31,0],[100,3,100,4,0],[88,43,88,48,0],[88,55,88,62,0],[28,3,28,88,1],[29,4,29,22,1],[30,4,30,30,1],[31,4,31,31,1],[32,3,32,4,1],[38,3,39,38,1],[40,3,40,4,1]]);
+    </script>
+  </body>
+</html>

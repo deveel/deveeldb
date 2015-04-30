@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.transactions\lockhandle.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Transactions {
+	public sealed class LockHandle : IDisposable {
+		private Lock[] locks;
+		private int lockIndex;
+
+		internal LockHandle(int lockCount) {
+			locks = new Lock[lockCount];
+			lockIndex = 0;
+			IsUnlocked = false;
+		}
+
+		private bool IsUnlocked { get; set; }
+
+		internal void AddLock(Lock @lock) {
+			locks[lockIndex++] = @lock;
+		}
+
+		internal void Release() {
+			if (!IsUnlocked) {
+				for (int i = locks.Length - 1; i &gt;= 0; --i) {
+					locks[i].Release();
+				}
+
+				IsUnlocked = true;
+			}
+		}
+
+		public void CheckAccess(ITable table, AccessType accessType) {
+			for (int i = locks.Length - 1; i &gt;= 0; --i) {
+				var tableLock = locks[i];
+				if (tableLock.Lockable == table) {
+					tableLock.CheckAccess(accessType);
+					return;
+				}
+			}
+
+			throw new Exception(&quot;The given table was not found in the lock list for this handle&quot;);
+		}
+
+		public void Dispose() {
+			if (!IsUnlocked) {
+				Release();
+
+				// TODO: report the situation: there should not be
+				//        a call to Release() at this point...
+
+				locks = null;
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[49,9,49,34,0],[50,5,50,30,0],[51,5,51,37,0],[52,6,52,40,0],[53,6,53,13,0],[49,43,49,46,0],[49,35,49,41,0],[57,4,57,90,0],[61,4,61,20,0],[62,5,62,15,0],[67,5,67,18,0],[69,3,69,4,0],[26,3,26,37,1],[27,4,27,32,1],[28,4,28,18,1],[29,4,29,23,1],[30,3,30,4,1],[35,4,35,31,1],[36,3,36,4,1],[39,4,39,20,1],[40,10,40,35,1],[41,6,41,25,1],[40,44,40,47,1],[40,36,40,42,1],[44,5,44,23,1],[46,3,46,4,1]]);
+    </script>
+  </body>
+</html>

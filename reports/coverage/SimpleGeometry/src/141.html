@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+using Irony.Ast;
+using Irony.Parsing;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// The default implementation of &lt;see cref=&quot;ISqlNode&quot;/&gt;, that is a node
+	/// in the text analysis parsing of SQL commands.
+	/// &lt;/summary&gt;
+	/// &lt;seealso cref=&quot;ISqlNode&quot;/&gt;
+	[Serializable]
+	public class SqlNode : ISqlNode,  IAstNodeInit {
+		public SqlNode() {
+			ChildNodes = new ReadOnlyCollection&lt;ISqlNode&gt;(new ISqlNode[0]);
+			Tokens = new ReadOnlyCollection&lt;Token&gt;(new Token[0]);
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the parent of the current node.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISqlNode.Parent&quot;/&gt;
+		protected ISqlNode Parent { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the name of the node, as expressed in the SQL grammar.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISqlNode.NodeName&quot;/&gt;
+		protected string NodeName { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an immutable list of &lt;see cref=&quot;ISqlNode&quot;&gt;nodes&lt;/see&gt;, children
+		/// of the current node.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISqlNode.ChildNodes&quot;/&gt;
+		protected IEnumerable&lt;ISqlNode&gt; ChildNodes { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets an immutable list of &lt;see cref=&quot;Token&quot;/&gt; that represent the
+		/// source of this node.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Token&quot;/&gt;
+		/// &lt;seealso cref=&quot;ISqlNode.Tokens&quot;/&gt;
+		protected IEnumerable&lt;Token&gt; Tokens { get; private set; }
+
+		void IAstNodeInit.Init(AstContext context, ParseTreeNode parseNode) {
+			NodeName = parseNode.Term == null ? GetType().Name : parseNode.Term.Name;
+
+			var tokens = new List&lt;Token&gt;();
+
+			var iToken = parseNode.FindToken();
+			if (iToken != null) {
+				tokens.Add(new Token(iToken.Location.Column, iToken.Location.Line, iToken.Text, iToken.Value));
+			}
+
+			var childNodes = new List&lt;ISqlNode&gt;();
+
+			foreach (var childNode in parseNode.ChildNodes) {
+				ISqlNode child;
+				if (childNode.Term is KeyTerm) {
+					var childIToken = childNode.FindToken();
+					child = new SqlKeyNode(new Token(childIToken.Location.Column, childIToken.Location.Line, childIToken.Text, childIToken.Value));
+				} else {
+					child = (ISqlNode)childNode.AstNode;
+				}
+
+				child = OnChildNode(child);
+
+				if (child != null) {
+					if (child is ISqlChildNode)
+						(child as ISqlChildNode).SetParent(this);
+
+					childNodes.Add(child);
+					tokens.AddRange(child.Tokens);
+				}
+			}
+
+			ChildNodes = childNodes.AsReadOnly();
+			Tokens = tokens.AsReadOnly();
+
+			OnNodeInit();
+		}
+
+		string ISqlNode.NodeName {
+			get { return NodeName; }
+		}
+
+		ISqlNode ISqlNode.Parent {
+			get { return Parent; }
+		}
+
+		IEnumerable&lt;ISqlNode&gt; ISqlNode.ChildNodes {
+			get { return ChildNodes; }
+		}
+
+		IEnumerable&lt;Token&gt; ISqlNode.Tokens {
+			get { return Tokens; }
+		}
+
+		/// &lt;summary&gt;
+		/// After the initialization of the node from the parser, this method
+		/// is invoked to let the specific initialization to occur.
+		/// &lt;/summary&gt;
+		protected virtual void OnNodeInit() {
+		}
+
+		/// &lt;summary&gt;
+		/// During the initialization of the node from the parser, this method
+		/// is called for every child node added to &lt;see cref=&quot;ChildNodes&quot;/&gt;
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;node&quot;&gt;The node being added to the list of children.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns a normalized version of the child node, or the node itself.
+		/// &lt;/returns&gt;
+		protected virtual ISqlNode OnChildNode(ISqlNode node) {
+			return node;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[107,10,107,24,0],[32,3,32,19,1],[33,4,33,67,1],[34,4,34,57,1],[35,3,35,4,1],[65,4,65,77,1],[67,4,67,35,1],[69,4,69,39,1],[70,4,70,23,1],[71,5,71,100,1],[74,4,74,42,1],[76,30,76,50,1],[76,13,76,26,1],[78,5,78,35,1],[79,6,79,46,1],[80,6,80,133,1],[82,6,82,42,1],[85,5,85,32,1],[87,5,87,23,1],[88,6,88,33,1],[89,7,89,48,1],[91,6,91,28,1],[92,6,92,36,1],[76,27,76,29,1],[96,4,96,41,1],[97,4,97,33,1],[99,4,99,17,1],[100,3,100,4,1],[103,10,103,26,1],[111,10,111,28,1],[115,10,115,24,1],[123,3,123,4,1],[134,4,134,16,1]]);
+    </script>
+  </body>
+</html>

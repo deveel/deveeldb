@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.dbsystem\usersessionextensions.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Security;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Query;
+using Deveel.Data.Transactions;
+using Deveel.Data.Types;
+
+namespace Deveel.Data.DbSystem {
+	public static class UserSessionExtensions {
+		public static bool AutoCommit(this IUserSession session) {
+			return session.Transaction.AutoCommit();
+		}
+
+		public static void AutoCommit(this IUserSession session, bool value) {
+			session.Transaction.AutoCommit(value);
+		}
+
+		public static void CurrentSchema(this IUserSession session, string value) {
+			session.Transaction.CurrentSchema(value);
+		}
+
+		public static string CurrentSchema(this IUserSession session) {
+			return session.Transaction.CurrentSchema();
+		}
+
+		public static bool IgnoreIdentifiersCase(this IUserSession session) {
+			return session.Transaction.IgnoreIdentifiersCase();
+		}
+
+		#region Objects
+
+		public static IDbObject GetObject(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
+			// TODO: throw a specialized exception
+			if (!session.UserCanAccessObject(session.SessionInfo.User, objectType, objectName))
+				throw new InvalidOperationException();
+
+			return session.Transaction.GetObject(objectType, objectName);
+		}
+
+		public static void CreateObject(this IUserSession session, IObjectInfo objectInfo) {
+			// TODO: throw a specialized exception
+			if (!session.UserCanCreateObject(session.SessionInfo.User, objectInfo.ObjectType, objectInfo.FullName))
+				throw new InvalidOperationException();
+
+			session.Transaction.CreateObject(objectInfo);
+		}
+
+		public static bool ObjectExists(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
+			return session.Transaction.ObjectExists(objectType, objectName);
+		}
+
+		public static ObjectName ResolveObjectName(this IUserSession session, string name) {
+			return session.ResolveObjectName(new ObjectName(new ObjectName(session.CurrentSchema), name));
+		}
+
+		public static ObjectName ResolveObjectName(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
+			return session.Transaction.ResolveObjectName(objectType, objectName);
+		}
+
+		public static ObjectName ResolveObjectName(this IUserSession session, ObjectName objectName) {
+			return session.Transaction.ResolveObjectName(objectName);
+		}
+
+		#endregion
+
+		#region Sequences
+
+		public static ISequence GetSequence(this IUserSession session, ObjectName sequenceName) {
+			return session.GetObject(DbObjectType.Sequence, sequenceName) as ISequence;
+		}
+
+		#endregion
+
+		#region Schemata
+
+		public static void CreateSchema(this IUserSession session, string name, string type) {
+			session.CreateObject(new SchemaInfo(name, type));
+		}
+
+		#endregion
+
+		#region Tables
+
+		public static ObjectName ResolveTableName(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.ResolveTableName(tableName);
+		}
+
+		public static bool TableExists(this IUserSession session, ObjectName tableName) {
+			return session.ObjectExists(DbObjectType.Table, tableName);
+		}
+
+		public static ITable GetTable(this IUserSession session, ObjectName tableName) {
+			var table = session.GetObject(DbObjectType.Table, tableName) as ITable;
+			session.Transaction.GetTableManager().SelectTable(tableName);
+			return table;
+		}
+
+		public static IMutableTable GetMutableTable(this IUserSession session, ObjectName tableName) {
+			return session.GetTable(tableName) as IMutableTable;
+		}
+
+		public static TableInfo GetTableInfo(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.GetTableInfo(tableName);
+		}
+
+		public static string GetTableType(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.GetTableType(tableName);
+		}
+
+		public static void CreateTable(this IUserSession session, TableInfo tableInfo) {
+			CreateTable(session, tableInfo, false);
+		}
+
+		public static void CreateTable(this IUserSession session, TableInfo tableInfo, bool temporary) {
+			session.Transaction.CreateTable(tableInfo, temporary);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName) {
+			AddPrimaryKey(session, tableName, new[] {columnName});
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns) {
+			AddPrimaryKey(session, tableName, columns, null);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName, string constraintName) {
+			AddPrimaryKey(session, tableName, new[] {columnName}, constraintName);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns, string constraintName) {
+			AddPrimaryKey(session, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string columnName,
+			ConstraintDeferrability deferred, string constraintName) {
+			AddPrimaryKey(session, tableName, new[] {columnName}, deferred, constraintName);
+		}
+
+		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns,
+			ConstraintDeferrability deferred, string constraintName) {
+			// TODO: throw a specialized exception
+			if (!session.UserCanAlterTable(session.SessionInfo.User, tableName))
+				throw new InvalidOperationException();
+
+			session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
+		}
+
+		
+
+		public static void AddForeignKey(this IUserSession session, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, String constraintName) {
+			AddForeignKey(session, table, columns, refTable, refColumns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddForeignKey(this IUserSession session, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, ConstraintDeferrability deferred, String constraintName) {
+			session.AddForeignKey(table, columns, refTable, refColumns, ForeignKeyAction.NoAction, ForeignKeyAction.NoAction, deferred, constraintName);
+		}
+
+		public static void AddForeignKey(this IUserSession session, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, String constraintName) {
+			AddForeignKey(session, table, columns, refTable, refColumns, deleteRule, updateRule, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddForeignKey(this IUserSession session, ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
+			// TODO: throw a specialized exception
+			if (!session.UserCanAlterTable(session.SessionInfo.User, table))
+				throw new InvalidOperationException();
+
+			session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		#endregion
+
+		#region Views
+
+		public static View GetView(this IUserSession session, ObjectName viewName) {
+			return session.GetObject(DbObjectType.View, viewName) as View;
+		}
+
+		public static IQueryPlanNode GetViewQueryPlan(this IUserSession session, ObjectName viewName) {
+			var view = session.GetView(viewName);
+			return view == null ? null : view.QueryPlan;
+		}
+
+		#endregion
+
+		#region Types
+
+		public static UserType GetUserType(this IUserSession session, ObjectName typeName) {
+			return (UserType) session.GetObject(DbObjectType.Type, typeName);
+		}
+
+		#endregion
+
+		#region Locks
+
+		public static void ExclusiveLock(this IUserSession session) {
+			session.Lock(LockingMode.Exclusive);
+		}
+
+		public static void Lock(this IUserSession session, LockingMode mode) {
+			var lockable = new ILockable[] { session.Transaction };
+			session.Lock(lockable, lockable, LockingMode.Exclusive);
+		}
+
+		#endregion
+
+		#region Security
+
+		public static bool UserExists(this IUserSession session, string userName) {
+			var table = session.GetTable(SystemSchema.UserTableName);
+			return table.Exists(0, DataObject.String(userName));
+		}
+
+		public static bool UserCanCreateObject(this IUserSession transaction, User user, DbObjectType objectType,
+			ObjectName objectName) {
+			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Create);
+		}
+
+		public static bool UserCanAccessObject(this IUserSession transaction, User user, DbObjectType objectType, ObjectName objectName) {
+			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Select);
+		}
+
+		public static bool UserCanAlterObject(this IUserSession transaction, User user, DbObjectType objectType,
+			ObjectName objectName) {
+			return transaction.UserHasPrivilege(user, objectType, objectName, Privileges.Alter);
+		}
+
+		public static bool UserHasPrivilege(this IUserSession session, DbObjectType objectType,
+			ObjectName objectName, Privileges privilege) {
+			return UserHasPrivilege(session, session.SessionInfo.User, objectType, objectName, privilege);
+		}
+
+		public static bool UserHasPrivilege(this IUserSession session, User user, DbObjectType objectType,
+			ObjectName objectName, Privileges privilege) {
+			if (user.IsSystem)
+				return true;
+
+			if (session.UserBelongsToSecureGroup(user))
+				return true;
+
+			Privileges grant;
+			if (!user.TryGetObjectGrant(objectName, out grant)) {
+				grant = session.GetUserGrant(user.Name, objectType, objectName);
+				user.CacheObjectGrant(objectName, grant);
+			}
+
+			return (grant &amp; privilege) != 0;
+		}
+
+		public static bool UserBelongsToGroup(this IUserSession session, string groupName) {
+			return UserBelongsToGroup(session, session.SessionInfo.User, groupName);
+		}
+
+		public static bool UserBelongsToGroup(this IUserSession session, User user, string groupName) {
+			using (var context = new SessionQueryContext(session)) {
+				return context.UserBelongsToGroup(user.Name, groupName);
+			}
+		}
+
+		public static bool UserBelongsToSecureGroup(this IUserSession session) {
+			return UserBelongsToSecureGroup(session, session.SessionInfo.User);
+		}
+
+		public static bool UserBelongsToSecureGroup(this IUserSession session, User user) {
+			return session.UserBelongsToGroup(user, SystemGroupNames.SecureGroup);
+		}
+
+		public static Privileges GetUserGrant(this IUserSession session, string userName, DbObjectType objectType,
+			ObjectName objectName) {
+			using (var context = new SessionQueryContext(session)) {
+				return context.GetUserGrants(userName, objectType, objectName);
+			}
+		}
+
+		public static bool UserCanReferenceTable(this IUserSession transaction, User user, ObjectName tableName) {
+			return transaction.UserHasPrivilege(user, DbObjectType.Table, tableName, Privileges.References);
+		}
+
+		public static bool UserCanAlterTable(this IUserSession transaction, User user, ObjectName tableName) {
+			return transaction.UserCanAlterObject(user, DbObjectType.Table, tableName);
+		}
+
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,4,28,44,0],[40,4,40,47,0],[52,5,52,43,0],[60,5,60,43,0],[70,4,70,98,0],[78,4,78,61,0],[86,4,86,79,0],[106,4,106,63,0],[153,4,153,84,0],[154,3,154,4,0],[160,5,160,43,0],[169,4,169,125,0],[170,3,170,4,0],[174,4,174,144,0],[175,3,175,4,0],[188,5,188,43,0],[198,4,198,66,0],[202,4,202,41,0],[203,4,203,48,0],[211,4,211,69,0],[232,4,232,61,0],[233,4,233,56,0],[260,4,260,47,0],[261,5,261,17,0],[264,4,264,55,0],[265,5,265,69,0],[266,5,266,46,0],[269,4,269,36,0],[273,4,273,76,0],[277,11,277,57,0],[278,5,278,61,0],[280,3,280,4,0],[283,4,283,71,0],[287,4,287,74,0],[292,11,292,57,0],[293,5,293,68,0],[295,3,295,4,0],[298,4,298,100,0],[32,4,32,42,1],[33,3,33,4,1],[36,4,36,45,1],[37,3,37,4,1],[44,4,44,55,1],[51,4,51,87,1],[54,4,54,65,1],[59,4,59,107,1],[62,4,62,49,1],[63,3,63,4,1],[66,4,66,68,1],[74,4,74,73,1],[94,4,94,53,1],[95,3,95,4,1],[102,4,102,59,1],[110,4,110,75,1],[111,4,111,65,1],[112,4,112,17,1],[116,4,116,56,1],[120,4,120,55,1],[124,4,124,55,1],[128,4,128,43,1],[129,3,129,4,1],[132,4,132,58,1],[133,3,133,4,1],[136,4,136,58,1],[137,3,137,4,1],[140,4,140,53,1],[141,3,141,4,1],[144,4,144,74,1],[145,3,145,4,1],[148,4,148,107,1],[149,3,149,4,1],[159,4,159,72,1],[162,4,162,84,1],[163,3,163,4,1],[180,4,180,149,1],[181,3,181,4,1],[187,4,187,68,1],[190,4,190,126,1],[191,3,191,4,1],[219,4,219,40,1],[220,3,220,4,1],[223,4,223,59,1],[224,4,224,60,1],[225,3,225,4,1],[238,4,238,89,1],[242,4,242,89,1],[247,4,247,88,1],[252,4,252,98,1],[257,4,257,22,1],[258,5,258,17,1],[302,4,302,79,1]]);
+    </script>
+  </body>
+</html>

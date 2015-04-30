@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.index\blockindex_t.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Index {
+	///&lt;summary&gt;
+	/// An implementation of &lt;see cref=&quot;BlockIndexBase{T}&quot;/&gt; that stores 
+	/// all values in blocks that are entirely stored in main memory.
+	///&lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// This type of structure is useful for large in-memory lists in which a
+	/// dd/remove performance must be fast.
+	/// &lt;/remarks&gt;
+	public class BlockIndex&lt;T&gt; : BlockIndexBase&lt;T&gt; where T : IComparable&lt;T&gt;, IEquatable&lt;T&gt; {
+		/// &lt;summary&gt;
+		/// Constructs an index with no values.
+		///  &lt;/summary&gt;
+		public BlockIndex() {
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public BlockIndex(IEnumerable&lt;T&gt; values)
+			: base(values) {
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public BlockIndex(IIndex&lt;T&gt; index)
+			: base(index) {
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public BlockIndex(IEnumerable&lt;IIndexBlock&lt;T&gt;&gt; blocks)
+			: base(blocks) {
+		}
+
+		/// &lt;inheritdoc/&gt;
+		protected override IIndexBlock&lt;T&gt; NewBlock() {
+			return new Block(512);
+		}
+
+		#region Block
+
+		protected class Block : IIndexBlock&lt;T&gt; {
+			private int count;
+			private bool changed;
+
+			protected Block() {
+			}
+
+			public Block(int blockSize)
+				: this() {
+				BaseArray = new T[blockSize];
+				count = 0;
+			}
+
+			protected T[] BaseArray { get; set; }
+
+			protected virtual int ArrayLength {
+				get { return BaseArray.Length; }
+			}
+
+			public IEnumerator&lt;T&gt; GetEnumerator() {
+				return new Enumerator(this);
+			}
+
+			IEnumerator IEnumerable.GetEnumerator() {
+				return GetEnumerator();
+			}
+
+			IIndexBlock&lt;T&gt; IIndexBlock&lt;T&gt;.Next {
+				get { return Next; }
+				set { Next = (Block) value; }
+			}
+
+			private Block Next { get; set; }
+
+			IIndexBlock&lt;T&gt; IIndexBlock&lt;T&gt;.Previous {
+				get { return Previous; }
+				set { Previous = (Block) value; }
+			}
+
+			private Block Previous { get; set; }
+
+			/// &lt;inheritdoc/&gt;
+			public bool HasChanged {
+				get { return changed; }
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int Count {
+				get { return count; }
+				protected set { count = value; }
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public bool IsFull {
+				get { return count &gt;= ArrayLength; }
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public bool IsEmpty {
+				get { return count &lt;= 0; }
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public virtual T Top {
+				get { return GetArray(true)[count - 1]; }
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public virtual T Bottom {
+				get {
+					if (count &lt;= 0)
+						throw new ApplicationException(&quot;no bottom value.&quot;);
+
+					return GetArray(true)[0];
+				}
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public T this[int index] {
+				get { return GetArray(true)[index]; }
+				set {
+					changed = true;
+					GetArray(false)[index] = value;
+				}
+			}
+
+			protected virtual T[] GetArray(bool readOnly) {
+				if (readOnly) {
+					var newArray = new T[BaseArray.Length];
+					Array.Copy(BaseArray, 0, newArray, 0, BaseArray.Length);
+					return newArray;
+				}
+				return BaseArray;
+			}
+
+			private static bool IsSmallerOrEqual(T x, T y) {
+				return x.CompareTo(y) &lt;= 0;
+			}
+
+			private static bool IsGreaterOrEqual(T x, T y) {
+				return x.CompareTo(y) &gt;= 0;
+			}
+
+			private static bool IsGreater(T x, T y) {
+				return x.CompareTo(y) &gt; 0;
+			}
+
+			private static bool IsSmaller(T x, T y) {
+				return x.CompareTo(y) &lt; 0;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public bool CanContain(int number) {
+				return count + number + 1 &lt; ArrayLength;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public void Add(T value) {
+				changed = true;
+				var arr = GetArray(false);
+				arr[count] = value;
+				++count;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public T RemoveAt(int index) {
+				changed = true;
+				var arr = GetArray(false);
+				var val = arr[index];
+				Array.Copy(BaseArray, index + 1, arr, index, (count - index));
+				--count;
+				return val;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int IndexOf(T value) {
+				var arr = GetArray(true);
+				for (int i = count - 1; i &gt;= 0; --i) {
+					if (arr[i].Equals(value))
+						return i;
+				}
+				return -1;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int IndexOf(T value, int startIndex) {
+				var arr = GetArray(true);
+				for (int i = startIndex; i &lt; count; ++i) {
+					if (arr[i].Equals(value))
+						return i;
+				}
+				return -1;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public void Insert(T value, int index) {
+				changed = true;
+				var arr = GetArray(false);
+				Array.Copy(BaseArray, index, arr, index + 1, (count - index));
+				++count;
+				arr[index] = value;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public void MoveTo(IIndexBlock&lt;T&gt; destBlock, int destIndex, int length) {
+				var block = (Block) destBlock;
+
+				var arr = GetArray(false);
+				var destArr = block.GetArray(false);
+
+				// Make room in the destination block
+				int destbSize = block.Count;
+				if (destbSize &gt; 0) {
+					Array.Copy(destArr, 0, destArr, length, destbSize);
+				}
+
+				// Copy from this block into the destination block.
+				Array.Copy(arr, count - length, destArr, 0, length);
+				// Alter size of destination and source block.
+				block.count += length;
+				count -= length;
+				// Mark both blocks as changed
+				changed = true;
+				block.changed = true;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public void CopyTo(IIndexBlock&lt;T&gt; destBlock) {
+				var block = (Block) destBlock;
+				var destArr = block.GetArray(false);
+				Array.Copy(GetArray(true), 0, destArr, 0, count);
+				block.count = count;
+				block.changed = true;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int CopyTo(T[] destArray, int arrayIndex) {
+				Array.Copy(GetArray(true), 0, destArray, arrayIndex, count);
+				return count;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public void Clear() {
+				changed = true;
+				count = 0;
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int BinarySearch(object key, IIndexComparer&lt;T&gt; comparer) {
+				var arr = GetArray(true);
+				int low = 0;
+				int high = count - 1;
+
+				while (low &lt;= high) {
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+
+					if (cmp &lt; 0)
+						low = mid + 1;
+					else if (cmp &gt; 0)
+						high = mid - 1;
+					else
+						return mid; // key found
+				}
+				return -(low + 1); // key not found.
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int SearchFirst(object key, IIndexComparer&lt;T&gt; comparer) {
+				var arr = GetArray(true);
+				int low = 0;
+				int high = count - 1;
+
+				while (low &lt;= high) {
+					if (high - low &lt;= 2) {
+						for (int i = low; i &lt;= high; ++i) {
+							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
+							if (cmp1 == 0)
+								return i;
+
+							if (cmp1 &gt; 0)
+								return -(i + 1);
+						}
+
+						return -(high + 2);
+					}
+
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+
+					if (cmp &lt; 0) {
+						low = mid + 1;
+					} else if (cmp &gt; 0) {
+						high = mid - 1;
+					} else {
+						high = mid;
+					}
+				}
+				return -(low + 1); // key not found.
+
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int SearchLast(object key, IIndexComparer&lt;T&gt; comparer) {
+				var arr = GetArray(true);
+				int low = 0;
+				int high = count - 1;
+
+				while (low &lt;= high) {
+
+					if (high - low &lt;= 2) {
+						for (int i = high; i &gt;= low; --i) {
+							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
+							if (cmp1 == 0)
+								return i;
+							if (cmp1 &lt; 0)
+								return -(i + 2);
+						}
+						return -(low + 1);
+					}
+
+					int mid = (low + high)/2;
+					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+
+					if (cmp &lt; 0) {
+						low = mid + 1;
+					} else if (cmp &gt; 0) {
+						high = mid - 1;
+					} else {
+						low = mid;
+					}
+				}
+				return -(low + 1); // key not found.
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int SearchFirst(T value) {
+				var arr = GetArray(true);
+				int low = 0;
+				int high = count - 1;
+
+				while (low &lt;= high) {
+
+					if (high - low &lt;= 2) {
+						for (int i = low; i &lt;= high; ++i) {
+							if (arr[i].Equals(value))
+								return i;
+							if (IsGreater(arr[i], value))
+								return -(i + 1);
+						}
+						return -(high + 2);
+					}
+
+					int mid = (low + high)/2;
+
+					if (IsSmaller(arr[mid], value)) {
+						low = mid + 1;
+					} else if (IsGreater(arr[mid], value)) {
+						high = mid - 1;
+					} else {
+						high = mid;
+					}
+				}
+				return -(low + 1); // key not found.
+			}
+
+			/// &lt;inheritdoc/&gt;
+			public int SearchLast(T value) {
+				var arr = GetArray(true);
+				int low = 0;
+				int high = count - 1;
+
+				while (low &lt;= high) {
+
+					if (high - low &lt;= 2) {
+						for (int i = high; i &gt;= low; --i) {
+							if (arr[i].Equals(value))
+								return i;
+							if (IsSmaller(arr[i], value))
+								return -(i + 2);
+						}
+						return -(low + 1);
+					}
+
+					int mid = (low + high)/2;
+
+					if (IsSmaller(arr[mid], value)) {
+						low = mid + 1;
+					} else if (IsGreater(arr[mid], value)) {
+						high = mid - 1;
+					} else {
+						low = mid;
+					}
+				}
+				return -(low + 1); // key not found.
+			}
+
+			#region Enumerator
+
+			private class Enumerator : IEnumerator&lt;T&gt; {
+				private readonly Block block;
+				private int index;
+				private T[] array;
+
+				public Enumerator(Block block) {
+					this.block = block;
+					array = block.GetArray(true);
+					index = -1;
+				}
+
+				public void Dispose() {
+				}
+
+				public bool MoveNext() {
+					return ++index &lt; array.Length;
+				}
+
+				public void Reset() {
+					array = block.GetArray(true);
+					index = -1;
+				}
+
+				public T Current {
+					get { return array[index]; }
+				}
+
+				object IEnumerator.Current {
+					get { return Current; }
+				}
+			}
+
+			#endregion
+		}
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[38,3,39,18,0],[40,3,40,4,0],[43,3,44,17,0],[45,3,45,4,0],[79,5,79,33,0],[83,5,83,28,0],[87,11,87,23,0],[94,11,94,27,0],[118,11,118,29,0],[130,7,130,58,0],[140,6,140,21,0],[141,6,141,37,0],[142,5,142,6,0],[155,5,155,32,0],[159,5,159,32,0],[163,5,163,31,0],[172,5,172,45,0],[177,5,177,20,0],[178,5,178,31,0],[179,5,179,24,0],[180,5,180,13,0],[181,4,181,5,0],[185,5,185,20,0],[186,5,186,31,0],[187,5,187,26,0],[188,5,188,67,0],[189,5,189,13,0],[190,5,190,16,0],[195,5,195,30,0],[196,10,196,28,0],[197,6,197,31,0],[198,7,198,16,0],[196,37,196,40,0],[196,29,196,35,0],[200,5,200,15,0],[205,5,205,30,0],[206,10,206,29,0],[207,6,207,31,0],[208,7,208,16,0],[206,41,206,44,0],[206,30,206,39,0],[210,5,210,15,0],[224,5,224,35,0],[226,5,226,31,0],[227,5,227,41,0],[230,5,230,33,0],[231,5,231,23,0],[232,6,232,57,0],[236,5,236,57,0],[238,5,238,27,0],[239,5,239,21,0],[241,5,241,20,0],[242,5,242,26,0],[243,4,243,5,0],[247,5,247,35,0],[248,5,248,41,0],[249,5,249,54,0],[250,5,250,25,0],[251,5,251,26,0],[252,4,252,5,0],[256,5,256,65,0],[257,5,257,18,0],[262,5,262,20,0],[263,5,263,15,0],[264,4,264,5,0],[268,5,268,30,0],[269,5,269,17,0],[270,5,270,26,0],[273,6,273,31,0],[274,6,274,66,0],[276,6,276,18,0],[277,7,277,21,0],[278,11,278,23,0],[279,7,279,22,0],[281,7,281,18,0],[272,5,272,24,0],[283,5,283,23,0],[300,9,300,25,0],[303,7,303,26,0],[306,6,306,31,0],[307,6,307,66,0],[309,6,309,18,0],[310,7,310,21,0],[311,13,311,25,0],[312,7,312,22,0],[314,7,314,18,0],[317,5,317,23,0],[340,6,340,31,0],[341,6,341,66,0],[343,6,343,18,0],[344,7,344,21,0],[345,13,345,25,0],[346,7,346,22,0],[348,7,348,17,0],[356,5,356,30,0],[357,5,357,17,0],[358,5,358,26,0],[362,6,362,26,0],[363,12,363,24,0],[364,8,364,33,0],[365,9,365,18,0],[366,8,366,37,0],[367,9,367,25,0],[363,36,363,39,0],[363,25,363,34,0],[369,7,369,26,0],[372,6,372,31,0],[374,6,374,37,0],[375,7,375,21,0],[376,13,376,44,0],[377,7,377,22,0],[379,7,379,18,0],[360,5,360,24,0],[382,5,382,23,0],[396,9,396,18,0],[394,36,394,39,0],[400,7,400,25,0],[407,13,407,44,0],[408,7,408,22,0],[410,7,410,17,0],[423,5,423,35,0],[424,6,424,25,0],[425,6,425,35,0],[426,6,426,17,0],[427,5,427,6,0],[430,5,430,6,0],[433,6,433,36,0],[437,6,437,35,0],[438,6,438,17,0],[439,5,439,6,0],[442,12,442,32,0],[446,12,446,27,0],[34,3,34,22,1],[35,3,35,4,1],[48,3,49,18,1],[50,3,50,4,1],[54,4,54,26,1],[63,4,63,21,1],[64,4,64,5,1],[66,4,67,13,1],[68,5,68,34,1],[69,5,69,15,1],[70,4,70,5,1],[75,11,75,35,1],[88,11,88,32,1],[88,33,88,34,1],[95,11,95,36,1],[95,37,95,38,1],[102,11,102,26,1],[107,11,107,24,1],[108,21,108,35,1],[108,36,108,37,1],[113,11,113,39,1],[123,11,123,44,1],[129,6,129,21,1],[132,6,132,31,1],[138,11,138,40,1],[146,5,146,18,1],[147,6,147,45,1],[148,6,148,62,1],[149,6,149,22,1],[151,5,151,22,1],[167,5,167,31,1],[215,5,215,20,1],[216,5,216,31,1],[217,5,217,67,1],[218,5,218,13,1],[219,5,219,24,1],[220,4,220,5,1],[288,5,288,30,1],[289,5,289,17,1],[290,5,290,26,1],[293,6,293,26,1],[294,12,294,24,1],[295,8,295,67,1],[296,8,296,22,1],[297,9,297,18,1],[299,8,299,21,1],[294,36,294,39,1],[294,25,294,34,1],[292,5,292,24,1],[323,5,323,30,1],[324,5,324,17,1],[325,5,325,26,1],[329,6,329,26,1],[330,12,330,25,1],[331,8,331,67,1],[332,8,332,22,1],[333,9,333,18,1],[334,8,334,21,1],[335,9,335,25,1],[330,36,330,39,1],[330,26,330,34,1],[337,7,337,25,1],[327,5,327,24,1],[351,5,351,23,1],[387,5,387,30,1],[388,5,388,17,1],[389,5,389,26,1],[393,6,393,26,1],[394,12,394,25,1],[395,8,395,33,1],[397,8,397,37,1],[398,9,398,25,1],[394,26,394,34,1],[403,6,403,31,1],[405,6,405,37,1],[406,7,406,21,1],[391,5,391,24,1],[413,5,413,23,1]]);
+    </script>
+  </body>
+</html>

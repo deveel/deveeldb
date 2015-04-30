@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.linq\tabletypemapper.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Linq {
+	class TableTypeMapper {
+		private readonly Dictionary&lt;string, int&gt; columnOffsets;
+		private readonly Dictionary&lt;string, string&gt; memberMapping; 
+		private readonly List&lt;string&gt; columnNames; 
+
+		public TableTypeMapper(Type elementType) {
+			columnNames = new List&lt;string&gt;();
+			columnOffsets = new Dictionary&lt;string, int&gt;();
+			memberMapping = new Dictionary&lt;string, string&gt;();
+
+			DiscoverType(elementType);
+
+			ElementType = elementType;
+		}
+
+		public Type ElementType { get; private set; }
+
+		private void DiscoverType(Type elementType) {
+			var members = elementType.FindMembers(MemberTypes.Field | MemberTypes.Property,
+				BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, FilterColumns, null);
+
+			foreach (var member in members) {
+				var columnAttr = (ColumnAttribute) Attribute.GetCustomAttribute(member, typeof (ColumnAttribute));
+				var columnName = member.Name;
+				if (!String.IsNullOrEmpty(columnAttr.ColumnName))
+					columnName = columnAttr.ColumnName;
+
+				columnNames.Add(columnName);
+				memberMapping[member.Name] = columnName;
+			}
+		}
+
+		private static bool FilterColumns(MemberInfo member, object criteria) {
+			return Attribute.IsDefined(member, typeof (ColumnAttribute));
+		}
+
+		public void BuildMap(ITable table) {
+			foreach (var columnName in columnNames) {
+				var columnOffset = table.TableInfo.IndexOfColumn(columnName);
+				if (columnOffset &gt;= 0)
+					columnOffsets[columnName] = columnOffset;
+			}
+		}
+
+		public object Construct(ITable table, int rowOffset) {
+			var obj = Activator.CreateInstance(ElementType, true);
+			var members = ElementType.FindMembers(MemberTypes.Field | MemberTypes.Property,
+				BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, FilterColumns, null);
+
+			foreach (var member in members) {
+				string columnName;
+				if (!memberMapping.TryGetValue(member.Name, out columnName))
+					continue;
+
+				int offset;
+				if (!columnOffsets.TryGetValue(columnName, out offset))
+					continue;
+
+				Type memberType;
+
+				if (member is PropertyInfo) {
+					memberType = ((PropertyInfo) member).PropertyType;
+				} else {
+					memberType = ((FieldInfo) member).FieldType;
+				}
+
+				var value = table.GetValue(rowOffset, offset);
+				var finalValue = ToMemberValue(value, memberType);
+
+				if (member is PropertyInfo) {
+					((PropertyInfo)member).SetValue(obj, finalValue, null);
+				} else {
+					((FieldInfo)member).SetValue(obj, finalValue);
+				}
+			}
+
+			return obj;
+		}
+
+		private object ToMemberValue(DataObject value, Type memberType) {
+			var obj = value.Value;
+			return value.Type.ConvertTo(obj, memberType);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[29,3,29,43,1],[30,4,30,37,1],[31,4,31,50,1],[32,4,32,53,1],[34,4,34,30,1],[36,4,36,30,1],[37,3,37,4,1],[42,4,43,96,1],[45,27,45,34,1],[45,13,45,23,1],[46,5,46,103,1],[47,5,47,34,1],[48,5,48,54,1],[49,6,49,41,1],[51,5,51,33,1],[52,5,52,45,1],[45,24,45,26,1],[54,3,54,4,1],[57,4,57,65,1],[61,31,61,42,1],[61,13,61,27,1],[62,5,62,66,1],[63,5,63,27,1],[64,6,64,47,1],[61,28,61,30,1],[66,3,66,4,1],[69,4,69,58,1],[70,4,71,96,1],[73,27,73,34,1],[73,13,73,23,1],[75,5,75,65,1],[79,5,79,60,1],[84,5,84,32,1],[85,6,85,56,1],[87,6,87,50,1],[90,5,90,51,1],[91,5,91,55,1],[93,5,93,32,1],[94,6,94,61,1],[96,6,96,52,1],[73,24,73,26,1],[100,4,100,15,1],[104,4,104,26,1],[105,4,105,49,1]]);
+    </script>
+  </body>
+</html>

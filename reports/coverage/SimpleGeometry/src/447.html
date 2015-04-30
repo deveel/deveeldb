@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.diagnostics\eventregistryextensions.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Diagnostics {
+	public static class EventRegistryExtensions {
+		public static void Error(this IEventRegistry registry, IEventSource source, ErrorException ex) {
+			var databaseName = String.Empty;
+			var userName = String.Empty;
+
+			if (source is IDatabaseEventSource) {
+				databaseName = ((IDatabaseEventSource) source).DatabaseName;
+
+				if (source is ISessionEventSource) {
+					userName = ((ISessionEventSource) source).UserName;
+				}
+			}
+
+			registry.RegisterEvent(ex.AsEvent(databaseName, userName));
+		}
+
+		public static void Error(this IEventRegistry registry, IEventSource source, Exception ex) {
+			var databaseName = String.Empty;
+			var userName = String.Empty;
+
+			if (source is IDatabaseEventSource) {
+				databaseName = ((IDatabaseEventSource) source).DatabaseName;
+
+				if (source is ISessionEventSource) {
+					userName = ((ISessionEventSource) source).UserName;
+				}
+			}
+
+			var data = new Dictionary&lt;string, object&gt; {{&quot;StackTrace&quot;, ex.StackTrace}, {&quot;Source&quot;, ex.Source}};
+			var errorEvent = new ErrorEvent(databaseName, userName, EventClasses.Runtime, -1, ErrorLevel.Error, ex.Message, data);
+			registry.RegisterEvent(errorEvent);
+		}
+
+		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, string message, string stackTrace, string errorSource) {
+			Error(registry, source, errorClass, errorCode, ErrorLevel.Error, message, stackTrace, errorSource);
+		}
+
+		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, ErrorLevel level) {
+			Error(registry, source, errorClass, errorCode, level, null);
+		}
+
+		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, ErrorLevel level, string message) {
+			Error(registry, source, errorClass, errorCode, level, message, null, null);
+		}
+
+		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, ErrorLevel level, string message, string stackTrace, string errorSource) {
+			var databaseName = String.Empty;
+			var userName = String.Empty;
+
+			if (source is IDatabaseEventSource) {
+				databaseName = ((IDatabaseEventSource)source).DatabaseName;
+
+				if (source is ISessionEventSource) {
+					userName = ((ISessionEventSource)source).UserName;
+				}
+			}
+
+			var data = new Dictionary&lt;string, object&gt; {{&quot;StackTrace&quot;, stackTrace}, {&quot;Source&quot;, errorSource}};
+			registry.RegisterEvent(new ErrorEvent(databaseName, userName, errorClass, errorCode, level, message, data));
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[23,4,23,36,0],[24,4,24,32,0],[26,4,26,39,0],[27,5,27,65,0],[29,5,29,39,0],[30,6,30,57,0],[34,4,34,63,0],[35,3,35,4,0],[38,4,38,36,0],[39,4,39,32,0],[41,4,41,39,0],[42,5,42,65,0],[44,5,44,39,0],[45,6,45,57,0],[49,4,49,101,0],[50,4,50,122,0],[51,4,51,39,0],[52,3,52,4,0],[55,4,55,103,0],[56,3,56,4,0],[59,4,59,64,0],[60,3,60,4,0],[63,4,63,79,0],[64,3,64,4,0],[67,4,67,36,0],[68,4,68,32,0],[70,4,70,39,0],[71,5,71,64,0],[73,5,73,39,0],[74,6,74,56,0],[78,4,78,100,0],[79,4,79,112,0],[80,3,80,4,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\constraintinfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql {
+	[Serializable]
+	public sealed class ConstraintInfo {
+		public ConstraintInfo(ConstraintType constraintType, ObjectName tableName, string[] columnNames) 
+			: this(null, constraintType, tableName, columnNames) {
+		}
+
+		public ConstraintInfo(string constraintName, ConstraintType constraintType, ObjectName tableName, string[] columnNames) {
+			if (tableName == null)
+				throw new ArgumentNullException(&quot;tableName&quot;);
+			if (columnNames == null)
+				throw new ArgumentNullException(&quot;columnNames&quot;);
+
+			if (columnNames.Length == 0)
+				throw new ArgumentException(&quot;The provided column names for the constraint is empty.&quot;, &quot;columnNames&quot;);
+
+			ConstraintName = constraintName;
+			ColumnNames = columnNames;
+			TableName = tableName;
+			ConstraintType = constraintType;
+		}
+
+		public ConstraintType ConstraintType { get; private set; }
+
+		public ObjectName TableName { get; private set; }
+
+		public string ConstraintName { get; set; }
+
+		public string[] ColumnNames { get; private set; }
+
+		public SqlExpression CheckExpression { get; set; }
+
+		public ObjectName ForeignTable { get; set; }
+
+		public string[] ForeignColumnNames { get; set; }
+
+		public ForeignKeyAction OnDelete { get; set; }
+
+		public ForeignKeyAction OnUpdate { get; set; }
+
+		public ConstraintDeferrability Deferred { get; set; }
+
+		public static ConstraintInfo Unique(ObjectName tableName, params string[] columnNames) {
+			return Unique(null, tableName, columnNames);
+		}
+
+		public static ConstraintInfo Unique(string constraintName, ObjectName tableName, string[] columnNames) {
+			return new ConstraintInfo(constraintName, ConstraintType.Unique, tableName, columnNames);
+		}
+
+		public static ConstraintInfo Check(ObjectName tableName, SqlExpression expression, params string[] columnNames) {
+			return Check(null, tableName, expression, columnNames);
+		}
+
+		public static ConstraintInfo Check(string constraintName, ObjectName tableName, SqlExpression expression, params string[] columnNames) {
+			return new ConstraintInfo(constraintName, ConstraintType.Check, tableName, columnNames) {
+				CheckExpression = expression
+			};
+		}
+
+		public static ConstraintInfo PrimaryKey(ObjectName tableName, params string[] columnNames) {
+			return PrimaryKey(null, tableName, columnNames);
+		}
+
+		public static ConstraintInfo PrimaryKey(string constraintName, ObjectName tableName, params string[] columnNames) {
+			return new ConstraintInfo(constraintName, ConstraintType.PrimaryKey, tableName, columnNames);
+		}
+
+		public static ConstraintInfo ForeignKey(ObjectName tableName, string columnName, ObjectName refTable, string refColumn) {
+			return ForeignKey(tableName, new[] {columnName}, refTable, new[] {refColumn});
+		}
+
+		public static ConstraintInfo ForeignKey(ObjectName tableName, string[] columnNames, ObjectName refTable, string[] refColumns) {
+			return ForeignKey(null, tableName, columnNames, refTable, refColumns);
+		}
+
+		public static ConstraintInfo ForeignKey(string constraintName, ObjectName tableName, string[] columnNames,
+			ObjectName refTable, string[] refColumns) {
+			if (tableName == null)
+				throw new ArgumentNullException(&quot;tableName&quot;);
+			if (refTable == null)
+				throw new ArgumentNullException(&quot;refTable&quot;);
+			if (columnNames == null || columnNames.Length == 0)
+				throw new ArgumentException(&quot;At least one column is required&quot;, &quot;columnNames&quot;);
+			if (refColumns == null || refColumns.Length == 0)
+				throw new ArgumentException(&quot;At least one referenced column is required.&quot;, &quot;refColumns&quot;);
+
+			if (columnNames.Length != refColumns.Length)
+				throw new ArgumentException(&quot;The number of columns in the constraint must match the number of columns referenced.&quot;);
+
+			var constraint = new ConstraintInfo(constraintName, ConstraintType.ForeignKey, tableName, columnNames);
+			constraint.ForeignTable = refTable;
+			constraint.ForeignColumnNames = refColumns;
+			return constraint;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,3,25,56,0],[26,3,26,4,0],[30,5,30,50,0],[32,5,32,52,0],[35,5,35,106,0],[64,4,64,48,0],[72,4,72,59,0],[76,4,78,6,0],[90,4,90,82,0],[94,4,94,74,0],[100,5,100,50,0],[102,5,102,49,0],[104,5,104,83,0],[106,5,106,94,0],[109,5,109,121,0],[28,3,28,122,1],[29,4,29,26,1],[31,4,31,28,1],[34,4,34,32,1],[37,4,37,36,1],[38,4,38,30,1],[39,4,39,26,1],[40,4,40,36,1],[41,3,41,4,1],[68,4,68,93,1],[82,4,82,52,1],[86,4,86,97,1],[99,4,99,26,1],[101,4,101,25,1],[103,4,103,55,1],[105,4,105,53,1],[108,4,108,48,1],[111,4,111,107,1],[112,4,112,39,1],[113,4,113,47,1],[114,4,114,22,1]]);
+    </script>
+  </body>
+</html>

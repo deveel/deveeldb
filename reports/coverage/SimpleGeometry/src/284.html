@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\sqlquery.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
+namespace Deveel.Data.Sql {
+	[Serializable]
+	public sealed class SqlQuery {
+		public SqlQuery(string text) 
+			: this(text, QueryParameterStyle.Default) {
+		}
+
+		public SqlQuery(string text, QueryParameterStyle parameterStyle) {
+			Text = text;
+			ParameterStyle = parameterStyle;
+			Parameters = new QueryParameterCollection(this);
+		}
+
+		public string Text { get; private set; }
+
+		public ICollection&lt;QueryParameter&gt; Parameters { get; private set; }
+
+		public QueryParameterStyle ParameterStyle { get; private set; }
+
+		internal void ChangeStyle(QueryParameterStyle style) {
+			if (ParameterStyle != QueryParameterStyle.Default)
+				throw new InvalidOperationException();
+			if (style == QueryParameterStyle.Default)
+				throw new ArgumentException();
+
+			ParameterStyle = style;
+		}
+
+		#region QueryParameterCollection
+
+		class QueryParameterCollection : Collection&lt;QueryParameter&gt; {
+			private SqlQuery SqlQuery { get; set; }
+
+			public QueryParameterCollection(SqlQuery sqlQuery) {
+				SqlQuery = sqlQuery;
+			}
+
+			private void ValidateParameter(QueryParameter item) {
+				if (item == null)
+					throw new ArgumentNullException(&quot;item&quot;);
+
+				if (SqlQuery.ParameterStyle == QueryParameterStyle.Marker &amp;&amp;
+					!String.Equals(item.Name, QueryParameter.Marker, StringComparison.Ordinal))
+					throw new ArgumentException(String.Format(&quot;The query accepts markers, but the parameter &#39;{0}&#39; is named.&quot;, item.Name));
+				if (SqlQuery.ParameterStyle == QueryParameterStyle.Named) {
+					if (item.Name.Equals(QueryParameter.Marker, StringComparison.Ordinal))
+						throw new ArgumentException(&quot;The query accepts named parameters, but a marker was set.&quot;);
+
+					if (Items.Any(x =&gt; String.Equals(x.Name, item.Name)))
+						throw new ArgumentException(String.Format(&quot;A parameter named {0} was already inserted in the query.&quot;, item.Name));
+				}
+			}
+
+			protected override void InsertItem(int index, QueryParameter item) {
+				ValidateParameter(item);
+				base.InsertItem(index, item);
+			}
+
+			protected override void SetItem(int index, QueryParameter item) {
+				ValidateParameter(item);
+				base.SetItem(index, item);
+			}
+		}
+
+		#endregion
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[42,4,42,54,0],[43,5,43,43,0],[44,4,44,45,0],[45,5,45,35,0],[47,4,47,27,0],[48,3,48,4,0],[60,5,60,22,0],[61,6,61,46,0],[63,5,64,81,0],[65,6,65,124,0],[66,5,66,62,0],[67,6,67,76,0],[68,7,68,96,0],[70,6,70,25,0],[70,57,70,59,0],[71,7,71,121,0],[73,4,73,5,0],[76,5,76,29,0],[77,5,77,34,0],[78,4,78,5,0],[81,5,81,29,0],[82,5,82,31,0],[83,4,83,5,0],[70,25,70,57,0],[25,3,26,45,1],[27,3,27,4,1],[29,3,29,67,1],[30,4,30,16,1],[31,4,31,36,1],[32,4,32,52,1],[33,3,33,4,1],[55,4,55,54,1],[56,5,56,25,1],[57,4,57,5,1]]);
+    </script>
+  </body>
+</html>

@@ -55,26 +55,33 @@ namespace Deveel.Data.Sql.Statements {
 			return prepared;
 		}
 
-		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
-			var compiler = SqlParsers.Default;
-			SequenceOfStatementsNode sequence;
-
-			SqlParseResult result;
+		public ITable Evaluate(IQueryContext context) {
+			SqlPreparedStatement prepared;
 
 			try {
-				result = compiler.Parse(sqlSource);
+				prepared = Prepare(context);
+			} catch (Exception ex) {
+				throw new InvalidOperationException("Unable to prepare the statement for execution.");
+			}
+
+			return prepared.Evaluate(context);
+		}
+
+		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
+			var compiler = SqlParsers.Default;
+
+			try {
+				var result = compiler.Parse(sqlSource);
 				if (result.HasErrors)
 					throw new SqlParseException();
+
+				var builder = new StatementBuilder();
+				return builder.Build(result.RootNode, sqlSource);
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {
 				throw;
 			}
-
-			var builder = new StatementBuilder();
-			var trees = builder.Build(result.RootNode, sqlSource);
-
-			return trees.ToList();
 		}
 	}
 }

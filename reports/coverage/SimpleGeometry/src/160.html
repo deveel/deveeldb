@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlparserextensions.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+using System.Text;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Provides extensions to the &lt;see cref=&quot;ISqlParser&quot;/&gt; 
+	/// interface instances.
+	/// &lt;/summary&gt;
+	public static class SqlParserExtensions {
+		public static SqlParseResult Parse(this ISqlParser parser, Stream inputStream) {
+			return Parse(parser, inputStream, Encoding.Unicode);
+		}
+
+		public static SqlParseResult Parse(this ISqlParser parser, Stream inputStream, Encoding encoding) {
+			if (inputStream == null)
+				throw new ArgumentNullException(&quot;inputStream&quot;);
+			if (!inputStream.CanRead)
+				throw new ArgumentException(&quot;The input stream cannot be read.&quot;, &quot;inputStream&quot;);
+
+			using (var reader = new StreamReader(inputStream, encoding)) {
+				var text = reader.ReadToEnd();
+				return parser.Parse(text);
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,4,28,56,0],[32,4,32,28,0],[33,5,33,52,0],[34,4,34,29,0],[35,5,35,84,0],[37,11,37,63,0],[38,5,38,35,0],[39,5,39,31,0],[41,3,41,4,0]]);
+    </script>
+  </body>
+</html>

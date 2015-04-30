@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\rawtableinfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Deveel.Data.Sql {
+	public sealed class RawTableInfo {
+		private readonly List&lt;RawTableItem&gt; tableItems;
+
+		public RawTableInfo() {
+			tableItems = new List&lt;RawTableItem&gt;();
+		}
+
+		private RawTableInfo(IEnumerable&lt;RawTableItem&gt; tableItems)
+			: this() {
+			this.tableItems.AddRange(tableItems);
+		}
+
+		public void Add(IRootTable table, IList&lt;int&gt; rowSet) {
+			tableItems.Add(new RawTableItem(table, rowSet));
+		}
+
+		public ITable[] GetTables() {
+			return tableItems.Select(x =&gt; x.Table).Cast&lt;ITable&gt;().ToArray();
+		}
+
+		public IList&lt;int&gt;[] GetRows() {
+			return tableItems.Select(x =&gt; x.Rows).ToArray();
+		}
+
+		private RawTableItem[] GetSortedItems() {
+			var list = new RawTableItem[tableItems.Count];
+			tableItems.CopyTo(list);
+			Array.Sort(list);
+			return list;
+		}
+
+		public RawTableInfo Union(RawTableInfo info) {
+			// Number of Table &#39;columns&#39;
+
+			int colCount = tableItems.Count;
+
+			var merge1 = GetSortedItems();
+			var merge2 = info.GetSortedItems();
+
+			int size1 = -1;
+			int size2 = -1;
+
+			// First check number of tables in each merge is correct.
+
+			if (merge1.Length != merge2.Length)
+				throw new ApplicationException(&quot;Incorrect format in table union&quot;);
+
+			// Check each table in the merge1 set has identical length row_sets
+
+			for (int i = 0; i &lt; merge1.Length; ++i) {
+				if (size1 == -1) {
+					size1 = merge1[i].Rows.Count;
+				} else {
+					if (size1 != merge1[i].Rows.Count)
+						throw new ApplicationException(&quot;Incorrect format in table union&quot;);
+				}
+			}
+
+			// Check each table in the merge2 set has identical length row_sets
+
+			for (int i = 0; i &lt; merge2.Length; ++i) {
+				// Check the tables in merge2 are identical to the tables in merge1
+				if (!merge2[i].Table.Equals(merge1[i].Table))
+					throw new ApplicationException(&quot;Incorrect format in table union&quot;);
+
+				if (size2 == -1) {
+					size2 = merge2[i].Rows.Count;
+				} else {
+					if (size2 != merge2[i].Rows.Count)
+						throw new ApplicationException(&quot;Incorrect format in table union&quot;);
+				}
+			}
+
+			// If size1 or size2 are -1 then we have a corrupt table.  (It will be
+			// 0 for an empty table).
+
+			if (size1 == -1 || size2 == -1)
+				throw new ApplicationException(&quot;Incorrect format in table union&quot;);
+
+			// We don&#39;t need information in &#39;raw_info&#39; vector anymore so clear it.
+			// This may help garbage collection.
+
+			var resultItems = new List&lt;RawTableItem&gt;();
+
+			// Merge the two together into a new list of RawRowElement[]
+
+			int mergeSize = size1 + size2;
+			var elems = new RawRowItem[mergeSize];
+			int elemsIndex = 0;
+
+			for (int i = 0; i &lt; size1; ++i) {
+				var itemRows = new int[colCount];
+
+				for (int n = 0; n &lt; colCount; ++n) {
+					itemRows[n] = merge1[n].Rows[i];
+				}
+
+				elems[elemsIndex] = new RawRowItem(itemRows);
+				++elemsIndex;
+			}
+
+			for (int i = 0; i &lt; size2; ++i) {
+				var itemRows = new int[colCount];
+
+				for (int n = 0; n &lt; colCount; ++n) {
+					itemRows[n] = merge2[n].Rows[i];
+				}
+
+				elems[elemsIndex] = new RawRowItem(itemRows);
+				++elemsIndex;
+			}
+
+			// Now sort the row elements into order.
+
+			Array.Sort(elems);
+
+			// Remove any duplicate rows.
+
+			for (int i = 0; i &lt; colCount; ++i) {
+				merge1[i].Rows.Clear();
+			}
+
+			RawRowItem previous = null;
+			for (int n = 0; n &lt; mergeSize; ++n) {
+				var current = elems[n];
+
+				// Check that the current element in the set is not a duplicate of the
+				// previous.
+
+				if (previous == null || previous.CompareTo(current) != 0) {
+					for (int i = 0; i &lt; colCount; ++i) {
+						merge1[i].Rows.Add(current.RowValues[i]);
+					}
+					previous = current;
+				}
+			}
+
+			for (int i = 0; i &lt; colCount; ++i) {
+				resultItems.Add(merge1[i]);
+			}
+
+			return new RawTableInfo(resultItems.AsReadOnly());
+		}
+
+		public RawTableInfo RemoveDuplicates() {
+			// If no tables in duplicate then return
+
+			if (tableItems.Count == 0)
+				return new RawTableInfo();
+
+			// Get the length of the first row set in the first table.  We assume that
+			// the row set length is identical across each table in the Vector.
+
+			var elen = tableItems[0];
+			int len = elen.Rows.Count;
+			if (len == 0)
+				return new RawTableInfo(tableItems.AsReadOnly());
+
+			// Create a new row element to sort.
+
+			var elems = new RawRowItem[len];
+			int width = tableItems.Count;
+
+			// Create an array of RawTableElement so we can quickly access the data
+
+			var rdup = new RawTableItem[width];
+			tableItems.CopyTo(rdup);
+
+			// Run through the data building up a new RawTableElement[] array with
+			// the information in every raw span.
+
+			for (int i = 0; i &lt; len; ++i) {
+				var itemRows = new int[width];
+				for (int n = 0; n &lt; width; ++n) {
+					itemRows[n] = rdup[n].Rows[i];
+				}
+				elems[i] = new RawRowItem(itemRows);
+			}
+
+			// Now &#39;elems&#39; it an array of individual RawRowItem objects which
+			// represent each individual row in the table.
+
+			// Now sort and remove duplicates to make up a new set.
+
+			Array.Sort(elems);
+
+			var resultTables = new List&lt;RawTableItem&gt;();
+
+			// Make a new set of RawTableElement[] objects
+
+			var items = rdup;
+
+			// Set up the &#39;raw_info&#39; vector with the new RawTableElement[] removing
+			// any duplicate rows.
+
+			for (int i = 0; i &lt; width; ++i) {
+				items[i].Rows.Clear();
+			}
+
+			RawRowItem previous = null;
+			for (int n = 0; n &lt; len; ++n) {
+				var current = elems[n];
+
+				// Check that the current element in the set is not a duplicate of the
+				// previous.
+
+				if (previous == null || previous.CompareTo(current) != 0) {
+					for (int i = 0; i &lt; width; ++i) {
+						items[i].Rows.Add(current.RowValues[i]);
+					}
+					previous = current;
+				}
+			}
+
+			for (int i = 0; i &lt; width; ++i) {
+				resultTables.Add(items[i]);
+			}
+
+			return new RawTableInfo(resultTables.AsReadOnly());
+		}
+
+
+		#region RawTableItem
+
+		class RawTableItem : IComparable&lt;RawTableItem&gt; {
+			public RawTableItem(IRootTable table)
+				: this(table, new List&lt;int&gt;()) {
+			}
+
+			public RawTableItem(IRootTable table, IList&lt;int&gt; rows) {
+				Table = table;
+				Rows = new List&lt;int&gt;(rows);
+			}
+
+			public IRootTable Table { get; private set; }
+
+			public IList&lt;int&gt; Rows { get; private set; } 
+
+			public int CompareTo(RawTableItem other) {
+				return Table.GetHashCode() - other.Table.GetHashCode();
+			}
+		}
+
+		#endregion
+
+		#region RawRowItem
+
+		class RawRowItem : IComparable&lt;RawRowItem&gt; {
+			public RawRowItem(int[] values) {
+				RowValues = values;
+			}
+
+			public int[] RowValues { get; private set; }
+
+			public int CompareTo(RawRowItem other) {
+				int size = RowValues.Length;
+				for (int i = 0; i &lt; size; ++i) {
+					int v1 = RowValues[i];
+					int v2 = other.RowValues[i];
+					if (v1 != v2) {
+						return v1 - v2;
+					}
+				}
+				return 0;
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[25,3,25,24,0],[26,4,26,42,0],[27,3,27,4,0],[29,3,30,12,0],[31,4,31,41,0],[32,3,32,4,0],[35,4,35,52,0],[36,3,36,4,0],[39,4,39,34,0],[39,41,39,68,0],[43,4,43,34,0],[43,40,43,52,0],[47,4,47,50,0],[48,4,48,28,0],[49,4,49,21,0],[50,4,50,16,0],[56,4,56,36,0],[58,4,58,34,0],[59,4,59,39,0],[61,4,61,19,0],[62,4,62,19,0],[66,4,66,39,0],[67,5,67,71,0],[71,9,71,19,0],[72,5,72,21,0],[73,6,73,35,0],[75,6,75,40,0],[76,7,76,73,0],[71,39,71,42,0],[71,20,71,37,0],[82,9,82,19,0],[84,5,84,50,0],[85,6,85,72,0],[87,5,87,21,0],[88,6,88,35,0],[90,6,90,40,0],[91,7,91,73,0],[82,39,82,42,0],[82,20,82,37,0],[98,4,98,35,0],[99,5,99,71,0],[104,4,104,47,0],[108,4,108,34,0],[109,4,109,42,0],[110,4,110,23,0],[112,9,112,19,0],[113,5,113,38,0],[115,10,115,20,0],[116,6,116,38,0],[115,35,115,38,0],[115,21,115,33,0],[119,5,119,50,0],[120,5,120,18,0],[112,31,112,34,0],[112,20,112,29,0],[123,9,123,19,0],[124,5,124,38,0],[126,10,126,20,0],[127,6,127,38,0],[126,35,126,38,0],[126,21,126,33,0],[130,5,130,50,0],[131,5,131,18,0],[123,31,123,34,0],[123,20,123,29,0],[136,4,136,22,0],[140,9,140,19,0],[141,5,141,28,0],[140,34,140,37,0],[140,20,140,32,0],[144,4,144,31,0],[145,9,145,19,0],[146,5,146,28,0],[151,5,151,62,0],[152,11,152,21,0],[153,7,153,48,0],[152,36,152,39,0],[152,22,152,34,0],[155,6,155,25,0],[145,35,145,38,0],[145,20,145,33,0],[159,9,159,19,0],[160,5,160,32,0],[159,34,159,37,0],[159,20,159,32,0],[163,4,163,54,0],[169,4,169,30,0],[170,5,170,31,0],[175,4,175,29,0],[176,4,176,30,0],[177,4,177,17,0],[178,5,178,54,0],[182,4,182,36,0],[183,4,183,33,0],[187,4,187,39,0],[188,4,188,28,0],[193,9,193,19,0],[194,5,194,35,0],[195,10,195,20,0],[196,6,196,36,0],[195,32,195,35,0],[195,21,195,30,0],[198,5,198,41,0],[193,29,193,32,0],[193,20,193,27,0],[206,4,206,22,0],[208,4,208,48,0],[212,4,212,21,0],[217,9,217,19,0],[218,5,218,27,0],[217,31,217,34,0],[217,20,217,29,0],[221,4,221,31,0],[222,9,222,19,0],[223,5,223,28,0],[228,5,228,62,0],[229,11,229,21,0],[230,7,230,47,0],[229,33,229,36,0],[229,22,229,31,0],[232,6,232,25,0],[222,29,222,32,0],[222,20,222,27,0],[236,9,236,19,0],[237,5,237,32,0],[236,31,236,34,0],[236,20,236,29,0],[240,4,240,55,0],[39,34,39,41,0],[43,34,43,40,0],[247,4,248,35,0],[249,4,249,5,0],[251,4,251,58,0],[252,5,252,19,0],[253,5,253,32,0],[254,4,254,5,0],[261,5,261,60,0],[270,4,270,35,0],[271,5,271,24,0],[272,4,272,5,0],[277,5,277,33,0],[278,10,278,20,0],[279,6,279,28,0],[280,6,280,34,0],[281,6,281,19,0],[282,7,282,22,0],[278,31,278,34,0],[278,21,278,29,0],[285,5,285,14,0]]);
+    </script>
+  </body>
+</html>

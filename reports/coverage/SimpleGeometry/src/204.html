@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.statements\createtablestatement.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
+
+namespace Deveel.Data.Sql.Statements {
+	[Serializable]
+	public sealed class CreateTableStatement : SqlStatement {
+		public CreateTableStatement(ObjectName tableName, IEnumerable&lt;SqlTableColumn&gt; columns) {
+			TableName = tableName;
+			Columns = new List&lt;SqlTableColumn&gt;();
+			if (columns != null) {
+				foreach (var column in columns) {
+					Columns.Add(column);
+				}
+			}
+		}
+
+		public ObjectName TableName { get; private set; }
+
+		public IList&lt;SqlTableColumn&gt; Columns { get; private set; }
+
+		public bool IfNotExists { get; set; }
+
+		public bool Temporary { get; set; }
+
+		public override StatementType StatementType {
+			get { return StatementType.CreateTable; }
+		}
+
+		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+			var tableInfo = CreateTableInfo(context);
+
+			return new PreparedCreateTableStatement(tableInfo, IfNotExists, Temporary);
+		}
+
+		private TableInfo CreateTableInfo(IQueryContext context) {
+			var tableName = TableName;
+
+			tableName = context.ResolveTableName(tableName);
+
+			var idColumnCount = Columns.Count(x =&gt; x.IsIdentity);
+			if (idColumnCount &gt; 1)
+				throw new InvalidOperationException(&quot;More than one IDENTITY column specified.&quot;);
+
+			bool ignoreCase = context.IgnoreIdentifiersCase();
+			var columnChecker = new TableColumnChecker(Columns, ignoreCase);
+
+
+			var tableInfo = new TableInfo(tableName);
+
+			foreach (var column in Columns) {
+				var columnInfo = CreateColumnInfo(tableName.Name, column, columnChecker);
+				tableInfo.AddColumn(columnInfo);
+			}
+
+			return tableInfo;
+		}
+
+		private ColumnInfo CreateColumnInfo(string tableName, SqlTableColumn column, TableColumnChecker columnChecker) {
+			var expression = column.DefaultExpression;
+
+			if (column.IsIdentity &amp;&amp; expression != null)
+				throw new InvalidOperationException(String.Format(&quot;Identity column &#39;{0}&#39; cannot define a DEFAULT expression.&quot;, column.ColumnName));
+
+			if (expression != null)
+				expression = columnChecker.CheckExpression(expression);
+
+
+			var columnName = columnChecker.StripTableName(tableName, column.ColumnName);
+
+			return new ColumnInfo(columnName, column.ColumnType) {
+				DefaultExpression = expression,
+				IsNotNull = column.IsNotNull
+			};
+		}
+
+		#region PreparedCreateTableStatement
+
+		[Serializable]
+		class PreparedCreateTableStatement : SqlPreparedStatement {
+			private readonly TableInfo tableInfo;
+			private readonly bool temporary;
+			private readonly bool ifNotExists;
+
+			public PreparedCreateTableStatement(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+				this.tableInfo = tableInfo;
+				this.ifNotExists = ifNotExists;
+				this.temporary = temporary;
+			}
+
+			public override ITable Evaluate(IQueryContext context) {
+				if (!context.UserCanCreateTable(tableInfo.TableName))
+					throw new MissingPrivilegesException(tableInfo.TableName,
+						String.Format(&quot;User &#39;{0}&#39; has not enough privileges to create table &#39;{1}&#39;&quot;, context.User().Name, tableInfo.TableName));
+
+				try {
+					context.CreateTable(tableInfo, ifNotExists, temporary);
+
+					using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
+						systemContext.GrantToUserOnTable(tableInfo.TableName, Privileges.TableAll);
+					}
+					return FunctionTable.ResultTable(context, 0);
+				} catch (SecurityException ex) {
+					throw;
+				} catch (Exception ex) {
+					// TODO: Send a specialized error
+					throw;
+				}
+			}
+		}
+
+		#endregion
+
+		#region TableColumnChecker
+
+		class TableColumnChecker : ColumnChecker {
+			private readonly IEnumerable&lt;SqlTableColumn&gt; columns;
+			private readonly bool ignoreCase;
+
+			public TableColumnChecker(IEnumerable&lt;SqlTableColumn&gt; columns, bool ignoreCase) {
+				this.columns = columns;
+				this.ignoreCase = ignoreCase;
+			}
+
+			public override string ResolveColumnName(string columnName) {
+				var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+				string foundColumn = null;
+
+				foreach (var columnInfo in columns) {
+					if (foundColumn != null)
+						throw new InvalidOperationException(String.Format(&quot;Column name &#39;{0}&#39; caused an ambiguous match in table.&quot;, columnName));
+
+					if (String.Equals(columnInfo.ColumnName, columnName, comparison))
+						foundColumn = columnInfo.ColumnName;
+				}
+
+				return foundColumn;
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[46,10,46,43,0],[62,5,62,85,0],[82,5,82,136,0],[112,6,113,126,0],[122,7,122,35,0],[123,6,123,12,0],[124,7,124,27,0],[126,6,126,12,0],[145,5,145,97,0],[146,5,146,31,0],[148,32,148,39,0],[148,14,148,28,0],[149,6,149,30,0],[150,7,150,127,0],[152,6,152,71,0],[153,7,153,43,0],[148,29,148,31,0],[156,5,156,24,0],[27,3,27,89,1],[28,4,28,26,1],[29,4,29,41,1],[30,4,30,24,1],[31,28,31,35,1],[31,14,31,24,1],[32,6,32,26,1],[31,25,31,27,1],[35,3,35,4,1],[50,4,50,45,1],[52,4,52,79,1],[56,4,56,30,1],[58,4,58,52,1],[60,4,60,43,1],[60,55,60,57,1],[61,4,61,26,1],[64,4,64,54,1],[65,4,65,68,1],[68,4,68,45,1],[70,27,70,34,1],[70,13,70,23,1],[71,5,71,78,1],[72,5,72,37,1],[70,24,70,26,1],[75,4,75,21,1],[79,4,79,46,1],[81,4,81,48,1],[84,4,84,27,1],[85,5,85,60,1],[88,4,88,80,1],[90,4,93,6,1],[60,43,60,55,1],[104,4,104,94,1],[105,5,105,32,1],[106,5,106,36,1],[107,5,107,32,1],[108,4,108,5,1],[111,5,111,58,1],[116,6,116,61,1],[118,13,118,107,1],[119,7,119,82,1],[121,6,121,51,1],[128,4,128,5,1],[139,4,139,83,1],[140,5,140,28,1],[141,5,141,34,1],[142,4,142,5,1]]);
+    </script>
+  </body>
+</html>

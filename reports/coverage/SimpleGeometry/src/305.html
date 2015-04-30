@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.store\objectstore.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.IO;
+using System.IO.Compression;
+
+namespace Deveel.Data.Store {
+	public class ObjectStore : IObjectStore {
+		private const int Magic = 0x012BC53A9;
+
+		private const int DeletedFlag = 0x020000;
+		private const int CompressedFlag = 0x010;
+
+		private const int PageSize = 64;
+
+		private readonly IStore store;
+		private readonly FixedRecordList fixedList;
+
+		private long firstDeleteChainRecord;
+
+		public ObjectStore(int id, IStore store) {
+			if (id &lt; 0)
+				throw new ArgumentOutOfRangeException(&quot;id&quot;);
+			if (store == null)
+				throw new ArgumentNullException(&quot;store&quot;);
+
+			Id = id;
+			this.store = store;
+			fixedList = new FixedRecordList(store, 24);
+		}
+
+		private long AddToRecordList(long recordOffset) {
+			lock (fixedList) {
+				// If there is no free deleted records in the delete chain,
+				if (firstDeleteChainRecord == -1) {
+					// Increase the size of the list structure.
+					fixedList.IncreaseSize();
+					// The start record of the new size
+					int newBlockNumber = fixedList.BlockCount - 1;
+					long startIndex = fixedList.BlockFirstPosition(newBlockNumber);
+					long sizeOfBlock = fixedList.BlockNodeCount(newBlockNumber);
+
+					// The IArea object for the new position
+					IArea a = fixedList.GetRecord(startIndex);
+
+					a.WriteInt4(0);
+					a.WriteInt4(0);
+					a.WriteInt8(-1);  // Initially unknown size
+					a.WriteInt8(recordOffset);
+					// Set the rest of the block as deleted records
+					for (long n = 1; n &lt; sizeOfBlock - 1; ++n) {
+						a.WriteInt4(DeletedFlag);
+						a.WriteInt4(0);
+						a.WriteInt8(-1);
+						a.WriteInt8(startIndex + n + 1);
+					}
+					// The last block is end of delete chain.
+					a.WriteInt4(DeletedFlag);
+					a.WriteInt4(0);
+					a.WriteInt8(-1);
+					a.WriteInt8(-1);
+					// Check out the changes.
+					a.Flush();
+
+					// And set the new delete chain
+					firstDeleteChainRecord = startIndex + 1;
+					fixedList.WriteDeleteHead(firstDeleteChainRecord);
+
+					// Return pointer to the record we just added.
+					return startIndex;
+
+				}
+
+				// Pull free block from the delete chain and recycle it.
+				long recycledRecord = firstDeleteChainRecord;
+				IArea block = fixedList.GetRecord(recycledRecord);
+				int recordPos = block.Position;
+				// Status of the recycled block
+				int status = block.ReadInt4();
+				if ((status &amp; DeletedFlag) == 0)
+					throw new ApplicationException(&quot;Assertion failed: record is not deleted!&quot;);
+
+				// Reference count (currently unused in delete chains).
+				block.ReadInt4();
+				// The size (should be -1);
+				block.ReadInt8();
+				// The pointer to the next in the chain.
+				long nextChain = block.ReadInt8();
+				firstDeleteChainRecord = nextChain;
+
+				// Update the first_delete_chain_record field in the header
+				fixedList.WriteDeleteHead(firstDeleteChainRecord);
+
+				// Update the block
+				block.Position = recordPos;
+				block.WriteInt4(0);
+				block.WriteInt4(0);
+				block.WriteInt8(-1);    // Initially unknown size
+				block.WriteInt8(recordOffset);
+
+				// Check out the changes
+				block.Flush();
+
+				return recycledRecord;
+			}
+		}
+
+		public long Create() {
+			// Init the fixed record list area.
+			// The fixed list entries are formatted as follows;
+			//  ( status (int), reference_count (int),
+			//    blob_size (long), blob_pointer (long) )
+			long fixedListOffset = fixedList.Create();
+
+			// Delete chain is empty when we start
+			firstDeleteChainRecord = -1;
+			fixedList.WriteDeleteHead(-1);
+
+			// Allocate a small header that contains the MAGIC, and the pointer to the
+			// fixed list structure.
+			IArea blobStoreHeader = store.CreateArea(32);
+			long blobStoreId = blobStoreHeader.Id;
+
+			blobStoreHeader.WriteInt4(Magic);	// Magic
+			blobStoreHeader.WriteInt4(1);		// The data version
+			blobStoreHeader.WriteInt8(fixedListOffset);
+			blobStoreHeader.Flush();
+
+			// Return the pointer to the blob store header
+			return blobStoreId;
+		}
+
+		public void Open(long offset) {
+			// Get the header area
+			IArea headerArea = store.GetArea(offset);
+			headerArea.Position = 0;
+
+			// Read the magic
+			int magic = headerArea.ReadInt4();
+			int version = headerArea.ReadInt4();
+			if (magic != Magic)
+				throw new IOException(&quot;The magic value for this Object Store is not correct.&quot;);
+			if (version != 1)
+				throw new IOException(&quot;The version number for this Object Store is not correct.&quot;);
+
+			long fixedListOffset = headerArea.ReadInt8();
+			fixedList.Open(fixedListOffset);
+
+			// Set the delete chain
+			firstDeleteChainRecord = fixedList.ReadDeleteHead();
+		}
+
+		public void Dispose() {
+		}
+
+		public int Id { get; private set; }
+
+		public ILargeObject CreateNewObject(long maxSize, bool compressed) {
+			if (maxSize &lt; 0)
+				throw new IOException(&quot;Negative object size not allowed.&quot;);
+
+			try {
+				store.LockForWrite();
+
+				// Allocate the area (plus header area) for storing the blob pages
+				long pageCount = ((maxSize - 1) / (PageSize * 1024)) + 1;
+				IArea objArea = store.CreateArea((pageCount * 8) + 24);
+				long objAreaId = objArea.Id;
+
+				var type = 2;			// Binary Type
+				if (compressed)
+					type |= CompressedFlag;
+
+				// Set up the area header
+				objArea.WriteInt4(0);           // Reserved for future
+				objArea.WriteInt4(type);
+				objArea.WriteInt8(maxSize);
+				objArea.WriteInt8(pageCount);
+
+				// Initialize the empty blob area
+				for (long i = 0; i &lt; pageCount; ++i) {
+					objArea.WriteInt8(-1);
+				}
+
+				// And finish
+				objArea.Flush();
+
+				// Update the fixed_list and return the record number for this blob
+				long refId = AddToRecordList(objAreaId);
+				return new LargeObject(this, refId, maxSize, compressed, false);
+			} finally {
+				store.UnlockForWrite();
+			}
+		}
+
+		public class LargeObject : ILargeObject {
+			private readonly ObjectStore store;
+
+			public LargeObject(ObjectStore store, long refId, long size, bool compressed, bool isComplete) {
+				this.store = store;
+				RawSize = size;
+				Id = new ObjectId(store.Id, refId);
+				IsCompressed = compressed;
+				IsComplete = isComplete;
+			}
+
+			public void Dispose() {
+			}
+
+			public ObjectId Id { get; private set; }
+
+			public long RawSize { get; private set; }
+
+			public bool IsCompressed { get; private set; }
+
+			public bool IsComplete { get; private set; }
+
+			public int Read(long offset, byte[] buffer, int length) {
+				return store.ReadObjectPart(Id.Id, offset, buffer, 0, length);
+			}
+
+			public void Write(long offset, byte[] buffer, int length) {
+				if (IsComplete)
+					throw new IOException(&quot;The object is complete and cannot be written.&quot;);
+
+				store.WriteObjectPart(Id.Id, offset, buffer, 0, length);
+			}
+
+			public void Complete() {
+				store.CompleteObject(this);
+			}
+
+			public void Establish() {
+				store.EstablishReference(Id.Id);
+			}
+
+			public bool Release() {
+				return store.ReleaseReference(Id.Id);
+			}
+
+			public void MarkComplete() {
+				IsComplete = true;
+			}
+		}
+
+		private void CompleteObject(LargeObject obj) {
+			// Get the blob reference id (reference to the fixed record list).
+			long refId = obj.Id.Id;
+
+			lock (fixedList) {
+				// Update the record in the fixed list.
+				IArea block = fixedList.GetRecord(refId);
+
+				// Record the position
+				int recordPos = block.Position;
+				// Read the information in the fixed record
+				int status = block.ReadInt4();
+				// Assert that the status is open
+				if (status != 0)
+					throw new IOException(&quot;Assertion failed: record is not open.&quot;);
+
+				int refCount = block.ReadInt4();
+				long size = block.ReadInt8();
+				long pageCount = block.ReadInt8();
+
+				try {
+					store.LockForWrite();
+
+					block.Position = recordPos;
+					block.WriteInt4(1);				// Status
+					block.WriteInt4(0);				// Reference Count
+					block.WriteInt8(obj.RawSize);	// Final Size
+					block.WriteInt8(pageCount);		// Page Count
+					block.Flush();
+				} finally {
+					store.UnlockForWrite();
+				}
+			}
+
+			// Now the object has been finalized so change the state of the object
+			obj.MarkComplete();
+		}
+
+		private void WriteObjectPart(long id, long objOffset, byte[] buffer, int off, int length) {
+			// ASSERT: Read and Write position must be 64K aligned.
+			if (objOffset%(PageSize*1024) != 0)
+				throw new Exception(&quot;Assert failed: offset is not 64k aligned.&quot;);
+
+			// ASSERT: Length is less than or equal to 64K
+			if (length &gt; (PageSize * 1024)) {
+				throw new Exception(&quot;Assert failed: length is greater than 64K.&quot;);
+			}
+
+			int status;
+			int refCount;
+			long size;
+			long objPos;
+
+			lock (fixedList) {
+				if (id &lt; 0 || id &gt;= fixedList.NodeCount)
+					throw new IOException(&quot;Object id is out of range.&quot;);
+
+				IArea block = fixedList.GetRecord(id);
+				status = block.ReadInt4();
+				if ((status &amp; DeletedFlag) != 0)
+					throw new ApplicationException(&quot;Assertion failed: record is deleted!&quot;);
+
+				refCount = block.ReadInt4();
+				size = block.ReadInt8();
+				objPos = block.ReadInt8();
+
+			}
+
+			// Open an IArea into the blob
+			IArea area = store.GetArea(objPos);
+			area.ReadInt4();
+			var type = area.ReadInt4();
+			size = area.ReadInt8();
+
+			// Assert that the area being Read is within the bounds of the blob
+			if (objOffset &lt; 0 || objOffset + length &gt; size) {
+				throw new IOException(&quot;Object invalid write.  offset = &quot; + objOffset + &quot;, length = &quot; + length + &quot;, size = &quot; + size);
+			}
+
+			// Convert to the page number
+			long pageNumber = (objOffset / (PageSize * 1024));
+			area.Position = (int)((pageNumber * 8) + 24);
+			long pagePos = area.ReadInt8();
+
+			if (pagePos != -1) {
+				// This means we are trying to rewrite a page we&#39;ve already written
+				// before.
+				throw new Exception(&quot;Assert failed: page position is not -1&quot;);
+			}
+
+			// Is the compression bit set?
+			byte[] toWrite;
+			int writeLength;
+			if ((type &amp; CompressedFlag) != 0) {
+				// Yes, compression
+				var deflateStream = new DeflateStream(new MemoryStream(buffer, off, length), CompressionMode.Compress, false);
+				toWrite = new byte[PageSize * 1024];
+				writeLength = deflateStream.Read(toWrite, 0, toWrite.Length);
+			} else {
+				// No compression
+				toWrite = buffer;
+				writeLength = length;
+			}
+
+			try {
+				store.LockForWrite();
+
+				// Allocate and Write the page.
+				IArea pageArea = store.CreateArea(writeLength + 8);
+				pagePos = pageArea.Id;
+				pageArea.WriteInt4(1);
+				pageArea.WriteInt4(writeLength);
+				pageArea.Write(toWrite, 0, writeLength);
+				// Finish this page
+				pageArea.Flush();
+
+				// Update the page in the header.
+				area.Position = (int)((pageNumber * 8) + 24);
+				area.WriteInt8(pagePos);
+				// Check out this change.
+				area.Flush();
+			} finally {
+				store.UnlockForWrite();
+			}
+		}
+
+		private int ReadObjectPart(long id, long objOffset, byte[] buffer, int off, int length) {
+			// ASSERT: Read and Write position must be 64K aligned.
+			if (off % (64 * 1024) != 0) {
+				throw new Exception(&quot;Assert failed: offset is not 64k aligned.&quot;);
+			}
+			// ASSERT: Length is less than or equal to 64K
+			if (length &gt; (64 * 1024)) {
+				throw new Exception(&quot;Assert failed: length is greater than 64K.&quot;);
+			}
+
+			int status;
+			int refCount;
+			long size;
+			long objPointer;
+
+			lock (fixedList) {
+				// Assert that the blob reference id given is a valid range
+				if (id &lt; 0 || id &gt;= fixedList.NodeCount) {
+					throw new IOException(&quot;Object ID is out of range.&quot;);
+				}
+
+				// Position on this record
+				IArea block = fixedList.GetRecord(id);
+				// Read the information in the fixed record
+				status = block.ReadInt4();
+				// Assert that the status is not deleted
+				if ((status &amp; DeletedFlag) != 0)
+					throw new ApplicationException(&quot;Assertion failed: record is deleted!&quot;);
+
+				// Get the reference count
+				refCount = block.ReadInt4();
+				// Get the total size of the object
+				size = block.ReadInt8();
+				// Get the blob pointer
+				objPointer = block.ReadInt8();
+
+			}
+
+			// Assert that the area being Read is within the bounds of the object
+			if (off &lt; 0 || off + length &gt; size) {
+				throw new IOException(&quot;Invalid Read.  offset = &quot; + off + &quot;, length = &quot; + length);
+			}
+
+			// Open an IArea into the object
+			IArea area = store.GetArea(objPointer);
+			area.ReadInt4();
+			int type = area.ReadInt4();
+
+			// Convert to the page number
+			long pageNumber = (objOffset / (64 * 1024));
+			area.Position = (int)((pageNumber * 8) + 24);
+			long pagePointer = area.ReadInt8();
+
+			// Read the page
+			IArea pageArea = store.GetArea(pagePointer);
+			pageArea.Position = 0;
+			int pageType = pageArea.ReadInt4();
+			int pageSize = pageArea.ReadInt4();
+
+			if ((type &amp; CompressedFlag) != 0) {
+				// The page is compressed
+				byte[] pageBuf = new byte[pageSize];
+				int readCount = pageArea.Read(pageBuf, 0, pageSize);
+
+				var deflateStream = new DeflateStream(new MemoryStream(pageBuf, 0, pageSize), CompressionMode.Decompress, false);
+				try {
+					int resultLength = deflateStream.Read(buffer, off, length);
+					if (resultLength != length)
+						throw new Exception(&quot;Assert failed: decompressed length is incorrect.&quot;);
+
+					return readCount;
+				} catch(InvalidDataException e) {
+					throw new IOException(&quot;ZIP Data Format Error: &quot; + e.Message);
+				}
+			}
+
+			// The page is not compressed
+			return pageArea.Read(buffer, off, length);
+		}
+
+		public ILargeObject GetObject(ObjectId id) {
+			long objOffset;
+			long size;
+			lock (fixedList) {
+				if (id.StoreId != Id)
+					throw new InvalidObjectIdException(id);
+
+				var refId = id.Id;
+				// Assert that the blob reference id given is a valid range
+				if (refId &lt; 0 || refId &gt;= fixedList.NodeCount)
+					throw new InvalidObjectIdException(id);
+
+				// Position on this record
+				IArea block = fixedList.GetRecord(refId);
+				// Read the information in the fixed record
+				int status = block.ReadInt4();
+				// Assert that the status is not deleted
+				if ((status &amp; DeletedFlag) != 0)
+					throw new ApplicationException(&quot;Assertion failed: record is deleted!&quot;);
+
+				// Get the reference count
+				int refCount = block.ReadInt4();
+				// Get the total size of the blob
+				size = block.ReadInt8();
+				// Get the blob pointer
+				objOffset = block.ReadInt8();
+			}
+
+			IArea area = store.GetArea(objOffset);
+			area.Position = 0;
+			area.ReadInt4();  // (reserved)
+			// Read the type
+			int type = area.ReadInt4();
+			// The size of the block
+			long blockSize = area.ReadInt8();
+			// The number of pages in the blob
+			long pageCount = area.ReadInt8();
+
+			bool compressed = (type &amp; CompressedFlag) != 0;
+			return new LargeObject(this, id.Id, size, compressed, true);
+		}
+
+		private void EstablishReference(long id) {
+			try {
+				lock (fixedList) {
+					// Update the record in the fixed list.
+					IArea block = fixedList.GetRecord(id);
+					int recordPos = block.Position;
+					int status = block.ReadInt4();
+					if (status != 1)
+						throw new Exception(&quot;Assertion failed: record is not static.&quot;);
+
+					int refCount = block.ReadInt4();
+
+					// Set the fixed blob record as complete.
+					block.Position = recordPos + 4;
+					block.WriteInt4(refCount + 1);
+					block.Flush();
+				}
+			} catch (IOException e) {
+				throw new Exception(&quot;IO Error: &quot; + e.Message);
+			}
+		}
+
+		private bool ReleaseReference(long id) {
+			try {
+				lock (fixedList) {
+					// Update the record in the fixed list.
+					IArea block = fixedList.GetRecord(id);
+					int recordPos = block.Position;
+					int status = block.ReadInt4();
+					if (status != 1)
+						throw new Exception(&quot;Assertion failed: Record is not static (status = &quot; + status + &quot;)&quot;);
+
+					int refCount = block.ReadInt4();
+					if (refCount == 0)
+						throw new Exception(&quot;Releasing when IBlob reference counter is at 0.&quot;);
+
+					var objSize = block.ReadInt8();
+					var objPos = block.ReadInt8();
+
+					// If reference count == 0 then we need to free all the resources
+					// associated with this object in the store.
+					if ((refCount - 1) == 0) {
+						// Free the resources associated with this object.
+						IArea area = store.GetArea(objPos);
+						area.ReadInt4();
+
+						var type = (byte)area.ReadInt4();
+						var totalSize = area.ReadInt8();
+						var pageCount = area.ReadInt8();
+
+						// Free all of the pages in this blob.
+						for (long i = 0; i &lt; pageCount; ++i) {
+							long pageOffset = area.ReadInt8();
+							if (pageOffset &gt; 0)
+								store.DeleteArea(pageOffset);
+						}
+
+						// Free the blob area object itself.
+						store.DeleteArea(objPos);
+
+						// Write out the blank record.
+						block.Position = recordPos;
+						block.WriteInt4(DeletedFlag);
+						block.WriteInt4(0);
+						block.WriteInt8(-1);
+						block.WriteInt8(firstDeleteChainRecord);
+						// CHeck out these changes
+						block.Flush();
+						firstDeleteChainRecord = id;
+
+						// Update the first_delete_chain_record field in the header
+						fixedList.WriteDeleteHead(firstDeleteChainRecord);
+						return true;
+					}
+
+					// Simply decrement the reference counter for this record.
+					block.Position = recordPos + 4;
+					// Write the reference count - 1
+					block.WriteInt4(refCount - 1);
+					// Check out this change
+					block.Flush();
+					return false;
+				}
+			} catch (IOException e) {
+				throw new Exception(&quot;IO Error: &quot; + e.Message);
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[37,5,37,49,0],[39,5,39,46,0],[95,6,95,81,0],[156,5,156,84,0],[158,5,158,87,0],[168,3,168,4,0],[174,5,174,64,0],[186,6,186,29,0],[274,6,274,69,0],[301,5,301,70,0],[305,5,305,71,0],[315,6,315,58,0],[320,6,320,77,0],[336,5,336,121,0],[347,5,347,67,0],[355,5,355,115,0],[356,5,356,41,0],[357,5,357,66,0],[389,5,389,70,0],[393,5,393,71,0],[404,6,404,58,0],[413,6,413,77,0],[426,5,426,86,0],[447,5,447,41,0],[448,5,448,57,0],[450,5,450,118,0],[452,6,452,65,0],[453,6,453,33,0],[454,7,454,79,0],[456,6,456,23,0],[457,7,457,36,0],[458,6,458,67,0],[464,3,464,4,0],[471,6,471,45,0],[476,6,476,45,0],[484,6,484,77,0],[510,5,510,21,0],[512,6,512,44,0],[513,6,513,37,0],[514,6,514,36,0],[515,6,515,22,0],[516,7,516,70,0],[518,6,518,38,0],[521,6,521,37,0],[522,6,522,36,0],[523,6,523,20,0],[525,6,525,27,0],[526,5,526,51,0],[528,3,528,4,0],[532,5,532,21,0],[534,6,534,44,0],[535,6,535,37,0],[536,6,536,36,0],[537,6,537,22,0],[538,7,538,95,0],[540,6,540,38,0],[541,6,541,24,0],[542,7,542,78,0],[544,6,544,37,0],[545,6,545,36,0],[549,6,549,30,0],[551,7,551,42,0],[552,7,552,23,0],[554,7,554,40,0],[555,7,555,39,0],[556,7,556,39,0],[559,12,559,23,0],[560,8,560,42,0],[561,8,561,27,0],[562,9,562,38,0],[559,39,559,42,0],[559,24,559,37,0],[566,7,566,32,0],[569,7,569,34,0],[570,7,570,36,0],[571,7,571,26,0],[572,7,572,27,0],[573,7,573,47,0],[575,7,575,21,0],[576,7,576,35,0],[579,7,579,57,0],[580,7,580,19,0],[584,6,584,37,0],[586,6,586,36,0],[588,6,588,20,0],[589,6,589,19,0],[591,6,591,27,0],[592,5,592,51,0],[594,3,594,4,0],[238,6,238,77,0],[248,5,248,37,0],[249,4,249,5,0],[252,5,252,42,0],[35,3,35,43,1],[36,4,36,15,1],[38,4,38,22,1],[41,4,41,12,1],[42,4,42,23,1],[43,4,43,47,1],[44,3,44,4,1],[47,4,47,20,1],[49,5,49,38,1],[51,6,51,31,1],[53,6,53,52,1],[54,6,54,69,1],[55,6,55,66,1],[58,6,58,48,1],[60,6,60,21,1],[61,6,61,21,1],[62,6,62,22,1],[63,6,63,32,1],[65,11,65,22,1],[66,7,66,32,1],[67,7,67,22,1],[68,7,68,23,1],[69,7,69,39,1],[65,44,65,47,1],[65,23,65,42,1],[72,6,72,31,1],[73,6,73,21,1],[74,6,74,22,1],[75,6,75,22,1],[77,6,77,16,1],[80,6,80,46,1],[81,6,81,56,1],[84,6,84,24,1],[89,5,89,50,1],[90,5,90,55,1],[91,5,91,36,1],[93,5,93,35,1],[94,5,94,37,1],[98,5,98,22,1],[100,5,100,22,1],[102,5,102,39,1],[103,5,103,40,1],[106,5,106,55,1],[109,5,109,32,1],[110,5,110,24,1],[111,5,111,24,1],[112,5,112,25,1],[113,5,113,35,1],[116,5,116,19,1],[118,5,118,27,1],[120,3,120,4,1],[127,4,127,46,1],[130,4,130,32,1],[131,4,131,34,1],[135,4,135,49,1],[136,4,136,42,1],[138,4,138,37,1],[139,4,139,33,1],[140,4,140,47,1],[141,4,141,28,1],[144,4,144,23,1],[149,4,149,45,1],[150,4,150,28,1],[153,4,153,38,1],[154,4,154,40,1],[155,4,155,23,1],[157,4,157,21,1],[160,4,160,49,1],[161,4,161,36,1],[164,4,164,56,1],[165,3,165,4,1],[173,4,173,20,1],[177,5,177,26,1],[180,5,180,62,1],[181,5,181,60,1],[182,5,182,33,1],[184,5,184,18,1],[185,5,185,20,1],[189,5,189,26,1],[190,5,190,29,1],[191,5,191,32,1],[192,5,192,34,1],[195,10,195,21,1],[196,6,196,28,1],[195,37,195,40,1],[195,22,195,35,1],[200,5,200,21,1],[203,5,203,45,1],[204,5,204,69,1],[206,5,206,28,1],[208,3,208,4,1],[262,4,262,27,1],[264,4,264,20,1],[266,5,266,46,1],[269,5,269,36,1],[271,5,271,35,1],[273,5,273,21,1],[276,5,276,37,1],[277,5,277,34,1],[278,5,278,39,1],[281,6,281,27,1],[283,6,283,33,1],[284,6,284,25,1],[285,6,285,25,1],[286,6,286,35,1],[287,6,287,33,1],[288,6,288,20,1],[290,6,290,29,1],[295,4,295,23,1],[296,3,296,4,1],[300,4,300,39,1],[304,4,304,35,1],[313,4,313,20,1],[314,5,314,45,1],[317,5,317,43,1],[318,5,318,31,1],[319,5,319,37,1],[322,5,322,33,1],[323,5,323,29,1],[324,5,324,31,1],[329,4,329,39,1],[330,4,330,20,1],[331,4,331,31,1],[332,4,332,27,1],[335,4,335,51,1],[340,4,340,54,1],[341,4,341,49,1],[342,4,342,35,1],[344,4,344,22,1],[353,4,353,37,1],[360,5,360,22,1],[361,5,361,26,1],[365,5,365,26,1],[368,5,368,56,1],[369,5,369,27,1],[370,5,370,27,1],[371,5,371,37,1],[372,5,372,45,1],[374,5,374,22,1],[377,5,377,50,1],[378,5,378,29,1],[380,5,380,18,1],[382,5,382,28,1],[384,3,384,4,1],[388,4,388,31,1],[392,4,392,29,1],[401,4,401,20,1],[403,5,403,45,1],[408,5,408,43,1],[410,5,410,31,1],[412,5,412,37,1],[416,5,416,33,1],[418,5,418,29,1],[420,5,420,35,1],[425,4,425,39,1],[430,4,430,43,1],[431,4,431,20,1],[432,4,432,31,1],[435,4,435,48,1],[436,4,436,49,1],[437,4,437,39,1],[440,4,440,48,1],[441,4,441,26,1],[442,4,442,39,1],[443,4,443,39,1],[445,4,445,37,1],[463,4,463,46,1],[469,4,469,20,1],[470,5,470,26,1],[473,5,473,23,1],[475,5,475,51,1],[479,5,479,46,1],[481,5,481,35,1],[483,5,483,37,1],[487,5,487,37,1],[489,5,489,29,1],[491,5,491,34,1],[494,4,494,42,1],[495,4,495,22,1],[496,4,496,20,1],[498,4,498,31,1],[500,4,500,37,1],[502,4,502,37,1],[504,4,504,51,1],[505,4,505,64,1],[213,4,213,98,1],[214,5,214,24,1],[215,5,215,20,1],[216,5,216,40,1],[217,5,217,31,1],[218,5,218,29,1],[219,4,219,5,1],[222,4,222,5,1],[233,5,233,67,1],[237,5,237,20,1],[240,5,240,61,1],[241,4,241,5,1],[244,5,244,32,1],[245,4,245,5,1],[256,5,256,23,1],[257,4,257,5,1]]);
+    </script>
+  </body>
+</html>

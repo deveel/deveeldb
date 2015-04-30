@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\referencetable.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql {
+	class ReferenceTable : FilterTable, IRootTable {
+		private readonly TableInfo tableInfo;
+
+		public ReferenceTable(ITable parent, ObjectName tableName) 
+			: this(parent, parent.TableInfo.Alias(tableName)) {
+		}
+
+		public ReferenceTable(ITable parent, TableInfo tableInfo)
+			: base(parent) {
+			TableName = tableInfo.TableName;
+			this.tableInfo = tableInfo;
+		}
+
+		public ObjectName TableName { get; private set; }
+
+		public override TableInfo TableInfo {
+			get { return tableInfo; }
+		}
+
+		protected override int IndexOfColumn(ObjectName columnName) {
+			var tableName = columnName.Parent;
+			if (tableName != null &amp;&amp; tableName.Equals(TableName))
+				return TableInfo.IndexOfColumn(columnName.Name);
+
+			return -1;
+		}
+
+		protected override ObjectName GetResolvedColumnName(int column) {
+			return new ObjectName(TableName, tableInfo[column].ColumnName);
+		}
+
+		public bool Equals(IRootTable other) {
+			return other == this;
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[23,3,24,53,0],[25,3,25,4,0],[27,3,28,18,0],[29,4,29,36,0],[30,4,30,31,0],[31,3,31,4,0],[36,10,36,27,0],[40,4,40,38,0],[41,4,41,57,0],[42,5,42,53,0],[44,4,44,14,0],[48,4,48,67,0],[52,4,52,25,0]]);
+    </script>
+  </body>
+</html>

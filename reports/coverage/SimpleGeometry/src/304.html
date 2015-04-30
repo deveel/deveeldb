@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.objects\sqlyeartomonth.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql.Objects {
+	/// &lt;summary&gt;
+	/// A month span representation of time.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public struct SqlYearToMonth : ISqlObject, IComparable&lt;SqlYearToMonth&gt; {
+		private int? months;
+
+		public static readonly SqlYearToMonth Null = new SqlYearToMonth(true);
+
+		public SqlYearToMonth(int months) 
+			: this() {
+			this.months = months;
+		}
+
+		public SqlYearToMonth(int years, int months)
+			: this((years*12) + months) {
+		}
+
+		private SqlYearToMonth(bool isNull)
+			: this() {
+			if (isNull)
+				months = null;
+		}
+
+		int IComparable.CompareTo(object obj) {
+			return CompareTo((ISqlObject) obj);
+		}
+
+		public int CompareTo(ISqlObject other) {
+			if (other is SqlYearToMonth)
+				return CompareTo((SqlYearToMonth) other);
+
+			throw new NotSupportedException();
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public bool IsNull {
+			get { return months == null; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the total number of months that represents the time span.
+		/// &lt;/summary&gt;
+		public int TotalMonths {
+			get {
+				if (months == null)
+					throw new NullReferenceException();
+
+				return months.Value;
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the total number of years that represents the time span.
+		/// &lt;/summary&gt;
+		public double TotalYears {
+			get {
+				if (months == null)
+					throw new NullReferenceException();
+
+				return (months.Value/12);
+			}
+		}
+
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return other is SqlYearToMonth ||
+			       other is SqlNumber ||
+			       other is SqlDayToSecond;
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public int CompareTo(SqlYearToMonth other) {
+			if (other.IsNull &amp;&amp; IsNull)
+				return 0;
+			if (IsNull &amp;&amp; !other.IsNull)
+				return 1;
+			if (!IsNull &amp;&amp; other.IsNull)
+				return -1;
+
+			return months.Value.CompareTo(other.months.Value);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[45,4,45,39,0],[49,4,49,32,0],[50,5,50,46,0],[52,4,52,38,0],[66,6,66,41,0],[77,5,77,24,0],[78,6,78,41,0],[80,5,80,30,0],[85,4,87,35,0],[92,4,92,31,0],[93,5,93,14,0],[94,4,94,32,0],[95,5,95,14,0],[96,4,96,32,0],[97,5,97,15,0],[99,4,99,54,0],[30,6,30,12,1],[31,4,31,25,1],[32,3,32,4,1],[34,3,35,31,1],[36,3,36,4,1],[39,6,39,12,1],[40,4,40,15,1],[41,5,41,19,1],[42,3,42,4,1],[57,10,57,32,1],[65,5,65,24,1],[68,5,68,25,1],[27,3,27,73,1]]);
+    </script>
+  </body>
+</html>

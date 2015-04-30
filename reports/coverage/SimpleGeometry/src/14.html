@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.sql.objects\sqlstringtests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.Sql.Objects {
+	[TestFixture]
+	[Category(&quot;SQL Objects&quot;)]
+	public class SqlStringTests {
+		[Test]
+		[Category(&quot;UTF16 LE Strings&quot;)]
+		public void UnicodeString_Create() {
+			const string s = &quot;Test string UTF-16 LE&quot;;
+			var sqlString = SqlString.Unicode(s);
+			Assert.IsNotNull(sqlString);
+			Assert.AreEqual(1200, sqlString.CodePage);	// 1200 is the MS codepage for UTF-16 LE
+			Assert.AreEqual(s.Length, sqlString.Length);
+			Assert.AreEqual(s, sqlString);
+		}
+
+		[Test]
+		[Category(&quot;UTF16 LE Strings&quot;)]
+		public void UnicodeString_Compare_Equal() {
+			const string s = &quot;Test string in UTF-16 LE&quot;;
+			var sqlString1 = SqlString.Unicode(s);
+			var sqlString2 = SqlString.Unicode(s);
+			Assert.AreEqual(sqlString1.CodePage, sqlString2.CodePage);
+			Assert.AreEqual(0, sqlString1.CompareTo(sqlString2));
+		}
+
+		[Test]
+		[Category(&quot;UTF16 LE Strings&quot;)]
+		public void UnicodeString_Equals() {
+			const string s = &quot;Test string in UTF-16 LE&quot;;
+			var sqlString1 = SqlString.Unicode(s);
+			var sqlString2 = SqlString.Unicode(s);
+			Assert.AreEqual(sqlString1.CodePage, sqlString2.CodePage);
+			Assert.IsTrue(sqlString1.Equals(sqlString2));
+		}
+
+		[Test]
+		[Category(&quot;UTF16 LE Strings&quot;)]
+		public void UnicodeString_Concat() {
+			const string s1 = &quot;First string comes before the &quot;;
+			const string s2 = &quot;Second string that comes after&quot;;
+			var sqlString1 = SqlString.Unicode(s1);
+			var sqlString2 = SqlString.Unicode(s2);
+
+			var sqlString3 = new SqlString();
+			Assert.DoesNotThrow(() =&gt; sqlString3 = sqlString1.Concat(sqlString2));
+			Assert.AreEqual(sqlString1.CodePage, sqlString3.CodePage);
+			Assert.AreEqual(sqlString2.CodePage, sqlString3.CodePage);
+			Assert.AreEqual(&quot;First string comes before the Second string that comes after&quot;, sqlString3.Value);
+		}
+
+		[Test]
+		public void UnicodeString_Concat_DifferentEncoding() {
+			const string s1 = &quot;First string comes before the &quot;;
+			const string s2 = &quot;Second string that comes after&quot;;
+			var sqlString1 = SqlString.Unicode(s1);
+			var sqlString2 = SqlString.Ascii(s2);
+
+			var sqlString3 = new SqlString();
+			Assert.Throws&lt;ArgumentException&gt;(() =&gt; sqlString3 = sqlString1.Concat(sqlString2));
+		}
+
+		[Test]
+		public void String_EqualsToNull() {
+			var s = SqlString.Null;
+			Assert.IsTrue(s.IsNull);
+			Assert.AreEqual(SqlNull.Value, s);
+			Assert.AreEqual(s, SqlNull.Value);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Date Time&quot;)]
+		public void String_Convert_TimeStamp() {
+			const string s = &quot;2011-01-23T23:44:21.525 +01:00&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var timeStamp = new SqlDateTime();
+			Assert.DoesNotThrow(() =&gt; timeStamp = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
+			Assert.IsFalse(timeStamp.IsNull);
+			Assert.AreEqual(2011, timeStamp.Year);
+			Assert.AreEqual(01, timeStamp.Month);
+			Assert.AreEqual(23, timeStamp.Day);
+			Assert.AreEqual(23, timeStamp.Hour);
+			Assert.AreEqual(44, timeStamp.Minute);
+			Assert.AreEqual(525, timeStamp.Millisecond);
+			Assert.AreEqual(1, timeStamp.Offset.Hours);
+			Assert.AreEqual(0, timeStamp.Offset.Minutes);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Date Time&quot;)]
+		public void String_Convert_Time() {
+			const string s = &quot;23:44:21.525&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var time = new SqlDateTime();
+			Assert.DoesNotThrow(() =&gt; time = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
+			Assert.IsFalse(time.IsNull);
+			Assert.AreEqual(1, time.Year);
+			Assert.AreEqual(1, time.Month);
+			Assert.AreEqual(1, time.Day);
+			Assert.AreEqual(23, time.Hour);
+			Assert.AreEqual(44, time.Minute);
+			Assert.AreEqual(21, time.Second);
+			Assert.AreEqual(525, time.Millisecond);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Date Time&quot;)]
+		public void String_Convert_Date() {
+			const string s = &quot;2011-01-23&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var date = new SqlDateTime();
+			Assert.DoesNotThrow(() =&gt; date = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
+			Assert.IsFalse(date.IsNull);
+			Assert.AreEqual(2011, date.Year);
+			Assert.AreEqual(01, date.Month);
+			Assert.AreEqual(23, date.Day);
+			Assert.AreEqual(0, date.Hour);
+			Assert.AreEqual(0, date.Minute);
+			Assert.AreEqual(0, date.Millisecond);
+			Assert.AreEqual(0, date.Offset.Hours);
+			Assert.AreEqual(0, date.Offset.Minutes);			
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Numbers&quot;)]
+		public void String_Convert_BigNumber() {
+			const string s = &quot;7689994.0000033992988477226661525553666370058812345883288477383&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var number = new SqlNumber();
+			Assert.DoesNotThrow(() =&gt; number = (SqlNumber)Convert.ChangeType(sqlString, typeof(SqlNumber)));
+			Assert.IsFalse(number.IsNull);
+			Assert.IsFalse(number.CanBeInt32);
+			Assert.IsFalse(number.CanBeInt64);
+			Assert.AreEqual(NumericState.None, number.State);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Booleans&quot;)]
+		public void String_Convert_BooleanTrue() {
+			const string s = &quot;true&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() =&gt; b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsFalse(b.IsNull);
+			Assert.AreEqual(SqlBoolean.True, b);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Booleans&quot;)]
+		public void String_Convert_BooleanFalse() {
+			const string s = &quot;false&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() =&gt; b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsFalse(b.IsNull);
+			Assert.AreEqual(SqlBoolean.False, b);
+		}
+
+		[Test]
+		[Category(&quot;Conversion&quot;)]
+		[Category(&quot;Booleans&quot;)]
+		public void String_Convert_BooleanNull() {
+			const string s = &quot;&quot;;
+			var sqlString = new SqlString(s);
+			Assert.AreEqual(1200, sqlString.CodePage);
+
+			var b = new SqlBoolean();
+			Assert.DoesNotThrow(() =&gt; b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
+			Assert.IsTrue(b.IsNull);
+			Assert.AreEqual(SqlBoolean.Null, b);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,4,28,41,1],[29,4,29,32,1],[30,4,30,46,1],[31,4,31,48,1],[32,4,32,34,1],[33,3,33,4,1],[39,4,39,42,1],[40,4,40,42,1],[41,4,41,62,1],[42,4,42,57,1],[43,3,43,4,1],[49,4,49,42,1],[50,4,50,42,1],[51,4,51,62,1],[52,4,52,49,1],[53,3,53,4,1],[60,4,60,43,1],[61,4,61,43,1],[63,4,63,37,1],[64,4,64,30,1],[64,72,64,74,1],[65,4,65,62,1],[66,4,66,62,1],[67,4,67,102,1],[68,3,68,4,1],[74,4,74,43,1],[75,4,75,41,1],[77,4,77,37,1],[78,4,78,43,1],[78,85,78,87,1],[79,3,79,4,1],[83,4,83,27,1],[84,4,84,28,1],[85,4,85,38,1],[86,4,86,38,1],[87,3,87,4,1],[94,4,94,37,1],[95,4,95,46,1],[97,4,97,38,1],[98,4,98,30,1],[98,106,98,108,1],[99,4,99,37,1],[100,4,100,42,1],[101,4,101,41,1],[102,4,102,39,1],[103,4,103,40,1],[104,4,104,42,1],[105,4,105,48,1],[106,4,106,47,1],[107,4,107,49,1],[108,3,108,4,1],[115,4,115,37,1],[116,4,116,46,1],[118,4,118,33,1],[119,4,119,30,1],[119,101,119,103,1],[120,4,120,32,1],[121,4,121,34,1],[122,4,122,35,1],[123,4,123,33,1],[124,4,124,35,1],[125,4,125,37,1],[126,4,126,37,1],[127,4,127,43,1],[128,3,128,4,1],[135,4,135,37,1],[136,4,136,46,1],[138,4,138,33,1],[139,4,139,30,1],[139,101,139,103,1],[140,4,140,32,1],[141,4,141,37,1],[142,4,142,36,1],[143,4,143,34,1],[144,4,144,34,1],[145,4,145,36,1],[146,4,146,41,1],[147,4,147,42,1],[148,4,148,44,1],[149,3,149,4,1],[156,4,156,37,1],[157,4,157,46,1],[159,4,159,33,1],[160,4,160,30,1],[160,98,160,100,1],[161,4,161,34,1],[162,4,162,38,1],[163,4,163,38,1],[164,4,164,53,1],[165,3,165,4,1],[172,4,172,37,1],[173,4,173,46,1],[175,4,175,29,1],[176,4,176,30,1],[176,95,176,97,1],[177,4,177,29,1],[178,4,178,40,1],[179,3,179,4,1],[186,4,186,37,1],[187,4,187,46,1],[189,4,189,29,1],[190,4,190,30,1],[190,95,190,97,1],[191,4,191,29,1],[192,4,192,41,1],[193,3,193,4,1],[200,4,200,37,1],[201,4,201,46,1],[203,4,203,29,1],[204,4,204,30,1],[204,95,204,97,1],[205,4,205,28,1],[206,4,206,40,1],[207,3,207,4,1],[64,30,64,72,1],[78,43,78,85,1],[98,30,98,106,1],[119,30,119,101,1],[139,30,139,101,1],[160,30,160,98,1],[176,30,176,95,1],[190,30,190,95,1],[204,30,204,95,1]]);
+    </script>
+  </body>
+</html>

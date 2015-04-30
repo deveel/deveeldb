@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.transactions\tablecommitcallback.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Transactions {
+	public abstract class TableCommitCallback {
+		private readonly List&lt;int&gt; addedList;
+		private readonly List&lt;int&gt; removedList;
+
+		protected TableCommitCallback(ObjectName tableName) {
+			if (tableName == null)
+				throw new ArgumentNullException(&quot;tableName&quot;);
+
+			TableName = tableName;
+
+			addedList = new List&lt;int&gt;();
+			removedList = new List&lt;int&gt;();
+		}
+
+		public ObjectName TableName { get; private set; }
+
+		protected bool IsInTransaction { get; private set; }
+
+		internal void OnTransactionStarted() {
+			IsInTransaction = true;
+			Act();
+		}
+
+		internal void OnTransactionEnd() {
+			IsInTransaction = false;
+			Act();
+		}
+
+		public void AttachTo(ITransaction transaction) {
+			transaction.RegisterOnCommit(OnCommit);
+
+			if (transaction is ICallbackHandler)
+				((ICallbackHandler)transaction).OnCallbackAttached(this);
+		}
+
+		public void DetachFrom(ITransaction transaction) {
+			transaction.UnregisterOnCommit(OnCommit);
+
+			if (transaction is ICallbackHandler)
+				((ICallbackHandler)transaction).OnCallbackDetached(this);
+		}
+
+		private void Act() {
+			IList&lt;int&gt; add, remove;
+			lock (removedList) {
+				add = new List&lt;int&gt;(addedList);
+				remove = new List&lt;int&gt;(removedList);
+
+				addedList.Clear();
+				removedList.Clear();
+			}
+
+			OnAction(add, remove);
+		}
+
+		private void OnCommit(TableCommitInfo commitInfo) {
+			if (TableName.Equals(commitInfo.TableName)) {
+				addedList.AddRange(commitInfo.AddedRows);
+				removedList.AddRange(commitInfo.RemovedRows);
+			}
+		}
+
+		protected abstract void OnAction(IEnumerable&lt;int&gt; addedRows, IEnumerable&lt;int&gt; removedRows);
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,3,27,54,0],[28,4,28,26,0],[29,5,29,50,0],[31,4,31,26,0],[33,4,33,32,0],[34,4,34,34,0],[35,3,35,4,0],[42,4,42,27,0],[43,4,43,10,0],[44,3,44,4,0],[47,4,47,28,0],[48,4,48,10,0],[49,3,49,4,0],[52,4,52,43,0],[54,4,54,40,0],[55,5,55,62,0],[56,3,56,4,0],[59,4,59,45,0],[61,4,61,40,0],[62,5,62,62,0],[63,3,63,4,0],[67,4,67,22,0],[68,5,68,36,0],[69,5,69,41,0],[71,5,71,23,0],[72,5,72,25,0],[75,4,75,26,0],[76,3,76,4,0],[79,4,79,47,0],[80,5,80,46,0],[81,5,81,50,0],[83,3,83,4,0]]);
+    </script>
+  </body>
+</html>

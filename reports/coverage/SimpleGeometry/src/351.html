@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.util\properties.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+using System.IO;
+using System.Text;
+
+namespace Deveel.Data.Util {
+	[Serializable]
+	class Properties : Hashtable {
+
+		protected Properties defaults;
+
+		/// &lt;summary&gt;
+		/// Creates a new empty property list with no default values.
+		/// &lt;/summary&gt;
+		public Properties() {
+		}
+
+		///&lt;summary&gt;
+		/// Create a new empty property list with the specified default values.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;defaults&quot;&gt;A &lt;see cref=&quot;Properties&quot;/&gt; object containing the 
+		/// default values.&lt;/param&gt;
+		public Properties(Properties defaults) {
+			this.defaults = defaults;
+		}
+
+		///&lt;summary&gt;
+		/// Adds the given key/value pair to this properties.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;key&quot;&gt;The key for this property.&lt;/param&gt;
+		///&lt;param name=&quot;value&quot;&gt;The value for this property.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This calls the hashtable method put.
+		/// &lt;/remarks&gt;
+		///&lt;returns&gt;
+		/// Returns the old value for the given key
+		/// &lt;/returns&gt;
+		/// &lt;seealso cref=&quot;GetProperty(string)&quot;/&gt;
+		/// &lt;seealso cref=&quot;GetProperty(string,string)&quot;/&gt;
+		public Object SetProperty(String key, String value) {
+			return this[key] = value;
+		}
+
+		/**
+		 * Reads a property list from an input stream.  The stream should
+		 * have the following format: &lt;br&gt;
+		 *
+		 * An empty line or a line starting with &lt;code&gt;#&lt;/code&gt; or
+		 * &lt;code&gt;!&lt;/code&gt; is ignored.  An backslash (&lt;code&gt;\&lt;/code&gt;) at the
+		 * end of the line makes the line continueing on the next line
+		 * (but make sure there is no whitespace after the backslash).
+		 * Otherwise, each line describes a key/value pair. &lt;br&gt;
+		 *
+		 * The chars up to the first whitespace, = or : are the key.  You
+		 * can include this caracters in the key, if you precede them with
+		 * a backslash (&lt;code&gt;\&lt;/code&gt;). The key is followed by optional
+		 * whitespaces, optionally one &lt;code&gt;=&lt;/code&gt; or &lt;code&gt;:&lt;/code&gt;,
+		 * and optionally some more whitespaces.  The rest of the line is
+		 * the resource belonging to the key. &lt;br&gt;
+		 *
+		 * Escape sequences &lt;code&gt;\t, \n, \r, \\, \&quot;, \&#39;, \!, \#, \ &lt;/code&gt;(a
+		 * space), and unicode characters with the
+		 * &lt;code&gt;\\u&lt;/code&gt;&lt;em&gt;xxxx&lt;/em&gt; notation are detected, and
+		 * converted to the corresponding single character. &lt;br&gt;
+		 *
+		 * 
+	  &lt;pre&gt;# This is a comment
+	  key     = value
+	  k\:5      \ a string starting with space and ending with newline\n
+	  # This is a multiline specification; note that the value contains
+	  # no white space.
+	  weekdays: Sunday,Monday,Tuesday,Wednesday,\\
+				Thursday,Friday,Saturday
+	  # The safest way to include a space at the end of a value:
+	  label   = Name:\\u0020&lt;/pre&gt;
+		 *
+		 * @param inStream the input stream
+		 * @throws IOException if an error occurred when reading the input
+		 * @throws NullPointerException if in is null
+		 */
+		///&lt;summary&gt;
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;inStream&quot;&gt;&lt;/param&gt;
+		public void Load(Stream inStream) {
+			// The spec says that the file must be encoded using ISO-8859-1.
+			StreamReader reader = new StreamReader(inStream, Encoding.GetEncoding(&quot;ISO-8859-1&quot;));
+			String line;
+
+			while ((line = reader.ReadLine()) != null) {
+				char c = &#39;\0&#39;;
+				int pos = 0;
+				// Leading whitespaces must be deleted first.
+				while (pos &lt; line.Length
+					   &amp;&amp; Char.IsWhiteSpace(c = line[pos]))
+					pos++;
+
+				// If empty line or begins with a comment character, skip this line.
+				if ((line.Length - pos) == 0
+				|| line[pos] == &#39;#&#39; || line[pos] == &#39;!&#39;)
+					continue;
+
+				// The characters up to the next Whitespace, &#39;:&#39;, or &#39;=&#39;
+				// describe the key.  But look for escape sequences.
+				// Try to short-circuit when there is no escape char.
+				int start = pos;
+				bool needsEscape = line.IndexOf(&#39;\\&#39;, pos) != -1;
+				StringBuilder key = needsEscape ? new StringBuilder() : null;
+				while (pos &lt; line.Length
+					   &amp;&amp; !Char.IsWhiteSpace(c = line[pos++])
+					   &amp;&amp; c != &#39;=&#39; &amp;&amp; c != &#39;:&#39;) {
+					if (needsEscape &amp;&amp; c == &#39;\\&#39;) {
+						if (pos == line.Length) {
+							// The line continues on the next line.  If there
+							// is no next line, just treat it as a key with an
+							// empty value.
+							line = reader.ReadLine();
+							if (line == null)
+								line = &quot;&quot;;
+							pos = 0;
+							while (pos &lt; line.Length
+								   &amp;&amp; Char.IsWhiteSpace(c = line[pos]))
+								pos++;
+						} else {
+							c = line[pos++];
+							switch (c) {
+								case &#39;n&#39;:
+									key.Append(&#39;\n&#39;);
+									break;
+								case &#39;t&#39;:
+									key.Append(&#39;\t&#39;);
+									break;
+								case &#39;r&#39;:
+									key.Append(&#39;\r&#39;);
+									break;
+								case &#39;u&#39;:
+									if (pos + 4 &lt;= line.Length) {
+										char uni = (char)Convert.ToInt32(line.Substring(pos, 4), 16);
+										key.Append(uni);
+										pos += 4;
+									}        // else throw exception?
+									break;
+								default:
+									key.Append(c);
+									break;
+							}
+						}
+					} else if (needsEscape)
+						key.Append(c);
+				}
+
+				bool isDelim = (c == &#39;:&#39; || c == &#39;=&#39;);
+
+				String keyString;
+				if (needsEscape)
+					keyString = key.ToString();
+				else if (isDelim || Char.IsWhiteSpace(c))
+					keyString = line.Substring(start, (pos - 1) - start);
+				else
+					keyString = line.Substring(start, pos - start);
+
+				while (pos &lt; line.Length
+					   &amp;&amp; Char.IsWhiteSpace(c = line[pos]))
+					pos++;
+
+				if (!isDelim &amp;&amp; (c == &#39;:&#39; || c == &#39;=&#39;)) {
+					pos++;
+					while (pos &lt; line.Length
+						   &amp;&amp; Char.IsWhiteSpace(c = line[pos]))
+						pos++;
+				}
+
+				// Short-circuit if no escape chars found.
+				if (!needsEscape) {
+					this[keyString] = line.Substring(pos);
+					continue;
+				}
+
+				// Escape char found so iterate through the rest of the line.
+				StringBuilder element = new StringBuilder(line.Length - pos);
+				while (pos &lt; line.Length) {
+					c = line[pos++];
+					if (c == &#39;\\&#39;) {
+						if (pos == line.Length) {
+							// The line continues on the next line.
+							line = reader.ReadLine();
+
+							// We might have seen a backslash at the end of
+							// the file.  The JDK ignores the backslash in
+							// this case, so we follow for compatibility.
+							if (line == null)
+								break;
+
+							pos = 0;
+							while (pos &lt; line.Length
+								   &amp;&amp; Char.IsWhiteSpace(c = line[pos]))
+								pos++;
+							element.EnsureCapacity(line.Length - pos + element.Length);
+						} else {
+							c = line[pos++];
+							switch (c) {
+								case &#39;n&#39;:
+									element.Append(&#39;\n&#39;);
+									break;
+								case &#39;t&#39;:
+									element.Append(&#39;\t&#39;);
+									break;
+								case &#39;r&#39;:
+									element.Append(&#39;\r&#39;);
+									break;
+								case &#39;u&#39;:
+									if (pos + 4 &lt;= line.Length) {
+										char uni = (char)Convert.ToInt32(line.Substring(pos, 4), 16);
+										element.Append(uni);
+										pos += 4;
+									}        // else throw exception?
+									break;
+								default:
+									element.Append(c);
+									break;
+							}
+						}
+					} else
+						element.Append(c);
+				}
+				this[keyString] = element.ToString();
+			}
+		}
+
+		///&lt;summary&gt;
+		/// Calls &lt;see cref=&quot;Store&quot;/&gt; and ignores the &lt;see cref=&quot;IOException&quot;/&gt; 
+		/// that may be thrown.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;output&quot;&gt;The stream to write to.&lt;/param&gt;
+		///&lt;param name=&quot;header&quot;&gt;A description of the property list.&lt;/param&gt;
+		/// &lt;exception cref=&quot;InvalidCastException&quot;&gt;
+		/// If this property contains any key or value that are not strings.
+		/// &lt;/exception&gt;
+		[Obsolete(&quot;Use Store(Stream, string) method instead.&quot;)]
+		public void Save(Stream output, String header) {
+			try {
+				Store(output, header);
+			} catch (IOException) {
+			}
+		}
+
+		///&lt;summary&gt;
+		/// Writes the key/value pairs to the given output stream, in a format
+		/// suitable for &lt;see cref=&quot;Load&quot;/&gt;.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;output&quot;&gt;The output stream.&lt;/param&gt;
+		///&lt;param name=&quot;header&quot;&gt;The header written in the first line, may be null.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// If header is not null, this method writes a comment containing
+		/// the header as first line to the stream.  The next line (or first
+		/// line if header is null) contains a comment with the current date.
+		/// Afterwards the key/value pairs are written to the stream in the
+		/// following format.
+		/// &lt;para&gt;
+		/// Each line has the form &lt;c&gt;key = value&lt;/c&gt;. Newlines, Returns 
+		/// and tabs are written as &lt;c&gt;\n,\t,\r&lt;/c&gt; resp.
+		/// The characters &lt;c&gt;\, !, #, =&lt;/c&gt; and &lt;c&gt;:&lt;/c&gt; are preceeded by 
+		/// a backslash.  Spaces are preceded with a backslash, if and only 
+		/// if they are at the beginning of the key.  Characters that are not 
+		/// in the ascii range 33 to 127 are written in the &lt;c&gt;\&lt;/c&gt;&lt;c&gt;u&lt;/c&gt;xxxx 
+		/// Form.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// Following the listing, the output stream is flushed but left open.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;exception cref=&quot;InvalidCastException&quot;&gt;
+		/// If this property contains any key or value that isn&#39;t a string.
+		/// &lt;/exception&gt;
+		/// &lt;exception cref=&quot;IOException&quot;&gt;
+		/// If writing to the stream fails.
+		/// &lt;/exception&gt;
+		/// &lt;exception cref=&quot;ArgumentNullException&quot;&gt;
+		/// If &lt;paramref name=&quot;output&quot;/&gt; is null.
+		/// &lt;/exception&gt;
+		public void Store(Stream output, String header) {
+			// The spec says that the file must be encoded using ISO-8859-1.
+			StreamWriter writer = new StreamWriter(output, Encoding.GetEncoding(&quot;ISO-8859-1&quot;));
+			if (header != null)
+				writer.WriteLine(&quot;#&quot; + header);
+			writer.WriteLine(&quot;#&quot; + DateTime.Now);
+
+			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
+			foreach (DictionaryEntry entry in this) {
+				FormatForOutput((String)entry.Key, s, true);
+				s.Append(&#39;=&#39;);
+				FormatForOutput((String)entry.Value, s, false);
+				writer.WriteLine(s);
+			}
+
+			writer.Flush();
+		}
+
+		///&lt;summary&gt;
+		/// Gets the property with the specified key in this property list.
+		/// If the key is not found, the default property list is searched.
+		/// If the property is not found in the default, null is returned.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;key&quot;&gt;The key for this property.&lt;/param&gt;
+		///&lt;returns&gt;
+		/// Returns the value for the given key, or null if not found.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;InvalidCastException&quot;&gt;
+		/// If this property contains any key or value that isn&#39;t a string.
+		/// &lt;/exception&gt;
+		/// &lt;seealso cref=&quot;GetProperty(string,string)&quot;/&gt;
+		/// &lt;seealso cref=&quot;SetProperty&quot;/&gt;
+		public String GetProperty(String key) {
+			Properties prop = this;
+			// Eliminate tail recursion.
+			do {
+				String value = (String)prop[key];
+				if (value != null)
+					return value;
+				prop = prop.defaults;
+			}
+			while (prop != null);
+			return null;
+		}
+
+		///&lt;summary&gt;
+		/// Gets the property with the specified key in this property list.  If
+		/// the key is not found, the default property list is searched.  If the
+		/// property is not found in the default, the specified defaultValue is
+		/// returned.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;key&quot;&gt;The key for this property.&lt;/param&gt;
+		///&lt;param name=&quot;defaultValue&quot;&gt;A default value.&lt;/param&gt;
+		///&lt;returns&gt;
+		/// Returns the value for the given key.
+		/// &lt;/returns&gt;
+		/// &lt;exception cref=&quot;InvalidCastException&quot;&gt;
+		/// If this property contains any key or value that isn&#39;t a string.
+		/// &lt;/exception&gt;
+		/// &lt;seealso cref=&quot;SetProperty&quot;/&gt;
+		public String GetProperty(String key, String defaultValue) {
+			String prop = GetProperty(key);
+			if (prop == null)
+				prop = defaultValue;
+			return prop;
+		}
+
+		public ICollection PropertyNames {
+			get {
+				// We make a new Set that holds all the keys, then return an enumeration
+				// for that. This prevents modifications from ruining the enumeration,
+				// as well as ignoring duplicates.
+				Properties prop = this;
+				ArrayList s = new ArrayList();
+				// Eliminate tail recursion.
+				do {
+					s.AddRange(prop.Keys);
+					prop = prop.defaults;
+				} while (prop != null);
+				return s;
+			}
+		}
+
+		///&lt;summary&gt;
+		/// Prints the key/value pairs to the given print stream.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;output&quot;&gt;The print stream, where the key/value pairs are 
+		/// written to.&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This is mainly useful for debugging purposes.
+		/// &lt;/remarks&gt;
+		/// &lt;exception cref=&quot;InvalidCastException&quot;&gt;
+		/// If this property contains a key or a value that isn&#39;t a string.
+		/// &lt;/exception&gt;
+		public void List(Stream output) {
+			StreamWriter writer = new StreamWriter(output);
+			List(writer);
+		}
+
+		public void List(StreamWriter output) {
+			output.WriteLine(&quot;-- listing properties --&quot;);
+
+			foreach (DictionaryEntry entry in this) {
+				output.Write((String)entry.Key + &quot;=&quot;);
+
+				String s = (String)entry.Value;
+				if (s != null &amp;&amp; s.Length &gt; 40)
+					output.WriteLine(s.Substring(0, 37) + &quot;...&quot;);
+				else
+					output.WriteLine(s);
+			}
+			output.Flush();
+		}
+
+		/// &lt;summary&gt;
+		/// Formats a key or value for output in a properties file.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;str&quot;&gt;The string to format.&lt;/param&gt;
+		/// &lt;param name=&quot;buffer&quot;&gt;The buffer to add it to.&lt;/param&gt;
+		/// &lt;param name=&quot;key&quot;&gt;True if all &#39; &#39; must be escaped for the key, false if only 
+		/// leading spaces must be escaped for the value&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// See &lt;see cref=&quot;Store&quot;/&gt; for a description of the format.
+		/// &lt;/remarks&gt;
+		private static void FormatForOutput(String str, StringBuilder buffer, bool key) {
+			if (key) {
+				buffer.Length = 0;
+				buffer.EnsureCapacity(str.Length);
+			} else
+				buffer.EnsureCapacity(buffer.Length + str.Length);
+			bool head = true;
+			int size = str.Length;
+			for (int i = 0; i &lt; size; i++) {
+				char c = str[i];
+				switch (c) {
+					case &#39;\n&#39;:
+						buffer.Append(&quot;\\n&quot;);
+						break;
+					case &#39;\r&#39;:
+						buffer.Append(&quot;\\r&quot;);
+						break;
+					case &#39;\t&#39;:
+						buffer.Append(&quot;\\t&quot;);
+						break;
+					case &#39; &#39;:
+						buffer.Append(head ? &quot;\\ &quot; : &quot; &quot;);
+						break;
+					case &#39;\\&#39;:
+					case &#39;!&#39;:
+					case &#39;#&#39;:
+					case &#39;=&#39;:
+					case &#39;:&#39;:
+						buffer.Append(&#39;\\&#39;).Append(c);
+						break;
+					default:
+						if (c &lt; &#39; &#39; || c &gt; &#39;~&#39;) {
+							String hex = ((int)c).ToString(&quot;{0:x4}&quot;);
+							buffer.Append(&quot;\\u0000&quot;.Substring(0, 6 - hex.Length));
+							buffer.Append(hex);
+						} else
+							buffer.Append(c);
+						break;
+				}
+				if (c != &#39; &#39;)
+					head = key;
+			}
+		}
+
+		/*
+		TODO:
+		public void storeToXML(Stream os, String comment) {
+			storeToXML(os, comment, &quot;UTF-8&quot;);
+		}
+
+		public void storeToXML(Stream os, String comment, String encoding) {
+			if (os == null)
+				throw new ArgumentNullException(&quot;os&quot;);
+			if (encoding == null)
+				throw new ArgumentNullException(&quot;encoding&quot;);
+			try {
+				DOMImplementationRegistry registry =
+				  DOMImplementationRegistry.newInstance();
+				DOMImplementation domImpl = registry.getDOMImplementation(&quot;LS 3.0&quot;);
+				DocumentType doctype =
+				  domImpl.createDocumentType(&quot;properties&quot;, null,
+								 &quot;http://java.sun.com/dtd/properties.dtd&quot;);
+				Document doc = domImpl.createDocument(null, &quot;properties&quot;, doctype);
+				Element root = doc.getDocumentElement();
+				if (comment != null) {
+					Element commentElement = doc.createElement(&quot;comment&quot;);
+					commentElement.appendChild(doc.createTextNode(comment));
+					root.appendChild(commentElement);
+				}
+				Iterator iterator = entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry entry = (Map.Entry)iterator.next();
+					Element entryElement = doc.createElement(&quot;entry&quot;);
+					entryElement.setAttribute(&quot;key&quot;, (String)entry.getKey());
+					entryElement.appendChild(doc.createTextNode((String)
+										entry.getValue()));
+					root.appendChild(entryElement);
+				}
+				DOMImplementationLS loadAndSave = (DOMImplementationLS)domImpl;
+				LSSerializer serializer = loadAndSave.createLSSerializer();
+				LSOutput output = loadAndSave.createLSOutput();
+				output.setByteStream(os);
+				output.setEncoding(encoding);
+				serializer.write(doc, output);
+			} catch (ClassNotFoundException e) {
+				throw (IOException)
+				  new IOException(&quot;The XML classes could not be found.&quot;).initCause(e);
+			} catch (InstantiationException e) {
+				throw (IOException)
+				  new IOException(&quot;The XML classes could not be instantiated.&quot;)
+				  .initCause(e);
+			} catch (IllegalAccessException e) {
+				throw (IOException)
+				  new IOException(&quot;The XML classes could not be accessed.&quot;)
+				  .initCause(e);
+			}
+		}
+
+		public void loadFromXML(InputStream input) {
+			if (input == null)
+				throw new NullPointerException(&quot;Null input stream supplied.&quot;);
+			try {
+				XMLInputFactory factory = XMLInputFactory.newInstance();
+				// Don&#39;t resolve external entity references
+				factory.setProperty(&quot;javax.xml.stream.isSupportingExternalEntities&quot;,
+									Boolean.FALSE);
+				XMLStreamReader reader = factory.createXMLStreamReader(input);
+				String name, key = null;
+				StringBuffer buf = null;
+				while (reader.hasNext()) {
+					switch (reader.next()) {
+						case XMLStreamConstants.START_ELEMENT:
+							name = reader.getLocalName();
+							if (buf == null &amp;&amp; &quot;entry&quot;.equals(name)) {
+								key = reader.getAttributeValue(null, &quot;key&quot;);
+								if (key == null) {
+									String msg = &quot;missing &#39;key&#39; attribute&quot;;
+									throw new InvalidPropertiesFormatException(msg);
+								}
+								buf = new StringBuffer();
+							} else if (!&quot;properties&quot;.equals(name) &amp;&amp; !&quot;comment&quot;.equals(name)) {
+								String msg = &quot;unexpected element name &#39;&quot; + name + &quot;&#39;&quot;;
+								throw new InvalidPropertiesFormatException(msg);
+							}
+							break;
+						case XMLStreamConstants.END_ELEMENT:
+							name = reader.getLocalName();
+							if (buf != null &amp;&amp; &quot;entry&quot;.equals(name)) {
+								put(key, buf.toString());
+								buf = null;
+							} else if (!&quot;properties&quot;.equals(name) &amp;&amp; !&quot;comment&quot;.equals(name)) {
+								String msg = &quot;unexpected element name &#39;&quot; + name + &quot;&#39;&quot;;
+								throw new InvalidPropertiesFormatException(msg);
+							}
+							break;
+						case XMLStreamConstants.CHARACTERS:
+						case XMLStreamConstants.SPACE:
+						case XMLStreamConstants.CDATA:
+							if (buf != null)
+								buf.append(reader.getText());
+							break;
+					}
+				}
+				reader.close();
+			} catch (XMLStreamException e) {
+				throw (InvalidPropertiesFormatException)
+				  new InvalidPropertiesFormatException(&quot;Error in parsing XML.&quot;).
+				  initCause(e);
+			}
+		}
+		*/
+	} // class Properties
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[39,3,39,41,0],[40,4,40,29,0],[41,3,41,4,0],[57,4,57,29,0],[111,6,111,12,0],[128,7,128,30,0],[132,8,132,33,0],[133,8,133,25,0],[134,9,134,19,0],[135,8,135,16,0],[138,9,138,15,0],[136,8,137,48,0],[140,8,140,24,0],[141,8,141,18,0],[143,10,143,27,0],[144,10,144,16,0],[146,10,146,27,0],[147,10,147,16,0],[149,10,149,27,0],[150,10,150,16,0],[152,10,152,37,0],[153,11,153,72,0],[154,11,154,27,0],[155,11,155,20,0],[157,10,157,16,0],[159,10,159,24,0],[160,10,160,16,0],[164,7,164,21,0],[171,6,171,33,0],[175,6,175,53,0],[179,6,179,12,0],[195,5,195,66,0],[197,6,197,22,0],[198,6,198,20,0],[199,7,199,30,0],[201,8,201,33,0],[206,8,206,25,0],[209,8,209,16,0],[212,9,212,15,0],[210,8,211,48,0],[213,8,213,67,0],[215,8,215,24,0],[216,8,216,18,0],[218,10,218,31,0],[219,10,219,16,0],[221,10,221,31,0],[222,10,222,16,0],[224,10,224,31,0],[225,10,225,16,0],[227,10,227,37,0],[228,11,228,72,0],[229,11,229,31,0],[230,11,230,20,0],[232,10,232,16,0],[234,10,234,28,0],[235,10,235,16,0],[239,7,239,25,0],[196,5,196,30,0],[241,5,241,42,0],[257,5,257,27,0],[258,6,258,25,0],[260,3,260,4,0],[298,4,298,87,0],[299,4,299,23,0],[300,5,300,36,0],[301,4,301,41,0],[303,4,303,42,0],[304,38,304,42,0],[304,13,304,34,0],[305,5,305,49,0],[306,5,306,19,0],[307,5,307,52,0],[308,5,308,25,0],[304,35,304,37,0],[311,4,311,19,0],[312,3,312,4,0],[329,4,329,27,0],[332,5,332,38,0],[333,5,333,23,0],[334,6,334,19,0],[335,5,335,26,0],[337,4,337,25,0],[338,4,338,16,0],[357,4,357,35,0],[358,4,358,21,0],[359,5,359,25,0],[360,4,360,16,0],[368,5,368,28,0],[369,5,369,35,0],[372,6,372,28,0],[373,6,373,27,0],[374,7,374,28,0],[375,5,375,14,0],[391,4,391,51,0],[392,4,392,17,0],[393,3,393,4,0],[396,4,396,49,0],[398,38,398,42,0],[398,13,398,34,0],[399,5,399,43,0],[401,5,401,36,0],[402,5,402,36,0],[403,6,403,51,0],[405,6,405,26,0],[398,35,398,37,0],[407,4,407,19,0],[408,3,408,4,0],[421,4,421,12,0],[422,5,422,23,0],[423,5,423,39,0],[425,5,425,55,0],[426,4,426,21,0],[427,4,427,26,0],[428,9,428,19,0],[429,5,429,21,0],[430,5,430,15,0],[432,7,432,28,0],[433,7,433,13,0],[435,7,435,28,0],[436,7,436,13,0],[438,7,438,28,0],[439,7,439,13,0],[441,7,441,41,0],[442,7,442,13,0],[448,7,448,37,0],[449,7,449,13,0],[451,7,451,30,0],[452,8,452,49,0],[453,8,453,62,0],[454,8,454,27,0],[456,8,456,25,0],[459,5,459,18,0],[460,6,460,17,0],[428,30,428,33,0],[428,20,428,28,0],[462,3,462,4,0],[31,3,31,22,1],[32,3,32,4,1],[102,4,102,89,1],[106,5,106,19,1],[107,5,107,17,1],[109,5,110,45,1],[114,5,115,45,1],[121,5,121,21,1],[122,5,122,54,1],[123,5,123,66,1],[127,6,127,35,1],[163,13,163,29,1],[124,5,126,33,1],[167,5,167,43,1],[170,5,170,21,1],[172,10,172,46,1],[173,6,173,59,1],[177,5,178,45,1],[181,5,181,44,1],[182,6,182,12,1],[185,7,185,13,1],[183,6,184,46,1],[189,5,189,22,1],[190,6,190,44,1],[191,6,191,15,1],[105,4,105,46,1],[243,3,243,4,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sqlparseresult.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// The result of a parse of an SQL input
+	/// &lt;/summary&gt;
+	/// &lt;seealso cref=&quot;ISqlParser&quot;/&gt;
+	[Serializable]
+	public sealed class SqlParseResult {
+		/// &lt;summary&gt;
+		/// Constructs a new &lt;see cref=&quot;SqlParseResult&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;dialect&quot;&gt;The SQL dialect of the input.&lt;/param&gt;
+		public SqlParseResult(string dialect) {
+			if (String.IsNullOrEmpty(dialect))
+				throw new ArgumentNullException(&quot;dialect&quot;);
+
+			Dialect = dialect;
+			Errors = new List&lt;SqlParseError&gt;();
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the name of the SQL dialect of the parser
+		/// that generated this result.
+		/// &lt;/summary&gt;
+		public string Dialect { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets or sets the node that is the root of the parsed
+		/// nodes from the input.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// &lt;para&gt;
+		/// If the parser produced any tree from the analysis, this
+		/// object will be used to construct commands to interact
+		/// with the underlying system.
+		/// &lt;/para&gt;
+		/// &lt;para&gt;
+		/// In some cases this value is not set, because of previous
+		/// errors during the analysis of an input from the parser.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		/// &lt;seealso cref=&quot;ISqlNode&quot;/&gt;
+		/// &lt;seealso cref=&quot;ISqlNodeVisitor&quot;/&gt;
+		public ISqlNode RootNode { get; set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value that indicates if the result has
+		/// any root node set.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;RootNode&quot;/&gt;
+		public bool HasRootNode {
+			get { return RootNode != null; }
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a collection of &lt;see cref=&quot;SqlParseError&quot;/&gt; that
+		/// were found during the parse of an input.
+		/// &lt;/summary&gt;
+		public ICollection&lt;SqlParseError&gt; Errors { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets or sets the time the parser took to analyze an input provided.
+		/// &lt;/summary&gt;
+		public TimeSpan ParseTime { get; set; }
+
+		/// &lt;summary&gt;
+		/// Gets a boolean value indicating if the result has
+		/// any error.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Errors&quot;/&gt;
+		/// &lt;seealso cref=&quot;SqlParseError&quot;/&gt;
+		public bool HasErrors {
+			get { return Errors.Count &gt; 0; }
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,5,33,48,0],[70,10,70,34,0],[31,3,31,40,1],[32,4,32,38,1],[35,4,35,22,1],[36,4,36,39,1],[37,3,37,4,1],[91,10,91,34,1]]);
+    </script>
+  </body>
+</html>

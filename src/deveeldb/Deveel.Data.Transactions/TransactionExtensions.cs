@@ -136,7 +136,7 @@ namespace Deveel.Data.Transactions {
 			foreach (var manager in transaction.ObjectManagerResolver.GetManagers()) {
 				if (manager.ObjectExists(objName)) {
 					if (found)
-						throw new ArgumentException(String.Format("The name '{0}' is an ambigous match.", objectName));
+						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match.", objectName));
  
 					found = true;
 				}
@@ -220,6 +220,12 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static ObjectName ResolveTableName(this ITransaction transaction, ObjectName tableName) {
+			if (tableName == null)
+				return null;
+
+			if (tableName.Parent == null)
+				tableName = new ObjectName(new ObjectName(transaction.CurrentSchema()), tableName.Name);
+
 			// We do not allow tables to be created with a reserved name
 			var name = tableName.Name;
 

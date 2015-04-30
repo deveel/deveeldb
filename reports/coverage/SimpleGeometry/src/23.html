@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data\objectnametest.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2014 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
+
+using NUnit.Framework;
+
+namespace Deveel.Data {
+	[TestFixture]
+	[Category(&quot;Object Name&quot;)]
+	public class ObjectNameTest {
+		[Test]
+		public void SimpleName() {
+			var objName = new ObjectName(&quot;id&quot;);
+			Assert.IsNotNull(objName);
+			Assert.IsNull(objName.Parent);
+			Assert.AreEqual(&quot;id&quot;, objName.Name);
+			Assert.AreEqual(&quot;id&quot;, objName.FullName);
+			Assert.IsFalse(objName.IsGlob);
+		}
+
+		[Test]
+		public void ComplexName() {
+			var objName = new ObjectName(new ObjectName(&quot;parent&quot;), &quot;id&quot;);
+			Assert.IsNotNull(objName);
+			Assert.IsNotNull(objName.Parent);
+			Assert.AreEqual(&quot;parent&quot;, objName.Parent.Name);
+			Assert.IsNotNull(objName.Name);
+			Assert.AreEqual(&quot;id&quot;, objName.Name);
+			Assert.AreEqual(&quot;parent.id&quot;, objName.FullName);
+			Assert.IsFalse(objName.IsGlob);
+		}
+
+		[Test]
+		public void ComplexNameWithGlob() {
+			var objName = new ObjectName(new ObjectName(&quot;parent&quot;), &quot;*&quot;);
+			Assert.IsNotNull(objName);
+			Assert.IsNotNull(objName.Parent);
+			Assert.AreEqual(&quot;parent&quot;, objName.Parent.Name);
+			Assert.IsNotNull(objName.Name);
+			Assert.AreEqual(&quot;*&quot;, objName.Name);
+			Assert.AreEqual(&quot;parent.*&quot;, objName.FullName);
+			Assert.IsTrue(objName.IsGlob);
+		}
+
+		[Test]
+		public void SimpleName_Parse() {
+			ObjectName objName = null;
+			Assert.DoesNotThrow(() =&gt; objName = ObjectName.Parse(&quot;id&quot;));
+			Assert.IsNotNull(objName);
+			Assert.AreEqual(&quot;id&quot;, objName.Name);
+			Assert.AreEqual(&quot;id&quot;, objName.FullName);
+			Assert.IsFalse(objName.IsGlob);
+		}
+
+		[Test]
+		public void ComplexName_Parse() {
+			ObjectName objName = null;
+			Assert.DoesNotThrow(() =&gt; objName = ObjectName.Parse(&quot;parent.id&quot;));
+			Assert.IsNotNull(objName);
+			Assert.IsNotNull(objName.Parent);
+			Assert.AreEqual(&quot;parent&quot;, objName.Parent.Name);
+			Assert.IsNotNull(objName.Name);
+			Assert.AreEqual(&quot;id&quot;, objName.Name);
+			Assert.AreEqual(&quot;parent.id&quot;, objName.FullName);
+			Assert.IsFalse(objName.IsGlob);
+		}
+
+		[Test]
+		public void SimpleName_Compare() {
+			var objName1 = new ObjectName(&quot;id1&quot;);
+			var objName2 = new ObjectName(&quot;id2&quot;);
+
+			int i = -2;
+			Assert.DoesNotThrow(() =&gt; i = objName1.CompareTo(objName2));
+			Assert.AreEqual(-1, i);
+		}
+
+		[Test]
+		public void SimpleName_Equals() {
+			var objName1 = new ObjectName(&quot;id1&quot;);
+			var objName2 = new ObjectName(&quot;id1&quot;);
+			Assert.IsTrue(objName1.Equals(objName2));
+		}
+
+		[Test]
+		public void SimpleName_NotEquals() {
+			var objName1 = new ObjectName(&quot;id1&quot;);
+			var objName2 = new ObjectName(&quot;id2&quot;);
+			Assert.IsFalse(objName1.Equals(objName2));
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,4,26,39,1],[27,4,27,30,1],[28,4,28,34,1],[29,4,29,40,1],[30,4,30,44,1],[31,4,31,35,1],[32,3,32,4,1],[36,4,36,65,1],[37,4,37,30,1],[38,4,38,37,1],[39,4,39,51,1],[40,4,40,35,1],[41,4,41,40,1],[42,4,42,51,1],[43,4,43,35,1],[44,3,44,4,1],[48,4,48,64,1],[49,4,49,30,1],[50,4,50,37,1],[51,4,51,51,1],[52,4,52,35,1],[53,4,53,39,1],[54,4,54,50,1],[55,4,55,34,1],[56,3,56,4,1],[60,4,60,30,1],[61,4,61,30,1],[61,62,61,64,1],[62,4,62,30,1],[63,4,63,40,1],[64,4,64,44,1],[65,4,65,35,1],[66,3,66,4,1],[70,4,70,30,1],[71,4,71,30,1],[71,69,71,71,1],[72,4,72,30,1],[73,4,73,37,1],[74,4,74,51,1],[75,4,75,35,1],[76,4,76,40,1],[77,4,77,51,1],[78,4,78,35,1],[79,3,79,4,1],[83,4,83,41,1],[84,4,84,41,1],[86,4,86,15,1],[87,4,87,30,1],[87,62,87,64,1],[88,4,88,27,1],[89,3,89,4,1],[93,4,93,41,1],[94,4,94,41,1],[95,4,95,45,1],[96,3,96,4,1],[100,4,100,41,1],[101,4,101,41,1],[102,4,102,46,1],[103,3,103,4,1],[61,30,61,62,1],[71,30,71,69,1],[87,30,87,62,1]]);
+    </script>
+  </body>
+</html>

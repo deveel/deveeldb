@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.linq\expressionvisitor.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+#if !NET40
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq.Expressions;
+
+namespace Deveel.Data.Linq {
+	abstract class ExpressionVisitor {
+		protected ExpressionVisitor() {
+		}
+
+		public virtual Expression Visit(Expression exp) {
+			if (exp == null)
+				return exp;
+			switch (exp.NodeType) {
+				case ExpressionType.Negate:
+				case ExpressionType.NegateChecked:
+				case ExpressionType.Not:
+				case ExpressionType.Convert:
+				case ExpressionType.ConvertChecked:
+				case ExpressionType.ArrayLength:
+				case ExpressionType.Quote:
+				case ExpressionType.TypeAs:
+					return this.VisitUnary((UnaryExpression)exp);
+				case ExpressionType.Add:
+				case ExpressionType.AddChecked:
+				case ExpressionType.Subtract:
+				case ExpressionType.SubtractChecked:
+				case ExpressionType.Multiply:
+				case ExpressionType.MultiplyChecked:
+				case ExpressionType.Divide:
+				case ExpressionType.Modulo:
+				case ExpressionType.And:
+				case ExpressionType.AndAlso:
+				case ExpressionType.Or:
+				case ExpressionType.OrElse:
+				case ExpressionType.LessThan:
+				case ExpressionType.LessThanOrEqual:
+				case ExpressionType.GreaterThan:
+				case ExpressionType.GreaterThanOrEqual:
+				case ExpressionType.Equal:
+				case ExpressionType.NotEqual:
+				case ExpressionType.Coalesce:
+				case ExpressionType.ArrayIndex:
+				case ExpressionType.RightShift:
+				case ExpressionType.LeftShift:
+				case ExpressionType.ExclusiveOr:
+					return VisitBinary((BinaryExpression)exp);
+				case ExpressionType.TypeIs:
+					return VisitTypeIs((TypeBinaryExpression)exp);
+				case ExpressionType.Conditional:
+					return VisitConditional((ConditionalExpression)exp);
+				case ExpressionType.Constant:
+					return VisitConstant((ConstantExpression)exp);
+				case ExpressionType.Parameter:
+					return VisitParameter((ParameterExpression)exp);
+				case ExpressionType.MemberAccess:
+					return VisitMemberAccess((MemberExpression)exp);
+				case ExpressionType.Call:
+					return VisitMethodCall((MethodCallExpression)exp);
+				case ExpressionType.Lambda:
+					return VisitLambda((LambdaExpression)exp);
+				case ExpressionType.New:
+					return VisitNew((NewExpression)exp);
+				case ExpressionType.NewArrayInit:
+				case ExpressionType.NewArrayBounds:
+					return VisitNewArray((NewArrayExpression)exp);
+				case ExpressionType.Invoke:
+					return VisitInvocation((InvocationExpression)exp);
+				case ExpressionType.MemberInit:
+					return VisitMemberInit((MemberInitExpression)exp);
+				case ExpressionType.ListInit:
+					return VisitListInit((ListInitExpression)exp);
+				default:
+					throw new Exception(string.Format(&quot;Unhandled expression type: &#39;{0}&#39;&quot;, exp.NodeType));
+			}
+		}
+
+		protected virtual MemberBinding VisitBinding(MemberBinding binding) {
+			switch (binding.BindingType) {
+				case MemberBindingType.Assignment:
+					return VisitMemberAssignment((MemberAssignment)binding);
+				case MemberBindingType.MemberBinding:
+					return VisitMemberMemberBinding((MemberMemberBinding)binding);
+				case MemberBindingType.ListBinding:
+					return VisitMemberListBinding((MemberListBinding)binding);
+				default:
+					throw new Exception(string.Format(&quot;Unhandled binding type &#39;{0}&#39;&quot;, binding.BindingType));
+			}
+		}
+
+		protected virtual ElementInit VisitElementInitializer(ElementInit initializer) {
+			ReadOnlyCollection&lt;Expression&gt; arguments = VisitExpressionList(initializer.Arguments);
+			if (arguments != initializer.Arguments) {
+				return Expression.ElementInit(initializer.AddMethod, arguments);
+			}
+			return initializer;
+		}
+
+		protected virtual Expression VisitUnary(UnaryExpression u) {
+			Expression operand = Visit(u.Operand);
+			if (operand != u.Operand) {
+				return Expression.MakeUnary(u.NodeType, operand, u.Type, u.Method);
+			}
+			return u;
+		}
+
+		protected virtual Expression VisitBinary(BinaryExpression b) {
+			Expression left = Visit(b.Left);
+			Expression right = Visit(b.Right);
+			Expression conversion = Visit(b.Conversion);
+			if (left != b.Left || right != b.Right || conversion != b.Conversion) {
+				if (b.NodeType == ExpressionType.Coalesce &amp;&amp; b.Conversion != null)
+					return Expression.Coalesce(left, right, conversion as LambdaExpression);
+				
+				return Expression.MakeBinary(b.NodeType, left, right, b.IsLiftedToNull, b.Method);
+			}
+			return b;
+		}
+
+		protected virtual Expression VisitTypeIs(TypeBinaryExpression b) {
+			Expression expr = Visit(b.Expression);
+			if (expr != b.Expression) {
+				return Expression.TypeIs(expr, b.TypeOperand);
+			}
+			return b;
+		}
+
+		protected virtual Expression VisitConstant(ConstantExpression c) {
+			return c;
+		}
+
+		protected virtual Expression VisitConditional(ConditionalExpression c) {
+			Expression test = Visit(c.Test);
+			Expression ifTrue = Visit(c.IfTrue);
+			Expression ifFalse = Visit(c.IfFalse);
+			if (test != c.Test || ifTrue != c.IfTrue || ifFalse != c.IfFalse) {
+				return Expression.Condition(test, ifTrue, ifFalse);
+			}
+			return c;
+		}
+
+		protected virtual Expression VisitParameter(ParameterExpression p) {
+			return p;
+		}
+
+		protected virtual Expression VisitMemberAccess(MemberExpression m) {
+			Expression exp = this.Visit(m.Expression);
+			if (exp != m.Expression) {
+				return Expression.MakeMemberAccess(exp, m.Member);
+			}
+			return m;
+		}
+
+		protected virtual Expression VisitMethodCall(MethodCallExpression m) {
+			Expression obj = this.Visit(m.Object);
+			IEnumerable&lt;Expression&gt; args = this.VisitExpressionList(m.Arguments);
+			if (obj != m.Object || args != m.Arguments) {
+				return Expression.Call(obj, m.Method, args);
+			}
+			return m;
+		}
+
+		protected virtual ReadOnlyCollection&lt;Expression&gt; VisitExpressionList(ReadOnlyCollection&lt;Expression&gt; original) {
+			List&lt;Expression&gt; list = null;
+			for (int i = 0, n = original.Count; i &lt; n; i++) {
+				Expression p = this.Visit(original[i]);
+				if (list != null) {
+					list.Add(p);
+				} else if (p != original[i]) {
+					list = new List&lt;Expression&gt;(n);
+					for (int j = 0; j &lt; i; j++) {
+						list.Add(original[j]);
+					}
+					list.Add(p);
+				}
+			}
+			if (list != null) {
+				return list.AsReadOnly();
+			}
+			return original;
+		}
+
+		protected virtual MemberAssignment VisitMemberAssignment(MemberAssignment assignment) {
+			Expression e = this.Visit(assignment.Expression);
+			if (e != assignment.Expression) {
+				return Expression.Bind(assignment.Member, e);
+			}
+			return assignment;
+		}
+
+		protected virtual MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding binding) {
+			IEnumerable&lt;MemberBinding&gt; bindings = this.VisitBindingList(binding.Bindings);
+			if (bindings != binding.Bindings) {
+				return Expression.MemberBind(binding.Member, bindings);
+			}
+			return binding;
+		}
+
+		protected virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding) {
+			IEnumerable&lt;ElementInit&gt; initializers = this.VisitElementInitializerList(binding.Initializers);
+			if (initializers != binding.Initializers) {
+				return Expression.ListBind(binding.Member, initializers);
+			}
+			return binding;
+		}
+
+		protected virtual IEnumerable&lt;MemberBinding&gt; VisitBindingList(ReadOnlyCollection&lt;MemberBinding&gt; original) {
+			List&lt;MemberBinding&gt; list = null;
+			for (int i = 0, n = original.Count; i &lt; n; i++) {
+				MemberBinding b = this.VisitBinding(original[i]);
+				if (list != null) {
+					list.Add(b);
+				} else if (b != original[i]) {
+					list = new List&lt;MemberBinding&gt;(n);
+					for (int j = 0; j &lt; i; j++) {
+						list.Add(original[j]);
+					}
+					list.Add(b);
+				}
+			}
+			if (list != null)
+				return list;
+			return original;
+		}
+
+		protected virtual IEnumerable&lt;ElementInit&gt; VisitElementInitializerList(ReadOnlyCollection&lt;ElementInit&gt; original) {
+			List&lt;ElementInit&gt; list = null;
+			for (int i = 0, n = original.Count; i &lt; n; i++) {
+				ElementInit init = this.VisitElementInitializer(original[i]);
+				if (list != null) {
+					list.Add(init);
+				} else if (init != original[i]) {
+					list = new List&lt;ElementInit&gt;(n);
+					for (int j = 0; j &lt; i; j++) {
+						list.Add(original[j]);
+					}
+					list.Add(init);
+				}
+			}
+			if (list != null)
+				return list;
+			return original;
+		}
+
+		protected virtual Expression VisitLambda(LambdaExpression lambda) {
+			Expression body = this.Visit(lambda.Body);
+			if (body != lambda.Body) {
+				return Expression.Lambda(lambda.Type, body, lambda.Parameters);
+			}
+			return lambda;
+		}
+
+		protected virtual NewExpression VisitNew(NewExpression nex) {
+			IEnumerable&lt;Expression&gt; args = this.VisitExpressionList(nex.Arguments);
+			if (args != nex.Arguments) {
+				if (nex.Members != null)
+					return Expression.New(nex.Constructor, args, nex.Members);
+				else
+					return Expression.New(nex.Constructor, args);
+			}
+			return nex;
+		}
+
+		protected virtual Expression VisitMemberInit(MemberInitExpression init) {
+			NewExpression n = this.VisitNew(init.NewExpression);
+			IEnumerable&lt;MemberBinding&gt; bindings = this.VisitBindingList(init.Bindings);
+			if (n != init.NewExpression || bindings != init.Bindings) {
+				return Expression.MemberInit(n, bindings);
+			}
+			return init;
+		}
+
+		protected virtual Expression VisitListInit(ListInitExpression init) {
+			NewExpression n = this.VisitNew(init.NewExpression);
+			IEnumerable&lt;ElementInit&gt; initializers = this.VisitElementInitializerList(init.Initializers);
+			if (n != init.NewExpression || initializers != init.Initializers) {
+				return Expression.ListInit(n, initializers);
+			}
+			return init;
+		}
+
+		protected virtual Expression VisitNewArray(NewArrayExpression na) {
+			IEnumerable&lt;Expression&gt; exprs = this.VisitExpressionList(na.Expressions);
+			if (exprs != na.Expressions) {
+				if (na.NodeType == ExpressionType.NewArrayInit) {
+					return Expression.NewArrayInit(na.Type.GetElementType(), exprs);
+				} else {
+					return Expression.NewArrayBounds(na.Type.GetElementType(), exprs);
+				}
+			}
+			return na;
+		}
+
+		protected virtual Expression VisitInvocation(InvocationExpression iv) {
+			IEnumerable&lt;Expression&gt; args = this.VisitExpressionList(iv.Arguments);
+			Expression expr = this.Visit(iv.Expression);
+			if (args != iv.Arguments || expr != iv.Expression) {
+				return Expression.Invoke(expr, args);
+			}
+			return iv;
+		}
+	}
+}
+#endif
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,6,40,51,0],[64,6,64,48,0],[66,6,66,52,0],[68,6,68,58,0],[72,6,72,54,0],[74,6,74,54,0],[78,6,78,48,0],[80,6,80,42,0],[83,6,83,52,0],[85,6,85,56,0],[87,6,87,56,0],[89,6,89,52,0],[91,6,91,91,0],[96,4,96,32,0],[98,6,98,62,0],[100,6,100,68,0],[102,6,102,64,0],[104,6,104,94,0],[109,4,109,90,0],[110,4,110,43,0],[111,5,111,69,0],[113,4,113,23,0],[117,4,117,42,0],[118,4,118,29,0],[119,5,119,72,0],[121,4,121,13,0],[125,4,125,36,0],[126,4,126,38,0],[127,4,127,48,0],[128,4,128,73,0],[129,5,129,71,0],[130,6,130,78,0],[132,5,132,87,0],[134,4,134,13,0],[138,4,138,42,0],[139,4,139,29,0],[140,5,140,51,0],[142,4,142,13,0],[150,4,150,36,0],[151,4,151,40,0],[152,4,152,42,0],[153,4,153,69,0],[154,5,154,56,0],[156,4,156,13,0],[160,4,160,13,0],[164,4,164,46,0],[165,4,165,28,0],[166,5,166,55,0],[168,4,168,13,0],[177,4,177,13,0],[185,6,185,18,0],[189,7,189,29,0],[188,29,188,32,0],[197,4,197,20,0],[201,4,201,53,0],[202,4,202,35,0],[203,5,203,50,0],[205,4,205,22,0],[209,4,209,82,0],[210,4,210,37,0],[211,5,211,60,0],[213,4,213,19,0],[217,4,217,99,0],[218,4,218,45,0],[219,5,219,62,0],[221,4,221,19,0],[225,4,225,36,0],[226,9,226,19,0],[226,20,226,39,0],[227,5,227,54,0],[228,5,228,22,0],[229,6,229,18,0],[230,12,230,33,0],[231,6,231,40,0],[232,11,232,21,0],[233,7,233,29,0],[232,29,232,32,0],[232,22,232,27,0],[235,6,235,18,0],[226,47,226,50,0],[226,40,226,45,0],[238,4,238,21,0],[239,5,239,17,0],[240,4,240,20,0],[244,4,244,34,0],[245,9,245,19,0],[245,20,245,39,0],[246,5,246,66,0],[247,5,247,22,0],[248,6,248,21,0],[249,12,249,36,0],[250,6,250,38,0],[251,11,251,21,0],[252,7,252,29,0],[251,29,251,32,0],[251,22,251,27,0],[254,6,254,21,0],[245,47,245,50,0],[245,40,245,45,0],[257,4,257,21,0],[258,5,258,17,0],[259,4,259,20,0],[263,4,263,46,0],[264,4,264,28,0],[265,5,265,68,0],[267,4,267,18,0],[271,4,271,75,0],[272,4,272,30,0],[273,5,273,29,0],[274,6,274,64,0],[276,6,276,51,0],[278,4,278,15,0],[282,4,282,56,0],[283,4,283,79,0],[284,4,284,61,0],[285,5,285,47,0],[287,4,287,16,0],[291,4,291,56,0],[292,4,292,96,0],[293,4,293,69,0],[294,5,294,49,0],[296,4,296,16,0],[300,4,300,77,0],[301,4,301,32,0],[302,5,302,52,0],[303,6,303,70,0],[305,6,305,72,0],[308,4,308,14,0],[312,4,312,74,0],[313,4,313,48,0],[314,4,314,54,0],[315,5,315,42,0],[317,4,317,14,0],[25,3,25,32,1],[26,3,26,4,1],[29,4,29,20,1],[30,5,30,16,1],[31,4,31,25,1],[70,6,70,52,1],[76,6,76,56,1],[146,4,146,13,1],[172,4,172,42,1],[173,4,173,73,1],[174,4,174,47,1],[175,5,175,49,1],[181,4,181,33,1],[182,9,182,19,1],[182,20,182,39,1],[183,5,183,44,1],[184,5,184,22,1],[186,12,186,33,1],[187,6,187,37,1],[188,11,188,21,1],[188,22,188,27,1],[191,6,191,18,1],[182,47,182,50,1],[182,40,182,45,1],[194,4,194,21,1],[195,5,195,30,1]]);
+    </script>
+  </body>
+</html>

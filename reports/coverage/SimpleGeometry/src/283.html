@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql\sequenceinfo.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql.Objects;
+
+namespace Deveel.Data.Sql {
+	/// &lt;summary&gt;
+	/// Provides the meta information about a &lt;see cref=&quot;ISequence&quot;/&gt; configuring
+	/// its operative behavior.
+	/// &lt;/summary&gt;
+	/// &lt;seealso cref=&quot;ISequence.SequenceInfo&quot;/&gt;
+	/// &lt;seealso cref=&quot;ISequence&quot;/&gt;
+	public sealed class SequenceInfo : IObjectInfo {
+		public SequenceInfo(ObjectName sequenceName) {
+			SequenceName = sequenceName;
+			Type = SequenceType.Native;
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs a new object with the information given
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;startValue&quot;&gt;The start value of the sequence&lt;/param&gt;
+		/// &lt;param name=&quot;increment&quot;&gt;The incrememental value of the sequence, that is the
+		/// value added to the current value of the sequence, each time it advances.&lt;/param&gt;
+		/// &lt;param name=&quot;minValue&quot;&gt;The minimum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;maxValue&quot;&gt;The maximum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;cache&quot;&gt;The number of items to cache.&lt;/param&gt;
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache) 
+			: this(sequenceName, startValue, increment, minValue, maxValue, cache, true) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs a new object with the information given
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;startValue&quot;&gt;The start value of the sequence&lt;/param&gt;
+		/// &lt;param name=&quot;increment&quot;&gt;The incrememental value of the sequence, that is the
+		/// value added to the current value of the sequence, each time it advances.&lt;/param&gt;
+		/// &lt;param name=&quot;minValue&quot;&gt;The minimum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;maxValue&quot;&gt;The maximum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;cycle&quot;&gt;Indicates if the sequence must be cycled when it reaches
+		/// the minimum or maximum value.&lt;/param&gt;
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, bool cycle) 
+			: this(sequenceName, startValue, increment, minValue, maxValue, 256, cycle) {
+		}
+
+		/// &lt;summary&gt;
+		/// Constructs a new object with the information given
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;startValue&quot;&gt;The start value of the sequence&lt;/param&gt;
+		/// &lt;param name=&quot;increment&quot;&gt;The incrememental value of the sequence, that is the
+		/// value added to the current value of the sequence, each time it advances.&lt;/param&gt;
+		/// &lt;param name=&quot;minValue&quot;&gt;The minimum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;maxValue&quot;&gt;The maximum value of the sequence.&lt;/param&gt;
+		/// &lt;param name=&quot;cache&quot;&gt;The number of items to cache.&lt;/param&gt;
+		/// &lt;param name=&quot;cycle&quot;&gt;Indicates if the sequence must be cycled when it reaches
+		/// the minimum or maximum value.&lt;/param&gt;
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache, bool cycle) {
+			SequenceName = sequenceName;
+			StartValue = startValue;
+			Increment = increment;
+			MinValue = minValue;
+			MaxValue = maxValue;
+			Cache = cache;
+			Cycle = cycle;
+			Type = SequenceType.Normal;
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Sequence; }
+		}
+
+		public ObjectName SequenceName { get; private set; }
+
+		ObjectName IObjectInfo.FullName {
+			get { return SequenceName; }
+		}
+
+		public SequenceType Type { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the configured starting numeric value of a sequence. 
+		/// &lt;/summary&gt;
+		public SqlNumber StartValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the configured incremental value, that is the value added
+		/// to the current value of a sequence each time it advances.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ISequence.GetCurrentValue&quot;/&gt;
+		/// &lt;seealso cref=&quot;ISequence.NextValue&quot;/&gt;
+		public SqlNumber Increment { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the configured minimum value of the sequence.
+		/// &lt;/summary&gt;
+		public SqlNumber MinValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the configured maximum value of the sequence.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;Cycle&quot;/&gt;
+		public SqlNumber MaxValue { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets the number of items of the sequence to cache.
+		/// &lt;/summary&gt;
+		public long Cache { get; private set; }
+
+		/// &lt;summary&gt;
+		/// Gets &lt;c&gt;true&lt;/c&gt; if the sequence will cycle when it reaches either
+		/// &lt;see cref=&quot;MinValue&quot;/&gt; or &lt;see cref=&quot;MaxValue&quot;/&gt;.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;MinValue&quot;/&gt;
+		/// &lt;seealso cref=&quot;MaxValue&quot;/&gt;
+		public bool Cycle { get; private set; }
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[57,3,58,79,0],[59,3,59,4,0],[90,10,90,30,0],[29,3,29,47,1],[30,4,30,32,1],[31,4,31,31,1],[32,3,32,4,1],[43,3,44,80,1],[45,3,45,4,1],[72,3,72,154,1],[73,4,73,32,1],[74,4,74,28,1],[75,4,75,26,1],[76,4,76,24,1],[77,4,77,24,1],[78,4,78,18,1],[79,4,79,18,1],[80,4,80,31,1],[81,3,81,4,1],[84,10,84,39,1]]);
+    </script>
+  </body>
+</html>

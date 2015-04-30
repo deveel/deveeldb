@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\sqlquerybuilder.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Sql.Fluid;
+
+namespace Deveel.Data.Sql.Expressions {
+	public static class SqlQueryBuilder {
+		public static IQueryConfiguration Configure() {
+			return new QueryConfiguration();
+		}
+
+		#region QueryConfiguration
+
+		class QueryConfiguration : IQueryConfiguration {
+			public QueryConfiguration() {
+				ItemList = new SelectListConfiguration();
+			}
+
+			public bool IsAll { get; private set; }
+
+			public bool IsDistinct { get; private set; }
+
+			public ISelectListConfiguration ItemList { get; private set; }
+
+			public SqlExpression HavingExpression { get; private set; }
+
+			public SqlExpression WhereExpression { get; private set; }
+
+			public IQueryConfiguration All(bool flag) {
+				IsAll = flag;
+				return this;
+			}
+
+			public IQueryConfiguration Distinct(bool flag) {
+				IsDistinct = flag;
+				return this;
+			}
+
+			public IQueryConfiguration Items(Action&lt;ISelectListConfiguration&gt; config) {
+				if (config != null)
+					config(ItemList);
+
+				return this;
+			}
+
+			public IQueryConfiguration From(Action&lt;IFromSourceConfiguration&gt; config) {
+				throw new NotImplementedException();
+			}
+
+			public IQueryConfiguration Where(SqlExpression whereExpression) {
+				WhereExpression = whereExpression;
+				return this;
+			}
+
+			public IQueryConfiguration Having(SqlExpression havingExpression) {
+				HavingExpression = havingExpression;
+				return this;
+			}
+
+			public IQueryConfiguration GroupBy(Action&lt;IGroupByConfiguration&gt; config) {
+				throw new NotImplementedException();
+			}
+
+			public IQueryConfiguration OrderBy(Action&lt;IOrderByConfiguration&gt; config) {
+				throw new NotImplementedException();
+			}
+
+			public SqlQueryExpression AsExpression() {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region ISelectListConfiguration
+
+		class SelectListConfiguration : ISelectListConfiguration {
+			private readonly List&lt;SelectItemConfiguration&gt; items;
+
+			public SelectListConfiguration() {
+				items = new List&lt;SelectItemConfiguration&gt;();
+			}
+
+			public ISelectListConfiguration Item(Action&lt;ISelectItemConfiguration&gt; config) {
+				if (config != null) {
+					var item = new SelectItemConfiguration();
+					config(item);
+					items.Add(item);
+				}
+
+				return this;
+			}
+
+			public IEnumerable&lt;ISelectItemConfiguration&gt; Items {
+				get { return items.Cast&lt;ISelectItemConfiguration&gt;().AsEnumerable(); }
+			}
+		}
+
+		#endregion
+
+		#region SelectItemConfiguration
+
+		class SelectItemConfiguration : ISelectItemConfiguration, ISelectItemWithExpressionConfiguration {
+			public ISelectItemWithExpressionConfiguration Expression(SqlExpression itemExpression) {
+				ItemExpression = itemExpression;
+				return this;
+			}
+
+			public SqlExpression ItemExpression { get; private set; }
+
+			public string ItemAlias { get; private set; }
+
+			public void As(string alias) {
+				ItemAlias = alias;
+			}
+		}
+
+		#endregion
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,4,26,36,0],[32,4,32,31,0],[33,5,33,46,0],[34,4,34,5,0],[47,5,47,18,0],[48,5,48,17,0],[52,5,52,23,0],[53,5,53,17,0],[57,5,57,24,0],[58,6,58,23,0],[60,5,60,17,0],[64,5,64,41,0],[68,5,68,39,0],[69,5,69,17,0],[73,5,73,41,0],[74,5,74,17,0],[78,5,78,41,0],[82,5,82,41,0],[86,5,86,41,0],[97,4,97,36,0],[98,5,98,49,0],[99,4,99,5,0],[102,5,102,24,0],[103,6,103,47,0],[104,6,104,19,0],[105,6,105,22,0],[108,5,108,17,0],[112,11,112,72,0],[122,5,122,37,0],[123,5,123,17,0],[131,5,131,23,0],[132,4,132,5,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\sequenceofstatementsnode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Compile {
+	[Serializable]
+	public sealed class SequenceOfStatementsNode : SqlNode {
+		private readonly ICollection&lt;IStatementNode&gt; statementNodes;
+
+		internal SequenceOfStatementsNode() {
+			statementNodes = new List&lt;IStatementNode&gt;();
+		}
+
+		public IEnumerable&lt;IStatementNode&gt; Statements {
+			get { return statementNodes.AsEnumerable(); }
+		}
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			ReadStatements(node.ChildNodes);
+			return base.OnChildNode(node);
+		}
+
+		private void ReadStatements(IEnumerable&lt;ISqlNode&gt; nodes) {
+			foreach (var node in nodes) {
+				if (node is IStatementNode) {
+					statementNodes.Add(node as IStatementNode);
+				} else {
+					ReadStatements(node.ChildNodes);
+				}
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,26,38,1],[27,4,27,48,1],[28,3,28,4,1],[31,10,31,47,1],[35,4,35,36,1],[36,4,36,34,1],[40,25,40,30,1],[40,13,40,21,1],[41,5,41,32,1],[42,6,42,49,1],[44,6,44,38,1],[40,22,40,24,1],[47,3,47,4,1]]);
+    </script>
+  </body>
+</html>

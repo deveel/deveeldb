@@ -15,17 +15,23 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Resources;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class ViewManager : IObjectManager {
+		private Dictionary<long, View> viewCache;
+ 
 		public ViewManager(ITransaction transaction) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 
 			Transaction = transaction;
+			viewCache = new Dictionary<long, View>();
 		}
 
 		public ITransaction Transaction { get; private set; }
@@ -92,7 +98,66 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ITableContainer CreateInternalTableInfo() {
-			return null;
+			return new ViewTableContainer(this);
 		}
+
+		private View GetViewAt(int offset) {
+			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+			if (table == null)
+				throw new DatabaseSystemException(String.Format("System table '{0}' was not defined.", SystemSchema.ViewTableName));
+
+			var e = table.GetEnumerator();
+			int i = 0;
+			while (e.MoveNext()) {
+				var row = e.Current.RowId.RowNumber;
+
+				if (i == offset) {
+					View view;
+					if (!viewCache.TryGetValue(row, out view)) {
+						// Not in the cache, so deserialize it and write it in the cache.
+						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
+						// Derserialize the binary
+						view = View.Deserialize(binary);
+						// Put this in the cache....
+						viewCache[row] = view;
+					}
+
+					return view;
+				}
+
+				++i;
+			}
+
+			throw new ArgumentOutOfRangeException("offset");
+		}
+
+		#region ViewTableContainer
+
+		class ViewTableContainer : SystemTableContainer {
+			private readonly ViewManager viewManager;
+
+			public ViewTableContainer(ViewManager viewManager)
+				: base(viewManager.Transaction, SystemSchema.ViewTableName) {
+				this.viewManager = viewManager;
+			}
+
+			public override TableInfo GetTableInfo(int offset) {
+				var view = viewManager.GetViewAt(offset);
+				if (view == null)
+					return null;
+
+				return view.ViewInfo.TableInfo;
+			}
+
+			public override string GetTableType(int offset) {
+				return TableTypes.View;
+			}
+
+			public override ITable GetTable(int offset) {
+				throw new NotSupportedException();
+			}
+		}
+
+		#endregion
 	}
 }

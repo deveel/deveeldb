@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.types\usertype.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Types {
+	[Serializable]
+	public sealed class UserType : DataType, IDbObject {
+		public UserType(UserTypeInfo typeInfo) 
+			: base(typeInfo.TypeName.FullName, SqlTypeCode.UserType) {
+			if (typeInfo == null)
+				throw new ArgumentNullException(&quot;typeInfo&quot;);
+
+			TypeInfo = typeInfo;
+		}
+
+		public UserTypeInfo TypeInfo { get; private set; }
+
+		public ObjectName FullName {
+			get { return TypeInfo.TypeName; }
+		}
+
+		DbObjectType IDbObject.ObjectType {
+			get { return DbObjectType.Type; }
+		}
+
+		public override bool IsComparable(DataType type) {
+			// For the moment not possible to compare
+			return false;
+		}
+
+		public override bool CanCastTo(DataType type) {
+			return false;
+		}
+
+		public override bool IsIndexable {
+			get { return false; }
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,3,25,60,0],[26,4,26,25,0],[27,5,27,49,0],[29,4,29,24,0],[30,3,30,4,0],[35,10,35,35,0],[39,10,39,35,0],[44,4,44,17,0],[48,4,48,17,0],[52,10,52,23,0]]);
+    </script>
+  </body>
+</html>

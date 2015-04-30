@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.expressions\sqlunaryexpression.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql.Expressions {
+	/// &lt;summary&gt;
+	/// Handles expressions computed agaist an unary operator.
+	/// &lt;/summary&gt;
+	[Serializable]
+	public sealed class SqlUnaryExpression : SqlExpression {
+		private readonly SqlExpressionType expressionType;
+
+		internal SqlUnaryExpression(SqlExpressionType expressionType, SqlExpression operand) {
+			this.expressionType = expressionType;
+			Operand = operand;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the operand expression that is computed.
+		/// &lt;/summary&gt;
+		public SqlExpression Operand { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		public override SqlExpressionType ExpressionType {
+			get { return expressionType; }
+		}
+
+		/// &lt;inheritdoc/&gt;
+		public override bool CanEvaluate {
+			get { return true; }
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,3,27,87,0],[28,4,28,41,0],[29,4,29,22,0],[30,3,30,4,0],[39,10,39,32,0],[44,10,44,22,0]]);
+    </script>
+  </body>
+</html>

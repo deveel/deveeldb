@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.sql.compile\objectnamenode.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+
+namespace Deveel.Data.Sql.Compile {
+	/// &lt;summary&gt;
+	/// Represents a composed name for an object within the system.
+	/// &lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// This node acts as a reference to any object within a database
+	/// system, such as &lt;c&gt;TABLE&lt;/c&gt;, &lt;c&gt;TRIGGER&lt;/c&gt;, &lt;c&gt;COLUMN&lt;/c&gt;, etc.
+	/// &lt;para&gt;
+	/// Like the system object &lt;see cref=&quot;ObjectName&quot;/&gt; that this &lt;see cref=&quot;ISqlNode&quot;/&gt;
+	/// encapsulates, the composition of the object is complex and can be formed by
+	/// multiple parts (eg. &lt;c&gt;schema.table.column&lt;/c&gt;, &lt;c&gt;schema.table&lt;/c&gt;, &lt;c&gt;table.*&lt;/c&gt;).
+	/// &lt;/para&gt;
+	/// &lt;/remarks&gt;
+	[Serializable]
+	public sealed class ObjectNameNode : SqlNode {
+		internal ObjectNameNode() {
+		}
+
+		/// &lt;summary&gt;
+		/// The full object name as composed from the input SQL string analyzed.
+		/// &lt;/summary&gt;
+		/// &lt;seealso cref=&quot;ObjectName&quot;/&gt;
+		public ObjectName Name { get; private set; }
+
+		/// &lt;inheritdoc/&gt;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			var idNode = (IdentifierNode) node;
+
+			if (Name != null) {
+				Name = new ObjectName(Name, idNode.Text);
+			} else {
+				Name = new ObjectName(idNode.Text);
+			}
+
+			return base.OnChildNode(node);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[34,3,34,28,1],[35,3,35,4,1],[45,4,45,39,1],[47,4,47,21,1],[48,5,48,46,1],[50,5,50,40,1],[53,4,53,34,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb-nunit\deveel.data.dbsystem\systemtests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+using Deveel.Data.Configuration;
+
+using NUnit.Framework;
+
+namespace Deveel.Data.DbSystem {
+	[TestFixture]
+	public class SystemTests {
+		[Test]
+		public void FromDefaultConfig() {
+			ISystemContext context = null;
+			Assert.DoesNotThrow(() =&gt; context = new SystemContext(DbConfig.Default));
+			Assert.IsNotNull(context);
+			Assert.IsFalse(context.ReadOnly());
+			Assert.IsTrue(context.IgnoreIdentifiersCase());
+			Assert.AreEqual(&quot;APP&quot;, context.DefaultSchema());
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,4,12,34,1],[13,4,13,30,1],[13,75,13,77,1],[14,4,14,30,1],[15,4,15,39,1],[16,4,16,51,1],[17,4,17,52,1],[18,3,18,4,1],[13,30,13,75,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.transactions\locker.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+using Deveel.Data.DbSystem;
+
+namespace Deveel.Data.Transactions {
+	public sealed class Locker {
+		private readonly Dictionary&lt;object, LockingQueue&gt; queuesMap = new Dictionary&lt;object, LockingQueue&gt;();
+
+		public Locker(IDatabaseContext context) {
+			DatabaseContext = context;
+		}
+
+		public IDatabaseContext DatabaseContext { get; private set; }
+
+		public LockHandle Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
+			// Set up the local constants.
+
+			int lockCount = toRead.Length + toWrite.Length;
+			LockHandle handle = new LockHandle(lockCount);
+
+			lock (this) {
+				Lock @lock;
+				LockingQueue queue;
+
+				// Add Read and Write locks to cache and to the handle.
+				for (int i = toWrite.Length - 1; i &gt;= 0; --i) {
+					var toWriteLock = toWrite[i];
+					queue = GetQueueFor(toWriteLock);
+
+					// slightly confusing: this will add Lock to given table queue
+					@lock = new Lock(queue, mode, AccessType.Write);
+					@lock.Acquire();
+					handle.AddLock(@lock);
+				}
+
+				for (int i = toRead.Length - 1; i &gt;= 0; --i) {
+					var toReadLock = toRead[i];
+					queue = GetQueueFor(toReadLock);
+
+					// slightly confusing: this will add Lock to given table queue
+					@lock = new Lock(queue, mode, AccessType.Read);
+					@lock.Acquire();
+					handle.AddLock(@lock);
+				}
+			}
+
+			return handle;
+		}
+
+		private LockingQueue GetQueueFor(ILockable lockable) {
+			LockingQueue queue;
+
+			// If queue not in hashtable then create a new one and write it into mapping
+			if (!queuesMap.TryGetValue(lockable.RefId, out queue)) {
+				queue = new LockingQueue(lockable);
+				queuesMap[lockable.RefId] = queue;
+			}
+
+			return queue;
+		}
+
+		public void Unlock(LockHandle handle) {
+			lock (this) {
+				handle.Release();
+			}
+		}
+
+		public void Reset() {
+			lock (this) {
+				queuesMap.Clear();
+			}
+		}
+
+		public bool IsLocked(ILockable lockable) {
+			lock (this) {
+				LockingQueue queue;
+				if (!queuesMap.TryGetValue(lockable.RefId, out queue))
+					return false;
+
+				return !queue.IsEmpty;
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[81,4,81,15,0],[82,5,82,22,0],[84,3,84,4,0],[87,4,87,15,0],[88,5,88,23,0],[90,3,90,4,0],[93,4,93,15,0],[95,5,95,59,0],[96,6,96,19,0],[98,5,98,27,0],[100,3,100,4,0],[25,3,25,104,1],[27,3,27,42,1],[28,4,28,30,1],[29,3,29,4,1],[36,4,36,51,1],[37,4,37,50,1],[39,4,39,15,1],[44,10,44,37,1],[45,6,45,35,1],[46,6,46,39,1],[49,6,49,54,1],[50,6,50,22,1],[51,6,51,28,1],[44,46,44,49,1],[44,38,44,44,1],[54,10,54,36,1],[55,6,55,33,1],[56,6,56,38,1],[59,6,59,53,1],[60,6,60,22,1],[61,6,61,28,1],[54,45,54,48,1],[54,37,54,43,1],[65,4,65,18,1],[72,4,72,58,1],[73,5,73,40,1],[74,5,74,39,1],[77,4,77,17,1]]);
+    </script>
+  </body>
+</html>

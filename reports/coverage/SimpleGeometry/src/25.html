@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>c:\dev\deveel\deveeldb\src\deveeldb\deveel.data.caching\cache.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
+using System.Collections;
+
+using Deveel.Data.Configuration;
+
+namespace Deveel.Data.Caching {
+	///&lt;summary&gt;
+	/// Represents a cache of Objects.
+	///&lt;/summary&gt;
+	/// &lt;remarks&gt;
+	/// A &lt;see cref=&quot;Cache&quot;/&gt; is similar to a &lt;see cref=&quot;Hashtable&quot;/&gt;, in that you can 
+	/// &lt;see cref=&quot;Hashtable.Add&quot;&gt;add&lt;/see&gt; and &lt;see cref=&quot;Hashtable.this&quot;&gt;get&lt;/see&gt; 
+	/// objects from the container given some key. However a cache may remove objects 
+	/// from the container when it becomes too full.
+	/// &lt;para&gt;
+	/// The cache scheme uses a doubly linked-list hashtable.  The most recently
+	/// accessed objects are moved to the start of the list.  The end elements in
+	/// the list are wiped if the cache becomes too full.
+	/// &lt;/para&gt;
+	/// &lt;/remarks&gt;
+	public abstract class Cache : ICache {
+		/// &lt;summary&gt;
+		/// The current cache size.
+		/// &lt;/summary&gt;
+		private int currentCacheSize;
+
+		/// &lt;summary&gt;
+		/// The number of nodes that should be left available when the cache becomes
+		/// too full and a clean up operation occurs.
+		/// &lt;/summary&gt;
+		private readonly int wipeTo;
+
+		///&lt;summary&gt;
+		/// Constructs the &lt;see cref=&quot;Cache&quot;/&gt; with a maximum size it can grow
+		/// and a percentage of the cache that is wiped when it becomes too full.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;maxSize&quot;&gt;&lt;/param&gt;
+		///&lt;param name=&quot;cleanPercentage&quot;&gt;&lt;/param&gt;
+		///&lt;exception cref=&quot;ArgumentException&quot;&gt;
+		/// If the given &lt;paramref name=&quot;cleanPercentage&quot;/&gt; is greater or equal to 85.
+		/// &lt;/exception&gt;
+		protected Cache(int maxSize, int cleanPercentage) {
+			if (cleanPercentage &gt;= 85)
+				throw new ArgumentException(&quot;Can&#39;t set to wipe more than 85% of the cache during clean.&quot;);
+
+			MaxCacheSize = maxSize;
+			currentCacheSize = 0;
+			wipeTo = maxSize - ((cleanPercentage * maxSize) / 100);
+		}
+
+		///&lt;summary&gt;
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;maxSize&quot;&gt;&lt;/param&gt;
+		protected Cache(int maxSize)
+			: this(maxSize, 20) {
+		}
+
+		///&lt;summary&gt;
+		///&lt;/summary&gt;
+		protected Cache()
+			: this(50) {
+		}
+
+		/// &lt;summary&gt;
+		/// &lt;/summary&gt;
+		[Obsolete(&quot;Deprecated&quot;, false)]
+		protected int HashSize {
+			get { return MaxCacheSize*2 + 1; }
+		}
+
+
+		/// &lt;summary&gt;
+		/// This is called whenever at object is put into the cache.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This method should determine if the cache should be cleaned and 
+		/// call the clean method if appropriate.
+		/// &lt;/remarks&gt;
+		protected virtual void CheckClean() {
+			// If we have reached maximum cache size, remove some elements from the
+			// end of the list
+			if (currentCacheSize &gt;= MaxCacheSize) {
+				Clean();
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Checks if the clean-up method should clean up more elements from 
+		/// the cache.
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;
+		/// Returns &lt;b&gt;true&lt;/b&gt; if the clean-up method that periodically cleans 
+		/// up the cache should clean up more elements from the cache, otherwise
+		/// &lt;b&gt;false&lt;/b&gt;.
+		/// &lt;/returns&gt;
+		protected virtual bool WipeMoreNodes() {
+			return (currentCacheSize &gt;= wipeTo);
+		}
+
+		/// &lt;summary&gt;
+		/// Notifies that the given object has been wiped from the cache by the
+		/// clean up procedure.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;ob&quot;&gt;The node being wiped.&lt;/param&gt;
+		protected virtual void OnWipingNode(Object ob) {
+		}
+
+		/// &lt;summary&gt;
+		/// Notifies that the given object and key has been added to the cache.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;val&quot;&gt;&lt;/param&gt;
+		protected virtual void OnObjectAdded(object key, object val) {
+			++currentCacheSize;
+		}
+
+		/// &lt;summary&gt;
+		/// Notifies that the given object and key has been removed from the cache.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;val&quot;&gt;&lt;/param&gt;
+		protected virtual void OnObjectRemoved(Object key, Object val) {
+			--currentCacheSize;
+		}
+
+		/// &lt;summary&gt;
+		/// Notifies that the cache has been entirely cleared of all elements.
+		/// &lt;/summary&gt;
+		protected virtual void OnAllCleared() {
+			currentCacheSize = 0;
+		}
+
+		/// &lt;summary&gt;
+		/// Notifies that some statistical information about the hash map has
+		/// updated.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;totalWalks&quot;&gt;&lt;/param&gt;
+		/// &lt;param name=&quot;totalGetOps&quot;&gt;&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This should be used to compile statistical information about
+		/// the number of walks a &lt;i&gt;get&lt;/i&gt; operation takes to retreive an 
+		/// entry from the hash.
+		/// &lt;para&gt;
+		/// This method is called every 8192 gets.
+		/// &lt;/para&gt;
+		/// &lt;/remarks&gt;
+		protected virtual void OnGetWalks(long totalWalks, long totalGetOps) {
+		}
+
+
+		// ---------- Public cache methods ----------
+
+		/// &lt;summary&gt;
+		/// Gets the number of nodes that are currently being stored in the
+		/// cache.
+		/// &lt;/summary&gt;
+		public virtual int NodeCount {
+			get { return currentCacheSize; }
+		}
+
+		/// &lt;summary&gt;
+		/// The maximum number of DataCell objects that can be stored in 
+		/// the cache at any one time.
+		/// &lt;/summary&gt;
+		protected int MaxCacheSize { get; private set; }
+
+		protected abstract bool SetObject(object key, object value);
+
+		protected abstract object GetObject(object key);
+
+		protected abstract object RemoveObject(object key);
+
+		/// &lt;summary&gt;
+		/// Puts an object into the cache with the given key.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;The key used to store the object.&lt;/param&gt;
+		/// &lt;param name=&quot;ob&quot;&gt;The object to add to the cache.&lt;/param&gt;
+		public bool Set(Object key, Object ob) {
+
+			// Do we need to clean any cache elements out?
+			CheckClean();
+
+			bool newValue = SetObject(key, ob);
+			if (newValue)
+				OnObjectAdded(key, ob);
+
+			return newValue;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets the value of the node with the given key within the cache.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;The key of the node to return the value of.&lt;/param&gt;
+		/// &lt;returns&gt;
+		/// Returns the value of the node with the given key within the cache,
+		/// or &lt;b&gt;null&lt;/b&gt; if none was found.
+		/// &lt;/returns&gt;
+		public Object Get(Object key) {
+			return GetObject(key);
+		}
+
+		/// &lt;summary&gt;
+		/// Removes a node for the given key from the cache.
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;key&quot;&gt;&lt;/param&gt;
+		/// &lt;remarks&gt;
+		/// This is useful for ensuring the cache does not contain out-dated 
+		/// information.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns the value of the removed node or &lt;b&gt;null&lt;/b&gt; if none was
+		/// found for the given key.
+		/// &lt;/returns&gt;
+		public Object Remove(Object key) {
+			object obj = RemoveObject(key);
+			
+			if (obj != null)
+				OnObjectRemoved(key, obj);
+
+			return obj;
+		}
+
+		/// &lt;summary&gt;
+		/// Clear the cache of all the entries.
+		/// &lt;/summary&gt;
+		public virtual void Clear() {
+			OnAllCleared();
+		}
+
+		public virtual void Configure(IDbConfig config) {
+			MaxCacheSize = config.DataCacheSize();
+		}
+
+		/// &lt;summary&gt;
+		/// Cleans away some old elements in the cache.
+		/// &lt;/summary&gt;
+		/// &lt;remarks&gt;
+		/// This method walks from the end, back &lt;i&gt;wipe count&lt;/i&gt; elements 
+		/// putting each object on the recycle stack.
+		/// &lt;/remarks&gt;
+		/// &lt;returns&gt;
+		/// Returns the number entries that were cleaned.
+		/// &lt;/returns&gt;
+		protected virtual int Clean() {
+			return 0;
+		}
+		
+		///&lt;summary&gt;
+		/// Gets the closest prime number to the one specified.
+		///&lt;/summary&gt;
+		///&lt;param name=&quot;value&quot;&gt;The integer value to which the returned integer
+		/// has to be close.&lt;/param&gt;
+		///&lt;returns&gt;&lt;/returns&gt;
+		public static int ClosestPrime(int value) {
+			for (int i = 0; i &lt; PrimeList.Length; ++i) {
+				if (PrimeList[i] &gt;= value) {
+					return PrimeList[i];
+				}
+			}
+			// Return the last prime
+			return PrimeList[PrimeList.Length - 1];
+		}
+
+		/// &lt;summary&gt;
+		/// A list of primes ordered from lowest to highest.
+		/// &lt;/summary&gt;
+		private static readonly int[] PrimeList = new int[] {
+		                                                     	3001, 4799, 13999, 15377, 21803, 24247, 35083, 40531, 43669,
+		                                                     	44263, 47387, 50377, 57059, 57773, 59399, 59999, 75913, 96821,
+		                                                     	140551, 149011, 175633, 176389, 183299, 205507, 209771, 223099,
+		                                                     	240259, 258551, 263909, 270761, 274679, 286129, 290531, 296269,
+		                                                     	298021, 300961, 306407, 327493, 338851, 351037, 365489, 366811,
+		                                                     	376769, 385069, 410623, 430709, 433729, 434509, 441913, 458531,
+		                                                     	464351, 470531, 475207, 479629, 501703, 510709, 516017, 522211,
+		                                                     	528527, 536311, 539723, 557567, 593587, 596209, 597451, 608897,
+		                                                     	611069, 642547, 670511, 677827, 679051, 688477, 696743, 717683,
+		                                                     	745931, 757109, 760813, 763957, 766261, 781559, 785597, 788353,
+		                                                     	804493, 813559, 836917, 854257, 859973, 883217, 884789, 891493,
+		                                                     	902281, 910199, 915199, 930847, 939749, 940483, 958609, 963847,
+		                                                     	974887, 983849, 984299, 996211, 999217, 1007519, 1013329,
+		                                                     	1014287, 1032959, 1035829, 1043593, 1046459, 1076171, 1078109,
+		                                                     	1081027, 1090303, 1095613, 1098847, 1114037, 1124429, 1125017,
+		                                                     	1130191, 1159393, 1170311, 1180631, 1198609, 1200809, 1212943,
+		                                                     	1213087, 1226581, 1232851, 1287109, 1289867, 1297123, 1304987,
+		                                                     	1318661, 1331107, 1343161, 1345471, 1377793, 1385117, 1394681,
+		                                                     	1410803, 1411987, 1445261, 1460497, 1463981, 1464391, 1481173,
+		                                                     	1488943, 1491547, 1492807, 1528993, 1539961, 1545001, 1548247,
+		                                                     	1549843, 1551001, 1553023, 1571417, 1579099, 1600259, 1606153,
+		                                                     	1606541, 1639751, 1649587, 1657661, 1662653, 1667051, 1675273,
+		                                                     	1678837, 1715537, 1718489, 1726343, 1746281, 1749107, 1775489,
+		                                                     	1781881, 1800157, 1806859, 1809149, 1826753, 1834607, 1846561,
+		                                                     	1849241, 1851991, 1855033, 1879931, 1891133, 1893737, 1899137,
+		                                                     	1909513, 1916599, 1917749, 1918549, 1919347, 1925557, 1946489,
+		                                                     	1961551, 1965389, 2011073, 2033077, 2039761, 2054047, 2060171,
+		                                                     	2082503, 2084107, 2095099, 2096011, 2112193, 2125601, 2144977,
+		                                                     	2150831, 2157401, 2170141, 2221829, 2233019, 2269027, 2270771,
+		                                                     	2292449, 2299397, 2303867, 2309891, 2312407, 2344301, 2348573,
+		                                                     	2377007, 2385113, 2386661, 2390051, 2395763, 2422999, 2448367,
+		                                                     	2500529, 2508203, 2509841, 2513677, 2516197, 2518151, 2518177,
+		                                                     	2542091, 2547469, 2549951, 2556991, 2563601, 2575543, 2597629,
+		                                                     	2599577, 2612249, 2620003, 2626363, 2626781, 2636773, 2661557,
+		                                                     	2674297, 2691571, 2718269, 2725691, 2729381, 2772199, 2774953,
+		                                                     	2791363, 2792939, 2804293, 2843021, 2844911, 2851313, 2863519,
+		                                                     	2880797, 2891821, 2897731, 2904887, 2910251, 2928943, 2958341,
+		                                                     	2975389
+		                                                     };
+
+
+
+		public void Dispose() {
+			Clear();
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[60,5,60,95,0],[70,3,71,23,0],[72,3,72,4,0],[76,3,77,14,0],[78,3,78,4,0],[84,10,84,36,0],[99,5,99,13,0],[113,4,113,40,0],[122,3,122,4,0],[139,4,139,23,0],[140,3,140,4,0],[146,4,146,25,0],[147,3,147,4,0],[164,3,164,4,0],[174,10,174,34,0],[231,4,231,35,0],[233,4,233,20,0],[234,5,234,31,0],[236,4,236,15,0],[243,4,243,19,0],[244,3,244,4,0],[247,4,247,42,0],[248,3,248,4,0],[261,4,261,13,0],[271,9,271,19,0],[272,5,272,31,0],[273,6,273,26,0],[271,42,271,45,0],[271,20,271,40,0],[277,4,277,43,0],[327,4,327,12,0],[328,3,328,4,0],[58,3,58,52,1],[59,4,59,30,1],[62,4,62,27,1],[63,4,63,25,1],[64,4,64,59,1],[65,3,65,4,1],[98,4,98,41,1],[101,3,101,4,1],[130,4,130,23,1],[131,3,131,4,1],[197,4,197,17,1],[199,4,199,39,1],[200,4,200,17,1],[201,5,201,28,1],[203,4,203,20,1],[215,4,215,26,1],[283,3,322,58,1]]);
+    </script>
+  </body>
+</html>
