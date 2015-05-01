@@ -211,42 +211,42 @@ namespace Deveel.Data {
 		/// <seealso cref="DataType.IsComparable"/>
 		public DataObject IsEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) == 0);
+				return Boolean(Type.IsEqualTo(Value, other.Value));
 
 			return BooleanNull;
 		}
 
 		public DataObject IsNotEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) != 0);
+				return Boolean(Type.IsNotEqualTo(Value, other.Value));
 
 			return BooleanNull;
 		}
 
 		public DataObject IsGreaterThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) < 0);
+				return Boolean(Type.IsGreatherThan(Value, other.Value));
 
 			return BooleanNull;			
 		}
 
 		public DataObject IsSmallerThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) > 0);
+				return Boolean(Type.IsSmallerThan(Value, other.Value));
 
 			return BooleanNull;
 		}
 
 		public DataObject IsGreterOrEqualThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) <= 0);
+				return Boolean(Type.IsGreaterOrEqualThan(Value, other.Value));
 
 			return BooleanNull;
 		}
 
 		public DataObject IsSmallerOrEqualThan(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
-				return Boolean(CompareTo(other) >= 0);
+				return Boolean(Type.IsSmallerOrEqualThan(Value, other.Value));
 
 			return BooleanNull;
 		}
@@ -289,6 +289,13 @@ namespace Deveel.Data {
 				return this;
 
 			return new DataObject(Type, Type.Negate(Value));
+		}
+
+		public DataObject Plus() {
+			if (IsNull)
+				return this;
+			
+			return new DataObject(Type, Type.UnaryPlus(Value));
 		}
 
 		public DataObject Add(DataObject other) {
@@ -475,7 +482,7 @@ namespace Deveel.Data {
 		}
 
 		public static DataObject Date(SqlDateTime value) {
-			return new DataObject(PrimitiveTypes.Date(SqlTypeCode.Date), value);
+			return new DataObject(PrimitiveTypes.DateTime(SqlTypeCode.Date), value);
 		}
 
 		public static DataObject VarChar(string s) {
@@ -654,6 +661,10 @@ namespace Deveel.Data {
 
 		public static DataObject operator ~(DataObject value) {
 			return value.Reverse();
+		}
+
+		public static DataObject operator +(DataObject value) {
+			return value.Plus();
 		}
 
 		#endregion

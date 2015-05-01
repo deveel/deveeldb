@@ -105,12 +105,24 @@ namespace Deveel.Data.Types {
 			return new NullType(sqlType);
 		}
 
-		public static DateType Date() {
-			return Date(SqlTypeCode.TimeStamp);
+		public static DateType DateTime() {
+			return DateTime(SqlTypeCode.DateTime);
 		}
 
-		public static DateType Date(SqlTypeCode sqlType) {
+		public static DateType DateTime(SqlTypeCode sqlType) {
 			return new DateType(sqlType);
+		}
+
+		public static DateType Date() {
+			return DateTime(SqlTypeCode.Date);
+		}
+
+		public static DateType TimeStamp() {
+			return DateTime(SqlTypeCode.TimeStamp);
+		}
+
+		public static DateType Time() {
+			return DateTime(SqlTypeCode.Time);
 		}
 
 		public static RowType RowType(ObjectName tableName) {
@@ -251,8 +263,9 @@ namespace Deveel.Data.Types {
 
 			if (sqlType == SqlTypeCode.Date ||
 				sqlType == SqlTypeCode.Time ||
-				sqlType == SqlTypeCode.TimeStamp)
-				return Date(sqlType);
+				sqlType == SqlTypeCode.TimeStamp ||
+				sqlType == SqlTypeCode.DateTime)
+				return DateTime(sqlType);
 
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);

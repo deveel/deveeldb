@@ -107,8 +107,8 @@ namespace Deveel.Data.DbSystem {
 			OpenSessionsTableInfo = new TableInfo(OpenSessionsTableName);
 			OpenSessionsTableInfo.AddColumn("username", PrimitiveTypes.String());
 			OpenSessionsTableInfo.AddColumn("host_string", PrimitiveTypes.String());
-			OpenSessionsTableInfo.AddColumn("last_command", PrimitiveTypes.Date());
-			OpenSessionsTableInfo.AddColumn("time_connected", PrimitiveTypes.Date());
+			OpenSessionsTableInfo.AddColumn("last_command", PrimitiveTypes.DateTime());
+			OpenSessionsTableInfo.AddColumn("time_connected", PrimitiveTypes.DateTime());
 			OpenSessionsTableInfo = OpenSessionsTableInfo.AsReadOnly();
 
 			// CONNECTION_INFO

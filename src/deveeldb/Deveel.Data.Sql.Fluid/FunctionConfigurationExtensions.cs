@@ -58,8 +58,8 @@ namespace Deveel.Data.Sql.Fluid {
 			return configuration.WithParameter(name, PrimitiveTypes.Boolean());
 		}
 
-		public static IFunctionConfiguration WithDateParameter(this IFunctionConfiguration configuration, string name) {
-			return configuration.WithParameter(name, PrimitiveTypes.Date());
+		public static IFunctionConfiguration WithDateTimeParameter(this IFunctionConfiguration configuration, string name) {
+			return configuration.WithParameter(name, PrimitiveTypes.DateTime());
 		}
 
 		public static IFunctionConfiguration WithUnoundedParameter(this IFunctionConfiguration configuration, string name,
@@ -87,8 +87,8 @@ namespace Deveel.Data.Sql.Fluid {
 			return configuration.ReturnsType(PrimitiveTypes.Binary());
 		}
 
-		public static IFunctionConfiguration ReturnsDate(this IFunctionConfiguration configuration) {
-			return configuration.ReturnsType(PrimitiveTypes.Date());
+		public static IFunctionConfiguration ReturnsDateTime(this IFunctionConfiguration configuration) {
+			return configuration.ReturnsType(PrimitiveTypes.DateTime());
 		}
 	}
 }

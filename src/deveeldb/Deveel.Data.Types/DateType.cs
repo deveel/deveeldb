@@ -83,7 +83,43 @@ namespace Deveel.Data.Types {
 		}
 
 		public override bool CanCastTo(DataType type) {
-			return base.CanCastTo(type);
+			return type is StringType || type is DateType;
+		}
+
+		private SqlString ToString(SqlDateTime dateTime) {
+			if (dateTime.IsNull)
+				return SqlString.Null;
+
+			if (SqlType == SqlTypeCode.Date)
+				return dateTime.ToDateString();
+			if (SqlType == SqlTypeCode.Time)
+				return dateTime.ToTimeString();
+			if (SqlType == SqlTypeCode.TimeStamp)
+				return dateTime.ToTimeStampString();
+
+			return SqlString.Null;
+		}
+
+		public override DataObject CastTo(DataObject value, DataType destType) {
+			if (destType == null)
+				throw new ArgumentNullException("destType");
+
+			var date = (SqlDateTime) value.Value;
+			var sqlType = destType.SqlType;
+
+			ISqlObject casted;
+
+			switch (sqlType) {
+				case SqlTypeCode.String:
+				case SqlTypeCode.VarChar:
+					casted = ToString(date);
+					break;
+				default:
+					throw new InvalidCastException(String.Format("Cannot cast type '{0}' to '{1}'.",
+						sqlType.ToString().ToUpperInvariant(), SqlType.ToString().ToUpperInvariant()));
+			}
+
+			return new DataObject(destType, casted);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
@@ -135,7 +171,8 @@ namespace Deveel.Data.Types {
 		internal static bool IsDateType(SqlTypeCode sqlType) {
 			return sqlType == SqlTypeCode.Date ||
 			       sqlType == SqlTypeCode.Time ||
-			       sqlType == SqlTypeCode.TimeStamp;
+			       sqlType == SqlTypeCode.TimeStamp ||
+				   sqlType == SqlTypeCode.DateTime;
 		}
 	}
 }

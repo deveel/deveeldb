@@ -50,7 +50,7 @@ namespace Deveel.Data.Types {
 			if (IntervalType.IsIntervalType(typeCode))
 				return PrimitiveTypes.Interval(typeCode);
 			if (DateType.IsDateType(typeCode))
-				return PrimitiveTypes.Date(typeCode);
+				return PrimitiveTypes.DateTime(typeCode);
 
 			if (StringType.IsStringType(typeCode)) {
 				var maxSize = reader.ReadInt32();

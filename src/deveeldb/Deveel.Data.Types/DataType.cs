@@ -204,38 +204,52 @@ namespace Deveel.Data.Types {
 		}
 
 		public virtual SqlBoolean IsEqualTo(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) == 0;
 		}
 
 		public virtual SqlBoolean IsNotEqualTo(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) != 0;
 		}
 
 		public virtual SqlBoolean IsGreatherThan(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) < 0;
 		}
 
 		public virtual SqlBoolean IsSmallerThan(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) > 0;
 		}
 
 		public virtual SqlBoolean IsGreaterOrEqualThan(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) <= 0;
 		}
 
 		public virtual SqlBoolean IsSmallerOrEqualThan(ISqlObject a, ISqlObject b) {
+			if (!a.IsComparableTo(b))
+				return SqlBoolean.Null;
+
+			return a.CompareTo(b) >= 0;
+		}
+
+		public virtual ISqlObject And(ISqlObject a, ISqlObject b) {
 			return SqlBoolean.Null;
 		}
 
-		public virtual SqlBoolean And(ISqlObject a, ISqlObject b) {
-			return SqlBoolean.Null;
-		}
-
-		public virtual ISqlObject And(ISqlObject value) {
-			return SqlNull.Value;
-		}
-
-		public virtual SqlBoolean Or(ISqlObject a, ISqlObject b) {
+		public virtual ISqlObject Or(ISqlObject a, ISqlObject b) {
 			return SqlBoolean.Null;
 		}
 
@@ -243,7 +257,7 @@ namespace Deveel.Data.Types {
 			return SqlNull.Value;
 		}
 
-		public virtual ISqlObject Or(ISqlObject value) {
+		public virtual ISqlObject UnaryPlus(ISqlObject value) {
 			return SqlNull.Value;
 		}
 

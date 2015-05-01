@@ -126,9 +126,11 @@ namespace Deveel.Data.Types {
 		///</summary>
 		TimeStamp = 32,
 
-		YearToMonth = 33,
+		DateTime = 35,
 
-		DayToSecond = 34,
+		YearToMonth = 40,
+
+		DayToSecond = 41,
 
 		///<summary>
 		///</summary>

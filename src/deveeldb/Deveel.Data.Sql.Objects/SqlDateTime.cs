@@ -215,6 +215,14 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
+		public static SqlDateTime Now {
+			get {
+				var date = DateTimeOffset.Now;
+				var offset = new SqlDayToSecond(date.Offset.Days, date.Offset.Hours, date.Offset.Minutes, date.Minute);
+				return new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
+			}
+		}
+
 		bool ISqlObject.IsComparableTo(ISqlObject other) {
 			return other is SqlDateTime;
 		}
@@ -482,6 +490,21 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public static bool TryParse(string s, out SqlDateTime value) {
+			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
+			if (TryParseDate(s, out value))
+				return true;
+
+			if (TryParseTime(s, out value))
+				return true;
+
+			if (TryParseTimeStamp(s, out value))
+				return true;
+
+			value = new SqlDateTime();
+			return false;
+		}
+
+		public static bool TryParseDate(string s, out SqlDateTime value) {
 			value = new SqlDateTime();
 
 			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
@@ -491,14 +514,30 @@ namespace Deveel.Data.Sql.Objects {
 				return true;
 			}
 
+			return false;
+		}
+
+		public static bool TryParseTime(string s, out SqlDateTime value) {
+			value = new SqlDateTime();
+
+			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
+			DateTimeOffset date;
 			if (DateTimeOffset.TryParseExact(s, SqlTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
-				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes);
+				var offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes,0);
 				value = new SqlDateTime(1, 1, 1, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
 				return true;
 			}
 
+			return false;			
+		}
+
+		public static bool TryParseTimeStamp(string s, out SqlDateTime value) {
+			value = new SqlDateTime();
+
+			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
+			DateTimeOffset date;
 			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
-				var offset = new SqlDayToSecond(0, date.Offset.Hours, date.Offset.Minutes, 0);
+				var offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes, 0);
 				value = new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
 				return true;
 			}
@@ -533,6 +572,46 @@ namespace Deveel.Data.Sql.Objects {
 
 			var offset = new TimeSpan(a.Offset.Hours, a.Offset.Minutes, a.Offset.Seconds);
 			return new DateTimeOffset(a.Year, a.Month, a.Day, a.Hour, a.Minute, a.Second, a.Millisecond, offset);
+		}
+
+		public SqlDateTime ToUtc() {
+			if (value == null)
+				return Null;
+
+			var utc = value.Value.ToUniversalTime();
+			var offset = new SqlDayToSecond(utc.Offset.Days, utc.Offset.Hours, utc.Offset.Minutes);
+			return new SqlDateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond, offset);
+		}
+
+		public SqlString ToDateString() {
+			if (value == null)
+				return SqlString.Null;
+
+			var s = value.Value.ToString(SqlDateFormats[0]);
+			return SqlString.Unicode(s);
+		}
+
+		public SqlString ToTimeString() {
+			if (value == null)
+				return SqlString.Null;
+
+			var s = value.Value.ToString(SqlTimeFormats[0]);
+			return SqlString.Unicode(s);
+		}
+
+		public SqlString ToTimeStampString() {
+			if (value == null)
+				return SqlString.Null;
+
+			var s = value.Value.ToString(SqlTimeStampFormats[0]);
+			return SqlString.Unicode(s);
+		}
+
+		public override string ToString() {
+			if (value == null)
+				return "NULL";
+
+			return ToTimeStampString().ToString();
 		}
 	}
 }

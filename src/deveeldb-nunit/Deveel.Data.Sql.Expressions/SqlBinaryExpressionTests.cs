@@ -156,5 +156,160 @@ namespace Deveel.Data.Sql.Expressions {
 			var expected = new SqlNumber(25943705.04, 2);
 			Assert.AreEqual(expected, actual);
 		}
+
+		[Test]
+		public void NumericDivide() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(49021.022)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(78.34)));
+			var divExp = SqlExpression.Divide(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = divExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+
+			var actual = ((SqlNumber)constExp.Value.Value).Round(5);
+			var expected = new SqlNumber(625.74702, 5);
+			Assert.AreEqual(expected, actual);
+		}
+
+		[Test]
+		public void NumericModulo() {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(892771.0623)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(9012)));
+			var modExp = SqlExpression.Modulo(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = modExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+
+			var actual = ((SqlNumber)constExp.Value.Value).Round(4);
+			var expected = new SqlNumber(583.0623, 4);
+			Assert.AreEqual(expected, actual);
+		}
+
+		[TestCase(9862711.650091, 9862711.650091, true)]
+		[TestCase(12345, 2345, false)]
+		[TestCase(123456.789, 123456.7, false)]
+		public void NumericEqualTo(double a, double b, bool expected) {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var eqExp = SqlExpression.Equal(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = eqExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<BooleanType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlBoolean>(constExp.Value.Value);
+
+			var actual = ((SqlBoolean)constExp.Value.Value);
+			var expectedResult = (SqlBoolean) expected;
+			Assert.AreEqual(expectedResult, actual);
+		}
+
+		[TestCase(763525.22e11, 763525.22e11, false)]
+		[TestCase(12345, 123456, true)]
+		[TestCase(564255.23899, 564255.23, true)]
+		public void NumericNotEqualTo(double a, double b, bool expected) {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var eqExp = SqlExpression.NotEqual(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = eqExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<BooleanType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlBoolean>(constExp.Value.Value);
+
+			var actual = ((SqlBoolean)constExp.Value.Value);
+			var expectedResult = (SqlBoolean)expected;
+			Assert.AreEqual(expectedResult, actual);
+		}
+
+		[TestCase(123998, 123999, false)]
+		[TestCase(8764556.9011, 8764556.901145, false)]
+		[TestCase(244591, 24620, true)]
+		public void NumericGreaterThan(double a, double b, bool expected) {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var grExp = SqlExpression.GreaterThan(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = grExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<BooleanType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlBoolean>(constExp.Value.Value);
+
+			var actual = ((SqlBoolean)constExp.Value.Value);
+			var expectedResult = (SqlBoolean)expected;
+			Assert.AreEqual(expectedResult, actual);
+		}
+
+		[TestCase(988271, 988271, false)]
+		[TestCase(625.99e23, 12, false)]
+		[TestCase(19283.9991e68, 19283.9991e69, true)]
+		public void NumericSmallerThan(double a, double b, bool expected) {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var ltExp = SqlExpression.SmallerThan(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = ltExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<BooleanType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlBoolean>(constExp.Value.Value);
+
+			var actual = ((SqlBoolean)constExp.Value.Value);
+			var expectedResult = (SqlBoolean)expected;
+			Assert.AreEqual(expectedResult, actual);
+		}
+
+		[TestCase(458849, 5526, 464375)]
+		public void NumericOr(long a, long b, long expected) {
+			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var orExp = SqlExpression.Or(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = orExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<NumericType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlNumber>(constExp.Value.Value);
+
+			var actual = ((SqlNumber)constExp.Value.Value);
+			var expectedResult = new SqlNumber(expected);
+			Assert.AreEqual(expectedResult, actual);			
+		}
 	}
 }

@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Expressions {
 				new SqlExpression[] {SqlExpression.Reference(tableInfo.TableName)});
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.Date());
+			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
 			session.CreateTable(tableInfo);

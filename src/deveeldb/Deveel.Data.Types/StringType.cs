@@ -215,51 +215,58 @@ namespace Deveel.Data.Types {
 		}
 
 
-		/// <summary>
-		/// Parses a String as an SQL date.
-		/// </summary>
-		/// <param name="str"></param>
-		/// <returns></returns>
-		private static SqlDateTime ToDate(string str) {
-			DateTime result;
-			if (!DateTime.TryParseExact(str, DateType.DateFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+		private SqlDateTime ToDate(string str) {
+			SqlDateTime result;
+			if (!SqlDateTime.TryParseDate(str, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Date, DateType.DateFormatSql));
 
-			return new SqlDateTime(result.Ticks);
+			return result;
 		}
 
-		/// <summary>
-		/// Parses a String as an SQL time.
-		/// </summary>
-		/// <param name="str"></param>
-		/// <returns></returns>
-		private static SqlDateTime ToTime(String str) {
-			DateTime result;
-			if (!DateTime.TryParseExact(str, DateType.TimeFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.NoCurrentDateDefault, out result))
+		private SqlDateTime ToTime(String str) {
+			SqlDateTime result;
+			if (!SqlDateTime.TryParseTime(str, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.Time, DateType.TimeFormatSql));
 
-			return new SqlDateTime(result.Ticks);
+			return result;
 
 		}
 
-		/// <summary>
-		/// Parses a String as an SQL timestamp.
-		/// </summary>
-		/// <param name="str"></param>
-		/// <returns></returns>
-		private static SqlDateTime ToTimeStamp(String str) {
-			DateTime result;
-			if (!DateTime.TryParseExact(str, DateType.TsFormatSql, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+		private SqlDateTime ToTimeStamp(String str) {
+			SqlDateTime result;
+			if (!SqlDateTime.TryParseTimeStamp(str, out result))
 				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));
 
-			return new SqlDateTime(result.Ticks);
+			return result;
 		}
 
-		private static string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
-			return String.Format("The input string {0} is not compatible with any of the formats for SQL Type {1} ( {2} )",
+		private SqlDateTime ToDateTime(string str) {
+			SqlDateTime result;
+			if (!SqlDateTime.TryParse(str, out result))
+				throw new InvalidCastException(DateErrorMessage(str, SqlTypeCode.TimeStamp, DateType.TsFormatSql));
+
+			return result;
+		}
+
+		private string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
+			return String.Format("The input string {0} of type {1} is not compatible with any of the formats for SQL Type {2} ( {3} )",
 				str,
+				SqlType.ToString().ToUpperInvariant(),
 				sqlType.ToString().ToUpperInvariant(),
 				String.Join(", ", formats));
+		}
+
+		private SqlBoolean ToBoolean(string s) {
+			SqlBoolean value;
+			if (SqlBoolean.TryParse(s, out value))
+				return value;
+
+			if (String.Equals(s, "1"))
+				return SqlBoolean.True;
+			if (String.Equals(s, "2"))
+				return SqlBoolean.False;
+
+			throw new InvalidCastException(String.Format("Could not convert string '{0}' of type '{1}' to BOOLEAN", s, SqlType.ToString().ToUpperInvariant()));
 		}
 
 		/// <inheritdoc/>
@@ -279,8 +286,7 @@ namespace Deveel.Data.Types {
 			switch (sqlType) {
 				case (SqlTypeCode.Bit):
 				case (SqlTypeCode.Boolean):
-					castedValue = (SqlBoolean) (String.Compare(str, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
-					                        String.Compare(str, "1", StringComparison.OrdinalIgnoreCase) == 0);
+					castedValue = ToBoolean(str);
 					break;
 				case (SqlTypeCode.TinyInt):
 				case (SqlTypeCode.SmallInt):
@@ -337,6 +343,9 @@ namespace Deveel.Data.Types {
 					break;
 				case (SqlTypeCode.TimeStamp):
 					castedValue = ToTimeStamp(str);
+					break;
+				case (SqlTypeCode.DateTime):
+					castedValue = ToDateTime(str);
 					break;
 				case (SqlTypeCode.Blob):
 				case (SqlTypeCode.Binary):

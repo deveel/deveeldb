@@ -206,7 +206,8 @@ namespace Deveel.Data.Sql.Expressions {
 		private DataObject EvaluateUnary(DataObject operand, SqlExpressionType unaryType) {
 			switch (unaryType) {
 				case SqlExpressionType.UnaryPlus:
-					return operand.Reverse();
+					return operand.Plus();
+				case SqlExpressionType.Negate:
 				case SqlExpressionType.Not:
 					return operand.Negate();
 				default:

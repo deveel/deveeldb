@@ -31,6 +31,8 @@ namespace Deveel.Data.Sql.Expressions {
 	/// </remarks>
 	[Serializable]
 	public abstract class SqlExpression {
+		private int precedence;
+
 		/// <summary>
 		/// Internally constructs the SQL expression, avoiding external implementations
 		/// to be allowed to inherit this class.
@@ -54,6 +56,9 @@ namespace Deveel.Data.Sql.Expressions {
 
 		internal int EvaluatePrecedence {
 			get {
+				if (precedence > 0)
+					return precedence;
+
 				// Primary
 				if (ExpressionType == SqlExpressionType.Reference ||
 				    ExpressionType == SqlExpressionType.FunctionCall ||
@@ -116,6 +121,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 				return -1;
 			}
+			set { precedence = value; }
 		}
 
 		public virtual SqlExpression Prepare(IExpressionPreparer preparer) {

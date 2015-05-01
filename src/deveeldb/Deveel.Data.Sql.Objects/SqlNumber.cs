@@ -189,11 +189,7 @@ namespace Deveel.Data.Sql.Objects {
 				// If both values can be represented by a long value
 				if (CanBeInt64 && other.CanBeInt64) {
 					// Perform a long comparison check,
-					if (valueAsLong > other.valueAsLong)
-						return 1;
-					if (valueAsLong < other.valueAsLong)
-						return -1;
-					return 0;
+					return valueAsLong.CompareTo(other.valueAsLong);
 				}
 
 				// And the compared number is non-infinity then use the BigDecimal
@@ -449,6 +445,32 @@ namespace Deveel.Data.Sql.Objects {
 			if (Scale == 0 && value.Scale == 0) {
 				BigInteger bi1 = innerValue.ToBigInteger();
 				BigInteger bi2 = innerValue.ToBigInteger();
+				return new SqlNumber(NumericState.None, new BigDecimal(bi1.XOr(bi2)));
+			}
+
+			return Null;
+		}
+
+		public SqlNumber And(SqlNumber value) {
+			if (State == NumericState.NotANumber)
+				return this;
+
+			if (Scale == 0 && value.Scale == 0) {
+				BigInteger bi1 = innerValue.ToBigInteger();
+				BigInteger bi2 = innerValue.ToBigInteger();
+				return new SqlNumber(NumericState.None, new BigDecimal(bi1.And(bi2)));
+			}
+
+			return Null;			
+		}
+
+		public SqlNumber Or(SqlNumber value) {
+			if (State == NumericState.NotANumber)
+				return this;
+
+			if (Scale == 0 && value.Scale == 0) {
+				BigInteger bi1 = innerValue.ToBigInteger();
+				BigInteger bi2 = value.innerValue.ToBigInteger();
 				return new SqlNumber(NumericState.None, new BigDecimal(bi1.Or(bi2)));
 			}
 
@@ -567,6 +589,16 @@ namespace Deveel.Data.Sql.Objects {
 				return new SqlNumber(InverseState(), null);
 
 			return this;
+		}
+
+		public SqlNumber Not() {
+			if (State == NumericState.None)
+				return new SqlNumber(new BigDecimal(innerValue.ToBigInteger().Not()));
+			if (State == NumericState.NegativeInfinity ||
+				State == NumericState.PositiveInfinity)
+				return new SqlNumber(InverseState(), null);
+
+			return this;			
 		}
 
 		public SqlNumber Sqrt() {
@@ -723,21 +755,21 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public static bool operator >(SqlNumber a, SqlNumber b) {
-			return a.CompareTo(b) < 0;
+			return a.CompareTo(b) > 0;
 		}
 
 		public static bool operator <(SqlNumber a, SqlNumber b) {
-			return a.CompareTo(b) > 0;
+			return a.CompareTo(b) < 0;
 		}
 
 		public static bool operator >=(SqlNumber a, SqlNumber b) {
 			var i = a.CompareTo(b);
-			return i == 0 || i < 0;
+			return i == 0 || i > 0;
 		}
 
 		public static bool operator <=(SqlNumber a, SqlNumber b) {
 			var i = a.CompareTo(b);
-			return i == 0 || i > 0;
+			return i == 0 || i < 0;
 		}
 	}
 }

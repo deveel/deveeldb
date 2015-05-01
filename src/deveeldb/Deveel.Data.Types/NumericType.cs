@@ -351,6 +351,216 @@ namespace Deveel.Data.Types {
 			return num1.Multiply(num2);
 		}
 
+		public override ISqlObject Divide(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber)a;
+			var num2 = (SqlNumber)b;
+
+			return num1.Divide(num2);
+		}
+
+		public override ISqlObject Modulus(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.Modulo(num2);
+		}
+
+		public override SqlBoolean IsSmallerThan(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlBoolean.Null;
+
+			if (a.IsNull)
+				return SqlBoolean.Null;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1 < num2;
+		}
+
+		public override SqlBoolean IsGreatherThan(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlBoolean.Null;
+
+			if (a.IsNull)
+				return SqlBoolean.Null;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1 > num2;
+		}
+
+		public override SqlBoolean IsSmallerOrEqualThan(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlBoolean.Null;
+
+			if (a.IsNull)
+				return SqlBoolean.Null;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1 <= num2;
+		}
+
+		public override SqlBoolean IsGreaterOrEqualThan(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlBoolean.Null;
+
+			if (a.IsNull)
+				return SqlBoolean.Null;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1 >= num2;
+		}
+
+		public override SqlBoolean IsEqualTo(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return a.IsNull;
+
+			if (a.IsNull)
+				return b.IsNull;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.Equals(num2);
+		}
+
+		public override SqlBoolean IsNotEqualTo(ISqlObject a, ISqlObject b) {
+			return !IsEqualTo(a, b);
+		}
+
+		public override ISqlObject Negate(ISqlObject value) {
+			if (!(value is SqlNumber))
+				throw new ArgumentException();
+
+			var num = (SqlNumber) value;
+
+			if (num.IsNull)
+				return num;
+
+			return num.Negate();
+		}
+
+		public override ISqlObject Reverse(ISqlObject value) {
+			if (!(value is SqlNumber))
+				throw new ArgumentException();
+
+			var num = (SqlNumber)value;
+
+			if (num.IsNull)
+				return num;
+
+			return num.Not();
+		}
+
+		public override ISqlObject UnaryPlus(ISqlObject value) {
+			if (!(value is SqlNumber))
+				throw new ArgumentException();
+
+			var num = (SqlNumber)value;
+
+			if (num.IsNull)
+				return num;
+
+			return num.Plus();
+		}
+
+		public override ISqlObject XOr(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.XOr(num2);
+		}
+
+		public override ISqlObject And(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.And(num2);
+		}
+
+		public override ISqlObject Or(ISqlObject a, ISqlObject b) {
+			if (!(a is SqlNumber) ||
+			    !(b is SqlNumber))
+				throw new ArgumentException();
+
+			if (b.IsNull)
+				return SqlNumber.Null;
+
+			if (a.IsNull)
+				return a;
+
+			var num1 = (SqlNumber) a;
+			var num2 = (SqlNumber) b;
+
+			return num1.Or(num2);
+		}
+
 		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 

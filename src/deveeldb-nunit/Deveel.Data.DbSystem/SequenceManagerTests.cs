@@ -85,7 +85,7 @@ namespace Deveel.Data.DbSystem {
 			SqlNumber currentValue = SqlNumber.Null;
 			Assert.DoesNotThrow(() => currentValue = sequence.NextValue());
 			Assert.IsNotNull(currentValue);
-			Assert.AreEqual(new SqlNumber(0), currentValue);
+			Assert.AreEqual(new SqlNumber(1), currentValue);
 		}
 	}
 }

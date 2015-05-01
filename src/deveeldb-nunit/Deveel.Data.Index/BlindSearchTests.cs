@@ -36,7 +36,7 @@ namespace Deveel.Data.Index {
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric(), true);
 			tableInfo.AddColumn("name", PrimitiveTypes.String(SqlTypeCode.VarChar));
-			tableInfo.AddColumn("date", PrimitiveTypes.Date());
+			tableInfo.AddColumn("date", PrimitiveTypes.DateTime());
 
 			cornerTime = DateTimeOffset.UtcNow;
 

@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql {
 			var tableInfo = new TableInfo(new ObjectName("test_table"));
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("date", PrimitiveTypes.Date());
+			tableInfo.AddColumn("date", PrimitiveTypes.DateTime());
 
 			var cornerTime = DateTimeOffset.UtcNow;
 

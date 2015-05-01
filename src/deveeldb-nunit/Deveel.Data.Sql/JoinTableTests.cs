@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql {
 			var tableInfo = new TableInfo(new ObjectName(new ObjectName("APP"), "codes"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("code", PrimitiveTypes.String());
-			tableInfo.AddColumn("registered", PrimitiveTypes.Date());
+			tableInfo.AddColumn("registered", PrimitiveTypes.DateTime());
 
 			return tableInfo;
 		}

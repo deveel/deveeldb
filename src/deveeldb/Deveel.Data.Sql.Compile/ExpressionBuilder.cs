@@ -38,7 +38,6 @@ namespace Deveel.Data.Sql.Compile {
 			outputExpression = SqlExpression.Tuple(node.Expressions.Select(Build).ToArray());
 		}
 
-
 		public override void VisitQueryExpression(SqlQueryExpressionNode node) {
 			var selectColumns = GetSelectColumns(node);
 			var exp = new SqlQueryExpression(selectColumns);

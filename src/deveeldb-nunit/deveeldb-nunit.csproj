@@ -101,6 +101,7 @@
     <Compile Include="Deveel.Data.Linq\TableQueryTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionParseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlBooleanTest.cs" />
