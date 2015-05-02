@@ -106,6 +106,10 @@ namespace Deveel.Data.Types {
 			get { return SqlType == SqlTypeCode.Null; }
 		}
 
+		public virtual bool IsStorable {
+			get { return false; }
+		}
+
 		/// <summary>
 		/// Verifies if a given <see cref="DataType"/> is comparable to
 		/// this data-type.
@@ -374,11 +378,11 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		public virtual int GetCacheUsage(ISqlObject value) {
+		internal virtual int GetCacheUsage(ISqlObject value) {
 			return 0;
 		}
 
-		public virtual int SizeOf(ISqlObject obj) {
+		internal virtual int ColumnSizeOf(ISqlObject obj) {
 			// TODO: should make this required?
 			return 0;
 		}

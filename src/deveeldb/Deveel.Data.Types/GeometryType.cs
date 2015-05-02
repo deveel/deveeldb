@@ -35,6 +35,10 @@ namespace Deveel.Data.Types {
 
 		public int Srid { get; private set; }
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		public override bool Equals(DataType other) {
 			var geomType = other as GeometryType;
 			if (geomType == null)

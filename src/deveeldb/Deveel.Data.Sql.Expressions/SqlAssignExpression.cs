@@ -19,7 +19,7 @@ using System;
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlAssignExpression : SqlExpression {
-		internal SqlAssignExpression(ObjectName reference, SqlExpression valueExpression) {
+		internal SqlAssignExpression(SqlExpression reference, SqlExpression valueExpression) {
 			if (reference == null)
 				throw new ArgumentNullException("reference");
 			if (valueExpression == null)
@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Reference = reference;
 		}
 
-		public ObjectName Reference { get; private set; }
+		public SqlExpression Reference { get; private set; }
 
 		public SqlExpression ValueExpression { get; private set; }
 

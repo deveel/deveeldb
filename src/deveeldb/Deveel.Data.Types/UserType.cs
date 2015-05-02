@@ -35,6 +35,10 @@ namespace Deveel.Data.Types {
 			get { return TypeInfo.TypeName; }
 		}
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		DbObjectType IDbObject.ObjectType {
 			get { return DbObjectType.Type; }
 		}

@@ -428,13 +428,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#endregion
 
-		public static SqlAssignExpression Assign(string reference, SqlExpression valueExpression) {
-			return Assign(ObjectName.Parse(reference), valueExpression);
+		public static SqlAssignExpression Assign(SqlExpression reference, SqlExpression valueExpression) {
+			return new SqlAssignExpression(reference, valueExpression);
 		}
 
-		public static SqlAssignExpression Assign(ObjectName reference, SqlExpression expression) {
-			return new SqlAssignExpression(reference, expression);
-		}
 
 		public static SqlTupleExpression Tuple(SqlExpression[] expressions) {
 			return new SqlTupleExpression(expressions);

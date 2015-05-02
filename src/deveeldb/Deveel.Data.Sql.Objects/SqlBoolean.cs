@@ -168,6 +168,53 @@ namespace Deveel.Data.Sql.Objects {
 			return value.Equals(other.value);
 		}
 
+		public SqlBoolean Not() {
+			if (value == null)
+				return Null;
+
+			if (value == 1)
+				return False;
+			if (value == 0)
+				return True;
+
+			throw new SystemException();
+		}
+
+		public SqlBoolean Or(SqlBoolean other) {
+			if (value == null ||
+				other.IsNull)
+				return Null;
+
+			if (value == 1 || other.value == 1)
+				return True;
+
+			return False;
+		}
+
+		public SqlBoolean And(SqlBoolean other) {
+			if (value == null ||
+				other.IsNull)
+				return Null;
+
+			if (value == 1 && other.value == 1)
+				return True;
+
+			return False;			
+		}
+
+		public SqlBoolean XOr(SqlBoolean other) {
+			if (value == null ||
+			    other.IsNull)
+				return Null;
+
+			if (value == 1 && other.value == 0)
+				return True;
+			if (value == 0 && other.value == 1)
+				return True;
+
+			return False;
+		}
+
 		/// <inheritdoc/>
 		public override int GetHashCode() {
 			return value == null ? 0 : value.Value.GetHashCode();
@@ -291,6 +338,22 @@ namespace Deveel.Data.Sql.Objects {
 
 		public static SqlBoolean operator !=(SqlBoolean a, ISqlObject b) {
 			return !(a == b);
+		}
+
+		public static SqlBoolean operator &(SqlBoolean a, SqlBoolean b) {
+			return a.And(b);
+		}
+
+		public static SqlBoolean operator |(SqlBoolean a, SqlBoolean b) {
+			return a.Or(b);
+		}
+
+		public static SqlBoolean operator ^(SqlBoolean a, SqlBoolean b) {
+			return a.XOr(b);
+		}
+
+		public static SqlBoolean operator !(SqlBoolean a) {
+			return a.Not();
 		}
 
 		/// <summary>

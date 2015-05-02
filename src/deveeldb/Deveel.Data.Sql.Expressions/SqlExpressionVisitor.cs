@@ -175,6 +175,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <returns></returns>
 		public virtual SqlExpression VisitAssign(SqlAssignExpression assign) {
 			var reference = assign.Reference;
+			if (reference != null)
+				reference = Visit(reference);
+
 			var expression = assign.ValueExpression;
 			if (expression != null)
 				expression = Visit(expression);

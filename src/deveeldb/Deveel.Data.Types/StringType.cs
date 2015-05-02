@@ -64,6 +64,10 @@ namespace Deveel.Data.Types {
 			get { return MaxSize; }
 		}
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		/// <summary>
 		/// Gets the locale used to compare string values.
 		/// </summary>
@@ -497,7 +501,7 @@ namespace Deveel.Data.Types {
 			throw new FormatException("Invalid type code in deserialization.");
 		}
 
-		public override int SizeOf(ISqlObject obj) {
+		internal override int ColumnSizeOf(ISqlObject obj) {
 			if (obj.IsNull)
 				return 1;
 			if (obj is SqlString) {

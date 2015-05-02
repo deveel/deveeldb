@@ -224,13 +224,18 @@ namespace Deveel.Data.Sql.Expressions {
 			if (valueExpression.ExpressionType != SqlExpressionType.Constant)
 				throw new ExpressionEvaluateException("Cannot assign a variable from a non constant value.");
 
-			var variableName = assign.Reference;
+			var reference = assign.Reference;
 			var value = ((SqlConstantExpression)valueExpression).Value;
 
-			try {
-				context.QueryContext.SetVariable(variableName, value);
-			} catch (Exception ex) {
-				throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", variableName), ex);
+			if (reference is SqlVariableReferenceExpression) {
+				try {
+					var variable = ((SqlVariableReferenceExpression) reference).VariableName;
+					context.QueryContext.SetVariable(variable, value);
+				} catch (Exception ex) {
+					throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
+				}
+			} else {
+				throw new NotImplementedException();
 			}
 
 			return SqlExpression.Constant(value);

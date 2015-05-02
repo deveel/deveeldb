@@ -38,6 +38,10 @@ namespace Deveel.Data.Types {
 			        sqlType == SqlTypeCode.Boolean);
 		}
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		public override int Compare(ISqlObject x, ISqlObject y) {
 			if (!(x is SqlBoolean))
 				throw new ArgumentException();
@@ -98,12 +102,7 @@ namespace Deveel.Data.Types {
 
 		public override ISqlObject Negate(ISqlObject value) {
 			var b = (SqlBoolean) value;
-			if (b.Equals(SqlBoolean.True))
-				return SqlBoolean.False;
-			if (b.Equals(SqlBoolean.False))
-				return SqlBoolean.True;
-
-			return base.Negate(value);
+			return b.Not();
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
@@ -130,12 +129,42 @@ namespace Deveel.Data.Types {
 			return new SqlBoolean(value);
 		}
 
-		public override int SizeOf(ISqlObject obj) {
+		internal override int ColumnSizeOf(ISqlObject obj) {
 			return obj.IsNull ? 1 : 1 + 1;
 		}
 
 		public override ISqlObject Reverse(ISqlObject value) {
 			return Negate(value);
+		}
+
+		public override ISqlObject And(ISqlObject a, ISqlObject b) {
+			if (a.IsNull || b.IsNull)
+				return SqlBoolean.Null;
+
+			var b1 = (SqlBoolean) a;
+			var b2 = (SqlBoolean) b;
+
+			return b1.And(b2);
+		}
+
+		public override ISqlObject Or(ISqlObject a, ISqlObject b) {
+			if (a.IsNull || b.IsNull)
+				return SqlBoolean.Null;
+
+			var b1 = (SqlBoolean)a;
+			var b2 = (SqlBoolean)b;
+
+			return b1.Or(b2);
+		}
+
+		public override ISqlObject XOr(ISqlObject a, ISqlObject b) {
+			if (a.IsNull || b.IsNull)
+				return SqlBoolean.Null;
+
+			var b1 = (SqlBoolean)a;
+			var b2 = (SqlBoolean)b;
+
+			return b1.And(b2);
 		}
 	}
 }

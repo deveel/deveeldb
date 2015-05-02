@@ -43,6 +43,10 @@ namespace Deveel.Data.Types {
 
 		public byte Scale { get; private set; }
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		public override bool Equals(object obj) {
 			var other = obj as NumericType;
 			if (other == null)
@@ -613,7 +617,7 @@ namespace Deveel.Data.Types {
 			throw new FormatException();
 		}
 
-		public override int SizeOf(ISqlObject obj) {
+		internal override int ColumnSizeOf(ISqlObject obj) {
 			if (obj is SqlNull)
 				return 1;
 

@@ -87,7 +87,7 @@ namespace Deveel.Data {
 		}
 
 		internal int Size {
-			get { return Type.SizeOf(Value); }
+			get { return Type.ColumnSizeOf(Value); }
 		}
 
 		/// <summary>

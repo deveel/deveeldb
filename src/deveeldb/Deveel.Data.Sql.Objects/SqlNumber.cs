@@ -444,7 +444,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			if (Scale == 0 && value.Scale == 0) {
 				BigInteger bi1 = innerValue.ToBigInteger();
-				BigInteger bi2 = innerValue.ToBigInteger();
+				BigInteger bi2 = value.innerValue.ToBigInteger();
 				return new SqlNumber(NumericState.None, new BigDecimal(bi1.XOr(bi2)));
 			}
 
@@ -457,7 +457,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			if (Scale == 0 && value.Scale == 0) {
 				BigInteger bi1 = innerValue.ToBigInteger();
-				BigInteger bi2 = innerValue.ToBigInteger();
+				BigInteger bi2 = value.innerValue.ToBigInteger();
 				return new SqlNumber(NumericState.None, new BigDecimal(bi1.And(bi2)));
 			}
 

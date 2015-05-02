@@ -31,6 +31,10 @@ namespace Deveel.Data.Types {
 			get { return false; }
 		}
 
+		public override bool IsStorable {
+			get { return false; }
+		}
+
 		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
 			return base.DeserializeObject(stream, context);
 		}

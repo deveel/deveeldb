@@ -70,6 +70,10 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException(String.Format("The SQL type {0} is not a valid DATE", sqlType), "sqlType");
 		}
 
+		public override bool IsStorable {
+			get { return true; }
+		}
+
 		public override bool Equals(object obj) {
 			var other = obj as DataType;
 			if (other == null)
@@ -142,7 +146,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override int SizeOf(ISqlObject obj) {
+		internal override int ColumnSizeOf(ISqlObject obj) {
 			if (obj is SqlNull)
 				return 1;
 

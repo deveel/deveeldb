@@ -28,6 +28,10 @@ namespace Deveel.Data.Types {
 			AssertIsInterval(sqlType);
 		}
 
+		public override bool IsIndexable {
+			get { return true; }
+		}
+
 		private static string GetTypeString(SqlTypeCode sqlType) {
 			if (sqlType == SqlTypeCode.DayToSecond)
 				return "DAY TO SECOND";
