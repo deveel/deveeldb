@@ -17,21 +17,19 @@
 using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class SystemQueryContext : QueryContextBase {
 		private IUserSession session;
-		private readonly string currentSchema;
 
 		public SystemQueryContext(ITransaction transaction, string currentSchema) {
-			this.currentSchema = currentSchema;
-
-			session = new UserSession(transaction.Database, transaction, new SessionInfo(User.System, TransactionIsolation.Serializable));
+			session = new SystemSession(transaction.Database, transaction, currentSchema, new SessionInfo(User.System, TransactionIsolation.Serializable));
 		}
 
 		public override string CurrentSchema {
-			get { return currentSchema; }
+			get { return Session.CurrentSchema; }
 		}
 
 		public override IUserSession Session {
@@ -46,5 +44,53 @@ namespace Deveel.Data.DbSystem {
 			session = null;
 			base.Dispose(disposing);
 		}
+
+		#region SystemSession
+
+		class SystemSession : IUserSession {
+			public SystemSession(IDatabase database, ITransaction transaction, string currentSchema, SessionInfo sessionInfo) {
+				Database = database;
+				CurrentSchema = currentSchema;
+				Transaction = transaction;
+				SessionInfo = sessionInfo;
+			}
+
+			public void Dispose() {
+				Database = null;
+				Transaction = null;
+			}
+
+			public IDatabase Database { get; private set; }
+
+			public string CurrentSchema { get; private set; }
+
+			public SessionInfo SessionInfo { get; private set; }
+
+			public ITransaction Transaction { get; private set; }
+
+			public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
+			}
+
+			public void ReleaseLocks() {
+			}
+
+			public ILargeObject CreateLargeObject(long size, bool compressed) {
+				throw new NotImplementedException();
+			}
+
+			public ILargeObject GetLargeObject(ObjectId objId) {
+				throw new NotImplementedException();
+			}
+
+			public void Commit() {
+				Transaction.Commit();
+			}
+
+			public void Rollback() {
+				Transaction.Rollback();
+			}
+		}
+
+		#endregion
 	}
 }

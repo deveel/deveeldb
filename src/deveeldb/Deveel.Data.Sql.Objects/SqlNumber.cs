@@ -171,7 +171,7 @@ namespace Deveel.Data.Sql.Objects {
 
 		public override bool Equals(object obj) {
 			if (!(obj is SqlNumber))
-				throw new ArgumentException("The object is not a NUMBER.");
+				return false;
 
 			return Equals((SqlNumber) obj);
 		}

@@ -15,9 +15,12 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
@@ -188,6 +191,39 @@ namespace Deveel.Data.DbSystem {
 				throw new InvalidOperationException();
 
 			session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		public static int DeleteFrom(this IUserSession session, ObjectName tableName, ITable deleteSet) {
+			return DeleteFrom(session, tableName, deleteSet, -1);
+		}
+
+		public static int DeleteFrom(this IUserSession session, ObjectName tableName, ITable deleteSet, int limit) {
+			var table = session.GetMutableTable(tableName);
+			if (table == null)
+				throw new ObjectNotFoundException(tableName);
+
+			return table.Delete(deleteSet, limit);
+		}
+
+		public static int DeleteFrom(this IUserSession session, ObjectName tableName, SqlExpression whereExpression, int limit) {
+			var table = session.GetMutableTable(tableName);
+			if (table == null)
+				throw new ObjectNotFoundException(tableName);
+
+
+			var expression = new SqlQueryExpression(new List<SelectColumn> {SelectColumn.Glob("*")});
+			expression.FromClause.AddTable(tableName.Name);
+			expression.WhereExpression = whereExpression;
+
+			ITable deleteSet;
+
+			using (var context = new SystemQueryContext(session.Transaction, session.CurrentSchema)) {
+				var planExpression = expression.Evaluate(context, null);
+				var plan = (SqlQueryObject) ((SqlConstantExpression) planExpression).Value.Value;
+				deleteSet = plan.QueryPlan.Evaluate(context);
+			}
+
+			return session.DeleteFrom(tableName, deleteSet, limit);
 		}
 
 		#endregion

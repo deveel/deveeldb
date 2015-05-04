@@ -268,10 +268,6 @@ namespace Deveel.Data.DbSystem {
 			AddVisibleTable(table, indexSet);
 		}
 
-		private TableSource FindVisibleTable(ObjectName tableName) {
-			return FindVisibleTable(tableName, IgnoreIdentifiersCase);
-		}
-
 		private TableSource FindVisibleTable(ObjectName tableName, bool ignoreCase) {
 			return visibleTables
 				.FirstOrDefault(source => source != null &&

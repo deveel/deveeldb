@@ -19,8 +19,10 @@ using System;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public static class QueryContextExtensions {
@@ -151,6 +153,45 @@ namespace Deveel.Data.DbSystem {
 
 		public static ITableQueryInfo GetTableQueryInfo(this IQueryContext context, ObjectName tableName, ObjectName alias) {
 			return context.Session.GetTableQueryInfo(tableName, alias);
+		}
+
+		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query) {
+			return DeleteFrom(context, tableName, query, -1);
+		}
+
+		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlExpression expression) {
+			return DeleteFrom(context, tableName, expression, -1);
+		}
+
+		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlExpression expression, int limit) {
+			if (expression is SqlQueryExpression)
+				return context.DeleteFrom(tableName, (SqlQueryExpression) expression, limit);
+
+			return context.Session.DeleteFrom(tableName, expression, limit);
+		}
+
+		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query, int limit) {
+			IQueryPlanNode plan;
+
+			try {
+				var planValue = query.EvaluateToConstant(context, null);
+				if (planValue == null)
+					throw new InvalidOperationException();
+
+				if (!(planValue.Type is QueryType))
+					throw new InvalidOperationException();
+
+				plan = (IQueryPlanNode) ((SqlQueryObject) planValue.Value).QueryPlan;
+			} catch (QueryException) {
+				throw;
+			} catch (SecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new InvalidOperationException(String.Format("Could not delete from table '{0}': unable to form the delete set.", tableName), ex);
+			}
+
+			var deleteSet = plan.Evaluate(context);
+			return context.Session.DeleteFrom(tableName, deleteSet, limit);
 		}
 
 		#endregion
