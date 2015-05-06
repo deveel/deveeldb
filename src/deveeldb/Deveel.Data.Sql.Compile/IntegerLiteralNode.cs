@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// <inheritdoc/>
 		protected override void OnNodeInit() {
 			var token = Tokens.First();
-			BigValue = new BigInteger(token.Text);
+			BigValue = BigInteger.Parse(token.Text);
 		}
 	}
 }

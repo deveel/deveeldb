@@ -695,9 +695,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			BigDecimal decimalValue;
 
-			try {
-				decimalValue = new BigDecimal(s);
-			} catch (Exception) {
+			if (!BigDecimal.TryParse(s, out decimalValue)) {
 				value = Null;
 				return false;
 			}
