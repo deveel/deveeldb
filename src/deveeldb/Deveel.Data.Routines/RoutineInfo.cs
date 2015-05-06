@@ -48,10 +48,11 @@ namespace Deveel.Data.Routines {
 
 			RoutineName = routineName;
 			Parameters = parameters;
+			Body = new RoutineBody(this);
 		}
 
 		DbObjectType IObjectInfo.ObjectType {
-			get { return ObjectType; }
+			get { return DbObjectType.Routine; }
 		}
 
 		ObjectName IObjectInfo.FullName {
@@ -63,7 +64,7 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		public ObjectName RoutineName { get; private set; }
 
-		protected abstract DbObjectType ObjectType { get; }
+		public abstract RoutineType RoutineType { get; }
 
 		/// <summary>
 		/// Gets an array of parameters for the routine.
@@ -73,6 +74,8 @@ namespace Deveel.Data.Routines {
 		public string ExternalMethodName { get; set; }
 
 		public Type ExternalType { get; set; }
+
+		public RoutineBody Body { get; private set; }
 
 		internal abstract bool MatchesInvoke(Invoke request, IQueryContext queryContext);
 

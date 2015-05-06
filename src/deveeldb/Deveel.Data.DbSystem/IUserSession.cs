@@ -16,8 +16,6 @@
 
 using System;
 
-using Deveel.Data.Protocol;
-using Deveel.Data.Security;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;

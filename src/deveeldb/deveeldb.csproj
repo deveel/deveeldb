@@ -222,7 +222,10 @@
     </Compile>
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
+    <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />

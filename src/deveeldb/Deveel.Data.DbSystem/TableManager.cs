@@ -625,7 +625,7 @@ namespace Deveel.Data.DbSystem {
 			throw new NotImplementedException();
 		}
 
-		public void AddInternalTable(ITableContainer container) {
+		public void AddInternalTables(ITableContainer container) {
 			if (internalTables == null)
 				internalTables = new List<ITableContainer>();
 

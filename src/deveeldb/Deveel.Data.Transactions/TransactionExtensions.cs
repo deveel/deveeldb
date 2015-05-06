@@ -34,11 +34,11 @@ namespace Deveel.Data.Transactions {
 		#region Managers
 
 		public static TableManager GetTableManager(this ITransaction transaction) {
-			return (TableManager) transaction.ObjectManagerResolver.ResolveForType(DbObjectType.Table);
+			return (TableManager) transaction.Managers.ResolveForType(DbObjectType.Table);
 		}
 
 		public static ViewManager GetViewManager(this ITransaction transaction) {
-			return (ViewManager) transaction.ObjectManagerResolver.ResolveForType(DbObjectType.View);
+			return (ViewManager) transaction.Managers.ResolveForType(DbObjectType.View);
 		}
 
 		#endregion
@@ -46,13 +46,13 @@ namespace Deveel.Data.Transactions {
 		#region Objects
 
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
-			return transaction.ObjectManagerResolver.GetManagers()
+			return transaction.Managers.GetManagers()
 				.Select(manager => manager.GetObject(objName))
 				.FirstOrDefault(obj => obj != null);
 		}
 
 		public static IDbObject GetObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			var manager = transaction.Managers.ResolveForType(objType);
 			if (manager == null)
 				return null;
 
@@ -60,12 +60,12 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool ObjectExists(this ITransaction transaction, ObjectName objName) {
-			return transaction.ObjectManagerResolver.GetManagers()
+			return transaction.Managers.GetManagers()
 				.Any(manager => manager.ObjectExists(objName));
 		}
 
 		public static bool ObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			var manager = transaction.Managers.ResolveForType(objType);
 			if (manager == null)
 				return false;
 
@@ -73,7 +73,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool RealObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			var manager = transaction.Managers.ResolveForType(objType);
 			if (manager == null)
 				return false;
 
@@ -84,7 +84,7 @@ namespace Deveel.Data.Transactions {
 			if (objInfo == null)
 				throw new ArgumentNullException("objInfo");
 
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objInfo.ObjectType);
+			var manager = transaction.Managers.ResolveForType(objInfo.ObjectType);
 			if (manager == null)
 				throw new InvalidOperationException();
 
@@ -98,7 +98,7 @@ namespace Deveel.Data.Transactions {
 			if (objInfo == null)
 				throw new ArgumentNullException("objInfo");
 
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objInfo.ObjectType);
+			var manager = transaction.Managers.ResolveForType(objInfo.ObjectType);
 			if (manager == null)
 				throw new InvalidOperationException();
 
@@ -109,7 +109,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool DropObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objType);
+			var manager = transaction.Managers.ResolveForType(objType);
 			if (manager == null)
 				return false;
 
@@ -133,7 +133,7 @@ namespace Deveel.Data.Transactions {
 
 			bool found = false;
 
-			foreach (var manager in transaction.ObjectManagerResolver.GetManagers()) {
+			foreach (var manager in transaction.Managers.GetManagers()) {
 				if (manager.ObjectExists(objName)) {
 					if (found)
 						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match.", objectName));
@@ -153,7 +153,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
-			var manager = transaction.ObjectManagerResolver.ResolveForType(objectType);
+			var manager = transaction.Managers.ResolveForType(objectType);
 			if (manager == null)
 				return objectName;
 
@@ -163,7 +163,7 @@ namespace Deveel.Data.Transactions {
 		public static ObjectName ResolveObjectName(this ITransaction transaction, ObjectName objectName) {
 			var ignoreCase = transaction.IgnoreIdentifiersCase();
 
-			return transaction.ObjectManagerResolver.GetManagers()
+			return transaction.Managers.GetManagers()
 				.Select(manager => manager.ResolveName(objectName, ignoreCase))
 				.FirstOrDefault(resolved => resolved != null);
 		}
@@ -292,7 +292,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static TableInfo GetTableInfo(this ITransaction transaction, ObjectName tableName) {
-			var tableManager = transaction.ObjectManagerResolver.ResolveForType(DbObjectType.Table) as TableManager;
+			var tableManager = transaction.Managers.ResolveForType(DbObjectType.Table) as TableManager;
 			if (tableManager == null)
 				throw new SystemException();
 

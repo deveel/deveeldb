@@ -114,7 +114,7 @@ namespace Deveel.Data.Transactions {
 			get { return Database.TableComposite; }
 		}
 
-		public IObjectManagerResolver ObjectManagerResolver { get; private set; }
+		public IObjectManagerResolver Managers { get; private set; }
 
 		public TransactionRegistry Registry { get; private set; }
 
@@ -125,26 +125,26 @@ namespace Deveel.Data.Transactions {
 			viewManager = new ViewManager(this);
 			variableManager = new VariableManager(this);
 
-			ObjectManagerResolver = new ObjectManagersResolver(this);
+			Managers = new ObjectManagersResolver(this);
 		}
 
 		private void AddInternalTables() {
-			tableManager.AddInternalTable(new TransactionTableContainer(this, IntTableInfo));
+			tableManager.AddInternalTables(new TransactionTableContainer(this, IntTableInfo));
 
 			// OLD and NEW system tables (if applicable)
-			tableManager.AddInternalTable(new OldAndNewTableContainer(this));
+			tableManager.AddInternalTables(new OldAndNewTableContainer(this));
 
 			// Model views as tables (obviously)
-			tableManager.AddInternalTable(viewManager.CreateInternalTableInfo());
+			tableManager.AddInternalTables(viewManager.CreateInternalTableInfo());
 
 			//// Model procedures as tables
-			//tableManager.AddInternalTable(routineManager.CreateInternalTableInfo());
+			//tableManager.AddInternalTables(routineManager.CreateInternalTableInfo());
 
 			// Model sequences as tables
-			tableManager.AddInternalTable(sequenceManager.TableContainer);
+			tableManager.AddInternalTables(sequenceManager.TableContainer);
 
 			// Model triggers as tables
-			//tableManager.AddInternalTable(triggerManager.CreateInternalTableInfo());
+			//tableManager.AddInternalTables(triggerManager.CreateInternalTableInfo());
 		}
 
 		private void AssertNotReadOnly() {

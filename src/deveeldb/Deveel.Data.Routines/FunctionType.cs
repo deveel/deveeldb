@@ -57,7 +57,7 @@ namespace Deveel.Data.Routines {
 		/// </remarks>
 		StateBased = 3,
 
-		External =  4,
-		UserDefined = 5
+		UserDefined = 4,
+		External = 5
 	}
 }

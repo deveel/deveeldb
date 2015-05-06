@@ -379,7 +379,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			DbObjectType IDbObject.ObjectType {
-				get { return DbObjectType.Function; }
+				get { return DbObjectType.Routine; }
 			}
 
 			public ObjectName FullName {

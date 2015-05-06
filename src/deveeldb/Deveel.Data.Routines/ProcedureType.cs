@@ -16,8 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Types {
-	public interface ISizeableType {
-		int Size { get; }
+namespace Deveel.Data.Routines {
+	public enum ProcedureType {
+		Static = 1,
+		UserDefined = 2,
+		External = 3
 	}
 }

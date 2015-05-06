@@ -26,8 +26,7 @@ namespace Deveel.Data.Sql {
 		Column = 11,
 		Trigger = 17,
 		Sequence = 18,
-		Procedure = 20,
-		Function = 21,
+		Routine = 20,
 		Schema = 51
 	}
 }

@@ -57,7 +57,9 @@ namespace Deveel.Data.Routines {
 			: this(new FunctionInfo(name, parameters, returnType, functionType)) {
 		}
 
-		public FunctionType FunctionType { get; private set; }
+		public FunctionType FunctionType {
+			get { return FunctionInfo.FunctionType; }
+		}
 
 		public FunctionInfo FunctionInfo { get; private set; }
 
@@ -74,7 +76,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Function; }
+			get { return DbObjectType.Routine; }
 		}
 
 		ObjectName IDbObject.FullName {

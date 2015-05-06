@@ -40,7 +40,7 @@ namespace Deveel.Data.Transactions {
 
 		OldNewTableState OldNewTableState { get; }
 
-		IObjectManagerResolver ObjectManagerResolver { get; }
+		IObjectManagerResolver Managers { get; }
 
 		TransactionRegistry Registry { get; }
 

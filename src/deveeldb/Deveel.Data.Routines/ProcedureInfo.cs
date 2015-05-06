@@ -15,30 +15,47 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public sealed class ProcedureInfo : RoutineInfo {
 		public ProcedureInfo(ObjectName routineName) 
-			: base(routineName) {
+			: this(routineName, ProcedureType.Static) {
+		}
+
+		public ProcedureInfo(ObjectName routineName, ProcedureType procedureType) 
+			: this(routineName, procedureType, new RoutineParameter[0]) {
 		}
 
 		public ProcedureInfo(ObjectName routineName, RoutineParameter[] parameters) 
-			: base(routineName, parameters) {
+			: this(routineName, ProcedureType.Static, parameters) {
 		}
 
-		protected override DbObjectType ObjectType {
-			get { return DbObjectType.Function; }
+		public ProcedureInfo(ObjectName routineName, ProcedureType procedureType, RoutineParameter[] parameters) 
+			: base(routineName, parameters) {
+			ProcedureType = procedureType;
 		}
+
+		public override RoutineType RoutineType {
+			get { return RoutineType.Procedure; }
+		}
+
+		public ProcedureType ProcedureType { get; private set; }
 
 		internal override bool MatchesInvoke(Invoke invoke, IQueryContext queryContext) {
 			if (invoke == null)
 				return false;
+
+			bool ignoreCase = true;
+			if (queryContext != null)
+				ignoreCase = queryContext.IgnoreIdentifiersCase();
+
+			if (!RoutineName.Equals(invoke.RoutineName, ignoreCase))
+				return false;
+
 
 			var inputParams = Parameters.Where(parameter => parameter.IsInput).ToList();
 			if (invoke.Arguments.Length != inputParams.Count)

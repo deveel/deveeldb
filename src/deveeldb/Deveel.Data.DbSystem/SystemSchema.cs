@@ -145,6 +145,10 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly ObjectName ViewTableName = new ObjectName(SchemaName, "view");
 
+		public static readonly ObjectName RoutineTableName = new ObjectName(SchemaName, "routine");
+
+		public static readonly ObjectName RoutineParameterTableName = new ObjectName(SchemaName, "routine_params");
+
 		public static readonly ObjectName VariablesTableName = new ObjectName(SchemaName, "vars");
 
 		public static readonly ObjectName ProductInfoTableName = new ObjectName(SchemaName, "product_info");
@@ -326,6 +330,26 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("serialized_expression", PrimitiveTypes.Binary());
 			tableInfo = tableInfo.AsReadOnly();
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.ROUTINE
+			tableInfo = new TableInfo(RoutineTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.String());
+			tableInfo.AddColumn("location", PrimitiveTypes.String());
+			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
+			tableInfo.AddColumn("username", PrimitiveTypes.String());
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.ROUTINE_PARAM
+			tableInfo = new TableInfo(RoutineParameterTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("arg_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("arg_type", PrimitiveTypes.String());
+			tableInfo.AddColumn("in_out", PrimitiveTypes.String());
+			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
 			transaction.CreateTable(tableInfo);
 		}
 

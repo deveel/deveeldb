@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
@@ -31,6 +31,7 @@ namespace Deveel.Data.Routines {
 		/// Constructs a <see cref="FunctionInfo"/> without arguments.
 		/// </summary>
 		/// <param name="routineName">The name of the function.</param>
+		/// <param name="functionType">The type of function this</param>
 		public FunctionInfo(ObjectName routineName, FunctionType functionType) 
 			: this(routineName, (DataType)null, functionType) {
 		}
@@ -65,8 +66,8 @@ namespace Deveel.Data.Routines {
 			AssertUnboundAtEnd();
 		}
 
-		protected override DbObjectType ObjectType {
-			get { return DbObjectType.Function; }
+		public override RoutineType RoutineType {
+			get { return RoutineType.Function; }
 		}
 
 		public DataType ReturnType { get; private set; }
@@ -97,15 +98,19 @@ namespace Deveel.Data.Routines {
 			if (request == null)
 				return false;
 
-			// TODO: have a patch to check if this must be case-insensitive compare
-			// TODO: have the request to respect the [Name1].[Name2].[NameN] format as the routine
-			if (!RoutineName.Equals(request.RoutineName))
+			bool ignoreCase = true;
+			if (queryContext != null)
+				ignoreCase = queryContext.IgnoreIdentifiersCase();
+
+			if (!RoutineName.Equals(request.RoutineName, ignoreCase))
 				return false;
 
 			// TODO: add a better resolution to obtain the final type of the argument
 			//       and compare it to the parameter type definition
 			bool unboundedSeen = false;
 			for (int i = 0; i < request.Arguments.Length; i++) {
+				var argType = request.Arguments[i].ReturnType(queryContext, null);
+
 				if (i + 1 > Parameters.Length) {
 					if (!unboundedSeen)
 						return false;
@@ -116,11 +121,15 @@ namespace Deveel.Data.Routines {
 					var param = Parameters[i];
 					unboundedSeen = param.IsUnbounded;
 
-					// TODO: verify the type of the argument (how to evaluate?)
+					var paramType = param.Type;
+
+					if (!paramType.IsComparable(argType))
+						return false;
 				}
 			}
 
-			if (!unboundedSeen && request.Arguments.Length != Parameters.Length)
+			if (!unboundedSeen &&
+				request.Arguments.Length != Parameters.Length)
 				return false;
 
 			return true;

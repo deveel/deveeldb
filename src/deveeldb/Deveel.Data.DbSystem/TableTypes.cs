@@ -23,5 +23,7 @@ namespace Deveel.Data.DbSystem {
 		public const string View = "VIEW";
 		public const string Trigger = "TRIGGER";
 		public const string Sequence = "SEQUENCE";
+		public const string Procedure = "PROCEDURE";
+		public const string Function = "FUNCTION";
 	}
 }

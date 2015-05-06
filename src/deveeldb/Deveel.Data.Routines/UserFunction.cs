@@ -16,15 +16,25 @@
 
 using System;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Routines {
 	public sealed class UserFunction : Function {
 		public UserFunction(FunctionInfo functionInfo) 
 			: base(functionInfo) {
-			if (functionInfo.FunctionType != FunctionType.UserDefined)
-				throw new ArgumentException("The function information are invalid.");
 		}
 
-		// TODO: Have a PL/SQL block object
+		public UserFunction(ObjectName name, RoutineParameter[] parameters, FunctionType functionType) 
+			: base(name, parameters, functionType) {
+		}
+
+		public UserFunction(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
+			: base(name, parameters, returnType) {
+		}
+
+		public UserFunction(ObjectName name, RoutineParameter[] parameters, DataType returnType, FunctionType functionType) 
+			: base(name, parameters, returnType, functionType) {
+		}
 
 		protected override DataObject Evaluate(DataObject[] args) {
 			throw new NotImplementedException();

@@ -434,8 +434,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
-			var objectType = routineType == RoutineType.Procedure ? DbObjectType.Procedure : DbObjectType.Function;
-			return context.UserHasPrivilege(objectType, routineName, Privileges.Execute);
+			return context.UserHasPrivilege(DbObjectType.Routine, routineName, Privileges.Execute);
 		}
 
 		public static bool UserCanExecuteFunction(this IQueryContext context, ObjectName functionName) {
