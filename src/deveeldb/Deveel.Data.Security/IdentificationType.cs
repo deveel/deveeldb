@@ -17,9 +17,25 @@
 using System;
 
 namespace Deveel.Data.Security {
+	/// <summary>
+	/// The mechanism used for identifying a user in a database.
+	/// </summary>
 	public enum IdentificationType {
+		/// <summary>
+		/// This is a plain-text password defined by the user.
+		/// </summary>
 		Password = 1,
+
+		/// <summary>
+		/// The hash of a password obtained from the configured
+		/// hash mechanism, given an input password from the user.
+		/// </summary>
 		Hash = 2,
+
+		/// <summary>
+		/// A configured external mechanism that takes an input
+		/// string and authenticates a user.
+		/// </summary>
 		External = 3
 	}
 }

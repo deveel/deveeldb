@@ -17,11 +17,35 @@
 using System;
 
 namespace Deveel.Data.Xml {
+	/// <summary>
+	/// Enumerates the possible types of XML nodes that can be
+	/// handled by the system
+	/// </summary>
 	public enum XmlNodeType {
+		/// <summary>
+		/// The document node, the main container of all other
+		/// nodes in a stored XML piece.
+		/// </summary>
 		Document,
+
+		/// <summary>
+		/// A single element in a document or a child of another element.
+		/// </summary>
 		Element,
+
+		/// <summary>
+		/// An attribute of an <see cref="Element"/> in an XML document.
+		/// </summary>
 		Attribute,
+
+		/// <summary>
+		/// Special type of text container that does not analyze he contents.
+		/// </summary>
 		CData,
+
+		/// <summary>
+		/// Text contents of an element.
+		/// </summary>
 		Text
 	}
 }

@@ -33,6 +33,13 @@ namespace Deveel.Data.Transactions {
 	public static class TransactionExtensions {
 		#region Managers
 
+		public static void CreateSystem(this ITransaction transaction) {
+			var managers = transaction.Managers.GetManagers();
+			foreach (var manager in managers) {
+				manager.Create();
+			}
+		}
+
 		public static TableManager GetTableManager(this ITransaction transaction) {
 			return (TableManager) transaction.Managers.ResolveForType(DbObjectType.Table);
 		}
@@ -177,7 +184,9 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static void CreateSystemSchema(this ITransaction transaction) {
-			SystemSchema.CreateSystemTables(transaction);
+			transaction.CreateSystem();
+
+			// SystemSchema.CreateSystemTables(transaction);
 
 			// TODO: get the configured default culture...
 			var culture = CultureInfo.CurrentCulture.Name;

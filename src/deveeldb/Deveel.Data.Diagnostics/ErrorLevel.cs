@@ -17,9 +17,25 @@
 using System;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// In case of error messages, this enumerates the level
+	/// of severity of the error.
+	/// </summary>
 	public enum ErrorLevel {
+		/// <summary>
+		/// A critical error that determines the failure of the system.
+		/// </summary>
 		Critical = 1,
+
+		/// <summary>
+		/// Exceptional state of the system that causes an abortion
+		/// of an operation.
+		/// </summary>
 		Error = 2,
+
+		/// <summary>
+		/// Non-blocking error that denotes a failure state of the system.
+		/// </summary>
 		Warning = 3
 	}
 }

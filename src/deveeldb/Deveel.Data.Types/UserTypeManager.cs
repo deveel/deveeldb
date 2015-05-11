@@ -35,6 +35,10 @@ namespace Deveel.Data.Types {
 			get { return DbObjectType.Type; }
 		}
 
+		public void Create() {
+			// TODO:
+		}
+
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			throw new NotImplementedException();
 		}

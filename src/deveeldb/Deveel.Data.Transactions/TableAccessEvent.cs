@@ -17,7 +17,16 @@
 using System;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// A table was accessed during the transaction.
+	/// </summary>
 	public class TableAccessEvent : ITableEvent {
+		/// <summary>
+		/// Constructs the event object for the table identified
+		/// by the unique number given and its unique name.
+		/// </summary>
+		/// <param name="tableId">The table unique identifier number.</param>
+		/// <param name="tableName">The unique name of the table accessed.</param>
 		public TableAccessEvent(int tableId, ObjectName tableName) {
 			TableId = tableId;
 			TableName = tableName;
@@ -25,6 +34,9 @@ namespace Deveel.Data.Transactions {
 
 		public int TableId { get; private set; }
 
+		/// <summary>
+		/// Gets the database table unique name.
+		/// </summary>
 		public ObjectName TableName { get; private set; }
 	}
 }

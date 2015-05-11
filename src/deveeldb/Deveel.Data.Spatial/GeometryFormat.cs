@@ -17,9 +17,23 @@
 using System;
 
 namespace Deveel.Data.Spatial {
+	/// <summary>
+	/// The format of geometry information as stored.
+	/// </summary>
 	public enum GeometryFormat {
+		/// <summary>
+		/// The geometry data in WKB (Well-Known-Binary) standard format.
+		/// </summary>
 		WellKnownBinary = 1,
+
+		/// <summary>
+		/// The geometry data in WKT (Well-Known-Text) standard format
+		/// </summary>
 		WellKnownText = 2,
+
+		/// <summary>
+		/// The geometry data in GMLv2 (Geometry Markup Language version 2)
+		/// </summary>
 		Gml2 = 3
 	}
 }

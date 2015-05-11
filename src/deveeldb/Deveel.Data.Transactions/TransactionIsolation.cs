@@ -17,10 +17,35 @@
 using System;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// The kind of isolation levels for a <see cref="ITransaction"/>.
+	/// </summary>
 	public enum TransactionIsolation {
+		/// <summary>
+		/// The isolation level was not specified and the system
+		/// falls back to the default isolation.
+		/// </summary>
 		Unspecified = 0,
+
+		/// <summary>
+		/// The level that acquires locks on all the resources used by the
+		/// transaction, preventing all other transactions to access them,
+		/// and releases these locks at the end of the main transaction.
+		/// </summary>
 		Serializable,
+
+		/// <summary>
+		/// Acquires write locks on the resources used until the end of the
+		/// transaction, but releases the read locks when selected data
+		/// are consumed.
+		/// </summary>
 		ReadCommitted,
+
+		/// <summary>
+		/// The least isolated level of a transaction, when dirty selects
+		/// can occur, since uncommitted data from other transactions can
+		/// be seen.
+		/// </summary>
 		ReadUncommitted,
 		RepeatableRead,
 		Snapshot

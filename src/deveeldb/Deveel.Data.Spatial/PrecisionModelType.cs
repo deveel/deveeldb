@@ -17,9 +17,23 @@
 using System;
 
 namespace Deveel.Data.Spatial {
+	/// <summary>
+	/// The kind of precision applied to a spatial model.
+	/// </summary>
 	public enum PrecisionModelType {
+		/// <summary>
+		/// Double precision floating point
+		/// </summary>
 		Floating = 0,
+
+		/// <summary>
+		/// Single precision floating point
+		/// </summary>
 		FloatingSingle = 1,
+
+		/// <summary>
+		/// Fixed point precision
+		/// </summary>
 		Fixed = 2,
 	}
 }

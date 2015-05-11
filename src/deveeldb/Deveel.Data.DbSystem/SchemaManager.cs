@@ -52,6 +52,18 @@ namespace Deveel.Data.DbSystem {
 			get { return DbObjectType.Schema; }
 		}
 
+		public void Create() {
+			// SYSTEM.SCHEMA_INFO
+			var tableInfo = new TableInfo(SystemSchema.SchemaInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.String());
+			tableInfo.AddColumn("culture", PrimitiveTypes.String());
+			tableInfo.AddColumn("other", PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+		}
+
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			var schemaInfo = objInfo as SchemaInfo;
 			if (schemaInfo == null)

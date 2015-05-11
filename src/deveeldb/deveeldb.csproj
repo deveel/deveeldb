@@ -35,8 +35,7 @@
     <DefineConstants>TRACE;TINYIOC_INTERNAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -485,7 +484,6 @@
     <Compile Include="Deveel.Data.Sql\IRowIndex.cs" />
     <Compile Include="Deveel.Data.Sql\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql\ISequenceManager.cs" />
-    <Compile Include="Deveel.Data.Sql\OperatorSubType.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterDirection.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterStyle.cs" />

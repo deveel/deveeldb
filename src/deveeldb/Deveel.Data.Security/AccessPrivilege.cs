@@ -17,8 +17,18 @@
 using System;
 
 namespace Deveel.Data.Security {
+	/// <summary>
+	/// The privilege granted to a user on a given resource.
+	/// </summary>
 	public enum AccessPrivilege {
+		/// <summary>
+		/// The user is allowed to access the resource.
+		/// </summary>
 		Allow = 1,
+
+		/// <summary>
+		/// The user is not permitted to access the resource.
+		/// </summary>
 		Deny = 2
 	}
 }

@@ -180,6 +180,16 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		protected int MaxCacheSize { get; private set; }
 
+		/// <summary>
+		/// When overridden in a derived class, it sets the value for the key given.
+		/// </summary>
+		/// <param name="key">The key corresponding to the value to set.</param>
+		/// <param name="value">the value to set into the cache.</param>
+		/// <returns>
+		/// Returns <c>false</c> if the key existed and the value was set or
+		/// otherwise <c>true</c> if the key was not found and the value
+		/// was added to the cache.
+		/// </returns>
 		protected abstract bool SetObject(object key, object value);
 
 		protected abstract object GetObject(object key);
@@ -211,7 +221,7 @@ namespace Deveel.Data.Caching {
 		/// Returns the value of the node with the given key within the cache,
 		/// or <b>null</b> if none was found.
 		/// </returns>
-		public Object Get(Object key) {
+		public object Get(object key) {
 			return GetObject(key);
 		}
 

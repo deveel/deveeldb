@@ -17,7 +17,16 @@
 using System;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// A transaction event that caused the alteration of a
+	/// constraints in the table given.
+	/// </summary>
 	public class TableConstraintAlteredEvent : ITableEvent {
+		/// <summary>
+		/// Constructs the event object for the table identified
+		/// by the unique number given.
+		/// </summary>
+		/// <param name="tableId">The table unique identifier number.</param>
 		public TableConstraintAlteredEvent(int tableId) {
 			TableId = tableId;
 		}

@@ -61,7 +61,7 @@ namespace Deveel.Data.DbSystem {
 				if (Context != null)
 					Context.OnResolved(serviceType, name, resolved);
 
-				return null;				
+				return resolved;				
 			}
 		}
 

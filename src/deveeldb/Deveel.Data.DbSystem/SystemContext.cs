@@ -62,57 +62,6 @@ namespace Deveel.Data.DbSystem {
 			ServiceProvider = new SystemServiceProvider(this);
 		}
 
-		//public IDatabaseContext CreateDatabaseContext(IDbConfig config) {
-		//	if (config == null)
-		//		throw new ArgumentNullException("config");
-
-		//	var name = config.GetValue(DatabaseConfigKeys.DatabaseName);
-		//	if (name == null)
-		//		throw new ArgumentException(String.Format("The configuration must include the database name."));
-
-		//	return CreateDatabaseContext(config, name.ToType<string>());
-		//}
-
-		//public IDatabaseContext CreateDatabaseContext(IDbConfig config, string name) {
-		//	if (String.IsNullOrEmpty(name))
-		//		throw new ArgumentNullException("name");
-
-		//	lock (this) {
-		//		if (databases == null)
-		//			databases = new Dictionary<string, IDatabaseContext>();
-
-		//		if (databases.ContainsKey(name))
-		//			throw new ArgumentException(String.Format("Database '{0}' already exists in this context.", name));
-
-		//		var dbConfig = new DbConfig(Configuration);
-		//		config.CopyTo(dbConfig);
-
-		//		return new DatabaseContext(this, dbConfig);
-		//	}
-		//}
-
-		//public IDatabaseContext GetDatabaseContext(IDbConfig config) {
-		//	if (config == null)
-		//		throw new ArgumentNullException("config");
-
-		//	var name = config.GetString(DatabaseConfigKeys.DatabaseName);
-		//	return GetDatabaseContext(name);
-		//}
-
-		//public IDatabaseContext GetDatabaseContext(string name) {
-		//	if (String.IsNullOrEmpty(name))
-		//		throw new ArgumentNullException("name");
-
-		//	lock (this) {
-		//		IDatabaseContext database;
-		//		if (databases == null ||
-		//			!databases.TryGetValue(name, out database))
-		//			return null;
-
-		//		return database;
-		//	}
-		//}
-
 		object IServiceResolveContext.OnResolve(Type type, string name) {
 			if (typeof (ISpatialContext) == type)
 				return spatialContext;

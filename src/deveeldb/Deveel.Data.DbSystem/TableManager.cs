@@ -23,6 +23,7 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class TableManager : IObjectManager {
@@ -131,6 +132,79 @@ namespace Deveel.Data.DbSystem {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Table; }
+		}
+
+		public void Create() {
+			// SYSTEM.PKEY_INFO
+			var tableInfo = new TableInfo(SystemSchema.PrimaryKeyInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("table", PrimitiveTypes.String());
+			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.PKEY_COLS
+			tableInfo = new TableInfo(SystemSchema.PrimaryKeyColumnsTableName);
+			tableInfo.AddColumn("pk_id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("column", PrimitiveTypes.String());
+			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.FKEY_INFO
+			tableInfo = new TableInfo(SystemSchema.ForeignKeyInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("table", PrimitiveTypes.String());
+			tableInfo.AddColumn("ref_schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("ref_table", PrimitiveTypes.String());
+			tableInfo.AddColumn("update_rule", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("delete_rule", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.FKEY_COLS
+			tableInfo = new TableInfo(SystemSchema.ForeignKeyColumnsTableName);
+			tableInfo.AddColumn("fk_id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("fcolumn", PrimitiveTypes.String());
+			tableInfo.AddColumn("pcolumn", PrimitiveTypes.String());
+			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.UNIQUE_INFO
+			tableInfo = new TableInfo(SystemSchema.UniqueKeyInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("table", PrimitiveTypes.String());
+			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.UNIQUE_COLS
+			tableInfo = new TableInfo(SystemSchema.UniqueKeyColumnsTableName);
+			tableInfo.AddColumn("un_id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("column", PrimitiveTypes.String());
+			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.CHECK_INFO
+			tableInfo = new TableInfo(SystemSchema.CheckInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("table", PrimitiveTypes.String());
+			tableInfo.AddColumn("expression", PrimitiveTypes.String());
+			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("serialized_expression", PrimitiveTypes.Binary());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {

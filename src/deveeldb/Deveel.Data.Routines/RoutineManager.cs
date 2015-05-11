@@ -68,6 +68,28 @@ namespace Deveel.Data.Routines {
 			get { return DbObjectType.Routine; }
 		}
 
+		public void Create() {
+			// SYSTEM.ROUTINE
+			var tableInfo = new TableInfo(SystemSchema.RoutineTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.String());
+			tableInfo.AddColumn("location", PrimitiveTypes.String());
+			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
+			tableInfo.AddColumn("username", PrimitiveTypes.String());
+			transaction.CreateTable(tableInfo);
+
+			// SYSTEM.ROUTINE_PARAM
+			tableInfo = new TableInfo(SystemSchema.RoutineParameterTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("arg_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("arg_type", PrimitiveTypes.String());
+			tableInfo.AddColumn("in_out", PrimitiveTypes.String());
+			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
+			transaction.CreateTable(tableInfo);
+		}
+
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			if (objInfo == null)
 				throw new ArgumentNullException("objInfo");

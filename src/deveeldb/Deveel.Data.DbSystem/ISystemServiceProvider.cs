@@ -18,9 +18,52 @@ using System;
 using System.Collections;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// A special <see cref="IServiceProvider"/> that provides IoC (Inversion
+	/// of Control) features to resolve services for database components.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Some features of a database system, including third party components,
+	/// might require the resolution of extension services to be operative.
+	/// </para>
+	/// <para>
+	/// This object provides a fast way to instantiate and resolve components
+	/// by a given <see cref="Type"/> or by its unique name.
+	/// </para>
+	/// <para>
+	/// A typical implementation of this interface allows the definition of services 
+	/// at configuration, allowing the resolution at runtime.
+	/// </para>
+	/// </remarks>
+	/// <seealso cref="IServiceProvider"/>
 	public interface ISystemServiceProvider : IServiceProvider, IDisposable {
+		/// <summary>
+		/// Resolves a service by its type and instance name.
+		/// </summary>
+		/// <param name="serviceType">The type of the service to resolve.</param>
+		/// <param name="name">The name of the instance of the service to resolve.</param>
+		/// <remarks>
+		/// This methods first attempts to resolve an instance for the given
+		/// <see cref="Type"/>, and then if multiple instances are configured for that
+		/// type it tries to resolve one named instance having the same as the one
+		/// specified as argument of this method.
+		/// </remarks>
+		/// <returns>
+		/// Returns an object that is the instance of the given <paramref name="serviceType"/>
+		/// and for the given name, or <c>null</c> if 
+		/// </returns>
 		object Resolve(Type serviceType, string name);
 
+		/// <summary>
+		/// Resolves all instances of services of the given type.
+		/// </summary>
+		/// <param name="serviceType">The <see cref="Type"/> of the services to
+		/// resolve within the provider context.</param>
+		/// <returns>
+		/// Returns an enumerable object of all the instances found in the context
+		/// that implement the given type.
+		/// </returns>
 		IEnumerable ResolveAll(Type serviceType);
 	}
 }

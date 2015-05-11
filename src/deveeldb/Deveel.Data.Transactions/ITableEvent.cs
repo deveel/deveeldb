@@ -16,8 +16,18 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// Defines a transaction event whose object is a database
+	/// table identified.
+	/// </summary>
 	public interface ITableEvent : ITransactionEvent {
+		/// <summary>
+		/// Gets the unique identifier of the table within the system.
+		/// </summary>
+		/// <seealso cref="TableInfo.Id"/>
 		int TableId { get; }
 	}
 }

@@ -19,14 +19,43 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// An event fired when a database object of the given type is created 
+	/// during the lifetime of a transaction. 
+	/// </summary>
+	/// <remarks>
+	/// The object created is identified in a transaction by the given
+	/// <see cref="DbObjectType"/> and its unique <see cref="ObjectName"/>.
+	/// </remarks>
+	/// <seealso cref="DbObjectType"/>
+	/// <seealso cref="ObjectName"/>
 	public class ObjectCreatedEvent : ITransactionEvent {
+		/// <summary>
+		/// Constructs a new event with the given object name and type.
+		/// </summary>
+		/// <param name="objectName">The <see cref="ObjectName"/> that uniquely identify the
+		/// object created.</param>
+		/// <param name="objectType">The <see cref="DbObjectType"/> of the object created.</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the given <paramref name="objectName"/> parameter passed is <c>null</c>.
+		/// </exception>
 		public ObjectCreatedEvent(ObjectName objectName, DbObjectType objectType) {
+			if (objectName == null)
+				throw new ArgumentNullException("objectName");
+
 			ObjectName = objectName;
 			ObjectType = objectType;
 		}
 
+		/// <summary>
+		/// Gets the <see cref="ObjectName"/> that uniquely identify the
+		/// object created.
+		/// </summary>
 		public ObjectName ObjectName { get; private set; }
 
+		/// <summary>
+		/// Gets the type of the object created.
+		/// </summary>
 		public DbObjectType ObjectType { get; private set; }
 	}
 }

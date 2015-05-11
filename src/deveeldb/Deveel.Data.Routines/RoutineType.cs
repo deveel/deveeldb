@@ -17,8 +17,20 @@
 using System;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// The type of routine program.
+	/// </summary>
 	public enum RoutineType {
+		/// <summary>
+		/// A program that takes an optional set of arguments
+		/// and returns a single value as result of the operation.
+		/// </summary>
 		Function = 1,
+
+		/// <summary>
+		/// A program that takes a fixed set of arguments and
+		/// computes an operation, without returning any value.
+		/// </summary>
 		Procedure = 2
 	}
 }

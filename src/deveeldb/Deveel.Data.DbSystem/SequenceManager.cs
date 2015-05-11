@@ -367,6 +367,30 @@ namespace Deveel.Data.DbSystem {
 			seq.UpdateRow(dataRow);
 		}
 
+		public void Create() {
+			// SYSTEM.SEQUENCE_INFO
+			var tableInfo = new TableInfo(SystemSchema.SequenceInfoTableName);
+			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+
+			// SYSTEM.SEQUENCE
+			tableInfo = new TableInfo(SystemSchema.SequenceTableName);
+			tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("increment", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("minvalue", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("maxvalue", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("start", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
+			tableInfo = tableInfo.AsReadOnly();
+			Transaction.CreateTable(tableInfo);
+		}
+
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			var seqInfo = objInfo as SequenceInfo;
 			if (seqInfo == null)

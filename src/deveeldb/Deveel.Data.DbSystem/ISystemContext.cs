@@ -19,9 +19,20 @@ using System;
 using Deveel.Data.Configuration;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// The execution context of a database system, that is defining
+	/// the configurations and the components used to manaage databases.
+	/// </summary>
 	public interface ISystemContext : IDisposable {
+		/// <summary>
+		/// Gets the system configuration
+		/// </summary>
 		IDbConfig Configuration { get; }
 
+		/// <summary>
+		/// Gets an object used to dynamically resolve database services.
+		/// </summary>
+		/// <seealso cref="ISystemServiceProvider"/>
 		ISystemServiceProvider ServiceProvider { get; }
 	}
 }

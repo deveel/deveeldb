@@ -49,6 +49,10 @@ namespace Deveel.Data.DbSystem {
 			get { return DbObjectType.View; }
 		}
 
+		public void Create() {
+			// TODO:
+		}
+
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			var viewInfo = objInfo as ViewInfo;
 			if (viewInfo == null)

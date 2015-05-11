@@ -17,9 +17,24 @@
 using System;
 
 namespace Deveel.Data.Routines {
+	/// <summary>
+	/// The form of a database stored <c>PROCEDURE</c>.
+	/// </summary>
 	public enum ProcedureType {
+		/// <summary>
+		/// A procedure that requires no state to be executed.
+		/// </summary>
 		Static = 1,
+
+		/// <summary>
+		/// A stored procedure defined by a user.
+		/// </summary>
 		UserDefined = 2,
+
+		/// <summary>
+		/// An external program that is only referenced by the
+		/// procedure information.
+		/// </summary>
 		External = 3
 	}
 }

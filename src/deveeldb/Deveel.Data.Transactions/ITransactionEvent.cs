@@ -17,6 +17,13 @@
 using System;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// An event that happens within a <see cref="ITransaction"/> life-cycle.
+	/// </summary>
+	/// <remarks>
+	/// Transaction events are collected into a <see cref="TransactionRegistry"/> object,
+	/// that is used to persist or discard the changes at the end of the transaction.
+	/// </remarks>
 	public interface ITransactionEvent {
 	}
 }

@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
-	public class VariableManager : IObjectManager, IDisposable {
+	public class VariableManager : IObjectManager {
 		private Dictionary<string, Variable> variables;
  
 		public VariableManager(IVariableScope scope) {
@@ -46,6 +46,10 @@ namespace Deveel.Data.DbSystem {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Variable; }
+		}
+
+		public void Create() {
+			// TODO:
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {

@@ -19,7 +19,16 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// A new table was created during a transaction.
+	/// </summary>
 	public sealed class TableCreatedEvent : ObjectCreatedEvent, ITableEvent {
+		/// <summary>
+		/// Constructs the event object with the given table name and unique
+		/// identification number.
+		/// </summary>
+		/// <param name="tableId">The unique identification number of the table created.</param>
+		/// <param name="tableName">The unique name of the table created.</param>
 		public TableCreatedEvent(int tableId, ObjectName tableName)
 			: base(tableName, DbObjectType.Table) {
 			TableId = tableId;
