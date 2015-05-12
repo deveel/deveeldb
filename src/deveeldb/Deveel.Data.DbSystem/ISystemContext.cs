@@ -17,17 +17,24 @@
 using System;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// The execution context of a database system, that is defining
-	/// the configurations and the components used to manaage databases.
+	/// the configurations and the components used to manage databases.
 	/// </summary>
 	public interface ISystemContext : IDisposable {
 		/// <summary>
 		/// Gets the system configuration
 		/// </summary>
 		IDbConfig Configuration { get; }
+
+		/// <summary>
+		/// Gets an instance of <see cref="IEventRegistry"/> that handles
+		/// events happening within the context of the database system.
+		/// </summary>
+		IEventRegistry EventRegistry { get; }
 
 		/// <summary>
 		/// Gets an object used to dynamically resolve database services.

@@ -34,8 +34,6 @@ namespace Deveel.Data.DbSystem {
 
 		bool IsOpen { get; }
 
-		IEventRegistry EventRegistry { get; }
-
 		ITable SingleRowTable { get; }
 
 

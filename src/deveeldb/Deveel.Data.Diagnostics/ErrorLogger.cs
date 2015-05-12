@@ -45,7 +45,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public void LogEvent(EventLog logEntry) {
-			var errorEvent = logEntry.Event as ErrorEvent;
+			var errorEvent = logEntry.Event;
 			if (errorEvent == null)
 				return;
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Diagnostics {
 				try {
 					var message = FormatMessage(logEntry, errorEvent);
 					WriteToLog(message);
-				} catch (Exception ex) {
+				} catch (Exception) {
 				}
 			}
 		}
@@ -62,16 +62,18 @@ namespace Deveel.Data.Diagnostics {
 			// TODO:
 		}
 
-		private string FormatMessage(EventLog logEntry, ErrorEvent errorEvent) {
+		private string FormatMessage(EventLog logEntry, IEvent errorEvent) {
+			var errorLevel = errorEvent.ErrorLevel().ToString().ToUpperInvariant();
+
 			var format = LogFormat;
 			format = format.Replace("[date]", FormatDate(logEntry.Date));
-			format = format.Replace("[user]", logEntry.Event.UserName);
-			format = format.Replace("[database]", logEntry.Event.DatabaseName);
-			format = format.Replace("[level]", errorEvent.Level.ToString().ToUpperInvariant());
-			format = format.Replace("[message]", errorEvent.Message);
+			format = format.Replace("[user]", logEntry.Event.UserName());
+			format = format.Replace("[database]", logEntry.Event.Database());
+			format = format.Replace("[level]", errorLevel);
+			format = format.Replace("[message]", errorEvent.EventMessage);
 			format = format.Replace("[code]", FormatErrorCode(errorEvent.EventClass, errorEvent.EventClass));
-			format = format.Replace("[stack]", GetStackTrace(errorEvent.Data));
-			format = format.Replace("[source]", GetSource(errorEvent.Data));
+			format = format.Replace("[stack]", errorEvent.StackTrace());
+			format = format.Replace("[source]", errorEvent.ErrorSource());
 			return format;
 		}
 
@@ -85,24 +87,6 @@ namespace Deveel.Data.Diagnostics {
 
 		private static string FormatErrorCode(int errorClass, int errorCode) {
 			return String.Format("{0:X}:{1:X}", errorClass, errorCode);
-		}
-
-		private static string GetStackTrace(IDictionary<string, object> data) {
-			object obj;
-			if (data == null ||
-			    !data.TryGetValue("StackTrace", out obj))
-				return null;
-
-			return (string) obj;
-		}
-
-		private static string GetSource(IDictionary<string, object> data) {
-			object obj;
-			if (data == null ||
-				!data.TryGetValue("StackTrace", out obj))
-				return null;
-
-			return (string)obj;			
 		}
 	}
 }

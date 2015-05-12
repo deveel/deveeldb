@@ -21,6 +21,10 @@ using System.Reflection;
 using TinyIoC;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// The default implementation of a <see cref="ISystemServiceProvider"/> that
+	/// encapsulates an IoC engine to resolve database services.
+	/// </summary>
 	public sealed class SystemServiceProvider : ISystemServiceProvider {
 		private TinyIoCContainer container;
 

@@ -18,45 +18,36 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class ErrorEvent : IDatabaseEvent {
-		internal ErrorEvent(string dbName, string userName, int eventClass, int errorCode, ErrorLevel level, string message, IDictionary<string, object> data) {
-			DatabaseName = dbName;
-			UserName = userName;
+	public sealed class ErrorEvent : IEvent {
+		internal ErrorEvent(int eventClass, int errorCode, string message) {
 			EventClass = eventClass;
 			ErrorCode = errorCode;
 			Message = message;
-			Level = level;
-			Data = data;
+			Data = new Dictionary<string, object>();
 		}
 
 		public int ErrorCode { get; private set; }
 
 		public string Message { get; private set; }
 
-		public ErrorLevel Level { get; private set; }
-
 		public IDictionary<string, object> Data { get; private set; }
 
-		byte IDatabaseEvent.EventType {
+		byte IEvent.EventType {
 			get { return (byte) EventType.Error; }
 		}
 
 		public int EventClass { get; private set; }
 
-		int IDatabaseEvent.EventCode {
+		int IEvent.EventCode {
 			get { return ErrorCode; }
 		}
 
-		string IDatabaseEvent.EventMessage {
+		string IEvent.EventMessage {
 			get { return Message; }
 		}
 
-		IDictionary<string, object> IDatabaseEvent.EventData {
+		IDictionary<string, object> IEvent.EventData {
 			get { return Data; }
 		}
-
-		public string DatabaseName { get; private set; }
-
-		public string UserName { get; private set; }
 	}
 }

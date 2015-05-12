@@ -22,7 +22,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class UserSession : IUserSession, ISessionEventSource {
+	public sealed class UserSession : IUserSession, IEventSource {
 		private List<LockHandle> lockHandles;
 
 		internal UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
@@ -48,12 +48,11 @@ namespace Deveel.Data.DbSystem {
 
 		public SessionInfo SessionInfo { get; private set; }
 
-		string IDatabaseEventSource.DatabaseName {
-			get { return Database.Name(); }
-		}
-
-		string ISessionEventSource.UserName {
-			get { return SessionInfo.User.Name; }
+		void IEventSource.FillEventData(IEvent @event) {
+			@event.Database(Database.Name());
+			@event.UserName(SessionInfo.User.Name);
+			
+			// TODO: Remote-Address, Protocol
 		}
 
 		public ITransaction Transaction { get; private set; }

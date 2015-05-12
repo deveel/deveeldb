@@ -24,7 +24,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class Database : IDatabase, IDatabaseEventSource {
+	public sealed class Database : IDatabase, IEventSource {
 		public Database(IDatabaseContext context) {
 			Context = context;
 
@@ -39,12 +39,15 @@ namespace Deveel.Data.DbSystem {
 			t.NewRow();
 			SingleRowTable = t;
 
-			EventRegistry = new DatabaseEventRegistry(this);
 			OpenTransactions = new TransactionCollection(this);
 		}
 
 		~Database() {
 			Dispose(false);
+		}
+
+		public string Name {
+			get { return Context.DatabaseName(); }
 		}
 
 		IDatabase ITransactionContext.Database {
@@ -53,8 +56,9 @@ namespace Deveel.Data.DbSystem {
 
 		public TransactionCollection OpenTransactions { get; private set; }
 
-		string IDatabaseEventSource.DatabaseName {
-			get { return Context.DatabaseName(); }
+		void IEventSource.FillEventData(IEvent @event) {
+			// TODO: Is there anything else to add?
+			@event.Database(Name);
 		}
 
 		ITransaction ITransactionContext.CreateTransaction(TransactionIsolation isolation) {
@@ -165,8 +169,6 @@ namespace Deveel.Data.DbSystem {
 		public bool IsOpen { get; private set; }
 
 		internal TableSourceComposite TableComposite { get; private set; }
-
-		public IEventRegistry EventRegistry { get; private set; }
 
 		public ITable SingleRowTable { get; private set; }
 

@@ -15,39 +15,22 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventRegistryExtensions {
 		public static void Error(this IEventRegistry registry, IEventSource source, ErrorException ex) {
-			var databaseName = String.Empty;
-			var userName = String.Empty;
-
-			if (source is IDatabaseEventSource) {
-				databaseName = ((IDatabaseEventSource) source).DatabaseName;
-
-				if (source is ISessionEventSource) {
-					userName = ((ISessionEventSource) source).UserName;
-				}
-			}
-
-			registry.RegisterEvent(ex.AsEvent(databaseName, userName));
+			registry.RegisterEvent(ex.AsEvent(source));
 		}
 
 		public static void Error(this IEventRegistry registry, IEventSource source, Exception ex) {
-			var databaseName = String.Empty;
-			var userName = String.Empty;
+			var errorEvent = new ErrorEvent(EventClasses.Runtime, -1, ex.Message);
+			errorEvent.ErrorLevel(ErrorLevel.Error);
+			errorEvent.StackTrace(ex.StackTrace);
+			errorEvent.ErrorSource(ex.Source);
 
-			if (source is IDatabaseEventSource) {
-				databaseName = ((IDatabaseEventSource) source).DatabaseName;
+			if (source != null)
+				source.FillEventData(errorEvent);
 
-				if (source is ISessionEventSource) {
-					userName = ((ISessionEventSource) source).UserName;
-				}
-			}
-
-			var data = new Dictionary<string, object> {{"StackTrace", ex.StackTrace}, {"Source", ex.Source}};
-			var errorEvent = new ErrorEvent(databaseName, userName, EventClasses.Runtime, -1, ErrorLevel.Error, ex.Message, data);
 			registry.RegisterEvent(errorEvent);
 		}
 
@@ -64,19 +47,15 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, ErrorLevel level, string message, string stackTrace, string errorSource) {
-			var databaseName = String.Empty;
-			var userName = String.Empty;
+			var errorEvent = new ErrorEvent(errorClass, errorCode, message);
+			errorEvent.ErrorLevel(level);
+			errorEvent.StackTrace(stackTrace);
+			errorEvent.ErrorSource(errorSource);
+			
+			if (source != null)
+				source.FillEventData(errorEvent);
 
-			if (source is IDatabaseEventSource) {
-				databaseName = ((IDatabaseEventSource)source).DatabaseName;
-
-				if (source is ISessionEventSource) {
-					userName = ((ISessionEventSource)source).UserName;
-				}
-			}
-
-			var data = new Dictionary<string, object> {{"StackTrace", stackTrace}, {"Source", errorSource}};
-			registry.RegisterEvent(new ErrorEvent(databaseName, userName, errorClass, errorCode, level, message, data));
+			registry.RegisterEvent(errorEvent);
 		}
 	}
 }

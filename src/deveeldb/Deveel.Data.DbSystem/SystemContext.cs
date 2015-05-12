@@ -16,11 +16,10 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Index;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Spatial;
 
 namespace Deveel.Data.DbSystem {
@@ -36,6 +35,8 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("configuration");
 
 			Configuration = configuration;
+			EventRegistry = new SystemEventRegistry(this);
+
 			Init();
 		}
 
@@ -44,6 +45,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public IDbConfig Configuration { get; private set; }
+
+		public IEventRegistry EventRegistry { get; private set; }
 
 		public ISystemServiceProvider ServiceProvider { get; set; }
 
@@ -73,7 +76,7 @@ namespace Deveel.Data.DbSystem {
 			if (type == typeof (ISpatialContext))
 				spatialContext = (ISpatialContext) obj;
 
-			if (obj != null)
+			if (obj != null && obj is IDatabaseService)
 				((IDatabaseService)obj).Configure(Configuration);
 		}
 

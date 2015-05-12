@@ -18,5 +18,6 @@ using System;
 
 namespace Deveel.Data.Diagnostics {
 	public interface IEventSource {
+		void FillEventData(IEvent @event);
 	}
 }

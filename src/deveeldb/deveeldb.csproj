@@ -127,7 +127,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseEventRegistry.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data.DbSystem\DataVersionAttribute.cs" />
@@ -181,19 +181,19 @@
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CommandTypes.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventLog.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventMetadataKeys.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistryExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\FileErrorLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICommandEvent.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\IDatabaseEventSource.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\IEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventRouter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventSource.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\ISessionEventSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
@@ -495,7 +495,7 @@
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventClasses.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventType.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\IDatabaseEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\IEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeNode.cs" />
@@ -699,7 +699,6 @@
     <Compile Include="Deveel.Data\DataObject.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data\ErrorException.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Deveel.Data\PatternSearch.cs" />

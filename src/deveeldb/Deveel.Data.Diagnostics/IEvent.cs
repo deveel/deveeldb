@@ -15,11 +15,37 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// This is an event occurred during the lifetime of a database.
+	/// </summary>
 	public interface IEvent {
-		string DatabaseName { get; }
+		/// <summary>
+		/// Gets a value that identifies the type of event
+		/// </summary>
+		/// <seealso cref="EventType"/>
+		byte EventType { get; }
 
-		string UserName { get; }
+		/// <summary>
+		/// Gets the class code of the event
+		/// </summary>
+		int EventClass { get; }
+
+		/// <summary>
+		/// Gets a unique event code within the class of event.
+		/// </summary>
+		int EventCode { get; }
+
+		/// <summary>
+		/// Gets a message that describes the message that occurred.
+		/// </summary>
+		string EventMessage { get; }
+
+		/// <summary>
+		/// Gets additional event data that come with the event.
+		/// </summary>
+		IDictionary<string, object> EventData { get; }
 	}
 }
