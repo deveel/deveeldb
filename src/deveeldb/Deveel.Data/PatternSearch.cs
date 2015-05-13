@@ -100,10 +100,10 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// This is the pattern match recurrsive method.
+		/// This is the pattern match recursive method.
 		/// </summary>
 		/// <remarks>
-		/// It recurses on each wildcard expression in the pattern which makes 
+		/// It recurses on each wild-card expression in the pattern which makes 
 		/// for slightly better efficiency than a character recurse algorithm.
 		/// However, patterns such as <c>_%_a</c> will result in many recursive 
 		/// calls.
@@ -116,9 +116,9 @@ namespace Deveel.Data {
 		/// character in the expression.
 		/// </para>
 		/// <para>
-		/// <b>Issue</b> Pattern optimiser, we should optimize wild cards of 
+		/// <b>Issue</b> Pattern optimizer, we should optimize wild cards of 
 		/// type <c>%__</c> to <c>__%</c>, or <c>%__%_%_%</c> to <c>____%</c>. 
-		/// Optimised forms are identical in result and more efficient. This 
+		/// Optimized forms are identical in result and more efficient. This 
 		/// optimization could be performed by the client during parsing of 
 		/// the <i>LIKE</i> statement.
 		/// </para>

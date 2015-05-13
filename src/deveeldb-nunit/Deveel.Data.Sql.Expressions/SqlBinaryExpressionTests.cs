@@ -362,12 +362,12 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[TestCase(567488, 90021, 653157)]
 		public void NumericXOr(double a, double b, double expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
-			var orExp = SqlExpression.XOr(exp1, exp2);
+			var exp1 = SqlExpression.Constant(DataObject.Double(a));
+			var exp2 = SqlExpression.Constant(DataObject.Double(b));
+			var xorExp = SqlExpression.XOr(exp1, exp2);
 
 			SqlExpression resultExp = null;
-			Assert.DoesNotThrow(() => resultExp = orExp.Evaluate());
+			Assert.DoesNotThrow(() => resultExp = xorExp.Evaluate());
 			Assert.IsNotNull(resultExp);
 			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
 
@@ -441,6 +441,34 @@ namespace Deveel.Data.Sql.Expressions {
 
 			var actual = ((SqlBoolean)constExp.Value.Value);
 			var expectedResult = new SqlBoolean(false);
+			Assert.AreEqual(expectedResult, actual);
+		}
+
+		[TestCase("Antonello", "Anto%", true)]
+		[TestCase("Antonello", "Anto", false)]
+		[TestCase("Antonello", "%nello", true)]
+		[TestCase("Antonello", "Anto_ello", true)]
+		[TestCase("Antonello", "Anton__ello", false)]
+		[TestCase("Antonello", "%Antonello%", true)]
+		[TestCase("Antonello", "Antonello_", false)]
+		[TestCase("Antonello Provenzano", "Antonello%", true)]
+		public void StringLikesPattern(string input, string patern, bool expected) {
+			var exp1 = SqlExpression.Constant(DataObject.String(patern));
+			var exp2 = SqlExpression.Constant(DataObject.String(input));
+			var likeExp = SqlExpression.Like(exp1, exp2);
+
+			SqlExpression resultExp = null;
+			Assert.DoesNotThrow(() => resultExp = likeExp.Evaluate());
+			Assert.IsNotNull(resultExp);
+			Assert.IsInstanceOf<SqlConstantExpression>(resultExp);
+
+			var constExp = (SqlConstantExpression)resultExp;
+			Assert.IsNotNull(constExp.Value.Value);
+			Assert.IsInstanceOf<BooleanType>(constExp.Value.Type);
+			Assert.IsInstanceOf<SqlBoolean>(constExp.Value.Value);
+
+			var actual = ((SqlBoolean)constExp.Value.Value);
+			var expectedResult = new SqlBoolean(expected);
 			Assert.AreEqual(expectedResult, actual);
 		}
 	}

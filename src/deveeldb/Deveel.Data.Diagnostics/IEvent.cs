@@ -46,6 +46,11 @@ namespace Deveel.Data.Diagnostics {
 		/// <summary>
 		/// Gets additional event data that come with the event.
 		/// </summary>
+		/// <remarks>
+		/// This is a dynamic set of key/value data pairs that
+		/// can be filled by event sources and consumed by specialized
+		/// handlers.
+		/// </remarks>
 		IDictionary<string, object> EventData { get; }
 	}
 }

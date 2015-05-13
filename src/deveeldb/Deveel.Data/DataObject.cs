@@ -264,11 +264,13 @@ namespace Deveel.Data {
 			return Boolean((Type as StringType).IsLike(valueString, patternString));
 		}
 
-		public DataObject IsNotLike(DataObject other) {
+		public DataObject IsNotLike(DataObject pattern) {
 			if (IsNull || !(Type is StringType))
 				return BooleanNull;
 
-			return Boolean((Type as StringType).IsNotLike(other.Value));
+			var valueString = (ISqlString)Value;
+			var patternString = (ISqlString)pattern.Value;
+			return Boolean((Type as StringType).IsNotLike(valueString, patternString));
 		}
 
 		/// <summary>

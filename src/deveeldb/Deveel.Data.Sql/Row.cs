@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql {
 	/// <seealso cref="ITable.GetValue"/>
 	/// <seealso cref="TableInfo.Id"/>
 	/// <seealso cref="RowId"/>
-	public sealed class Row {
+	public sealed class Row : IDbObject {
 		private RowVariableResolver variableResolver;
 		private Dictionary<int, DataObject> values;
 
@@ -79,9 +79,10 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// 
+		/// Constructs a new row on the given table that is not
+		/// established into that table.
 		/// </summary>
-		/// <param name="table"></param>
+		/// <param name="table">The parent table of the row.</param>
 		public Row(ITable table)
 			: this(table, RowId.Null) {
 		}
@@ -94,7 +95,19 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the row unique identifier within the database.
 		/// </summary>
+		/// <remarks>
+		/// When a row is not established in the parent table, this
+		/// value is <see cref="Sql.RowId.Null"/>.
+		/// </remarks>
 		public RowId RowId { get; private set; }
+
+		ObjectName IDbObject.FullName {
+			get { return new ObjectName(Table.FullName, RowId.RowNumber.ToString());}
+		}
+
+		DbObjectType IDbObject.ObjectType {
+			get { return DbObjectType.Row; }
+		}
 
 		/// <summary>
 		/// Gets or sets the value of a cell of the row at the given offset.
@@ -138,10 +151,17 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of columns in the parent table of this row.
+		/// </summary>
 		public int ColumnCount {
 			get { return Table.TableInfo.ColumnCount; }
 		}
 
+		/// <summary>
+		/// Gets a boolean value indicating if the column exists in the
+		/// parent table.
+		/// </summary>
 		public bool Exists {
 			get { return Table.Any(x => x.RowId.Equals(RowId)); }
 		}
@@ -224,6 +244,23 @@ namespace Deveel.Data.Sql {
 			values[columnOffset] = value;
 		}
 
+		/// <summary>
+		/// Gets a value for a cell of the row that corresponds to the
+		/// column of the table with the given name.
+		/// </summary>
+		/// <param name="columnName">The name of the column corresponding to
+		/// the cell to get.</param>
+		/// <returns>
+		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// of the cell stored in the database.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="columnName"/> is empty or <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// If no column with the given name was found in the parent table.
+		/// </exception>
+		/// <seealso cref="GetValue(int)"/>
 		public DataObject GetValue(string columnName) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
@@ -317,6 +354,13 @@ namespace Deveel.Data.Sql {
 			SetValue(columnOffset, value);
 		}
 
+		/// <summary>
+		/// Sets the <c>DEFAULT</c> value of all cells in the row as
+		/// configured in the columns definition corresponding to the cells.
+		/// </summary>
+		/// <param name="context">The context that is used to evaluate the
+		/// <c>DEFAULT</c> <see cref="SqlExpression"/> of the column.</param>
+		/// <seealso cref="SetDefault(int, IQueryContext)"/>
 		public void SetDefault(IQueryContext context) {
 			for (int i = 0; i < Table.TableInfo.ColumnCount; ++i) {
 				if (!values.ContainsKey(i)) {
@@ -401,10 +445,23 @@ namespace Deveel.Data.Sql {
 
 		#endregion
 
+		/// <summary>
+		/// Sets the number component of the ID of this column.
+		/// </summary>
+		/// <param name="rowNumber">The zero-based number to set
+		/// for identifying this row.</param>
+		/// <seealso cref="Sql.RowId.RowNumber"/>
+		/// <seealso cref="RowId"/>
 		public void SetRowNumber(int rowNumber) {
 			RowId = new RowId(Table.TableInfo.Id, rowNumber);
 		}
 
+		/// <summary>
+		/// Gathers the original values from the table for the
+		/// row number corresponding and populates this row
+		/// with those values, making it ready to be accessed.
+		/// </summary>
+		/// <seealso cref="SetValue(int, DataObject)"/>
 		public void SetFromTable() {
 			for (int i = 0; i < Table.TableInfo.ColumnCount; i++) {
 				SetValue(i, Table.GetValue(RowId.RowNumber, i));

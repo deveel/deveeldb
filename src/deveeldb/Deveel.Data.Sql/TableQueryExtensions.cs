@@ -24,6 +24,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Text;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {

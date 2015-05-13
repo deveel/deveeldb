@@ -2,7 +2,20 @@
 using System.Globalization;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// Extending methods for <see cref="IEvent"/> objects
+	/// </summary>
+	/// <seealso cref="IEvent"/>
 	public static class EventExtensions {
+		/// <summary>
+		/// Sets a meta-data value for a given key
+		/// </summary>
+		/// <param name="event">The event containing the data.</param>
+		/// <param name="key">The key of the value to set.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="key"/> specified is <c>null</c>.
+		/// </exception>
 		public static void SetData(this IEvent @event, string key, object value) {
 			if (@event.EventData == null)
 				return;
@@ -13,6 +26,19 @@ namespace Deveel.Data.Diagnostics {
 			@event.EventData[key] = value;
 		}
 
+		/// <summary>
+		/// Gets a meta-data value from the event.
+		/// </summary>
+		/// <typeparam name="T">The type of the returned value.</typeparam>
+		/// <param name="event">The event containing the data.</param>
+		/// <param name="key">The key of the value to get.</param>
+		/// <returns>
+		/// Returns a value of type <see cref="T"/> that was found for the
+		/// specified <paramref name="key"/> or the default value of <see cref="T"/>.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="key"/> specified is <c>null</c>.
+		/// </exception>
 		public static T GetData<T>(this IEvent @event, string key) {
 			if (String.IsNullOrEmpty(key))
 				throw new ArgumentNullException("key");
@@ -31,10 +57,20 @@ namespace Deveel.Data.Diagnostics {
 			return (T) obj;
 		}
 
+		/// <summary>
+		/// Sets the database name to the meta-data of the event.
+		/// </summary>
+		/// <param name="event">The event containing the data.</param>
+		/// <param name="value">The name of the database.</param>
 		public static void Database(this IEvent @event, string value) {
 			@event.SetData(EventMetadataKeys.Database, value);
 		}
 
+		/// <summary>
+		/// Gets the database name from the event meta-data.
+		/// </summary>
+		/// <param name="event">The event containing the data.</param>
+		/// <returns></returns>
 		public static string Database(this IEvent @event) {
 			return @event.GetData<string>(EventMetadataKeys.Database);
 		}

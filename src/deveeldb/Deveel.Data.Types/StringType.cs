@@ -22,6 +22,7 @@ using System.Text;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
+using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
 	[Serializable]
@@ -169,8 +170,12 @@ namespace Deveel.Data.Types {
 			return PatternSearch.FullPatternMatch(s1, s2, '\\');
 		}
 
-		public SqlBoolean IsNotLike(ISqlObject value) {
-			throw new NotImplementedException();
+		public SqlBoolean IsNotLike(ISqlString value, ISqlString pattern) {
+			var likeResult = IsLike(value, pattern);
+			if (likeResult.IsNull)
+				return likeResult;
+
+			return likeResult.Not();
 		}
 
 		public override object ConvertTo(ISqlObject obj, Type destType) {

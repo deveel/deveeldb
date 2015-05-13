@@ -180,7 +180,6 @@
     <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\CommandTypes.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
@@ -701,7 +700,6 @@
     </Compile>
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
-    <Compile Include="Deveel.Data\PatternSearch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TinyIoC.cs" />
   </ItemGroup>

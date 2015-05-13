@@ -26,15 +26,38 @@ namespace Deveel.Data.DbSystem {
 	/// encapsulating the transaction for operations.
 	/// </summary>
 	public interface IUserSession : IDisposable {
+		/// <summary>
+		/// Gets the instance of the database to which the user 
+		/// is connected to in this session.
+		/// </summary>
 		IDatabase Database { get; }
 
+		/// <summary>
+		/// Gets the name of the current schema of this session.
+		/// </summary>
 		string CurrentSchema { get; }
 
+		/// <summary>
+		/// Gets an object that encapsulates the information
+		/// regarding this user session.
+		/// </summary>
 		SessionInfo SessionInfo { get; }
 
+		/// <summary>
+		/// Gets the instance of <see cref="ITransaction"/> that handles the
+		/// transactional operations of this session.
+		/// </summary>
 		ITransaction Transaction { get; }
 
 
+		/// <summary>
+		/// Acquires a set of locks on the given lockable resources.
+		/// </summary>
+		/// <param name="toWrite">An array of lockable objects to which a <c>WRITE</c> lock
+		/// handle will be applied during this session.</param>
+		/// <param name="toRead">An array of lockable objects to which a <c>READ</c> lock
+		/// handle will be applied during this session.</param>
+		/// <param name="mode">The mode of locking to be applied to the resources</param>
 		void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode);
 
 		void ReleaseLocks();
@@ -70,8 +93,9 @@ namespace Deveel.Data.DbSystem {
 		void Commit();
 
 		/// <summary>
-		/// 
+		/// Rolls-back all the modifications made by the user in this session
 		/// </summary>
+		/// <seealse cref="ITransaction"/>
 		void Rollback();
 	}
 }

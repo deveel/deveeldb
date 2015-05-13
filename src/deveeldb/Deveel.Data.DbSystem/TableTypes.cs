@@ -17,6 +17,10 @@
 using System;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// Provides the constant names of the types of tables
+	/// in a database system.
+	/// </summary>
 	public static class TableTypes {
 		public const string Table = "TABLE";
 		public const string SystemTable = "SYSTEM TABLE";
