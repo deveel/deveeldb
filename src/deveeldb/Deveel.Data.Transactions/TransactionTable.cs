@@ -222,7 +222,7 @@ namespace Deveel.Data.Transactions {
 			return new Row(this, new RowId(TableId, -1));
 		}
 
-		public void AddRow(Row row) {
+		public RowId AddRow(Row row) {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read only.");
 
@@ -243,6 +243,8 @@ namespace Deveel.Data.Transactions {
 			// this table.
 			
 			EventRegistry.Register(new TableRowEvent(TableId, rowNum, TableRowEventType.Add));
+
+			return new RowId(TableId, rowNum);
 		}
 
 		public void UpdateRow(Row row) {

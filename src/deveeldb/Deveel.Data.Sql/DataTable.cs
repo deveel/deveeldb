@@ -19,18 +19,18 @@ using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
-using Deveel.Data.Transactions;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql {
 	class DataTable : BaseDataTable, IMutableTable {
-		public DataTable(ITransaction transaction, ITable table) {
-			Transaction = transaction;
+		public DataTable(IUserSession session, ITable table) {
+			Session = session;
 			Table = table;
 		}
 
 		public ITable Table { get; private set; }
 
-		public ITransaction Transaction { get; private set; }
+		public IUserSession Session { get; private set; }
 
 		private IMutableTable MutableTable {
 			get { return Table as IMutableTable; }
@@ -50,6 +50,24 @@ namespace Deveel.Data.Sql {
 
 		public override int RowCount {
 			get { return Table.RowCount; }
+		}
+
+		protected override int ColumnCount {
+			get { return Table.ColumnCount(); }
+		}
+
+		private void OnTableEvent(TriggerEventType eventType, RowId rowId, Row row) {
+			using (var context = new TriggerContext(Session, Table, eventType, rowId, row)) {
+				Session.FireTrigger(context);
+			}
+		}
+
+		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
+			if (!TableName.Equals(ancestor.TableInfo.TableName) && 
+				!ancestor.TableInfo.TableName.Equals(Table.TableInfo.TableName))
+				throw new Exception("Method routed to incorrect table ancestor.");
+
+			return rowSet;
 		}
 
 		protected override ColumnIndex GetColumnIndex(int columnOffset) {
@@ -85,22 +103,38 @@ namespace Deveel.Data.Sql {
 			MutableTable.RemoveLock();
 		}
 
-		public void AddRow(Row row) {
-			// TODO: Fire events ...
+		public RowId AddRow(Row row) {
+			OnTableEvent(TriggerEventType.BeforeInsert, RowId.Null, row);
 			
-			MutableTable.AddRow(row);
+			var newRowId = MutableTable.AddRow(row);
+
+			OnTableEvent(TriggerEventType.AfterInsert, newRowId, row);
+
+			return newRowId;
 		}
 
 		public void UpdateRow(Row row) {
-			// TODO: Fire events ...
+			if (row == null)
+				throw new ArgumentNullException("row");
+
+			var rowId = row.RowId;
+			if (rowId.IsNull)
+				throw new ArgumentException("Cannot update a row with NULL ROWID");
+
+			OnTableEvent(TriggerEventType.BeforeUpdate, rowId, row);
 
 			MutableTable.UpdateRow(row);
 		}
 
 		public bool RemoveRow(RowId rowId) {
-			// TODO: Fire events ...
+			OnTableEvent(TriggerEventType.BeforeDelete, rowId, null);
 
-			return MutableTable.RemoveRow(rowId);
+			// TODO: Maybe we should return the row removed here
+			var result = MutableTable.RemoveRow(rowId);
+
+			OnTableEvent(TriggerEventType.AfterDelete, rowId, null);
+
+			return result;
 		}
 
 		void IMutableTable.FlushIndexes() {
@@ -109,6 +143,13 @@ namespace Deveel.Data.Sql {
 
 		void IMutableTable.AssertConstraints() {
 			MutableTable.AssertConstraints();
+		}
+
+		protected override void Dispose(bool disposing) {
+			Session = null;
+			Table = null;
+
+			base.Dispose(disposing);
 		}
 	}
 }

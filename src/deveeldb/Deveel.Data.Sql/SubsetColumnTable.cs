@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql {
 			return Parent.GetValue(rowNumber, columnMap[columnOffset]);
 		}
 
-		public bool Equals(IRootTable other) {
+		public bool TypeEquals(IRootTable other) {
 			return this == other;
 		}
 	}

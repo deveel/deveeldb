@@ -454,7 +454,7 @@ namespace Deveel.Data.Transactions {
 					get { throw new InvalidOperationException(); }
 				}
 
-				public void AddRow(Row row) {
+				public RowId AddRow(Row row) {
 					throw new NotSupportedException(String.Format("Inserting data into '{0}' is not allowed.", tableInfo.TableName));
 				}
 

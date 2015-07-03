@@ -24,6 +24,7 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
@@ -46,6 +47,10 @@ namespace Deveel.Data.Transactions {
 
 		public static ViewManager GetViewManager(this ITransaction transaction) {
 			return (ViewManager) transaction.Managers.ResolveForType(DbObjectType.View);
+		}
+
+		public static TriggerManager GetTriggerManager(this ITransaction transaction) {
+			return transaction.Managers.ResolveForType(DbObjectType.Trigger) as TriggerManager;
 		}
 
 		#endregion

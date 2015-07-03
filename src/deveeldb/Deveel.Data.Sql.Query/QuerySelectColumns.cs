@@ -93,6 +93,9 @@ namespace Deveel.Data.Sql.Query {
 			SelectColumn newColumn;
 
 			var exp = column.Expression;
+			if (exp != null)
+				exp = exp.Prepare(fromSet.ExpressionPreparer);
+
 			if (exp is SqlReferenceExpression) {
 				var sqlRef = (SqlReferenceExpression) exp;
 				var colName = sqlRef.ReferenceName;

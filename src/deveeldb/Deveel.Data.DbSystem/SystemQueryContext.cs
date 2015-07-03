@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Security;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -53,6 +54,8 @@ namespace Deveel.Data.DbSystem {
 				CurrentSchema = currentSchema;
 				Transaction = transaction;
 				SessionInfo = sessionInfo;
+
+				TableCache = new MemoryCache(25, 150, 30);
 			}
 
 			public void Dispose() {
@@ -67,6 +70,8 @@ namespace Deveel.Data.DbSystem {
 			public SessionInfo SessionInfo { get; private set; }
 
 			public ITransaction Transaction { get; private set; }
+
+			public ICache TableCache { get; private set; }
 
 			public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
 			}

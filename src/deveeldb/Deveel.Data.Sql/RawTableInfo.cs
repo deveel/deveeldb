@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql {
 
 			for (int i = 0; i < merge2.Length; ++i) {
 				// Check the tables in merge2 are identical to the tables in merge1
-				if (!merge2[i].Table.Equals(merge1[i].Table))
+				if (!merge2[i].Table.TypeEquals(merge1[i].Table))
 					throw new ApplicationException("Incorrect format in table union");
 
 				if (size2 == -1) {

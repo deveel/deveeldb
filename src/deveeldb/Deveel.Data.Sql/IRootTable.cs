@@ -32,6 +32,7 @@ namespace Deveel.Data.Sql {
 	/// This interface is used for unions.
 	/// </para>
 	/// </remarks>
-	public interface IRootTable : ITable, IEquatable<IRootTable> {
+	public interface IRootTable : ITable {
+		bool TypeEquals(IRootTable other);
 	}
 }

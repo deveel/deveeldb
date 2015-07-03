@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql {
 			return new ObjectName(TableName, tableInfo[column].ColumnName);
 		}
 
-		public bool Equals(IRootTable other) {
+		public bool TypeEquals(IRootTable other) {
 			return other == this;
 		}
 	}

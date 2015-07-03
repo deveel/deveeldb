@@ -49,3 +49,5 @@ src/ddbperftest/obj/Debug/ddbperftest.csproj.FileListAbsolute.txt
 *.ide
 /src/deveeldb.doc/Help
 /src/deveeldb/TinyIoC.cs
+/src/deveeldb.doc/obj/Release/*.cache
+/src/*.DotSettings

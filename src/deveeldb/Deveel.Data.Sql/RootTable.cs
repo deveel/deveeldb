@@ -22,13 +22,16 @@ namespace Deveel.Data.Sql {
 			get { return TableInfo.TableName; }
 		}
 
-		public bool Equals(IRootTable other) {
+		protected virtual bool IsSameTable(RootTable other) {
+			return (TableName.Equals(other.TableName));
+		}
+
+		public bool TypeEquals(IRootTable other) {
 			if (other is RootTable) {
-				var otherRoot = (RootTable)other;
-				return (TableName.Equals(otherRoot.TableName));
+				return IsSameTable((RootTable) other);
 			}
 
-			return ReferenceEquals(this, other);
+			return this == other;
 		}
 	}
 }

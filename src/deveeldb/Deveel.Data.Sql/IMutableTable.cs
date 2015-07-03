@@ -40,6 +40,10 @@ namespace Deveel.Data.Sql {
 		/// </para>
 		/// </remarks>
 		/// <param name="row">The row to be persisted.</param>
+		/// <returns>
+		/// Returns a <see cref="RowId"/> that is the pointer to the row
+		/// established in the table.
+		/// </returns>
 		/// <exception cref="ArgumentException">
 		/// If the gven <paramref name="row"/> does not belong to 
 		/// the table context.
@@ -47,7 +51,7 @@ namespace Deveel.Data.Sql {
 		/// <exception cref="ArgumentNullException">
 		/// If the given <paramref name="row"/> is <c>null</c>.
 		/// </exception>
-		void AddRow(Row row);
+		RowId AddRow(Row row);
 
 		/// <summary>
 		/// Updates the values of a row into the table.

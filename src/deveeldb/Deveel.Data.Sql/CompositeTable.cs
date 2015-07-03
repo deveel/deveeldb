@@ -147,7 +147,7 @@ namespace Deveel.Data.Sql {
 			get { return mainTable.TableInfo; }
 		}
 
-		public bool Equals(IRootTable other) {
+		public bool TypeEquals(IRootTable other) {
 			return this == other;
 		}
 	}

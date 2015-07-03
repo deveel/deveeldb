@@ -16,19 +16,24 @@
 
 using System;
 
-namespace Deveel.Data.Routines {
+namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
 	/// The different types of high layer trigger events.
 	/// </summary>
 	[Flags]
 	public enum TriggerEventType {
 		///<summary>
+		/// The modification event of an <c>INSERT</c> of values into a table.
 		///</summary>
 		Insert = 0x001,
+
 		///<summary>
+		/// The modification event of a <c>DELETE</c> of values from a table.
 		///</summary>
 		Delete = 0x002,
+
 		///<summary>
+		/// The modification event of <c>UPDATE</c> of field values in a table.
 		///</summary>
 		Update = 0x004,
 
@@ -49,17 +54,26 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		BeforeInsert = Before | Insert,
 
+		/// <summary>
+		/// An event that occurs <c>BEFORE</c> a <c>DELETE</c> from a table.
+		/// </summary>
 		BeforeDelete = Before | Delete,
 
-		BefroeUpdate = Before | Update,
+		/// <summary>
+		/// An event that occurs <c>BEFORE</c> an <c>UPDATE</c> on a table.
+		/// </summary>
+		BeforeUpdate = Before | Update,
 
+		/// <summary>
+		/// An event that occurs <c>AFTER</c> an <c>INSERT</c> on a table.
+		/// </summary>
 		AfterInsert = After | Insert,
 
 		AfterUpdate = After | Update,
 
 		AfterDelete = After | Delete,
 
-		AllBefore = BeforeInsert | BeforeDelete | BefroeUpdate,
+		AllBefore = BeforeInsert | BeforeDelete | BeforeUpdate,
 		AllAfter = AfterInsert | AfterDelete | AfterUpdate,
 	}
 }

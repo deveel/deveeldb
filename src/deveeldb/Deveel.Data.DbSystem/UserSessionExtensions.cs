@@ -22,11 +22,14 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public static class UserSessionExtensions {
+		#region Variables
+
 		public static bool AutoCommit(this IUserSession session) {
 			return session.Transaction.AutoCommit();
 		}
@@ -46,6 +49,8 @@ namespace Deveel.Data.DbSystem {
 		public static bool IgnoreIdentifiersCase(this IUserSession session) {
 			return session.Transaction.IgnoreIdentifiersCase();
 		}
+
+		#endregion
 
 		#region Objects
 
@@ -101,6 +106,20 @@ namespace Deveel.Data.DbSystem {
 
 		#region Tables
 
+		public static ITable GetCachedTable(this IUserSession session, ObjectName tableName) {
+			if (session.TableCache == null)
+				return null;
+
+			return session.TableCache.Get(tableName) as ITable;
+		}
+
+		public static void CacheTable(this IUserSession session, ObjectName tableName, ITable table) {
+			if (session.TableCache == null)
+				return;
+
+			session.TableCache.Set(tableName, table);
+		}
+
 		public static ObjectName ResolveTableName(this IUserSession session, ObjectName tableName) {
 			return session.Transaction.ResolveTableName(tableName);
 		}
@@ -110,9 +129,18 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static ITable GetTable(this IUserSession session, ObjectName tableName) {
-			var table = session.GetObject(DbObjectType.Table, tableName) as ITable;
-			session.Transaction.GetTableManager().SelectTable(tableName);
-			return table;
+			var table = session.Transaction.GetTable(tableName);
+
+			if (table == null)
+				return null;
+
+			var dtable = session.GetCachedTable(tableName);
+			if (dtable == null) {
+				dtable = new DataTable(session, table);
+				session.CacheTable(tableName, dtable);
+			}
+
+			return dtable;
 		}
 
 		public static IMutableTable GetMutableTable(this IUserSession session, ObjectName tableName) {
@@ -258,6 +286,19 @@ namespace Deveel.Data.DbSystem {
 		public static void Lock(this IUserSession session, LockingMode mode) {
 			var lockable = new ILockable[] { session.Transaction };
 			session.Lock(lockable, lockable, LockingMode.Exclusive);
+		}
+
+		#endregion
+
+		#region Triggers
+
+		public static void FireTrigger(this IUserSession session, TriggerContext context) {
+			var manager = session.Transaction.GetTriggerManager();
+			if (manager == null)
+				return;
+
+			var eventInfo = new TriggerEventInfo(context.Table.TableInfo.TableName, context.EventType);
+			var triggers = manager.FindTriggers(eventInfo);
 		}
 
 		#endregion

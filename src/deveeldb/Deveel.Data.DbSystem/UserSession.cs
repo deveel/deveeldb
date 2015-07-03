@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -31,6 +32,8 @@ namespace Deveel.Data.DbSystem {
 
 			SessionInfo = sessionInfo;
 			database.ActiveSessions.Add(this);
+
+			TableCache = new MemoryCache(25, 1500, 30);
 		}
 
 		~UserSession() {
@@ -56,6 +59,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ITransaction Transaction { get; private set; }
+
+		public ICache TableCache { get; private set; }
 
 		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
 			lock (Database) {

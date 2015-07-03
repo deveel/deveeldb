@@ -225,6 +225,14 @@
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerBody.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
@@ -323,7 +331,7 @@
     <Compile Include="Deveel.Data.Index\RangeFieldOffset.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
     <Compile Include="Deveel.Data.Index\IndexRange.cs" />
-    <Compile Include="Deveel.Data.Routines\CallbackTriggerEvent.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerEvent.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
@@ -345,7 +353,7 @@
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
-    <Compile Include="Deveel.Data.Routines\TriggerEventType.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventType.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>

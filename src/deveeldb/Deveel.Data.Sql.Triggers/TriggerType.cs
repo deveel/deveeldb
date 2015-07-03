@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2015 Deveel
+//  Copyright 2010-2014 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -12,25 +12,23 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
-//
 
-using System;
+namespace Deveel.Data.Sql.Triggers {
+	/// <summary>
+	/// Enumerates the types of triggers, that can be volatile
+	/// (like the <see cref="Callback"/>) or stored in the database.
+	/// </summary>
+	public enum TriggerType {
+		/// <summary>
+		/// A trigger that exists only within a user session
+		/// and notifies of an event directly to the user client.
+		/// </summary>
+		Callback = 1,
 
-namespace Deveel.Data.Routines {
-	public sealed class CallbackTriggerEvent {
-		internal CallbackTriggerEvent(ObjectName triggerName, ObjectName triggerSource, TriggerEventType eventType, int fireCount) {
-			TriggerName = triggerName;
-			TriggerSource = triggerSource;
-			EventType = eventType;
-			FireCount = fireCount;
-		}
-
-		public ObjectName TriggerName { get; private set; }
-
-		public ObjectName TriggerSource { get; private set; }
-
-		public TriggerEventType EventType { get; private set; }
-
-		public int FireCount { get; private set; }
+		/// <summary>
+		/// Triggers that define a procedural body stored in the
+		/// database system.
+		/// </summary>
+		Procedure = 2
 	}
 }

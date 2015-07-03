@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -48,6 +49,12 @@ namespace Deveel.Data.DbSystem {
 		/// transactional operations of this session.
 		/// </summary>
 		ITransaction Transaction { get; }
+
+		/// <summary>
+		/// Gets an object that is used to cache table objects accessed during the
+		/// lifetime of the session.
+		/// </summary>
+		ICache TableCache { get; }
 
 
 		/// <summary>
