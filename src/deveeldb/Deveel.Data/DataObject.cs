@@ -47,6 +47,16 @@ namespace Deveel.Data {
 		/// </summary>
 		public static readonly DataObject BooleanNull = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.Null);
 
+		/// <summary>
+		/// Constructs a new database data object with a specific <see cref="DataType"/> 
+		/// and handling the specified <see cref="ISqlObject"/> value.
+		/// </summary>
+		/// <param name="type">The specific <see cref="DataType"/> that is used by this object
+		/// to shape the data and compute operations.</param>
+		/// <param name="value">The innermost value of the object to be handled.</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the specified <paramref name="type"/> is <c>null</c>.
+		/// </exception>
 		public DataObject(DataType type, ISqlObject value) {
 			if (type == null)
 				throw new ArgumentNullException("type");
@@ -68,13 +78,16 @@ namespace Deveel.Data {
 		public ISqlObject Value { get; private set; }
 
 		/// <summary>
-		/// Gets a value that indeicates if this object is materialized as <c>null</c>.
+		/// Gets a value that indicates if this object is materialized as <c>null</c>.
 		/// </summary>
 		/// <seealso cref="SqlNull.Value"/>
 		/// <seealso cref="ISqlObject.IsNull"/>
 		public bool IsNull {
 			get {
-				return Type.IsNull || Value == null || SqlNull.Value == Value || Value.IsNull;
+				return Type.IsNull ||
+				       Value == null ||
+				       SqlNull.Value == Value ||
+				       Value.IsNull;
 			}
 		}
 
@@ -190,6 +203,21 @@ namespace Deveel.Data {
 			return BooleanFalse;
 		}
 
+		/// <summary>
+		/// Compares the given object to verify if it is not compatible with
+		/// this one.
+		/// </summary>
+		/// <param name="other">The other object to compare.</param>
+		/// <remarks>
+		/// This method is equivalent to calling <see cref="Is"/> and
+		/// then <see cref="Negate"/> to obtain the inverse value.
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that defines
+		/// if the given object is not compatible with the current one.
+		/// </returns>
+		/// <seealso cref="Is"/>
+		/// <seealso cref="Negate"/>
 		public DataObject IsNot(DataObject other) {
 			return Is(other).Negate();
 		}
@@ -216,6 +244,21 @@ namespace Deveel.Data {
 			return BooleanNull;
 		}
 
+		/// <summary>
+		/// Compares to the given object to verify if is it not equal to the current.
+		/// </summary>
+		/// <param name="other">The other object to compare.</param>
+		/// <remarks>
+		/// This method returns a boolean value of <c>true</c> or <c>false</c>
+		/// only if the current object and the other object are not <c>null</c>.
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that defines
+		/// if the given object is equal to the current one, or a boolean
+		/// <c>null</c> if it was impossible to determine the types.
+		/// </returns>
+		/// <seealso cref="IsComparableTo"/>
+		/// <seealso cref="DataType.IsComparable"/>
 		public DataObject IsNotEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(Type.IsNotEqualTo(Value, other.Value));
@@ -251,6 +294,22 @@ namespace Deveel.Data {
 			return BooleanNull;
 		}
 
+		/// <summary>
+		/// When the type of this object is a string, this method verifies if the
+		/// input pattern is compatible (<<c>likes</c>) with the input. 
+		/// </summary>
+		/// <param name="pattern">The input string object pattern used to verify
+		/// the likeness with the underlying string object..</param>
+		/// <returns>
+		/// <remarks>
+		/// This operation can be computed only if <see cref="Type"/> represents a
+		/// <see cref="StringType"/> and the input <paramref name="pattern"/> also.
+		/// </remarks>
+		/// Returns an instance of <see cref="DataObject"/> that represents a
+		/// <c>true</c> or <c>false</c> if the underlying string value matches or not 
+		/// the provided pattern. If this object or the provided pattern are not strings,
+		/// this method returns a boolean <c>null</c>.
+		/// </returns>
 		public DataObject IsLike(DataObject pattern) {
 			if (IsNull || !(Type is StringType))
 				return BooleanNull;
@@ -300,6 +359,16 @@ namespace Deveel.Data {
 			return new DataObject(Type, Type.UnaryPlus(Value));
 		}
 
+		/// <summary>
+		/// Adds the given value to this object value.
+		/// </summary>
+		/// <param name="other">The object that handles the value
+		/// to be added to this one.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is the result of
+		/// he addition of this value to the provided value, or <c>null</c> if
+		/// this object or the other object <see cref="IsNull">is null</see>.
+		/// </returns>
 		public DataObject Add(DataObject other) {
 			if (IsNull)
 				return this;
@@ -401,8 +470,26 @@ namespace Deveel.Data {
 			return Type.CastTo(this, destType);
 		}
 
+		/// <summary>
+		/// Converts this object to a boolean type.
+		/// </summary>
+		/// <remarks>
+		/// This method is a shortcut to the original <see cref="CastTo"/>
+		/// method with a <see cref="BooleanType"/> parameter.
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is compatible
+		/// with a boolean type.
+		/// </returns>
+		/// <seealso cref="CastTo"/>
+		/// <seealso cref="PrimitiveTypes.Boolean()"/>
+		/// <seealso cref="BooleanType"/>
 		public DataObject AsBoolean() {
 			return CastTo(PrimitiveTypes.Boolean());
+		}
+
+		public DataObject AsTinyInt() {
+			return CastTo(PrimitiveTypes.TinyInt());
 		}
 
 		public DataObject AsInteger() {
@@ -415,6 +502,14 @@ namespace Deveel.Data {
 
 		public DataObject AsVarChar() {
 			return CastTo(PrimitiveTypes.String(SqlTypeCode.VarChar));
+		}
+
+		public DataObject AsDate() {
+			return CastTo(PrimitiveTypes.Date());
+		}
+
+		public DataObject AsTimeStamp() {
+			return CastTo(PrimitiveTypes.TimeStamp());
 		}
 
 		#endregion
@@ -555,6 +650,16 @@ namespace Deveel.Data {
 
 		#region Operators
 
+		/// <summary>
+		/// The equality operation between two <see cref="DataObject"/> instances.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that indicates the
+		/// boolean equality state of the two operands provided.
+		/// </returns>
+		/// <seealso cref="IsEqualTo"/>
 		public static DataObject operator ==(DataObject a, DataObject b) {
 			if (Equals(a, null) && Equals(b, null))
 				return BooleanNull;
@@ -564,6 +669,27 @@ namespace Deveel.Data {
 			return a.IsEqualTo(b);
 		}
 
+		public static DataObject operator ==(DataObject a, DBNull b) {
+			if (Equals(a, null) || a.IsNull)
+				return BooleanTrue;
+
+			return BooleanFalse;
+		}
+
+		public static DataObject operator !=(DataObject a, DBNull b) {
+			return !(a == b);
+		}
+
+		/// <summary>
+		/// The inequality operation between two <see cref="DataObject"/> instances.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that indicates the
+		/// boolean inequality state of the two operands provided.
+		/// </returns>
+		/// <seealso cref="IsNotEqualTo"/>
 		public static DataObject operator !=(DataObject a, DataObject b) {
 			if (Equals(a, null) && Equals(b, null))
 				return BooleanNull;
@@ -573,6 +699,16 @@ namespace Deveel.Data {
 			return a.IsNotEqualTo(b);
 		}
 
+		/// <summary>
+		/// The addition operator between two numeric values.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is the
+		/// numeric result of the addition of the two operands
+		/// </returns>
+		/// <seealso cref="Add"/>
 		public static DataObject operator +(DataObject a, DataObject b) {
 			if (Equals(a, null) && Equals(b, null))
 				return Null();
@@ -582,6 +718,16 @@ namespace Deveel.Data {
 			return a.Add(b);
 		}
 
+		/// <summary>
+		/// The subtraction operator between two numeric values.
+		/// </summary>
+		/// <param name="a">The first operand.</param>
+		/// <param name="b">The second operand.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="DataObject"/> that is the
+		/// numeric result of the subtraction of the two operands
+		/// </returns>
+		/// <seealso cref="Subtract"/>
 		public static DataObject operator -(DataObject a, DataObject b) {
 			if (Equals(a, null) && Equals(b, null))
 				return Null();
@@ -675,30 +821,51 @@ namespace Deveel.Data {
 
 		public static implicit operator bool(DataObject value) {
 			if (ReferenceEquals(value, null) || value.IsNull)
-				throw new InvalidCastException("Cannot convert a nullable value to a boolean.");
+				throw new InvalidCastException("Cannot convert a NULL value to a boolean.");
 
 			return (SqlBoolean) value.AsBoolean().Value;
 		}
 
 		public static implicit operator int(DataObject value) {
-			if (Equals(value, null) || value.IsNull)
-				throw new NullReferenceException();
+			if (ReferenceEquals(value, null) || value.IsNull)
+				throw new InvalidCastException("Cannot convert NULL value to integer.");
 
 			return ((SqlNumber)value.AsInteger().Value).ToInt32();
 		}
 
 		public static implicit operator long(DataObject value) {
-			if (Equals(value, null) || value.IsNull)
-				throw new NullReferenceException();
+			if (ReferenceEquals(value, null) || value.IsNull)
+				throw new InvalidCastException("Cannot convert NULL to long integer");
 
 			return ((SqlNumber) value.AsBigInt().Value).ToInt64();
 		}
 
 		public static implicit operator string(DataObject value) {
-			if (Equals(value, null) || value.IsNull)
+			if (ReferenceEquals(value, null) || value.IsNull)
 				return null;
 
 			return ((SqlString) value.AsVarChar().Value).Value;
+		}
+
+		public static implicit operator DateTime?(DataObject value) {
+			if (ReferenceEquals(value, null) || value.IsNull)
+				return null;
+
+			return ((SqlDateTime) value.AsDate().Value).ToDateTime();
+		}
+
+		public static implicit operator DateTime(DataObject value) {
+			if (ReferenceEquals(value, null) || value.IsNull)
+				throw new InvalidCastException("Cannot convert NULL value to a non-nullable date time.");
+
+			return ((SqlDateTime)value.AsDate().Value).ToDateTime();
+		}
+
+		public static implicit operator DBNull(DataObject value) {
+			if (ReferenceEquals(value, null) || value.IsNull)
+				return DBNull.Value;
+
+			throw new InvalidCastException("Cannot convert non-nullable value to DBNull.");
 		}
 
 		#endregion

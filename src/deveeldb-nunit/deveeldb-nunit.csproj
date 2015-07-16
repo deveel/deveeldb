@@ -119,6 +119,7 @@
     <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
+    <Compile Include="Deveel.Data\NullObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />
     <Compile Include="Deveel.Data\ObjectNameTest.cs" />
     <Compile Include="Deveel.Data\StringObjectTests.cs" />

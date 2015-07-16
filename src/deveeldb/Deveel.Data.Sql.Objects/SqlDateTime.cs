@@ -613,5 +613,12 @@ namespace Deveel.Data.Sql.Objects {
 
 			return ToTimeStampString().ToString();
 		}
+
+		public DateTime ToDateTime() {
+			if (value == null)
+				throw new InvalidCastException();
+
+			return value.Value.DateTime;
+		}
 	}
 }
