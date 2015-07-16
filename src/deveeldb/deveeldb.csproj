@@ -225,6 +225,11 @@
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTableActionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTableNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />

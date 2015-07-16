@@ -17,7 +17,15 @@
 using System;
 
 namespace Deveel.Data.Sql {
+	/// <summary>
+	/// Enumerates a known set of codes in a SQL Model
+	/// </summary>
 	public static class SqlModelErrorCodes {
+		/// <summary>
+		/// The preparation of a SQL statement caused an unhandled error. 
+		/// </summary>
+		public const int StatementPrepare = 50;
+
 		/// <summary>
 		/// A Primary Key constraint violation error code.
 		/// </summary>

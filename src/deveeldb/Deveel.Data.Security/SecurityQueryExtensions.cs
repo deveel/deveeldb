@@ -433,6 +433,18 @@ namespace Deveel.Data.Security {
 			return context.UserCanCreateInSchema(schema.FullName);
 		}
 
+		public static bool UserCanAlterInSchema(this IQueryContext context, string schemaName) {
+			return context.UserHasSchemaPrivilege(schemaName, Privileges.Alter);
+		}
+
+		public static bool UserCanAlterTable(this IQueryContext context, ObjectName tableName) {
+			var schema = tableName.Parent;
+			if (schema == null)
+				return false;
+
+			return context.UserCanAlterInSchema(schema.FullName);
+		}
+
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
 			return context.UserHasPrivilege(DbObjectType.Routine, routineName, Privileges.Execute);
 		}

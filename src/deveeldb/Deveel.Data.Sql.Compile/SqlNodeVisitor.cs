@@ -168,6 +168,20 @@ namespace Deveel.Data.Sql.Compile {
 				VisitTableConstraints(node.Constraints);
 		}
 
+		public virtual void VisitAlterTable(AlterTableNode node) {
+			if (node.CreateTable != null)
+				VisitCreateTable(node.CreateTable);
+
+			if (node.Actions != null) {
+				foreach (var action in node.Actions) {
+					VisitAlterTableAction(action);
+				}
+			}
+		}
+
+		public virtual void VisitAlterTableAction(AlterTableActionNode action) {
+		}
+
 		public virtual void VisitTableConstraints(IEnumerable<TableConstraintNode> constraints) {
 			foreach (var constraint in constraints) {
 				VisitTableConstraint(constraint);

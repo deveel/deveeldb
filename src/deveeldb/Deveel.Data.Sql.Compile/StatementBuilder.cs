@@ -49,6 +49,9 @@ namespace Deveel.Data.Sql.Compile {
 			if (node is CreateTriggerNode)
 				VisitCreateTrigger((CreateTriggerNode) node);
 
+			if (node is AlterTableNode)
+				VisitAlterTable((AlterTableNode) node);
+
 			if (node is SelectStatementNode)
 				VisitSelect((SelectStatementNode) node);
 
@@ -85,6 +88,10 @@ namespace Deveel.Data.Sql.Compile {
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			Visit(rootNode);
 			return statements.AsReadOnly();
+		}
+
+		public override void VisitAlterTable(AlterTableNode node) {
+			AlterTable.Build(typeResolver, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
@@ -214,6 +221,16 @@ namespace Deveel.Data.Sql.Compile {
 				tree.IfNotExists = ifNotExists;
 				tree.Temporary = temporary;
 				return tree;
+			}
+		}
+
+		#endregion
+
+		#region AlterTable
+
+		class AlterTable {
+			public static void Build(IUserTypeResolver typeResolver, AlterTableNode node, ICollection<SqlStatement> statements) {
+				// TODO:
 			}
 		}
 

@@ -19,10 +19,18 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Compile {
+	/// <summary>
+	/// An error that occurs when compiling a input string into
+	/// a SQL object.  
+	/// </summary>
 	[Serializable]
 	public sealed class SqlParseException : ErrorException {
 		public SqlParseException() 
-			: this(null) {
+			: this(CompileErrorCodes.SyntaxError) {
+		}
+
+		public SqlParseException(int errorCode) 
+			: base(EventClasses.Compiler, errorCode) {
 		}
 
 		public SqlParseException(string message) 
@@ -31,6 +39,14 @@ namespace Deveel.Data.Sql.Compile {
 
 		public SqlParseException(int errorCode, string message) 
 			: base(EventClasses.Compiler, errorCode, message) {
+		}
+
+		public SqlParseException(string message, Exception innerException) 
+			: this(CompileErrorCodes.SyntaxError, message, innerException) {
+		}
+
+		public SqlParseException(int errorCode, string message, Exception innerException) 
+			: base(EventClasses.Compiler, errorCode, message, innerException) {
 		}
 	}
 }
