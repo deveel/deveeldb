@@ -16,9 +16,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IList<IAlterTableAction> Actions { get; private set; } 
 
-		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			throw new NotImplementedException();
 		}
 

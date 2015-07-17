@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class AlterTableStatement : SqlStatement {
@@ -14,7 +15,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			if (String.IsNullOrEmpty(TableName))
 				throw new StatementPrepareException("The table name is required.");
 

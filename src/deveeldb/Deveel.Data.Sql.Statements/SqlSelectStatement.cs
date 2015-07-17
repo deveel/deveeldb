@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return StatementType.Select; }
 		}
 
-		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			// Prepare this object from the StatementTree,
 			// The select expression itself
 			var selectExpression = QueryExpression;

@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -46,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return StatementType.CreateTable; }
 		}
 
-		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new PreparedCreateTableStatement(tableInfo, IfNotExists, Temporary);

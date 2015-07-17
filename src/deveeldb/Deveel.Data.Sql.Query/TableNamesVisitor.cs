@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Query {
 
 				var queryObject = (SqlQueryObject) value.Value;
 				var planNode = queryObject.QueryPlan;
-				TableNames = planNode.DiscoverTableNames(TableNames);
+				TableNames = planNode.DiscoverTableNames();
 			}
 
 			return base.VisitConstant(constant);

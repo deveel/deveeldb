@@ -30,6 +30,10 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.SessionInfo.User;
 		}
 
+		public static string UserName(this IQueryContext context) {
+			return context.User().Name;
+		}
+
 		public static IQueryContext ForSystemUser(this IQueryContext queryContext) {
 			return new SystemQueryContext(queryContext.Session.Transaction, queryContext.CurrentSchema);
 		}
@@ -43,6 +47,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		#region Objects
+
+		public static bool ObjectExists(this IQueryContext context, ObjectName objectName) {
+			return context.Session.ObjectExists(objectName);
+		}
 
 		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			return context.Session.ObjectExists(objectType, objectName);
@@ -197,6 +205,10 @@ namespace Deveel.Data.DbSystem {
 		#endregion
 
 		#region Views
+
+		public static void CreateView(this IQueryContext context, View view) {
+			// TODO:
+		}
 
 		public static View GetView(this IQueryContext context, ObjectName viewName) {
 			return context.Session.GetView(viewName);

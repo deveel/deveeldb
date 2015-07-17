@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Query {
 	static class QueryPlanNodeExtensions {
-		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node, IList<ObjectName> tableNames) {
+		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node) {
 			var visitor = new QueryNodeTableNameVisitor();
 			return visitor.Discover(node);
 		}

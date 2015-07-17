@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -74,6 +75,8 @@ namespace Deveel.Data.Sql.Statements {
 		/// When overridden by an implementing class, this method generates a prepared
 		/// version of this statement that can be executed.
 		/// </summary>
+		/// <param name="preparer">An object used to prepare the SQL expressions contained
+		/// into the statement.</param>
 		/// <param name="context">The executing context in used to prepare the statement
 		/// properties.</param>
 		/// <returns>
@@ -81,8 +84,8 @@ namespace Deveel.Data.Sql.Statements {
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
 		/// <seealso cref="SqlPreparedStatement"/>
-		/// <seealso cref="Prepare"/>
-		protected abstract SqlPreparedStatement PrepareStatement(IQueryContext context);
+		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
+		protected abstract SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context);
 
 		/// <summary>
 		/// Prepares this statement and returns an object that can be executed
@@ -97,10 +100,27 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
 		public SqlPreparedStatement Prepare(IQueryContext context) {
+			return Prepare(null, context);
+		}
+
+		/// <summary>
+		/// Prepares this statement and returns an object that can be executed
+		/// within a given context.
+		/// </summary>
+		/// <param name="preparer">An object used to prepare the expressions contained in the statement.</param>
+		/// <param name="context">The execution context used to prepare the statement properties.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="SqlPreparedStatement"/> that represents the
+		/// prepared version of this statement and that will be executed in a later moment.
+		/// </returns>
+		/// <exception cref="StatementPrepareException">
+		/// Thrown if an error occurred while preparing the statement.
+		/// </exception>
+		public SqlPreparedStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
 			SqlPreparedStatement prepared;
 
 			try {
-				prepared = PrepareStatement(context);
+				prepared = PrepareStatement(preparer, context);
 
 				if (prepared == null)
 					throw new InvalidOperationException("Preparation was invalid.");
@@ -127,10 +147,27 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
 		public ITable Evaluate(IQueryContext context) {
+			return Evaluate(null, context);
+		}
+
+		/// <summary>
+		/// Prepares and evaluates this statement into a tabular result.
+		/// </summary>
+		/// <param name="preparer">An object used to prepare the SQL expressions contained
+		/// in the statement before the execution.</param>
+		/// <param name="context">The context used to prepare and evaluate the statement.</param>
+		/// <returns>
+		/// Returns a <see cref="ITable"/> object that contains the values resulting from the
+		/// evaluation of the statement.
+		/// </returns>
+		/// <exception cref="StatementPrepareException">
+		/// Thrown if an error occurred while preparing the statement.
+		/// </exception>
+		public ITable Evaluate(IExpressionPreparer preparer, IQueryContext context) {
 			SqlPreparedStatement prepared;
 
 			try {
-				prepared = Prepare(context);
+				prepared = Prepare(preparer, context);
 			} catch (Exception ex) {
 				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}
@@ -151,20 +188,35 @@ namespace Deveel.Data.Sql.Statements {
 		/// into a valid statement.
 		/// </exception>
 		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
+			return Parse(new SqlQuery(sqlSource));
+		}
+
+		public static IEnumerable<SqlStatement> Parse(SqlQuery query) {
+			if (query == null)
+				throw new ArgumentNullException("query");
+
 			var compiler = SqlParsers.Default;
 
 			try {
-				var result = compiler.Parse(sqlSource);
+				var sqlSource = query.Text;
+				var result = compiler.Parse(query.Text);
 				if (result.HasErrors)
 					throw new SqlParseException();
 
 				var builder = new StatementBuilder();
-				return builder.Build(result.RootNode, sqlSource);
+				var statements = builder.Build(result.RootNode, sqlSource).ToList();
+
+				foreach (var statement in statements) {
+					statement.IsFromQuery = true;
+					statement.SourceQuery = query;
+				}
+
+				return statements;
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {
 				throw new SqlParseException("The input string cannot be parsed into SQL Statements", ex);
 			}
-		}
+		} 
 	}
 }

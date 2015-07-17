@@ -402,5 +402,9 @@ namespace Deveel.Data.Types {
 			       typeCode != SqlTypeCode.ColumnType;
 
 		}
+
+		public virtual ISqlObject CreateFrom(object value) {
+			throw new NotSupportedException(String.Format("The type {0} does not support runtime object conversion.", ToString()));
+		}
 	}
 }

@@ -66,7 +66,8 @@ namespace Deveel.Data.DbSystem {
 				if (StoreSystem != null)
 					StoreSystem.Dispose();
 
-				Locker.Reset();
+				if (Locker != null)
+					Locker.Reset();
 			}
 
 			Locker = null;

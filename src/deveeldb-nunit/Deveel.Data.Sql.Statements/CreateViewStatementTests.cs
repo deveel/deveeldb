@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Deveel.Data.DbSystem;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
-	public class CreateViewStatementTests {
+	public class CreateViewStatementTests : ContextBasedTest {
 		[Test]
 		public void ParseSimpleCreateView() {
 			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
@@ -21,6 +23,10 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateViewStatement>(statementList[0]);
 
 			var createView = (CreateViewStatement) statementList[0];
+			Assert.IsNotNull(createView.SourceQuery);
+			Assert.IsTrue(createView.IsFromQuery);
+
+			Assert.IsNotNull(createView.ViewName);
 		}
 
 

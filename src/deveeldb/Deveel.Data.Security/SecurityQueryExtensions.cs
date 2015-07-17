@@ -64,6 +64,10 @@ namespace Deveel.Data.Security {
 			return false;
 		}
 
+		public static bool UserBelongsToGroup(this IQueryContext queryContext, string group) {
+			return UserBelongsToGroup(queryContext, queryContext.UserName(), group);
+		}
+
 		public static bool UserBelongsToGroup(this IQueryContext queryContext, string username, string group) {
 			// This is a special query that needs to access the lowest level of ITable, skipping
 			// other security controls
@@ -412,13 +416,27 @@ namespace Deveel.Data.Security {
 			}
 		}
 
+		public static bool UserHasSecureAccess(this IQueryContext context) {
+			if (context.User().IsSystem)
+				return true;
+
+			return context.UserBelongsToGroup(SystemGroupNames.SecureGroup);
+		}
+
 		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
 	Privileges privileges) {
 			return context.Session.UserHasPrivilege(objectType, objectName, privileges);
 		}
 
+		public static bool UserHasTablePrivilege(this IQueryContext context, ObjectName tableName, Privileges privileges) {
+			return context.UserHasPrivilege(DbObjectType.Table, tableName, privileges);
+		}
+
 		public static bool UserHasSchemaPrivilege(this IQueryContext context, string schemaName, Privileges privileges) {
-			return context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), privileges);
+			if (context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), privileges))
+				return true;
+
+			return context.UserHasSecureAccess();
 		}
 
 		public static bool UserCanCreateInSchema(this IQueryContext context, string schemaName) {
@@ -434,7 +452,10 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserCanAlterInSchema(this IQueryContext context, string schemaName) {
-			return context.UserHasSchemaPrivilege(schemaName, Privileges.Alter);
+			if (context.UserHasSchemaPrivilege(schemaName, Privileges.Alter))
+				return true;
+
+			return context.UserHasSecureAccess();
 		}
 
 		public static bool UserCanAlterTable(this IQueryContext context, ObjectName tableName) {
@@ -443,6 +464,15 @@ namespace Deveel.Data.Security {
 				return false;
 
 			return context.UserCanAlterInSchema(schema.FullName);
+		}
+
+		public static bool UserCanSelectFromTable(this IQueryContext context, ObjectName tableName) {
+			return UserCanSelectFromTable(context, tableName, new string[0]);
+		}
+
+		public static bool UserCanSelectFromTable(this IQueryContext context, ObjectName tableName, params string[] columnNames) {
+			// TODO: Column-level select will be implemented in the future
+			return context.UserHasTablePrivilege(tableName, Privileges.Select);
 		}
 
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
@@ -461,6 +491,9 @@ namespace Deveel.Data.Security {
 			using (var systemContext = context.ForSystemUser()) {
 				systemContext.GrantToUserOn(objectType, objectName, context.User(), privileges);
 			}
+		}
+
+		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges) {
 		}
 
 		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, Privileges privileges) {

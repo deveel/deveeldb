@@ -70,6 +70,10 @@ namespace Deveel.Data.DbSystem {
 			session.Transaction.CreateObject(objectInfo);
 		}
 
+		public static bool ObjectExists(this IUserSession session, ObjectName objectName) {
+			return session.Transaction.ObjectExists(objectName);
+		}
+
 		public static bool ObjectExists(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
 			return session.Transaction.ObjectExists(objectType, objectName);
 		}

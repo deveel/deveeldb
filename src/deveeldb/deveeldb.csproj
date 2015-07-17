@@ -229,6 +229,9 @@
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\QueryContextStatementExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
@@ -319,6 +322,7 @@
     <Compile Include="Deveel.Data.Sql\RawTableInfo.cs" />
     <Compile Include="Deveel.Data.Sql\ReferenceTable.cs" />
     <Compile Include="Deveel.Data.Sql\RootTable.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\SubsetColumnTable.cs" />
     <Compile Include="Deveel.Data.Sql\Table.cs" />
     <Compile Include="Deveel.Data.Sql\IndexInfo.cs" />

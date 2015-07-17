@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
@@ -52,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return StatementType.CreateView;}
 		}
 
-		protected override SqlPreparedStatement PrepareStatement(IQueryContext context) {
+		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var viewName = context.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
@@ -98,24 +99,64 @@ namespace Deveel.Data.Sql.Statements {
 			var table = queryPlan.Evaluate(context);
 			var tableInfo = table.TableInfo.Alias(viewName);
 
-			return new PreparedCreateView(tableInfo, queryPlan);
+			return new PreparedCreateView(tableInfo, QueryExpression, queryPlan);
 		}
 
 		#region PreparedCreateView
 
 		[Serializable]
 		class PreparedCreateView : SqlPreparedStatement {
-			public PreparedCreateView(TableInfo tableInfo, IQueryPlanNode queryPlan) {
+			public PreparedCreateView(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
 				TableInfo = tableInfo;
 				QueryPlan = queryPlan;
+				QueryExpression = queryExpression;
 			}
 
 			public TableInfo TableInfo { get; private set; }
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
+			public SqlQueryExpression QueryExpression { get; private set; }
+
+			protected void CheckUserSelectPermissions(IQueryContext context, IQueryPlanNode plan) {
+				// Discover the list of TableName objects this command touches,
+				var touchedTables = plan.DiscoverTableNames();
+
+				// Check that the user is allowed to select from these tables.
+				foreach (var tableName in touchedTables) {
+					if (!context.UserCanSelectFromTable(tableName))
+						throw new InvalidAccessException(tableName);
+				}
+			}
+
 			public override ITable Evaluate(IQueryContext context) {
-				throw new NotImplementedException();
+				var viewName = TableInfo.TableName;
+
+				if (!context.UserCanCreateTable(viewName))
+					throw new InvalidOperationException();	// TODO: Specialized security exception
+
+				if (context.ObjectExists(viewName))
+					throw new InvalidOperationException();	// TODO: Specialized exception here
+
+				// Check the permissions for this user to select from the tables in the
+				// given plan.
+				CheckUserSelectPermissions(context, QueryPlan);
+
+				// We have to execute the plan to get the DataTableInfo that represents the
+				// result of the view execution.
+				var t = QueryPlan.Evaluate(context);
+				var tableInfo = t.TableInfo.Alias(viewName);
+				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
+
+				var view = new View(viewInfo);
+
+				context.CreateView(view);
+
+				// The initial grants for a view is to give the user who created it
+				// full access.
+				context.GrantToUserOnTable(viewName, Privileges.TableAll);
+
+				return FunctionTable.ResultTable(context, 0);
 			}
 		}
 
