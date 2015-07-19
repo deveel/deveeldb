@@ -23,7 +23,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public interface IDatabase : ITransactionContext, IDisposable {
+	public interface IDatabase : ITransactionContext, IEventSource, IDisposable {
 		IDatabaseContext Context { get; }
 
 		Version Version { get; }

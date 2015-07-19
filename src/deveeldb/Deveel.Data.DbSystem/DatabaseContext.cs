@@ -80,8 +80,6 @@ namespace Deveel.Data.DbSystem {
 
 		public IStoreSystem StoreSystem { get; private set; }
 
-		public IQueryPlanner QueryPlanner { get; private set; }
-
 		public IRoutineResolver RoutineResolver { get; private set; }
 
 		public TableCellCache CellCache { get; private set; }

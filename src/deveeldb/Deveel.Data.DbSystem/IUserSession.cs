@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -26,7 +27,7 @@ namespace Deveel.Data.DbSystem {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface IUserSession : IDisposable {
+	public interface IUserSession : IEventSource, IDisposable {
 		/// <summary>
 		/// Gets the instance of the database to which the user 
 		/// is connected to in this session.

@@ -23,7 +23,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class UserSession : IUserSession, IEventSource {
+	public sealed class UserSession : IUserSession {
 		private List<LockHandle> lockHandles;
 
 		internal UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {

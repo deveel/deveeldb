@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -93,6 +94,11 @@ namespace Deveel.Data.DbSystem {
 
 			public void Rollback() {
 				Transaction.Rollback();
+			}
+
+			public void FillEventData(IEvent @event) {
+				@event.Database(Database.Name());
+				@event.UserName(SessionInfo.User.Name);
 			}
 		}
 

@@ -24,7 +24,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class Database : IDatabase, IEventSource {
+	public sealed class Database : IDatabase {
 		public Database(IDatabaseContext context) {
 			Context = context;
 

@@ -180,6 +180,8 @@
     <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\DebugEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\DebugeventRouter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
@@ -193,7 +195,10 @@
     <Compile Include="Deveel.Data.Diagnostics\IEventRouter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventSource.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\NotificationEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\NotificationLevel.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\QueryContextEventExtensions.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
     </Compile>
