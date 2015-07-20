@@ -12,12 +12,10 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateViewStatementTests : ContextBasedTest {
-		private IQueryContext queryContext;
-		private IUserSession userSession;
 
-		protected override void OnSetUp() {
+		protected override IQueryContext CreateQueryContext(IDatabase database) {
 			// We first create the table in another context...
-			using (var session = Database.CreateSession(AdminUserName, AdminPassword)) {
+			using (var session = database.CreateSession(AdminUserName, AdminPassword)) {
 				using (var context = new SessionQueryContext(session)) {
 					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
@@ -29,18 +27,7 @@ namespace Deveel.Data.Sql.Statements {
 				session.Commit();
 			}
 
-			userSession = Database.CreateSession(AdminUserName, AdminPassword);
-			queryContext = new SessionQueryContext(userSession);
-		}
-
-		protected override void OnTearDown() {
-			if (queryContext != null)
-				queryContext.Dispose();
-			if (userSession != null)
-				userSession.Dispose();
-
-			queryContext = null;
-			userSession = null;
+			return base.CreateQueryContext(database);
 		}
 
 		[Test]
@@ -114,7 +101,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateViewStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(queryContext));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}

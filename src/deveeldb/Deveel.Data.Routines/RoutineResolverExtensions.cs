@@ -46,23 +46,23 @@ namespace Deveel.Data.Routines {
 			return function.FunctionType == FunctionType.Aggregate;
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, string name) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, string name) {
 			return ResolveFunction(resolver, null, name);
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, IQueryContext context, string name) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name) {
 			return ResolveFunction(resolver, context, name, new SqlExpression[0]);
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, string name, params SqlExpression[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, string name, params SqlExpression[] args) {
 			return ResolveFunction(resolver, null, name, args);
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, string name, params DataObject[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, string name, params DataObject[] args) {
 			return ResolveFunction(resolver, null, name, args);
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, IQueryContext context, string name, params DataObject[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name, params DataObject[] args) {
 			var exps = new SqlExpression[0];
 			if (args != null && args.Length > 0) {
 				exps = new SqlExpression[args.Length];
@@ -74,7 +74,7 @@ namespace Deveel.Data.Routines {
 			return resolver.ResolveFunction(context, name, exps);
 		}
 
-		public static IFunction ResolveFunction(this FunctionFactory resolver, IQueryContext context, string name, SqlExpression[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name, SqlExpression[] args) {
 			var funName = new ObjectName(new ObjectName(resolver.SchemaName), name);
 			var routine = resolver.ResolveRoutine(new Invoke(funName, args), context);
 			if (!(routine is IFunction))

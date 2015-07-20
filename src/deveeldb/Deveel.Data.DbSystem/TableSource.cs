@@ -1034,7 +1034,7 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			// Update the cell cache as appropriate
-			if (CellCaching) {
+			if (CellCaching && row.CanBeCached) {
 				int rowCells = row.ColumnCount;
 				for (int i = 0; i < rowCells; ++i) {
 					// Put the row/column/TObject into the cache.
@@ -1299,7 +1299,7 @@ namespace Deveel.Data.DbSystem {
 			DataObject cell;
 			if (CellCaching) {
 				cell = CellCache.Get(TableId, rowIndex, columnOffset);
-				if (cell != null)
+				if (!Equals(cell, null))
 					return cell;
 			}
 

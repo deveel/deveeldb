@@ -205,7 +205,7 @@ namespace Deveel.Data.DbSystem {
 					// Create the system views
 					// TODO: InformationSchema.CreateSystemViews(session);
 
-					CreateAdminUser(context, adminName, adminPassword);
+					this.CreateAdminUser(context, adminName, adminPassword);
 
 					SetCurrentDataVersion(session);
 
@@ -236,34 +236,12 @@ namespace Deveel.Data.DbSystem {
 		private void CreateSchemata(IUserSession session) {
 			try {
 				// TODO: Create INFORMATION_SCHEMA
+				session.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
 				session.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {
 				throw new DatabaseSystemException("Unable to create the default schema for the database.", ex);
-			}
-		}
-
-		private void CreateAdminUser(IQueryContext context, string adminName, string adminPassword) {
-			try {
-				var user = context.CreateUser(adminName, adminPassword);
-
-				// This is the admin user so add to the 'secure access' table.
-				context.AddUserToGroup(adminName, SystemGroupNames.SecureGroup);
-
-				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, "%");
-				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, "%");
-
-				context.GrantToUserOnSchema(Context.DefaultSchema(), user, User.System, Privileges.SchemaAll, true);
-				context.GrantToUserOnSchema(SystemSchema.Name, user, User.System, Privileges.SchemaRead);
-
-				// TODO: Grant READ on INFORMATION_SCHEMA
-
-				context.GrantToUserOnSchemaTables(SystemSchema.Name, user, User.System, Privileges.TableRead);
-			} catch (DatabaseSystemException) {
-				throw;
-			} catch (Exception ex) {
-				throw new DatabaseSystemException("Could not create the database administrator.", ex);
 			}
 		}
 

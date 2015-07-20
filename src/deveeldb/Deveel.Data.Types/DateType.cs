@@ -74,6 +74,10 @@ namespace Deveel.Data.Types {
 			get { return true; }
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlDateTime || value is SqlNull;
+		}
+
 		public override bool Equals(object obj) {
 			var other = obj as DataType;
 			if (other == null)

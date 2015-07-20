@@ -54,6 +54,10 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException(String.Format("The SQL type {0} is not a BINARY", sqlType));
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlBinary || value is SqlNull;
+		}
+
 		public override string ToString() {
 			var sb = new StringBuilder(Name);
 			if (MaxSize > 0)

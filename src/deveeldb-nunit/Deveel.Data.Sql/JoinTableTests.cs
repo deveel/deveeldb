@@ -15,10 +15,8 @@
 
 using System;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Deveel.Data.DbSystem;
-using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -28,44 +26,13 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class JoinTableTests : ContextBasedTest {
-		private IUserSession session;
-		private IQueryContext context;
-
-		//[SetUp]
-		//public void SetUp() {
-		//	var systemContext = new SystemContext(DbConfig.Default);
-		//	var dbContext = new DatabaseContext(systemContext, "testdb");
-		//	var database = new Database(dbContext);
-		//	database.Create("SA", "12345");
-		//	database.Open();
-
-		//	session = database.CreateSession(User.System);
-		//	context = new SessionQueryContext(session);
-
-		//	CreateTestTables();
-		//	AddTestData();
-		//}
-
 		protected override void OnSetUp() {
-			session = Database.CreateSession(AdminUserName, AdminPassword);
-			context = new SessionQueryContext(session);
-
 			CreateTestTables();
 			AddTestData();
 		}
 
-		protected override void OnTearDown() {
-			if (context != null)
-				context.Dispose();
-			if (session != null)
-				session.Dispose();
-
-			context = null;
-			session = null;
-		}
-
 		private void AddTestData() {
-			var table = session.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
+			var table = QueryContext.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
 
 			var row = table.NewRow();
 			row["person_id"] = DataObject.Integer(1);
@@ -79,7 +46,7 @@ namespace Deveel.Data.Sql {
 			row["age"] = DataObject.Integer(56);
 			table.AddRow(row);
 
-			table = session.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
+			table = QueryContext.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
 			row = table.NewRow();
 			row["person_id"] = DataObject.Integer(1);
 			row["code"] = DataObject.String("123456");
@@ -89,11 +56,11 @@ namespace Deveel.Data.Sql {
 
 		private void CreateTestTables() {
 			var tableInfo = CreateFirstTable();
-			session.CreateTable(tableInfo);
-			session.AddPrimaryKey(tableInfo.TableName, "person_id");
+			QueryContext.CreateTable(tableInfo);
+			QueryContext.AddPrimaryKey(tableInfo.TableName, "person_id");
 
 			tableInfo = CreateSecondTable();
-			session.CreateTable(tableInfo);
+			QueryContext.CreateTable(tableInfo);
 		}
 
 		private TableInfo CreateSecondTable() {
@@ -114,10 +81,6 @@ namespace Deveel.Data.Sql {
 			return tableInfo;
 		}
 
-		[TearDown]
-		public void TearDown() {
-		}
-
 		[Test]
 		public void NaturalInnerJoin() {
 			SqlExpression expression = null;
@@ -126,7 +89,7 @@ namespace Deveel.Data.Sql {
 			Assert.IsInstanceOf<SqlQueryExpression>(expression);
 
 			SqlExpression resultExpression = null;
-			Assert.DoesNotThrow(() => resultExpression = expression.Evaluate(context, null));
+			Assert.DoesNotThrow(() => resultExpression = expression.Evaluate(QueryContext, null));
 			Assert.IsNotNull(resultExpression);
 			Assert.IsInstanceOf<SqlConstantExpression>(resultExpression);
 
@@ -134,7 +97,7 @@ namespace Deveel.Data.Sql {
 			Assert.IsInstanceOf<QueryType>(constantExpression.Value.Type);
 
 			SqlExpression tabularExpression = null;
-			Assert.DoesNotThrow(() => tabularExpression = constantExpression.Evaluate(context, null));
+			Assert.DoesNotThrow(() => tabularExpression = constantExpression.Evaluate(QueryContext, null));
 			Assert.IsNotNull(tabularExpression);
 			Assert.IsInstanceOf<SqlConstantExpression>(tabularExpression);
 

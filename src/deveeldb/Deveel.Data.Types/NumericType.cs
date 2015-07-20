@@ -57,6 +57,10 @@ namespace Deveel.Data.Types {
 			       Scale == other.Scale;
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlNumber || value is SqlNull;
+		}
+
 		public override int GetHashCode() {
 			return (SqlType.GetHashCode() * Scale) + Size.GetHashCode();
 		}

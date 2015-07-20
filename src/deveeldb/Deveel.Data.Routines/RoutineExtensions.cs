@@ -52,11 +52,12 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
+			var request = new Invoke(routine.FullName, args);
+
 			if (context != null &&
-				!context.UserCanExecuteFunction(routine.FullName))
+			    !context.UserCanExecuteFunction(request))
 				throw new InvalidOperationException();
 
-			var request = new Invoke(routine.FullName, args);
 			var executeContext = new ExecuteContext(request, routine, resolver, group, context);
 			return routine.Execute(executeContext);
 		}

@@ -42,6 +42,10 @@ namespace Deveel.Data.Types {
 			get { return true; }
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlBoolean || value is SqlNull;
+		}
+
 		public override int Compare(ISqlObject x, ISqlObject y) {
 			if (!(x is SqlBoolean))
 				throw new ArgumentException();

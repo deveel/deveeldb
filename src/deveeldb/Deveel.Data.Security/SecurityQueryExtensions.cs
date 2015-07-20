@@ -475,16 +475,24 @@ namespace Deveel.Data.Security {
 			return context.UserHasTablePrivilege(tableName, Privileges.Select);
 		}
 
-		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, ObjectName routineName) {
-			return context.UserHasPrivilege(DbObjectType.Routine, routineName, Privileges.Execute);
+		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, Invoke invoke) {
+			if (routineType == RoutineType.Function &&
+				context.IsSystemFunction(invoke)) {
+				return true;
+			}
+
+			if (context.UserHasSecureAccess())
+				return true;
+
+			return context.UserHasPrivilege(DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
 		}
 
-		public static bool UserCanExecuteFunction(this IQueryContext context, ObjectName functionName) {
-			return context.UserCanExecute(RoutineType.Function, functionName);
+		public static bool UserCanExecuteFunction(this IQueryContext context, Invoke invoke) {
+			return context.UserCanExecute(RoutineType.Function, invoke);
 		}
 
-		public static bool UserCanExecuteProcedure(this IQueryContext context, ObjectName procedureName) {
-			return context.UserCanExecute(RoutineType.Procedure, procedureName);
+		public static bool UserCanExecuteProcedure(this IQueryContext context, Invoke invoke) {
+			return context.UserCanExecute(RoutineType.Procedure, invoke);
 		}
 
 		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {

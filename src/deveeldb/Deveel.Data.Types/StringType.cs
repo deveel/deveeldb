@@ -101,6 +101,10 @@ namespace Deveel.Data.Types {
 			}
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlString || value is SqlNull || value == null;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString() {
 			var sb = new StringBuilder(Name);

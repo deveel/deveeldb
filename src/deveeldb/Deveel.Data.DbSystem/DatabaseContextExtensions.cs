@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Query;
@@ -86,15 +87,20 @@ namespace Deveel.Data.DbSystem {
 			return context.SystemContext.ServiceProvider.Resolve(type)  as IQueryPlanner;
 		}
 
-		#region Routines
-		
-		public static IRoutine ResolveRoutine(this IDatabaseContext context, Invoke invoke, IQueryContext queryContext) {
-			if (context.RoutineResolver == null)
-				return null;
-
-			return context.RoutineResolver.ResolveRoutine(invoke, queryContext);
+		public static int CellCacheMaxSize(this IDatabaseContext context) {
+			return context.Configuration.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
 		}
 
-		#endregion
+		public static int CellCacheMaxCellSize(this IDatabaseContext context) {
+			return context.Configuration.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
+		}
+
+		public static Type CellCacheType(this IDatabaseContext context) {
+			var typeString = context.Configuration.GetString(DatabaseConfigKeys.CellCacheType);
+			if (String.IsNullOrEmpty(typeString))
+				return typeof (MemoryCache);
+
+			return Type.GetType(typeString, false, true);
+		}
 	}
 }

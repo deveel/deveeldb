@@ -1,11 +1,8 @@
 ﻿using System;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Deveel.Data.DbSystem;
-using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using NUnit.Framework;
@@ -13,13 +10,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class MutableTableTests : ContextBasedTest {
-		private IUserSession session;
-		private SessionQueryContext context;
-
 		protected override void OnSetUp() {
-			session = Database.CreateSession(AdminUserName, AdminPassword);
-			context = new SessionQueryContext(session);
-
 			var test = TestContext.CurrentContext.Test;
 
 			var table = CreateTable();
@@ -27,17 +18,6 @@ namespace Deveel.Data.Sql {
 			if (test.Name != "InsertInto") {
 				InsertIntoTable(table);
 			}
-		}
-
-		protected override void OnTearDown() {
-			if (context != null)
-				context.Dispose();
-
-			if (session != null)
-				session.Dispose();
-
-			context = null;
-			session = null;
 		}
 
 		private void InsertIntoTable(IMutableTable table) {
@@ -67,13 +47,8 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("order", PrimitiveTypes.Integer());
 
-			session.CreateTable(tableInfo);
-			return session.GetMutableTable(tableName);
-		}
-
-		[TearDown]
-		public void TearDown() {
-
+			QueryContext.CreateTable(tableInfo);
+			return QueryContext.GetMutableTable(tableName);
 		}
 
 		[Test]
@@ -86,7 +61,7 @@ namespace Deveel.Data.Sql {
 			var queryExpression = SqlExpression.GreaterThan(SqlExpression.Reference(new ObjectName("order")), SqlExpression.Constant(2));
 
 			int deleteCount = -1;
-			Assert.DoesNotThrow(() => deleteCount = context.DeleteFrom(ObjectName.Parse("APP.test_table"), queryExpression));
+			Assert.DoesNotThrow(() => deleteCount = QueryContext.DeleteFrom(ObjectName.Parse("APP.test_table"), queryExpression));
 			Assert.AreEqual(1, deleteCount);
 		}
 	}

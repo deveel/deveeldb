@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Configuration;
-using Deveel.Data.DbSystem;
 using Deveel.Data.Deveel.Data.DbSystem;
-using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -14,36 +11,6 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateTableStatementTests : ContextBasedTest {
-		private IUserSession session;
-		private IQueryContext context;
-
-		//[SetUp]
-		//public void SetUp() {
-		//	var systemContext = new SystemContext(DbConfig.Default);
-		//	var dbContext = new DatabaseContext(systemContext, "testdb");
-		//	var database = new Database(dbContext);
-		//	database.Create("SA", "12345");
-		//	database.Open();
-
-		//	session = database.CreateSession("SA", "12345");
-		//	context = new SessionQueryContext(session);
-		//}
-
-		protected override void OnSetUp() {
-			session = Database.CreateSession(AdminUserName, AdminPassword);
-			context = new SessionQueryContext(session);
-		}
-
-		protected override void OnTearDown() {
-			if (context != null)
-				context.Dispose();
-			if (session != null)
-				session.Dispose();
-
-			context = null;
-			session = null;
-		}
-
 		[Test]
 		public void ParseSimpleCreate() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
@@ -91,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(context));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
@@ -114,7 +81,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(context));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}

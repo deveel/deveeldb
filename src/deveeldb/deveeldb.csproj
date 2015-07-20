@@ -127,6 +127,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
@@ -225,13 +226,20 @@
     <Compile Include="Deveel.Data.Index\IndexBlock.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Routines\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutineResolverContainer.cs" />
+    <Compile Include="Deveel.Data.Routines\IRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
+    <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
@@ -353,7 +361,7 @@
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionProvider.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
@@ -368,7 +376,7 @@
     <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineResolverExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionsProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventType.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />

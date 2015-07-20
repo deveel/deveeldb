@@ -514,7 +514,7 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Object Factory
+		#region Object provider
 
 		public static DataObject Boolean(SqlBoolean value) {
 			return new DataObject(PrimitiveTypes.Boolean(), value);

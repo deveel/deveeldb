@@ -39,6 +39,8 @@ namespace Deveel.Data.DbSystem {
 			Configuration = configuration;
 			Locker = new Locker(this);
 
+			RoutineResolver = new SystemRoutineProvider(this);
+
 			Init();
 		}
 
@@ -88,6 +90,31 @@ namespace Deveel.Data.DbSystem {
 
 		private void Init() {
 			InitStorageSystem();
+			InitCellCache();
+
+			this.UseSystemFunctions();
+			this.UseSystemProcedures();
+		}
+
+		private void InitCellCache() {
+			var cacheMaxSize = this.CellCacheMaxSize();
+			var cacheMaxCellSize = this.CellCacheMaxCellSize();
+			var cacheType = this.CellCacheType();
+
+			if (cacheType == null)
+				cacheType = typeof (MemoryCache);
+
+			ICache cache;
+			if (cacheType == typeof (MemoryCache)) {
+				cache = new MemoryCache(cacheMaxCellSize, cacheMaxSize, 10);
+			} else {
+				cache = SystemContext.ServiceProvider.Resolve(cacheType, "CellCache") as ICache;
+			}
+
+			if (cache == null)
+				return;
+
+			CellCache = new TableCellCache(this, cache, cacheMaxSize, cacheMaxCellSize);
 		}
 
 		private void InitStorageSystem() {

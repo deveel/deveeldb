@@ -210,6 +210,22 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.DeleteFrom(tableName, deleteSet, limit);
 		}
 
+		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string[] columnNames) {
+			AddPrimaryKey(context, tableName, columnNames, null);
+		}
+
+		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string[] columnNames, string constraintName) {
+			context.Session.AddPrimaryKey(tableName, columnNames, constraintName);
+		}
+
+		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string columnName) {
+			AddPrimaryKey(context, tableName, columnName, null);
+		}
+
+		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string columnName, string constraintName) {
+			context.AddPrimaryKey(tableName, new []{columnName}, constraintName);
+		}
+
 		#endregion
 
 		#region Views

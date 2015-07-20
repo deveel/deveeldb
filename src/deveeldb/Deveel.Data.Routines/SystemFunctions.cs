@@ -20,16 +20,16 @@ using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Routines {
 	public static class SystemFunctions {
-		private static FunctionFactory factory;
+		private static FunctionProvider provider;
 
-		public static FunctionFactory Factory {
+		public static FunctionProvider Provider {
 			get {
-				if (factory == null) {
-					factory = new SystemFunctionsFactory();
-					factory.Init();
+				if (provider == null) {
+					provider = new SystemFunctionsProvider();
+					provider.Init();
 				}
 
-				return factory;
+				return provider;
 			}
 		}
 

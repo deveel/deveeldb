@@ -15,22 +15,18 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-namespace Deveel.Data.Sql.Compile {
-	[Serializable]
-	public sealed class AlterTableNode : SqlNode {
-		internal AlterTableNode() {
-		}
+namespace Deveel.Data.Routines {
+	public static class SystemProcedures {
+		private static IRoutineResolver resolver;
 
-		public ObjectNameNode TableName { get; private set; }
+		public static IRoutineResolver Resolver {
+			get {
+				if (resolver == null)
+					resolver = new SystemProcedureProvider();
 
-		public IEnumerable<AlterTableActionNode> Actions { get; private set; }
-
-		public CreateTableNode CreateTable { get; private set; }
-
-		protected override ISqlNode OnChildNode(ISqlNode node) {
-			return base.OnChildNode(node);
+				return resolver;
+			}
 		}
 	}
 }

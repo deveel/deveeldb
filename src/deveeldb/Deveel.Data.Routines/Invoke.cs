@@ -119,7 +119,7 @@ namespace Deveel.Data.Routines {
 
 			IRoutineResolver resolver;
 			if (context == null) {
-				resolver = SystemFunctions.Factory;
+				resolver = SystemFunctions.Provider;
 			} else {
 				resolver = context.DatabaseContext.RoutineResolver;
 			}

@@ -75,7 +75,7 @@ namespace Deveel.Data.Caching {
 
 		public void Set(int tableKey, int row, int column, DataObject value) {
 			if (!value.IsCacheable)
-				throw new ArgumentException();
+				throw new ArgumentException(String.Format("A value of type '{0}' cannot be stored in cache.", value.Type));
 
 			lock (this) {
 				int memoryUse = AmountMemory(value);
@@ -86,7 +86,7 @@ namespace Deveel.Data.Caching {
 					// If there is an existing object here, remove it from the cache and
 					// update the current_cache_size.
 					var removedCell = (DataObject) cache.Remove(key);
-					if (removedCell != null) {
+					if (!Equals(removedCell,  null)) {
 						size -= AmountMemory(removedCell);
 					}
 

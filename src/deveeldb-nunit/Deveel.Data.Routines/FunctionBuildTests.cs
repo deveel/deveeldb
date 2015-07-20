@@ -1,44 +1,29 @@
 ﻿using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Fluid;
-using Deveel.Data.Security;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
-
-using Moq;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Routines {
 	[TestFixture]
-	public class FunctionBuildTests {
-		private IQueryContext NewUserQueryContext(User user) {
-			var sessionInfo = new SessionInfo(user);
-			var sessionMock = new Mock<IUserSession>();
-			sessionMock.Setup(x => x.SessionInfo)
-				.Returns(sessionInfo);
-			var queryContextMock = new Mock<IQueryContext>();
-			queryContextMock.Setup(x => x.Session)
-				.Returns(sessionMock.Object);
-			return queryContextMock.Object;
-		}
-
+	public class FunctionBuildTests : ContextBasedTest {
 		[Test]
 		public void ScalarWithNoArguments() {
 			var factory1 = new Factory1();
 			Assert.DoesNotThrow(factory1.Init);
 
 			IFunction function = null;
-			Assert.DoesNotThrow(() => function = factory1.ResolveFunction("user"));
+			Assert.DoesNotThrow(() => function = factory1.ResolveFunction("user2"));
 			Assert.IsNotNull(function);
 
 			ExecuteResult result=null;
-			var queryContext = NewUserQueryContext(User.System);
-			Assert.DoesNotThrow(() => result = function.Execute(queryContext));
+			Assert.DoesNotThrow(() => result = function.Execute(QueryContext));
 			Assert.IsNotNull(result);
-			Assert.AreEqual(User.System.Name, result.ReturnValue.Value.ToString());
+			Assert.AreEqual(AdminUserName, result.ReturnValue.Value.ToString());
 		}
 
 		[Test]
@@ -48,7 +33,7 @@ namespace Deveel.Data.Routines {
 
 			IFunction function = null;
 			var args = new DataObject[] {DataObject.BigInt(2), DataObject.Number(new SqlNumber(54))};
-			Assert.DoesNotThrow(() => function = factory2.ResolveFunction("add", args));
+			Assert.DoesNotThrow(() => function = factory2.ResolveFunction("add2", args));
 			Assert.IsNotNull(function);
 
 			ExecuteResult result = null;
@@ -63,13 +48,13 @@ namespace Deveel.Data.Routines {
 
 		#region Factory1
 
-		class Factory1 : FunctionFactory {
+		class Factory1 : FunctionProvider {
 			public override string SchemaName {
 				get { return "APP"; }
 			}
 
 			protected override void OnInit() {
-				New("user")
+				New("user2")
 					.ReturnsType(PrimitiveTypes.String())
 					.WhenExecute(context => context.Result(DataObject.String(context.QueryContext.User().Name)));
 			}
@@ -79,13 +64,13 @@ namespace Deveel.Data.Routines {
 
 		#region Factory2
 
-		class Factory2 : FunctionFactory {
+		class Factory2 : FunctionProvider {
 			public override string SchemaName {
 				get { return "APP"; }
 			}
 
 			protected override void OnInit() {
-				New("add")
+				New("add2")
 					.WithNumericParameter("a")
 					.WithNumericParameter("b")
 					.ReturnsNumeric()

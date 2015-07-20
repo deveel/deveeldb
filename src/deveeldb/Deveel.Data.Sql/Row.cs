@@ -166,6 +166,19 @@ namespace Deveel.Data.Sql {
 			get { return Table.Any(x => x.RowId.Equals(RowId)); }
 		}
 
+		private bool? canBeCached;
+
+		public bool CanBeCached {
+			get {
+				if (canBeCached == null) {
+					canBeCached = values.All(value => value.Value.IsCacheable);
+				}
+
+				return canBeCached.Value;
+			}
+		}
+
+
 		/// <summary>
 		/// Gets or the value of a cell of the row at the given offset.
 		/// </summary>

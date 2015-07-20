@@ -26,12 +26,12 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
-	public abstract class FunctionFactory : IRoutineResolver, IConfigurationContext {
+	public abstract class FunctionProvider : IRoutineResolver, IConfigurationContext {
 		private bool initd;
 		private readonly IList<FunctionConfiguration> configurations;
 		private IDictionary<FunctionInfo, IFunction> functions;
 
-		protected FunctionFactory() {
+		protected FunctionProvider() {
 			configurations = new List<FunctionConfiguration>();
 		}
 
@@ -41,9 +41,16 @@ namespace Deveel.Data.Routines {
 			if (functions == null)
 				return null;
 
-			return (functions.Where(entry => entry.Key.MatchesInvoke(request, context))
+			var functionName = NormalizeName(request.RoutineName);
+			var normInvoke = new Invoke(functionName, request.Arguments);
+
+			return (functions.Where(entry => entry.Key.MatchesInvoke(normInvoke, context))
 				.Select(entry => entry.Value))
 				.FirstOrDefault();
+		}
+
+		protected virtual ObjectName NormalizeName(ObjectName functionName) {
+			return functionName;
 		}
 
 		public void Init() {
@@ -80,10 +87,17 @@ namespace Deveel.Data.Routines {
 			return New().Named(new ObjectName(new ObjectName(SchemaName), name));
 		}
 
+		protected void New(FunctionInfo info, IFunction function) {
+			if (functions == null)
+				functions = new Dictionary<FunctionInfo, IFunction>();
+
+			functions.Add(info, function);
+		}
+
 		#region FunctionConfiguration
 
 		class FunctionConfiguration : IAggregateFunctionConfiguration, IRoutineConfiguration {
-			private readonly FunctionFactory factory;
+			private readonly FunctionProvider provider;
 			private readonly Dictionary<string, RoutineParameter> parameters;
 			private List<ObjectName> aliases;
 
@@ -92,8 +106,8 @@ namespace Deveel.Data.Routines {
 			private Func<DataObject, DataObject, DataObject> simpleExecuteFunc;
 			private Func<ExecuteContext, DataObject, DataObject> afterAggregateFunc;
 
-			public FunctionConfiguration(FunctionFactory factory) {
-				this.factory = factory;
+			public FunctionConfiguration(FunctionProvider provider) {
+				this.provider = provider;
 				parameters = new Dictionary<string, RoutineParameter>();
 				FunctionType = FunctionType.Static;
 			}
@@ -137,9 +151,9 @@ namespace Deveel.Data.Routines {
 
 				var parent = name.ParentName;
 
-				if (!factory.SchemaName.Equals(parent))
+				if (!provider.SchemaName.Equals(parent))
 					throw new ArgumentException(String.Format(
-						"The parent name ({0}) is not valid in this factory schema context ({1})", parent, factory.SchemaName));
+						"The parent name ({0}) is not valid in this provider schema context ({1})", parent, provider.SchemaName));
 
 				FunctionName = name;
 				return this;
@@ -154,7 +168,7 @@ namespace Deveel.Data.Routines {
 
 				var parent = alias.ParentName;
 
-				if (!factory.SchemaName.Equals(parent))
+				if (!provider.SchemaName.Equals(parent))
 					throw new ArgumentException();
 
 				if (aliases == null)
@@ -171,6 +185,10 @@ namespace Deveel.Data.Routines {
 					config(paramConfig);
 
 					var param = paramConfig.AsParameter();
+
+					if (String.IsNullOrEmpty(param.Name))
+						throw new InvalidOperationException("A parameter must define a name.");
+
 					parameters.Add(param.Name, param);
 				}
 
@@ -297,7 +315,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			public IConfigurationContext Context {
-				get { return factory; }
+				get { return provider; }
 			}
 		}
 

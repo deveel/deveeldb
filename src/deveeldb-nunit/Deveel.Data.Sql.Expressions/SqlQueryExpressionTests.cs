@@ -26,19 +26,9 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests : ContextBasedTest {
-		private IUserSession session;
-
 		protected override void OnSetUp() {
-			session = Database.CreateSession(AdminUserName, AdminPassword);
 			CreateTestTable();
 			AddTestData();
-		}
-
-		protected override void OnTearDown() {
-			if (session != null)
-				session.Dispose();
-
-			session = null;
 		}
 
 		private void CreateTestTable() {
@@ -51,12 +41,12 @@ namespace Deveel.Data.Sql.Expressions {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			session.CreateTable(tableInfo);
-			session.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			QueryContext.CreateTable(tableInfo);
+			QueryContext.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private void AddTestData() {
-			var table = session.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = QueryContext.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 			row.SetValue("first_name", DataObject.String("John"));
 			row.SetValue("last_name", DataObject.String("Doe"));
@@ -86,10 +76,8 @@ namespace Deveel.Data.Sql.Expressions {
 				new SqlQueryExpression(new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("first_name")))});
 			expression.FromClause.AddTable("test_table");
 
-			var queryContext = new SessionQueryContext(session);
-
 			DataObject result = null;
-			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(queryContext, null));
+			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(QueryContext, null));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<QueryType>(result.Type);
 			Assert.IsNotNull(result.Value);
@@ -97,7 +85,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			ITable queryResult = null;
 
-			Assert.DoesNotThrow(() => queryResult = ((SqlQueryObject) result.Value).QueryPlan.Evaluate(queryContext));
+			Assert.DoesNotThrow(() => queryResult = ((SqlQueryObject) result.Value).QueryPlan.Evaluate(QueryContext));
 			Assert.IsNotNull(queryResult);
 			Assert.AreEqual(3, queryResult.RowCount);
 		}

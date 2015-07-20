@@ -46,6 +46,10 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException(String.Format("SQL Type {0} is not a valid INTERVAL.", sqlType.ToString().ToUpperInvariant()));
 		}
 
+		public override bool IsCacheable(ISqlObject value) {
+			return value is SqlNumber || value is SqlNull;
+		}
+
 		/// <inheritdoc/>
 		public override bool IsComparable(DataType type) {
 			if (!(type is IntervalType))

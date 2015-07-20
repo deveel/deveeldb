@@ -7,11 +7,13 @@ using NUnit.Framework;
 namespace Deveel.Data.Deveel.Data.DbSystem {
 	[TestFixture]
 	public abstract class ContextBasedTest {
+		private IUserSession session;
+
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
 
-		protected IQueryContext Context { get; private set; }
+		protected IQueryContext QueryContext { get; private set; }
 
 		protected ISystemContext SystemContext { get; private set; }
 
@@ -25,6 +27,11 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 			database.Open();
 
 			return database;
+		}
+
+		protected virtual IQueryContext CreateQueryContext(IDatabase database) {
+			session = database.CreateSession(AdminUserName, AdminPassword);
+			return new SessionQueryContext(session);
 		}
 
 		protected virtual void OnSetUp() {
@@ -48,6 +55,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 			SystemContext = CreateSystemContext();
 			DatabaseContext = CreateDatabaseContext(SystemContext);
 			Database = CreateDatabase(DatabaseContext);
+			QueryContext = CreateQueryContext(Database);
 
 			OnSetUp();
 		}
@@ -55,6 +63,12 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 		[TearDown]
 		public void TestTearDown() {
 			OnTearDown();
+
+			if (QueryContext != null)
+				QueryContext.Dispose();
+			
+			if (session != null)
+				session.Dispose();
 
 			if (Database != null)
 				Database.Dispose();
@@ -68,6 +82,8 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 			Database = null;
 			DatabaseContext = null;
 			SystemContext = null;
+			QueryContext = null;
+			session = null;
 		}
 	}
 }

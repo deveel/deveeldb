@@ -54,6 +54,29 @@ namespace Deveel.Data.DbSystem {
 
 		#region Security
 
+		public static void CreateAdminUser(this IDatabase database, IQueryContext context, string adminName, string adminPassword) {
+			try {
+				var user = context.CreateUser(adminName, adminPassword);
+
+				// This is the admin user so add to the 'secure access' table.
+				context.AddUserToGroup(adminName, SystemGroupNames.SecureGroup);
+
+				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, "%");
+				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, "%");
+
+				context.GrantToUserOnSchema(database.Context.DefaultSchema(), user, User.System, Privileges.SchemaAll, true);
+				context.GrantToUserOnSchema(SystemSchema.Name, user, User.System, Privileges.SchemaRead);
+
+				// TODO: Grant READ on INFORMATION_SCHEMA
+
+				context.GrantToUserOnSchemaTables(SystemSchema.Name, user, User.System, Privileges.TableRead);
+			} catch (DatabaseSystemException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSystemException("Could not create the database administrator.", ex);
+			}
+		}
+
 		public static User Authenticate(this IDatabase database, string username, string password) {
 			return Authenticate(database, username, password, ConnectionEndPoint.Embedded);
 		}
