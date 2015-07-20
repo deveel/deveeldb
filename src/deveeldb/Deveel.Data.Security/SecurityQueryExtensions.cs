@@ -446,7 +446,7 @@ namespace Deveel.Data.Security {
 		public static bool UserCanCreateTable(this IQueryContext context, ObjectName tableName) {
 			var schema = tableName.Parent;
 			if (schema == null)
-				return false;
+				return context.UserHasSecureAccess();
 
 			return context.UserCanCreateInSchema(schema.FullName);
 		}

@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 
 using Deveel.Data.DbSystem;
@@ -29,6 +28,7 @@ namespace Deveel.Data.Types {
 	/// Defines the properties of a specific SQL Type and handles the
 	/// <see cref="ISqlObject">values compatible</see>.
 	/// </summary>
+	[Serializable]
 	public abstract class DataType : IComparer<ISqlObject>, IEquatable<DataType> {
 		/// <summary>
 		/// Constructs the <see cref="DataType"/> for the given specific

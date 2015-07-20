@@ -2,13 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Deveel.Data.DbSystem;
+using Deveel.Data.Security;
+using Deveel.Data.Types;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateViewStatementTests : ContextBasedTest {
+		private IQueryContext queryContext;
+		private IUserSession userSession;
+
+		protected override void OnSetUp() {
+			// We first create the table in another context...
+			using (var session = Database.CreateSession(AdminUserName, AdminPassword)) {
+				using (var context = new SessionQueryContext(session)) {
+					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+					tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
+
+					context.CreateTable(tableInfo, false, false);
+				}
+
+				session.Commit();
+			}
+
+			userSession = Database.CreateSession(AdminUserName, AdminPassword);
+			queryContext = new SessionQueryContext(userSession);
+		}
+
+		protected override void OnTearDown() {
+			if (queryContext != null)
+				queryContext.Dispose();
+			if (userSession != null)
+				userSession.Dispose();
+
+			queryContext = null;
+			userSession = null;
+		}
+
 		[Test]
 		public void ParseSimpleCreateView() {
 			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
@@ -60,6 +94,29 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateViewStatement>(statementList[0]);
 
 			var createView = (CreateViewStatement)statementList[0];
+		}
+
+		[Test]
+		public void ExecuteSimpleCreateView() {
+			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
+
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var list = statements.ToList();
+
+			Assert.AreEqual(1, list.Count);
+
+			var statement = list[0];
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateViewStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Evaluate(queryContext));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
 		}
 	}
 }

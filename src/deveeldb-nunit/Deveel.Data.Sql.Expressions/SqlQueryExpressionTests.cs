@@ -16,10 +16,8 @@
 using System;
 using System.Linq;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
-using Deveel.Data.Protocol;
-using Deveel.Data.Security;
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -27,20 +25,20 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public sealed class SqlQueryExpressionTests {
+	public sealed class SqlQueryExpressionTests : ContextBasedTest {
 		private IUserSession session;
 
-		[SetUp]
-		public void SetUp() {
-			var systemContext = new SystemContext(DbConfig.Default);
-			var dbContext = new DatabaseContext(systemContext, "testdb");
-			var database = new Database(dbContext);
-			database.Create("SA", "12345");
-			database.Open();
-
-			session = database.CreateSession(User.System);
+		protected override void OnSetUp() {
+			session = Database.CreateSession(AdminUserName, AdminPassword);
 			CreateTestTable();
 			AddTestData();
+		}
+
+		protected override void OnTearDown() {
+			if (session != null)
+				session.Dispose();
+
+			session = null;
 		}
 
 		private void CreateTestTable() {

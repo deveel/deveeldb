@@ -16,6 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Query {
 	static class QueryPlanNodeExtensions {
@@ -31,6 +35,15 @@ namespace Deveel.Data.Sql.Query {
 		public static IList<QueryReference> DiscoverQueryReferences(this IQueryPlanNode node, int level, IList<QueryReference> references) {
 			// TODO:
 			return references;
-		} 
+		}
+
+		public static SqlBinary AsBinary(this IQueryPlanNode planNode) {
+			using (var memoryStream = new MemoryStream()) {
+				var serializer = new BinaryFormatter();
+				serializer.Serialize(memoryStream, planNode);
+				memoryStream.Flush();
+				return new SqlBinary(memoryStream.ToArray());
+			}
+		}
 	}
 }

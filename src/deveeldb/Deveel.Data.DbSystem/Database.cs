@@ -173,7 +173,7 @@ namespace Deveel.Data.DbSystem {
 		public ITable SingleRowTable { get; private set; }
 
 		private IUserSession CreateInitialSystemSession() {
-			return new UserSession(this, DoCreateTransaction(TransactionIsolation.Serializable), new SessionInfo(User.System));
+			return new SystemUserSession(this, DoCreateTransaction(TransactionIsolation.Serializable));
 		}
 
 		public void Create(string adminName, string adminPassword) {

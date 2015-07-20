@@ -2,6 +2,7 @@
 
 using Deveel.Data.Configuration;
 using Deveel.Data.DbSystem;
+using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -11,19 +12,12 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql {
 	[TestFixture]
-	public class MutableTableTests {
+	public class MutableTableTests : ContextBasedTest {
 		private IUserSession session;
 		private SessionQueryContext context;
 
-		[SetUp]
-		public void SetUp() {
-			var systemContext = new SystemContext(DbConfig.Default);
-			var dbContext = new DatabaseContext(systemContext, "testdb");
-			var database = new Database(dbContext);
-			database.Create("SA", "12345");
-			database.Open();
-
-			session = database.CreateSession(User.System);
+		protected override void OnSetUp() {
+			session = Database.CreateSession(AdminUserName, AdminPassword);
 			context = new SessionQueryContext(session);
 
 			var test = TestContext.CurrentContext.Test;
@@ -33,6 +27,17 @@ namespace Deveel.Data.Sql {
 			if (test.Name != "InsertInto") {
 				InsertIntoTable(table);
 			}
+		}
+
+		protected override void OnTearDown() {
+			if (context != null)
+				context.Dispose();
+
+			if (session != null)
+				session.Dispose();
+
+			context = null;
+			session = null;
 		}
 
 		private void InsertIntoTable(IMutableTable table) {

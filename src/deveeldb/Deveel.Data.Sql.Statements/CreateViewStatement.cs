@@ -148,9 +148,7 @@ namespace Deveel.Data.Sql.Statements {
 				var tableInfo = t.TableInfo.Alias(viewName);
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
 
-				var view = new View(viewInfo);
-
-				context.CreateView(view);
+				context.DefineView(viewInfo);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.

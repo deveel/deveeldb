@@ -16,22 +16,48 @@
 
 using System;
 using System.Collections.Generic;
-using System.Resources;
+using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class ViewManager : IObjectManager {
 		private Dictionary<long, View> viewCache;
- 
+		private bool viewTableChanged;
+
 		public ViewManager(ITransaction transaction) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 
 			Transaction = transaction;
 			viewCache = new Dictionary<long, View>();
+
+			transaction.RegisterOnCommit(OnCommit);
+		}
+
+		private void OnCommit(TableCommitInfo obj) {
+			if (!obj.TableName.Equals(SystemSchema.ViewTableName))
+				return;
+
+			// If there were changed then invalidate the cache
+			if (viewTableChanged) {
+				InvalidateViewCache();
+				viewTableChanged = false;
+			} else if ((obj.AddedRows != null && obj.AddedRows.Any()) ||
+					 (obj.RemovedRows != null && obj.RemovedRows.Any())) {
+				// Otherwise, if there were committed added or removed changes also
+				// invalidate the cache,
+				InvalidateViewCache();
+			}
+		}
+
+		private void InvalidateViewCache() {
+			viewCache.Clear();
 		}
 
 		public ITransaction Transaction { get; private set; }
@@ -49,8 +75,35 @@ namespace Deveel.Data.DbSystem {
 			get { return DbObjectType.View; }
 		}
 
+		private ITable FindViewEntry(ObjectName viewName) {
+			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+
+			var schemav = table.GetResolvedColumnName(0);
+			var namev = table.GetResolvedColumnName(1);
+
+			using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
+				var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(viewName.Name)));
+				t = t.ExhaustiveSelect(context, SqlExpression.Equal(SqlExpression.Reference(schemav), SqlExpression.Constant(viewName.ParentName)));
+
+				// This should be at most 1 row in size
+				if (t.RowCount > 1)
+					throw new ArgumentException(String.Format("Multiple view entries for name '{0}' in the system.", viewName));
+
+				// Return the entries found.
+				return t;
+			}
+		}
+
 		public void Create() {
-			// TODO:
+			var tableInfo = new TableInfo(SystemSchema.ViewTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("query", PrimitiveTypes.String());
+			tableInfo.AddColumn("plan", PrimitiveTypes.Binary());
+
+			// TODO: Columns...
+
+			Transaction.CreateTable(tableInfo);
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -86,7 +139,39 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public void DefineView(ViewInfo viewInfo) {
-			throw new NotImplementedException();
+			if (viewInfo == null)
+				throw new ArgumentNullException("viewInfo");
+
+			var dataTableInfo = viewInfo.TableInfo;
+			var viewTable = Transaction.GetMutableTable(SystemSchema.ViewTableName);
+
+			var viewName = dataTableInfo.TableName;
+			var query = viewInfo.QueryExpression;
+			var planData = viewInfo.QueryPlan.AsBinary();
+
+			// Create the view record
+			var rdat = viewTable.NewRow();
+			rdat.SetValue(0, dataTableInfo.SchemaName.Name);
+			rdat.SetValue(1, dataTableInfo.Name);
+			rdat.SetValue(2, query.ToString());
+			rdat.SetValue(3, DataObject.Binary(planData));
+
+			// Find the entry from the view that equals this name
+			var t = FindViewEntry(viewName);
+
+			// Delete the entry if it already exists.
+			if (t.RowCount == 1) {
+				viewTable.Delete(t);
+			}
+
+			// Insert the new view entry in the system view table
+			viewTable.AddRow(rdat);
+
+			// Notify that this database object has been successfully created.
+			Transaction.Registry.RegisterEvent(new ObjectCreatedEvent(viewName, DbObjectType.View));
+
+			// Change to the view table
+			viewTableChanged = true;
 		}
 
 		public View GetView(ObjectName viewName) {
@@ -94,7 +179,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public bool ViewExists(ObjectName viewName) {
-			throw new NotImplementedException();
+			return FindViewEntry(viewName).RowCount > 0;
 		}
 
 		public bool DropView(ObjectName viewName) {

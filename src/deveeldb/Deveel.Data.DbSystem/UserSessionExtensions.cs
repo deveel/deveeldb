@@ -271,6 +271,14 @@ namespace Deveel.Data.DbSystem {
 			return view == null ? null : view.QueryPlan;
 		}
 
+		public static bool ViewExists(this IUserSession session, ObjectName viewName) {
+			return session.ObjectExists(DbObjectType.View, viewName);
+		}
+
+		public static void DefineView(this IUserSession session, ViewInfo viewInfo) {
+			session.Transaction.DefineView(viewInfo);
+		}
+
 		#endregion
 
 		#region Types

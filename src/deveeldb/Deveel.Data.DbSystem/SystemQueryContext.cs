@@ -16,18 +16,15 @@
 
 using System;
 
-using Deveel.Data.Caching;
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class SystemQueryContext : QueryContextBase {
+	sealed class SystemQueryContext : QueryContextBase {
 		private IUserSession session;
 
 		public SystemQueryContext(ITransaction transaction, string currentSchema) {
-			session = new SystemSession(transaction.Database, transaction, currentSchema, new SessionInfo(User.System, TransactionIsolation.Serializable));
+			session = new SystemUserSession(transaction.Database, transaction, currentSchema);
 		}
 
 		public override string CurrentSchema {
@@ -46,62 +43,5 @@ namespace Deveel.Data.DbSystem {
 			session = null;
 			base.Dispose(disposing);
 		}
-
-		#region SystemSession
-
-		class SystemSession : IUserSession {
-			public SystemSession(IDatabase database, ITransaction transaction, string currentSchema, SessionInfo sessionInfo) {
-				Database = database;
-				CurrentSchema = currentSchema;
-				Transaction = transaction;
-				SessionInfo = sessionInfo;
-
-				TableCache = new MemoryCache(25, 150, 30);
-			}
-
-			public void Dispose() {
-				Database = null;
-				Transaction = null;
-			}
-
-			public IDatabase Database { get; private set; }
-
-			public string CurrentSchema { get; private set; }
-
-			public SessionInfo SessionInfo { get; private set; }
-
-			public ITransaction Transaction { get; private set; }
-
-			public ICache TableCache { get; private set; }
-
-			public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
-			}
-
-			public void ReleaseLocks() {
-			}
-
-			public ILargeObject CreateLargeObject(long size, bool compressed) {
-				throw new NotImplementedException();
-			}
-
-			public ILargeObject GetLargeObject(ObjectId objId) {
-				throw new NotImplementedException();
-			}
-
-			public void Commit() {
-				Transaction.Commit();
-			}
-
-			public void Rollback() {
-				Transaction.Rollback();
-			}
-
-			public void AppendEventData(IEvent @event) {
-				@event.Database(Database.Name());
-				@event.UserName(SessionInfo.User.Name);
-			}
-		}
-
-		#endregion
 	}
 }

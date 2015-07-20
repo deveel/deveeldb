@@ -98,6 +98,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemTests.cs" />
+    <Compile Include="Deveel.Data.DbSystem\TableTests.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionTests.cs" />

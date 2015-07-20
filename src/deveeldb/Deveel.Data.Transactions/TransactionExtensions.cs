@@ -98,10 +98,12 @@ namespace Deveel.Data.Transactions {
 
 			var manager = transaction.Managers.ResolveForType(objInfo.ObjectType);
 			if (manager == null)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException(String.Format("Could not find any manager for object type '{0}' configured for the system.", objInfo.ObjectType));
 
 			if (manager.ObjectType != objInfo.ObjectType)
-				throw new ArgumentException();
+				throw new ArgumentException(
+					String.Format("Could not create an object of type '{0}' with the manager '{1}' (supported '{2}' type)",
+						objInfo.ObjectType, manager.GetType().FullName, manager.ObjectType));
 
 			manager.CreateObject(objInfo);
 		}

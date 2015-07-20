@@ -165,6 +165,7 @@
     <Compile Include="Deveel.Data.DbSystem\SystemQueryContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemServiceProviderExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SystemUserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\TableSource.cs" />

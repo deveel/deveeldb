@@ -103,6 +103,14 @@ namespace Deveel.Data.DbSystem {
 			return context.ObjectExists(DbObjectType.Table, tableName);
 		}
 
+		public static void CreateTable(this IQueryContext context, TableInfo tableInfo) {
+			CreateTable(context, tableInfo, false);
+		}
+
+		public static void CreateTable(this IQueryContext context, TableInfo tableInfo, bool onlyIfNotExists) {
+			CreateTable(context, tableInfo, onlyIfNotExists, false);
+		}
+
 		public static void CreateTable(this IQueryContext context, TableInfo tableInfo, bool onlyIfNotExists, bool temporary) {
 			if (tableInfo == null)
 				throw new ArgumentNullException("tableInfo");
@@ -206,8 +214,24 @@ namespace Deveel.Data.DbSystem {
 
 		#region Views
 
-		public static void CreateView(this IQueryContext context, View view) {
-			// TODO:
+		public static bool ViewExists(this IQueryContext context, ObjectName viewName) {
+			return context.ObjectExists(DbObjectType.View, viewName);
+		}
+
+		public static void DefineView(this IQueryContext context, ViewInfo viewInfo) {
+			if (viewInfo == null)
+				throw new ArgumentNullException("viewInfo");
+
+			var viewName = viewInfo.ViewName;
+
+			if (!context.UserCanCreateTable(viewName))
+				throw new InvalidOperationException(String.Format("The user '{0}' is not allowed to create view '{1}'.",
+					context.User().Name, viewName));
+
+			if (context.ViewExists(viewName))
+				throw new InvalidOperationException(String.Format("The view '{0}' already exists in the database.", viewName));
+
+			context.Session.DefineView(viewInfo);
 		}
 
 		public static View GetView(this IQueryContext context, ObjectName viewName) {

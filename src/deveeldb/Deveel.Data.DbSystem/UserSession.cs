@@ -27,6 +27,17 @@ namespace Deveel.Data.DbSystem {
 		private List<LockHandle> lockHandles;
 
 		internal UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
+			if (database == null)
+				throw new ArgumentNullException("database");
+			if (transaction == null)
+				throw new ArgumentNullException("transaction");
+			if (sessionInfo == null)
+				throw new ArgumentNullException("sessionInfo");
+
+			if (sessionInfo.User.IsSystem ||
+				sessionInfo.User.IsPublic)
+				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", sessionInfo.User.Name));
+
 			Database = database;
 			Transaction = transaction;
 

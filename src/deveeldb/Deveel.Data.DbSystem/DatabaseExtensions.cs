@@ -27,7 +27,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database, TransactionIsolation isolation) {
-			return database.CreateSession(new SessionInfo(User.System, isolation, ConnectionEndPoint.Embedded));
+			var transaction = database.CreateTransaction(isolation);
+			return new SystemUserSession(database, transaction);
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database) {
@@ -37,6 +38,18 @@ namespace Deveel.Data.DbSystem {
 		public static IUserSession CreateSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
 			return database.CreateSession(new SessionInfo(user));
+		}
+
+		public static IUserSession CreateSession(this IDatabase database, string userName, string password) {
+			return CreateSession(database, userName, password, ConnectionEndPoint.Embedded);
+		}
+
+		public static IUserSession CreateSession(this IDatabase database, string userName, string password, ConnectionEndPoint endPoint) {
+			var user = database.Authenticate(userName, password, endPoint);
+			if (user == null)
+				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
+
+			return database.CreateSession(user);
 		}
 
 		#region Security

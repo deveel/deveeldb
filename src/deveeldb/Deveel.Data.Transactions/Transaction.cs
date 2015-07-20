@@ -521,6 +521,8 @@ namespace Deveel.Data.Transactions {
 					return transaction.sequenceManager;
 				if (objType == DbObjectType.Variable)
 					return transaction.variableManager;
+				if (objType == DbObjectType.View)
+					return transaction.viewManager;
 
 				return null;
 			}

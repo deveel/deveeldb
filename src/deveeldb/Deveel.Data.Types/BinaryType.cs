@@ -91,6 +91,17 @@ namespace Deveel.Data.Types {
 			return new DataObject(destType, casted);
 		}
 
+		internal override int ColumnSizeOf(ISqlObject obj) {
+			if (obj is SqlBinary) {
+				var binary = (SqlBinary) obj;
+				return 1 + 4 + (int) binary.Length;
+			} else if (obj is SqlLongBinary) {
+				throw new NotImplementedException();
+			}
+
+			throw new NotSupportedException();
+		}
+
 		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
 			var writer = new BinaryWriter(stream);
 
@@ -102,12 +113,14 @@ namespace Deveel.Data.Types {
 			} else if (obj is SqlLongBinary) {
 				var lob = (SqlLongBinary) obj;
 
-				writer.Write((byte)2);
+				writer.Write((byte) 2);
 
 				// TODO:
-			}
 
-			base.SerializeObject(stream, obj, systemContext);
+				throw new NotImplementedException();
+			} else {
+				base.SerializeObject(stream, obj, systemContext);
+			}
 		}
 
 		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
