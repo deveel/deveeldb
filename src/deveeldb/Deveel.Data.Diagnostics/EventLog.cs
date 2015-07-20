@@ -1,25 +1,82 @@
 ﻿using System;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// An object that encapsulates all the meta information
+	/// concerning an event to log.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// This object is constructed from <see cref="LogEventRouter"/> class
+	/// to be dispatched to all implementations of <see cref="IEventLogger"/>
+	/// configured within the system.
+	/// </para>
+	/// </remarks>
 	public sealed class EventLog {
-		public string Message { get; set; }
+		internal EventLog(int eventClass, int eventCode, object source, LogLevel level, string database, string userName, string remoteAddress, string message, Exception exception) {
+			EventClass = eventClass;
+			EventCode = eventCode;
+			Source = source;
+			Level = level;
+			Database = database;
+			UserName = userName;
+			RemoteAddress = remoteAddress;
+			Message = message;
+			Exception = exception;
 
-		public Exception Exception { get; set; }
+			// TODO: Get this from the event?
+			TimeStamp = DateTime.UtcNow;
+		}
 
-		public DateTime TimeStamp { get; set; }
+		/// <summary>
+		/// Gets an optional user-defined message that explains the event.
+		/// </summary>
+		public string Message { get; private set; }
 
-		public LogLevel Level { get; set; }
+		/// <summary>
+		/// Gets an optional <see cref="Exception"/> that was thrown by the system.
+		/// </summary>
+		public Exception Exception { get; private set; }
 
-		public string Database { get; set; }
+		/// <summary>
+		/// Gets the time-stamp of the event.
+		/// </summary>
+		public DateTime TimeStamp { get; private set; }
 
-		public string UserName { get; set; }
+		/// <summary>
+		/// Gets the level of the event to be logged.
+		/// </summary>
+		public LogLevel Level { get; private set; }
 
-		public string RemoteAddress { get; set; }
+		/// <summary>
+		/// Gets the name of the database where this event happened.
+		/// </summary>
+		public string Database { get; private set; }
 
-		public int EventClass { get; set; }
+		/// <summary>
+		/// Gets the optional name of the user that caused the event.
+		/// </summary>
+		public string UserName { get; private set; }
 
-		public int EventCode { get; set; }
+		/// <summary>
+		/// In case of remote connection, gets the string that defines the
+		/// address of user endpoint.
+		/// </summary>
+		public string RemoteAddress { get; private set; }
 
-		public object Source { get; set; }
+		/// <summary>
+		/// Gets the numeric code that represents the class of the event.
+		/// </summary>
+		public int EventClass { get; private set; }
+
+		/// <summary>
+		/// Gets the code of the event within the class specified.
+		/// </summary>
+		public int EventCode { get; private set; }
+
+		/// <summary>
+		/// Gets the source of the event.
+		/// </summary>
+		public object Source { get; private set; }
 	}
 }

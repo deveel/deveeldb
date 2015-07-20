@@ -54,17 +54,16 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		private EventLog CreateEntry(NotificationEvent @event) {
-			return new EventLog {
-				EventClass = @event.EventClass,
-				EventCode = @event.EventCode,
-				TimeStamp = DateTime.Now,		// TODO: Maybe take this value from event?
-				Database = @event.Database(),
-				UserName = @event.UserName(),
-				Message = @event.EventMessage,
-				Level = GetLogLevel(@event.Level),
-				Source = @event.ErrorSource(),
-				RemoteAddress = @event.RemoteAddress()
-			};
+			return new EventLog(
+				@event.EventClass,
+				@event.EventCode,
+				@event.ErrorSource(),
+				GetLogLevel(@event.Level),
+				@event.Database(),
+				@event.UserName(),
+				@event.RemoteAddress(),
+				@event.EventMessage,
+				null);
 		}
 
 		private LogLevel GetLogLevel(NotificationLevel level) {
@@ -89,17 +88,16 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		private EventLog CreateEntry(ErrorEvent @event) {
-			return new EventLog {
-				EventClass = @event.EventClass,
-				EventCode = @event.ErrorCode,
-				TimeStamp = DateTime.Now,		// TODO: Maybe take this value from event?
-				Database = @event.Database(),
-				UserName = @event.UserName(),
-				Message = @event.Message,
-				Level = GetLogLevel(@event.ErrorLevel()),
-				Source = @event.ErrorSource(),
-				RemoteAddress = @event.RemoteAddress()
-			};
+			return new EventLog(
+				@event.EventClass,
+				@event.ErrorCode,
+				@event.ErrorSource(),
+				GetLogLevel(@event.ErrorLevel()),
+				@event.Database(),
+				@event.UserName(),
+				@event.RemoteAddress(),
+				@event.Message,
+				null);
 		}
 	}
 }
