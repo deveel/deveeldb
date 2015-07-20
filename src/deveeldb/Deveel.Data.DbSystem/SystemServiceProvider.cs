@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections;
-using System.Reflection;
 
 using TinyIoC;
 
@@ -28,10 +27,11 @@ namespace Deveel.Data.DbSystem {
 	public sealed class SystemServiceProvider : ISystemServiceProvider {
 		private TinyIoCContainer container;
 
-		public SystemServiceProvider() 
-			: this(null) {
-		}
-
+		/// <summary>
+		/// Constructs the service provider around the given context.
+		/// </summary>
+		/// <param name="context">The system context in which this service provider
+		/// will be constructed around.</param>
 		public SystemServiceProvider(IServiceResolveContext context) {
 			Context = context;
 
@@ -42,6 +42,10 @@ namespace Deveel.Data.DbSystem {
 			Dispose(false);
 		}
 
+		/// <summary>
+		/// Gets the system context on top of which this provider is constructed.
+		/// </summary>
+		/// <seealso cref="ISystemContext.ServiceProvider"/>
 		public IServiceResolveContext Context { get; private set; }
 
 		public object Resolve(Type serviceType, string name) {
@@ -98,32 +102,15 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		public void RegisterAssembly(Assembly assembly) {
-			lock (this) {
-				container.AutoRegister(new[] { assembly }, DuplicateImplementationActions.RegisterMultiple);
-			}
-		}
+		public void Register(string name, Type serviceType) {
+			if (serviceType == null)
+				throw new ArgumentNullException("serviceType");
 
-		public void RegisterAllAssemblies() {
-			lock (this) {
-				var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-				foreach (var assembly in assemblies) {
-					RegisterAssembly(assembly);
-				}
-			}
-		}
+			if (container == null)
+				throw new SystemException("The container was not initialized.");
 
-		
-
-		public void Register(Type type, string name) {
 			lock (this) {
-				container.Register(type, name);
-			}
-		}
-
-		public void Register(Type serviceType, string name, Func<object> builder) {
-			lock (this) {
-				container.Register(serviceType, builder, name);
+				container.Register(serviceType, name).AsSingleton();
 			}
 		}
 

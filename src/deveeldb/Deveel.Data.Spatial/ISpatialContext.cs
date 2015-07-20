@@ -16,10 +16,10 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Spatial {
-	public interface ISpatialContext : IDatabaseService {
+	public interface ISpatialContext : IConfigurable {
 		IGeometryFactory GeometryFactory { get; }
 
 		IGeometryReaderResolver ReaderResolver { get; }

@@ -56,7 +56,7 @@ namespace Deveel.Data.DbSystem {
 
 		public TransactionCollection OpenTransactions { get; private set; }
 
-		void IEventSource.FillEventData(IEvent @event) {
+		void IEventSource.AppendEventData(IEvent @event) {
 			// TODO: Is there anything else to add?
 			@event.Database(Name);
 		}

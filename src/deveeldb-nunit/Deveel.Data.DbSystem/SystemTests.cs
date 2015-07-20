@@ -24,7 +24,7 @@ namespace Deveel.Data.DbSystem {
 			config.SetValue(new ConfigKey("service1", typeof(Type)), typeof(TestService));
 
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.DoesNotThrow(() => context = new SystemContext(config));
 			Assert.IsNotNull(context);
 
 			object serviceObj = null;
@@ -36,14 +36,28 @@ namespace Deveel.Data.DbSystem {
 			Assert.DoesNotThrow(() => service.SayHello());
 		}
 
+		[Test]
+		public void ResolveSingleServiceFromRegister() {
+			ISystemContext context = null;
+			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.IsNotNull(context);
+
+			context.ServiceProvider.Register<TestService>();
+
+			object serviceObj = null;
+			Assert.DoesNotThrow(() => serviceObj = context.ServiceProvider.Resolve(typeof(TestService)));
+			Assert.IsNotNull(serviceObj);
+			Assert.IsInstanceOf<TestService>(serviceObj);
+
+			var service = (TestService)serviceObj;
+			Assert.DoesNotThrow(() => service.SayHello());
+		}
+
 		#region TestService
 
-		class TestService : IDatabaseService {
+		class TestService {
 			public void SayHello() {
 				Console.Out.WriteLine("Hello World.");
-			}
-
-			public void Configure(IDbConfig config) {
 			}
 		}
 

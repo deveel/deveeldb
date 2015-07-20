@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Types;
+
 using NUnit;
 using NUnit.Framework;
 
@@ -17,13 +19,12 @@ namespace Deveel.Data {
 		public void NullObjectEqualsNull() {
 			DataObject obj = null;
 			Assert.AreEqual(null, obj);
-			Assert.IsTrue(obj == null);
-		}
 
-		[Test]
-		public void NotNullObjectEqualsNull() {
-			var obj = DataObject.Null();
-			Assert.AreEqual(null, obj);
+			DataObject result = null;
+			Assert.DoesNotThrow(() => result = obj == null);
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<BooleanType>(result.Type);
+			Assert.IsTrue(result.IsNull);
 		}
 	}
 }

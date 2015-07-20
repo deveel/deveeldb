@@ -6,7 +6,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
 
-namespace Deveel.Data.Deveel.Data.Sql.Statements {
+namespace Deveel.Data.Sql.Statements {
 	public static class QueryContextStatementExtensions {
 		public static ITable[] ExecuteQuery(this IQueryContext context, SqlQuery query) {
 			return StatementExecutor.Execute(context, query);

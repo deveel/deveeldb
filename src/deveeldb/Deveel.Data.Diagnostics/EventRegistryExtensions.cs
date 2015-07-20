@@ -29,7 +29,7 @@ namespace Deveel.Data.Diagnostics {
 			errorEvent.ErrorSource(ex.Source);
 
 			if (source != null)
-				source.FillEventData(errorEvent);
+				source.AppendEventData(errorEvent);
 
 			registry.RegisterEvent(errorEvent);
 		}
@@ -53,7 +53,7 @@ namespace Deveel.Data.Diagnostics {
 			errorEvent.ErrorSource(errorSource);
 			
 			if (source != null)
-				source.FillEventData(errorEvent);
+				source.AppendEventData(errorEvent);
 
 			registry.RegisterEvent(errorEvent);
 		}

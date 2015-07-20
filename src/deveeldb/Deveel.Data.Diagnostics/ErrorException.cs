@@ -89,7 +89,7 @@ namespace Deveel.Data.Diagnostics {
 			}
 
 			if (source != null)
-				source.FillEventData(e);
+				source.AppendEventData(e);
 
 			e.ErrorLevel(ErrorLevel);
 			e.StackTrace(StackTrace);

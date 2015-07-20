@@ -35,5 +35,17 @@ namespace Deveel.Data.DbSystem {
 		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider) {
 			return provider.ResolveAll(typeof (T)).Cast<T>();
 		}
+
+		public static void Register(this ISystemServiceProvider provider, Type type) {
+			provider.Register(null, type);
+		}
+
+		public static void Register<T>(this ISystemServiceProvider provider, string name) {
+			provider.Register(name, typeof(T));
+		}
+
+		public static void Register<T>(this ISystemServiceProvider provider) {
+			provider.Register(typeof(T));
+		}
 	}
 }

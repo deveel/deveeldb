@@ -17,7 +17,23 @@
 using System;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// Implementations of this interface handle the registration
+	/// of events fired within the system.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// It is delegated to the implementation of the registry to
+	/// handle the first instance of the event passed: this can be
+	/// the storage of given types of event data, or routing other
+	/// events.
+	/// </para>
+	/// </remarks>
 	public interface IEventRegistry {
-		void RegisterEvent(IEvent dbEvent);
+		/// <summary>
+		/// Adds the specified event object to the registry.
+		/// </summary>
+		/// <param name="event">The event object to be registered.</param>
+		void RegisterEvent(IEvent @event);
 	}
 }

@@ -57,12 +57,26 @@ namespace Deveel.Data.DbSystem {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-
+				if (ServiceProvider != null)
+					ServiceProvider.Dispose();
 			}
+
+			ServiceProvider = null;
 		}
 
 		private void Init() {
 			ServiceProvider = new SystemServiceProvider(this);
+			RegisterServicesFromConfig();
+		}
+
+		private void RegisterServicesFromConfig() {
+			var allKeys = Configuration.GetKeys(ConfigurationLevel.Deep);
+			var typeKeys = allKeys.Where(key => key.ValueType == typeof (Type));
+			var types = typeKeys.Select(key => Configuration.GetValue(key).Value).Cast<Type>();
+
+			foreach (var type in types) {
+				ServiceProvider.Register(type);
+			}
 		}
 
 		object IServiceResolveContext.OnResolve(Type type, string name) {
@@ -76,8 +90,8 @@ namespace Deveel.Data.DbSystem {
 			if (type == typeof (ISpatialContext))
 				spatialContext = (ISpatialContext) obj;
 
-			if (obj != null && obj is IDatabaseService)
-				((IDatabaseService)obj).Configure(Configuration);
+			if (obj != null && obj is IConfigurable)
+				((IConfigurable)obj).Configure(Configuration);
 		}
 
 		IEnumerable IServiceResolveContext.OnResolveAll(Type type) {
@@ -86,7 +100,7 @@ namespace Deveel.Data.DbSystem {
 
 		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
 			if (list != null) {
-				foreach (var service in list.Cast<IDatabaseService>()) {
+				foreach (var service in list.OfType<IConfigurable>()) {
 					service.Configure(Configuration);
 				}
 			}

@@ -19,7 +19,7 @@ using System;
 namespace Deveel.Data.Configuration {
 	/// <summary>
 	/// Marks a component as configurable and passes the configuration
-	/// obejct that is used to load the configurations handled.
+	/// object that is used to load the configurations handled.
 	/// </summary>
 	public interface IConfigurable {
 		/// <summary>

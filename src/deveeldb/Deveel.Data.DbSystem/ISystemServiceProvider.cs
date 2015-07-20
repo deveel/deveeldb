@@ -65,5 +65,13 @@ namespace Deveel.Data.DbSystem {
 		/// that implement the given type.
 		/// </returns>
 		IEnumerable ResolveAll(Type serviceType);
+
+		/// <summary>
+		/// Registers a service with the given type, optionally identified by
+		/// a given name.
+		/// </summary>
+		/// <param name="name">The optional name identifier of the service.</param>
+		/// <param name="serviceType">The type of the service to register.</param>
+		void Register(string name, Type serviceType);
 	}
 }

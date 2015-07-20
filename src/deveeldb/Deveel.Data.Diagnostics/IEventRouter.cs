@@ -16,10 +16,30 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Diagnostics {
-	public interface IEventRouter : IDatabaseService {
+	/// <summary>
+	/// Defines the basic logic for the dispatching of events
+	/// within a system workflow.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Event routers take an input event object and are configured
+	/// to either transform it or forward it to other components
+	/// in the system's life-cycle.
+	/// </para>
+	/// <para>
+	/// Implementations of this interface are typically middlewaes
+	/// that involve in the life-cycle third party components that
+	/// listen to system events and react accordingly.
+	/// </para>
+	/// </remarks>
+	public interface IEventRouter : IConfigurable {
+		/// <summary>
+		/// Routes the input event to the final destination.
+		/// </summary>
+		/// <param name="e">The system event to be routed.</param>
 		void RouteEvent(IEvent e);
 	}
 }

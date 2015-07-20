@@ -17,7 +17,29 @@
 using System;
 
 namespace Deveel.Data.Diagnostics {
+	/// <summary>
+	/// Represents the origin of system events, providing
+	/// a mechanism to fill the metadata before dispatching
+	/// the event.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Implementations of this interface provide the event, despite
+	/// of where it was generated, with data that will be carried on
+	/// with the event to the final destination.
+	/// </para>
+	/// <para>
+	/// A system event can be handled by many sources, and this will
+	/// provide the final system or user a more informational data
+	/// that can trigger second or third level actions.
+	/// </para>
+	/// </remarks>
 	public interface IEventSource {
-		void FillEventData(IEvent @event);
+		/// <summary>
+		/// Appends the source metadata to the event specified.
+		/// </summary>
+		/// <param name="event">The event object to which to append
+		/// the source metadata.</param>
+		void AppendEventData(IEvent @event);
 	}
 }

@@ -51,7 +51,7 @@ namespace Deveel.Data.DbSystem {
 
 		public SessionInfo SessionInfo { get; private set; }
 
-		void IEventSource.FillEventData(IEvent @event) {
+		void IEventSource.AppendEventData(IEvent @event) {
 			@event.Database(Database.Name());
 			@event.UserName(SessionInfo.User.Name);
 			

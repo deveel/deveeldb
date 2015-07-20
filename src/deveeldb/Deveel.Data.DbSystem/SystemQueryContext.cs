@@ -96,7 +96,7 @@ namespace Deveel.Data.DbSystem {
 				Transaction.Rollback();
 			}
 
-			public void FillEventData(IEvent @event) {
+			public void AppendEventData(IEvent @event) {
 				@event.Database(Database.Name());
 				@event.UserName(SessionInfo.User.Name);
 			}

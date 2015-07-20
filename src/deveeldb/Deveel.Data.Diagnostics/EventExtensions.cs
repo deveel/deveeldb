@@ -106,5 +106,13 @@ namespace Deveel.Data.Diagnostics {
 		public static ErrorLevel ErrorLevel(this IEvent @event) {
 			return @event.GetData<ErrorLevel>(EventMetadataKeys.ErrorLevel);
 		}
+
+		public static void RemoteAddress(this IEvent @event, string value) {
+			@event.SetData(EventMetadataKeys.RemoteAddress, value);
+		}
+
+		public static string RemoteAddress(this IEvent @event) {
+			return @event.GetData<string>(EventMetadataKeys.RemoteAddress);
+		}
 	}
 }
