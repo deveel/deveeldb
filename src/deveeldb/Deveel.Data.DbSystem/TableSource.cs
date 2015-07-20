@@ -1541,9 +1541,14 @@ namespace Deveel.Data.DbSystem {
 				this.database = database;
 			}
 
-			public UserType ResolveType(ObjectName typeName) {
+			public UserType ResolveType(string typeName) {
 				using (var session = database.CreateSystemSession()) {
-					return session.GetUserType(typeName);
+					var fullTypeName = session.ResolveObjectName(typeName);
+
+					if (fullTypeName == null)
+						return null;
+
+					return session.GetUserType(fullTypeName);
 				}
 			}
 		}

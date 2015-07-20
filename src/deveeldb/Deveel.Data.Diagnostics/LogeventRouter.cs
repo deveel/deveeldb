@@ -34,6 +34,13 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public void RouteEvent(IEvent e) {
+			if (e == null)
+				return;
+
+			if (e.EventType != (byte)EventType.Error &&
+				e.EventType != (byte)EventType.Notification)
+				return;
+
 			var loggers = Context.ServiceProvider.ResolveAll<IEventLogger>();
 
 			EventLog entry = null;

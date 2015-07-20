@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			if (source is FromTableSourceNode) {
 				var tableSource = (FromTableSourceNode)source;
-				clause.AddTable(alias, tableSource.TableName.Name.FullName);
+				clause.AddTable(alias, tableSource.TableName.Name);
 			} else if (source is FromQuerySourceNode) {
 				var querySource = (FromQuerySourceNode)source;
 				var queryExpression = (SqlQueryExpression) Build(querySource.Query);
@@ -149,7 +149,7 @@ namespace Deveel.Data.Sql.Compile {
 			foreach (var item in node.SelectItems) {
 				SqlExpression exp;
 				if (item.Name != null) {
-					exp = SqlExpression.Reference(item.Name.Name);
+					exp = SqlExpression.Reference(ObjectName.Parse(item.Name.Name));
 				} else if (item.Expression != null) {
 					exp = Build(item.Expression);
 				} else {
@@ -187,7 +187,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override void VisitReferenceExpression(SqlReferenceExpressionNode node) {
-			outputExpression = SqlExpression.Reference(node.Reference.Name);
+			outputExpression = SqlExpression.Reference(ObjectName.Parse(node.Reference.Name));
 		}
 
 		public override void VisitFunctionCall(SqlFunctionCallExpressionNode node) {

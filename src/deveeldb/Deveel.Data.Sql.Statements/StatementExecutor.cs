@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
@@ -43,6 +44,8 @@ namespace Deveel.Data.Sql.Statements {
 
 			var results = new List<ITable>();
 			foreach (var statement in statements) {
+				context.RegisterQuery(statement);
+
 				// TODO: Invoke diagnostics for the preparation...
 
 				var prepared = statement.Prepare(preparer, context);

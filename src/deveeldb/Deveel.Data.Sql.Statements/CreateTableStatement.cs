@@ -23,9 +23,17 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	/// <summary>
+	/// The statement object used to create a table in a database.
+	/// </summary>
 	[Serializable]
 	public sealed class CreateTableStatement : SqlStatement {
-		public CreateTableStatement(ObjectName tableName, IEnumerable<SqlTableColumn> columns) {
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <param name="columns"></param>
+		public CreateTableStatement(string tableName, IEnumerable<SqlTableColumn> columns) {
 			TableName = tableName;
 			Columns = new List<SqlTableColumn>();
 			if (columns != null) {
@@ -35,7 +43,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		public ObjectName TableName { get; private set; }
+		public string TableName { get; private set; }
 
 		public IList<SqlTableColumn> Columns { get; private set; }
 
@@ -54,9 +62,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private TableInfo CreateTableInfo(IQueryContext context) {
-			var tableName = TableName;
-
-			tableName = context.ResolveTableName(tableName);
+			var tableName = context.ResolveTableName(TableName);
 
 			var idColumnCount = Columns.Count(x => x.IsIdentity);
 			if (idColumnCount > 1)

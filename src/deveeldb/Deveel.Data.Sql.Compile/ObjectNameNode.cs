@@ -38,16 +38,16 @@ namespace Deveel.Data.Sql.Compile {
 		/// The full object name as composed from the input SQL string analyzed.
 		/// </summary>
 		/// <seealso cref="ObjectName"/>
-		public ObjectName Name { get; private set; }
+		public string Name { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			var idNode = (IdentifierNode) node;
 
 			if (Name != null) {
-				Name = new ObjectName(Name, idNode.Text);
+				Name = String.Format("{0}.{1}", Name, idNode.Text);
 			} else {
-				Name = new ObjectName(idNode.Text);
+				Name = idNode.Text;
 			}
 
 			return base.OnChildNode(node);

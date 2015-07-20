@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// <summary>
 		/// Gets a fully-qualified name for user-defined data types.
 		/// </summary>
-		public ObjectName UserTypeName { get; private set; }
+		public string UserTypeName { get; private set; }
 
 		/// <summary>
 		/// Gets the size specification of the data-type.
@@ -141,7 +141,7 @@ namespace Deveel.Data.Sql.Compile {
 		private void GetUserType(ISqlNode node) {
 			IsPrimitive = false;
 			UserTypeName = ((ObjectNameNode) node.ChildNodes.First()).Name;
-			TypeName = UserTypeName.FullName;
+			TypeName = UserTypeName;
 		}
 
 		private void GetSimpleType(ISqlNode node) {

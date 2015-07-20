@@ -217,6 +217,12 @@ namespace Deveel.Data.Sql.Statements {
 			} catch (Exception ex) {
 				throw new SqlParseException("The input string cannot be parsed into SQL Statements", ex);
 			}
-		} 
+		}
+
+		public override string ToString() {
+			var visitor = new StatementSqlStringBuilder();
+			visitor.Visit(this);
+			return visitor.ToString();
+		}
 	}
 }

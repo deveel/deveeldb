@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Compile {
 		/// <summary>
 		/// Gets the name of the function to be invoked.
 		/// </summary>
-		public ObjectName FunctionName { get; private set; }
+		public string FunctionName { get; private set; }
 
 		/// <summary>
 		/// Gets an optional read-only list of arguments to be passed

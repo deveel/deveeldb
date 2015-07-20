@@ -26,11 +26,11 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CreateViewStatement : SqlStatement {
-		public CreateViewStatement(ObjectName viewName, SqlQueryExpression queryExpression) 
+		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
 
-		public CreateViewStatement(ObjectName viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
+		public CreateViewStatement(string viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			if (viewName == null)
 				throw new ArgumentNullException("viewName");
 			if (queryExpression == null)
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
-		public ObjectName ViewName { get; private set; }
+		public string ViewName { get; private set; }
 
 		public IEnumerable<string> ColumnNames { get; private set; }
 

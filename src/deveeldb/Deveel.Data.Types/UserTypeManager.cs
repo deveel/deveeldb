@@ -67,8 +67,12 @@ namespace Deveel.Data.Types {
 			throw new NotImplementedException();
 		}
 
-		UserType IUserTypeResolver.ResolveType(ObjectName typeName) {
-			return GetUserType(typeName);
+		UserType IUserTypeResolver.ResolveType(string typeName) {
+			var fullTypeName = Transaction.ResolveObjectName(typeName);
+			if (fullTypeName == null)
+				return null;
+
+			return GetUserType(fullTypeName);
 		}
 
 		public UserType GetUserType(ObjectName typeName) {

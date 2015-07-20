@@ -107,6 +107,7 @@ namespace Deveel.Data.Sql.Compile {
 				var dataTypeBuilder = new DataTypeBuilder();
 
 				var tableName = node.TableName;
+				var objTableName = ObjectName.Parse(tableName.Name);
 				var constraints = new List<ConstraintInfo>();
 				var columns = new List<SqlTableColumn>();
 
@@ -132,17 +133,17 @@ namespace Deveel.Data.Sql.Compile {
 						idColumn = column.ColumnName.Text;
 
 						columnInfo.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-							new[] {SqlExpression.Constant(node.TableName.Name.FullName)});
+							new[] {SqlExpression.Constant(node.TableName.Name)});
 					}
 
 					foreach (var constraint in column.Constraints) {
 						if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 							var exp = expBuilder.Build(constraint.CheckExpression);
-							constraints.Add(ConstraintInfo.Check(tableName.Name, exp, column.ColumnName.Text));
+							constraints.Add(ConstraintInfo.Check(objTableName, exp, column.ColumnName.Text));
 						} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							var fTable = constraint.ReferencedTable.Name;
+							var fTable = ObjectName.Parse(constraint.ReferencedTable.Name);
 							var fColumn = constraint.ReferencedColumn.Text;
-							var fkey = ConstraintInfo.ForeignKey(tableName.Name, column.ColumnName.Text, fTable, fColumn);
+							var fkey = ConstraintInfo.ForeignKey(objTableName, column.ColumnName.Text, fTable, fColumn);
 							if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
 								fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
 							if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
@@ -150,9 +151,9 @@ namespace Deveel.Data.Sql.Compile {
 
 							constraints.Add(fkey);
 						} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							constraints.Add(ConstraintInfo.PrimaryKey(tableName.Name, column.ColumnName.Text));
+							constraints.Add(ConstraintInfo.PrimaryKey(objTableName, column.ColumnName.Text));
 						} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							constraints.Add(ConstraintInfo.Unique(tableName.Name, column.ColumnName.Text));
+							constraints.Add(ConstraintInfo.Unique(objTableName, column.ColumnName.Text));
 						} else if (String.Equals(ConstraintTypeNames.NotNull, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 							columnInfo.IsNotNull = true;
 						} else if (String.Equals(ConstraintTypeNames.Null, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
@@ -166,15 +167,15 @@ namespace Deveel.Data.Sql.Compile {
 				foreach (var constraint in node.Constraints) {
 					if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 						var exp = expBuilder.Build(constraint.CheckExpression);
-						constraints.Add(ConstraintInfo.Check(constraint.ConstraintName, tableName.Name, exp, constraint.Columns.ToArray()));
+						constraints.Add(ConstraintInfo.Check(constraint.ConstraintName, objTableName, exp, constraint.Columns.ToArray()));
 					} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						constraints.Add(ConstraintInfo.PrimaryKey(constraint.ConstraintName, tableName.Name, constraint.Columns.ToArray()));
+						constraints.Add(ConstraintInfo.PrimaryKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray()));
 					} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						constraints.Add(ConstraintInfo.Unique(constraint.ConstraintName, tableName.Name, constraint.Columns.ToArray()));
+						constraints.Add(ConstraintInfo.Unique(constraint.ConstraintName, objTableName, constraint.Columns.ToArray()));
 					} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						var fTable = constraint.ReferencedTableName.Name;
+						var fTable = ObjectName.Parse(constraint.ReferencedTableName.Name);
 						var fColumns = constraint.ReferencedColumns;
-						var fkey = ConstraintInfo.ForeignKey(constraint.ConstraintName, tableName.Name, constraint.Columns.ToArray(), fTable,
+						var fkey = ConstraintInfo.ForeignKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray(), fTable,
 							fColumns.ToArray());
 						if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
 							fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
@@ -190,7 +191,7 @@ namespace Deveel.Data.Sql.Compile {
 				statements.Add(MakeCreateTable(tableName.Name, columns, node.IfNotExists, node.Temporary));
 
 				foreach (var constraint in constraints) {
-					statements.Add(MakeAlterTableAddConstraint(tableName.Name, constraint));
+					statements.Add(MakeAlterTableAddConstraint(objTableName, constraint));
 				}
 			}
 
@@ -216,7 +217,7 @@ namespace Deveel.Data.Sql.Compile {
 				return new SqlAlterTableStatement(tableName,new List<IAlterTableAction>{action});
 			}
 
-			private static SqlStatement MakeCreateTable(ObjectName tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {
+			private static SqlStatement MakeCreateTable(string tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {
 				var tree = new CreateTableStatement(tableName, columns.ToList());
 				tree.IfNotExists = ifNotExists;
 				tree.Temporary = temporary;
