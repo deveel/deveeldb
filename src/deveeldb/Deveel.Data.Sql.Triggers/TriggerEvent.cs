@@ -21,17 +21,16 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerEvent : IEvent {
-		private readonly Dictionary<string, object> data;
-
-		public TriggerEvent(ObjectName triggerName, TriggerEventType eventType, int fireCount) {
+		internal TriggerEvent(ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, int fireCount) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
+			if (sourceName == null)
+				throw new ArgumentNullException("sourceName");
 
-			data = new Dictionary<string, object>();
-
-			this.SetData("Trigger-Name", triggerName.FullName);
-			this.SetData("Event-Type", eventType);
-			this.SetData("Fire-Count", fireCount);
+			TriggerName = triggerName;
+			SourceName = sourceName;
+			TriggerEventType = eventType;
+			FireCount = fireCount;
 		}
 
 		byte IEvent.EventType {
@@ -49,30 +48,29 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		public ObjectName TriggerName {
-			get {
-				var triggerName = this.GetData<string>("Trigger-Name");
-				return ObjectName.Parse(triggerName);
-			}
-		}
+		public ObjectName TriggerName { get; private set; }
 
-		public TriggerEventType TriggerEventType {
-			get { return this.GetData<TriggerEventType>("Event-Type"); }
-		}
+		public ObjectName SourceName { get; set; }
 
-		public int FireCount {
-			get { return this.GetData<int>("Fire-Count"); }
-		}
+		public TriggerEventType TriggerEventType { get; private set; }
+
+		public int FireCount { get; private set; }
 
 		string IEvent.EventMessage {
 			get {
-				//TODO:
-				return null;
+				var fireCountString = FireCount > 1 ? String.Format("{0} times", FireCount) : "once";
+				return String.Format("Trigger '{0}' on '{1}' to '{2}' fired {3}", TriggerName, TriggerEventType, SourceName, fireCountString);
 			}
 		}
 
 		IDictionary<string, object> IEvent.EventData {
-			get { return data; }
+			get {
+				return new Dictionary<string, object> {
+					{"Trigger-Name", TriggerName.ToString()},
+					{"Event-Type", TriggerEventType.ToString()},
+					{"Fire-Count", FireCount}
+				};
+			}
 		}
 	}
 }

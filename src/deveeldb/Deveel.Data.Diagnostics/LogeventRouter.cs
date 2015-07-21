@@ -46,9 +46,6 @@ namespace Deveel.Data.Diagnostics {
 		/// </summary>
 		public ISystemContext Context { get; private set; }
 
-		void IConfigurable.Configure(IDbConfig config) {
-		}
-
 		public void RouteEvent(IEvent e) {
 			if (e == null)
 				return;

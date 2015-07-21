@@ -21,19 +21,22 @@ namespace Deveel.Data.Diagnostics {
 	/// The level listened by a diagnostic logger
 	/// </summary>
 	public enum LogLevel {
+		/// <summary>
+		/// The level of the event is undefined.
+		/// </summary>
 		Undefined = 0,
 
 		/// <summary>
 		/// Critical errors that cause the interruption
 		/// of the system.
 		/// </summary>
-		Critical = 1,
+		Critical = 5,
 
 		/// <summary>
 		/// An exception to the normal execution of the system
 		/// that breaks an operation.
 		/// </summary>
-		Error = 2,
+		Error = 4,
 
 		/// <summary>
 		/// Warning messages that define a non-blocking
@@ -45,12 +48,12 @@ namespace Deveel.Data.Diagnostics {
 		/// Informational messages intended to output operative
 		/// states of the application.
 		/// </summary>
-		Information = 4,
+		Information = 2,
 
 		/// <summary>
 		/// Augmented verbosity to the logger, that reports an higher
 		/// degree of information to the logger.
 		/// </summary>
-		Verbose = 5
+		Verbose = 1
 	}
 }

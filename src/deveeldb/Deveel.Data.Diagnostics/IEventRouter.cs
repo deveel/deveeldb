@@ -16,8 +16,6 @@
 
 using System;
 
-using Deveel.Data.Configuration;
-
 namespace Deveel.Data.Diagnostics {
 	/// <summary>
 	/// Defines the basic logic for the dispatching of events
@@ -30,12 +28,12 @@ namespace Deveel.Data.Diagnostics {
 	/// in the system's life-cycle.
 	/// </para>
 	/// <para>
-	/// Implementations of this interface are typically middlewaes
+	/// Implementations of this interface are typically middleware
 	/// that involve in the life-cycle third party components that
 	/// listen to system events and react accordingly.
 	/// </para>
 	/// </remarks>
-	public interface IEventRouter : IConfigurable {
+	public interface IEventRouter {
 		/// <summary>
 		/// Routes the input event to the final destination.
 		/// </summary>

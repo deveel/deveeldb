@@ -18,11 +18,14 @@ using System;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class SessionInfo {
+		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) 
+			: this(-1, user, isolation, endPoint) {
+		}
+
 		public SessionInfo(User user) 
 			: this(user, TransactionIsolation.Unspecified) {
 		}
@@ -36,31 +39,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public SessionInfo(int commitId, User user, TransactionIsolation isolation) 
-			: this(commitId, user, isolation, ConnectionEndPoint.Embedded, null) {
+			: this(commitId, user, isolation, ConnectionEndPoint.Embedded) {
 		}
 
-		public SessionInfo(User user, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
-			: this(user, TransactionIsolation.Unspecified, endPoint, callback) {
-		}
-
-		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) 
-			: this(user, isolation, endPoint, null) {
-		}
-
-		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
-			: this(-1, user, isolation, endPoint, callback) {
-		}
-
-		public SessionInfo(int commitId, User user, ConnectionEndPoint endPoint) 
-			: this(commitId, user, endPoint, null) {
-		}
-
-		public SessionInfo(int commitId, User user, ConnectionEndPoint endPoint, Action<CallbackTriggerEvent> callback) 
-			: this(commitId, user, TransactionIsolation.Unspecified, endPoint, callback) {
-		}
-
-		public SessionInfo(int commitId, User user, TransactionIsolation isolation, ConnectionEndPoint endPoint,
-			Action<CallbackTriggerEvent> callback) {
+		public SessionInfo(int commitId, User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) {
 			if (user == null)
 				throw new ArgumentNullException("user");
 			if (endPoint == null)
@@ -69,7 +51,6 @@ namespace Deveel.Data.DbSystem {
 			CommitId = commitId;
 			User = user;
 			EndPoint = endPoint;
-			CallbackTrigger = callback;
 			Isolation = isolation;
 			StartedOn = DateTimeOffset.UtcNow;
 		}
@@ -81,8 +62,6 @@ namespace Deveel.Data.DbSystem {
 		public User User { get; private set; }
 
 		public TransactionIsolation Isolation { get; private set; }
-
-		public Action<CallbackTriggerEvent> CallbackTrigger { get; private set; } 
 
 		public DateTimeOffset StartedOn { get; private set; }
 

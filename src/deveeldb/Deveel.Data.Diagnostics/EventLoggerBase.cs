@@ -15,7 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 
 using Deveel.Data.Configuration;
 
@@ -31,21 +33,41 @@ namespace Deveel.Data.Diagnostics {
 	/// middle-wares.
 	/// </para>
 	/// </remarks>
-	public abstract class EventLoggerBase : IEventLogger, IConfigurable {
+	public abstract class EventLoggerBase : IEventLogger, IConfigurable, IDisposable {
+		private Thread writeThread;
+		private List<EventLog> logs;
+		private bool isRunning;
+
 		/// <summary>
 		/// The default date-time format used if none if configured.
 		/// </summary>
 		public const string DefaultDateFormat = "yyyy-MM-ddTHH:mm:ss";
 
 		/// <summary>
-		/// Gets or sets the minimum level to listen to.
+		/// The default format of an output message for the loggers
 		/// </summary>
-		public LogLevel MinimumLevel { get; set; }
+		public const string DefaultMessageFormat = "[{level}][{date}] - {user}@{database}({source}) - {message}";
+
+		protected EventLoggerBase() {
+			LogFormat = DefaultMessageFormat;
+			DateFormat = DefaultDateFormat;
+
+			isRunning = true;
+			logs = new List<EventLog>();
+
+			writeThread = new Thread(Write);
+			writeThread.IsBackground = true;
+			writeThread.Start();
+		}
+
+		~EventLoggerBase() {
+			Dispose(false);
+		}
 
 		/// <summary>
-		/// Gets or sets the maximum level to listen to.
+		/// Gets or sets the minimum level of log events to listen to
 		/// </summary>
-		public LogLevel MaximumLevel { get; set; }
+		public LogLevel Level { get; set; }
 
 		/// <summary>
 		/// Gets or sets the format of the output message.
@@ -62,41 +84,49 @@ namespace Deveel.Data.Diagnostics {
 		/// </remarks>
 		public string DateFormat { get; set; }
 
-		/// <summary>
-		/// Sets the exact logging level to listen to.
-		/// </summary>
-		/// <param name="level">The log level to listen to.</param>
-		public void SetLevel(LogLevel level) {
-			MinimumLevel = level;
-			MaximumLevel = level;
+		public bool CanLog(LogLevel level) {
+			return level >= Level;
 		}
 
-		public bool CanLog(LogLevel level) {
-			return level <= MaximumLevel || level >= MinimumLevel;
+		private void Write() {
+			while (isRunning) {
+				if (logs == null)
+					break;
+
+				if (logs.Count == 0)
+					Thread.Sleep(300);
+
+				foreach (var log in logs) {
+					var message = FormatMessage(log);
+					WriteToLog(message);
+				}
+			}
 		}
 
 		public void LogEvent(EventLog logEntry) {
-			lock (this) {
-				try {
-					var message = FormatMessage(logEntry);
-					WriteToLog(message);
-				} catch (Exception) {
-					// At this point we totally ignore any exception
-				}
-			}
+			//lock (this) {
+			//	try {
+			//		var message = FormatMessage(logEntry);
+			//		WriteToLog(message);
+			//	} catch (Exception) {
+			//		// At this point we totally ignore any exception
+			//	}
+			//}
+
+			logs.Add(logEntry);
 		}
 
 		protected abstract void WriteToLog(string message);
 
 		private string FormatMessage(EventLog logEntry) {
 			var format = LogFormat;
-			format = format.Replace("[date]", FormatDate(logEntry.TimeStamp));
-			format = format.Replace("[user]", logEntry.UserName);
-			format = format.Replace("[database]", logEntry.Database);
-			format = format.Replace("[level]", logEntry.Level.ToString().ToUpperInvariant());
-			format = format.Replace("[message]", logEntry.Message);
-			format = format.Replace("[code]", FormatErrorCode(logEntry.EventClass, logEntry.EventCode));
-			format = format.Replace("[source]", logEntry.Source.ToString());
+			format = format.Replace("{date}", FormatDate(logEntry.TimeStamp));
+			format = format.Replace("{user}", logEntry.UserName);
+			format = format.Replace("{database}", logEntry.Database);
+			format = format.Replace("{level}", logEntry.Level.ToString().ToUpperInvariant());
+			format = format.Replace("{message}", logEntry.Message);
+			format = format.Replace("{code}", FormatErrorCode(logEntry.EventClass, logEntry.EventCode));
+			format = format.Replace("{source}", logEntry.Source != null ? logEntry.Source.ToString() : "NO SOURCE");
 			return format;
 		}
 
@@ -117,6 +147,32 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		protected virtual void OnConfigure(IDbConfig config) {
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				isRunning = false;
+
+				if (writeThread != null) {
+					try {
+						// wait 5s for the writing to finish
+						writeThread.Join(5000);
+						writeThread.Abort();
+					} catch (ThreadAbortException) {
+					}
+				}
+
+				if (logs != null)
+					logs.Clear();
+			}
+
+			logs = null;
+			writeThread = null;
 		}
 	}
 }

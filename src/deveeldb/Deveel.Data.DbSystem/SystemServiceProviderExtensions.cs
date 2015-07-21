@@ -47,5 +47,9 @@ namespace Deveel.Data.DbSystem {
 		public static void Register<T>(this ISystemServiceProvider provider) {
 			provider.Register(typeof(T));
 		}
+
+		public static void Register(this ISystemServiceProvider provider, object service) {
+			provider.Register(null, service);
+		}
 	}
 }

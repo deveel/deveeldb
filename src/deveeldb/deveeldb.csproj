@@ -196,7 +196,7 @@
     <Compile Include="Deveel.Data.Diagnostics\IEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventLog.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogEventRouter.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\LoggerContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\NotificationEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\NotificationLevel.cs" />
@@ -249,6 +249,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
@@ -256,6 +257,7 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerContext.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventRouter.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />

@@ -73,5 +73,13 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="name">The optional name identifier of the service.</param>
 		/// <param name="serviceType">The type of the service to register.</param>
 		void Register(string name, Type serviceType);
+
+		/// <summary>
+		/// Registers the instance of a service, optionally identified by
+		/// the given name.
+		/// </summary>
+		/// <param name="name">The optional name to identify the service.</param>
+		/// <param name="service">The instance of the service to register.</param>
+		void Register(string name, object service);
 	}
 }

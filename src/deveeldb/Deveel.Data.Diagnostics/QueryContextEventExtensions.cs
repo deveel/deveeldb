@@ -26,6 +26,10 @@ namespace Deveel.Data.Diagnostics {
 			context.DatabaseContext.SystemContext.EventRegistry.RegisterEvent(@event);
 		}
 
+		public static void RegisterError(this IQueryContext context, string message) {
+			RegisterError(context, message, null);
+		}
+
 		public static void RegisterError(this IQueryContext context, string message, Exception error) {
 			var errorEx = new ErrorException(EventClasses.Runtime, Int32.MinValue, message, error);
 			var errorEvent = errorEx.AsEvent(context.Session);
