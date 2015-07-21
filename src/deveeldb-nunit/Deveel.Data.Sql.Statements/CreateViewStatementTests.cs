@@ -15,7 +15,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override IQueryContext CreateQueryContext(IDatabase database) {
 			// We first create the table in another context...
-			using (var session = database.CreateSession(AdminUserName, AdminPassword)) {
+			using (var session = database.CreateUserSession(AdminUserName, AdminPassword)) {
 				using (var context = new SessionQueryContext(session)) {
 					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 					tableInfo.AddColumn("a", PrimitiveTypes.Integer());

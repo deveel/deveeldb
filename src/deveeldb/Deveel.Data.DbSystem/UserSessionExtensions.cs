@@ -65,6 +65,10 @@ namespace Deveel.Data.DbSystem {
 			return session.Transaction.ObjectExists(objectType, objectName);
 		}
 
+		public static IDbObject FindObject(this IUserSession session, ObjectName objectName) {
+			return session.Transaction.FindObject(objectName);
+		}
+
 		public static ObjectName ResolveObjectName(this IUserSession session, string name) {
 			return session.ResolveObjectName(new ObjectName(new ObjectName(session.CurrentSchema), name));
 		}

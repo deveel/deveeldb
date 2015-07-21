@@ -31,10 +31,15 @@ namespace Deveel.Data.Transactions {
 	/// Provides some convenience extension methods to <see cref="ITransaction"/> instances.
 	/// </summary>
 	public static class TransactionExtensions {
+		private static void AssertNotReadOnly(this ITransaction transaction) {
+			if (transaction.ReadOnly())
+				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
+		}
+
 		#region Managers
 
 		public static void CreateSystem(this ITransaction transaction) {
-			var managers = transaction.Managers.GetManagers();
+			var managers = transaction.Managers.ResolveAll();
 			foreach (var manager in managers) {
 				manager.Create();
 			}
@@ -57,7 +62,7 @@ namespace Deveel.Data.Transactions {
 		#region Objects
 
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
-			return transaction.Managers.GetManagers()
+			return transaction.Managers.ResolveAll()
 				.Select(manager => manager.GetObject(objName))
 				.FirstOrDefault(obj => obj != null);
 		}
@@ -71,7 +76,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool ObjectExists(this ITransaction transaction, ObjectName objName) {
-			return transaction.Managers.GetManagers()
+			return transaction.Managers.ResolveAll()
 				.Any(manager => manager.ObjectExists(objName));
 		}
 
@@ -146,7 +151,7 @@ namespace Deveel.Data.Transactions {
 
 			bool found = false;
 
-			foreach (var manager in transaction.Managers.GetManagers()) {
+			foreach (var manager in transaction.Managers.ResolveAll()) {
 				if (manager.ObjectExists(objName)) {
 					if (found)
 						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match.", objectName));
@@ -176,7 +181,7 @@ namespace Deveel.Data.Transactions {
 		public static ObjectName ResolveObjectName(this ITransaction transaction, ObjectName objectName) {
 			var ignoreCase = transaction.IgnoreIdentifiersCase();
 
-			return transaction.Managers.GetManagers()
+			return transaction.Managers.ResolveAll()
 				.Select(manager => manager.ResolveName(objectName, ignoreCase))
 				.FirstOrDefault(resolved => resolved != null);
 		}
@@ -189,10 +194,9 @@ namespace Deveel.Data.Transactions {
 			transaction.CreateObject(schemaInfo);
 		}
 
+		// TODO: move this elsewhere
 		public static void CreateSystemSchema(this ITransaction transaction) {
 			transaction.CreateSystem();
-
-			// SystemSchema.CreateSystemTables(transaction);
 
 			// TODO: get the configured default culture...
 			var culture = CultureInfo.CurrentCulture.Name;
@@ -202,27 +206,11 @@ namespace Deveel.Data.Transactions {
 			transaction.CreateSchema(schemaInfo);
 		}
 
-		public static void DropSchema(this ITransaction transaction, string schemaName) {
-			transaction.DropObject(DbObjectType.Schema, new ObjectName(schemaName));
-		}
-
-		public static Schema GetSchema(this ITransaction transaction, string schemaName) {
-			var obj = transaction.GetObject(DbObjectType.Schema, new ObjectName(schemaName));
-			if (obj == null)
-				return null;
-
-			return (Schema) obj;
-		}
-
-		public static bool SchemaExists(this ITransaction transaction, string schemaName) {
-			return transaction.ObjectExists(DbObjectType.Schema, new ObjectName(schemaName));
-		}
-
 		#endregion
 
 		#region Tables
 
-		public static ObjectName ResolveReservedTableName(this ITransaction transaction, ObjectName tableName) {
+		private static ObjectName ResolveReservedTableName(ObjectName tableName) {
 			// We do not allow tables to be created with a reserved name
 			var name = tableName.Name;
 
@@ -253,7 +241,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool TableExists(this ITransaction transaction, ObjectName tableName) {
-			return transaction.ObjectExists(DbObjectType.Table, transaction.ResolveReservedTableName(tableName));
+			return transaction.ObjectExists(DbObjectType.Table, ResolveReservedTableName(tableName));
 		}
 
 		public static bool RealTableExists(this ITransaction transaction, ObjectName objName) {
@@ -271,7 +259,8 @@ namespace Deveel.Data.Transactions {
 		/// it is <c>not null</c>.
 		/// </returns>
 		public static ITable GetTable(this ITransaction transaction, ObjectName tableName) {
-			tableName = transaction.ResolveReservedTableName(tableName);
+			tableName = ResolveReservedTableName(tableName);
+
 			if (tableName.Equals(SystemSchema.OldTriggerTableName, transaction.IgnoreIdentifiersCase()))
 				return transaction.OldNewTableState.OldDataTable;
 			if (tableName.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
@@ -349,6 +338,49 @@ namespace Deveel.Data.Transactions {
 			return transaction.DropObject(DbObjectType.Table, tableName);
 		}
 
+		/// <summary>
+		/// Sets the current value of a table native sequence.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <param name="tableName">The table name.</param>
+		/// <param name="value">The current value of the native sequence.</param>
+		/// <seealso cref="ISequence"/>
+		/// <seealso cref="ISequenceManager"/>
+		/// <returns>
+		/// Returns the current table sequence value after the set.
+		/// </returns>
+		/// <exception cref="ObjectNotFoundException">
+		/// If it was not possible to find any table having the given
+		/// <paramref name="tableName">name</paramref>.
+		/// </exception>
+		public static SqlNumber SetTableId(this ITransaction transaction, ObjectName tableName, SqlNumber value) {
+			transaction.AssertNotReadOnly();
+
+			var tableManager = transaction.GetTableManager();
+			if (tableManager == null)
+				throw new InvalidOperationException();
+
+			return tableManager.SetUniqueId(tableName, value);
+		}
+
+		/// <summary>
+		/// Gets the next value of a table native sequence.
+		/// </summary>
+		/// <param name="transaction"></param>
+		/// <param name="tableName"></param>
+		/// <returns>
+		/// Returns the next value of the sequence for the given table.
+		/// </returns>
+		public static SqlNumber NextTableId(this ITransaction transaction, ObjectName tableName) {
+			transaction.AssertNotReadOnly();
+
+			var tableManager = transaction.GetTableManager();
+			if (tableManager == null)
+				throw new InvalidOperationException();
+
+			return tableManager.NextUniqueId(tableName);
+		}
+
 		#endregion
 
 		#region Sequences
@@ -358,8 +390,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static void CreateNativeSequence(this ITransaction transaction, ObjectName tableName) {
-			var seqInfo = new SequenceInfo(tableName);
-			transaction.CreateSequence(seqInfo);
+			transaction.CreateSequence(SequenceInfo.Native(tableName));
 		}
 
 		public static void RemoveNativeSequence(this ITransaction transaction, ObjectName tableName) {
@@ -368,34 +399,6 @@ namespace Deveel.Data.Transactions {
 
 		public static bool DropSequence(this ITransaction transaction, ObjectName sequenceName) {
 			return transaction.DropObject(DbObjectType.Sequence, sequenceName);
-		}
-
-		public static ISequence GetSequence(this ITransaction transaction, ObjectName sequenceName) {
-			return transaction.GetObject(DbObjectType.Sequence, sequenceName) as ISequence;
-		}
-
-		public static SqlNumber NextValue(this ITransaction transaction, ObjectName sequenceName) {
-			var sequence = transaction.GetSequence(sequenceName);
-			if (sequence == null)
-				throw new ObjectNotFoundException(sequenceName);
-
-			return sequence.NextValue();
-		}
-
-		public static SqlNumber LastValue(this ITransaction transaction, ObjectName sequenceName) {
-			var sequence = transaction.GetSequence(sequenceName);
-			if (sequence == null)
-				throw new ObjectNotFoundException(sequenceName);
-
-			return sequence.GetCurrentValue();
-		}
-
-		public static SqlNumber SetValue(this ITransaction transaction, ObjectName sequenceName, SqlNumber value) {
-			var sequence = transaction.GetSequence(sequenceName);
-			if (sequence == null)
-				throw new ObjectNotFoundException(sequenceName);
-
-			return sequence.SetValue(value);
 		}
 
 		#endregion
@@ -486,12 +489,12 @@ namespace Deveel.Data.Transactions {
 
 		public static LockHandle LockRead(this ITransaction transaction, IEnumerable<ObjectName> tableNames, LockingMode mode) {
 			var tables = tableNames.Select(transaction.GetTable).OfType<ILockable>();
-			return transaction.Database.Context.Locker.Lock(new ILockable[0], tables.ToArray(), mode);
+			return transaction.Database.DatabaseContext.Locker.Lock(new ILockable[0], tables.ToArray(), mode);
 		}
 
 		public static LockHandle LockWrite(this ITransaction transaction, IEnumerable<ObjectName> tableNames, LockingMode mode) {
 			var tables = tableNames.Select(transaction.GetTable).OfType<ILockable>().ToArray();
-			return transaction.Database.Context.Locker.Lock(tables, new ILockable[0], mode);
+			return transaction.Database.DatabaseContext.Locker.Lock(tables, new ILockable[0], mode);
 		}
 
 		public static bool IsTableLocked(this ITransaction transaction, ITable table) {
@@ -499,7 +502,7 @@ namespace Deveel.Data.Transactions {
 			if (lockable == null)
 				return false;
 
-			return transaction.Database.Context.Locker.IsLocked(lockable);
+			return transaction.Database.DatabaseContext.Locker.IsLocked(lockable);
 		}
 
 		#endregion

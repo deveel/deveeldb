@@ -228,7 +228,7 @@ namespace Deveel.Data.Routines {
 				var returnType = table.GetValue(rowI, 4);				
 				var owner = table.GetValue(rowI, 5);
 
-				return new RoutineTable(Transaction.Database.Context, tableInfo) {
+				return new RoutineTable(Transaction.Database.DatabaseContext, tableInfo) {
 					Type = type,
 					Location = location,
 					ReturnType = returnType,

@@ -16,7 +16,7 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			using (var session = Database.CreateSession(AdminUserName, AdminPassword)) {
+			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
 				using (var context = new SessionQueryContext(session)) {
 					Assert.DoesNotThrow(() => {
 						context.CreateTable(tableInfo);
@@ -26,7 +26,7 @@ namespace Deveel.Data.DbSystem {
 				Assert.DoesNotThrow(() => session.Commit());
 			}
 
-			using (var session = Database.CreateSession(AdminUserName, AdminPassword)) {
+			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
 				using (var context = new SessionQueryContext(session)) {
 					bool exists = false;
 					Assert.DoesNotThrow(() => exists = context.TableExists(tableName));

@@ -40,7 +40,7 @@ namespace Deveel.Data.DbSystem {
 			database.Create("SA", "12345");
 			database.Open();
 
-			transaction = (database as ITransactionContext).CreateTransaction(TransactionIsolation.Serializable);
+			transaction = database.CreateTransaction(TransactionIsolation.Serializable);
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {
 				var seqInfo = new SequenceInfo(testSequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
@@ -67,7 +67,7 @@ namespace Deveel.Data.DbSystem {
 			var sequenceManager = new SequenceManager(transaction);
 
 			var tableName = ObjectName.Parse("APP.test_table");
-			var seqInfo = new SequenceInfo(tableName);
+			var seqInfo = SequenceInfo.Native(tableName);
 
 			ISequence sequence = null;
 			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));

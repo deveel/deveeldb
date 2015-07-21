@@ -75,28 +75,28 @@ namespace Deveel.Data.DbSystem {
 		void ReleaseLocks();
 
 
-		/// <summary>
-		/// Allocates a given amount of memory on the underlying storage system
-		/// for the handling of a large-object.
-		/// </summary>
-		/// <param name="size">The byte size of the object to create.</param>
-		/// <param name="compressed">A flag to indicate if the object will handle compressed
-		/// data when read or write.</param>
-		/// <returns>
-		/// Returns an instance of a <see cref="ILargeObject"/> that references the created
-		/// object on the underlying storage system.
-		/// </returns>
-		/// <seealso cref="SqlLongString"/>
-		/// <seealso cref="SqlLongBinary"/>
-		ILargeObject CreateLargeObject(long size, bool compressed);
+		///// <summary>
+		///// Allocates a given amount of memory on the underlying storage system
+		///// for the handling of a large-object.
+		///// </summary>
+		///// <param name="size">The byte size of the object to create.</param>
+		///// <param name="compressed">A flag to indicate if the object will handle compressed
+		///// data when read or write.</param>
+		///// <returns>
+		///// Returns an instance of a <see cref="ILargeObject"/> that references the created
+		///// object on the underlying storage system.
+		///// </returns>
+		///// <seealso cref="SqlLongString"/>
+		///// <seealso cref="SqlLongBinary"/>
+		//ILargeObject CreateLargeObject(long size, bool compressed);
 
-		/// <summary>
-		/// Gets a large object referenced by the given unique identifier.
-		/// </summary>
-		/// <param name="objId">The unique identifier of the object to retrieve.</param>
-		/// <returns></returns>
-		/// <seealso cref="ObjectId"/>
-		ILargeObject GetLargeObject(ObjectId objId);
+		///// <summary>
+		///// Gets a large object referenced by the given unique identifier.
+		///// </summary>
+		///// <param name="objId">The unique identifier of the object to retrieve.</param>
+		///// <returns></returns>
+		///// <seealso cref="ObjectId"/>
+		//ILargeObject GetLargeObject(ObjectId objId);
 
 		/// <summary>
 		/// Commits the latest changes made by the user in the session.

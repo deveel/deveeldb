@@ -22,10 +22,25 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
+	/// <summary>
+	/// This is a session that is constructed around a given user and a transaction,
+	/// to the given database.
+	/// </summary>
 	public sealed class UserSession : IUserSession {
 		private List<LockHandle> lockHandles;
 
-		internal UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
+		/// <summary>
+		/// Constructs the session for the given user and transaction to the
+		/// given database.
+		/// </summary>
+		/// <param name="database">The database to which the user is connected.</param>
+		/// <param name="transaction">A transaction that handles the commands issued by
+		/// the user during the session.</param>
+		/// <param name="sessionInfo">The information about the session to be created (user, 
+		/// connection endpoint, statistics, etc.)</param>
+		/// <seealso cref="ITransaction"/>
+		/// <seealso cref="SessionInfo"/>
+		public UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
 			if (database == null)
 				throw new ArgumentNullException("database");
 			if (transaction == null)
@@ -40,8 +55,9 @@ namespace Deveel.Data.DbSystem {
 			Database = database;
 			Transaction = transaction;
 
+			Database.DatabaseContext.Sessions.Add(this);
+
 			SessionInfo = sessionInfo;
-			database.ActiveSessions.Add(this);
 		}
 
 		~UserSession() {
@@ -72,7 +88,7 @@ namespace Deveel.Data.DbSystem {
 				if (lockHandles == null)
 					lockHandles = new List<LockHandle>();
 
-				var handle = Database.Context.Locker.Lock(toWrite, toRead, mode);
+				var handle = Database.DatabaseContext.Locker.Lock(toWrite, toRead, mode);
 				if (handle != null)
 					lockHandles.Add(handle);
 			}
@@ -94,19 +110,12 @@ namespace Deveel.Data.DbSystem {
 
 		public IDatabase Database { get; private set; }
 
-		public ILargeObject CreateLargeObject(long size, bool compressed) {
-			throw new NotImplementedException();
-		}
-
-		public ILargeObject GetLargeObject(ObjectId objId) {
-			throw new NotImplementedException();
-		}
-
 		public void Commit() {
 			if (Transaction != null) {
 				try {
 					Transaction.Commit();
 				} finally {
+					SessionInfo.OnCommand();
 					DisposeTransaction();
 				}
 			}
@@ -117,15 +126,17 @@ namespace Deveel.Data.DbSystem {
 				try {
 					Transaction.Rollback();
 				} finally {
+					SessionInfo.OnCommand();
 					DisposeTransaction();
 				}
 			}
 		}
 
 		private void DisposeTransaction() {
-			// TODO: fire pending events left ...
-
 			ReleaseLocks();
+
+			if (Database != null)
+				Database.DatabaseContext.Sessions.Remove(this);
 
 			Transaction = null;
 			Database = null;

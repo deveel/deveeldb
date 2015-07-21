@@ -19,21 +19,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Security;
-
 namespace Deveel.Data.DbSystem {
 	public sealed class ActiveSessionList : IEnumerable<IUserSession> {
 		private readonly List<IUserSession> sessions;
 
-		public ActiveSessionList(IDatabase database) {
-			if (database == null)
-				throw new ArgumentNullException("database");
+		public ActiveSessionList(IDatabaseContext databaseContext) {
+			if (databaseContext == null)
+				throw new ArgumentNullException("databaseContext");
 
-			Database = database;
+			DatabaseContext = databaseContext;
 			sessions = new List<IUserSession>();
 		}
 
-		public IDatabase Database { get; private set; }
+		public IDatabaseContext DatabaseContext { get; private set; }
 
 		public bool IsUserActive(string userName) {
 			lock (this) {
@@ -74,6 +72,12 @@ namespace Deveel.Data.DbSystem {
 
 				sessions.Add(session);
 				return true;
+			}
+		}
+
+		internal void Remove(IUserSession session) {
+			lock (this) {
+				sessions.Remove(session);
 			}
 		}
 	}

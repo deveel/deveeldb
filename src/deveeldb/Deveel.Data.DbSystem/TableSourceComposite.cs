@@ -57,7 +57,7 @@ namespace Deveel.Data.DbSystem {
 		public Database Database { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
-			get { return Database.Context; }
+			get { return Database.DatabaseContext; }
 		}
 
 		private IStoreSystem StoreSystem {
@@ -67,7 +67,7 @@ namespace Deveel.Data.DbSystem {
 		public int CurrentCommitId { get; private set; }
 
 		private bool IsReadOnly {
-			get { return Database.Context.ReadOnly(); }
+			get { return Database.DatabaseContext.ReadOnly(); }
 		}
 
 		private bool IsClosed {
@@ -239,7 +239,7 @@ namespace Deveel.Data.DbSystem {
 					return;
 
 				// If no open transactions on the database, then clean up.
-				if (Database.OpenTransactions.Count == 0) {
+				if (Database.TransactionFactory.OpenTransactions.Count == 0) {
 					var deleteList = StateStore.GetDeleteList().ToArray();
 					if (deleteList.Length > 0) {
 						int dropCount = 0;
@@ -345,7 +345,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		private void InitSystemSchema() {
-			using (var transaction = Database.DoCreateTransaction(TransactionIsolation.Serializable)) {
+			using (var transaction = Database.CreateSafeTransaction(TransactionIsolation.Serializable)) {
 				try {
 					SystemSchema.Setup(transaction);
 					transaction.Commit();
@@ -394,7 +394,7 @@ namespace Deveel.Data.DbSystem {
 			ITransaction transaction = null;
 
 			try {
-				transaction = Database.DoCreateTransaction(TransactionIsolation.Serializable);
+				transaction = Database.CreateSafeTransaction(TransactionIsolation.Serializable);
 				transaction.CreateSystemSchema();
 
 				// Commit and close the transaction.
@@ -527,7 +527,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Flush the journals up to the minimum commit id for all the tables
 				// that this transaction changed.
-				long minCommitId = Database.OpenTransactions.MinimumCommitId(null);
+				long minCommitId = Database.TransactionFactory.OpenTransactions.MinimumCommitId(null);
 				foreach (var master in changedTablesList) {
 					master.MergeChanges(minCommitId);
 				}
@@ -645,11 +645,11 @@ namespace Deveel.Data.DbSystem {
 			bool lastTransaction;
 			// Closing must happen under a commit Lock.
 			lock (commitLock) {
-				Database.OpenTransactions.RemoveTransaction(transaction);
+				Database.TransactionFactory.OpenTransactions.RemoveTransaction(transaction);
 				// Increment the commit id.
 				++CurrentCommitId;
 				// Was that the last transaction?
-				lastTransaction = Database.OpenTransactions.Count == 0;
+				lastTransaction = Database.TransactionFactory.OpenTransactions.Count == 0;
 			}
 
 			// If last transaction then schedule a clean up event.

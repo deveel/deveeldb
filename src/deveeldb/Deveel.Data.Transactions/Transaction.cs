@@ -21,10 +21,14 @@ using System.Linq;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// The system implementation of a transaction model that handles
+	/// isolated operations within a database context.
+	/// </summary>
+	/// <seealso cref="ITransaction"/>
 	public sealed class Transaction : ITransaction, ICallbackHandler {
 		private TableManager tableManager;
 		private SequenceManager sequenceManager;
@@ -59,12 +63,12 @@ namespace Deveel.Data.Transactions {
 
 			IsClosed = false;
 
-			Database.OpenTransactions.AddTransaction(this);
+			Database.TransactionFactory.OpenTransactions.AddTransaction(this);
 
-			currentSchema = database.Context.DefaultSchema();
-			readOnly = dbReadOnly = database.Context.ReadOnly();
-			autoCommit = database.Context.AutoCommit();
-			ignoreCase = database.Context.IgnoreIdentifiersCase();
+			currentSchema = database.DatabaseContext.DefaultSchema();
+			readOnly = dbReadOnly = database.DatabaseContext.ReadOnly();
+			autoCommit = database.DatabaseContext.AutoCommit();
+			ignoreCase = database.DatabaseContext.IgnoreIdentifiersCase();
 		}
 
 		internal Transaction(Database database, long commitId, TransactionIsolation isolation)
@@ -107,7 +111,7 @@ namespace Deveel.Data.Transactions {
 		public Database Database { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
-			get { return Database.Context; }
+			get { return Database.DatabaseContext; }
 		}
 
 		private TableSourceComposite TableComposite {
@@ -150,18 +154,6 @@ namespace Deveel.Data.Transactions {
 		private void AssertNotReadOnly() {
 			if (this.ReadOnly())
 				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
-		}
-
-		public SqlNumber SetTableId(ObjectName tableName, SqlNumber value) {
-			AssertNotReadOnly();
-
-			return tableManager.SetUniqueId(tableName, value);
-		}
-
-		public SqlNumber NextTableId(ObjectName tableName) {
-			AssertNotReadOnly();
-
-			return tableManager.NextUniqueId(tableName);
 		}
 
 		void ILockable.Acquired(Lock @lock) {
@@ -502,7 +494,7 @@ namespace Deveel.Data.Transactions {
 				this.transaction = transaction;
 			}
 
-			public IEnumerable<IObjectManager> GetManagers() {
+			public IEnumerable<IObjectManager> ResolveAll() {
 				return new IObjectManager[] {
 					transaction.schemaManager,
 					transaction.tableManager,
@@ -556,13 +548,13 @@ namespace Deveel.Data.Transactions {
 
 		void IVariableScope.OnVariableDropped(Variable variable) {
 			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
-				currentSchema = Database.Context.DefaultSchema();
+				currentSchema = Database.DatabaseContext.DefaultSchema();
 			} else if (variable.Name.Equals(TransactionSettingKeys.ReadOnly, StringComparison.OrdinalIgnoreCase)) {
 				readOnly = dbReadOnly;
 			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
-				ignoreCase = Database.Context.IgnoreIdentifiersCase();
+				ignoreCase = Database.DatabaseContext.IgnoreIdentifiersCase();
 			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
-				autoCommit = Database.Context.AutoCommit();
+				autoCommit = Database.DatabaseContext.AutoCommit();
 			}
 		}
 

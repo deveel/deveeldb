@@ -663,6 +663,7 @@
     <Compile Include="Deveel.Data.Text\Soundex.cs" />
     <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
+    <Compile Include="Deveel.Data.Transactions\ITransactionFactory.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitCallback.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitInfo.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionObjectState.cs" />
@@ -680,7 +681,6 @@
     <Compile Include="Deveel.Data.Transactions\TransactionSettingKeys.cs" />
     <Compile Include="Deveel.Data.Transactions\ITableEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
-    <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ObjectCreatedEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ObjectDroppedEvent.cs" />

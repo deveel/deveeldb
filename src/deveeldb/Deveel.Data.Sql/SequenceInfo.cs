@@ -26,16 +26,20 @@ namespace Deveel.Data.Sql {
 	/// <seealso cref="ISequence.SequenceInfo"/>
 	/// <seealso cref="ISequence"/>
 	public sealed class SequenceInfo : IObjectInfo {
-		public SequenceInfo(ObjectName sequenceName) {
+		private SequenceInfo(ObjectName sequenceName, SequenceType sequenceType) {
+			if (sequenceName == null)
+				throw new ArgumentNullException("sequenceName");
+
 			SequenceName = sequenceName;
-			Type = SequenceType.Native;
+			Type = sequenceType;
 		}
 
 		/// <summary>
 		/// Constructs a new object with the information given
 		/// </summary>
+		/// <param name="sequenceName"></param>
 		/// <param name="startValue">The start value of the sequence</param>
-		/// <param name="increment">The incrememental value of the sequence, that is the
+		/// <param name="increment">The incremental value of the sequence, that is the
 		/// value added to the current value of the sequence, each time it advances.</param>
 		/// <param name="minValue">The minimum value of the sequence.</param>
 		/// <param name="maxValue">The maximum value of the sequence.</param>
@@ -47,8 +51,9 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Constructs a new object with the information given
 		/// </summary>
+		/// <param name="sequenceName"></param>
 		/// <param name="startValue">The start value of the sequence</param>
-		/// <param name="increment">The incrememental value of the sequence, that is the
+		/// <param name="increment">The incremental value of the sequence, that is the
 		/// value added to the current value of the sequence, each time it advances.</param>
 		/// <param name="minValue">The minimum value of the sequence.</param>
 		/// <param name="maxValue">The maximum value of the sequence.</param>
@@ -61,23 +66,23 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Constructs a new object with the information given
 		/// </summary>
+		/// <param name="sequenceName"></param>
 		/// <param name="startValue">The start value of the sequence</param>
-		/// <param name="increment">The incrememental value of the sequence, that is the
+		/// <param name="increment">The incremental value of the sequence, that is the
 		/// value added to the current value of the sequence, each time it advances.</param>
 		/// <param name="minValue">The minimum value of the sequence.</param>
 		/// <param name="maxValue">The maximum value of the sequence.</param>
 		/// <param name="cache">The number of items to cache.</param>
 		/// <param name="cycle">Indicates if the sequence must be cycled when it reaches
 		/// the minimum or maximum value.</param>
-		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache, bool cycle) {
-			SequenceName = sequenceName;
+		public SequenceInfo(ObjectName sequenceName, SqlNumber startValue, SqlNumber increment, SqlNumber minValue, SqlNumber maxValue, long cache, bool cycle)
+			: this(sequenceName, SequenceType.Normal) {
 			StartValue = startValue;
 			Increment = increment;
 			MinValue = minValue;
 			MaxValue = maxValue;
 			Cache = cache;
 			Cycle = cycle;
-			Type = SequenceType.Normal;
 		}
 
 		DbObjectType IObjectInfo.ObjectType {
@@ -128,5 +133,15 @@ namespace Deveel.Data.Sql {
 		/// <seealso cref="MinValue"/>
 		/// <seealso cref="MaxValue"/>
 		public bool Cycle { get; private set; }
+
+		/// <summary>
+		/// Creates an object that describes a native sequence for the table
+		/// having the specified name.
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <returns></returns>
+		public static SequenceInfo Native(ObjectName tableName) {
+			return new SequenceInfo(tableName, SequenceType.Native);
+		}
 	}
 }

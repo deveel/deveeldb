@@ -26,6 +26,8 @@ namespace Deveel.Data.DbSystem {
 	public interface IDatabaseContext : IDisposable {
 		IDbConfig Configuration { get; }
 
+		ActiveSessionList Sessions { get; }
+
 		ISystemContext SystemContext { get; }
 
 		IStoreSystem StoreSystem { get; }

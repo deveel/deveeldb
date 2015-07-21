@@ -30,7 +30,7 @@ namespace Deveel.Data.Deveel.Data.DbSystem {
 		}
 
 		protected virtual IQueryContext CreateQueryContext(IDatabase database) {
-			session = database.CreateSession(AdminUserName, AdminPassword);
+			session = database.CreateUserSession(AdminUserName, AdminPassword);
 			return new SessionQueryContext(session);
 		}
 

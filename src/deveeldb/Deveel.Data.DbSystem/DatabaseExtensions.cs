@@ -23,7 +23,38 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.DbSystem {
 	public static class DatabaseExtensions {
 		public static string Name(this IDatabase database) {
-			return database.Context.DatabaseName();
+			return database.DatabaseContext.DatabaseName();
+		}
+
+		public static ITransaction CreateTransaction(this IDatabase database, TransactionIsolation isolation) {
+			if (!database.IsOpen)
+				throw new InvalidOperationException(String.Format("Database '{0}' is not open.", database.Name()));
+
+			return database.CreateSafeTransaction(isolation);
+		}
+
+		public static ITransaction FindTransactionById(this IDatabase database, int commidId) {
+			return database.TransactionFactory.OpenTransactions.FindById(commidId);
+		}
+
+		internal static ITransaction CreateSafeTransaction(this IDatabase database, TransactionIsolation isolation) {
+			return database.TransactionFactory.CreateTransaction(isolation);
+		}
+
+		public static IUserSession CreateUserSession(this IDatabase database, SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException("sessionInfo");
+
+			// TODO: if the isolation is not specified, use a configured default one
+			var isolation = sessionInfo.Isolation;
+			if (isolation == TransactionIsolation.Unspecified)
+				isolation = TransactionIsolation.Serializable;
+
+			if (sessionInfo.CommitId >= 0)
+				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
+
+			var transaction = database.CreateTransaction(isolation);
+			return new UserSession(database, transaction, sessionInfo);
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database, TransactionIsolation isolation) {
@@ -31,25 +62,46 @@ namespace Deveel.Data.DbSystem {
 			return new SystemUserSession(database, transaction);
 		}
 
+		internal static IUserSession CreateInitialSystemSession(this IDatabase database) {
+			var transaction = database.CreateSafeTransaction(TransactionIsolation.Serializable);
+			return new SystemUserSession(database, transaction);
+		}
+
 		public static IUserSession CreateSystemSession(this IDatabase database) {
 			return database.CreateSystemSession(TransactionIsolation.Serializable);
 		}
 
-		public static IUserSession CreateSession(this IDatabase database, User user) {
+		public static IUserSession CreateUserSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
-			return database.CreateSession(new SessionInfo(user));
+			return database.CreateUserSession(new SessionInfo(user));
 		}
 
-		public static IUserSession CreateSession(this IDatabase database, string userName, string password) {
-			return CreateSession(database, userName, password, ConnectionEndPoint.Embedded);
+		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
+			return CreateUserSession(database, userName, password, ConnectionEndPoint.Embedded);
 		}
 
-		public static IUserSession CreateSession(this IDatabase database, string userName, string password, ConnectionEndPoint endPoint) {
+		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password, ConnectionEndPoint endPoint) {
 			var user = database.Authenticate(userName, password, endPoint);
 			if (user == null)
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
 
-			return database.CreateSession(user);
+			return database.CreateUserSession(user);
+		}
+
+		public static IUserSession OpenUserSession(this IDatabase database, SessionInfo sessionInfo) {
+			if (sessionInfo == null)
+				throw new ArgumentNullException("sessionInfo");
+
+			var commitId = sessionInfo.CommitId;
+
+			if (commitId < 0)
+				throw new ArgumentException("Invalid commit reference specified.");
+
+			var transaction = database.FindTransactionById(commitId);
+			if (transaction == null)
+				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
+
+			return new UserSession(database, transaction, sessionInfo);
 		}
 
 		#region Security
@@ -64,7 +116,7 @@ namespace Deveel.Data.DbSystem {
 				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, "%");
 				context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, "%");
 
-				context.GrantToUserOnSchema(database.Context.DefaultSchema(), user, User.System, Privileges.SchemaAll, true);
+				context.GrantToUserOnSchema(database.DatabaseContext.DefaultSchema(), user, User.System, Privileges.SchemaAll, true);
 				context.GrantToUserOnSchema(SystemSchema.Name, user, User.System, Privileges.SchemaRead);
 
 				// TODO: Grant READ on INFORMATION_SCHEMA

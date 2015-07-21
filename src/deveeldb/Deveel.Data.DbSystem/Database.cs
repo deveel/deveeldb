@@ -18,28 +18,24 @@ using System;
 using System.IO;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Protocol;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class Database : IDatabase {
 		public Database(IDatabaseContext context) {
-			Context = context;
+			DatabaseContext = context;
 
 			DiscoverDataVersion();
 
 			TableComposite = new TableSourceComposite(this);
-
-			ActiveSessions = new ActiveSessionList(this);
 
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);
 			t.NewRow();
 			SingleRowTable = t;
 
-			OpenTransactions = new TransactionCollection(this);
+			TransactionFactory = new DatabaseTransactionFactory(this);
 		}
 
 		~Database() {
@@ -47,22 +43,14 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public string Name {
-			get { return Context.DatabaseName(); }
+			get { return DatabaseContext.DatabaseName(); }
 		}
 
-		IDatabase ITransactionContext.Database {
-			get { return this; }
-		}
-
-		public TransactionCollection OpenTransactions { get; private set; }
+		public ITransactionFactory TransactionFactory { get; private set; }
 
 		void IEventSource.AppendEventData(IEvent @event) {
 			// TODO: Is there anything else to add?
 			@event.Database(Name);
-		}
-
-		ITransaction ITransactionContext.CreateTransaction(TransactionIsolation isolation) {
-			return CreateTransaction(isolation);
 		}
 
 		private void DiscoverDataVersion() {
@@ -70,61 +58,6 @@ namespace Deveel.Data.DbSystem {
 				as DataVersionAttribute;
 			if (dataVerion != null)
 				Version = dataVerion.Version;
-		}
-
-		internal ITransaction DoCreateTransaction(TransactionIsolation isolation) {
-			lock (this) {
-				ITransaction transaction;
-
-				try {
-					transaction = TableComposite.CreateTransaction(isolation);
-				} catch (DatabaseSystemException) {
-					throw;
-				} catch (Exception ex) {
-					throw new DatabaseSystemException("Unable to create a transaction.", ex);
-				}
-
-				return transaction;
-			}
-		}
-
-		private ITransaction CreateTransaction(TransactionIsolation isolation) {
-			if (!IsOpen)
-				throw new InvalidOperationException(String.Format("Database {0} is not open.", this.Name()));
-
-			return DoCreateTransaction(isolation);
-		}
-
-		public IUserSession CreateSession(SessionInfo sessionInfo) {
-			if (sessionInfo == null)
-				throw new ArgumentNullException("sessionInfo");
-
-			// TODO: if the isolation is not specified, use a configured default one
-			var isolation = sessionInfo.Isolation;
-			if (isolation == TransactionIsolation.Unspecified)
-				isolation = TransactionIsolation.Serializable;
-
-			if (sessionInfo.CommitId >= 0)
-				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
-
-			var transaction = CreateTransaction(isolation);
-			return new UserSession(this, transaction, sessionInfo);
-		}
-
-		public IUserSession OpenSession(SessionInfo sessionInfo) {
-			if (sessionInfo == null)
-				throw new ArgumentNullException("sessionInfo");
-
-			var commitId = sessionInfo.CommitId;
-			
-			if (commitId < 0)
-				throw new ArgumentException("Invalid commit reference specified.");
-
-			var transaction = OpenTransactions.FindById(commitId);
-			if (transaction == null)
-				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
-
-			return new UserSession(this, transaction, sessionInfo);
 		}
 
 		public void Dispose() {
@@ -139,18 +72,16 @@ namespace Deveel.Data.DbSystem {
 				}
 
 				TableComposite.Dispose();
-				Context.Dispose();
+				DatabaseContext.Dispose();
 			}
 
 			TableComposite = null;
-			Context = null;
+			DatabaseContext = null;
 		}
 
-		public IDatabaseContext Context { get; private set; }
+		public IDatabaseContext DatabaseContext { get; private set; }
 
 		public Version Version { get; private set; }
-
-		public ActiveSessionList ActiveSessions { get; private set; }
 
 		public bool Exists {
 			get {
@@ -172,12 +103,8 @@ namespace Deveel.Data.DbSystem {
 
 		public ITable SingleRowTable { get; private set; }
 
-		private IUserSession CreateInitialSystemSession() {
-			return new SystemUserSession(this, DoCreateTransaction(TransactionIsolation.Serializable));
-		}
-
 		public void Create(string adminName, string adminPassword) {
-			if (Context.ReadOnly())
+			if (DatabaseContext.ReadOnly())
 				throw new DatabaseSystemException("Can not create database in Read only mode.");
 
 			if (String.IsNullOrEmpty(adminName))
@@ -189,7 +116,7 @@ namespace Deveel.Data.DbSystem {
 				// Create the conglomerate
 				TableComposite.Create();
 
-				using (var session = CreateInitialSystemSession()) {
+				using (var session = this.CreateInitialSystemSession()) {
 					session.AutoCommit(false);
 
 					using (var context = new SessionQueryContext(session)) {
@@ -207,7 +134,7 @@ namespace Deveel.Data.DbSystem {
 
 						this.CreateAdminUser(context, adminName, adminPassword);
 
-						SetCurrentDataVersion(session);
+						SetCurrentDataVersion(context);
 
 						// Set all default system procedures.
 						// TODO: SystemSchema.SetupSystemFunctions(session, username);
@@ -230,14 +157,14 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		private void SetCurrentDataVersion(IUserSession session) {
+		private void SetCurrentDataVersion(IQueryContext context) {
 			// TODO: Get the data version and then set it to the database table 'vars'
 		}
 
 		private void CreateSchemata(IQueryContext context) {
 			try {
 				context.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				context.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
+				context.CreateSchema(DatabaseContext.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {
@@ -279,7 +206,7 @@ namespace Deveel.Data.DbSystem {
 				throw new DatabaseSystemException("The database is not initialized.");
 
 			try {
-				if (Context.DeleteOnClose()) {
+				if (DatabaseContext.DeleteOnClose()) {
 					// Delete the tables if the database is set to delete on
 					// shutdown.
 					TableComposite.Delete();
@@ -295,5 +222,36 @@ namespace Deveel.Data.DbSystem {
 				IsOpen = false;
 			}
 		}
+
+		#region DatabaseTransactionFactory
+
+		class DatabaseTransactionFactory : ITransactionFactory {
+			private readonly Database database;
+
+			public DatabaseTransactionFactory(Database database) {
+				this.database = database;
+				OpenTransactions = new TransactionCollection();
+			}
+
+			public TransactionCollection OpenTransactions { get; private set; }
+
+			public ITransaction CreateTransaction(TransactionIsolation isolation) {
+				lock (this) {
+					ITransaction transaction;
+
+					try {
+						transaction = database.TableComposite.CreateTransaction(isolation);
+					} catch (DatabaseSystemException) {
+						throw;
+					} catch (Exception ex) {
+						throw new DatabaseSystemException("Unable to create a transaction.", ex);
+					}
+
+					return transaction;
+				}
+			}
+		}
+
+		#endregion
 	}
 }

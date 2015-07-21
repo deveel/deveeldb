@@ -21,7 +21,7 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.DbSystem {
 	public interface IObjectManagerResolver {
-		IEnumerable<IObjectManager> GetManagers();
+		IEnumerable<IObjectManager> ResolveAll();
 			
 		IObjectManager ResolveForType(DbObjectType objType);
 	}

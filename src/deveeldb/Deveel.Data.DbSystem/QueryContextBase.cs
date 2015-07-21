@@ -40,7 +40,7 @@ namespace Deveel.Data.DbSystem {
 
 
 		public IDatabaseContext DatabaseContext {
-			get { return Session.Database.Context; }
+			get { return Session.Database.DatabaseContext; }
 		}
 
 		public VariableManager VariableManager { get; private set; }

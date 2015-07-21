@@ -50,7 +50,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static IDatabaseContext DatabaseContext(this IQueryContext context) {
-			return context.Session.Database.Context;
+			return context.Session.Database.DatabaseContext;
 		}
 
 		public static ISystemContext SystemContext(this IQueryContext context) {

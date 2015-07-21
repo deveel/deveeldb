@@ -19,26 +19,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data.Transactions {
 	public sealed class TransactionCollection : IEnumerable<ITransaction> {
 		private readonly List<ITransaction> transactions;
 		private long minCommitId;
 		private long maxCommitId;
  
-		public TransactionCollection(ITransactionContext transactionContext) {
-			if (transactionContext == null)
-				throw new ArgumentNullException("transactionContext");
-
-			TransactionContext = transactionContext;
-
+		public TransactionCollection() {
 			transactions = new List<ITransaction>();
 			minCommitId = Int64.MaxValue;
 			maxCommitId = 0;
 		}
-
-		public ITransactionContext TransactionContext { get; private set; }
 
 		public int Count {
 			get {

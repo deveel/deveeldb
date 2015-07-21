@@ -375,7 +375,7 @@ namespace Deveel.Data.DbSystem {
 			private int rowCount;
 
 			public TableInfoTable(ITransaction transaction)
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				Transaction = transaction;
 				tableInfoObjects = new List<TableInfoObject>();
 
@@ -465,7 +465,7 @@ namespace Deveel.Data.DbSystem {
 			private ITransaction transaction;
 
 			public TableColumnsTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				this.transaction = transaction;
 			}
 
@@ -554,7 +554,7 @@ namespace Deveel.Data.DbSystem {
 			private List<SqlTypeInfo> sqlTypes;
 
 			public SqlTypesTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				this.transaction = transaction;
 
 				sqlTypes = new List<SqlTypeInfo>();
@@ -688,7 +688,7 @@ namespace Deveel.Data.DbSystem {
 			private ITransaction transaction;
 
 			public OpenSessionsTable(ITransaction transaction)
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				this.transaction = transaction;
 			}
 
@@ -697,14 +697,14 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public override int RowCount {
-				get { return transaction.Database.ActiveSessions.Count; }
+				get { return transaction.Database.DatabaseContext.Sessions.Count; }
 			}
 
 			public override DataObject GetValue(long rowNumber, int columnOffset) {
-				if (rowNumber < 0 || rowNumber >= transaction.Database.ActiveSessions.Count)
+				if (rowNumber < 0 || rowNumber >= transaction.Database.DatabaseContext.Sessions.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
-				var session = transaction.Database.ActiveSessions[(int) rowNumber].SessionInfo;
+				var session = transaction.Database.DatabaseContext.Sessions[(int) rowNumber].SessionInfo;
 
 				switch (columnOffset) {
 					case 0:
@@ -734,7 +734,7 @@ namespace Deveel.Data.DbSystem {
 			private List<ISqlString> keyValuePairs;
 
 			public ProductInfoTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				Init();
 			}
 
@@ -788,7 +788,7 @@ namespace Deveel.Data.DbSystem {
 			private ITransaction transaction;
 
 			public VariablesTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 				this.transaction = transaction;
 			}
 
@@ -816,7 +816,7 @@ namespace Deveel.Data.DbSystem {
 
 		class PrivilegesTable : GeneratedTable {
 			public PrivilegesTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 			}
 
 			public override TableInfo TableInfo {
@@ -842,7 +842,7 @@ namespace Deveel.Data.DbSystem {
 
 		class SessionInfoTable : GeneratedTable {
 			public SessionInfoTable(IUserSession session) 
-				: base(session.Database.Context) {
+				: base(session.Database.DatabaseContext) {
 			}
 
 			public override TableInfo TableInfo {
@@ -864,7 +864,7 @@ namespace Deveel.Data.DbSystem {
 
 		class StatisticsTable : GeneratedTable {
 			public StatisticsTable(ITransaction transaction) 
-				: base(transaction.Database.Context) {
+				: base(transaction.Database.DatabaseContext) {
 			}
 
 			public override TableInfo TableInfo {

@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -40,6 +39,7 @@ namespace Deveel.Data.DbSystem {
 			Locker = new Locker(this);
 
 			RoutineResolver = new SystemRoutineProvider(this);
+			Sessions = new ActiveSessionList(this);
 
 			Init();
 		}
@@ -77,6 +77,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public IDbConfig Configuration { get; private set; }
+
+		public ActiveSessionList Sessions { get; private set; }
 
 		public ISystemContext SystemContext { get; private set; }
 

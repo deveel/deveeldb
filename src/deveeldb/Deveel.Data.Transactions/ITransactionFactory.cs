@@ -16,12 +16,8 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
-
 namespace Deveel.Data.Transactions {
-	public interface ITransactionContext {
-		IDatabase Database { get; }
-
+	public interface ITransactionFactory {
 		TransactionCollection OpenTransactions { get; }
 
 		ITransaction CreateTransaction(TransactionIsolation isolation);
