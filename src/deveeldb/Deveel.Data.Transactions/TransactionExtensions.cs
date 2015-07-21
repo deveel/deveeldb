@@ -23,7 +23,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Types;
 
@@ -278,13 +277,7 @@ namespace Deveel.Data.Transactions {
 			if (tableName.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
 				return transaction.OldNewTableState.NewDataTable;
 
-			var table = (ITable) transaction.GetObject(DbObjectType.Table, tableName);
-			if (table != null) {
-				//table = new DataTable(transaction, table);
-				// TODO: encapsulate this into a table object that catches and fires events
-			}
-
-			return table;
+			return (ITable) transaction.GetObject(DbObjectType.Table, tableName);
 		}
 
 		internal static IEnumerable<TableSource> GetVisibleTables(this ITransaction transaction) {
@@ -354,22 +347,6 @@ namespace Deveel.Data.Transactions {
 
 		public static bool DropTable(this ITransaction transaction, ObjectName tableName) {
 			return transaction.DropObject(DbObjectType.Table, tableName);
-		}
-
-		#endregion
-
-		#region Views
-
-		public static void DefineView(this ITransaction transaction, ViewInfo viewInfo) {
-			transaction.CreateObject(viewInfo);
-		}
-
-		public static IQueryPlanNode GetViewQueryPlan(this ITransaction transaction, ObjectName viewName) {
-			var view = transaction.GetViewManager().GetView(viewName);
-			if (view == null)
-				return null;
-
-			return view.QueryPlan;
 		}
 
 		#endregion

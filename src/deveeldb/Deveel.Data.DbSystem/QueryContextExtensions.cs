@@ -167,7 +167,7 @@ namespace Deveel.Data.DbSystem {
 			if (table == null) {
 				table = context.Session.GetTable(tableName);
 				if (table != null) {
-					table = new DataTable(context, table);
+					table = new UserContextTable(context, table);
 					context.CacheTable(tableName.FullName, table);
 				}
 			}

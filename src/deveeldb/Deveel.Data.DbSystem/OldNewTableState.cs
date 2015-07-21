@@ -40,12 +40,12 @@ namespace Deveel.Data.DbSystem {
 		public bool IsNewMutable { get; private set; }
 
 		/// <summary>
-		/// The DataTable object that represents the OLD table, if set.
+		/// The tUserContextTable object that represents the OLD table, if set.
 		/// </summary>
 		public ITable OldDataTable { get; internal set; }
 
 		/// <summary>
-		/// The DataTable object that represents the NEW table, if set.
+		/// The tUserContextTable object that represents the NEW table, if set.
 		/// </summary>
 		public ITable NewDataTable { get; internal set; }
 	}

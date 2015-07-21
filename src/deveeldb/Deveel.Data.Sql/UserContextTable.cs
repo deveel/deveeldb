@@ -22,8 +22,11 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql {
-	class DataTable : BaseDataTable, IMutableTable {
-		public DataTable(IQueryContext context, ITable table) {
+	/// <summary>
+	/// A wrapper around a table that fires triggers on table events.
+	/// </summary>
+	class UserContextTable : BaseDataTable, IMutableTable {
+		public UserContextTable(IQueryContext context, ITable table) {
 			Context = context;
 			Table = table;
 		}
