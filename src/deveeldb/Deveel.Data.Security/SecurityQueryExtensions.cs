@@ -423,9 +423,37 @@ namespace Deveel.Data.Security {
 			return context.UserBelongsToGroup(SystemGroupNames.SecureGroup);
 		}
 
-		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-	Privileges privileges) {
-			return context.Session.UserHasPrivilege(objectType, objectName, privileges);
+		public static bool UserBelongsToGroup(this IQueryContext context, User user, string groupName) {
+			using (var systemContext = context.ForSystemUser()) {
+				return systemContext.UserBelongsToGroup(user.Name, groupName);
+			}
+		}
+
+		public static bool UserBelongsToSecureGroup(this IQueryContext context, User user) {
+			return context.UserBelongsToGroup(user, SystemGroupNames.SecureGroup);
+		}
+
+		public static Privileges GetUserGrant(this IQueryContext context, string userName, DbObjectType objectType, ObjectName objectName) {
+			using (var systemContext = context.ForSystemUser()) {
+				return systemContext.GetUserGrants(userName, objectType, objectName);
+			}
+		}
+
+		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			var user = context.User();
+			if (user.IsSystem)
+				return true;
+
+			if (context.UserBelongsToSecureGroup(user))
+				return true;
+
+			Privileges grant;
+			if (!user.TryGetObjectGrant(objectName, out grant)) {
+				grant = context.GetUserGrant(user.Name, objectType, objectName);
+				user.CacheObjectGrant(objectName, grant);
+			}
+
+			return (grant & privileges) != 0;
 		}
 
 		public static bool UserHasTablePrivilege(this IQueryContext context, ObjectName tableName, Privileges privileges) {
@@ -436,6 +464,10 @@ namespace Deveel.Data.Security {
 			if (context.UserHasPrivilege(DbObjectType.Schema, new ObjectName(schemaName), privileges))
 				return true;
 
+			return context.UserHasSecureAccess();
+		}
+
+		public static bool UserCanCreateSchema(this IQueryContext context) {
 			return context.UserHasSecureAccess();
 		}
 
@@ -493,6 +525,18 @@ namespace Deveel.Data.Security {
 
 		public static bool UserCanExecuteProcedure(this IQueryContext context, Invoke invoke) {
 			return context.UserCanExecute(RoutineType.Procedure, invoke);
+		}
+
+		public static bool UserCanCreateObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			return context.UserHasPrivilege(objectType, objectName, Privileges.Create);
+		}
+
+		public static bool UserCanAccessObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			return context.UserHasPrivilege(objectType, objectName, Privileges.Select);
+		}
+
+		public static bool UserCanDeleteFromTable(this IQueryContext context, ObjectName tableName) {
+			return context.UserHasTablePrivilege(tableName, Privileges.Delete);
 		}
 
 		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {

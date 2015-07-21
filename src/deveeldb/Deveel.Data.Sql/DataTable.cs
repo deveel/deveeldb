@@ -23,14 +23,14 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql {
 	class DataTable : BaseDataTable, IMutableTable {
-		public DataTable(IUserSession session, ITable table) {
-			Session = session;
+		public DataTable(IQueryContext context, ITable table) {
+			Context = context;
 			Table = table;
 		}
 
 		public ITable Table { get; private set; }
 
-		public IUserSession Session { get; private set; }
+		public IQueryContext Context { get; private set; }
 
 		private IMutableTable MutableTable {
 			get { return Table as IMutableTable; }
@@ -57,9 +57,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private void OnTableEvent(TriggerEventType eventType, RowId rowId, Row row) {
-			using (var context = new TriggerContext(Session, Table, eventType, rowId, row)) {
-				Session.FireTrigger(context);
-			}
+			Context.FireTrigger(new TableEventContext(this, eventType, rowId, row));
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
@@ -146,7 +144,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		protected override void Dispose(bool disposing) {
-			Session = null;
+			Context = null;
 			Table = null;
 
 			base.Dispose(disposing);

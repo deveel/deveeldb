@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 			var orderBy = OrderBy;
 
 			// Form the plan
-			var plan = context.DatabaseContext.QueryPlanner().PlanQuery(context, selectExpression, orderBy);
+			var plan = context.DatabaseContext().QueryPlanner().PlanQuery(context, selectExpression, orderBy);
 
 			return new PreparedSelectStatement(plan);
 		}

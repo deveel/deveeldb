@@ -31,7 +31,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static IFunction ResolveFunction(this IQueryContext context, Invoke invoke) {
-			return context.DatabaseContext.ResolveRoutine(invoke, context) as IFunction;
+			return context.DatabaseContext().ResolveRoutine(invoke, context) as IFunction;
 		}
 
 		public static IFunction ResolveFunction(this IQueryContext context, ObjectName functionName, params SqlExpression[] args) {
@@ -40,7 +40,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static FunctionInfo ResolveFunctionInfo(this IQueryContext context, Invoke invoke) {
-			return context.DatabaseContext.ResolveFunctionInfo(invoke, context);
+			return context.DatabaseContext().ResolveFunctionInfo(invoke, context);
 		}
 	}
 }

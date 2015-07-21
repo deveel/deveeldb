@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: base(queryContext.DatabaseContext) {
+			: base(queryContext.DatabaseContext()) {
 			// Make sure we are synchronized over the class.
 			lock (typeof(FunctionTable)) {
 				uniqueId = uniqueKeySeq;

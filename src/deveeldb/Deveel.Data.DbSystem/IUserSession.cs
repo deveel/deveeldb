@@ -51,12 +51,6 @@ namespace Deveel.Data.DbSystem {
 		/// </summary>
 		ITransaction Transaction { get; }
 
-		/// <summary>
-		/// Gets an object that is used to cache table objects accessed during the
-		/// lifetime of the session.
-		/// </summary>
-		ICache TableCache { get; }
-
 
 		/// <summary>
 		/// Acquires a set of locks on the given lockable resources.
@@ -68,6 +62,16 @@ namespace Deveel.Data.DbSystem {
 		/// <param name="mode">The mode of locking to be applied to the resources</param>
 		void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode);
 
+		/// <summary>
+		/// Explicitly releases all the locks acquired during the session.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default the disposal of a session will release all the locks acquired
+		/// during the session's life-time: this method is used to force the release
+		/// of the locks before.
+		/// </para>
+		/// </remarks>
 		void ReleaseLocks();
 
 

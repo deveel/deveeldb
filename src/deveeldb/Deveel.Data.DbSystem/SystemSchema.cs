@@ -228,14 +228,14 @@ namespace Deveel.Data.DbSystem {
 
 		#endregion
 
-		private static void CreateSecurityTables(IUserSession session) {
+		private static void CreateSecurityTables(IQueryContext context) {
 			var tableInfo = new TableInfo(UserTableName);
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			// TODO: User table must be completed ...
 			tableInfo = tableInfo.AsReadOnly();
-			session.CreateTable(tableInfo);
+			context.CreateTable(tableInfo);
 
-			session.AddPrimaryKey(UserTableName, new []{"name"}, "SYSTEM_USER_PK");
+			context.AddPrimaryKey(UserTableName, new []{"name"}, "SYSTEM_USER_PK");
 
 			tableInfo = new TableInfo(PasswordTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
@@ -244,13 +244,13 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("salt", PrimitiveTypes.String());
 			tableInfo.AddColumn("hash_algorithm", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			session.CreateTable(tableInfo);
+			context.CreateTable(tableInfo);
 
 			tableInfo = new TableInfo(UserPrivilegesTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("group", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			session.CreateTable(tableInfo);
+			context.CreateTable(tableInfo);
 
 			tableInfo = new TableInfo(UserConnectPrivilegesTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
@@ -258,7 +258,7 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("host", PrimitiveTypes.String());
 			tableInfo.AddColumn("access", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
-			session.CreateTable(tableInfo);
+			context.CreateTable(tableInfo);
 
 			tableInfo = new TableInfo(UserGrantsTableName);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
@@ -268,20 +268,20 @@ namespace Deveel.Data.DbSystem {
 			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
 			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			session.CreateTable(tableInfo);
+			context.CreateTable(tableInfo);
 
 			var fkCol = new[] {"user"};
 			var refCol = new[] {"name"};
 			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
 			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
-			session.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
-			session.AddForeignKey(UserPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
-			session.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");
-			session.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
+			context.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
+			context.AddForeignKey(UserPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
+			context.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");
+			context.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
 		}
 
-		public static void CreateTables(IUserSession session) {
-			CreateSecurityTables(session);
+		public static void CreateTables(IQueryContext context) {
+			CreateSecurityTables(context);
 		}
 
 		public static void Setup(ITransaction transaction) {

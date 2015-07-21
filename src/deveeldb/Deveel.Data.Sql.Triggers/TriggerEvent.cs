@@ -21,7 +21,7 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerEvent : IEvent {
-		internal TriggerEvent(ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, int fireCount) {
+		internal TriggerEvent(ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (sourceName == null)
@@ -30,7 +30,8 @@ namespace Deveel.Data.Sql.Triggers {
 			TriggerName = triggerName;
 			SourceName = sourceName;
 			TriggerEventType = eventType;
-			FireCount = fireCount;
+			OldRowId = oldRowId;
+			NewRow = newRow;
 		}
 
 		byte IEvent.EventType {
@@ -54,12 +55,13 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public TriggerEventType TriggerEventType { get; private set; }
 
-		public int FireCount { get; private set; }
+		public RowId OldRowId { get; set; }
+
+		public Row NewRow { get; set; }
 
 		string IEvent.EventMessage {
 			get {
-				var fireCountString = FireCount > 1 ? String.Format("{0} times", FireCount) : "once";
-				return String.Format("Trigger '{0}' on '{1}' to '{2}' fired {3}", TriggerName, TriggerEventType, SourceName, fireCountString);
+				return String.Format("Trigger '{0}' fired on '{1}' to '{2}'", TriggerName, TriggerEventType, SourceName);
 			}
 		}
 
@@ -68,7 +70,8 @@ namespace Deveel.Data.Sql.Triggers {
 				return new Dictionary<string, object> {
 					{"Trigger-Name", TriggerName.ToString()},
 					{"Event-Type", TriggerEventType.ToString()},
-					{"Fire-Count", FireCount}
+					{"Old-Row-Id", OldRowId.ToString()},
+					{"New-Row", NewRow}
 				};
 			}
 		}

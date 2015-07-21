@@ -22,7 +22,6 @@ namespace Deveel.Data.Security {
 		None = 0,
 		Create = 1,
 		Alter = 2,
-		Compact = 1024,
 		Delete = 64,
 		Drop = 4,
 		Insert = 128,
@@ -31,6 +30,7 @@ namespace Deveel.Data.Security {
 		Select = 16,
 		Update = 32,
 		Usage = 512,
+		Compact = 1024,
 		Execute = 2048,
 
 		All = Alter | Compact | Create | Delete |

@@ -20,15 +20,12 @@ using Deveel.Data.Caching;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.DbSystem {
-	//TODO: Add many more functions ... this is a sort of placeholder for the moment
 	/// <summary>
 	/// Provides a context for executing queries, accessing the
 	/// system resources and evaluation context.
 	/// </summary>
 	public interface IQueryContext : IDisposable {
 		IUserSession Session { get; }
-
-		IDatabaseContext DatabaseContext { get; }
 
 		string CurrentSchema { get; }
 

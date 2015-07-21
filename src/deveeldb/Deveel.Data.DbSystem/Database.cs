@@ -192,31 +192,32 @@ namespace Deveel.Data.DbSystem {
 				using (var session = CreateInitialSystemSession()) {
 					session.AutoCommit(false);
 
-					var context = new SessionQueryContext(session);
-					session.ExclusiveLock();
-					session.CurrentSchema(SystemSchema.Name);
+					using (var context = new SessionQueryContext(session)) {
+						session.ExclusiveLock();
+						session.CurrentSchema(SystemSchema.Name);
 
-					// Create the schema information tables
-					CreateSchemata(session);
+						// Create the schema information tables
+						CreateSchemata(context);
 
-					// The system tables that are present in every conglomerate.
-					SystemSchema.CreateTables(session);
+						// The system tables that are present in every conglomerate.
+						SystemSchema.CreateTables(context);
 
-					// Create the system views
-					// TODO: InformationSchema.CreateSystemViews(session);
+						// Create the system views
+						// TODO: InformationSchema.CreateSystemViews(session);
 
-					this.CreateAdminUser(context, adminName, adminPassword);
+						this.CreateAdminUser(context, adminName, adminPassword);
 
-					SetCurrentDataVersion(session);
+						SetCurrentDataVersion(session);
 
-					// Set all default system procedures.
-					// TODO: SystemSchema.SetupSystemFunctions(session, username);
+						// Set all default system procedures.
+						// TODO: SystemSchema.SetupSystemFunctions(session, username);
 
-					try {
-						// Close and commit this transaction.
-						session.Commit();
-					} catch (TransactionException e) {
-						throw new DatabaseSystemException("Could not commit the initial information", e);
+						try {
+							// Close and commit this transaction.
+							session.Commit();
+						} catch (TransactionException e) {
+							throw new DatabaseSystemException("Could not commit the initial information", e);
+						}
 					}
 				}
 
@@ -233,11 +234,10 @@ namespace Deveel.Data.DbSystem {
 			// TODO: Get the data version and then set it to the database table 'vars'
 		}
 
-		private void CreateSchemata(IUserSession session) {
+		private void CreateSchemata(IQueryContext context) {
 			try {
-				// TODO: Create INFORMATION_SCHEMA
-				session.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				session.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
+				context.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
+				context.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {

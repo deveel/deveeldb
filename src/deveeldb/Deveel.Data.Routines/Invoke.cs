@@ -89,7 +89,7 @@ namespace Deveel.Data.Routines {
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
 		public bool IsAggregate(IQueryContext context) {
-			var resolver = context.DatabaseContext.RoutineResolver;
+			var resolver = context.DatabaseContext().RoutineResolver;
 			if (resolver.IsAggregateFunction(this, context))
 				return true;
 
@@ -121,7 +121,7 @@ namespace Deveel.Data.Routines {
 			if (context == null) {
 				resolver = SystemFunctions.Provider;
 			} else {
-				resolver = context.DatabaseContext.RoutineResolver;
+				resolver = context.DatabaseContext().RoutineResolver;
 			}
 
 			cached = resolver.ResolveRoutine(this, context) as IFunction;

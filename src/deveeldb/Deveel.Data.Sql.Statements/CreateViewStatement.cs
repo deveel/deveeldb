@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Statements {
 			var viewName = context.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
-			var queryPlan = context.DatabaseContext.QueryPlanner().PlanQuery(context, QueryExpression, null);
+			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, null);
 
 			var colList = ColumnNames == null ? new string[0] : ColumnNames.ToArray();
 
@@ -118,29 +118,8 @@ namespace Deveel.Data.Sql.Statements {
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 
-			protected void CheckUserSelectPermissions(IQueryContext context, IQueryPlanNode plan) {
-				// Discover the list of TableName objects this command touches,
-				var touchedTables = plan.DiscoverTableNames();
-
-				// Check that the user is allowed to select from these tables.
-				foreach (var tableName in touchedTables) {
-					if (!context.UserCanSelectFromTable(tableName))
-						throw new InvalidAccessException(tableName);
-				}
-			}
-
 			public override ITable Evaluate(IQueryContext context) {
 				var viewName = TableInfo.TableName;
-
-				if (!context.UserCanCreateTable(viewName))
-					throw new InvalidOperationException();	// TODO: Specialized security exception
-
-				if (context.ObjectExists(viewName))
-					throw new InvalidOperationException();	// TODO: Specialized exception here
-
-				// Check the permissions for this user to select from the tables in the
-				// given plan.
-				CheckUserSelectPermissions(context, QueryPlan);
 
 				// We have to execute the plan to get the DataTableInfo that represents the
 				// result of the view execution.

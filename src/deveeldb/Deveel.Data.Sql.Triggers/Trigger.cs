@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		private bool ShouldFire(TriggerContext context) {
+		private bool ShouldFire(TableEventContext context) {
 			if ((TriggerInfo.EventType & context.EventType) == 0)
 				return false;
 
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql.Triggers {
 			       TriggerInfo.TableName.Equals(tableName, true);
 		}
 
-		public void Fire(TriggerContext context) {
+		public void Fire(TableEventContext context) {
 			if (context == null)
 				throw new ArgumentNullException("context");
 

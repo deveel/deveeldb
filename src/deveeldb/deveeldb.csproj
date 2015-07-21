@@ -250,11 +250,12 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TableEventContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerCallbackEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerBody.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerContext.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventRouter.cs" />
@@ -358,7 +359,6 @@
     <Compile Include="Deveel.Data.Index\RangeFieldOffset.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
     <Compile Include="Deveel.Data.Index\IndexRange.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerEvent.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />

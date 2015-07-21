@@ -22,8 +22,14 @@ using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Diagnostics {
 	public static class QueryContextEventExtensions {
+		private static void FillEventData(this IQueryContext context, IEvent @event) {
+			context.Database().AppendEventData(@event);
+			context.Session.AppendEventData(@event);
+		}
+
 		public static void RegisterEvent(this IQueryContext context, IEvent @event) {
-			context.DatabaseContext.SystemContext.EventRegistry.RegisterEvent(@event);
+			context.FillEventData(@event);
+			context.SystemContext().EventRegistry.RegisterEvent(@event);
 		}
 
 		public static void RegisterError(this IQueryContext context, string message) {
@@ -46,7 +52,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlQuery query, string statementText) {
-			
+			context.RegisterEvent(new QueryEvent(query, statementText));
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlStatement statement) {

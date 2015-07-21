@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public IDatabaseContext DatabaseContext {
-			get { return QueryContext.DatabaseContext; }
+			get { return QueryContext.DatabaseContext(); }
 		}
 
 		/// <summary>

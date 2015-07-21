@@ -1543,12 +1543,14 @@ namespace Deveel.Data.DbSystem {
 
 			public UserType ResolveType(string typeName) {
 				using (var session = database.CreateSystemSession()) {
-					var fullTypeName = session.ResolveObjectName(typeName);
+					using (var context = new SessionQueryContext(session)) {
+						var fullTypeName = session.ResolveObjectName(typeName);
 
-					if (fullTypeName == null)
-						return null;
+						if (fullTypeName == null)
+							return null;
 
-					return session.GetUserType(fullTypeName);
+						return context.GetUserType(fullTypeName);
+					}
 				}
 			}
 		}

@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Store;
@@ -32,14 +31,13 @@ namespace Deveel.Data.DbSystem {
 			Database = database;
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
-			SessionInfo = new SessionInfo(User.System);
-
-			TableCache = new MemoryCache(25, 150, 30);
+			SessionInfo = new SessionInfo(User.System, transaction.Isolation);
 		}
 
 		public void Dispose() {
 			Database = null;
 			Transaction = null;
+			SessionInfo = null;
 		}
 
 		public IDatabase Database { get; private set; }
@@ -50,8 +48,6 @@ namespace Deveel.Data.DbSystem {
 
 		public ITransaction Transaction { get; private set; }
 
-		public ICache TableCache { get; private set; }
-
 		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
 		}
 
@@ -59,11 +55,11 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public ILargeObject GetLargeObject(ObjectId objId) {
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		public void Commit() {
