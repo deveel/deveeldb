@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Represents the node that is a database table as source of a query.
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
-	[Serializable]
-	public sealed class FromTableSourceNode : SqlNode, IFromSourceNode {
+	class FromTableSourceNode : SqlNode, IFromSourceNode {
 		internal FromTableSourceNode() {
 		}
 

@@ -23,8 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// An node that represents a constant value set within a context
 	/// of an SQL command.
 	/// </summary>
-	[Serializable]
-	public sealed class SqlConstantExpressionNode : SqlNode, IExpressionNode {
+	class SqlConstantExpressionNode : SqlNode, IExpressionNode {
 		internal SqlConstantExpressionNode() {
 		}
 

@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// An SQL node describing an in-line <c>CASE</c> conditional expression.
 	/// </summary>
 	[Serializable]
-	public sealed class SqlCaseExpressionNode : SqlNode, IExpressionNode {
+	class SqlCaseExpressionNode : SqlNode, IExpressionNode {
 		internal SqlCaseExpressionNode() {
 		}
 

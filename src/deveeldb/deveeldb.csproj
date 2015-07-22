@@ -583,7 +583,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlReferenceExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlUnaryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlVariableRefExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\StringLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlGrammar.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ISqlChildNode.cs" />

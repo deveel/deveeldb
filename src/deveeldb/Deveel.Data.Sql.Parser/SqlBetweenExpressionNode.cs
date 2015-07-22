@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// (inclusive) and <see cref="MaxValue"/> (exclusive).
 	/// </summary>
 	[Serializable]
-	public sealed class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
+	class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
 		internal SqlBetweenExpressionNode() {
 		}
 

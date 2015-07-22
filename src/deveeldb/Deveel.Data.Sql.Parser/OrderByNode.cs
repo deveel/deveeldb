@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Within an SQL query node, this describes the ordering criteria
 	/// that will be applied when returning the results of the selection.
 	/// </summary>
-	[Serializable]
-	public sealed class OrderByNode : SqlNode {
+	class OrderByNode : SqlNode {
 		internal OrderByNode() {
 		}
 

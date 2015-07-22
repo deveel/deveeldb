@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
-	public sealed class SequenceOfStatementsNode : SqlNode {
+	class SequenceOfStatementsNode : SqlNode {
 		private readonly ICollection<IStatementNode> statementNodes;
 
 		internal SequenceOfStatementsNode() {

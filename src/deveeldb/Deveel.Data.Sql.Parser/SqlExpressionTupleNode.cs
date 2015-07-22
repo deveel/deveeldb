@@ -21,8 +21,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// An expression containing a set of other expressions.
 	/// </summary>
-	[Serializable]
-	public sealed class SqlExpressionTupleNode : SqlNode, IExpressionNode {
+	class SqlExpressionTupleNode : SqlNode, IExpressionNode {
 		internal SqlExpressionTupleNode() {
 		}
 

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
 	[Serializable]
-	public sealed class CreateTriggerNode : SqlNode, IStatementNode {
+	class CreateTriggerNode : SqlNode, IStatementNode {
 		internal CreateTriggerNode() {
 		}
 

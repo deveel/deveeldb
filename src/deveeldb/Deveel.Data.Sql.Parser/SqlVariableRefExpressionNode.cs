@@ -20,8 +20,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// References a variable within a SQL execution context.
 	/// </summary>
-	[Serializable]
-	public sealed class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
+	class SqlVariableRefExpressionNode : SqlNode, IExpressionNode {
 		internal SqlVariableRefExpressionNode() {
 		}
 

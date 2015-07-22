@@ -17,8 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
-	public sealed class AlterTableActionNode : SqlNode {
+	class AlterTableActionNode : SqlNode {
 		internal AlterTableActionNode() {
 		}
 

@@ -27,8 +27,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Nodes of this kind can handle only integer values: the broader handler
 	/// node for more complex numeric values is <see cref="NumberLiteralNode"/>.
 	/// </remarks>
-	[Serializable]
-	public sealed class IntegerLiteralNode : SqlNode {
+	class IntegerLiteralNode : SqlNode {
 		internal IntegerLiteralNode() {
 		}
 

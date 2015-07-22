@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <see cref="FromQuerySourceNode"/>, that means only a table or
 	/// a sub-query can be source of query.
 	/// </remarks>
-	public interface IFromSourceNode : ISqlNode {
+	interface IFromSourceNode : ISqlNode {
 		/// <summary>
 		/// Gets an alias that uniquely identifies the source within
 		/// a query context.

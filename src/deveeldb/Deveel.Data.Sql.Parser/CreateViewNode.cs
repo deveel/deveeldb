@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	[Serializable]
-	public sealed class CreateViewNode : SqlNode, IStatementNode {
+	class CreateViewNode : SqlNode, IStatementNode {
 		internal CreateViewNode() {
 		}
 

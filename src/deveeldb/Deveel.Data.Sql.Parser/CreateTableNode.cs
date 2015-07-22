@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
-	public sealed class CreateTableNode : SqlNode, IStatementNode {
+	class CreateTableNode : SqlNode, IStatementNode {
 		internal CreateTableNode() {
 		}
 

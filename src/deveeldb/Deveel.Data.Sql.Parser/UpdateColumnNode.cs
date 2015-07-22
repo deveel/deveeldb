@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class UpdateColumnNode : SqlNode {
+	class UpdateColumnNode : SqlNode {
 		internal UpdateColumnNode() {
 		}
 

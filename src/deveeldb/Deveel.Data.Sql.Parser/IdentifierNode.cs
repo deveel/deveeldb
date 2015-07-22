@@ -25,8 +25,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// This is the simplest expression of an identifier that has
 	/// no child nor parent identifier (like <see cref="ObjectNameNode"/>).
 	/// </remarks>
-	[Serializable]
-	public sealed class IdentifierNode : SqlNode {
+	class IdentifierNode : SqlNode {
 		internal IdentifierNode() {
 		}
 

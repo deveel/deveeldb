@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Parser;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class ValuesInsertNode : SqlNode {
+	class ValuesInsertNode : SqlNode {
 		internal ValuesInsertNode() {
 		}
 

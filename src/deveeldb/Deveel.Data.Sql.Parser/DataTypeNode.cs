@@ -24,8 +24,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// Describes the information of a data type as found in a SQL string.
 	/// </summary>
-	[Serializable]
-	public sealed class DataTypeNode : SqlNode {
+	class DataTypeNode : SqlNode {
 		/// <summary>
 		/// Constructs an empty <see cref="DataTypeNode"/>.
 		/// </summary>

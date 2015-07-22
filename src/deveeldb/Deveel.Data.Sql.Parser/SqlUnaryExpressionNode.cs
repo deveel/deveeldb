@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// An expression that encapsulates a unary operator for a
 	/// given operand.
 	/// </summary>
-	[Serializable]
-	public sealed class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
+	class SqlUnaryExpressionNode : SqlNode, IExpressionNode {
 		internal SqlUnaryExpressionNode() {
 		}
 

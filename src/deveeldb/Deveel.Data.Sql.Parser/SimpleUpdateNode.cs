@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class SimpleUpdateNode : SqlNode {
+	class SimpleUpdateNode : SqlNode {
 		internal SimpleUpdateNode() {
 			Limit = -1;
 		}

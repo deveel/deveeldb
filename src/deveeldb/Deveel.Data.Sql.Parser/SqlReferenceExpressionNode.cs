@@ -21,8 +21,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// An expression node that references an object within the database
 	/// context (such as a table, a type, a variable, etc.).
 	/// </summary>
-	[Serializable]
-	public sealed class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
+	class SqlReferenceExpressionNode : SqlNode, IExpressionNode {
 		internal SqlReferenceExpressionNode() {
 		}
 

@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class DataTypeBuilder {
+	class DataTypeBuilder {
 		public DataType Build(ISqlNode sqlNode) {
 			return Build(null, sqlNode);
 		}

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class QueryUpdateNode : SqlNode {
+	class QueryUpdateNode : SqlNode {
 		internal QueryUpdateNode() {
 		}
 

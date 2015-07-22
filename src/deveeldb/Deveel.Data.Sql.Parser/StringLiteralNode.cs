@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// A node containing a constant literal string passed within
 	/// an SQL command.
 	/// </summary>
-	[Serializable]
-	public sealed class StringLiteralNode : SqlNode {
+	class StringLiteralNode : SqlNode {
 		internal StringLiteralNode() {
 		}
 

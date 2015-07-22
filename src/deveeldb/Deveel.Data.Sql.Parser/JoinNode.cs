@@ -24,8 +24,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// A node describing the <c>JOIN</c> between two sources within a query.
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
-	[Serializable]
-	public sealed class JoinNode : SqlNode {
+	class JoinNode : SqlNode {
 		internal JoinNode() {	
 		}
 

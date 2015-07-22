@@ -25,8 +25,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Handles a numeric literal value, belonging to a wider group than
 	/// integer numbers, spanning from real to decimals.
 	/// </summary>
-	[Serializable]
-	public sealed class NumberLiteralNode : SqlNode {
+	class NumberLiteralNode : SqlNode {
 		internal NumberLiteralNode() {
 		}
 

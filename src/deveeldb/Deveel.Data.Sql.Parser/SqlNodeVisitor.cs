@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// The default implementation of a <see cref="ISqlNodeVisitor"/>
 	/// that implements the visitor as a protected accessor.
 	/// </summary>
-	public class SqlNodeVisitor : ISqlNodeVisitor {
+	class SqlNodeVisitor : ISqlNodeVisitor {
 		/// <summary>
 		/// Visits the given SQL node.
 		/// </summary>

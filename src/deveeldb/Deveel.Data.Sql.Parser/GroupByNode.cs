@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// A node that describes the <c>GROUP BY</c> clause in a SQL query.
 	/// </summary>
-	[Serializable]
-	public sealed class GroupByNode : SqlNode {
+	class GroupByNode : SqlNode {
 		internal GroupByNode() {
 		}
 

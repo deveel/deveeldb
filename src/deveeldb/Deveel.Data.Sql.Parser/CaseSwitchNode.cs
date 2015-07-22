@@ -21,8 +21,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// The node that represents a switch in a <c>CASE</c> expression
 	/// </summary>
 	/// <seealso cref="SqlCaseExpressionNode"/>
-	[Serializable]
-	public sealed class CaseSwitchNode : SqlNode {
+	class CaseSwitchNode : SqlNode {
 		internal CaseSwitchNode() {
 		}
 

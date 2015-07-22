@@ -23,8 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <c>FROM</c> clause.
 	/// </summary>
 	/// <seealso cref="IFromSourceNode"/>
-	[Serializable]
-	public sealed class FromQuerySourceNode : SqlNode, IFromSourceNode {
+	class FromQuerySourceNode : SqlNode, IFromSourceNode {
 		internal FromQuerySourceNode() {	
 		}
 

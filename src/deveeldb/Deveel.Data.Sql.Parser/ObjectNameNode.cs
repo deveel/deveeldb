@@ -29,8 +29,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// multiple parts (eg. <c>schema.table.column</c>, <c>schema.table</c>, <c>table.*</c>).
 	/// </para>
 	/// </remarks>
-	[Serializable]
-	public sealed class ObjectNameNode : SqlNode {
+	class ObjectNameNode : SqlNode {
 		internal ObjectNameNode() {
 		}
 

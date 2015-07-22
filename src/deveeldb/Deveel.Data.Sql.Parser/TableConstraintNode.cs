@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
-	public sealed class TableConstraintNode : SqlNode, ITableElementNode {
+	class TableConstraintNode : SqlNode, ITableElementNode {
 		private bool notSeen;
 		private readonly IList<string> columns;
 		private readonly IList<string> refColumns;

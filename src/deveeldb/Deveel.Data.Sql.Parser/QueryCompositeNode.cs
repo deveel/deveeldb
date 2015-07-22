@@ -21,8 +21,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Composes two queries to obtain a set that is the result of a
 	/// given composition function.
 	/// </summary>
-	[Serializable]
-	public sealed class QueryCompositeNode : SqlNode {
+	class QueryCompositeNode : SqlNode {
 		internal QueryCompositeNode() {
 		}
 

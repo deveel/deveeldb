@@ -22,8 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// Represents a keyword found during the compilation of a source text.
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
-	[Serializable]
-	public sealed class SqlKeyNode : ISqlChildNode {
+	class SqlKeyNode : ISqlChildNode {
 		internal SqlKeyNode(Token token) {
 			this.token = token;
 			Text = token.Text;

@@ -23,8 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// The root node of an expression used to select a set of items
 	/// from a set of sources defined, given some conditions specified.
 	/// </summary>
-	[Serializable]
-	public sealed class SqlQueryExpressionNode : SqlNode, IExpressionNode {
+	class SqlQueryExpressionNode : SqlNode, IExpressionNode {
 		internal SqlQueryExpressionNode() {
 		}
 

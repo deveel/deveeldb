@@ -17,8 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
-	public sealed class ColumnConstraintNode : SqlNode {
+	class ColumnConstraintNode : SqlNode {
 		private bool notSeen;
 
 		internal ColumnConstraintNode() {

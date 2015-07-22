@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class StatementBuilder : SqlNodeVisitor {
+	class StatementBuilder : SqlNodeVisitor {
 		private readonly IUserTypeResolver typeResolver;
 		private readonly List<SqlStatement> statements;
 
