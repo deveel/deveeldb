@@ -48,15 +48,12 @@ namespace Deveel.Data.Types {
 			           type is DateType ||
 			           type is NullType) {
 				// nothing to add to the SQL Type Code
-			} else if (type is GeometryType) {
-				var geometryType = (GeometryType) type;
-				writer.Write(geometryType.Srid);
-			} else {
+			}  else {
 				throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
 			}
 		}
 
-		public static DataType DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+		public static DataType DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
 
 			var typeCode = (SqlTypeCode) reader.ReadByte();

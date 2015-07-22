@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Spatial;
 
 namespace Deveel.Data.DbSystem {
 	public static class SystemContextExtensions {
@@ -35,10 +34,6 @@ namespace Deveel.Data.DbSystem {
 
 		public static bool AutoCommit(this ISystemContext context) {
 			return context.Configuration.GetBoolean(SystemConfigKeys.AutoCommit);
-		}
-
-		public static ISpatialContext SpatialContext(this ISystemContext context) {
-			return context.ServiceProvider.Resolve<ISpatialContext>();
 		}
 
 		//public static IDatabaseContext CreateDatabaseContext(this ISystemContext context, IDbConfig config, string name) {

@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Objects;
@@ -30,6 +31,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// </summary>
 		internal DataTypeNode() {
 			IsPrimitive = true;
+			Metadata = new Dictionary<string, string>();
 		}
 
 		/// <summary>
@@ -43,11 +45,6 @@ namespace Deveel.Data.Sql.Parser {
 		/// Gets the name of the data type, if <see cref="IsPrimitive"/> is <c>true</c>.
 		/// </summary>
 		public string TypeName { get; private set; }
-
-		/// <summary>
-		/// Gets a fully-qualified name for user-defined data types.
-		/// </summary>
-		public string UserTypeName { get; private set; }
 
 		/// <summary>
 		/// Gets the size specification of the data-type.
@@ -111,9 +108,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// <seealso cref="Locale"/>
 		public bool HasLocale { get; private set; }
 
-		public int Srid { get; private set; }
-
-		public bool HasSrid { get; private set; }
+		public Dictionary<string, string> Metadata { get; private set; } 
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "decimal_type") {
@@ -130,8 +125,6 @@ namespace Deveel.Data.Sql.Parser {
 				GetUserType(node);
 			} else if (node.NodeName == "row_type") {
 
-			} else if (node.NodeName == "geometry_type") {
-				GetGeometryType(node);
 			}
 
 			return base.OnChildNode(node);
@@ -139,8 +132,21 @@ namespace Deveel.Data.Sql.Parser {
 
 		private void GetUserType(ISqlNode node) {
 			IsPrimitive = false;
-			UserTypeName = ((ObjectNameNode) node.ChildNodes.First()).Name;
-			TypeName = UserTypeName;
+			TypeName = node.FindNode<ObjectNameNode>().Name;
+			var optMetaList = node.FindByName("user_type_meta_opt");
+			if (optMetaList != null) {
+				GetMeta(optMetaList.ChildNodes.FirstOrDefault());
+			}
+		}
+
+		private void GetMeta(ISqlNode node) {
+			if (node == null)
+				return;
+
+			var metas = node.FindNodes<DataTypeMetaNode>();
+			foreach (var meta in metas) {
+				Metadata[meta.Name] = meta.Value;
+			}
 		}
 
 		private void GetSimpleType(ISqlNode node) {
@@ -180,15 +186,6 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		private void GetSrid(ISqlNode node) {
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is IntegerLiteralNode) {
-					Srid = (int)((IntegerLiteralNode)childNode).Value;
-					HasSrid = true;
-				}
-			}
-		}
-
 		private void GetNumberType(ISqlNode node) {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
@@ -208,16 +205,6 @@ namespace Deveel.Data.Sql.Parser {
 				} else {
 					Precision = (int) ((IntegerLiteralNode) childNode).Value;
 					HasPrecision = true;
-				}
-			}
-		}
-
-		private void GetGeometryType(ISqlNode node) {
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is SqlKeyNode) {
-					TypeName = ((SqlKeyNode)childNode).Text;
-				} else if (childNode.NodeName == "datatype_size") {
-					GetSrid(childNode);
 				}
 			}
 		}

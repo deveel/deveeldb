@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Types {
-	public interface IUserTypeResolver {
-		UserType ResolveType(string typeName);
+	public interface ITypeResolver {
+		DataType ResolveType(string typeName, params DataTypeMeta[] metadata);
 	}
 }

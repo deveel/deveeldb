@@ -137,6 +137,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\deveeldb-gis\deveeldb-gis.csproj">
+      <Project>{4609733F-0316-4137-ACE5-1BE52CE9CE73}</Project>
+      <Name>deveeldb-gis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\deveeldb\deveeldb.csproj">
       <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>
       <Name>deveeldb</Name>

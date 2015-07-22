@@ -351,7 +351,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal static TableInfo DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+		internal static TableInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
 
 			var version = reader.ReadInt32();

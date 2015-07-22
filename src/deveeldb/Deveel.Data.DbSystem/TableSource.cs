@@ -602,7 +602,7 @@ namespace Deveel.Data.DbSystem {
 				if (version != 1)
 					throw new IOException("Incorrect TableInfo version identifier.");
 
-				var userTypeResolver = new UserTypeResolver(Database);
+				var userTypeResolver = new TypeResolver(Database);
 				TableInfo = TableInfo.DeserializeFrom(stream, userTypeResolver);
 				TableInfo.Establish(TableId);
 			}
@@ -1533,24 +1533,19 @@ namespace Deveel.Data.DbSystem {
 			}
 		}
 
-		#region UserTypeResolver
+		#region TypeResolver
 
-		class UserTypeResolver : IUserTypeResolver {
+		class TypeResolver : ITypeResolver {
 			private readonly IDatabase database;
 
-			public UserTypeResolver(IDatabase database) {
+			public TypeResolver(IDatabase database) {
 				this.database = database;
 			}
 
-			public UserType ResolveType(string typeName) {
+			public DataType ResolveType(string typeName, params DataTypeMeta[] meta) {
 				using (var session = database.CreateSystemSession()) {
 					using (var context = new SessionQueryContext(session)) {
-						var fullTypeName = session.ResolveObjectName(typeName);
-
-						if (fullTypeName == null)
-							return null;
-
-						return context.GetUserType(fullTypeName);
+						return context.ResolveType(typeName);
 					}
 				}
 			}

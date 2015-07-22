@@ -305,6 +305,23 @@ namespace Deveel.Data.Types {
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static DataType Parse(string s) {
+			return Parse(null, s);
+		}
+
+		/// <summary>
+		/// Parses a SQL formatted string that defines a data-type into
+		/// a constructed <see cref="DataType"/> object equivalent.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="s">The SQL formatted data-type string, defining the properties of the type.</param>
+		/// <remarks>
+		/// This method only supports primitive types.
+		/// </remarks>
+		/// <returns>
+		/// </returns>
+		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
+		/// <seealso cref="ToString()"/>
+		public static DataType Parse(IQueryContext context, string s) {
 			var sqlCompiler = SqlParsers.DataType;
 
 			try {
@@ -313,11 +330,12 @@ namespace Deveel.Data.Types {
 					throw new SqlParseException();
 
 				var node = (DataTypeNode) result.RootNode;
-				if (!node.IsPrimitive)
-					throw new NotSupportedException("Cannot resolve the given string to a primitive type.");
+
+				if (context == null && !node.IsPrimitive)
+					throw new NotSupportedException(String.Format("The type '{0}' is not primitive and no resolve context is provided.", node.TypeName));
 
 				var builder = new DataTypeBuilder();
-				return builder.Build(node);
+				return builder.Build(context, node);
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}
@@ -394,9 +412,7 @@ namespace Deveel.Data.Types {
 		public static bool IsPrimitiveType(SqlTypeCode typeCode) {
 			return typeCode != SqlTypeCode.Object &&
 			       typeCode != SqlTypeCode.Unknown &&
-			       typeCode != SqlTypeCode.UserType &&
-			       typeCode != SqlTypeCode.Geometry &&
-			       typeCode != SqlTypeCode.Xml &&
+			       typeCode != SqlTypeCode.Type &&
 			       typeCode != SqlTypeCode.Array &&
 			       typeCode != SqlTypeCode.RowType &&
 			       typeCode != SqlTypeCode.ColumnType;

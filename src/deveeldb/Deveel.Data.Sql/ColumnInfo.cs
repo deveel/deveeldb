@@ -168,7 +168,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		internal static ColumnInfo DeserializeFrom(Stream stream, IUserTypeResolver typeResolver) {
+		internal static ColumnInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
 
 			var version = reader.ReadInt32();

@@ -65,11 +65,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Spatial\NtsGeometry.cs" />
-    <Compile Include="Deveel.Data.Spatial\NtsGeometryConverter.cs" />
-    <Compile Include="Deveel.Data.Spatial\NtsGeometryFactory.cs" />
-    <Compile Include="Deveel.Data.Spatial\NtsPoint.cs" />
-    <Compile Include="Deveel.Data.Spatial\NtsPrecisionModel.cs" />
+    <Compile Include="Deveel.Data.Objects\SqlGeometry.cs" />
+    <Compile Include="Deveel.Data.Spatial\SpatialFunctionProvider.cs" />
+    <Compile Include="Deveel.Data.Spatial\SpatialSystemFunctions.cs" />
+    <Compile Include="Deveel.Data.Spatial\SpatialType.cs" />
+    <Compile Include="Deveel.Data.Spatial\SpatialTypeResolver.cs" />
+    <Compile Include="Deveel.Data.Spatial\SystemContextExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

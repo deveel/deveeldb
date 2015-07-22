@@ -21,8 +21,8 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Types {
-	public sealed class UserTypeManager : IObjectManager, IUserTypeResolver {
-		public UserTypeManager(ITransaction transaction) {
+	public sealed class TypeManager : IObjectManager, ITypeResolver {
+		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
 
@@ -67,7 +67,7 @@ namespace Deveel.Data.Types {
 			throw new NotImplementedException();
 		}
 
-		UserType IUserTypeResolver.ResolveType(string typeName) {
+		DataType ITypeResolver.ResolveType(string typeName, params DataTypeMeta[] meta) {
 			var fullTypeName = Transaction.ResolveObjectName(typeName);
 			if (fullTypeName == null)
 				return null;

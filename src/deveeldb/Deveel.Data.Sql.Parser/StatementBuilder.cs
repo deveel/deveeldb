@@ -18,21 +18,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class StatementBuilder : SqlNodeVisitor {
-		private readonly IUserTypeResolver typeResolver;
+		private readonly IQueryContext context;
 		private readonly List<SqlStatement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
 		}
 
-		public StatementBuilder(IUserTypeResolver typeResolver) {
-			this.typeResolver = typeResolver;
+		public StatementBuilder(IQueryContext context) {
+			this.context = context;
 			statements = new List<SqlStatement>();
 		}
 
@@ -100,7 +101,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public override void VisitCreateTable(CreateTableNode node) {
-			CreateTable.Build(typeResolver, node, statements);
+			CreateTable.Build(context, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
@@ -109,7 +110,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public override void VisitAlterTable(AlterTableNode node) {
-			AlterTable.Build(typeResolver, node, statements);
+			AlterTable.Build(context, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
@@ -141,7 +142,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IUserTypeResolver typeResolver, CreateTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(IQueryContext context, CreateTableNode node, ICollection<SqlStatement> statements) {
 				string idColumn = null;
 
 				var dataTypeBuilder = new DataTypeBuilder();
@@ -154,7 +155,7 @@ namespace Deveel.Data.Sql.Parser {
 				var expBuilder = new ExpressionBuilder();
 
 				foreach (var column in node.Columns) {
-					var dataType = dataTypeBuilder.Build(typeResolver, column.DataType);
+					var dataType = dataTypeBuilder.Build(context, column.DataType);
 
 					var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
 
@@ -270,7 +271,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region AlterTable
 
 		class AlterTable {
-			public static void Build(IUserTypeResolver typeResolver, AlterTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(IQueryContext context, AlterTableNode node, ICollection<SqlStatement> statements) {
 				// TODO:
 			}
 		}

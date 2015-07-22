@@ -17,8 +17,6 @@
 using System;
 using System.Globalization;
 
-using Deveel.Data.Spatial;
-
 namespace Deveel.Data.Types {
 	public static class PrimitiveTypes {
 		public static BooleanType Boolean() {
@@ -155,7 +153,7 @@ namespace Deveel.Data.Types {
 
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
 			if (sqlType == SqlTypeCode.Unknown ||
-			    sqlType == SqlTypeCode.UserType ||
+			    sqlType == SqlTypeCode.Type ||
 			    sqlType == SqlTypeCode.QueryPlan ||
 			    sqlType == SqlTypeCode.Object)
 				return false;
@@ -282,14 +280,6 @@ namespace Deveel.Data.Types {
 					throw new ArgumentException("Invalid number of arguments for %TYPE type");
 
 				return ColumnType((ObjectName)args[0]);
-			}
-
-			if (sqlType == SqlTypeCode.Geometry) {
-				if (args == null || args.Length == 0)
-					return new GeometryType();
-
-				var srid = (int) args[0];
-				return new GeometryType(srid);
 			}
 
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));

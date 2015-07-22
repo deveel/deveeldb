@@ -20,12 +20,9 @@ using System.Linq;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Spatial;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class SystemContext : ISystemContext, IServiceResolveContext {
-		private ISpatialContext spatialContext;
- 
+	public sealed class SystemContext : ISystemContext, IServiceResolveContext { 
 		public SystemContext()
 			: this(DbConfig.Default) {
 		}
@@ -80,16 +77,10 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		object IServiceResolveContext.OnResolve(Type type, string name) {
-			if (typeof (ISpatialContext) == type)
-				return spatialContext;
-
 			return null;
 		}
 
 		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
-			if (type == typeof (ISpatialContext))
-				spatialContext = (ISpatialContext) obj;
-
 			if (obj != null && obj is IConfigurable)
 				((IConfigurable)obj).Configure(Configuration);
 		}

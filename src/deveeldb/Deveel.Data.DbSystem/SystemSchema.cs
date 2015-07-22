@@ -604,8 +604,7 @@ namespace Deveel.Data.DbSystem {
 				AddType("VARBINARY", "BINARY", SqlTypeCode.VarBinary, 9, null, null, false);
 				AddType("LONGVARBINARY", "BINARY", SqlTypeCode.LongVarBinary, 9, null, null, false);
 				AddType("OBJECT", "OBJECT", SqlTypeCode.Object, 9, null, null, false);
-				AddType("GEOMETRY", "GEOMETRY", SqlTypeCode.Geometry, 9, null, null, false);
-				AddType("XML", "XML", SqlTypeCode.Xml, 9, null, null, false);
+				AddType("TYPE", "TYPE", SqlTypeCode.Type, 9, null, null, false);
 			}
 
 			public override DataObject GetValue(long rowNumber, int columnOffset) {

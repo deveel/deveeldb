@@ -178,6 +178,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <summary>
 		/// Parses a given string into one of more statements.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <param name="sqlSource">The input string to be parsed.</param>
 		/// <returns>
 		/// Returns a list of <see cref="SqlStatement"/> objects resulting from
@@ -188,10 +189,31 @@ namespace Deveel.Data.Sql.Statements {
 		/// into a valid statement.
 		/// </exception>
 		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
-			return Parse(new SqlQuery(sqlSource));
+			return Parse(null, sqlSource);
+		}
+
+		/// <summary>
+		/// Parses a given string into one of more statements.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="sqlSource">The input string to be parsed.</param>
+		/// <returns>
+		/// Returns a list of <see cref="SqlStatement"/> objects resulting from
+		/// the parsing of the input string.
+		/// </returns>
+		/// <exception cref="SqlParseException">
+		/// Thrown if the input string is of an invalid format and cannot form
+		/// into a valid statement.
+		/// </exception>
+		public static IEnumerable<SqlStatement> Parse(IQueryContext context, string sqlSource) {
+			return Parse(context, new SqlQuery(sqlSource));
 		}
 
 		public static IEnumerable<SqlStatement> Parse(SqlQuery query) {
+			return Parse(null, query);
+		}
+
+		public static IEnumerable<SqlStatement> Parse(IQueryContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
@@ -203,7 +225,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (result.HasErrors)
 					throw new SqlParseException();
 
-				var builder = new StatementBuilder();
+				var builder = new StatementBuilder(context);
 				var statements = builder.Build(result.RootNode, sqlSource).ToList();
 
 				foreach (var statement in statements) {

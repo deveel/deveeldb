@@ -154,9 +154,7 @@ namespace Deveel.Data.Types {
 		///</summary>
 		Object = 70,
 
-		Geometry = 73,
-		Xml = 74,
-		UserType = 75,
+		Type = 75,
 
 		///<summary>
 		///</summary>

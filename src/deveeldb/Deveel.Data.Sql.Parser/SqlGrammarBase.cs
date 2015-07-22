@@ -147,8 +147,9 @@ namespace Deveel.Data.Sql.Parser {
 			var longVarbinary = new NonTerminal("long_varbinary");
 			var userType = new NonTerminal("user_type");
 			var rowType = new NonTerminal("row_type");
-			var geometryType = new NonTerminal("geometry_type");
-			var xmlType = new NonTerminal("xml_type");
+			var userTypeMetaOpt = new NonTerminal("user_type_meta_opt");
+			var userTypeMetaList = new NonTerminal("user_type_meta_list");
+			var userTypeMeta = new NonTerminal("user_type_meta", typeof(DataTypeMetaNode));
 
 			datatype.Rule = characterType |
 			                dateType |
@@ -157,9 +158,7 @@ namespace Deveel.Data.Sql.Parser {
 			                floatType |
 			                binaryType |
 			                rowType |
-			                userType |
-			                geometryType |
-			                xmlType;
+			                userType;
 
 			characterType.Rule = Key("CHAR") + datatypeSize + localeOpt |
 			                     Key("VARCHAR") + datatypeSize + localeOpt |
@@ -184,12 +183,13 @@ namespace Deveel.Data.Sql.Parser {
 			longVarchar.Rule = Key("LONG") + Key("VARCHAR");
 			longVarbinary.Rule = Key("LONG") + Key("VARBINARY");
 			rowType.Rule = ObjectName() + "%" + Key("ROWTYPE");
-			userType.Rule = ObjectName();
+			userType.Rule = ObjectName() + userTypeMetaOpt;
+			userTypeMetaOpt.Rule = Empty | "(" + userTypeMetaList + ")";
+			userTypeMetaList.Rule = MakeStarRule(userTypeMetaList, Comma, userTypeMeta);
+			userTypeMeta.Rule = Identifier + "=" + StringLiteral;
 			intervalType.Rule = Key("INTERVAL") + intervalFormatOpt;
 			intervalFormatOpt.Rule = Key("YEAR") + Key("TO") + Key("MONTH") |
 			                         Key("DAY") + Key("TO") + Key("SECOND");
-			geometryType.Rule = Key("GEOMETRY") + datatypeSize;
-			xmlType.Rule = Key("XML");
 
 			datatypeSize.Rule = Empty | "(" + PositiveLiteral + ")";
 
