@@ -258,6 +258,9 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private void PrintFromClause(FromClause fromClause) {
+			if (fromClause == null || fromClause.IsEmpty)
+				return;
+
 			builder.Append("FROM ");
 
 			var tables = fromClause.AllTables.ToList();

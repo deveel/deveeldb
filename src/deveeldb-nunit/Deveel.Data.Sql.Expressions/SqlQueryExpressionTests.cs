@@ -17,7 +17,6 @@ using System;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 

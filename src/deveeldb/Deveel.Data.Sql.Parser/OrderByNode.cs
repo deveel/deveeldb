@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
@@ -39,7 +40,9 @@ namespace Deveel.Data.Sql.Parser {
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "sql_expression") {
+			if (node.NodeName == "sql_reference_expression") {
+				Expression = (IExpressionNode) node;
+			} else if (node.NodeName == "sql_expression") {
 				Expression = (IExpressionNode) node;
 			} else if (node.NodeName == "sort_order") {
 				GetOrder(node);
@@ -49,8 +52,9 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private void GetOrder(ISqlNode node) {
-			if (node is SqlKeyNode) {
-				var keyNode = (SqlKeyNode) node;
+			var child = node.ChildNodes.FirstOrDefault();
+			if (child is SqlKeyNode) {
+				var keyNode = (SqlKeyNode) child;
 				if (String.Equals(keyNode.Text, "ASC", StringComparison.OrdinalIgnoreCase)) {
 					Ascending = true;
 				} else if (String.Equals(keyNode.Text, "DESC", StringComparison.OrdinalIgnoreCase)) {

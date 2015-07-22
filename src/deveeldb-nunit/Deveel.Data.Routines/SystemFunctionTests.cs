@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Deveel.Data.DbSystem;
 
 using NUnit.Framework;
 

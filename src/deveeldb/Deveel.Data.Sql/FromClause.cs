@@ -60,6 +60,10 @@ namespace Deveel.Data.Sql {
 			get { return joinParts.Count; }
 		}
 
+		public bool IsEmpty {
+			get { return fromTables.Count == 0; }
+		}
+
 		private String CreateNewKey() {
 			++tableKey;
 			return tableKey.ToString(CultureInfo.InvariantCulture);

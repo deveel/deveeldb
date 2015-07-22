@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	[Serializable]
@@ -36,10 +37,17 @@ namespace Deveel.Data.Sql.Parser {
 			if (node.NodeName == "sql_query_expression") {
 				QueryExpression = node as SqlQueryExpressionNode;
 			} else if (node.NodeName == "order_opt") {
-				// TODO:
+				GetOrderBy(node);
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		private void GetOrderBy(ISqlNode node) {
+			var listNode =  node.FindByName("sorted_def_list");
+			if (listNode != null) {
+				OrderBy = listNode.ChildNodes.Cast<OrderByNode>();
+			}
 		}
 	}
 }

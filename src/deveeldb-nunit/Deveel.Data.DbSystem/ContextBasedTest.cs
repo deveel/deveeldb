@@ -1,10 +1,8 @@
 ﻿using System;
 
-using Deveel.Data.DbSystem;
-
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data.DbSystem {
+namespace Deveel.Data.DbSystem {
 	[TestFixture]
 	public abstract class ContextBasedTest {
 		private IUserSession session;

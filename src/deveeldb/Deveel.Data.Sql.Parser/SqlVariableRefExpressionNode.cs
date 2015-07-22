@@ -32,7 +32,10 @@ namespace Deveel.Data.Sql.Parser {
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			Variable = ((IdentifierNode) node).Text;
+			if (node is IdentifierNode) {
+				Variable = ((IdentifierNode) node).Text;
+			}
+
 			return base.OnChildNode(node);
 		}
 	}
