@@ -416,7 +416,18 @@ namespace Deveel.Data.Sql.Compile {
 
 		private NonTerminal Select() {
 			var selectCommand = new NonTerminal("select_command", typeof(SelectStatementNode));
-			selectCommand.Rule = SqlQueryExpression();
+			var orderOpt = new NonTerminal("order_opt");
+			var sortedDef = new NonTerminal("sorted_def", typeof(OrderByNode));
+			var sortedDefList = new NonTerminal("sorted_def_list");
+			var sortOrder = new NonTerminal("sort_order");
+
+			selectCommand.Rule = SqlQueryExpression() + orderOpt;
+
+			orderOpt.Rule = Empty | Key("ORDER") + Key("BY") + sortedDefList;
+			sortedDef.Rule = SqlExpression() + sortOrder;
+			sortOrder.Rule = Key("ASC") | Key("DESC");
+			sortedDefList.Rule = MakePlusRule(sortedDefList, Comma, sortedDef);
+
 			return selectCommand;
 		}
 

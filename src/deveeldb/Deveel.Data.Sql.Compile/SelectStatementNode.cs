@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Compile {
 	[Serializable]
@@ -24,9 +25,18 @@ namespace Deveel.Data.Sql.Compile {
 
 		public SqlQueryExpressionNode QueryExpression { get; internal set; }
 
+		/// <summary>
+		/// Gets a read-oly list of <see cref="OrderBy">order</see> criteria
+		/// for sorting the results of the query.
+		/// </summary>
+		/// <seealso cref="OrderByNode"/>
+		public IEnumerable<OrderByNode> OrderBy { get; private set; }
+
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_query_expression") {
 				QueryExpression = node as SqlQueryExpressionNode;
+			} else if (node.NodeName == "order_opt") {
+				// TODO:
 			}
 
 			return base.OnChildNode(node);

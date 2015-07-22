@@ -40,6 +40,8 @@ namespace Deveel.Data.Sql.Compile {
 		/// </summary>
 		public bool IsDistinct { get; private set; }
 
+		public SqlReferenceExpressionNode IntoClause { get; private set; }
+
 		/// <summary>
 		/// Gets a read-only list of <see cref="SelectItemNode">items</see> that
 		/// will be returned by the query.
@@ -61,13 +63,6 @@ namespace Deveel.Data.Sql.Compile {
 		/// a query.
 		/// </summary>
 		public GroupByNode GroupBy { get; private set; }
-
-		/// <summary>
-		/// Gets a read-oly list of <see cref="OrderBy">order</see> criteria
-		/// for sorting the results of the query.
-		/// </summary>
-		/// <seealso cref="OrderByNode"/>
-		public IEnumerable<OrderByNode> OrderBy { get; private set; }
 
 		/// <summary>
 		/// Gets an optional definition for a composition between this
@@ -94,6 +89,8 @@ namespace Deveel.Data.Sql.Compile {
 				var composite = node.ChildNodes.FirstOrDefault();
 				if (composite != null)
 					Composite = (QueryCompositeNode) composite;
+			} else if (node.NodeName == "select_into_opt") {
+				// TODO:
 			}
 
 			return base.OnChildNode(node);

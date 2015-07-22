@@ -66,10 +66,23 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override void VisitSelect(SelectStatementNode node) {
-			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
-			var statement = new SqlSelectStatement(queryExpression);
-			statements.Add(statement);
+			var queryExpression = (SqlQueryExpression) Expression(node.QueryExpression);
+			if (node.QueryExpression.IntoClause != null) {
+				var refExp = Expression(node.QueryExpression.IntoClause);
+				statements.Add(new SelectIntoStatement(queryExpression, refExp));
+			} else {
+				var orderBy = OrderBy(node.OrderBy);
+				var statement = new SelectStatement(queryExpression, orderBy);
+				statements.Add(statement);
+			}
 		}
+
+		private IEnumerable<SortColumn> OrderBy(IEnumerable<OrderByNode> nodes) {
+			if (nodes == null)
+				return null;
+
+			return nodes.Select(node => new SortColumn(Expression(node.Expression), node.Ascending));
+		} 
 
 		public override void VisitCreateTrigger(CreateTriggerNode node) {
 			

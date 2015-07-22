@@ -227,10 +227,6 @@ namespace Deveel.Data.Sql.Compile {
 			var groupByOpt = new NonTerminal("group_by_opt");
 			var groupBy = new NonTerminal("group_by", typeof(GroupByNode));
 			var havingClauseOpt = new NonTerminal("having_clause_opt");
-			var orderOpt = new NonTerminal("order_opt");
-			var sortedDef = new NonTerminal("sorted_def", typeof(OrderByNode));
-			var sortedDefList = new NonTerminal("sorted_def_list");
-			var sortOrder = new NonTerminal("sort_order");
 			var queryCompositeOpt = new NonTerminal("query_composite_opt");
 			var queryComposite = new NonTerminal("query_composite", typeof(QueryCompositeNode));
 			var expression = new NonTerminal("sql_query_expression", typeof(SqlQueryExpressionNode));
@@ -279,12 +275,8 @@ namespace Deveel.Data.Sql.Compile {
 			queryComposite.Rule = Key("UNION") + allOpt + expression |
 								   Key("INTERSECT") + allOpt + expression |
 								   Key("EXCEPT") + allOpt + expression;
-			orderOpt.Rule = Empty | Key("ORDER") + Key("BY") + sortedDefList;
-			sortedDef.Rule = SqlExpression() + sortOrder;
-			sortOrder.Rule = Key("ASC") | Key("DESC");
 			allOpt.Rule = Empty | Key("ALL");
 			asOpt.Rule = Empty | As;
-			sortedDefList.Rule = MakePlusRule(sortedDefList, Comma, sortedDef);
 
 			MarkTransient(selectSource);
 

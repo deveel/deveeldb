@@ -22,7 +22,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public static class QueryContextStatementExtensions {
+	public static class QueryContextExtensions {
 		public static ITable[] ExecuteQuery(this IQueryContext context, SqlQuery query) {
 			return StatementExecutor.Execute(context, query);
 		}

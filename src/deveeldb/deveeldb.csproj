@@ -244,7 +244,9 @@
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\QueryContextStatementExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
@@ -505,7 +507,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeTable.cs" />

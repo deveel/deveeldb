@@ -33,9 +33,9 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = statements.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SqlSelectStatement>(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
 
-			var selectStatement = (SqlSelectStatement) statement;
+			var selectStatement = (SelectStatement) statement;
 
 		}
 	}
