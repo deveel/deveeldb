@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Parser;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {

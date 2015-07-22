@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 
