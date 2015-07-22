@@ -1,19 +1,4 @@
-// 
-//  Copyright 2010-2014 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -169,17 +154,17 @@ namespace Deveel.Data.Client {
 		private const string DefaultPath = ".";
 		private const bool DefaultCreate = false;
 		private const bool DefaultBootOrCreate = false;
-		private const ParameterStyle DefaultParameterStyle = ParameterStyle.Marker;
+		private const QueryParameterStyle DefaultParameterStyle = QueryParameterStyle.Marker;
 		private const bool DefaultVerboseColumnName = false;
 		private const bool DefaultPersistSecurityInfo = false;
 		private const int DefaultRowCacheSize = 1024;
-		private const int DefaultMaxCacheSize = 1024*40;
+		private const int DefaultMaxCacheSize = 1024 * 40;
 		private const int DefaultQueryTimeout = Int32.MaxValue;
 		private const bool DefaultIgnoreIdentifiersCase = true;
 		private const bool DefaultStrictGetValue = false;
 		private const int DefaultMaxFetchSize = 512;
 		private const int DefaultFetchSize = 32;
-		private const bool DefaultAutoCommit = false;
+		private const bool DefaultAutoCommit = true;
 
 		private static readonly Dictionary<string, object> defaults;
 		private static readonly Dictionary<string, string> keymaps;
@@ -192,7 +177,7 @@ namespace Deveel.Data.Client {
 		private string schema;
 		private string path;
 		private bool verboseColumnNames;
-		private ParameterStyle paramStyle;
+		private QueryParameterStyle paramStyle;
 		private bool persistSecurityInfo;
 		private int rowCacheSize;
 		private int maxCacheSize;
@@ -384,7 +369,7 @@ namespace Deveel.Data.Client {
 
 		[DisplayName("Parameter Style")]
 		[RefreshProperties(RefreshProperties.All)]
-		public ParameterStyle ParameterStyle {
+		public QueryParameterStyle ParameterStyle {
 			get { return paramStyle; }
 			set {
 				base[ParameterStyleKey] = value;
@@ -610,10 +595,10 @@ namespace Deveel.Data.Client {
 						paramStyle = DefaultParameterStyle;
 						base.Remove(key);
 					} else if (value is string) {
-						ParameterStyle = (ParameterStyle) Enum.Parse(typeof(ParameterStyle), (string)value, true);
+						ParameterStyle = (QueryParameterStyle)Enum.Parse(typeof(QueryParameterStyle), (string)value, true);
 					} else if (value is int ||
-					           value is ParameterStyle) {
-						ParameterStyle = (ParameterStyle) value;
+							   value is QueryParameterStyle) {
+						ParameterStyle = (QueryParameterStyle)value;
 					}
 					break;
 				case RowCacheSizeKey:
@@ -674,7 +659,7 @@ namespace Deveel.Data.Client {
 					break;
 				case "DataSource":
 					if (value == null) {
-						
+
 					} else {
 						string s = value.ToString();
 						int index = s.IndexOf(':');

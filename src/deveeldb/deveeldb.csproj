@@ -106,6 +106,19 @@
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
     <Compile Include="Deveel.Data.Caching\TableCellCache.cs" />
+    <Compile Include="Deveel.Data.Client\ConnectionClient.cs" />
+    <Compile Include="Deveel.Data.Client\DatabaseExtensions.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
@@ -127,6 +140,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
@@ -229,6 +243,49 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Index\SystemContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Protocol\AcknowledgeResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\AuthenticateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\AuthenticateResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\BeginRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\BeginResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\CloseRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\CommitRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectorState.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ConnectResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\DisposeResultRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\EncryptionAlgorithms.cs" />
+    <Compile Include="Deveel.Data.Protocol\EncryptionData.cs" />
+    <Compile Include="Deveel.Data.Protocol\IClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessage.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\IMessageProcessor.cs" />
+    <Compile Include="Deveel.Data.Protocol\IQueryResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\ILargeObjectChannel.cs" />
+    <Compile Include="Deveel.Data.Protocol\IServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\IServerMessageEnvelope.cs" />
+    <Compile Include="Deveel.Data.Protocol\ITriggerChannel.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectCreateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectCreateResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\LargeObjectDisposeRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\PingRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ProtocolConstants.cs" />
+    <Compile Include="Deveel.Data.Protocol\ProtocolException.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryExecuteRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryExecuteResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResult.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultColumn.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPart.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPartRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultPartResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\RollbackRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerError.cs" />
+    <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
+    <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
     <Compile Include="Deveel.Data.Routines\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
@@ -743,12 +800,6 @@
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Util\StreamTokenizer.cs" />
-    <Compile Include="Deveel.Data.Xml\IXmlAttribute.cs" />
-    <Compile Include="Deveel.Data.Xml\IXmlElement.cs" />
-    <Compile Include="Deveel.Data.Xml\IXmlNode.cs" />
-    <Compile Include="Deveel.Data.Xml\IXmlText.cs" />
-    <Compile Include="Deveel.Data.Xml\SqlXmlDocument.cs" />
-    <Compile Include="Deveel.Data.Xml\XmlNodeType.cs" />
     <Compile Include="Deveel.Data\DataObject.cs">
       <SubType>Code</SubType>
     </Compile>

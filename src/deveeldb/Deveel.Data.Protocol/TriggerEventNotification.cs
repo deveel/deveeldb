@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
 	[Serializable]

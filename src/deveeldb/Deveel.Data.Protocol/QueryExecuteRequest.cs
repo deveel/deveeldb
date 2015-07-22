@@ -14,15 +14,18 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class QueryExecuteRequest : IMessage {
-		public QueryExecuteRequest(SqlQuery query) {
+		public QueryExecuteRequest(long commitId, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
+			CommitId = commitId;
 			Query = query;
 		}
 
@@ -31,5 +34,7 @@ namespace Deveel.Data.Protocol {
 		public int Timeout { get; set; }
 
 		public bool Procedure { get; set; }
+
+		public long CommitId { get; private set; }
 	}
 }

@@ -16,7 +16,7 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	public interface IStreamableObjectChannel : IDisposable {
+	public interface ILargeObjectChannel : IDisposable {
 		void PushData(long offset, byte[] buffer, int length);
 
 		byte[] ReadData(long offset, int length);

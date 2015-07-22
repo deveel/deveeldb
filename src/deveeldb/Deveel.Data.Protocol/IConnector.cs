@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
 	public interface IConnector : IDisposable {
@@ -29,7 +30,7 @@ namespace Deveel.Data.Protocol {
 
 		IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		IStreamableObjectChannel CreateObjectChannel(long objectId);
+		ILargeObjectChannel CreateObjectChannel(long objectId);
 
 		ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType);
 	}

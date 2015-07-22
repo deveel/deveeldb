@@ -1,96 +1,83 @@
-// 
-//  Copyright 2010-2014 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
 using System.Runtime.Remoting;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Control;
 using Deveel.Data.Protocol;
-using Deveel.Data.Routines;
+using Deveel.Data.Sql;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Client {
-	class ConnectionClient : IDisposable {
-		private DeveelDbConnectionStringBuilder settings;
+	internal class ConnectionClient : IDisposable {
+		public DeveelDbConnectionStringBuilder Settings { get; private set; }
 
 		private ConnectionEndPoint remoteEndPoint;
 
-		private IClientConnector connector;
-		private IMessageProcessor processor;
-		private IControlDatabase controlDatabase;
-		private IControlSystem controlSystem;
+		public IClientConnector Connector { get; private set; }
+
+		private bool OwnsConnector { get; set; }
+
+		public IMessageProcessor Processor { get; private set; }
 
 		private IDictionary<string, object> serverMetadata;
 
 		public ConnectionClient(DeveelDbConnectionStringBuilder settings) {
-			this.settings = settings;
+			Settings = settings;
+		}
 
-			serverMetadata = null;
+		public ConnectionClient(IClientConnector connector) {
+			if (connector == null)
+				throw new ArgumentNullException("connector");
+
+			Connector = connector;
+			Processor = connector.CreateProcessor();
+			OwnsConnector = false;
+		}
+
+		~ConnectionClient() {
+			Dispose(false);
 		}
 
 		public bool IsClosed { get; private set; }
 
 		public string ServerVersion { get; private set; }
 
-		public void UpdateSettings(DeveelDbConnectionStringBuilder connectionString) {
-			settings = connectionString;
-		}
-
 		private IClientConnector CreateNetworkConnector() {
-			var host = settings.Host;
-			
-			// TODO: discover the protocol from the host ...
-
-			return new TcpClientConnector();
+			throw new NotSupportedException();
 		}
 
 		private IClientConnector CreateConnector() {
-			if (connector != null)
-				return connector;
+			if (Connector != null)
+				return Connector;
 
 			IDbConfig dbConfig = null;
 
-			if (IsInMemory(settings.DataSource) &&
-				controlDatabase == null) {
+			/*
+			TODO:
+			if (IsInMemory(Settings.DataSource) && controlDatabase == null) {
 				if (controlSystem == null)
 					controlSystem = CreateEmbeddedControlSystem();
 
 				// TODO: handle the case the connection string does not specify a database name
-				var databaseName = settings.Database;
+				var databaseName = Settings.Database;
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
 				dbConfig = new DbConfig(controlSystem.Config);
 				dbConfig.DatabaseName(databaseName);
 
-				var defaultSchema = settings.Schema;
+				var defaultSchema = Settings.Schema;
 				if (!String.IsNullOrEmpty(defaultSchema))
 					dbConfig.DefaultSchema(defaultSchema);
 
 				controlDatabase = controlSystem.ControlDatabase(databaseName);
-			} else if (IsInFileSystem(settings) &&
-			          controlDatabase == null) {
+			} else if (IsInFileSystem(Settings) && controlDatabase == null) {
 				if (controlSystem == null)
 					controlSystem = CreateEmbeddedControlSystem();
 
 				// TODO: handle the case the connection string does not specify a database name
-				var databaseName = settings.Database;
+				var databaseName = Settings.Database;
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
@@ -119,89 +106,14 @@ namespace Deveel.Data.Client {
 				return CreateLocalDatabaseConnector(dbConfig);
 
 			throw new InvalidOperationException("Unable to create a connector to the database");
-		}
+			*/
 
-		private IClientConnector CreateLocalDatabaseConnector(IDbConfig dbConfig) {
-			if (controlDatabase.CheckExists(dbConfig)) {
-				if (controlDatabase.IsBooted) {
-					return CreateClientServerConnector(controlDatabase.Connect(dbConfig));
-				}
-				if (settings.BootOrCreate) {
-					return CreateClientServerConnector(controlDatabase.Boot(dbConfig));
-				}
-			} else if (settings.BootOrCreate) {
-				return CreateClientServerConnector(controlDatabase.Create(dbConfig, settings.UserName, settings.Password));
-			}
-
-			throw new InvalidOperationException();
-		}
-
-		private IClientConnector CreateClientServerConnector(IServerConnector serverConnector) {
-			return new ConnectionServerClientConnector(serverConnector);
-		}
-
-		#region ConnectionServerClientConnector
-
-		class ConnectionServerClientConnector : ServerClientConnector {
-			public ConnectionServerClientConnector(IServerConnector connector) 
-				: base(connector) {
-			}
-		}
-
-		#endregion
-
-		private static bool IsInMemory(string dataSource) {
-			return String.Equals(dataSource, "HEAP", StringComparison.OrdinalIgnoreCase) ||
-			       String.Equals(dataSource, "MEMORY", StringComparison.OrdinalIgnoreCase);
-		}
-
-		private static bool IsInFileSystem(DeveelDbConnectionStringBuilder settings) {
-			if (Path.IsPathRooted(settings.DataSource))
-				return true;
-
-			if (String.Equals(settings.Host, "local", StringComparison.OrdinalIgnoreCase) &&
-			    !String.IsNullOrEmpty(settings.Path))
-				return true;
-
-			// TODO: handle more cases to identify is we're dealing with a file-based local database
-
-			return false;
-		}
-
-		private IControlSystem CreateEmbeddedControlSystem() {
-			var dbConfig = DbConfig.Default;
-
-			if (IsInFileSystem(settings)) {
-				var basePath = settings.Path;
-				if (String.IsNullOrEmpty(basePath))
-					basePath = settings.DataSource;
-				if (String.IsNullOrEmpty(basePath))
-					basePath = Environment.CurrentDirectory;
-
-				dbConfig.BasePath(basePath);
-				dbConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
-			} else if (IsInMemory(settings.DataSource)) {
-				dbConfig.StorageSystem(ConfigDefaultValues.HeapStorageSystem);
-			}
-
-			var controller = DbController.Create(dbConfig);
-			return new LocalSystem(controller);
-		}
-
-		private ConnectionEndPoint MakeRemoteEndPoint() {
-			var properties = new Dictionary<string, object>();
-			var en = ((IDictionary) settings).GetEnumerator();
-			while (en.MoveNext()) {
-				var current = en.Entry;
-				properties.Add((string)current.Key, current.Value);
-			}
-
-			return connector.MakeEndPoint(properties);
+			throw new NotImplementedException();
 		}
 
 		private IMessage SendMessage(IMessage message) {
-			var envelope = connector.CreateEnvelope(serverMetadata, message);
-			var response = processor.ProcessMessage(envelope);
+			var envelope = Connector.CreateEnvelope(serverMetadata, message);
+			var response = Processor.ProcessMessage(envelope);
 			if (response == null)
 				throw new InvalidOperationException("The processor returned no response.");
 
@@ -212,30 +124,31 @@ namespace Deveel.Data.Client {
 			return response.Message;
 		}
 
-		public void SetConnector(IClientConnector c) {
-			connector = c;
-			processor = connector.CreateProcessor();
-		}
+		private ConnectionEndPoint MakeRemoteEndPoint() {
+			var properties = new Dictionary<string, object>();
+			var en = ((IDictionary)Settings).GetEnumerator();
+			while (en.MoveNext()) {
+				var current = en.Entry;
+				properties.Add((string)current.Key, current.Value);
+			}
 
-		public void SetControlSystem(IControlSystem system) {
-			controlSystem = system;
-		}
-
-		public void SetControlDatabase(IControlDatabase database) {
-			controlDatabase = database;
+			return Connector.MakeEndPoint(properties);
 		}
 
 		public void Connect() {
-			if (connector == null) {
-				connector = CreateConnector();
-				processor = connector.CreateProcessor();
+			if (Connector == null) {
+				Connector = CreateConnector();
+				Processor = Connector.CreateProcessor();
 			}
 
 			remoteEndPoint = MakeRemoteEndPoint();
 
-			var request = new ConnectRequest(connector.LocalEndPoint, remoteEndPoint) {
-				DatabaseName = settings.Database, 
-				Timeout = settings.QueryTimeout
+			var request = new ConnectRequest(Connector.LocalEndPoint, remoteEndPoint) {
+				DatabaseName = Settings.Database,
+				Timeout = Settings.QueryTimeout,
+				IgnoreIdentifiersCase = Settings.IgnoreIdentifiersCase,
+				ParameterStyle = Settings.ParameterStyle,
+				AutoCommit = Settings.AutoCommit
 			};
 
 			var response = SendMessage(request) as ConnectResponse;
@@ -246,7 +159,7 @@ namespace Deveel.Data.Client {
 				throw new ServerException("Was not able to open the connection on the server.");
 
 			if (response.IsEncryted)
-				connector.SetEncrypton(response.EncryptionData);
+				Connector.SetEncrypton(response.EncryptionData);
 
 			IsClosed = false;
 			ServerVersion = response.Version;
@@ -268,7 +181,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public bool Authenticate() {
-			var response = SendMessage(new AuthenticateRequest(settings.Schema, settings.UserName, settings.Password))
+			var response = SendMessage(new AuthenticateRequest(Settings.Schema, Settings.UserName, Settings.Password))
 				as AuthenticateResponse;
 
 			if (response == null)
@@ -277,8 +190,8 @@ namespace Deveel.Data.Client {
 			return response.Authenticated;
 		}
 
-		public IQueryResponse[] ExecuteQuery(SqlQuery query) {
-			var response = SendMessage(new QueryExecuteRequest(query)) 
+		public IQueryResponse[] ExecuteQuery(int commitId, SqlQuery query) {
+			var response = SendMessage(new QueryExecuteRequest(commitId, query))
 				as QueryExecuteResponse;
 
 			if (response == null)
@@ -308,7 +221,7 @@ namespace Deveel.Data.Client {
 				throw new ServerException();
 		}
 
-		public int BeginTransaction(IsolationLevel isolationLevel) {
+		public long BeginTransaction(TransactionIsolation isolationLevel) {
 			var response = SendMessage(new BeginRequest(isolationLevel))
 				as BeginResponse;
 
@@ -338,20 +251,7 @@ namespace Deveel.Data.Client {
 
 			if (!response.State)
 				throw new ServerException("Unable to rollback the transaction on the server.");
-			
-		}
 
-		public long CreateLrgeObject(ReferenceType type, long length) {
-			var response = SendMessage(new LargeObjectCreateRequest(type, length))
-				as LargeObjectCreateResponse;
-
-			if (response == null)
-				throw new InvalidOperationException();
-
-			if (response.ObjectLength != length || response.ReferenceType != type)
-				throw new InvalidOperationException();
-
-			return response.ObjectId;
 		}
 
 		public void DisposeLargeObject(long objId) {
@@ -363,18 +263,21 @@ namespace Deveel.Data.Client {
 
 			if (!response.State)
 				throw new InvalidOperationException("Unable to dispose the large object on the server.");
-		} 
-
-		public IStreamableObjectChannel CreateLargeObjectChannel(long objId) {
-			return connector.CreateObjectChannel(objId);
-		}
-
-		public ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
-			return connector.CreateTriggerChannel(triggerName, objectName, eventType);
 		}
 
 		public void Dispose() {
-			
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (OwnsConnector && Connector != null) {
+					Connector.Dispose();
+				}
+			}
+
+			Connector = null;
 		}
 	}
 }

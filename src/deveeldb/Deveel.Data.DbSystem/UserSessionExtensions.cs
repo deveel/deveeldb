@@ -45,6 +45,18 @@ namespace Deveel.Data.DbSystem {
 			return session.Transaction.IgnoreIdentifiersCase();
 		}
 
+		public static void IgnoreIdentifiersCase(this IUserSession session, bool value) {
+			session.Transaction.IgnoreIdentifiersCase(value);
+		}
+
+		public static QueryParameterStyle ParameterStyle(this IUserSession session) {
+			return session.Transaction.ParameterStyle();
+		}
+
+		public static void ParameterStyle(this IUserSession session, QueryParameterStyle value) {
+			session.Transaction.ParameterStyle(value);
+		}
+
 		#endregion
 
 		#region Objects

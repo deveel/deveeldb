@@ -40,7 +40,7 @@ namespace Deveel.Data.Protocol {
 
 		public bool IgnoreIdentifiersCase { get; set; }
 
-		public ParameterStyle ParameterStyle { get; set; }
+		public QueryParameterStyle ParameterStyle { get; set; }
 
 		public int Timeout { get; set; }
 	}

@@ -15,17 +15,16 @@
 
 using System;
 
+using Deveel.Data.Store;
+
 namespace Deveel.Data.Protocol {
 	public sealed class LargeObjectCreateResponse : IMessage {
-		public LargeObjectCreateResponse(ReferenceType referenceType, long objectLength, long objectId) {
+		public LargeObjectCreateResponse(long objectLength, ObjectId objectId) {
 			ObjectId = objectId;
 			ObjectLength = objectLength;
-			ReferenceType = referenceType;
 		}
 
-		public ReferenceType ReferenceType { get; private set; }
-
-		public long ObjectId { get; private set; }
+		public ObjectId ObjectId { get; private set; }
 
 		public long ObjectLength { get; private set; }
 	}

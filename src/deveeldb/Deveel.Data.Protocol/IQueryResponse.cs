@@ -57,7 +57,7 @@ namespace Deveel.Data.Protocol {
 		///</summary>
 		///<param name="column"></param>
 		///<returns></returns>
-		QueryResultColumn GetColumnDescription(int column);
+		QueryResultColumn GetColumn(int column);
 
 	    ///<summary>
 	    /// Returns any warnings about the command or <b>null</b> if there were no 

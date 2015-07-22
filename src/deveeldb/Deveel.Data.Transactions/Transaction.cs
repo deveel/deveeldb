@@ -46,6 +46,7 @@ namespace Deveel.Data.Transactions {
 		private readonly bool dbReadOnly;
 		private bool ignoreCase;
 		private bool autoCommit;
+		private string parameterStyle;
 
 		internal Transaction(Database database, long commitId, TransactionIsolation isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
@@ -543,6 +544,8 @@ namespace Deveel.Data.Transactions {
 				ignoreCase = variable.Value;
 			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
 				autoCommit = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.ParameterStyle, StringComparison.OrdinalIgnoreCase)) {
+				parameterStyle = variable.Value;
 			}
 		}
 
@@ -555,6 +558,9 @@ namespace Deveel.Data.Transactions {
 				ignoreCase = Database.DatabaseContext.IgnoreIdentifiersCase();
 			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
 				autoCommit = Database.DatabaseContext.AutoCommit();
+			} else if (variable.Name.Equals(TransactionSettingKeys.ParameterStyle, StringComparison.OrdinalIgnoreCase)) {
+				// TODO: Get it from the configuration...
+				parameterStyle = null;
 			}
 		}
 
@@ -579,6 +585,8 @@ namespace Deveel.Data.Transactions {
 				return MakeBooleanVariable(TransactionSettingKeys.IgnoreIdentifiersCase, ignoreCase);
 			if (name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase))
 				return MakeBooleanVariable(TransactionSettingKeys.AutoCommit, autoCommit);
+			if (name.Equals(TransactionSettingKeys.ParameterStyle, StringComparison.OrdinalIgnoreCase))
+				return MakeStringVariable(TransactionSettingKeys.ParameterStyle, parameterStyle);
 
 			return null;
 		}

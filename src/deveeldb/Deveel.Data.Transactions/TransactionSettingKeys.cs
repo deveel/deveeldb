@@ -18,6 +18,7 @@ using System;
 
 namespace Deveel.Data.Transactions {
 	public static class TransactionSettingKeys {
+		public const string ParameterStyle = "parameter style";
 		public const string IsolationLevel = "isolation level";
 		public const string IgnoreIdentifiersCase = "ignore identifiers case";
 		public const string ReadOnly = "read only";

@@ -49,6 +49,34 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.IgnoreIdentifiersCase();
 		}
 
+		public static void IgnoreIdentifiersCase(this IQueryContext context, bool value) {
+			context.Session.IgnoreIdentifiersCase(value);
+		}
+
+		public static void AutoCommit(this IQueryContext context, bool value) {
+			context.Session.AutoCommit(value);
+		}
+
+		public static bool AutoCommit(this IQueryContext context) {
+			return context.Session.AutoCommit();
+		}
+
+		public static string CurrentSchema(this IQueryContext context) {
+			return context.Session.CurrentSchema;
+		}
+
+		public static void CurrentSchema(this IQueryContext context, string value) {
+			context.Session.CurrentSchema(value);
+		}
+
+		public static void ParameterStyle(this IQueryContext context, QueryParameterStyle value) {
+			context.Session.ParameterStyle(value);
+		}
+
+		public static QueryParameterStyle ParameterStyle(this IQueryContext context) {
+			return context.Session.ParameterStyle();
+		}
+
 		public static IDatabaseContext DatabaseContext(this IQueryContext context) {
 			return context.Session.Database.DatabaseContext;
 		}
@@ -99,7 +127,11 @@ namespace Deveel.Data.DbSystem {
 			if (!context.UserCanCreateSchema())
 				throw new InvalidOperationException();		// TODO: throw a specialized exception
 
-			context.Session.CreateObject(new SchemaInfo(name, type));
+			context.CreateObject(new SchemaInfo(name, type));
+		}
+
+		public static bool SchemaExists(this IQueryContext context, string name) {
+			return context.ObjectExists(DbObjectType.Schema, new ObjectName(name));
 		}
 
 		public static ObjectName ResolveSchemaName(this IQueryContext context, string name) {

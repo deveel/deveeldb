@@ -18,10 +18,10 @@ using System;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class BeginResponse : IMessage {
-		public BeginResponse(int id) {
+		public BeginResponse(long id) {
 			Id = id;
 		}
 
-		public int Id { get; private set; }
+		public long Id { get; private set; }
 	}
 }

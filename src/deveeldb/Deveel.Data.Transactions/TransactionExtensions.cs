@@ -483,6 +483,30 @@ namespace Deveel.Data.Transactions {
 			return transaction.GetBooleanVariable(TransactionSettingKeys.ErrorOnDirtySelect);
 		}
 
+		public static QueryParameterStyle ParameterStyle(this ITransaction transaction) {
+			var styleString = transaction.GetStringVariable(TransactionSettingKeys.ParameterStyle);
+			if (String.IsNullOrEmpty(styleString))
+				return QueryParameterStyle.Default;
+
+			return (QueryParameterStyle) Enum.Parse(typeof (QueryParameterStyle), styleString, true);
+		}
+
+		public static void ParameterStyle(this ITransaction transaction, QueryParameterStyle value) {
+			if (value == QueryParameterStyle.Default)
+				return;
+
+			var styleString = value.ToString();
+			transaction.SetStringVariable(TransactionSettingKeys.ParameterStyle, styleString);
+		}
+
+		public static void ParameterStyle(this ITransaction transaction, string value) {
+			if (String.IsNullOrEmpty(value))
+				throw new ArgumentNullException("value");
+
+			var style = (QueryParameterStyle) Enum.Parse(typeof (QueryParameterStyle), value, true);
+			transaction.ParameterStyle(style);
+		}
+
 		#endregion
 
 		#region Locks
