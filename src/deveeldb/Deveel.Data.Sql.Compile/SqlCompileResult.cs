@@ -7,7 +7,7 @@ namespace Deveel.Data.Sql.Compile {
     public sealed class SqlCompileResult {
         public SqlCompileResult(SqlCompileContext compileContext) {
             if (compileContext == null)
-                throw new ArgumentNullException(nameof(compileContext));
+                throw new ArgumentNullException("compileContext");
 
             CompileContext = compileContext;
 			Messages = new List<SqlCompileMessage>();

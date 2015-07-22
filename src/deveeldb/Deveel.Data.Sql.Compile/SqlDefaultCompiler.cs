@@ -6,7 +6,7 @@ namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {
 		public SqlCompileResult Compile(SqlCompileContext context) {
 			if (context == null)
-				throw new ArgumentNullException(nameof(context));
+				throw new ArgumentNullException("context");
 
 			var compiler = SqlParsers.Default;
 			var compileResult = new SqlCompileResult(context);

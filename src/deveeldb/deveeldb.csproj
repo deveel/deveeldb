@@ -249,6 +249,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\Token.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
@@ -578,7 +579,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlKeyNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlNodeExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\Token.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluateException.cs" />

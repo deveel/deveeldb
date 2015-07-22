@@ -8,7 +8,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public SqlCompileMessage(CompileMessageLevel level, string text, SourceLocation location) {
 			if (String.IsNullOrEmpty(text))
-				throw new ArgumentNullException(nameof(text));
+				throw new ArgumentNullException("text");
 
 			Level = level;
 			Text = text;
