@@ -2,8 +2,23 @@
 using System.Collections;
 using System.Data.Common;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameterCollection : DbParameterCollection {
+		internal DeveelDbParameterCollection(DeveelDbCommand command) {
+			if (command == null)
+				throw new ArgumentNullException("command");
+
+			Command = command;
+		}
+
+		private DeveelDbCommand Command { get; set; }
+
+		private QueryParameterStyle ParameterStyle {
+			get { return Command.Connection.Settings.ParameterStyle; }
+		}
+
 		public override int Add(object value) {
 			throw new NotImplementedException();
 		}

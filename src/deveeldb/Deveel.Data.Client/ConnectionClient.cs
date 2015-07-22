@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Runtime.Remoting;
 
 using Deveel.Data.Configuration;
@@ -221,14 +222,32 @@ namespace Deveel.Data.Client {
 				throw new ServerException();
 		}
 
-		public long BeginTransaction(TransactionIsolation isolationLevel) {
+		public int BeginTransaction(IsolationLevel isolationLevel) {
+			var isolation = MapIsolationLevel(isolationLevel);
+			return BeginTransaction(isolation);
+		}
+
+		private TransactionIsolation MapIsolationLevel(IsolationLevel isolationLevel) {
+			if (isolationLevel == IsolationLevel.Serializable)
+				return TransactionIsolation.Serializable;
+			if (isolationLevel == IsolationLevel.Snapshot)
+				return TransactionIsolation.Snapshot;
+			if (isolationLevel == IsolationLevel.ReadCommitted)
+				return TransactionIsolation.ReadCommitted;
+			if (isolationLevel == IsolationLevel.ReadUncommitted)
+				return TransactionIsolation.ReadUncommitted;
+
+			throw new NotSupportedException(String.Format("Isolation Level '{0}' not supported by DeveelDB", isolationLevel));
+		}
+
+		public int BeginTransaction(TransactionIsolation isolationLevel) {
 			var response = SendMessage(new BeginRequest(isolationLevel))
 				as BeginResponse;
 
 			if (response == null)
 				throw new InvalidOperationException();
 
-			return response.Id;
+			return response.CommitId;
 		}
 
 		public void CommitTransaction(int transactionId) {

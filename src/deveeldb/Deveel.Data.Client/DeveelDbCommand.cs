@@ -2,10 +2,39 @@
 using System.Data;
 using System.Data.Common;
 
+using Deveel.Data.Protocol;
+
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommand : DbCommand {
+		private DeveelDbConnection connection;
+		private bool prepared;
+
+		private DeveelDbTransaction transaction;
+		private DeveelDbParameterCollection parameters;
+
+		private IQueryResponse[] results;
+
+		public DeveelDbCommand() 
+			: this(null) {
+		}
+
+		public DeveelDbCommand(DeveelDbConnection connection) {
+			this.connection = connection;
+			parameters = new DeveelDbParameterCollection(this);
+		}
+
 		public override void Prepare() {
-			throw new NotImplementedException();
+			if (!prepared) {
+				try {
+					PrepareCommand();
+				} finally {
+					prepared = true;
+				}
+			}
+		}
+
+		private void PrepareCommand() {
+			
 		}
 
 		public override string CommandText { get; set; }
@@ -16,18 +45,54 @@ namespace Deveel.Data.Client {
 
 		public override UpdateRowSource UpdatedRowSource { get; set; }
 
-		protected override DbConnection DbConnection { get; set; }
-
-		protected override DbParameterCollection DbParameterCollection {
-			get { throw new NotImplementedException(); }
+		protected override DbConnection DbConnection {
+			get { return Connection; }
+			set { Connection = (DeveelDbConnection) value; }
 		}
 
-		protected override DbTransaction DbTransaction { get; set; }
+		public new DeveelDbConnection Connection {
+			get { return connection; }
+			set { connection = value; }
+		}
+
+		protected override DbParameterCollection DbParameterCollection {
+			get { return Parameters; }
+		}
+
+		public new DeveelDbParameterCollection Parameters {
+			get { return parameters; }
+		}
+
+		protected override DbTransaction DbTransaction {
+			get { return Transaction; }
+			set { Transaction = (DeveelDbTransaction) value; }
+		}
+
+		public new DeveelDbTransaction Transaction {
+			get { return transaction; }
+			set {
+				if (value == null && transaction != null)
+					transaction = null;
+				else if (transaction != null &&
+					(value != null && value.CommitId!= transaction.CommitId))
+					throw new ArgumentException("The command is already bound to another transaction.");
+
+				transaction = value;
+			}
+		}
 
 		public override bool DesignTimeVisible { get; set; }
 
 		public override void Cancel() {
-			throw new NotImplementedException();
+			try {
+				if (results != null) {
+					foreach (var result in results) {
+						connection.DisposeResult(result.ResultId);
+					}
+				}
+			} finally {
+				connection.EndState();
+			}
 		}
 
 		protected override DbParameter CreateDbParameter() {
@@ -44,6 +109,10 @@ namespace Deveel.Data.Client {
 
 		public override object ExecuteScalar() {
 			throw new NotImplementedException();
+		}
+
+		protected override void Dispose(bool disposing) {
+			base.Dispose(disposing);
 		}
 	}
 }

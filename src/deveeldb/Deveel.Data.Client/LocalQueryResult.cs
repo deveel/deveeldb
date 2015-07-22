@@ -18,11 +18,10 @@ using System.Collections.Generic;
 using System.IO;
 
 using Deveel.Data.Client;
-using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Protocol {
-	internal class LocalQueryResult : IDisposable {
+	class LocalQueryResult : IDisposable {
 		private DeveelDbConnection connection;
 
 		private static int uniqueIdKey = 1;
@@ -135,7 +134,7 @@ namespace Deveel.Data.Protocol {
 		/// </remarks>
 		private void EnsureIndexLoaded() {
 			if (realIndex == -1)
-				throw new DatabaseException("Row index out of bounds.");
+				throw new DeveelDbException("Row index out of bounds.");
 
 			// Offset into our block
 			int rowOffset = realIndex - blockTopRow;
@@ -210,7 +209,7 @@ namespace Deveel.Data.Protocol {
 					}
 				}
 
-				throw new DatabaseException("Couldn't find column with name: " + name);
+				throw new DeveelDbException("Couldn't find column with name: " + name);
 			}
 			
 			return index;
@@ -223,6 +222,10 @@ namespace Deveel.Data.Protocol {
 				value == DBNull.Value)
 				return DBNull.Value;
 
+			throw new NotImplementedException();
+
+			/*
+			TODO:
 			var destType = GetColumn(ordinal).RuntimeType;
 
 			if (value is BigNumber) {
@@ -254,6 +257,7 @@ namespace Deveel.Data.Protocol {
 			}
 
 			return value;
+			*/
 		}
 
 		public object GetRawColumn(int column) {
@@ -265,40 +269,19 @@ namespace Deveel.Data.Protocol {
 	        // Ensure the current indexed row is fetched from the server.
 			EnsureIndexLoaded();
 
-			// Return the raw cell object.
-			object ob = resultBlock.GetRow(realIndexOffset)[column];
-
-			// Null check of the returned object,
-			if (ob != null) {
-				// If this is an object then deserialize it,
-				// ISSUE: Cache deserialized objects?
-				if (GetColumn(column).SqlType == SqlType.Object) {
-					ob = ObjectTranslator.Deserialize((ByteLongObject)ob);
-				}
-				return ob;
-			}
-			return null;
+			var row = resultBlock.GetRow(realIndexOffset);
+			return row.Values[column];
 		}
 
-		/// <summary>
-		/// Converts the current result into an integer, in case of a
-		/// scalar result.
-		/// </summary>
-		/// <remarks>
-		/// This is only valid if the result set has a single column and a single 
-		/// row of type <see cref="BigNumber"/>.
-		/// </remarks>
-		/// <returns>
-		/// Returns the integer value of the result.
-		/// </returns>
 		public int AffectedRows {
 			get {
 				if (!IsUpdate)
-					throw new DatabaseException("Unable to format command result as an update value.");
+					throw new DeveelDbException("Unable to format command result as an update value.");
 
-				object ob = resultBlock.GetRow(0)[0];
-				if (ob is BigNumber)
-					return ((BigNumber) ob).ToInt32();
+				var row = resultBlock.GetRow(0);
+				ISqlObject ob = row.Values[0];
+				if (ob is SqlNumber)
+					return ((SqlNumber) ob).ToInt32();
 
 				return 0;
 			}
@@ -336,7 +319,7 @@ namespace Deveel.Data.Protocol {
 				return;
 
 			if (rowIndex + rowCount < 0)
-				throw new DatabaseException("ResultSet row index is before the start of the set.");
+				throw new DeveelDbException("Result row index is before the start of the set.");
 
 			if (rowIndex < 0) {
 				rowIndex = 0;
@@ -344,12 +327,12 @@ namespace Deveel.Data.Protocol {
 			}
 
 			if (rowIndex >= RowCount)
-				throw new DatabaseException("ResultSet row index is after the end of the set.");
+				throw new DeveelDbException("Result row index is after the end of the set.");
 			if (rowIndex + rowCount > RowCount)
 				rowCount = RowCount - rowIndex;
 
 			if (ResultId == -1)
-				throw new DatabaseException("result_id == -1.  No result to get from.");
+				throw new DeveelDbException("Result ID is invalid.");
 
 			try {
 
@@ -359,10 +342,13 @@ namespace Deveel.Data.Protocol {
 
 				// Set the row that's at the top
 				blockTopRow = rowIndex;
+
 				// Set the number of rows in the block.
 				blockRowCount = rowCount;
-			} catch (IOException e) {
-				throw new DatabaseException("IO Error: " + e.Message);
+			} catch(DeveelDbException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DeveelDbException("Error while downloading the result data.", ex);
 			}
 		}
 
@@ -420,16 +406,16 @@ namespace Deveel.Data.Protocol {
 			if (disposing) {
 				try {
 					Close();
-				} catch (DatabaseException) {
+				} catch (DeveelDbException) {
 					// Ignore
 					// We ignore exceptions because handling cases where the server
 					// connection has broken for many ResultSets would be annoying.
 				}
-
-				connection = null;
-				columns = null;
-				resultBlock = null;
 			}
+
+			connection = null;
+			columns = null;
+			resultBlock = null;
 		}
 	}
 }

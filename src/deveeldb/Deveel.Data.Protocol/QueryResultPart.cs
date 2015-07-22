@@ -19,20 +19,20 @@ using System.Collections.Generic;
 namespace Deveel.Data.Protocol {
 	[Serializable]
 	public sealed class QueryResultPart {
-		private readonly List<object[]> rows;
+		private readonly List<QueryResultRow> rows;
 
 		public QueryResultPart(int columnCount) {
 			ColumnCount = columnCount;
-			rows = new List<object[]>();
+			rows = new List<QueryResultRow>();
 		}
 
 		public int ColumnCount { get; private set; }
 
-		public void AddRow(object[] row) {
+		public void AddRow(QueryResultRow row) {
 			rows.Add(row);
 		}
 
-		public object[] GetRow(int index) {
+		public QueryResultRow GetRow(int index) {
 			return rows[index];
 		}
 	}

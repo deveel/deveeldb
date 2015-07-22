@@ -116,9 +116,13 @@
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbServerException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
+    <Compile Include="Deveel.Data.Client\LocalQueryResult.cs" />
+    <Compile Include="Deveel.Data.Client\LocalRowCache.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
@@ -281,6 +285,7 @@
     <Compile Include="Deveel.Data.Protocol\QueryResultPart.cs" />
     <Compile Include="Deveel.Data.Protocol\QueryResultPartRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\QueryResultPartResponse.cs" />
+    <Compile Include="Deveel.Data.Protocol\QueryResultRow.cs" />
     <Compile Include="Deveel.Data.Protocol\RollbackRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerError.cs" />

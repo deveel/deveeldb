@@ -17,8 +17,6 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -33,7 +31,7 @@ namespace Deveel.Data.Transactions {
 		/// Gets a number uniquely identifying a transaction within a database context.
 		/// </summary>
 		/// <seealso cref="TransactionCollection"/>
-		long CommitId { get; }
+		int CommitId { get; }
 
 		/// <summary>
 		/// Gets the isolation level of the transaction.

@@ -615,7 +615,7 @@ namespace Deveel.Data.DbSystem {
 
 			// Don't let a commit happen while we are looking at this.
 			lock (commitLock) {
-				long thisCommitId = CurrentCommitId;
+				int thisCommitId = CurrentCommitId;
 				var committedTableList = StateStore.GetVisibleList();
 				thisCommittedTables.AddRange(committedTableList.Select(resource => GetTableSource(resource.TableId)));
 

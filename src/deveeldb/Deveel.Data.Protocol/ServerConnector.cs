@@ -366,7 +366,7 @@ namespace Deveel.Data.Protocol {
 			return resultId;
 		}
 
-		protected long BeginTransaction() {
+		protected int BeginTransaction() {
 			AssertAuthenticated();
 
 			var transaction = Database.CreateTransaction(TransactionIsolation.Serializable);
@@ -447,11 +447,13 @@ namespace Deveel.Data.Protocol {
 				int colCount = table.ColumnCount;
 				var block = new QueryResultPart(colCount);
 				for (int r = startRow; r < rowEnd; ++r) {
-					var row = new object[colCount];
+					var row = new ISqlObject[colCount];
+					var sizes = new int[colCount];
+
 					for (int c = 0; c < colCount; ++c) {
 						var value = table.GetValue(r, c);
 
-						object clientOb = null;
+						ISqlObject clientOb = null;
 						if (value.Value is IObjectRef) {
 							var reference = (IObjectRef)value.Value;
 							// TODO: Make a protocol placeholder for the large object ref
@@ -460,9 +462,10 @@ namespace Deveel.Data.Protocol {
 						}
 
 						row[c] = clientOb;
+						sizes[c] = value.Size;
 					}
 
-					block.AddRow(row);
+					block.AddRow(new QueryResultRow(row, sizes));
 				}
 				return block;
 			} catch (Exception e) {
