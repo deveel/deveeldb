@@ -55,6 +55,9 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is SelectStatementNode)
 				VisitSelect((SelectStatementNode) node);
 
+			if (node is UpdateStatementNode)
+				VisitUpdate((UpdateStatementNode)node);
+
 			if (node is SequenceOfStatementsNode)
 				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
 		}
@@ -109,6 +112,23 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
+		}
+
+		public override void VisitSimpleUpdate(SimpleUpdateNode node) {
+			var whereExpression = Expression(node.WhereExpression);
+			var assignments = UpdateAssignments(node.Columns);
+			statements.Add(new UpdateStatement(node.TableName, whereExpression, assignments));
+		}
+
+		private IEnumerable<SqlColumnAssignment> UpdateAssignments(IEnumerable<UpdateColumnNode> columns) {
+			if (columns == null)
+				return null;
+
+			return columns.Select(column => new SqlColumnAssignment(column.ColumnName, Expression(column.Expression)));
+		}
+
+		public override void VisitQueryUpdate(QueryUpdateNode node) {
+			base.VisitQueryUpdate(node);
 		}
 
 		#region CreateTable

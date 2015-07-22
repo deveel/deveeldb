@@ -18,7 +18,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		// TODO: Maybe another type of statement?
 		public override StatementType StatementType {
-			get { return StatementType.Select;}
+			get { return StatementType.SelectInto; }
 		}
 
 		public SqlQueryExpression QueryExpression { get; private set; }

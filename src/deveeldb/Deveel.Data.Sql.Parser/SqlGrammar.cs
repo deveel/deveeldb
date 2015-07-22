@@ -555,21 +555,23 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal Update() {
-			var update = new NonTerminal("update_command");
-			var updateSimple = new NonTerminal("update_simple");
+			var update = new NonTerminal("update_command", typeof(UpdateStatementNode));
+			var updateSimple = new NonTerminal("update_simple", typeof(SimpleUpdateNode));
 			var updateQuery = new NonTerminal("update_query");
-			var columnSet = new NonTerminal("column_set");
+			var columnSet = new NonTerminal("column_set", typeof(UpdateColumnNode));
 			var columnSetList = new NonTerminal("column_set_list");
 			var columnList = new NonTerminal("column_list");
 			var updateWhere = new NonTerminal("update_where");
+			var limitOpt = new NonTerminal("limit_opt");
 
 			update.Rule = updateSimple | updateQuery;
-			updateSimple.Rule = Key("UPDATE") + ObjectName() + Key("SET") + columnSetList + updateWhere;
-			updateQuery.Rule = Key("UPDATE") + ObjectName() + Key("SET") + "(" + columnList + ")" + "=" + SqlQueryExpression() + updateWhere;
+			updateSimple.Rule = Key("UPDATE") + ObjectName() + Key("SET") + columnSetList + updateWhere + limitOpt;
+			updateQuery.Rule = Key("UPDATE") + ObjectName() + Key("SET") + "(" + columnList + ")" + "=" + SqlQueryExpression() + updateWhere + limitOpt;
 			columnSetList.Rule = MakePlusRule(columnSetList, Comma, columnSet);
 			columnSet.Rule = Identifier + "=" + SqlExpression();
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
-			updateWhere.Rule = Key("WHERE") + SqlQueryExpression();
+			updateWhere.Rule = Key("WHERE") + SqlExpression();
+			limitOpt.Rule = Empty | Key("LIMIT") + PositiveLiteral;
 
 			return update;
 		}

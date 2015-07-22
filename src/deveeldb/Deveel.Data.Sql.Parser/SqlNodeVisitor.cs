@@ -142,6 +142,8 @@ namespace Deveel.Data.Sql.Parser {
 				VisitCreateTrigger((CreateTriggerNode) node);
 			} else if (node is SelectStatementNode) {
 				VisitSelect((SelectStatementNode) node);
+			} else if (node is UpdateStatementNode) {
+				VisitUpdate((UpdateStatementNode) node);
 			}
 		}
 
@@ -193,6 +195,21 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public virtual void VisitTableColumns(IEnumerable<TableColumnNode> columnNodes) {
+		}
+
+		public virtual void VisitUpdate(UpdateStatementNode node) {
+			if (node.SimpleUpdate != null)
+				VisitSimpleUpdate(node.SimpleUpdate);
+			if (node.QueryUpdate != null)
+				VisitQueryUpdate(node.QueryUpdate);
+		}
+
+		public virtual void VisitSimpleUpdate(SimpleUpdateNode node) {
+			
+		}
+
+		public virtual void VisitQueryUpdate(QueryUpdateNode node) {
+			
 		}
 
 		#endregion

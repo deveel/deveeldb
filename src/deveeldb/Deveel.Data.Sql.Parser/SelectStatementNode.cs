@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Parser {
 		internal SelectStatementNode() {	
 		}
 
-		public SqlQueryExpressionNode QueryExpression { get; internal set; }
+		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
 		/// <summary>
 		/// Gets a read-oly list of <see cref="OrderBy">order</see> criteria

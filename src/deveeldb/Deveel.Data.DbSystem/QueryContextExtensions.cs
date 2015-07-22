@@ -16,9 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -204,6 +204,8 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.GetTableQueryInfo(tableName, alias);
 		}
 
+		#region Operations
+
 		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query) {
 			return DeleteFrom(context, tableName, query, -1);
 		}
@@ -265,6 +267,25 @@ namespace Deveel.Data.DbSystem {
 
 			return table.Delete(deleteSet, limit);
 		}
+
+		public static int UpdateTable(this IQueryContext context, ObjectName tableName, IQueryPlanNode queryPlan,
+			IEnumerable<SqlAssignExpression> assignments, int limit) {
+			var columnNames = assignments.Select(x => x.Reference).Cast<SqlReferenceExpression>().Select(x => x.ReferenceName.Name).ToArray();
+			if (!context.UserCanUpdateTable(tableName, columnNames))
+				throw new InvalidOperationException();
+
+			if (!context.UserCanSelectFromPlan(queryPlan))
+				throw new InvalidOperationException();
+
+			var table = context.GetMutableTable(tableName);
+			if (table == null)
+				throw new InvalidOperationException();
+
+			var updateSet = queryPlan.Evaluate(context);
+			return table.Update(context, updateSet, assignments, limit);
+		}
+
+		#endregion
 
 		#region Constraints
 

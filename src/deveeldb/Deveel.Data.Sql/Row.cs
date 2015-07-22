@@ -480,5 +480,22 @@ namespace Deveel.Data.Sql {
 				SetValue(i, Table.GetValue(RowId.RowNumber, i));
 			}
 		}
+
+		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQueryContext context) {
+			// Get the variable resolver and evaluate over this data.
+			var vresolver = VariableResolver;
+			var evalExp = assignExpression.Evaluate(context, vresolver);
+
+			if (evalExp.ExpressionType != SqlExpressionType.Constant)
+				throw new InvalidOperationException();
+
+			var value = ((SqlConstantExpression) evalExp).Value;
+
+			// Check the column name is within this row.
+			var variable = ((SqlReferenceExpression) assignExpression.Reference).ReferenceName;
+			int column = Table.FindColumn(variable);
+
+			SetValue(column, value);
+		}
 	}
 }

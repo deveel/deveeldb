@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public static class MutableTableExtensions {
@@ -109,6 +111,63 @@ namespace Deveel.Data.DbSystem {
 				return false;
 
 			return table.RemoveRow(list[0]);
+		}
+
+		public static int Update(this IMutableTable mutableTable, IQueryContext context, ITable table,
+			IEnumerable<SqlAssignExpression> assignList, int limit) {
+
+			// Get the rows from the input table.
+			var rowSet = new List<int>();
+			var e = table.GetEnumerator();
+			while (e.MoveNext()) {
+				rowSet.Add(e.Current.RowId.RowNumber);
+			}
+
+			// HACKY: Find the first column of this table in the search table.  This
+			//   will allow us to generate a row set of only the rows in the search
+			//   table.
+			int firstColumn = table.FindColumn(mutableTable.GetResolvedColumnName(0));
+			if (firstColumn == -1)
+				throw new InvalidOperationException("Search table does not contain any " +
+											"reference to table being updated from");
+
+			// Convert the row_set to this table's domain.
+			rowSet = table.ResolveRows(firstColumn, rowSet, mutableTable).ToList();
+
+			// NOTE: Assume there's no duplicate rows.
+
+			// If limit less than zero then limit is whole set.
+			if (limit < 0)
+				limit = Int32.MaxValue;
+
+			// Update each row in row set in turn up to the limit.
+			int len = System.Math.Min(rowSet.Count, limit);
+
+			int updateCount = 0;
+			for (int i = 0; i < len; ++i) {
+				int toUpdate = rowSet[i];
+
+				// Make a row object from this row (plus keep the original intact
+				// in case we need to roll back to it).
+				var row = mutableTable.GetRow(toUpdate);
+				row.SetFromTable();
+
+				// Run each assignment on the row.
+				foreach (var assignment in assignList) {
+					row.EvaluateAssignment(assignment, context);
+				}
+
+				// Update the row
+				mutableTable.UpdateRow(row);
+
+				++updateCount;
+			}
+
+			if (updateCount > 0)
+				// Perform a referential integrity check on any changes to the table.
+				mutableTable.AssertConstraints();
+
+			return updateCount;
 		}
 	}
 }

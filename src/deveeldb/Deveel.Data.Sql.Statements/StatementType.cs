@@ -106,6 +106,12 @@ namespace Deveel.Data.Sql.Statements {
 		Select,
 
 		/// <summary>
+		/// Inserts data coming from a query into a table or
+		/// a variable specified.
+		/// </summary>
+		SelectInto,
+
+		/// <summary>
 		/// Inserts a set of data into a database table.
 		/// </summary>
 		Insert,
@@ -114,6 +120,11 @@ namespace Deveel.Data.Sql.Statements {
 		/// Updates data contained into a row of a table identified by the
 		/// given search expression.
 		/// </summary>
-		Update
+		Update,
+
+		/// <summary>
+		/// Deletes a given set of data from a table
+		/// </summary>
+		Delete
 	}
 }

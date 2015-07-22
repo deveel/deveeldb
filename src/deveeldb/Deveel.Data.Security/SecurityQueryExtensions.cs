@@ -15,12 +15,14 @@
 //
 
 using System;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Security {
@@ -502,9 +504,19 @@ namespace Deveel.Data.Security {
 			return UserCanSelectFromTable(context, tableName, new string[0]);
 		}
 
+		public static bool UserCanSelectFromPlan(this IQueryContext context, IQueryPlanNode queryPlan) {
+			var selectedTables = queryPlan.DiscoverTableNames();
+			return selectedTables.All(context.UserCanSelectFromTable);
+		}
+
 		public static bool UserCanSelectFromTable(this IQueryContext context, ObjectName tableName, params string[] columnNames) {
 			// TODO: Column-level select will be implemented in the future
 			return context.UserHasTablePrivilege(tableName, Privileges.Select);
+		}
+
+		public static bool UserCanUpdateTable(this IQueryContext context, ObjectName tableName, params string[] columnNames) {
+			// TODO: Column-level select will be implemented in the future
+			return context.UserHasTablePrivilege(tableName, Privileges.Update);
 		}
 
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, Invoke invoke) {
