@@ -519,6 +519,11 @@ namespace Deveel.Data.Security {
 			return context.UserHasTablePrivilege(tableName, Privileges.Update);
 		}
 
+		public static bool UserCanInsertIntoTable(this IQueryContext context, ObjectName tableName, params string [] columnNames) {
+			// TODO: Column-level select will be implemented in the future
+			return context.UserHasTablePrivilege(tableName, Privileges.Insert);
+		}
+
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, Invoke invoke) {
 			if (routineType == RoutineType.Function &&
 				context.IsSystemFunction(invoke)) {

@@ -144,6 +144,8 @@ namespace Deveel.Data.Sql.Parser {
 				VisitSelect((SelectStatementNode) node);
 			} else if (node is UpdateStatementNode) {
 				VisitUpdate((UpdateStatementNode) node);
+			} else if (node is InsertStatementNode) {
+				VisitInsert((InsertStatementNode) node);
 			}
 		}
 
@@ -209,6 +211,16 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public virtual void VisitQueryUpdate(QueryUpdateNode node) {
+			
+		}
+
+
+		public virtual void VisitInsert(InsertStatementNode node) {
+			if (node.ValuesInsert != null)
+				VisitValuesInsert(node.ValuesInsert);
+		}
+
+		protected virtual void VisitValuesInsert(ValuesInsertNode valuesInsert) {
 			
 		}
 

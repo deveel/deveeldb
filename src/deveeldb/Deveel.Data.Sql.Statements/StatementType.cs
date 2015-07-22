@@ -114,13 +114,29 @@ namespace Deveel.Data.Sql.Statements {
 		/// <summary>
 		/// Inserts a set of data into a database table.
 		/// </summary>
-		Insert,
+		InsertValues,
 
 		/// <summary>
-		/// Updates data contained into a row of a table identified by the
-		/// given search expression.
+		/// Inserts data into a database table from a source query.
+		/// </summary>
+		InsertQuery,
+
+		/// <summary>
+		/// Inserts data into a database table explicitly setting
+		/// column assignments.
+		/// </summary>
+		InsertSet,
+
+		/// <summary>
+		/// Updates a table setting the data explicitly on the rows identified
+		/// by a given search expression.
 		/// </summary>
 		Update,
+
+		/// <summary>
+		/// Updates a table getting the values from a query expression defined
+		/// </summary>
+		UpdateQuery,
 
 		/// <summary>
 		/// Deletes a given set of data from a table

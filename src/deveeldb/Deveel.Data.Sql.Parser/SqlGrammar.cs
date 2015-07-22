@@ -518,27 +518,26 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal Insert() {
-			var insert = new NonTerminal("insert_command");
-			var insertSwitch = new NonTerminal("insert_switch");
-			var fromValues = new NonTerminal("from_values");
+			var insert = new NonTerminal("insert_command", typeof(InsertStatementNode));
+			var fromValues = new NonTerminal("from_values", typeof(ValuesInsertNode));
 			var fromQuery = new NonTerminal("from_query");
 			var fromSet = new NonTerminal("from_set");
 			var columnList = new NonTerminal("column_list");
 			var columnListOpt = new NonTerminal("column_list_opt");
-			var columnSet = new NonTerminal("column_set");
+			var columnSet = new NonTerminal("column_set", typeof(InsertSetNode));
 			var columnSetList = new NonTerminal("column_set_list");
-			var insertTuple = new NonTerminal("inser_tuple");
+			var insertTuple = new NonTerminal("insert_tuple");
 			var insertValue = new NonTerminal("insert_value");
 
-			insert.Rule = Key("INSERT") + Key("INTO") + ObjectName() + columnListOpt + insertSwitch;
+			insert.Rule = fromValues | fromQuery;
+			fromValues.Rule = Key("INSERT") + Key("INTO") + ObjectName() + columnListOpt + Key("VALUES") + insertTuple;
+			fromQuery.Rule = Key("INSERT") + Key("INTO") + ObjectName() + columnList + Key("FROM") + SqlQueryExpression();
+			fromSet.Rule = Key("INSERT") + Key("INTO") + ObjectName() + Key("SET") +  columnSetList;
 			columnListOpt.Rule = Empty | "(" + columnList + ")";
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
-			insertSwitch.Rule = fromValues | fromQuery | fromSet;
 			fromValues.Rule = Key("VALUES") + insertTuple;
-			fromQuery.Rule = SqlQueryExpression();
 			insertTuple.Rule = MakePlusRule(insertTuple, Comma, insertValue);
 			insertValue.Rule = "(" + SqlExpressionList() + ")";
-			fromSet.Rule = Key("SET") + columnSetList;
 			columnSetList.Rule = MakePlusRule(columnSetList, Comma, columnSet);
 			columnSet.Rule = Identifier + "=" + SqlExpression();
 			return insert;

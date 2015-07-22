@@ -285,6 +285,34 @@ namespace Deveel.Data.DbSystem {
 			return table.Update(context, updateSet, assignments, limit);
 		}
 
+		public static void InsertIntoTable(this IQueryContext context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
+			var columnNames =
+				assignments.Select(x => x.Reference).Cast<SqlReferenceExpression>().Select(x => x.ReferenceName.Name).ToArray();
+			if (!context.UserCanInsertIntoTable(tableName, columnNames))
+				throw new InvalidOperationException();
+
+			var table = context.GetMutableTable(tableName);
+
+			var row = table.NewRow();
+			foreach (var expression in assignments) {
+				row.EvaluateAssignment(expression, context);
+			}
+
+			table.AddRow(row);
+		}
+
+		public static int InsertIntoTable(this IQueryContext context, ObjectName tableName,
+			IEnumerable<SqlAssignExpression[]> assignments) {
+			int insertCount = 0;
+
+			foreach (var assignment in assignments) {
+				context.InsertIntoTable(tableName, assignment);
+				insertCount++;
+			}
+
+			return insertCount;
+		}
+
 		#endregion
 
 		#region Constraints

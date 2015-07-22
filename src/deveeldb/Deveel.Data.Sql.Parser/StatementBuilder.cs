@@ -57,6 +57,8 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (node is UpdateStatementNode)
 				VisitUpdate((UpdateStatementNode)node);
+			if (node is InsertStatementNode)
+				VisitInsert((InsertStatementNode) node);
 
 			if (node is SequenceOfStatementsNode)
 				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
@@ -129,6 +131,11 @@ namespace Deveel.Data.Sql.Parser {
 
 		public override void VisitQueryUpdate(QueryUpdateNode node) {
 			base.VisitQueryUpdate(node);
+		}
+
+		protected override void VisitValuesInsert(ValuesInsertNode valuesInsert) {
+			var values = valuesInsert.Values.Select(x => x.Values.Select(Expression).ToArray());
+			statements.Add(new InsertValuesStatement(valuesInsert.TableName, valuesInsert.ColumnNames, values));
 		}
 
 		#region CreateTable
