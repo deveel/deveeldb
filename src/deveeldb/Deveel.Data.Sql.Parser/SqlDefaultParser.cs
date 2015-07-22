@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 using Irony;
 using Irony.Ast;
@@ -40,29 +42,34 @@ namespace Deveel.Data.Sql.Parser {
 		public SqlParseResult Parse(string input) {
 			var result = new SqlParseResult(Dialect);
 
-			var startedOn = DateTimeOffset.UtcNow;
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
 
 			try {
-				var node = ParseNode(input, result.Errors);
+				long time;
+				var node = ParseNode(input, result.Errors, out time);
 				result.RootNode = node;
 			} catch (Exception ex) {
 				// TODO: form a better exception
 				result.Errors.Add(new SqlParseError(ex.Message, 0, 0));
 			} finally {
-				result.ParseTime = DateTimeOffset.UtcNow.Subtract(startedOn);
+				stopwatch.Stop();
+				result.ParseTime = stopwatch.Elapsed;
 			}
 
 			return result;
 		}
 
-		private ISqlNode ParseNode(string sqlSource, ICollection<SqlParseError> errors) {
+		private ISqlNode ParseNode(string sqlSource, ICollection<SqlParseError> errors, out long parseTime) {
 			if (!languageData.CanParse())
 				throw new InvalidOperationException();
 
 			var parser = new Irony.Parsing.Parser(languageData);
 			var tree = parser.Parse(sqlSource);
-			if (tree.HasErrors()) {
-				BuildErrors(errors, tree.ParserMessages);
+			parseTime = tree.ParseTimeMilliseconds;
+
+			if (tree.Status == ParseTreeStatus.Error) {
+				BuildErrors(tree, errors, tree.ParserMessages);
 				return null;
 			}
 
@@ -75,7 +82,7 @@ namespace Deveel.Data.Sql.Parser {
 			astCompiler.BuildAst(tree);
 
 			if (tree.HasErrors())
-				BuildErrors(errors, tree.ParserMessages);
+				BuildErrors(tree, errors, tree.ParserMessages);
 
 			var node = (ISqlNode) tree.Root.AstNode;
 			if (node.NodeName == "root")
@@ -84,16 +91,80 @@ namespace Deveel.Data.Sql.Parser {
 			return node;
 		}
 
-		private static void BuildErrors(ICollection<SqlParseError> errors, LogMessageList logMessages) {
+		private static void BuildErrors(ParseTree tree, ICollection<SqlParseError> errors, LogMessageList logMessages) {
 			foreach (var logMessage in logMessages) {
 				if (logMessage.Level == ErrorLevel.Error) {
 					var line = logMessage.Location.Line;
 					var column = logMessage.Location.Column;
-					// TODO: build the message traversing the source ...
-
-					errors.Add(new SqlParseError(logMessage.Message, line, column));
+					var locationMessage = FormInfoMessage(tree, line, column);
+					var expected = logMessage.ParserState.ReportedExpectedSet.ToArray();
+					var infoMessage = String.Format("A parse error occurred near '{0}' in the source", locationMessage);
+					if (expected.Length > 0)
+						infoMessage = String.Format("{0}. Expected {1}", infoMessage, String.Join(", ", expected));
+					
+					errors.Add(new SqlParseError(infoMessage, line, column));
 				}
 			}
 		}
+
+		private static string FormInfoMessage(ParseTree tree, int line, int column) {
+			const int tokensBeforeCount = 10;
+			const int tokensAfterCount = 10;
+
+			var tokensBefore = FindTokensTo(tree, line, column).Reverse().ToList();
+			var tokensAfter = FindTokensFrom(tree, line, column);
+
+			var countTokensBefore = System.Math.Min(tokensBefore.Count, tokensBeforeCount);
+			var countTokensAfter = System.Math.Min(tokensAfterCount, tokensAfter.Count);
+
+			var takeTokensBefore = tokensBefore.Take(countTokensBefore).Reverse();
+			var takeTokensAfter = tokensAfter.Take(countTokensAfter);
+
+			var sb = new StringBuilder();
+			foreach (var token in takeTokensBefore) {
+				sb.Append(token.Text);
+				sb.Append(" ");
+			}
+
+			foreach (var token in takeTokensAfter) {
+				sb.Append(token.Text);
+				sb.Append(" ");
+			}
+
+			return sb.ToString();
+		}
+
+		private static IList<Irony.Parsing.Token> FindTokensFrom(ParseTree tree, int line, int column) {
+			var tokens = tree.Tokens;
+			bool startCollect = false;
+
+			var result = new List<Irony.Parsing.Token>();
+			foreach (var token in tokens) {
+				if (token.Location.Line == line &&
+				    token.Location.Column == column) {
+					startCollect = true;
+				}
+
+				if (startCollect)
+					result.Add(token);
+			}
+
+			return result.ToList();
+		}
+
+		private static IList<Irony.Parsing.Token> FindTokensTo(ParseTree tree, int line, int column) {
+			var tokens = tree.Tokens;
+
+			var result = new List<Irony.Parsing.Token>();
+			foreach (var token in tokens) {
+				if (token.Location.Line == line &&
+				    token.Location.Column == column)
+					break;
+
+				result.Add(token);
+			}
+
+			return result.ToList();
+		} 
 	}
 }

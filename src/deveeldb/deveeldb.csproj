@@ -205,6 +205,7 @@
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Index\ColumnIndexContext.cs" />
     <Compile Include="Deveel.Data.Index\IIndex.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -217,6 +218,7 @@
     <Compile Include="Deveel.Data.Index\IIndexEnumerator.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Index\IIndexFactory.cs" />
     <Compile Include="Deveel.Data.Index\IIndex_T.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -226,6 +228,7 @@
     <Compile Include="Deveel.Data.Index\IndexBlock.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Index\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
@@ -676,10 +679,7 @@
     <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
-    <Compile Include="Deveel.Data.Text\ITextIndex.cs" />
-    <Compile Include="Deveel.Data.Text\Metaphone.cs" />
     <Compile Include="Deveel.Data.Text\PatternSearch.cs" />
-    <Compile Include="Deveel.Data.Text\Soundex.cs" />
     <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionFactory.cs" />

@@ -1222,25 +1222,26 @@ namespace Deveel.Data.DbSystem {
 					if (indexInfo == null)
 						return null;
 
+					string[] cols = indexInfo.ColumnNames;
+					var tableInfo = TableInfo;
+					if (cols.Length != 1)
+						throw new Exception("Multi-column indexes not supported at this time.");
+
+					// If a single column
+					var colIndex = tableInfo.IndexOfColumn(cols[0]);
+
 					if (indexInfo.IndexType.Equals(DefaultIndexTypes.InsertSearch)) {
-						string[] cols = indexInfo.ColumnNames;
-						var tableInfo = TableInfo;
-						if (cols.Length != 1)
-							throw new Exception("Multi-column indexes not supported at this time.");
-
-						// If a single column
-						var colIndex = tableInfo.IndexOfColumn(cols[0]);
-
 						// Get the index from the index set and set up the new InsertSearch
 						// scheme.
 						var indexList = indexSet.GetIndex(indexInfo.Offset);
 						return new InsertSearchIndex(table, colIndex, indexList);
 					}
 
-					// TODO: load the type from the system
-					throw new Exception("Unrecognized index type.");
+					// TODO: support metadata from input
+					return SystemContext.CreateColumnIndex(indexInfo.IndexType, table, colIndex);
 				} catch (Exception ex) {
-					throw new InvalidOperationException(String.Format("An error occurred while creating a colummn for table {0}", TableName), ex);
+					throw new InvalidOperationException(
+						String.Format("An error occurred while creating a colummn for table {0}", TableName), ex);
 				}
 			}
 		}
