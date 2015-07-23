@@ -12,7 +12,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void FromDefaultConfig() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
 			Assert.IsNotNull(context);
 			Assert.IsFalse(context.ReadOnly());
 			Assert.IsTrue(context.IgnoreIdentifiersCase());
@@ -20,28 +20,9 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		[Test]
-		public void ResolveSingleServiceFromConfig() {
-			var config = DbConfig.Default;
-			config.SetKey(new ConfigKey("service1", typeof(Type)));
-			config.SetValue(new ConfigKey("service1", typeof(Type)), typeof(TestService));
-
-			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(config));
-			Assert.IsNotNull(context);
-
-			object serviceObj = null;
-			Assert.DoesNotThrow(() => serviceObj = context.ServiceProvider.Resolve(typeof(TestService)));
-			Assert.IsNotNull(serviceObj);
-			Assert.IsInstanceOf<TestService>(serviceObj);
-
-			var service = (TestService) serviceObj;
-			Assert.DoesNotThrow(() => service.SayHello());
-		}
-
-		[Test]
 		public void ResolveSingleServiceFromRegister() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
 			Assert.IsNotNull(context);
 
 			context.ServiceProvider.Register<TestService>();
@@ -58,7 +39,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void ResolveManyServicesForInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
 			Assert.IsNotNull(context);
 			
 			context.ServiceProvider.Register<TestService>();
@@ -80,7 +61,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.Default));
+			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
 			Assert.IsNotNull(context);
 
 			context.ServiceProvider.Register(new TestService());

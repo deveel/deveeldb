@@ -16,8 +16,11 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
-using TinyIoC;
+using DryIoc;
 
 namespace Deveel.Data.DbSystem {
 	/// <summary>
@@ -25,7 +28,9 @@ namespace Deveel.Data.DbSystem {
 	/// encapsulates an IoC engine to resolve database services.
 	/// </summary>
 	public sealed class SystemServiceProvider : ISystemServiceProvider {
-		private TinyIoCContainer container;
+		// private TinyIoCContainer container;
+		private DryIoc.Container container;
+		private List<IServiceResolveContext> resolveContexts;
 
 		/// <summary>
 		/// Constructs the service provider around the given context.
@@ -38,8 +43,10 @@ namespace Deveel.Data.DbSystem {
 
 			SystemContext = context;
 
-			container = new TinyIoCContainer();
-			container.Register<ISystemContext>(context);
+			container = new DryIoc.Container();
+			container.RegisterInstance<ISystemContext>(context);
+
+			resolveContexts = new List<IServiceResolveContext>();
 		}
 
 		~SystemServiceProvider() {
@@ -52,8 +59,35 @@ namespace Deveel.Data.DbSystem {
 		/// <seealso cref="ISystemContext.ServiceProvider"/>
 		public ISystemContext SystemContext { get; private set; }
 
-		private IServiceResolveContext ResolveContext {
-			get { return SystemContext as IServiceResolveContext; }
+		private bool HasAnyContext {
+			get { return resolveContexts.Count > 0; }
+		}
+
+		private object OnResolve(Type serviceType, string name) {
+			return resolveContexts.Select(context => context.OnResolve(serviceType, name))
+				.FirstOrDefault(resolved => resolved != null);
+		}
+
+		private void OnResolved(Type serviceType, string name, object instance) {
+			foreach (var context in resolveContexts) {
+				context.OnResolved(serviceType, name, instance);
+			}
+		}
+
+		private IEnumerable OnResolveAll(Type serviceType) {
+			return resolveContexts.Select(context => context.OnResolveAll(serviceType))
+				.FirstOrDefault(resolved => resolved != null);
+		}
+
+		private void OnResolvedAll(Type serviceType, IEnumerable instances) {
+			foreach (var context in resolveContexts) {
+				context.OnResolvedAll(serviceType, instances);
+			}
+		}
+
+		public void AttachContext(IServiceResolveContext resolveContext) {
+			if (!resolveContexts.Contains(resolveContext))
+				resolveContexts.Add(resolveContext);
 		}
 
 		public object Resolve(Type serviceType, string name) {
@@ -64,18 +98,13 @@ namespace Deveel.Data.DbSystem {
 				throw new SystemException("The container was not initialized.");
 
 			lock (this) {
-				object resolved;
-				if (ResolveContext != null) {
-					resolved = ResolveContext.OnResolve(serviceType, name);
+				var resolved = OnResolve(serviceType, name);
 					if (resolved != null)
 						return resolved;
-				}
 
-				resolved = container.Resolve(serviceType, name,
-					new ResolveOptions { NamedResolutionFailureAction = NamedResolutionFailureActions.AttemptUnnamedResolution });
+				resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnNull);
 
-				if (ResolveContext != null)
-					ResolveContext.OnResolved(serviceType, name, resolved);
+				OnResolved(serviceType, name, resolved);
 
 				return resolved;				
 			}
@@ -93,18 +122,14 @@ namespace Deveel.Data.DbSystem {
 				throw new SystemException("The container was not initialized.");
 
 			lock (this) {
-				IEnumerable list;
-				if (ResolveContext != null) {
-					list = ResolveContext.OnResolveAll(serviceType);
+				IEnumerable list = OnResolveAll(serviceType);
 					if (list != null)
 						return list;
-				}
 
-				list = container.ResolveAll(serviceType, true);
+				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
+				list = container.Resolve(resolveType, IfUnresolved.ReturnNull) as IEnumerable;
 
-				if (ResolveContext != null) {
-					ResolveContext.OnResolvedAll(serviceType, list);
-				}
+				OnResolvedAll(serviceType, list);
 
 				return list;				
 			}
@@ -118,12 +143,14 @@ namespace Deveel.Data.DbSystem {
 				throw new SystemException("The container was not initialized.");
 
 			lock (this) {
-				var interfaces = serviceType.GetInterfaces();
-				foreach (var iface in interfaces) {
-					container.RegisterMultiple(iface, new []{serviceType});
+				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
+					var ifaces = serviceType.GetInterfaces();
+					foreach (var iface in ifaces) {
+						container.Register(iface, serviceType, named:name);
+					}
 				}
 
-				container.Register(serviceType, name).AsSingleton();
+				container.Register(serviceType, named:name, reuse: Reuse.InCurrentScope);
 			}
 		}
 
@@ -135,12 +162,15 @@ namespace Deveel.Data.DbSystem {
 				throw new SystemException("The container was not initialized.");
 
 			lock (this) {
-				var interfaces = service.GetType().GetInterfaces();
-				foreach (var iface in interfaces) {
-					container.Register(iface, service);
+				var serviceType = service.GetType();
+				var ifaces = serviceType.GetInterfaces();
+				foreach (var iface in ifaces) {
+					var method = typeof (Registrator).GetMethod("RegisterInstance", BindingFlags.Static | BindingFlags.Public);
+					method = method.MakeGenericMethod(iface);
+					method.Invoke(null, new[] {container, service, null, null});
 				}
 
-				container.Register(service, name);
+				container.RegisterInstance(service, named:name);
 			}
 		}
 

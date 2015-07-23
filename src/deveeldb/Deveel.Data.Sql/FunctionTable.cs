@@ -142,12 +142,12 @@ namespace Deveel.Data.Sql {
 		public override DataObject GetValue(long rowNumber, int columnOffset) {
 			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
 			// Check if in the cache,
-			var cache = DatabaseContext.CellCache;
+			var cache = DatabaseContext.TableCellCache();
 
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
-				var cell = cache.Get(uniqueId, (int)rowNumber, columnOffset);
-				if (cell != null)
+				DataObject cell;
+				if (cache.TryGetValue(uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql {
 
 		}
 
-		private DataObject CalcValue(int row, int column, TableCellCache cache) {
+		private DataObject CalcValue(int row, int column, ITableCellCache cache) {
 			var resolver = varResolver.ForRow(row);
 
 			if (groupResolver != null) {

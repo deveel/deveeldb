@@ -17,9 +17,10 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Sql.Compile;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public static class SystemContextExtensions {
@@ -90,13 +91,7 @@ namespace Deveel.Data.DbSystem {
 		#region Features
 
 		public static ISqlCompiler SqlCompiler(this ISystemContext context) {
-			var compiler = context.ResolveService<ISqlCompiler>();
-
-			// if we don't have any, fall-back to the default one...
-			if (compiler == null)
-				compiler = new SqlDefaultCompiler();
-
-			return compiler;
+			return context.ResolveService<ISqlCompiler>();
 		}
 
 		public static void UseSqlCompiler<TCompiler>(this ISystemContext context) where TCompiler : ISqlCompiler {
@@ -115,6 +110,26 @@ namespace Deveel.Data.DbSystem {
 
 		public static void UseSqlCompiler(this ISystemContext context, ISqlCompiler compiler) {
 			context.RegisterService(compiler);
+		}
+
+		public static void UseDefaultSqlCompiler(this ISystemContext context) {
+			context.UseSqlCompiler<SqlDefaultCompiler>();
+		}
+
+		public static IQueryPlanner QueryPlanner(this ISystemContext context) {
+			return context.ResolveService<IQueryPlanner>();
+		}
+
+		public static void UseDefaultQueryPlanner(this ISystemContext context) {
+			context.RegisterService<QueryPlanner>();
+		}
+
+		public static ITableCellCache TableCellCache(this ISystemContext context) {
+			return context.ResolveService<ITableCellCache>();
+		}
+
+		public static void UseDefaultTableCellCache(this ISystemContext context) {
+			context.RegisterService<TableCellCache>();
 		}
 
 		#endregion

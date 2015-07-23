@@ -27,9 +27,14 @@ using Irony.Parsing;
 namespace Deveel.Data.Sql.Parser {
 	class SqlDefaultParser : ISqlParser {
 		private readonly LanguageData languageData;
+		private readonly Irony.Parsing.Parser parser;
 
 		public SqlDefaultParser(SqlGrammarBase grammar) {
 			languageData = new LanguageData(grammar);
+			parser = new Irony.Parsing.Parser(languageData);
+
+			if (!languageData.CanParse())
+				throw new InvalidOperationException();
 		}
 
 		public void Dispose() {
@@ -61,10 +66,6 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private ISqlNode ParseNode(string sqlSource, ICollection<SqlParseError> errors, out long parseTime) {
-			if (!languageData.CanParse())
-				throw new InvalidOperationException();
-
-			var parser = new Irony.Parsing.Parser(languageData);
 			var tree = parser.Parse(sqlSource);
 			parseTime = tree.ParseTimeMilliseconds;
 

@@ -63,8 +63,11 @@ namespace Deveel.Data.Configuration {
 		static DbConfig() {
 			Empty = new DbConfig(true);
 
-			Default = new DbConfig(true);
-			SystemConfigKeys.SetTo(Default);
+			SystemDefault = new DbConfig(true);
+			SystemConfigKeys.SetTo(SystemDefault);
+
+			DatabaseDefault = new DbConfig(true);
+			DatabaseConfigKeys.SetTo(DatabaseDefault);
 		}
 
 		/// <inheritdoc/>
@@ -78,7 +81,9 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		public static DbConfig Empty { get; private set; }
 
-		public static DbConfig Default { get; private set; }
+		public static DbConfig SystemDefault { get; private set; }
+
+		public static DbConfig DatabaseDefault { get; private set; }
 
 		/// <inheritdoc/>
 		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {

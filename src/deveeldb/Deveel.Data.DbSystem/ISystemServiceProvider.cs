@@ -38,6 +38,8 @@ namespace Deveel.Data.DbSystem {
 	/// </remarks>
 	/// <seealso cref="IServiceProvider"/>
 	public interface ISystemServiceProvider : IServiceProvider, IDisposable {
+		void AttachContext(IServiceResolveContext context);
+
 		/// <summary>
 		/// Resolves a service by its type and instance name.
 		/// </summary>

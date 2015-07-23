@@ -162,8 +162,8 @@ namespace Deveel.Data.DbSystem {
 
 		public bool HasShutdown { get; private set; }
 
-		public TableCellCache CellCache {
-			get { return DatabaseContext.CellCache; }
+		private ITableCellCache CellCache {
+			get { return DatabaseContext.TableCellCache(); }
 		}
 
 		public bool CellCaching {
@@ -1299,13 +1299,12 @@ namespace Deveel.Data.DbSystem {
 			// First check if this is within the cache before we continue.
 			DataObject cell;
 			if (CellCaching) {
-				cell = CellCache.Get(TableId, rowIndex, columnOffset);
-				if (!Equals(cell, null))
+				if (CellCache.TryGetValue(TableId, rowIndex, columnOffset, out cell))
 					return cell;
 			}
 
 			// We maintain a cache of byte[] arrays that contain the rows Read input
-			// from the file.  If consequtive reads are made to the same row, then
+			// from the file.  If consecutive reads are made to the same row, then
 			// this will cause lots of fast cache hits.
 
 			long recordPointer = -1;

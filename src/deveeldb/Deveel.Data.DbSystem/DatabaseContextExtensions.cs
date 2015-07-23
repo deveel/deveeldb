@@ -66,41 +66,12 @@ namespace Deveel.Data.DbSystem {
 			return context.SystemContext.IgnoreIdentifiersCase();
 		}
 
-		public static Type QueryPlannerType(this IDatabaseContext context) {
-			var value = context.Configuration.GetString(DatabaseConfigKeys.QueryPlanner);
-			if (String.IsNullOrEmpty(value))
-				return typeof (QueryPlanner);
-
-
-			return Type.GetType(value, false, true);
-		}
-
 		public static IQueryPlanner QueryPlanner(this IDatabaseContext context) {
-			var type = context.QueryPlannerType();
-			if (type == typeof (QueryPlanner))
-				return new QueryPlanner();
-
-			if (context.SystemContext.ServiceProvider == null ||
-				!typeof(IQueryPlanner).IsAssignableFrom(type))
-				return null;
-
-			return context.SystemContext.ServiceProvider.Resolve(type)  as IQueryPlanner;
+			return context.SystemContext.QueryPlanner();
 		}
 
-		public static int CellCacheMaxSize(this IDatabaseContext context) {
-			return context.Configuration.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
-		}
-
-		public static int CellCacheMaxCellSize(this IDatabaseContext context) {
-			return context.Configuration.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
-		}
-
-		public static Type CellCacheType(this IDatabaseContext context) {
-			var typeString = context.Configuration.GetString(DatabaseConfigKeys.CellCacheType);
-			if (String.IsNullOrEmpty(typeString))
-				return typeof (MemoryCache);
-
-			return Type.GetType(typeString, false, true);
+		public static ITableCellCache TableCellCache(this IDatabaseContext context) {
+			return context.SystemContext.TableCellCache();
 		}
 	}
 }

@@ -24,7 +24,7 @@ namespace Deveel.Data.Configuration {
 		[Test]
 		public void DefaultConfig() {
 			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
 			Assert.IsNotNull(config);
 			Assert.IsNull(config.Parent);
 			Assert.IsNull(config.Source);
@@ -56,7 +56,7 @@ namespace Deveel.Data.Configuration {
 		[Test]
 		public void GetKeysFromChild() {
 			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
 			Assert.IsNotNull(config);
 
 			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", "one", typeof(string))));
@@ -78,7 +78,7 @@ namespace Deveel.Data.Configuration {
 		[Test]
 		public void GetValueAsInt32() {
 			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey key = new ConfigKey("test.oneKey", "one", typeof(string));
@@ -102,7 +102,7 @@ namespace Deveel.Data.Configuration {
 		[TestCase("test", "enabled", true)]
 		public void GetBooleanValue(string key, string value, bool expected) {
 			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey configKey = new ConfigKey(key, typeof(string));
@@ -125,7 +125,7 @@ namespace Deveel.Data.Configuration {
 		[TestCase(null, TestEnum.Default)]
 		public void GetEnumValue(object value, TestEnum expected) {
 			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Default);
+			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey configKey = new ConfigKey("test", typeof(TestEnum));

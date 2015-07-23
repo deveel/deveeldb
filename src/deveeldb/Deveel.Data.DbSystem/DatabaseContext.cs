@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
@@ -23,7 +24,9 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class DatabaseContext : IDatabaseContext {
+	public sealed class DatabaseContext : IDatabaseContext, IServiceResolveContext {
+		private ITableCellCache cellCache;
+
 		public DatabaseContext(ISystemContext systemContext, string name) 
 			: this(systemContext, CreateSimpleConfig(name)) {
 		}
@@ -35,6 +38,8 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("configuration");
 
 			SystemContext = systemContext;
+			SystemContext.ServiceProvider.AttachContext(this);
+
 			Configuration = configuration;
 			Locker = new Locker(this);
 
@@ -86,37 +91,13 @@ namespace Deveel.Data.DbSystem {
 
 		public IRoutineResolver RoutineResolver { get; private set; }
 
-		public TableCellCache CellCache { get; private set; }
-
 		public Locker Locker { get; private set; }
 
 		private void Init() {
 			InitStorageSystem();
-			InitCellCache();
 
 			this.UseSystemFunctions();
 			this.UseSystemProcedures();
-		}
-
-		private void InitCellCache() {
-			var cacheMaxSize = this.CellCacheMaxSize();
-			var cacheMaxCellSize = this.CellCacheMaxCellSize();
-			var cacheType = this.CellCacheType();
-
-			if (cacheType == null)
-				cacheType = typeof (MemoryCache);
-
-			ICache cache;
-			if (cacheType == typeof (MemoryCache)) {
-				cache = new MemoryCache(cacheMaxCellSize, cacheMaxSize, 10);
-			} else {
-				cache = SystemContext.ServiceProvider.Resolve(cacheType, "CellCache") as ICache;
-			}
-
-			if (cache == null)
-				return;
-
-			CellCache = new TableCellCache(this, cache, cacheMaxSize, cacheMaxCellSize);
 		}
 
 		private void InitStorageSystem() {
@@ -139,6 +120,28 @@ namespace Deveel.Data.DbSystem {
 
 		private IStoreSystem CreateExternalStoreSystem(Type type) {
 			return SystemContext.ServiceProvider.Resolve(type) as IStoreSystem;
+		}
+
+		object IServiceResolveContext.OnResolve(Type type, string name) {
+			if (typeof (ITableCellCache).IsAssignableFrom(type))
+				return cellCache;
+
+			return null;
+		}
+
+		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
+			if (obj is ITableCellCache)
+				cellCache = (ITableCellCache) obj;
+
+			if (obj != null && obj is IConfigurable)
+				((IConfigurable)obj).Configure(Configuration);
+		}
+
+		IEnumerable IServiceResolveContext.OnResolveAll(Type type) {
+			return null;
+		}
+
+		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
 		}
 	}
 }

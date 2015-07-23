@@ -26,10 +26,6 @@ namespace Deveel.Data.DbSystem {
 		public const string DeleteOnCloseKeyName = "database.deleteOnClose";
 		
 		public const string StoreSystemKeyName = "store.type";
-		public const string FileStoreBasePathKeyName = "store.file.basePath";
-		public const string FileStoreMaxFilesKeyName = "store.file.maxFiles";
-
-		public const string QueryPlannerKeyName = "query.planner.type";
 
 		public const string CellCacheTypeKeyName = "cellCache.type";
 		public const string CellCacheMaxSizeKeyName = "cellCache.maxSize";
@@ -43,12 +39,18 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly ConfigKey DeleteOnClose = new ConfigKey(DeleteOnCloseKeyName, false, typeof(bool));
 
-		public static readonly ConfigKey QueryPlanner = new ConfigKey(QueryPlannerKeyName, null, typeof(string));
-
 		public static readonly ConfigKey CellCacheType = new ConfigKey(CellCacheTypeKeyName, null, typeof(Type));
 
 		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 1024*1024*10, typeof(int));
 
 		public static readonly ConfigKey CellCacheMaxCellSize = new ConfigKey(CellCacheMaxCellSizeKeyName, 1024*64, typeof(int));
+
+		public static void SetTo(DbConfig config) {
+			config.SetKey(DatabaseName);
+			config.SetKey(DefaultSchema);
+			config.SetKey(DeleteOnClose);
+			config.SetKey(StorageSystem);
+			config.SetKey(CellCacheType);
+		}
 	}
 }

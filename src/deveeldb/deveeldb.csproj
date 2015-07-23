@@ -32,7 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;TINYIOC_INTERNAL</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
@@ -87,6 +87,10 @@
       <HintPath>..\packages\dmath.1.5.63\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="DryIoc, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.1.4.1\lib\net35\DryIoc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
@@ -103,8 +107,11 @@
     <Compile Include="Deveel.Data.Caching\CacheAdapter.cs" />
     <Compile Include="Deveel.Data.Caching\CacheConfigExtensions.cs" />
     <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
+    <Compile Include="Deveel.Data.Caching\CachedCell.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
+    <Compile Include="Deveel.Data.Caching\ITableCellCache.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />
+    <Compile Include="Deveel.Data.Caching\TableCacheExtensions.cs" />
     <Compile Include="Deveel.Data.Caching\TableCellCache.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionClient.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseExtensions.cs" />
@@ -417,6 +424,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementType.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
+    <Compile Include="Deveel.Data.Sql\CellId.cs" />
     <Compile Include="Deveel.Data.Sql\UserContextTable.cs" />
     <Compile Include="Deveel.Data.Sql\FilterTable.cs" />
     <Compile Include="Deveel.Data.Sql\IQueryTable.cs" />
@@ -785,7 +793,6 @@
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TinyIoC.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb.licenseheader" />
@@ -809,7 +816,7 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
-$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll"</PostBuildEvent>
+$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll" "$(TargetDir)\DryIoc.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

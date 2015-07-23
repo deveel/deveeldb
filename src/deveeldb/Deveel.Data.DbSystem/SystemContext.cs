@@ -22,15 +22,17 @@ using System.Linq;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Compile;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class SystemContext : ISystemContext, IServiceResolveContext {
-		// We preserve an instance of the compiler...
+		// We preserve an instance of some singletons...
 		private ISqlCompiler sqlCompiler;
 		private IEnumerable<IEventRouter> eventRouters;
+		private IQueryPlanner queryPlanner;
 
 		public SystemContext()
-			: this(DbConfig.Default) {
+			: this(DbConfig.SystemDefault) {
 		}
 
 		public SystemContext(IDbConfig configuration) {
@@ -69,29 +71,28 @@ namespace Deveel.Data.DbSystem {
 
 		private void Init() {
 			ServiceProvider = new SystemServiceProvider(this);
-			RegisterServicesFromConfig();
-		}
+			this.UseDefaultSqlCompiler();
+			this.UseDefaultQueryPlanner();
+			this.UseDefaultTableCellCache();
 
-		private void RegisterServicesFromConfig() {
-			var allKeys = Configuration.GetKeys(ConfigurationLevel.Deep);
-			var typeKeys = allKeys.Where(key => key.ValueType == typeof (Type));
-			var types = typeKeys.Select(key => Configuration.GetValue(key).Value).Cast<Type>();
-
-			foreach (var type in types) {
-				ServiceProvider.Register(type);
-			}
+			ServiceProvider.AttachContext(this);
 		}
 
 		object IServiceResolveContext.OnResolve(Type type, string name) {
 			if (typeof (ISqlCompiler).IsAssignableFrom(type))
 				return sqlCompiler;
+			if (typeof (IQueryPlanner).IsAssignableFrom(type))
+				return queryPlanner;
 
 			return null;
 		}
 
 		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
-			if (obj is ISqlCompiler)
+			if (obj is ISqlCompiler) {
 				sqlCompiler = (ISqlCompiler) obj;
+			} else if (obj is IQueryPlanner) {
+				queryPlanner = (IQueryPlanner) obj;
+			}
 
 			if (obj != null && obj is IConfigurable)
 				((IConfigurable)obj).Configure(Configuration);

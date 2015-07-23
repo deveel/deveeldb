@@ -32,7 +32,7 @@ namespace Deveel.Data.DbSystem {
 		public static readonly ConfigKey DefaultSchema = new ConfigKey(DefaultSchemKeyName, "APP", typeof(string));
 		public static readonly ConfigKey AutoCommit = new ConfigKey(AutoCommitKeyName, true, typeof (bool));
 
-		internal static void SetTo(IDbConfig config) {
+		public static void SetTo(IDbConfig config) {
 			//config.SetKey(DatabaseName);
 			config.SetKey(IgnoreIdentifiersCase);
 			config.SetKey(MaxWorkerThreads);

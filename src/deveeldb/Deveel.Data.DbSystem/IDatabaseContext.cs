@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Store;
@@ -33,8 +32,6 @@ namespace Deveel.Data.DbSystem {
 		IStoreSystem StoreSystem { get; }
 
 		IRoutineResolver RoutineResolver { get; }
-
-		TableCellCache CellCache { get; }
 
 		Locker Locker { get; }
 	}
