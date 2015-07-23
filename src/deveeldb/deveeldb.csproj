@@ -83,9 +83,9 @@
     <OutputPath>bin\x64\x86 Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.Math, Version=1.5.62.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dmath.1.5.62\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+    <Reference Include="Deveel.Math, Version=1.5.63.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dmath.1.5.63\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

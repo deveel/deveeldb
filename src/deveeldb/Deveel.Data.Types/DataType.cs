@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Parser;
@@ -327,7 +328,7 @@ namespace Deveel.Data.Types {
 			try {
 				var result = sqlCompiler.Parse(s);
 				if (result.HasErrors)
-					throw new SqlParseException();
+					throw new SqlParseException(result.Errors.First().Message);
 
 				var node = (DataTypeNode) result.RootNode;
 

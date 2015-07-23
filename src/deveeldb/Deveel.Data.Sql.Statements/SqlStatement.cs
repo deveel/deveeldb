@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
 
@@ -213,24 +214,32 @@ namespace Deveel.Data.Sql.Statements {
 			return Parse(null, query);
 		}
 
+		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
+
 		public static IEnumerable<SqlStatement> Parse(IQueryContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
-			var compiler = SqlParsers.Default;
+			var compiler = DefaultCompiler;
+
+			ISystemContext systemContext = null;
+
+			if (context != null) {
+				systemContext = context.SystemContext();
+				compiler = systemContext.SqlCompiler();
+			}
 
 			try {
-				var sqlSource = query.Text;
-				var result = compiler.Parse(query.Text);
+				var compileContext = new SqlCompileContext(systemContext, query.Text);
+				var result = compiler.Compile(compileContext);
 				if (result.HasErrors)
 					throw new SqlParseException();
 
-				var builder = new StatementBuilder(context);
-				var statements = builder.Build(result.RootNode, sqlSource).ToList();
+				var statements = result.Statements;
 
 				foreach (var statement in statements) {
-					statement.IsFromQuery = true;
-					statement.SourceQuery = query;
+					if (statement != null)
+						statement.SetSource(query);
 				}
 
 				return statements;

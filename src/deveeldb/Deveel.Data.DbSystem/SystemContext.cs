@@ -16,13 +16,19 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql.Compile;
 
 namespace Deveel.Data.DbSystem {
-	public sealed class SystemContext : ISystemContext, IServiceResolveContext { 
+	public sealed class SystemContext : ISystemContext, IServiceResolveContext {
+		// We preserve an instance of the compiler...
+		private ISqlCompiler sqlCompiler;
+		private IEnumerable<IEventRouter> eventRouters;
+
 		public SystemContext()
 			: this(DbConfig.Default) {
 		}
@@ -77,19 +83,31 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		object IServiceResolveContext.OnResolve(Type type, string name) {
+			if (typeof (ISqlCompiler).IsAssignableFrom(type))
+				return sqlCompiler;
+
 			return null;
 		}
 
 		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
+			if (obj is ISqlCompiler)
+				sqlCompiler = (ISqlCompiler) obj;
+
 			if (obj != null && obj is IConfigurable)
 				((IConfigurable)obj).Configure(Configuration);
 		}
 
 		IEnumerable IServiceResolveContext.OnResolveAll(Type type) {
+			if (type == typeof (IEventRouter))
+				return eventRouters;
+
 			return null;
 		}
 
 		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
+			if (type == typeof (IEventRouter))
+				eventRouters = list.Cast<IEventRouter>().ToList();
+
 			if (list != null) {
 				foreach (var service in list.OfType<IConfigurable>()) {
 					service.Configure(Configuration);
