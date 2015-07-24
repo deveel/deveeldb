@@ -40,7 +40,7 @@ namespace Deveel.Data.Store {
 
 			Id = id;
 			this.store = store;
-			fixedList = new FixedRecordList(store, 24);
+			fixedList = new FixedRecordList(store, 30);
 		}
 
 		private long AddToRecordList(long recordOffset) {
@@ -60,6 +60,7 @@ namespace Deveel.Data.Store {
 					a.WriteInt4(0);
 					a.WriteInt4(0);
 					a.WriteInt8(-1);  // Initially unknown size
+					a.WriteInt8(0);	  // Initially unknown current size
 					a.WriteInt8(recordOffset);
 					// Set the rest of the block as deleted records
 					for (long n = 1; n < sizeOfBlock - 1; ++n) {
@@ -98,6 +99,8 @@ namespace Deveel.Data.Store {
 				block.ReadInt4();
 				// The size (should be -1);
 				block.ReadInt8();
+				// The current size should be 0
+				block.ReadInt8();
 				// The pointer to the next in the chain.
 				long nextChain = block.ReadInt8();
 				firstDeleteChainRecord = nextChain;
@@ -110,6 +113,7 @@ namespace Deveel.Data.Store {
 				block.WriteInt4(0);
 				block.WriteInt4(0);
 				block.WriteInt8(-1);    // Initially unknown size
+				block.WriteInt8(0);
 				block.WriteInt8(recordOffset);
 
 				// Check out the changes
@@ -178,7 +182,7 @@ namespace Deveel.Data.Store {
 
 				// Allocate the area (plus header area) for storing the blob pages
 				long pageCount = ((maxSize - 1) / (PageSize * 1024)) + 1;
-				IArea objArea = store.CreateArea((pageCount * 8) + 24);
+				IArea objArea = store.CreateArea((pageCount * 8) + 32);
 				long objAreaId = objArea.Id;
 
 				var type = 2;			// Binary Type
@@ -189,6 +193,7 @@ namespace Deveel.Data.Store {
 				objArea.WriteInt4(0);           // Reserved for future
 				objArea.WriteInt4(type);
 				objArea.WriteInt8(maxSize);
+				objArea.WriteInt8(0);
 				objArea.WriteInt8(pageCount);
 
 				// Initialize the empty blob area
@@ -201,7 +206,7 @@ namespace Deveel.Data.Store {
 
 				// Update the fixed_list and return the record number for this blob
 				long refId = AddToRecordList(objAreaId);
-				return new LargeObject(this, refId, maxSize, compressed, false);
+				return new LargeObject(this, refId, maxSize, 0, compressed, false);
 			} finally {
 				store.UnlockForWrite();
 			}
@@ -210,9 +215,10 @@ namespace Deveel.Data.Store {
 		public class LargeObject : ILargeObject {
 			private readonly ObjectStore store;
 
-			public LargeObject(ObjectStore store, long refId, long size, bool compressed, bool isComplete) {
+			public LargeObject(ObjectStore store, long refId, long size, long currentSize, bool compressed, bool isComplete) {
 				this.store = store;
 				RawSize = size;
+				CurrentSize = currentSize;
 				Id = new ObjectId(store.Id, refId);
 				IsCompressed = compressed;
 				IsComplete = isComplete;
@@ -224,6 +230,8 @@ namespace Deveel.Data.Store {
 			public ObjectId Id { get; private set; }
 
 			public long RawSize { get; private set; }
+
+			public long CurrentSize { get; private set; }
 
 			public bool IsCompressed { get; private set; }
 
@@ -237,6 +245,7 @@ namespace Deveel.Data.Store {
 				if (IsComplete)
 					throw new IOException("The object is complete and cannot be written.");
 
+				CurrentSize += length;
 				store.WriteObjectPart(Id.Id, offset, buffer, 0, length);
 			}
 
@@ -275,6 +284,7 @@ namespace Deveel.Data.Store {
 
 				int refCount = block.ReadInt4();
 				long size = block.ReadInt8();
+				long currentSize = block.ReadInt8();
 				long pageCount = block.ReadInt8();
 
 				try {
@@ -283,7 +293,8 @@ namespace Deveel.Data.Store {
 					block.Position = recordPos;
 					block.WriteInt4(1);				// Status
 					block.WriteInt4(0);				// Reference Count
-					block.WriteInt8(obj.RawSize);	// Final Size
+					block.WriteInt8(obj.CurrentSize);	// Final Size
+					block.WriteInt8(obj.CurrentSize);
 					block.WriteInt8(pageCount);		// Page Count
 					block.Flush();
 				} finally {
@@ -305,31 +316,31 @@ namespace Deveel.Data.Store {
 				throw new Exception("Assert failed: length is greater than 64K.");
 			}
 
-			int status;
 			int refCount;
-			long size;
 			long objPos;
+			long maxSize;
+			long currentSize;
 
 			lock (fixedList) {
 				if (id < 0 || id >= fixedList.NodeCount)
 					throw new IOException("Object id is out of range.");
 
 				IArea block = fixedList.GetRecord(id);
-				status = block.ReadInt4();
+				var status = block.ReadInt4();
 				if ((status & DeletedFlag) != 0)
 					throw new ApplicationException("Assertion failed: record is deleted!");
 
-				refCount = block.ReadInt4();
-				size = block.ReadInt8();
-				objPos = block.ReadInt8();
-
+				block.ReadInt4();		// Ref count
+				maxSize = block.ReadInt8();		// Total Size / Max Size
+				currentSize = block.ReadInt8();		// Current Size
+				objPos = block.ReadInt8();	// Last Page Position
 			}
 
 			// Open an IArea into the blob
 			IArea area = store.GetArea(objPos);
 			area.ReadInt4();
 			var type = area.ReadInt4();
-			size = area.ReadInt8();
+			var size = area.ReadInt8();
 
 			// Assert that the area being Read is within the bounds of the blob
 			if (objOffset < 0 || objOffset + length > size) {
@@ -338,7 +349,7 @@ namespace Deveel.Data.Store {
 
 			// Convert to the page number
 			long pageNumber = (objOffset / (PageSize * 1024));
-			area.Position = (int)((pageNumber * 8) + 24);
+			area.Position = (int)((pageNumber * 8) + 32);
 			long pagePos = area.ReadInt8();
 
 			if (pagePos != -1) {
@@ -375,6 +386,7 @@ namespace Deveel.Data.Store {
 
 				// Update the page in the header.
 				area.Position = (int)((pageNumber * 8) + 24);
+				area.WriteInt8(currentSize + writeLength);
 				area.WriteInt8(pagePos);
 				// Check out this change.
 				area.Flush();
@@ -394,8 +406,8 @@ namespace Deveel.Data.Store {
 			}
 
 			int status;
-			int refCount;
-			long size;
+			long maxSize;
+			long currentSize;
 			long objPointer;
 
 			lock (fixedList) {
@@ -413,17 +425,19 @@ namespace Deveel.Data.Store {
 					throw new ApplicationException("Assertion failed: record is deleted!");
 
 				// Get the reference count
-				refCount = block.ReadInt4();
+				block.ReadInt4();
 				// Get the total size of the object
-				size = block.ReadInt8();
+				maxSize = block.ReadInt8();
+				// Get the current running size of the block
+				currentSize = block.ReadInt8();
 				// Get the blob pointer
 				objPointer = block.ReadInt8();
 
 			}
 
 			// Assert that the area being Read is within the bounds of the object
-			if (off < 0 || off + length > size) {
-				throw new IOException("Invalid Read.  offset = " + off + ", length = " + length);
+			if (off < 0 || objOffset + length > maxSize) {
+				throw new IOException("Invalid Read.  offset = " + objOffset + ", length = " + length + " > maxSize = " + maxSize);
 			}
 
 			// Open an IArea into the object
@@ -433,7 +447,7 @@ namespace Deveel.Data.Store {
 
 			// Convert to the page number
 			long pageNumber = (objOffset / (64 * 1024));
-			area.Position = (int)((pageNumber * 8) + 24);
+			area.Position = (int)((pageNumber * 8) + 32);
 			long pagePointer = area.ReadInt8();
 
 			// Read the page
@@ -465,7 +479,8 @@ namespace Deveel.Data.Store {
 
 		public ILargeObject GetObject(ObjectId id) {
 			long objOffset;
-			long size;
+			long maxSize;
+			long currentSize;
 			lock (fixedList) {
 				if (id.StoreId != Id)
 					throw new InvalidObjectIdException(id);
@@ -486,7 +501,9 @@ namespace Deveel.Data.Store {
 				// Get the reference count
 				int refCount = block.ReadInt4();
 				// Get the total size of the blob
-				size = block.ReadInt8();
+				maxSize = block.ReadInt8();
+				// Get the current running size
+				currentSize = block.ReadInt8();
 				// Get the blob pointer
 				objOffset = block.ReadInt8();
 			}
@@ -502,7 +519,7 @@ namespace Deveel.Data.Store {
 			long pageCount = area.ReadInt8();
 
 			bool compressed = (type & CompressedFlag) != 0;
-			return new LargeObject(this, id.Id, size, compressed, true);
+			return new LargeObject(this, id.Id, maxSize, currentSize, compressed, true);
 		}
 
 		private void EstablishReference(long id) {

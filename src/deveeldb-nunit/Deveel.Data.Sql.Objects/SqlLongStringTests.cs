@@ -14,6 +14,8 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.Store;
 
@@ -32,6 +34,15 @@ namespace Deveel.Data.Sql.Objects {
 
 		private ILargeObject GetLargeObject(ObjectId id) {
 			return objStore.GetObject(id);
+		}
+
+		private void WriteToObject(ILargeObject obj, Encoding encoding, string text) {
+			using (var stream = new ObjectStream(obj)) {
+				using (var streamWriter = new StreamWriter(stream, encoding)) {
+					streamWriter.Write(text);
+					streamWriter.Flush();
+				}
+			}
 		}
 
 		[SetUp]
@@ -57,44 +68,42 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(stringObj.IsNull);
 		}
 
-		//[Test]
-		//public void WriteAndRead_Unicode() {
-		//	const string testLine = "A simple test string that can span several characters, " +
-		//							"that is trying to be the longest possible, just to prove" +
-		//							"the capacity of a LONG VARCHAR to handle very long strings. "+
-		//							"Anyway it is virtually impossible to reach the maximum size "+
-		//							"of a long object, that is organized in 64k byte pages and "+
-		//							"spans within the local system without any constraint of size. "+
-		//							"For sake of memory anyway, the maximum size of the test object "+
-		//							"is set to just 2048 bytes.";
+		[Test]
+		public void WriteAndRead_Unicode() {
+			const string testLine = "A simple test string that can span several characters, " +
+									"that is trying to be the longest possible, just to prove" +
+									"the capacity of a LONG VARCHAR to handle very long strings. " +
+									"Anyway it is virtually impossible to reach the maximum size " +
+									"of a long object, that is organized in 64k byte pages and " +
+									"spans within the local system without any constraint of size. " +
+									"For sake of memory anyway, the maximum size of the test object " +
+									"is set to just 2048 bytes.";
 
-		//	var obj = CreateLargeObject(2048, false);
-		//	var objId = obj.Id;
+			var obj = CreateLargeObject(2048, false);
 
-		//	var stringObj = SqlLongString.Unicode(obj);
-		//	Assert.IsNotNull(stringObj);
-		//	Assert.IsFalse(stringObj.IsNull);
+			WriteToObject(obj, Encoding.Unicode,  testLine);
 
-		//	var writer = stringObj.GetOutput();
-		//	Assert.IsNotNull(writer);
-		//	Assert.DoesNotThrow(() => writer.WriteLine(testLine));
-		//	writer.Flush();
-		//	obj.Complete();
-		//	obj.Dispose();
+			obj.Complete();
 
-		//	obj = GetLargeObject(objId);
-		//	Assert.IsTrue(obj.IsComplete);
-		//	Assert.IsFalse(obj.IsCompressed);
+			var objId = obj.Id;
 
-		//	stringObj = SqlLongString.Unicode(obj);
-		//	var reader = stringObj.GetInput();
-		//	Assert.IsNotNull(reader);
+			var stringObj = SqlLongString.Unicode(obj);
+			Assert.IsNotNull(stringObj);
+			Assert.IsFalse(stringObj.IsNull);
 
-		//	string line = null;
-		//	Assert.DoesNotThrow(() => line = reader.ReadLine());
-		//	Assert.IsNotNullOrEmpty(line);
+			obj = GetLargeObject(objId);
+			Assert.IsTrue(obj.IsComplete);
+			Assert.IsFalse(obj.IsCompressed);
 
-		//	Assert.AreEqual(testLine, line);
-		//}
+			stringObj = SqlLongString.Unicode(obj);
+			var reader = stringObj.GetInput();
+			Assert.IsNotNull(reader);
+
+			string line = null;
+			Assert.DoesNotThrow(() => line = reader.ReadLine());
+			Assert.IsNotNullOrEmpty(line);
+
+			Assert.AreEqual(testLine, line);
+		}
 	}
 }

@@ -54,18 +54,23 @@ namespace Deveel.Data.Store {
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				outTempStream.Dispose();
-				outTempStream = null;
+				if (outTempStream != null)
+					outTempStream.Dispose();
 			}
 
+			outTempStream = null;
 			base.Dispose(disposing);
 		}
 
 		public override void Flush() {
+			if (outTempStream == null ||
+			    outTempStream.Length == 0)
+				return;
+
 			try {
 				long offset = 0;
 				var buffer = new byte[BufferSize];
-				var totalLength = largeObject.RawSize;
+				var totalLength = outTempStream.Length;
 
 				outTempStream.Seek(0, SeekOrigin.Begin);
 
