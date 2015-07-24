@@ -578,7 +578,19 @@ namespace Deveel.Data {
 		}
 
 		public static DataObject Date(SqlDateTime value) {
-			return new DataObject(PrimitiveTypes.DateTime(SqlTypeCode.Date), value);
+			return Date(SqlTypeCode.Date, value);
+		}
+
+		public static DataObject TimeStamp(SqlDateTime value) {
+			return Date(SqlTypeCode.TimeStamp, value);
+		}
+
+		public static DataObject Date(SqlTypeCode typeCode, SqlDateTime value) {
+			return new DataObject(PrimitiveTypes.DateTime(typeCode), value);
+		}
+
+		public static DataObject Time(SqlDateTime value) {
+			return Date(SqlTypeCode.Time, value);
 		}
 
 		public static DataObject VarChar(string s) {

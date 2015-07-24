@@ -15,8 +15,11 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Types;
 
@@ -39,31 +42,83 @@ namespace Deveel.Data.Routines {
 			return context.Result(value);
 		}
 
-		private ExecuteResult Simple(ExecuteContext context, Func<DataObject, DataObject, DataObject> func) {
+		private ExecuteResult Binary(ExecuteContext context, Func<DataObject, DataObject, DataObject> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated[0], evaluated[1]);
 			return context.Result(value);			
 		}
 
 		private void AddAggregateFunctions() {
-			// Aggregate OR
-			New("aggor")
+			Register(configuration => configuration
+				.Named("aggor")
 				.WithParameter(p => p.Named("args").Unbounded().OfDynamicType())
-				.Aggregate()
-				.WhenExecute(context => Simple(context, SystemFunctions.Or));
+				.OfAggregateType()
+				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
+
+			// COUNT
+			Register(config => config.Named("count")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.WhenExecute(Count.Execute)
+				.OfAggregateType()
+				.ReturnsNumeric());
+
 		}
 
 		private void AddSecurityFunctions() {
-			New("user")
+			Register(config => config.Named("user")
 				.WhenExecute(context => context.Result(SystemFunctions.User(context.QueryContext)))
-				.ReturnsString();
+				.ReturnsString());
 		}
 
 		private void AddConversionFunctions() {
-			New("todate")
-				.WithParameter(p => p.Named("value").OfStringType())
+			Register(config => config.Named("cast")
+				.WithDynamicParameter("value")
+				.WithStringParameter("destType")
+				.WhenExecute(Cast.Execute)
+				.ReturnsType(Cast.ReturnType));
+
+			Register(config => config.Named("tonumber")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToNumber(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("tostring")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToString(args[0])))
+				.ReturnsString());
+
+			Register(config => config.Named("tobinary")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToBinary(args[0])))
+				.ReturnsType(PrimitiveTypes.Binary()));
+
+			// Date Conversions
+			Register(config => config.Named("todate")
+				.WithStringParameter("value")
 				.WhenExecute(context => Simple(context, objects => SystemFunctions.ToDate(objects[0])))
-				.ReturnsType(PrimitiveTypes.Date());
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("todatetime")
+				.WithStringParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToDateTime(args[0])))
+				.ReturnsType(PrimitiveTypes.DateTime()));
+
+			Register(config => config.Named("totimestamp")
+				.WithParameter(p => p.Named("value").OfStringType())
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToTimeStamp(args[0])))
+				.ReturnsType(PrimitiveTypes.TimeStamp()));
+		}
+
+		private void AddSequenceFunctions() {
+			Register(config => config.Named("uniquekey")
+				.WithStringParameter("table")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.UniqueKey(context.QueryContext, args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("curval")
+				.WithStringParameter("table")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.QueryContext, args[0])))
+				.ReturnsNumeric());
 		}
 
 		protected override void OnInit() {
@@ -71,6 +126,73 @@ namespace Deveel.Data.Routines {
 
 			AddConversionFunctions();
 			AddSecurityFunctions();
+			AddSequenceFunctions();
 		}
+
+		#region Count
+
+		private static class Count {
+			public static ExecuteResult Execute(ExecuteContext context) {
+				if (context.GroupResolver == null)
+					throw new Exception("'count' can only be used as an aggregate function.");
+
+				int size = context.GroupResolver.Count;
+				DataObject result;
+				// if, count(*)
+				if (size == 0 || context.Invoke.IsGlobArgument) {
+					result = DataObject.Integer(size);
+				} else {
+					// Otherwise we need to count the number of non-null entries in the
+					// columns list(s).
+
+					int totalCount = size;
+
+					var exp = context.Arguments[0];
+					for (int i = 0; i < size; ++i) {
+						var val = exp.EvaluateToConstant(context.QueryContext, context.GroupResolver.GetVariableResolver(i));
+						if (val.IsNull) {
+							--totalCount;
+						}
+					}
+
+					result = DataObject.Integer(totalCount);
+				}
+
+				return context.Result(result);
+			}
+		}
+
+		#endregion
+
+		#region DistinctCount
+
+		static class DistinctCount {
+			public static ExecuteResult Execute(ExecuteContext context) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region Cast
+
+		static class Cast {
+			public static ExecuteResult Execute(ExecuteContext context) {
+				var value = context.EvaluatedArguments[0];
+				var typeArg = context.EvaluatedArguments[1];
+				var typeString = typeArg.AsVarChar().Value.ToString();
+				var type = DataType.Parse(context.QueryContext, typeString);
+
+				return context.Result(SystemFunctions.Cast(value, type));
+			}
+
+			public static DataType ReturnType(ExecuteContext context) {
+				var typeArg = context.EvaluatedArguments[1];
+				var typeString = typeArg.AsVarChar().Value.ToString();
+				return DataType.Parse(context.QueryContext, typeString);
+			}
+		}
+
+		#endregion
 	}
 }

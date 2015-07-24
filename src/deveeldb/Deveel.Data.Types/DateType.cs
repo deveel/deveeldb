@@ -90,8 +90,8 @@ namespace Deveel.Data.Types {
 			return SqlType.GetHashCode();
 		}
 
-		public override bool CanCastTo(DataType type) {
-			return type is StringType || type is DateType;
+		public override bool CanCastTo(DataType destType) {
+			return destType is StringType || destType is DateType;
 		}
 
 		private SqlString ToString(SqlDateTime dateTime) {

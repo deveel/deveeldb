@@ -1,110 +1,121 @@
-﻿// 
-//  Copyright 2010-2015 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql.Fluid;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
+using DryIoc;
+
 namespace Deveel.Data.Routines {
-	public abstract class FunctionProvider : IRoutineResolver, IConfigurationContext {
-		private bool initd;
-		private readonly IList<FunctionConfiguration> configurations;
-		private IDictionary<FunctionInfo, IFunction> functions;
+	public abstract class FunctionProvider : IRoutineResolver, IConfigurationContext, IDisposable {
+		private Container container;
 
 		protected FunctionProvider() {
-			configurations = new List<FunctionConfiguration>();
+			container = new Container(Rules.Default.WithResolveIEnumerableAsLazyEnumerable());
+			CallInit();
 		}
 
 		public abstract string SchemaName { get; }
 
-		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
-			if (functions == null)
-				return null;
-
-			var functionName = NormalizeName(request.RoutineName);
-			var normInvoke = new Invoke(functionName, request.Arguments);
-
-			return (functions.Where(entry => entry.Key.MatchesInvoke(normInvoke, context))
-				.Select(entry => entry.Value))
-				.FirstOrDefault();
-		}
-
-		protected virtual ObjectName NormalizeName(ObjectName functionName) {
-			return functionName;
-		}
-
-		public void Init() {
-			if (!initd) {
-				OnInit();
-
-				BuildFunctions();
-				initd = true;
-			}
-		}
-
-		private void BuildFunctions() {
-			if (functions == null)
-				functions = new Dictionary<FunctionInfo, IFunction>();
-
-			foreach (var configuration in configurations) {
-				var functionInfo = configuration.FunctionInfo;
-				foreach (var info in functionInfo) {
-					var function = configuration.AsFunction();
-					functions.Add(info, function);
-				}
-			}
+		private void CallInit() {
+			OnInit();
 		}
 
 		protected abstract void OnInit();
 
-		protected IFunctionConfiguration New() {
-			var config = new FunctionConfiguration(this);
-			configurations.Add(config);
-			return config;
+		protected virtual ObjectName NormalizeName(ObjectName name) {
+			var parentName = name.Parent;
+			if (parentName == null)
+				return null;
+
+			return name;
 		}
 
-		protected IFunctionConfiguration New(string name) {
-			return New().Named(new ObjectName(new ObjectName(SchemaName), name));
+		protected void Register(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> body, Func<ExecuteContext, DataType> returnType) {
+			Register(new DelegateFunction(functionInfo, body, returnType));
 		}
 
-		protected void New(FunctionInfo info, IFunction function) {
-			if (functions == null)
-				functions = new Dictionary<FunctionInfo, IFunction>();
+		protected void Register(Func<IFunctionConfiguration, IFunctionConfiguration> config) {
+			if (config == null)
+				return;
 
-			functions.Add(info, function);
+			var configuration = new FunctionConfiguration(this);
+			config(configuration);
+
+			var functionInfos = configuration.FunctionInfo;
+			foreach (var functionInfo in functionInfos) {
+				Register(functionInfo, configuration.ExecuteFunc, configuration.ReturnTypeFunc);
+			}
 		}
+
+		protected void Register(IFunction function) {
+			if (function == null)
+				throw new ArgumentNullException("function");
+
+			var functionName = function.FullName.FullName.ToUpperInvariant();
+			container.RegisterInstance(function, serviceKey: functionName,reuse:Reuse.Singleton);
+		}
+
+		IRoutine IRoutineResolver.ResolveRoutine(Invoke request, IQueryContext context) {
+			return ResolveFunction(request, context);
+		}
+
+		public IFunction ResolveFunction(Invoke invoke, IQueryContext context) {
+			var name = NormalizeName(invoke.RoutineName);
+
+			if (name == null ||
+				!name.ParentName.Equals(SchemaName))
+				return null;
+
+			var functionName = name.FullName.ToUpperInvariant();
+			var functions = container.ResolveMany<IFunction>(serviceKey:functionName).ToArrayOrSelf();
+			if (functions.Length == 0)
+				return null;
+			if (functions.Length == 1)
+				return functions[0];
+
+			return functions.FirstOrDefault(x => x.RoutineInfo.MatchesInvoke(invoke, context));
+		}
+
+		#region DelegateFunction
+
+		class DelegateFunction : Function {
+			private readonly Func<ExecuteContext, ExecuteResult> functionBody;
+			private readonly Func<ExecuteContext, DataType> returnType; 
+ 
+			public DelegateFunction(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> functionBody, Func<ExecuteContext, DataType> returnType)
+				: base(functionInfo) {
+				this.functionBody = functionBody;
+				this.returnType = returnType;
+			}
+
+			public override ExecuteResult Execute(ExecuteContext context) {
+				return functionBody(context);
+			}
+
+			public override DataType ReturnType(ExecuteContext context) {
+				if (returnType == null)
+					return FunctionInfo.ReturnType;
+
+				return returnType(context);
+			}
+		}
+
+		#endregion
 
 		#region FunctionConfiguration
 
-		class FunctionConfiguration : IAggregateFunctionConfiguration, IRoutineConfiguration {
+		class FunctionConfiguration : IFunctionConfiguration, IRoutineConfiguration {
 			private readonly FunctionProvider provider;
 			private readonly Dictionary<string, RoutineParameter> parameters;
 			private List<ObjectName> aliases;
-
-			private Func<ExecuteContext, DataType> returnTypeFunc;
-			private Func<ExecuteContext, ExecuteResult> executeFunc;
-			private Func<DataObject, DataObject, DataObject> simpleExecuteFunc;
-			private Func<ExecuteContext, DataObject, DataObject> afterAggregateFunc;
 
 			public FunctionConfiguration(FunctionProvider provider) {
 				this.provider = provider;
@@ -114,9 +125,13 @@ namespace Deveel.Data.Routines {
 
 			public FunctionType FunctionType { get; private set; }
 
+			public Func<ExecuteContext, DataType> ReturnTypeFunc { get; private set; }
+
+			public Func<ExecuteContext, ExecuteResult> ExecuteFunc { get; private set; }
+
 			public FunctionInfo[] FunctionInfo {
 				get {
-					var result = new List<FunctionInfo> {new FunctionInfo(FunctionName, parameters.Values.ToArray())};
+					var result = new List<FunctionInfo> { new FunctionInfo(FunctionName, parameters.Values.ToArray()) };
 					if (aliases != null && aliases.Count > 0)
 						result.AddRange(aliases.Select(name => new FunctionInfo(name, parameters.Values.ToArray())));
 
@@ -138,13 +153,6 @@ namespace Deveel.Data.Routines {
 				return parameters.Values.Any(x => x.IsUnbounded);
 			}
 
-			public DataType ReturnType(ExecuteContext context) {
-				if (returnTypeFunc != null)
-					return returnTypeFunc(context);
-
-				throw new InvalidOperationException();
-			}
-
 			public IFunctionConfiguration Named(ObjectName name) {
 				if (name == null)
 					throw new ArgumentNullException("name");
@@ -156,6 +164,11 @@ namespace Deveel.Data.Routines {
 						"The parent name ({0}) is not valid in this provider schema context ({1})", parent, provider.SchemaName));
 
 				FunctionName = name;
+				return this;
+			}
+
+			public IFunctionConfiguration OfType(FunctionType functionType) {
+				FunctionType = functionType;
 				return this;
 			}
 
@@ -195,123 +208,14 @@ namespace Deveel.Data.Routines {
 				return this;
 			}
 
-			public IAggregateFunctionConfiguration Aggregate() {
-				FunctionType = FunctionType.Aggregate;
-				return this;
-			}
-
 			public IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns) {
-				returnTypeFunc = returns;
+				ReturnTypeFunc = returns;
 				return this;
 			}
 
 			public IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute) {
-				executeFunc = execute;
+				ExecuteFunc = execute;
 				return this;
-			}
-
-			public IFunctionConfiguration WhenExecute(Func<DataObject, DataObject, DataObject> execute) {
-				simpleExecuteFunc = execute;
-				return this;
-			}
-
-			public IAggregateFunctionConfiguration OnAfterAggregate(Func<ExecuteContext, DataObject, DataObject> afterAggregate) {
-				if (FunctionType != FunctionType.Aggregate)
-					throw new InvalidOperationException("The function is not aggregate.");
-
-				afterAggregateFunc = afterAggregate;
-				return this;
-			}
-
-			public IFunction AsFunction() {
-				return new ConfiguredFunction(this);
-			}
-
-			public ExecuteResult Execute(ExecuteContext context) {
-				if (executeFunc == null)
-					throw new InvalidOperationException("The function has no body defined");
-
-				if (FunctionType == FunctionType.Aggregate) {
-					if (context.GroupResolver == null)
-						throw new InvalidOperationException(String.Format("routine '{0}' can only be used as an aggregate function.",
-							FunctionName));
-
-					DataObject result = null;
-
-					// All aggregates functions return 'null' if group size is 0
-					int size = context.GroupResolver.Count;
-					if (size == 0) {
-						// Return a NULL of the return type
-						return context.Result(new DataObject(ReturnType(context), SqlNull.Value));
-					}
-
-					DataObject val;
-					var v = context.Arguments[0].AsReferenceName();
-
-					// If the aggregate parameter is a simple variable, then use optimal
-					// routine,
-					if (v != null) {
-						for (int i = 0; i < size; ++i) {
-							val = context.GroupResolver.Resolve(v, i);
-
-							if (simpleExecuteFunc != null) {
-								result = simpleExecuteFunc(result, val);
-							} else {
-								var args = new SqlExpression[] {
-									SqlExpression.Constant(result),
-									SqlExpression.Constant(val)
-								};
-
-								var newRequest = new Invoke(FunctionName, args);
-								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
-									context.GroupResolver, context.QueryContext);
-
-								var execResult = executeFunc(tempContext);
-
-								if (!execResult.HasReturnValue)
-									throw new InvalidOperationException();
-
-								result = execResult.ReturnValue;
-							}
-						}
-					} else {
-						// Otherwise we must resolve the expression for each entry in group,
-						// This allows for expressions such as 'sum(quantity * price)' to
-						// work for a group.
-						SqlExpression exp = context.Arguments[0];
-						for (int i = 0; i < size; ++i) {
-							val = exp.EvaluateToConstant(context.QueryContext, context.GroupResolver.GetVariableResolver(i));
-
-							if (simpleExecuteFunc != null) {
-								result = simpleExecuteFunc(result, val);
-							} else {
-								var args = new SqlExpression[] {
-									SqlExpression.Constant(result),
-									SqlExpression.Constant(val)
-								};
-
-								var newRequest = new Invoke(FunctionName, args);
-								var tempContext = new ExecuteContext(newRequest, context.Routine, context.VariableResolver,
-									context.GroupResolver, context.QueryContext);
-
-								var execResult = executeFunc(tempContext);
-
-								if (!execResult.HasReturnValue)
-									throw new InvalidOperationException();
-
-								result = execResult.ReturnValue;
-							}
-						}
-					}
-
-					// Post method.
-					if (afterAggregateFunc != null)
-						result = afterAggregateFunc(context, result);
-
-					return context.Result(result);
-				}
-
-				return executeFunc(context);
 			}
 
 			public IConfigurationContext Context {
@@ -375,48 +279,9 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
-		#region ConfiguredFunction
-
-		class ConfiguredFunction : IFunction {
-			private readonly FunctionConfiguration configuration;
-
-			public ConfiguredFunction(FunctionConfiguration configuration) {
-				this.configuration = configuration;
-			}
-
-			RoutineType IRoutine.Type {
-				get { return RoutineType.Function; }
-			}
-
-			private FunctionInfo FunctionInfo {
-				get { return new FunctionInfo(configuration.FunctionName, configuration.Parameters, configuration.FunctionType); }
-			}
-
-			RoutineInfo IRoutine.RoutineInfo {
-				get { return FunctionInfo; }
-			}
-
-			DbObjectType IDbObject.ObjectType {
-				get { return DbObjectType.Routine; }
-			}
-
-			public ObjectName FullName {
-				get { return configuration.FunctionName; }
-			}
-
-			public ExecuteResult Execute(ExecuteContext context) {
-				return configuration.Execute(context);
-			}
-
-			public FunctionType FunctionType {
-				get { return configuration.FunctionType; }
-			}
-
-			public DataType ReturnType(ExecuteContext context) {
-				return configuration.ReturnType(context);
-			}
+		public void Dispose() {
+			if (container != null)
+				container.Dispose();
 		}
-
-		#endregion
-	} 
+	}
 }

@@ -23,11 +23,11 @@ namespace Deveel.Data.Sql.Fluid {
 	public interface IFunctionConfiguration {
 		IFunctionConfiguration Named(ObjectName name);
 
+		IFunctionConfiguration OfType(FunctionType functionType);
+
 		IFunctionConfiguration WithAlias(ObjectName alias);
 
 		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
-
-		IAggregateFunctionConfiguration Aggregate();
 
 		IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns);
 

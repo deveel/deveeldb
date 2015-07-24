@@ -268,11 +268,11 @@ namespace Deveel.Data.Types {
 		}
 
 		/// <inheritdoc/>
-		public override bool CanCastTo(DataType type) {
-			return type.SqlType != SqlTypeCode.Array &&
-			       type.SqlType != SqlTypeCode.ColumnType &&
-			       type.SqlType != SqlTypeCode.RowType &&
-			       type.SqlType != SqlTypeCode.Object;
+		public override bool CanCastTo(DataType destType) {
+			return destType.SqlType != SqlTypeCode.Array &&
+			       destType.SqlType != SqlTypeCode.ColumnType &&
+			       destType.SqlType != SqlTypeCode.RowType &&
+			       destType.SqlType != SqlTypeCode.Object;
 		}
 
 		/// <inheritdoc/>

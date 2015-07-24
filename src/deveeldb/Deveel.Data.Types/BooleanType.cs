@@ -68,11 +68,11 @@ namespace Deveel.Data.Types {
 			return type is BooleanType || type is NumericType;
 		}
 
-		public override bool CanCastTo(DataType type) {
-			return type is StringType ||
-			       type is NumericType ||
-			       type is BinaryType ||
-				   type is BooleanType;
+		public override bool CanCastTo(DataType destType) {
+			return destType is StringType ||
+			       destType is NumericType ||
+			       destType is BinaryType ||
+				   destType is BooleanType;
 		}
 
 		public override DataObject CastTo(DataObject value, DataType destType) {

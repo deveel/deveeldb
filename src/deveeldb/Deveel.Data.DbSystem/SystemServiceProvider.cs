@@ -102,7 +102,7 @@ namespace Deveel.Data.DbSystem {
 					if (resolved != null)
 						return resolved;
 
-				resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnNull);
+				resolved = container.Resolve(serviceType, name);
 
 				OnResolved(serviceType, name, resolved);
 
@@ -127,7 +127,7 @@ namespace Deveel.Data.DbSystem {
 						return list;
 
 				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
-				list = container.Resolve(resolveType, IfUnresolved.ReturnNull) as IEnumerable;
+				list = container.Resolve(resolveType) as IEnumerable;
 
 				OnResolvedAll(serviceType, list);
 
@@ -146,11 +146,11 @@ namespace Deveel.Data.DbSystem {
 				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
 					var ifaces = serviceType.GetInterfaces();
 					foreach (var iface in ifaces) {
-						container.Register(iface, serviceType, named:name);
+						container.Register(iface, serviceType, serviceKey:name);
 					}
 				}
 
-				container.Register(serviceType, named:name, reuse: Reuse.InCurrentScope);
+				container.Register(serviceType, serviceKey:name);
 			}
 		}
 
@@ -165,12 +165,10 @@ namespace Deveel.Data.DbSystem {
 				var serviceType = service.GetType();
 				var ifaces = serviceType.GetInterfaces();
 				foreach (var iface in ifaces) {
-					var method = typeof (Registrator).GetMethod("RegisterInstance", BindingFlags.Static | BindingFlags.Public);
-					method = method.MakeGenericMethod(iface);
-					method.Invoke(null, new[] {container, service, null, null});
+					container.Register(iface, serviceType, serviceKey: name);
 				}
 
-				container.RegisterInstance(service, named:name);
+				container.RegisterInstance(service, serviceKey:name);
 			}
 		}
 

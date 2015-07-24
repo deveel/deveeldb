@@ -36,7 +36,7 @@ namespace Deveel.Data.Routines {
 			: base(name, parameters, returnType, functionType) {
 		}
 
-		protected override DataObject Evaluate(DataObject[] args) {
+		public override ExecuteResult Execute(ExecuteContext context) {
 			throw new NotImplementedException();
 		}
 	}

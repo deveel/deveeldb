@@ -17,6 +17,8 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -28,7 +30,6 @@ namespace Deveel.Data.Routines {
 			get {
 				if (provider == null) {
 					provider = new SystemFunctionsProvider();
-					provider.Init();
 				}
 
 				return provider;
@@ -46,6 +47,71 @@ namespace Deveel.Data.Routines {
 
 		public static DataObject ToDate(DataObject obj) {
 			return obj.CastTo(PrimitiveTypes.Date());
+		}
+
+		public static DataObject ToDate(SqlString value) {
+			return ToDate(DataObject.String(value));
+		}
+
+		public static DataObject ToDateTime(DataObject obj) {
+			return obj.CastTo(PrimitiveTypes.DateTime());
+		}
+
+		public static DataObject ToDateTime(SqlString value) {
+			return ToDateTime(DataObject.String(value));
+		}
+
+		public static DataObject ToTimeStamp(DataObject obj) {
+			return obj.CastTo(PrimitiveTypes.TimeStamp());
+		}
+
+		public static DataObject ToTimeStamp(SqlString value) {
+			return ToTimeStamp(DataObject.String(value));
+		}
+
+		public static DataObject Cast(DataObject value, DataType destType) {
+			return value.CastTo(destType);
+		}
+
+		public static DataObject Cast(IQueryContext context, DataObject value, SqlString typeString) {
+			var destType = DataType.Parse(context, typeString.ToString());
+			return Cast(value, destType);
+		}
+
+		public static DataObject ToNumber(DataObject value) {
+			return value.CastTo(PrimitiveTypes.Numeric());
+		}
+
+		public static DataObject ToString(DataObject value) {
+			return value.CastTo(PrimitiveTypes.String());
+		}
+
+		public static DataObject ToBinary(DataObject value) {
+			return value.CastTo(PrimitiveTypes.Binary());
+		}
+
+		public static DataObject UniqueKey(IQueryContext context, DataObject tableName) {
+			var tableNameString = (SqlString)tableName.Value;
+			var value = UniqueKey(context, tableNameString);
+			return DataObject.Number(value);
+		}
+
+		public static SqlNumber UniqueKey(IQueryContext context, SqlString tableName) {
+			var tableNameString = tableName.ToString();
+			var resolvedName = context.ResolveTableName(tableNameString);
+			return context.GetNextValue(resolvedName);
+		}
+
+		public static DataObject CurrentValue(IQueryContext context, DataObject tableName) {
+			var tableNameString = (SqlString)tableName.Value;
+			var value = CurrentValue(context, tableNameString);
+			return DataObject.Number(value);
+		}
+
+		public static SqlNumber CurrentValue(IQueryContext context, SqlString tableName) {
+			var tableNameString = tableName.ToString();
+			var resolvedName = context.ResolveTableName(tableNameString);
+			return context.GetCurrentValue(resolvedName);
 		}
 	}
 }

@@ -174,11 +174,11 @@ namespace Deveel.Data.Types {
 			return new SqlDateTime(time);
 		}
 
-		public override bool CanCastTo(DataType type) {
-			return type.SqlType != SqlTypeCode.Array &&
-			       type.SqlType != SqlTypeCode.ColumnType &&
-			       type.SqlType != SqlTypeCode.RowType &&
-			       type.SqlType != SqlTypeCode.Object;
+		public override bool CanCastTo(DataType destType) {
+			return destType.SqlType != SqlTypeCode.Array &&
+			       destType.SqlType != SqlTypeCode.ColumnType &&
+			       destType.SqlType != SqlTypeCode.RowType &&
+			       destType.SqlType != SqlTypeCode.Object;
 		}
 
 		public override DataObject CastTo(DataObject value, DataType destType) {
@@ -223,6 +223,7 @@ namespace Deveel.Data.Types {
 					break;
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
+				case (SqlTypeCode.String):
 					casted = new SqlString(n.ToString());
 					break;
 				case (SqlTypeCode.Date):

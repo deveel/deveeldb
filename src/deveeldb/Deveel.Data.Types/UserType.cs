@@ -48,7 +48,7 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		public override bool CanCastTo(DataType type) {
+		public override bool CanCastTo(DataType destType) {
 			return false;
 		}
 

@@ -19,21 +19,21 @@ namespace Deveel.Data.Spatial {
 		}
 
 		protected override void OnInit() {
-			New("from_wkb")
+			Register(config => config.Named("from_wkb")
 				.WithParameter(p => p.Named("source").OfType(PrimitiveTypes.Binary()))
 				.WhenExecute(context => {
 					var arg = context.EvaluatedArguments[0];
 					return context.Result(SpatialSystemFunctions.FromWkb(arg));
 				})
-				.ReturnsType(SpatialType.Geometry());
+				.ReturnsType(SpatialType.Geometry()));
 
-			New("from_wkt")
+			Register(config => config.Named("from_wkt")
 				.WithParameter(p => p.Named("source").OfType(PrimitiveTypes.String()))
 				.WhenExecute(context => {
 					var arg = context.EvaluatedArguments[0];
 					return context.Result(SpatialSystemFunctions.FromWkt(arg));
 				})
-				.ReturnsType(SpatialType.Geometry());
+				.ReturnsType(SpatialType.Geometry()));
 
 			// TODO: Implement the functions
 		}

@@ -64,6 +64,10 @@ namespace Deveel.Data.Sql.Objects {
 			"HH:mm:ss"
 		};
 
+		public const string TimeStringFormat = "HH:mm:ss.fff zzz";
+		public const string TimeStampStringFormat = "yyyy-MM-ddTHH:mm:ss.fff zzz";
+		public const string DateStringFormat = "yyyy-MM-dd";
+
 		public static readonly SqlDateTime MaxDate = new SqlDateTime(9999, 12, 31, 23, 59, 59, 999);
 		public static readonly SqlDateTime MinDate = new SqlDateTime(1, 1, 1, 0, 0, 0, 0);
 
@@ -587,7 +591,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(SqlDateFormats[0]);
+			var s = value.Value.ToString(DateStringFormat);
 			return new SqlString(s);
 		}
 
@@ -595,7 +599,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(SqlTimeFormats[0]);
+			var s = value.Value.ToString(TimeStringFormat);
 			return new SqlString(s);
 		}
 
@@ -603,7 +607,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(SqlTimeStampFormats[0]);
+			var s = value.Value.ToString(TimeStampStringFormat);
 			return new SqlString(s);
 		}
 

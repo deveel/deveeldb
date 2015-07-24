@@ -8,9 +8,9 @@ namespace Deveel.Data.Xml {
 			: base("XMLNODE", SqlTypeCode.Type) {
 		}
 
-		public override bool CanCastTo(DataType type) {
-			return type is StringType ||
-			       type is BinaryType;
+		public override bool CanCastTo(DataType destType) {
+			return destType is StringType ||
+			       destType is BinaryType;
 		}
 	}
 }

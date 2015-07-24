@@ -168,8 +168,17 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			try {
 				var invoke = new Invoke(expression.FunctioName, expression.Arguments);
+				IQueryContext queryContext = null;
+				IVariableResolver variableResolver = null;
+				IGroupResolver groupResolver = null;
+				if (context != null) {
+					queryContext = context.QueryContext;
+					variableResolver = context.VariableResolver;
+					groupResolver = context.GroupResolver;
+				}
+
 				// TODO: if we don't have a return value (PROCEDURES) what should w return?
-				var result = invoke.Execute(context.QueryContext, context.VariableResolver, context.GroupResolver);
+				var result = invoke.Execute(queryContext, variableResolver, groupResolver);
 				if (!result.HasReturnValue)
 					return SqlExpression.Constant(DataObject.Null());
 

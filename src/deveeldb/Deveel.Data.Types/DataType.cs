@@ -136,7 +136,7 @@ namespace Deveel.Data.Types {
 		/// <summary>
 		/// Verifies if this type can cast any value to the given <see cref="DataType"/>.
 		/// </summary>
-		/// <param name="type">The other type, destination of the cast, to verify.</param>
+		/// <param name="destType">The other type, destination of the cast, to verify.</param>
 		/// <remarks>
 		/// By default, this method returns <c>false</c>, because cast process must be
 		/// specified per type: when overriding the method <see cref="CastTo"/>, pay attention
@@ -145,7 +145,7 @@ namespace Deveel.Data.Types {
 		/// <returns>
 		/// </returns>
 		/// <see cref="CastTo"/>
-		public virtual bool CanCastTo(DataType type) {
+		public virtual bool CanCastTo(DataType destType) {
 			return false;
 		}
 

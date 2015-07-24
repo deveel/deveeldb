@@ -12,8 +12,8 @@ namespace Deveel.Data.Routines {
 	public class FunctionBuildTests : ContextBasedTest {
 		[Test]
 		public void ScalarWithNoArguments() {
-			var factory1 = new Factory1();
-			Assert.DoesNotThrow(factory1.Init);
+			FunctionProvider factory1 = null;
+			Assert.DoesNotThrow(() => factory1 = new Factory1());
 
 			IFunction function = null;
 			Assert.DoesNotThrow(() => function = factory1.ResolveFunction("user2"));
@@ -27,8 +27,8 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void ScalarWithTwoArgument() {
-			var factory2 = new Factory2();
-			Assert.DoesNotThrow(factory2.Init);
+			Factory2 factory2 = null;
+			Assert.DoesNotThrow(() => factory2 = new Factory2());
 
 			IFunction function = null;
 			var args = new DataObject[] {DataObject.BigInt(2), DataObject.Number(new SqlNumber(54))};
@@ -53,9 +53,9 @@ namespace Deveel.Data.Routines {
 			}
 
 			protected override void OnInit() {
-				New("user2")
+				Register(config => config.Named("user2")
 					.ReturnsType(PrimitiveTypes.String())
-					.WhenExecute(context => context.Result(DataObject.String(context.QueryContext.User().Name)));
+					.WhenExecute(context => context.Result(DataObject.String(context.QueryContext.User().Name))));
 			}
 		}
 
@@ -69,7 +69,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			protected override void OnInit() {
-				New("add2")
+				Register(config => config.Named("add2")
 					.WithNumericParameter("a")
 					.WithNumericParameter("b")
 					.ReturnsNumeric()
@@ -77,7 +77,7 @@ namespace Deveel.Data.Routines {
 						var a = context.EvaluatedArguments[0];
 						var b = context.EvaluatedArguments[1];
 						return context.Result(a.Add(b));
-					});
+					}));
 			}
 		}
 

@@ -92,21 +92,7 @@ namespace Deveel.Data.Routines {
 		/// the returned value of the function.
 		/// </returns>
 		/// <seealso cref="ExecuteResult.ReturnValue"/>
-		public ExecuteResult Execute(ExecuteContext context) {
-			var result = new ExecuteResult(context, Evaluate(context.EvaluatedArguments));
-			return result;
-		}
-
-		/// <summary>
-		/// When overridden in a derived class, this evaluates a function with
-		/// the given parameters.
-		/// </summary>
-		/// <param name="args">The arguments of the function to execute.</param>
-		/// <returns>
-		/// Returns a <see cref="DataObject"/> that is the result of the execution
-		/// of the function.
-		/// </returns>
-		protected abstract DataObject Evaluate(DataObject[] args);
+		public abstract ExecuteResult Execute(ExecuteContext context);
 
 		/// <summary>
 		/// Gets the function static return type

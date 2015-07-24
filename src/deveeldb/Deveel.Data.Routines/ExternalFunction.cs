@@ -29,18 +29,20 @@ namespace Deveel.Data.Routines {
 				throw new ArgumentException("The information specified are not pointing to any external function.");
 		}
 
-		protected override DataObject Evaluate(DataObject[] args) {
+		public override ExecuteResult Execute(ExecuteContext context) {
 			if (method == null)
 				method = DiscoverMethod();
 
 			if (method == null)
 				throw new InvalidOperationException();
 
+			var args = context.EvaluatedArguments;
+
 			try {
 				var methodArgs = ConvertArguments(method, args);
 				var result = method.Invoke(null, methodArgs);
 
-				return ConvertValue(result, ReturnType());
+				return  context.Result(ConvertValue(result, ReturnType()));
 			} catch (Exception ex) {
 				throw;
 			}
