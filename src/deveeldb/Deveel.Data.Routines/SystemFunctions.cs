@@ -17,6 +17,8 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public static class SystemFunctions {
@@ -39,6 +41,11 @@ namespace Deveel.Data.Routines {
 
 		public static DataObject User(IQueryContext context) {
 			return DataObject.String(context.User().Name);
+		}
+
+
+		public static DataObject ToDate(DataObject obj) {
+			return obj.CastTo(PrimitiveTypes.Date());
 		}
 	}
 }

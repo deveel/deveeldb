@@ -75,5 +75,21 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(value, typeof(SqlBoolean)));
 			Assert.IsTrue(b);
 		}
+
+		[Test]
+		public void Integer_Greater_True() {
+			var value1 = new SqlNumber(76);
+			var value2 = new SqlNumber(54);
+
+			Assert.IsTrue(value1 > value2);
+		}
+
+		[Test]
+		public static void BigNumber_Greater_True() {
+			var value1 = SqlNumber.Parse("98356278.911288837773848500069994933229238e45789");
+			var value2 = SqlNumber.Parse("348299.01991828833333333333488888388829911182227373738488847112349928");
+
+			Assert.IsTrue(value1 > value2);
+		}
 	}
 }

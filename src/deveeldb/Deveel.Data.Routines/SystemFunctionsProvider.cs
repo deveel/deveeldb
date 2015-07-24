@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Fluid;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {
@@ -58,9 +59,17 @@ namespace Deveel.Data.Routines {
 				.ReturnsString();
 		}
 
+		private void AddConversionFunctions() {
+			New("todate")
+				.WithParameter(p => p.Named("value").OfStringType())
+				.WhenExecute(context => Simple(context, objects => SystemFunctions.ToDate(objects[0])))
+				.ReturnsType(PrimitiveTypes.Date());
+		}
+
 		protected override void OnInit() {
 			AddAggregateFunctions();
 
+			AddConversionFunctions();
 			AddSecurityFunctions();
 		}
 	}

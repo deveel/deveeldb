@@ -139,5 +139,14 @@ namespace Deveel.Data.Sql.Objects {
 
 			Assert.IsTrue(value1 != value2);
 		}
+
+		[Test]
+		[Category("Operators")]
+		public void Greater_True() {
+			var value1 = new SqlDateTime(2030, 03, 01, 11, 05, 54, 0);
+			var value2 = new SqlDateTime(2020, 05, 01, 11, 05, 54, 0);
+			
+			Assert.IsTrue(value1 > value2);
+		}
 	}
 }

@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
@@ -24,8 +25,8 @@ namespace Deveel.Data.Sql.Parser {
 	/// </summary>
 	[Serializable]
 	class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
-		internal SqlBetweenExpressionNode() {
-		}
+		private bool expressionSeen;
+		private bool minValueSeen;
 
 		/// <summary>
 		/// Gets the expression to be tested against <see cref="MinValue"/>
@@ -45,8 +46,24 @@ namespace Deveel.Data.Sql.Parser {
 		/// </summary>
 		public IExpressionNode MaxValue { get; private set; }
 
+		public bool Not { get; private set; }
+
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is IExpressionNode) {
+				if (!expressionSeen) {
+					Expression = (IExpressionNode) node;
+					expressionSeen = true;
+				} else if (!minValueSeen) {
+					MinValue = (IExpressionNode) node;
+					minValueSeen = true;
+				} else {
+					MaxValue = (IExpressionNode) node;
+				}
+			} else if (node.NodeName == "not_opt") {
+				Not = node.ChildNodes.Any();
+			}
+
 			return base.OnChildNode(node);
 		}
 	}

@@ -243,13 +243,9 @@ namespace Deveel.Data.Store {
 
 			private int CheckPositionBounds(int diff) {
 				int newPos = position + diff;
-				if (newPos > endPosition) {
-					throw new IOException("Position out of bounds. " +
-										  " start=" + startPosition +
-										  " end=" + endPosition +
-										  " pos=" + position +
-										  " newPos=" + newPos);
-				}
+				if (newPos > endPosition)
+					throw new IOException(String.Format("Attempt to read out of bounds: from {0} to {1} (position {2} to {3})",
+						startPosition, endPosition, position, newPos));
 
 				int oldPos = position;
 				position = newPos;

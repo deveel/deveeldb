@@ -207,6 +207,9 @@ namespace Deveel.Data.Sql.Parser {
 			var greaterExp = SqlExpression.GreaterOrEqualThan(testExp, minValue);
 
 			outputExpression = SqlExpression.And(smallerExp, greaterExp);
+
+			if (expressionNode.Not)
+				outputExpression = SqlExpression.Not(outputExpression);
 		}
 
 		public override void VisitBinaryExpression(SqlBinaryExpressionNode expressionNode) {

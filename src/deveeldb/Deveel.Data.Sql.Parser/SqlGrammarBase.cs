@@ -312,7 +312,7 @@ namespace Deveel.Data.Sql.Parser {
 			var functionCallExpression = new NonTerminal("function_call_expression", typeof(SqlFunctionCallExpressionNode));
 			var functionCallArgsOpt = new NonTerminal("function_call_args_opt");
 			var functionCallArgsList = new NonTerminal("function_call_args_list");
-			var notOpt = new NonTerminal("not_op");
+			var notOpt = new NonTerminal("not_opt");
 			var tuple = new NonTerminal("tuple", typeof(SqlExpressionTupleNode));
 			var anyOp = new NonTerminal("any_op");
 			var allOp = new NonTerminal("all_op");

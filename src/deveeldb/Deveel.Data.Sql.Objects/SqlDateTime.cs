@@ -448,21 +448,21 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public static bool operator >(SqlDateTime a, SqlDateTime b) {
-			return a.CompareTo(b) < 0;
+			return a.CompareTo(b) > 0;
 		}
 
 		public static bool operator <(SqlDateTime a, SqlDateTime b) {
-			return a.CompareTo(b) > 0;
+			return a.CompareTo(b) < 0;
 		}
 
 		public static bool operator >=(SqlDateTime a, SqlDateTime b) {
 			var i = a.CompareTo(b);
-			return i == 0 || i < 0;
+			return i == 0 || i > 0;
 		}
 
 		public static bool operator <=(SqlDateTime a, SqlDateTime b) {
 			var i = a.CompareTo(b);
-			return i == 0 || i > 0;
+			return i == 0 || i < 0;
 		}
 
 		public static SqlDateTime operator +(SqlDateTime a, SqlDayToSecond b) {

@@ -103,8 +103,10 @@
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlBetweenEspressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlDateExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionParseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpressionTests.cs" />

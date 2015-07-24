@@ -226,28 +226,28 @@ namespace Deveel.Data.Types {
 			if (!a.IsComparableTo(b))
 				return SqlBoolean.Null;
 
-			return a.CompareTo(b) < 0;
+			return a.CompareTo(b) > 0;
 		}
 
 		public virtual SqlBoolean IsSmallerThan(ISqlObject a, ISqlObject b) {
 			if (!a.IsComparableTo(b))
 				return SqlBoolean.Null;
 
-			return a.CompareTo(b) > 0;
+			return a.CompareTo(b) < 0;
 		}
 
 		public virtual SqlBoolean IsGreaterOrEqualThan(ISqlObject a, ISqlObject b) {
 			if (!a.IsComparableTo(b))
 				return SqlBoolean.Null;
 
-			return a.CompareTo(b) <= 0;
+			return a.CompareTo(b) >= 0;
 		}
 
 		public virtual SqlBoolean IsSmallerOrEqualThan(ISqlObject a, ISqlObject b) {
 			if (!a.IsComparableTo(b))
 				return SqlBoolean.Null;
 
-			return a.CompareTo(b) >= 0;
+			return a.CompareTo(b) <= 0;
 		}
 
 		public virtual ISqlObject And(ISqlObject a, ISqlObject b) {

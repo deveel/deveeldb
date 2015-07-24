@@ -212,7 +212,7 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		public class LargeObject : ILargeObject {
+		class LargeObject : ILargeObject {
 			private readonly ObjectStore store;
 
 			public LargeObject(ObjectStore store, long refId, long size, long currentSize, bool compressed, bool isComplete) {
