@@ -31,23 +31,15 @@ namespace Deveel.Data.Types {
 
 		public const int DefaultMaxSize = Int16.MaxValue;
 
-		public StringType(SqlTypeCode sqlType) 
-			: this(sqlType, DefaultMaxSize) {
-		}
-
-		public StringType(SqlTypeCode sqlType, int maxSize) 
-			: this(sqlType, maxSize, null) {
-		}
-
-		public StringType(SqlTypeCode sqlType, CultureInfo locale) 
-			: this(sqlType, DefaultMaxSize, locale) {
-		}
-
-		public StringType(SqlTypeCode sqlType, int maxSize, CultureInfo locale) 
+		public StringType(SqlTypeCode sqlType, int maxSize, Encoding encoding, CultureInfo locale) 
 			: base("STRING", sqlType) {
+			if (encoding == null)
+				throw new ArgumentNullException("encoding");
+
 			AssertIsString(sqlType);
 			MaxSize = maxSize;
 			Locale = locale;
+			Encoding = encoding;
 		}
 
 		private static void AssertIsString(SqlTypeCode sqlType) {
@@ -92,14 +84,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public Encoding Encoding {
-			get {
-				if (Locale == null)
-					return Encoding.Unicode;
-
-				return Encoding.GetEncoding(Locale.TextInfo.OEMCodePage);
-			}
-		}
+		public Encoding Encoding { get; private set; }
 
 		public override bool IsCacheable(ISqlObject value) {
 			return value is SqlString || value is SqlNull || value == null;
@@ -345,7 +330,6 @@ namespace Deveel.Data.Types {
 				case (SqlTypeCode.VarChar):
 				case (SqlTypeCode.LongVarChar):
 				case (SqlTypeCode.String):
-					//TODO: get the dest encoding and convert the string
 					castedValue = new SqlString(str);
 					break;
 				case (SqlTypeCode.Date):
@@ -403,9 +387,6 @@ namespace Deveel.Data.Types {
 		}
 
 		private static int LexicographicalOrder(ISqlString str1, ISqlString str2) {
-			if (str1.CodePage != str2.CodePage)
-				return -1;
-
 			// If both strings are small use the 'toString' method to compare the
 			// strings.  This saves the overhead of having to store very large string
 			// objects in memory for all comparisons.
@@ -466,9 +447,8 @@ namespace Deveel.Data.Types {
 			var sqlString = (ISqlString)obj;
 
 			if (obj is SqlString) {
-				var bytes = ((SqlString) sqlString).ToByteArray();
+				var bytes = ((SqlString) sqlString).ToByteArray(Encoding);
 				writer.Write((byte) 2);
-				writer.Write(sqlString.CodePage);
 				writer.Write(bytes.Length);
 				writer.Write(bytes);
 			} else if (obj is SqlLongString) {
@@ -491,11 +471,12 @@ namespace Deveel.Data.Types {
 				return SqlLongString.Null;
 
 			if (type == 2) {
-				var codePage = reader.ReadInt32();
 				var length = reader.ReadInt32();
 				var bytes = reader.ReadBytes(length);
 
-				return SqlString.Decode(codePage, bytes);
+				var chars = Encoding.GetChars(bytes);
+
+				return new SqlString(chars);
 			}
 
 			if (type == 4) {
@@ -515,10 +496,10 @@ namespace Deveel.Data.Types {
 				return 1;
 			if (obj is SqlString) {
 				var s = (SqlString) obj;
-				var length = s.ToByteArray().Length;
+				var length = s.GetByteCount(Encoding);
 
-				// Type + Code Page + Byte Length + Bytes
-				return 1 + 4 + 4 + length;
+				// Type + Byte Length + Bytes
+				return 1 + 4 + length;
 			} 
 			if (obj is SqlLongString) {
 				// Type + Store ID + Object ID

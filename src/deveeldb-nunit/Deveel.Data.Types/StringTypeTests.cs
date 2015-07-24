@@ -15,6 +15,7 @@
 
 using System;
 using System.Globalization;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -99,6 +100,40 @@ namespace Deveel.Data.Types {
 			var stringType = (StringType) dataType;
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.AreEqual(CultureInfo.GetCultureInfo("en-US"), stringType.Locale);
+			Assert.IsNotNull(stringType.Encoding);
+			Assert.AreEqual(Encoding.Unicode.WebName, stringType.Encoding.WebName);
+		}
+
+		[Test]
+		[Category("Strings"), Category("SQL Parse")]
+		public void LocalizedWithEncodingVarChar_Parse() {
+			const string typeString = "VARCHAR(255) LOCALE 'en-Us' ENCODING 'UTF-16'";
+			DataType dataType = null;
+			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
+			Assert.IsNotNull(dataType);
+			Assert.IsInstanceOf<StringType>(dataType);
+			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+
+			var stringType = (StringType)dataType;
+			Assert.AreEqual(255, stringType.MaxSize);
+			Assert.AreEqual(CultureInfo.GetCultureInfo("en-US"), stringType.Locale);
+			Assert.AreEqual(Encoding.Unicode.WebName, stringType.Encoding.WebName);
+		}
+
+		[Test]
+		[Category("Strings"), Category("SQL Parse")]
+		public void SizedWithEncoding_Parse() {
+			const string typeString = "VARCHAR(255) ENCODING 'UTF-16'";
+			DataType dataType = null;
+			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
+			Assert.IsNotNull(dataType);
+			Assert.IsInstanceOf<StringType>(dataType);
+			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+
+			var stringType = (StringType)dataType;
+			Assert.AreEqual(255, stringType.MaxSize);
+			Assert.IsNull(stringType.Locale);
+			Assert.AreEqual(Encoding.Unicode.WebName, stringType.Encoding.WebName);
 		}
 	}
 }

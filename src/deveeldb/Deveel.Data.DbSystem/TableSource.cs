@@ -1541,10 +1541,10 @@ namespace Deveel.Data.DbSystem {
 				this.database = database;
 			}
 
-			public DataType ResolveType(string typeName, params DataTypeMeta[] meta) {
+			public DataType ResolveType(TypeResolveContext resolveContext) {
 				using (var session = database.CreateSystemSession()) {
 					using (var context = new SessionQueryContext(session)) {
-						return context.ResolveType(typeName);
+						return context.ResolveType(resolveContext.TypeName, resolveContext.GetMeta());
 					}
 				}
 			}

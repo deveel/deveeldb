@@ -16,8 +16,15 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
+using System.Text;
 
 namespace Deveel.Data.Types {
+	/// <summary>
+	/// Provides some helper functions for resolving and creating
+	/// <see cref="DataType"/> instances that are primitive to the
+	/// system.
+	/// </summary>
 	public static class PrimitiveTypes {
 		public static BooleanType Boolean() {
 			return Boolean(SqlTypeCode.Boolean);
@@ -31,10 +38,6 @@ namespace Deveel.Data.Types {
 			return Boolean(SqlTypeCode.Bit);
 		}
 
-		public static StringType String(int maxSize) {
-			return new StringType(SqlTypeCode.String, maxSize);
-		}
-
 		public static StringType String() {
 			return String(SqlTypeCode.String);
 		}
@@ -44,7 +47,7 @@ namespace Deveel.Data.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize) {
-			return new StringType(sqlType, maxSize);
+			return String(sqlType, maxSize, (CultureInfo) null);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, CultureInfo locale) {
@@ -52,7 +55,23 @@ namespace Deveel.Data.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize, CultureInfo locale) {
-			return new StringType(sqlType, maxSize, locale);
+			return String(sqlType, maxSize, Encoding.Unicode, locale);
+		}
+
+		public static StringType String(SqlTypeCode sqlType, Encoding encoding) {
+			return String(sqlType, StringType.DefaultMaxSize, encoding);
+		}
+
+		public static StringType String(SqlTypeCode sqlType, int maxSize, Encoding encoding) {
+			return String(sqlType, maxSize, encoding, null);
+		}
+
+		public static StringType String(SqlTypeCode sqlType, Encoding encoding, CultureInfo locale) {
+			return String(sqlType, StringType.DefaultMaxSize, encoding, locale);
+		}
+
+		public static StringType String(SqlTypeCode sqlType, int maxSize, Encoding encoding, CultureInfo locale) {
+			return new StringType(sqlType, maxSize, encoding, locale);
 		}
 
 		public static NumericType Numeric() {
@@ -178,13 +197,10 @@ namespace Deveel.Data.Types {
 				name.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
 				return true;
 
-			if (name.Equals("GEOMETRY", StringComparison.OrdinalIgnoreCase))
-				return true;
-
 			return false;
 		}
 
-		public static DataType Type(string typeName, params object[] args) {
+		public static DataType Resolve(string typeName, params DataTypeMeta[] args) {
 			if (System.String.Equals("long varchar", typeName, StringComparison.OrdinalIgnoreCase))
 				typeName = "longvarchar";
 			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
@@ -198,88 +214,119 @@ namespace Deveel.Data.Types {
 				throw new ArgumentException(System.String.Format("The name {0} is not a valid SQL type.", typeName));
 			}
 
-			return Type(typeCode, args);
+			return Resolve(typeCode, typeName, args);
 		}
 
-		public static DataType Type(SqlTypeCode sqlType, params object[] args) {
+		public static DataType Resolve(SqlTypeCode sqlType, string typeName, params DataTypeMeta[] args) {
+			return Resolve(new TypeResolveContext(sqlType, typeName, args));
+		}
+
+		public static DataType Resolve(TypeResolveContext context) {
+			if (!context.IsPrimitive)
+				return null;
+
+			var sqlType = context.TypeCode;
+
 			if (sqlType == SqlTypeCode.BigInt ||
-				sqlType == SqlTypeCode.Boolean)
+			    sqlType == SqlTypeCode.Boolean)
 				return Boolean(sqlType);
 
 			if (sqlType == SqlTypeCode.Numeric ||
-				sqlType == SqlTypeCode.TinyInt ||
-				sqlType == SqlTypeCode.SmallInt ||
-				sqlType == SqlTypeCode.Integer ||
-				sqlType == SqlTypeCode.BigInt ||
-				sqlType == SqlTypeCode.Real ||
-				sqlType == SqlTypeCode.Double ||
-				sqlType == SqlTypeCode.Float ||
-				sqlType == SqlTypeCode.Decimal) {
-				if (args == null || args.Length == 0)
+			    sqlType == SqlTypeCode.TinyInt ||
+			    sqlType == SqlTypeCode.SmallInt ||
+			    sqlType == SqlTypeCode.Integer ||
+			    sqlType == SqlTypeCode.BigInt ||
+			    sqlType == SqlTypeCode.Real ||
+			    sqlType == SqlTypeCode.Double ||
+			    sqlType == SqlTypeCode.Float ||
+			    sqlType == SqlTypeCode.Decimal) {
+				if (!context.HasAnyMeta)
 					return Numeric(sqlType);
-				if (args.Length == 1)
-					return Numeric(sqlType, (int)args[0]);
-				if (args.Length == 2)
-					return Numeric(sqlType, (int)args[0], (byte)args[1]);
 
-				throw new ArgumentException("Invalid numer of arguments for NUMERIC type");
+				var precisionMeta = context.GetMeta("Precision");
+				var scaleMeta = context.GetMeta("Scale");
+
+				if (precisionMeta == null)
+					return Numeric(sqlType);
+
+				if (scaleMeta == null)
+					return Numeric(sqlType, precisionMeta.ToInt32());
+
+				return Numeric(sqlType, precisionMeta.ToInt32(), (byte) scaleMeta.ToInt32());
 			}
 
 			if (sqlType == SqlTypeCode.Char ||
-				sqlType == SqlTypeCode.VarChar ||
-				sqlType == SqlTypeCode.LongVarChar ||
-				sqlType == SqlTypeCode.String ||
-				sqlType == SqlTypeCode.Clob) {
-				if (args == null || args.Length == 0)
+			    sqlType == SqlTypeCode.VarChar ||
+			    sqlType == SqlTypeCode.LongVarChar ||
+			    sqlType == SqlTypeCode.String ||
+			    sqlType == SqlTypeCode.Clob) {
+				if (!context.HasAnyMeta)
 					return String(sqlType);
-				if (args.Length == 1) {
-					var arg = args[0];
-					if (arg is int)
-						return String(sqlType, (int) arg);
-					if (arg is string)
-						return String(sqlType, CultureInfo.GetCultureInfo((string) arg));
-				} else if (args.Length == 2) {
-					var arg1 = (int)args[0];
-					var arg2 = (string)args[1];
-					return new StringType(sqlType, arg1, CultureInfo.GetCultureInfo(arg2));
-				}
 
-				throw new ArgumentException("Invalid numer of arguments for STRING type");
+				var maxSizeMeta = context.GetMeta("MaxSize");
+				var localeMeta = context.GetMeta("Locale");
+				var encodingMeta = context.GetMeta("Encoding");
+
+				int maxSize = StringType.DefaultMaxSize;
+				CultureInfo locale = null;
+				var encoding = Encoding.Unicode;
+
+				if (maxSizeMeta != null)
+					maxSize = maxSizeMeta.ToInt32();
+				if (localeMeta != null)
+					locale = CultureInfo.GetCultureInfo(localeMeta.Value);
+				if (encodingMeta != null)
+					encoding = Encoding.GetEncoding(encodingMeta.Value);
+
+				return new StringType(sqlType, maxSize, encoding, locale);
 			}
 
 			if (sqlType == SqlTypeCode.Binary ||
-				sqlType == SqlTypeCode.VarBinary ||
-				sqlType == SqlTypeCode.LongVarBinary ||
-				sqlType == SqlTypeCode.Blob) {
-				if (args == null || args.Length == 0)
+			    sqlType == SqlTypeCode.VarBinary ||
+			    sqlType == SqlTypeCode.LongVarBinary ||
+			    sqlType == SqlTypeCode.Blob) {
+				if (!context.HasAnyMeta)
 					return Binary(sqlType);
-				if (args.Length == 1)
-					return Binary(sqlType, (int)args[0]);
 
-				throw new ArgumentException("Invalid number of arguments for BINARY type");
+				var maxSize = BinaryType.DefaultMaxSize;
+				var maxSizeMeta = context.GetMeta("MaxSize");
+				if (maxSizeMeta != null)
+					maxSize = maxSizeMeta.ToInt32();
+
+				return Binary(sqlType, maxSize);
 			}
 
 			if (sqlType == SqlTypeCode.Date ||
-				sqlType == SqlTypeCode.Time ||
-				sqlType == SqlTypeCode.TimeStamp ||
-				sqlType == SqlTypeCode.DateTime)
+			    sqlType == SqlTypeCode.Time ||
+			    sqlType == SqlTypeCode.TimeStamp ||
+			    sqlType == SqlTypeCode.DateTime)
 				return DateTime(sqlType);
 
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);
 
 			if (sqlType == SqlTypeCode.RowType) {
-				if (args == null || args.Length != 1)
+				if (!context.HasAnyMeta)
 					throw new ArgumentException("Invalid number of arguments for %ROWTYPE type");
 
-				return RowType((ObjectName)args[0]);
+				var tableNameMeta = context.GetMeta("TableName");
+				if (tableNameMeta == null)
+					throw new ArgumentException();
+
+				var tableName = ObjectName.Parse(tableNameMeta.Value);
+				return RowType(tableName);
 			}
 
 			if (sqlType == SqlTypeCode.ColumnType) {
-				if (args == null || args.Length != 1)
+				if (!context.HasAnyMeta)
 					throw new ArgumentException("Invalid number of arguments for %TYPE type");
 
-				return ColumnType((ObjectName)args[0]);
+				var columnNameMeta = context.GetMeta("ColumnName");
+				if (columnNameMeta == null)
+					throw new ArgumentException();
+
+				var columnName = ObjectName.Parse(columnNameMeta.Value);
+				return ColumnType(columnName);
 			}
 
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));

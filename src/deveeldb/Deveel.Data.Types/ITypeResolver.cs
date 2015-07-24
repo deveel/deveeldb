@@ -18,6 +18,6 @@ using System;
 
 namespace Deveel.Data.Types {
 	public interface ITypeResolver {
-		DataType ResolveType(string typeName, params DataTypeMeta[] metadata);
+		DataType ResolveType(TypeResolveContext context);
 	}
 }

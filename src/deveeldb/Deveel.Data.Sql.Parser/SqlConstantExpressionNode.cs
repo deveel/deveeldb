@@ -44,14 +44,14 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (String.Equals(keyNode.Text, "null", StringComparison.OrdinalIgnoreCase)) {
 					Value = SqlNull.Value;
 				} else {
-					Value = SqlString.Unicode(((SqlKeyNode) node).Text);
+					Value = new SqlString(((SqlKeyNode) node).Text.ToCharArray());
 				}
 			} else if (node is IntegerLiteralNode) {
 				Value = new SqlNumber(((IntegerLiteralNode) node).BigValue);
 			} else if (node is NumberLiteralNode) {
 				Value = new SqlNumber(((NumberLiteralNode) node).BigValue);
 			} else if (node is StringLiteralNode) {
-				Value = SqlString.Unicode(((StringLiteralNode) node).Value);
+				Value = new SqlString(((StringLiteralNode) node).Value.ToCharArray());
 			}
 
 			return base.OnChildNode(node);

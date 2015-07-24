@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -22,60 +23,44 @@ namespace Deveel.Data.Sql.Objects {
 	[Category("SQL Objects")]
 	public class SqlStringTests {
 		[Test]
-		[Category("UTF16 LE Strings")]
-		public void UnicodeString_Create() {
+		[Category("Strings")]
+		public void String_Create() {
 			const string s = "Test string UTF-16 LE";
-			var sqlString = SqlString.Unicode(s);
+			var sqlString = new SqlString(s);
 			Assert.IsNotNull(sqlString);
-			Assert.AreEqual(1200, sqlString.CodePage);	// 1200 is the MS codepage for UTF-16 LE
 			Assert.AreEqual(s.Length, sqlString.Length);
 			Assert.AreEqual(s, sqlString);
 		}
 
 		[Test]
-		[Category("UTF16 LE Strings")]
-		public void UnicodeString_Compare_Equal() {
+		[Category("Strings")]
+		public void String_Compare_Equal() {
 			const string s = "Test string in UTF-16 LE";
-			var sqlString1 = SqlString.Unicode(s);
-			var sqlString2 = SqlString.Unicode(s);
-			Assert.AreEqual(sqlString1.CodePage, sqlString2.CodePage);
+			var sqlString1 = new SqlString(s);
+			var sqlString2 = new SqlString(s);
 			Assert.AreEqual(0, sqlString1.CompareTo(sqlString2));
 		}
 
 		[Test]
-		[Category("UTF16 LE Strings")]
-		public void UnicodeString_Equals() {
+		[Category("Strings")]
+		public void String_Equals() {
 			const string s = "Test string in UTF-16 LE";
-			var sqlString1 = SqlString.Unicode(s);
-			var sqlString2 = SqlString.Unicode(s);
-			Assert.AreEqual(sqlString1.CodePage, sqlString2.CodePage);
+			var sqlString1 = new SqlString(s);
+			var sqlString2 = new SqlString(s);
 			Assert.IsTrue(sqlString1.Equals(sqlString2));
 		}
 
 		[Test]
-		[Category("UTF16 LE Strings")]
-		public void UnicodeString_Concat() {
+		[Category("Strings")]
+		public void String_Concat() {
 			const string s1 = "First string comes before the ";
 			const string s2 = "Second string that comes after";
-			var sqlString1 = SqlString.Unicode(s1);
-			var sqlString2 = SqlString.Unicode(s2);
+			var sqlString1 = new SqlString(s1);
+			var sqlString2 = new SqlString(s2);
 
 			var sqlString3 = new SqlString();
 			Assert.DoesNotThrow(() => sqlString3 = sqlString1.Concat(sqlString2));
-			Assert.AreEqual(sqlString1.CodePage, sqlString3.CodePage);
-			Assert.AreEqual(sqlString2.CodePage, sqlString3.CodePage);
 			Assert.AreEqual("First string comes before the Second string that comes after", sqlString3.Value);
-		}
-
-		[Test]
-		public void UnicodeString_Concat_DifferentEncoding() {
-			const string s1 = "First string comes before the ";
-			const string s2 = "Second string that comes after";
-			var sqlString1 = SqlString.Unicode(s1);
-			var sqlString2 = SqlString.Ascii(s2);
-
-			var sqlString3 = new SqlString();
-			Assert.Throws<ArgumentException>(() => sqlString3 = sqlString1.Concat(sqlString2));
 		}
 
 		[Test]
@@ -92,7 +77,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_TimeStamp() {
 			const string s = "2011-01-23T23:44:21.525 +01:00";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var timeStamp = new SqlDateTime();
 			Assert.DoesNotThrow(() => timeStamp = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
@@ -113,7 +97,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_Time() {
 			const string s = "23:44:21.525";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var time = new SqlDateTime();
 			Assert.DoesNotThrow(() => time = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
@@ -133,7 +116,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_Date() {
 			const string s = "2011-01-23";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var date = new SqlDateTime();
 			Assert.DoesNotThrow(() => date = (SqlDateTime) Convert.ChangeType(sqlString, typeof(SqlDateTime)));
@@ -154,7 +136,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_BigNumber() {
 			const string s = "7689994.0000033992988477226661525553666370058812345883288477383";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var number = new SqlNumber();
 			Assert.DoesNotThrow(() => number = (SqlNumber)Convert.ChangeType(sqlString, typeof(SqlNumber)));
@@ -170,7 +151,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_BooleanTrue() {
 			const string s = "true";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var b = new SqlBoolean();
 			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
@@ -184,7 +164,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_BooleanFalse() {
 			const string s = "false";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var b = new SqlBoolean();
 			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
@@ -198,7 +177,6 @@ namespace Deveel.Data.Sql.Objects {
 		public void String_Convert_BooleanNull() {
 			const string s = "";
 			var sqlString = new SqlString(s);
-			Assert.AreEqual(1200, sqlString.CodePage);
 
 			var b = new SqlBoolean();
 			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));

@@ -63,7 +63,7 @@ namespace Deveel.Data.Sql.Parser {
 		public bool HasSize { get; private set; }
 
 		/// <summary>
-		/// Gets the scaling factor of a numberic data-type.
+		/// Gets the scaling factor of a numeric data-type.
 		/// </summary>
 		/// <remarks>
 		/// This value is present only if the data-type is <c>NUMERIC</c>.
@@ -107,6 +107,10 @@ namespace Deveel.Data.Sql.Parser {
 		/// </summary>
 		/// <seealso cref="Locale"/>
 		public bool HasLocale { get; private set; }
+
+		public string Encoding { get; private set; }
+
+		public bool HasEncoding { get; private set; }
 
 		public Dictionary<string, string> Metadata { get; private set; } 
 
@@ -164,6 +168,8 @@ namespace Deveel.Data.Sql.Parser {
 					GetDataSize(childNode);
 				} else if (childNode.NodeName == "locale_opt") {
 					GetLocale(childNode);
+				} else if (childNode.NodeName == "encoding_opt") {
+					GetEncoding(childNode);
 				}
 			}
 		}
@@ -173,6 +179,15 @@ namespace Deveel.Data.Sql.Parser {
 				if (childNode is StringLiteralNode) {
 					Locale = ((StringLiteralNode) childNode).Value;
 					HasLocale = true;
+				}
+			}
+		}
+
+		private void GetEncoding(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is StringLiteralNode) {
+					Encoding = ((StringLiteralNode) childNode).Value;
+					HasEncoding = true;
 				}
 			}
 		}

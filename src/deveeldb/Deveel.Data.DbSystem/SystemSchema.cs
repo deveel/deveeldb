@@ -508,15 +508,15 @@ namespace Deveel.Data.DbSystem {
 
 						switch (columnOffset) {
 							case 0:  // schema
-								return GetColumnValue(columnOffset, SqlString.Unicode(schemaName));
+								return GetColumnValue(columnOffset, new SqlString(schemaName));
 							case 1:  // table
-								return GetColumnValue(columnOffset, SqlString.Unicode(info.Name));
+								return GetColumnValue(columnOffset, new SqlString(info.Name));
 							case 2:  // column
-								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.ColumnName));
+								return GetColumnValue(columnOffset, new SqlString(colInfo.ColumnName));
 							case 3:  // sql_type
 								return GetColumnValue(columnOffset, new SqlNumber((int)colInfo.ColumnType.SqlType));
 							case 4:  // type_desc
-								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.ColumnType.ToString()));
+								return GetColumnValue(columnOffset, new SqlString(colInfo.ColumnType.ToString()));
 							case 5:  // size
 								return GetColumnValue(columnOffset, new SqlNumber(colInfo.Size));
 							case 6:  // scale
@@ -524,9 +524,9 @@ namespace Deveel.Data.DbSystem {
 							case 7:  // not_null
 								return GetColumnValue(columnOffset, (SqlBoolean) colInfo.IsNotNull);
 							case 8:  // default
-								return GetColumnValue(columnOffset, SqlString.Unicode(defaultExpression));
+								return GetColumnValue(columnOffset, new SqlString(defaultExpression));
 							case 9:  // index_str
-								return GetColumnValue(columnOffset, SqlString.Unicode(colInfo.IndexType));
+								return GetColumnValue(columnOffset, new SqlString(colInfo.IndexType));
 							case 10:  // seq_no
 								return GetColumnValue(columnOffset, new SqlNumber(seqNo));
 							default:
@@ -616,15 +616,15 @@ namespace Deveel.Data.DbSystem {
 				var typeInfo = sqlTypes[(int)rowNumber];
 				switch (columnOffset) {
 					case 0:  // type_name
-						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.TypeName));
+						return GetColumnValue(columnOffset, new SqlString(typeInfo.TypeName));
 					case 1:  // data_type
 						return GetColumnValue(columnOffset, new SqlNumber((int)typeInfo.Type));
 					case 2:  // precision
 						return GetColumnValue(columnOffset, new SqlNumber(typeInfo.Precision));
 					case 3:  // literal_prefix
-						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralPrefix));
+						return GetColumnValue(columnOffset, new SqlString(typeInfo.LiteralPrefix));
 					case 4:  // literal_suffix
-						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LiteralSuffix));
+						return GetColumnValue(columnOffset, new SqlString(typeInfo.LiteralSuffix));
 					case 5:  // create_params
 						return GetColumnValue(columnOffset, SqlString.Null);
 					case 6:  // nullable
@@ -640,7 +640,7 @@ namespace Deveel.Data.DbSystem {
 					case 11:  // auto_increment
 						return GetColumnValue(columnOffset, SqlBoolean.False);
 					case 12:  // local_type_name
-						return GetColumnValue(columnOffset, SqlString.Unicode(typeInfo.LocalName));
+						return GetColumnValue(columnOffset, new SqlString(typeInfo.LocalName));
 					case 13:  // minimum_scale
 						return GetColumnValue(columnOffset, SqlNumber.Zero);
 					case 14:  // maximum_scale
@@ -707,9 +707,9 @@ namespace Deveel.Data.DbSystem {
 
 				switch (columnOffset) {
 					case 0:
-						return GetColumnValue(0, SqlString.Unicode(session.User.Name));
+						return GetColumnValue(0, new SqlString(session.User.Name));
 					case 1:
-						return GetColumnValue(1, SqlString.Unicode(session.EndPoint.ToString()));
+						return GetColumnValue(1, new SqlString(session.EndPoint.ToString()));
 					case 2:
 						return GetColumnValue(2, ((SqlDateTime)session.LastCommandTime));
 					case 3:
@@ -751,20 +751,20 @@ namespace Deveel.Data.DbSystem {
 				var productInfo = ProductInfo.Current;
 
 				// Set up the product variables.
-				keyValuePairs.Add(SqlString.Unicode("title"));
-				keyValuePairs.Add(SqlString.Unicode(productInfo.Title));
+				keyValuePairs.Add(new SqlString("title"));
+				keyValuePairs.Add(new SqlString(productInfo.Title));
 
-				keyValuePairs.Add(SqlString.Unicode("version"));
-				keyValuePairs.Add(SqlString.Unicode(productInfo.Version.ToString()));
+				keyValuePairs.Add(new SqlString("version"));
+				keyValuePairs.Add(new SqlString(productInfo.Version.ToString()));
 
-				keyValuePairs.Add(SqlString.Unicode("copyright"));
-				keyValuePairs.Add(SqlString.Unicode(productInfo.Copyright));
+				keyValuePairs.Add(new SqlString("copyright"));
+				keyValuePairs.Add(new SqlString(productInfo.Copyright));
 
-				keyValuePairs.Add(SqlString.Unicode("description"));
-				keyValuePairs.Add(SqlString.Unicode(productInfo.Description));
+				keyValuePairs.Add(new SqlString("description"));
+				keyValuePairs.Add(new SqlString(productInfo.Description));
 
-				keyValuePairs.Add(SqlString.Unicode("company"));
-				keyValuePairs.Add(SqlString.Unicode(productInfo.Company));
+				keyValuePairs.Add(new SqlString("company"));
+				keyValuePairs.Add(new SqlString(productInfo.Company));
 			}
 
 			public override DataObject GetValue(long rowNumber, int columnOffset) {

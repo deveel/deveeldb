@@ -135,6 +135,7 @@ namespace Deveel.Data.Sql.Parser {
 			var numberPrecision = new NonTerminal("number_precision");
 			var characterType = new NonTerminal("character_type");
 			var localeOpt = new NonTerminal("locale_opt");
+			var encodingOp = new NonTerminal("encoding_opt");
 			var integerType = new NonTerminal("integer_type");
 			var decimalType = new NonTerminal("decimal_type");
 			var floatType = new NonTerminal("float_type");
@@ -160,10 +161,11 @@ namespace Deveel.Data.Sql.Parser {
 			                rowType |
 			                userType;
 
-			characterType.Rule = Key("CHAR") + datatypeSize + localeOpt |
-			                     Key("VARCHAR") + datatypeSize + localeOpt |
-			                     longVarchar + datatypeSize + localeOpt;
+			characterType.Rule = Key("CHAR") + datatypeSize + localeOpt + encodingOp |
+			                     Key("VARCHAR") + datatypeSize + localeOpt + encodingOp |
+			                     longVarchar + datatypeSize + localeOpt + encodingOp;
 			localeOpt.Rule = Empty | Key("LOCALE") + StringLiteral;
+			encodingOp.Rule = Empty | Key("ENCODING") + StringLiteral;
 			dateType.Rule = Key("DATE") | Key("TIME") | Key("TIMESTAMP");
 			integerType.Rule = Key("INT") |
 			                   Key("INTEGER") |

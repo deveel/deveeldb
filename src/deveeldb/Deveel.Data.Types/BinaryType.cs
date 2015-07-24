@@ -25,8 +25,10 @@ using Deveel.Data.Sql.Objects;
 namespace Deveel.Data.Types {
 	[Serializable]
 	public sealed class BinaryType : DataType, ISizeableType {
+		public const int DefaultMaxSize = Int16.MaxValue;
+
 		public BinaryType(SqlTypeCode sqlType) 
-			: this(sqlType, -1) {
+			: this(sqlType, DefaultMaxSize) {
 		}
 
 		public BinaryType(SqlTypeCode sqlType, int maxSize) 

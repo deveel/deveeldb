@@ -140,7 +140,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
 			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
-			Assert.AreEqual(SqlString.Unicode("False"), value.Value);
+			Assert.AreEqual(new SqlString("False"), value.Value);
 		}
 
 		[Test]
@@ -156,7 +156,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
 			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
-			Assert.AreEqual(SqlString.Unicode("True"), value.Value);
+			Assert.AreEqual(new SqlString("True"), value.Value);
 		}
 
 		[Test]
@@ -173,7 +173,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
 			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
-			Assert.AreEqual(SqlString.Unicode("2015-02-03"), value.Value);
+			Assert.AreEqual(new SqlString("2015-02-03"), value.Value);
 		}
 
 		[Test]

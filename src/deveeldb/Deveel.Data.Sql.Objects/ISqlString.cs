@@ -17,11 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Deveel.Data.Sql.Objects {
 	public interface ISqlString : ISqlObject, IComparable<ISqlString>, IEnumerable<char> {
-		int CodePage { get; }
-
 		long Length { get; }
 
 		char this[long offset] { get; }

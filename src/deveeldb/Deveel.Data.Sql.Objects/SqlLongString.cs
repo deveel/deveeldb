@@ -27,24 +27,22 @@ namespace Deveel.Data.Sql.Objects {
 		private ILargeObject largeObject;
 		private Encoding encoding;
 
-		public static readonly SqlLongString Null = new SqlLongString(null, -1, true);
+		public static readonly SqlLongString Null = new SqlLongString(null, null, true);
 
-		private SqlLongString(ILargeObject largeObject, int codePage, bool isNull) {
+		private SqlLongString(ILargeObject largeObject, Encoding encoding, bool isNull) {
 			if (!isNull && largeObject == null)
 				throw new ArgumentNullException("largeObject");
 
 			this.largeObject = largeObject;
+			this.encoding = encoding;
 
 			if (!isNull) {
-				encoding = Encoding.GetEncoding(codePage);
 				Length = largeObject.RawSize;
 			}
-
-			CodePage = codePage;
 		}
 
-		public SqlLongString(ILargeObject largeObject, int codePage)
-			: this(largeObject, codePage, false) {
+		public SqlLongString(ILargeObject largeObject, Encoding encoding)
+			: this(largeObject, encoding, false) {
 		}
 
 		~SqlLongString() {
@@ -63,21 +61,14 @@ namespace Deveel.Data.Sql.Objects {
 			}
 
 			largeObject = null;
-			encoding = null;
 		}
 
 		int IComparable.CompareTo(object obj) {
-			if (!(obj is SqlLongString))
-				throw new ArgumentException();
-
-			return CompareTo((SqlLongString) obj);
+			throw new NotSupportedException();
 		}
 
 		int IComparable<ISqlObject>.CompareTo(ISqlObject other) {
-			if (!(other is ISqlString))
-				throw new ArgumentException();
-
-			return CompareTo((ISqlString) other);
+			throw new NotSupportedException();
 		}
 
 		public ObjectId ObjectId {
@@ -88,8 +79,8 @@ namespace Deveel.Data.Sql.Objects {
 			get { return largeObject == null; }
 		}
 
-		public bool IsComparableTo(ISqlObject other) {
-			return other is ISqlString;
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return false;
 		}
 
 		public char this[long offset] {
@@ -103,38 +94,8 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
-		public int CompareTo(ISqlString other) {
-			if (other == null)
-				throw new ArgumentNullException("other");
-
-			if (IsNull && other.IsNull)
-				return 0;
-			if (IsNull)
-				return -1;
-			if (other.IsNull)
-				return 1;
-
-			var r1 = GetInput();
-			var r2 = other.GetInput();
-
-			int c1, c2;
-
-			// read one char at a time and compare them
-			// until we reach end of one of the strings
-			while (true) {
-				c1 = r1.Read();
-				c2 = r2.Read();
-				if (c1 == -1 || c2 == -1)
-					break;
-
-				var result = ((char) c1).CompareTo((char) c2);
-				if (result != 0) 
-					return result;
-			}
-
-			// if both are -1 then strings have the same length and 
-			// consist of same chars so they are equal
-			return c1 == -1 && c2 == -1 ? 0 : (c1 == -1 ? -1 : 1);
+		int IComparable<ISqlString>.CompareTo(ISqlString other) {
+			throw new NotSupportedException();
 		}
 
 		public IEnumerator<char> GetEnumerator() {
@@ -145,26 +106,21 @@ namespace Deveel.Data.Sql.Objects {
 			return GetEnumerator();
 		}
 
-		public int CodePage { get; private set; }
-
 		public long Length { get; private set; }
 
 		public TextReader GetInput() {
 			if (largeObject == null)
 				return TextReader.Null;
 
-			return new StreamReader(new ObjectStream(largeObject), encoding);
+			return new StreamReader(new ObjectStream(largeObject));
 		}
 
-		public TextWriter GetOutput() {
-			if (largeObject == null)
-				return TextWriter.Null;
-
-			return new StreamWriter(new ObjectStream(largeObject), encoding);
+		public static SqlLongString Unicode(ILargeObject largeObject) {
+			return new SqlLongString(largeObject, Encoding.Unicode);
 		}
 
-		public static SqlLongString Unicode(ILargeObject obj) {
-			return new SqlLongString(obj, Encoding.Unicode.CodePage);
+		public static SqlLongString Ascii(ILargeObject largeObject) {
+			return new SqlLongString(largeObject, Encoding.ASCII);
 		}
 
 		#region Enumerator

@@ -75,7 +75,8 @@ namespace Deveel.Data.Types {
 					locale = CultureInfo.GetCultureInfo(lcid);
 				}
 
-				return PrimitiveTypes.String(typeCode, maxSize, locale);
+				// TODO: Get the encoding from the serialization...
+				return PrimitiveTypes.String(typeCode, maxSize, Encoding.Unicode, locale);
 			}
 
 			if (NumericType.IsNumericType(typeCode)) {

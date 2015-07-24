@@ -588,7 +588,7 @@ namespace Deveel.Data.Sql.Objects {
 				return SqlString.Null;
 
 			var s = value.Value.ToString(SqlDateFormats[0]);
-			return SqlString.Unicode(s);
+			return new SqlString(s);
 		}
 
 		public SqlString ToTimeString() {
@@ -596,7 +596,7 @@ namespace Deveel.Data.Sql.Objects {
 				return SqlString.Null;
 
 			var s = value.Value.ToString(SqlTimeFormats[0]);
-			return SqlString.Unicode(s);
+			return new SqlString(s);
 		}
 
 		public SqlString ToTimeStampString() {
@@ -604,7 +604,7 @@ namespace Deveel.Data.Sql.Objects {
 				return SqlString.Null;
 
 			var s = value.Value.ToString(SqlTimeStampFormats[0]);
-			return SqlString.Unicode(s);
+			return new SqlString(s);
 		}
 
 		public override string ToString() {

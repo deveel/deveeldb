@@ -26,18 +26,15 @@ namespace Deveel.Data.Sql.Objects {
 		public const int MaxLength = Int16.MaxValue;
 
 		public static readonly SqlString Null = new SqlString((char[])null);
-		public static readonly SqlString Empty = new SqlString(new char[0]);
 
 		private readonly char[] source;
 
-		private SqlString(int codePage, char[] chars)
-			: this(codePage, chars, chars == null ? 0 : chars.Length) {
+		public SqlString(char[] chars)
+			: this(chars, chars == null ? 0 : chars.Length) {
 		}
 
-		private SqlString(int codePage, char[] chars, int length)
+		public SqlString(char[] chars, int length)
 			: this() {
-			CodePage = codePage;
-
 			if (chars == null) {
 				source = null;
 			} else {
@@ -49,12 +46,8 @@ namespace Deveel.Data.Sql.Objects {
 			}			
 		}
 
-		public SqlString(char[] chars)
-			: this(Encoding.Unicode.CodePage, chars, chars == null ? 0 : chars.Length) {
-		}
-
-		public SqlString(string s)
-			: this(s == null ? null : s.ToCharArray()) {
+		public SqlString(string source)
+			: this(source == null ? (char[]) null : source.ToCharArray()) {
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -95,9 +88,6 @@ namespace Deveel.Data.Sql.Objects {
 			if (other == null)
 				throw new ArgumentNullException("other");
 
-			if (CodePage != other.CodePage)
-				throw new ArgumentException("The codepage value of the other string is different.");
-
 			if (IsNull && other.IsNull)
 				return 0;
 			if (IsNull)
@@ -125,15 +115,12 @@ namespace Deveel.Data.Sql.Objects {
 			get { return source == null ? 0 : source.LongLength; }
 		}
 
-		public int CodePage { get; private set; }
-
 		public TextReader GetInput() {
-			var encoding = Encoding.GetEncoding(CodePage);
-			var bytes = new byte[0];
-			if (source != null)
-				bytes = encoding.GetBytes(source);
+			string s = String.Empty;
+			if (!IsNull)
+				s = new string(source);
 
-			return new StreamReader(new MemoryStream(bytes), encoding);
+			return new StringReader(s);
 		}
 
 		public bool Equals(SqlString other) {
@@ -179,44 +166,19 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
-		public static SqlString Unicode(byte[] bytes) {
-			return new SqlString(Encoding.Unicode.CodePage, Encoding.Unicode.GetChars(bytes));
-		}
+		public byte[] ToByteArray(Encoding encoding) {
+			if (encoding == null)
+				throw new ArgumentNullException("encoding");
 
-		public static SqlString Unicode(string s) {
-			return Unicode(Encoding.Unicode.GetBytes(s));
-		}
-
-		public static SqlString BigEndianUnicode(byte[] bytes) {
-			return new SqlString(Encoding.BigEndianUnicode.CodePage, Encoding.BigEndianUnicode.GetChars(bytes));
-		}
-
-		public static SqlString Ascii(byte[] bytes) {
-			return new SqlString(Encoding.ASCII.CodePage, Encoding.ASCII.GetChars(bytes));
-		}
-
-		public static SqlString Ascii(string s) {
-			return Ascii(Encoding.ASCII.GetBytes(s));
-		}
-
-		public static SqlString Decode(int codePage, byte[] bytes) {
-			var encoding = Encoding.GetEncoding(codePage);
-			return new SqlString(codePage, encoding.GetChars(bytes));
-		}
-
-		public byte[] ToByteArray() {
 			if (source == null)
 				return new byte[0];
 
-			return Encoding.GetEncoding(CodePage).GetBytes(source);
+			return encoding.GetBytes(source);
 		}
 
 		public SqlString Concat(ISqlString other) {
 			if (other == null || other.IsNull)
 				return this;
-
-			if (other.CodePage != CodePage)
-				throw new ArgumentException("The other string belongs to a different encoding.");
 
 			if (other is SqlString) {
 				var otheString = (SqlString) other;
@@ -227,7 +189,7 @@ namespace Deveel.Data.Sql.Objects {
 				var destChars = new char[length];
 				Array.Copy(source, 0, destChars, 0, Length);
 				Array.Copy(otheString.source, 0, destChars, Length, otheString.Length);
-				return new SqlString(CodePage, destChars, length);
+				return new SqlString(destChars, length);
 			}
 
 			var sb = new StringBuilder(Int16.MaxValue);
@@ -255,7 +217,14 @@ namespace Deveel.Data.Sql.Objects {
 
 			var outChars = new char[sb.Length];
 			sb.CopyTo(0, outChars, 0, sb.Length);
-			return new SqlString(CodePage, outChars, outChars.Length);
+			return new SqlString(outChars, outChars.Length);
+		}
+
+		public int GetByteCount(Encoding encoding) {
+			if (IsNull)
+				return 0;
+
+			return encoding.GetByteCount(source);
 		}
 
 		#region StringEnumerator
@@ -408,26 +377,6 @@ namespace Deveel.Data.Sql.Objects {
 			throw new InvalidCastException(String.Format("Cannot convet SQL STRING to {0}", conversionType.FullName));
 		}
 
-		public static bool operator ==(SqlString a, SqlString b) {
-			return a.Equals(b);
-		}
-
-		public static bool operator !=(SqlString a, SqlString b) {
-			return !(a == b);
-		}
-
-		public static SqlString operator +(SqlString a, SqlString b) {
-			return a.Concat(b);
-		}
-
-		public static SqlString operator +(SqlString a, string b) {
-			var chars = new char[0];
-			if (!String.IsNullOrEmpty(b))
-				chars = b.ToCharArray();
-
-			return a.Concat(new SqlString(a.CodePage, chars));
-		}
-
 		public SqlBoolean ToBoolean() {
 			SqlBoolean value;
 			if (!SqlBoolean.TryParse(Value, out value))
@@ -453,7 +402,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlBinary ToBinary() {
-			var bytes = ToByteArray();
+			var bytes = ToByteArray(Encoding.Unicode);
 			return new SqlBinary(bytes);
 		}
 

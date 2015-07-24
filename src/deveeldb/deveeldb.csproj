@@ -778,6 +778,7 @@
     </Compile>
     <Compile Include="Deveel.Data.Types\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\TabularType.cs" />
+    <Compile Include="Deveel.Data.Types\TypeResolveContext.cs" />
     <Compile Include="Deveel.Data.Types\TypeSerializer.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
