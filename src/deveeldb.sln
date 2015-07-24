@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compact", "Compact", "{4930
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-lucene", "deveeldb-lucene\deveeldb-lucene.csproj", "{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-xml", "deveeldb-xml\deveeldb-xml.csproj", "{512419CE-4521-4C5B-B52E-89F054B36996}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,14 @@ Global
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Release|x64.ActiveCfg = Release|Any CPU
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Release|x86.ActiveCfg = Release|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Release|Any CPU.Build.0 = Release|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Release|x64.ActiveCfg = Release|Any CPU
+		{512419CE-4521-4C5B-B52E-89F054B36996}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
