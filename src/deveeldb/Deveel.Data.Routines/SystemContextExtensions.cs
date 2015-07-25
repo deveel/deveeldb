@@ -25,7 +25,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static void UseSystemFunctions(this ISystemContext context) {
-			context.UseRoutineResolver(SystemFunctions.Provider);
+			context.UseRoutineResolver(new SystemFunctionsProvider());
 		}
 	}
 }

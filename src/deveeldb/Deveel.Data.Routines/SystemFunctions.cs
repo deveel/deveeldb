@@ -17,24 +17,16 @@
 using System;
 
 using Deveel.Data.DbSystem;
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public static class SystemFunctions {
-		private static FunctionProvider provider;
-
-		public static FunctionProvider Provider {
-			get {
-				if (provider == null) {
-					provider = new SystemFunctionsProvider();
-				}
-
-				return provider;
-			}
+		static SystemFunctions() {
+			Provider = new SystemFunctionsProvider();
 		}
+
+		public static FunctionProvider Provider { get; private set; }
 
 		public static DataObject Or(DataObject ob1, DataObject ob2) {
 			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;

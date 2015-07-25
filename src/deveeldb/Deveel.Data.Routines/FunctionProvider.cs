@@ -22,6 +22,10 @@ namespace Deveel.Data.Routines {
 			CallInit();
 		}
 
+		~FunctionProvider() {
+			Dispose(false);
+		}
+
 		public abstract string SchemaName { get; }
 
 		private void CallInit() {
@@ -280,8 +284,17 @@ namespace Deveel.Data.Routines {
 		#endregion
 
 		public void Dispose() {
-			if (container != null)
-				container.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (container != null)
+					container.Dispose();
+			}
+
+			container = null;
 		}
 	}
 }

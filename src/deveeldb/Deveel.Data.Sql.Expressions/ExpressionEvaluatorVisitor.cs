@@ -186,7 +186,7 @@ namespace Deveel.Data.Sql.Expressions {
 			} catch (ExpressionEvaluateException) {
 				throw;
 			} catch (Exception ex) {
-				throw new ExpressionEvaluateException("Could not evaluate a FUNCTION because of an error.", ex);
+				throw new ExpressionEvaluateException(String.Format("Could not evaluate function expression '{0}' because of an error.", expression), ex);
 			}
 		}
 
