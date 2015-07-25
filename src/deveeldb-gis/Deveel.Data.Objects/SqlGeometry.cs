@@ -113,7 +113,7 @@ namespace Deveel.Data.Objects {
 			return Geometry.Contains(other.Geometry);;
 		}
 
-		public SqlBinary ToBinary() {
+		public SqlBinary ToWellKnownBytes() {
 			if (IsNull)
 				return SqlBinary.Null;
 
@@ -125,10 +125,10 @@ namespace Deveel.Data.Objects {
 			if (IsNull)
 				return String.Empty;
 
-			return ToSqlString().ToString();
+			return ToWellKnownText().ToString();
 		}
 
-		public SqlString ToSqlString() {
+		public SqlString ToWellKnownText() {
 			if (IsNull)
 				return SqlString.Null;
 

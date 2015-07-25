@@ -4,6 +4,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Objects;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Spatial {
 	public static class SpatialSystemFunctions {
@@ -30,6 +31,21 @@ namespace Deveel.Data.Spatial {
 			return new DataObject(SpatialType.Geometry(), result);
 		}
 
+		public static DataObject ToWkb(DataObject geometry) {
+			if (geometry.IsNull)
+				return DataObject.Null(PrimitiveTypes.String());
+
+			var g = (SqlGeometry)geometry.Value;
+			return DataObject.Binary(ToWkb(g));
+		}
+
+		public static SqlBinary ToWkb(SqlGeometry geometry) {
+			if (geometry == null || geometry.IsNull)
+				return SqlBinary.Null;
+
+			return geometry.ToWellKnownBytes();
+		}
+
 		public static DataObject FromWkt(IQueryContext context, DataObject source) {
 			var input = (SqlString) source.Value;
 			var result = FromWkt(input);
@@ -44,17 +60,45 @@ namespace Deveel.Data.Spatial {
 			return geometry;
 		}
 
+		public static SqlString ToWkt(SqlGeometry geometry) {
+			if (geometry == null || geometry.IsNull)
+				return SqlString.Null;
+
+			return geometry.ToWellKnownText();
+		}
+
+		public static DataObject ToWkt(DataObject geometry) {
+			if (geometry.IsNull)
+				return DataObject.Null(PrimitiveTypes.String());
+
+			var g = (SqlGeometry) geometry.Value;
+			return DataObject.String(ToWkt(g));
+		}
+
 		public static DataObject Envelope(DataObject geometry) {
 			var input = (SqlGeometry) geometry.Value;
 			var envelope = Envelope(input);
 			return new DataObject(SpatialType.Geometry(), envelope);
 		}
 
-		private static SqlGeometry Envelope(SqlGeometry geometry) {
+		public static SqlGeometry Envelope(SqlGeometry geometry) {
 			if (geometry.IsNull)
 				return SqlGeometry.Null;
 
 			return geometry.Envelope;
+		}
+
+		public static DataObject Distance(DataObject geometry) {
+			var input = (SqlGeometry)geometry.Value;
+			var result = Distance(input);
+			return DataObject.Number(result);
+		}
+
+		private static SqlNumber Distance(SqlGeometry geometry) {
+			if (geometry == null || geometry.IsNull)
+				return SqlNumber.Null;
+
+			return geometry.Distance(geometry);
 		}
 	}
 }
