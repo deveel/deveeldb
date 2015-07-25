@@ -17,10 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Query {
-	// TODO: For the moment just a place-holder
-#if !PORTBALE
-	[Serializable]
-#endif
 	public class QueryException : SqlErrorException {
 		public QueryException(int errorCode) 
 			: base(errorCode) {

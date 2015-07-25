@@ -21,7 +21,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// A single item selected within a query node tree.
 	/// </summary>
-	[Serializable]
 	class SelectItemNode : SqlNode {
 		internal SelectItemNode() {
 		}

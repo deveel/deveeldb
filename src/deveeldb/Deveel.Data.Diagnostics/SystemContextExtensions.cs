@@ -42,6 +42,7 @@ namespace Deveel.Data.Diagnostics {
 			context.ServiceProvider.Register(logger);
 		}
 
+#if !PCL
 		public static void UseDefaultConsoleLogger(this ISystemContext context) {
 			UseDefaultConsoleLogger(context, LogLevel.Warning);
 		}
@@ -49,5 +50,6 @@ namespace Deveel.Data.Diagnostics {
 		public static void UseDefaultConsoleLogger(this ISystemContext context, LogLevel level) {
 			context.UseLogger(new ConsoleEventLogger {Level = level});
 		}
+#endif
 	}
 }

@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class SetDefaultAction : IAlterTableAction {
 		public SetDefaultAction(string columnName, SqlExpression defaultExpression) {
 			ColumnName = columnName;

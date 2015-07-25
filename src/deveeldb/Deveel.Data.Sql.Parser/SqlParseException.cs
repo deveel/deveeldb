@@ -23,7 +23,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// An error that occurs when compiling a input string into
 	/// a SQL object.  
 	/// </summary>
-	[Serializable]
 	public sealed class SqlParseException : ErrorException {
 		public SqlParseException() 
 			: this(CompileErrorCodes.SyntaxError) {

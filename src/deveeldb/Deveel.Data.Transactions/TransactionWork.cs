@@ -538,7 +538,7 @@ namespace Deveel.Data.Transactions {
 				}
 			}
 
-			return changedTablesList.AsReadOnly();
+			return changedTablesList.ToArray();
 		}
 
 		/// <summary>

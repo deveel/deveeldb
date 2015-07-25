@@ -242,9 +242,9 @@
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs" />
     <Compile Include="Deveel.Data.Security\GrantManager.cs" />
-    <Compile Include="Deveel.Data.Security\HashFunctions.cs" />
     <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
+    <Compile Include="Deveel.Data.Security\IHashFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
@@ -576,7 +576,6 @@
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
     <Compile Include="Deveel.Data.Store\DefaultStorageSystemNames.cs" />
-    <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
     <Compile Include="Deveel.Data.Store\ILargeObject.cs" />
@@ -593,7 +592,6 @@
     <Compile Include="Deveel.Data.Store\ObjectStoreExtensions.cs" />
     <Compile Include="Deveel.Data.Store\ObjectStream.cs" />
     <Compile Include="Deveel.Data.Store\RecordType.cs" />
-    <Compile Include="Deveel.Data.Store\ScatteringFileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
     <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />

@@ -87,7 +87,13 @@ namespace Deveel.Data.Sql {
 
 		public int FindIndexOffset(string name, bool ignoreCase) {
 			var compare = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-			return indexes.FindIndex(x => x.IndexName.Equals(name, compare));
+			for (int i = 0; i < indexes.Count; i++) {
+				var indexInfo = indexes[i];
+				if (indexInfo.IndexName.Equals(name, compare))
+					return i;
+			}
+
+			return -1;
 		}
 
 		public int FindIndexForColumns(string[] columnNames) {
@@ -111,7 +117,7 @@ namespace Deveel.Data.Sql {
 
 
 		public IndexSetInfo AsReadOnly() {
-			return new IndexSetInfo(TableName, indexes.AsReadOnly(), true);
+			return new IndexSetInfo(TableName, indexes.ToArray(), true);
 		}
 
 		public IEnumerator<IndexInfo> GetEnumerator() {
@@ -171,7 +177,7 @@ namespace Deveel.Data.Sql {
 				indices.Add(indexInfo);
 			}
 
-			return new IndexSetInfo(objTableName, indices.AsReadOnly(), false);
+			return new IndexSetInfo(objTableName, indices.ToArray(), false);
 		}
 	}
 }

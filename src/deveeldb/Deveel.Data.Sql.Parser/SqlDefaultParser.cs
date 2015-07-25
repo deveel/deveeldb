@@ -47,8 +47,7 @@ namespace Deveel.Data.Sql.Parser {
 		public SqlParseResult Parse(string input) {
 			var result = new SqlParseResult(Dialect);
 
-			var stopwatch = new Stopwatch();
-			stopwatch.Start();
+			var timer = new Timer();
 
 			try {
 				long time;
@@ -58,8 +57,8 @@ namespace Deveel.Data.Sql.Parser {
 				// TODO: form a better exception
 				result.Errors.Add(new SqlParseError(ex.Message, 0, 0));
 			} finally {
-				stopwatch.Stop();
-				result.ParseTime = stopwatch.Elapsed;
+				timer.Dispose();
+				result.ParseTime = timer.Elapsed;
 			}
 
 			return result;
@@ -166,6 +165,44 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return result.ToList();
-		} 
+		}
+
+		#region Timer
+
+		class Timer : IDisposable {
+#if PCL
+			private readonly DateTimeOffset startTime;
+#else
+			private Stopwatch stopwatch;
+#endif
+
+			public Timer() {
+#if PCL
+				startTime = DateTimeOffset.UtcNow;
+#else
+				stopwatch = new Stopwatch();
+				stopwatch.Start();
+#endif
+			}
+
+			public TimeSpan Elapsed {
+				get {
+#if PCL
+					return DateTimeOffset.UtcNow.Subtract(startTime);
+#else
+					return stopwatch.Elapsed;
+#endif
+				}
+			}
+
+			public void Dispose() {
+#if !PCL
+				if (stopwatch != null)
+					stopwatch.Stop();
+#endif
+			}
+		}
+
+		#endregion
 	}
 }

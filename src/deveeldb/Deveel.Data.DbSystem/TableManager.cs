@@ -312,11 +312,21 @@ namespace Deveel.Data.DbSystem {
 			tableIndices.Add(indexSet);
 		}
 
+		private static int IndexOfTable(IList<TableSource> sources, int tableId) {
+			for (int i = 0; i < sources.Count; i++) {
+				var source = sources[i];
+				if (source.TableId == tableId)
+					return i;
+			}
+
+			return -1;
+		}
+
 		internal void RemoveVisibleTable(TableSource table) {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			int i = visibleTables.FindIndex(x => x.TableId == table.TableId);
+			var i = IndexOfTable(visibleTables, table.TableId);
 			if (i != -1) {
 				visibleTables.RemoveAt(i);
 				IIndexSet indexSet = tableIndices[i];

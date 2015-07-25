@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class ArrayType : DataType, ISizeableType {
 		public ArrayType(int length) 
 			: base("ARRAY", SqlTypeCode.Array) {

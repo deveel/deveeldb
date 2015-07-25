@@ -132,7 +132,7 @@ namespace Deveel.Data.Sql {
 				rowNumber -= sz;
 			}
 
-			throw new ArgumentOutOfRangeException("rowNumber", rowNumber, String.Format("Row '{0}' out of range.", rowNumber));
+			throw new ArgumentOutOfRangeException("rowNumber", String.Format("Row '{0}' out of range.", rowNumber));
 		}
 
 		protected override ObjectName GetResolvedColumnName(int column) {

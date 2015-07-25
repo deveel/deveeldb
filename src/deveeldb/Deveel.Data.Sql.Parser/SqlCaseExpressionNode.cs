@@ -22,7 +22,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// An SQL node describing an in-line <c>CASE</c> conditional expression.
 	/// </summary>
-	[Serializable]
 	class SqlCaseExpressionNode : SqlNode, IExpressionNode {
 		internal SqlCaseExpressionNode() {
 		}
@@ -78,7 +77,7 @@ namespace Deveel.Data.Sql.Parser {
 					switches.Add((CaseSwitchNode)childNode);
 			}
 
-			CaseSwitches = switches.AsReadOnly();
+			CaseSwitches = switches.ToArray();
 		}
 	}
 }

@@ -25,7 +25,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// handle the location within the string context, and the value 
 	/// they represent, which is a single word, character or number.
 	/// </remarks>
-	[Serializable]
 	public sealed class Token {
 		internal Token(int column, int line, string text, object value) {
 			Text = text;

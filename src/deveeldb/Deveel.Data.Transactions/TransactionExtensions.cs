@@ -292,7 +292,7 @@ namespace Deveel.Data.Transactions {
 		public static TableInfo GetTableInfo(this ITransaction transaction, ObjectName tableName) {
 			var tableManager = transaction.Managers.ResolveForType(DbObjectType.Table) as TableManager;
 			if (tableManager == null)
-				throw new SystemException();
+				throw new InvalidOperationException("No table manager was found.");
 
 			return tableManager.GetTableInfo(tableName);
 		}
@@ -300,7 +300,7 @@ namespace Deveel.Data.Transactions {
 		public static string GetTableType(this ITransaction transaction, ObjectName tableName) {
 			var tableManager = transaction.GetTableManager();
 			if (tableManager == null)
-				throw new SystemException();
+				throw new InvalidOperationException("No table manager was found.");
 
 			return tableManager.GetTableType(tableName);
 		}

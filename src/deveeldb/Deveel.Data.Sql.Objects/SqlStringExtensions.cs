@@ -53,9 +53,14 @@ namespace Deveel.Data.Sql.Objects {
 					break;
 			}
 
+#if PCL
+			var s = sb.ToString();
+			return new SqlString(s);
+#else
 			var chars = new char[count];
 			sb.CopyTo(0, chars, 0, count);
 			return new SqlString(chars);
+#endif
 		}
 
 		public static SqlNumber IndexOf(this ISqlString pattern, SqlString expression) {

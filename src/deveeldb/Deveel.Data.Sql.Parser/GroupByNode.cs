@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 					exps.Add((IExpressionNode) childNode);
 			}
 
-			GroupExpressions = exps.AsReadOnly();
+			GroupExpressions = exps.ToArray();
 		}
 	}
 }

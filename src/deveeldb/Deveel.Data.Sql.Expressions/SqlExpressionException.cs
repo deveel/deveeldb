@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
 	public class SqlExpressionException : ErrorException {
 		public SqlExpressionException() 
 			: this(null) {

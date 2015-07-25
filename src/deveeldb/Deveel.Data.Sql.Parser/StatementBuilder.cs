@@ -106,7 +106,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			Visit(rootNode);
-			return statements.AsReadOnly();
+			return statements.ToArray();
 		}
 
 		public override void VisitAlterTable(AlterTableNode node) {

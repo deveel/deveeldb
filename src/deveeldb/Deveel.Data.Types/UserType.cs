@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class UserType : DataType, IDbObject {
 		public UserType(UserTypeInfo typeInfo) 
 			: base(typeInfo.TypeName.FullName, SqlTypeCode.Type) {

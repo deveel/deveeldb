@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public class UserTypeInfo : IObjectInfo {
 		private readonly Dictionary<string, UserTypeMember> memberNamesCache;
 		private List<UserTypeMember> members; 

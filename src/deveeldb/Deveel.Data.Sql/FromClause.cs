@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 		/// Gets an enumeration of all the tables that are the source of the query.
 		/// </summary>
 		public IEnumerable<FromTable> AllTables {
-			get { return fromTables.AsReadOnly(); }
+			get { return fromTables.ToArray(); }
 		}
 
 		/// <summary>

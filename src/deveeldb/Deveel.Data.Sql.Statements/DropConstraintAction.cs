@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class DropConstraintAction : IAlterTableAction {
 		public DropConstraintAction(string constraintName) {
 			if (String.IsNullOrEmpty(constraintName))

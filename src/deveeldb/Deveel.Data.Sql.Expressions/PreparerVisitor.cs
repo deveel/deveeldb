@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Expressions {
 				newList.Add(newItem);
 			}
 
-			return newList.AsReadOnly();
+			return newList.ToArray();
 		}
 
 		public override SqlExpression VisitQuery(SqlQueryExpression query) {

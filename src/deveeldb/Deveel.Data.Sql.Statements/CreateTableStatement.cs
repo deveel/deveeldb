@@ -26,7 +26,6 @@ namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// The statement object used to create a table in a database.
 	/// </summary>
-	[Serializable]
 	public sealed class CreateTableStatement : SqlStatement {
 		/// <summary>
 		/// 
@@ -102,7 +101,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedCreateTableStatement
 
-		[Serializable]
 		class PreparedCreateTableStatement : SqlPreparedStatement {
 			private readonly TableInfo tableInfo;
 			private readonly bool temporary;

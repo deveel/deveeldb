@@ -21,7 +21,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class QueryType : DataType {
 		public QueryType()
 			: base("QUERY", SqlTypeCode.QueryPlan) {

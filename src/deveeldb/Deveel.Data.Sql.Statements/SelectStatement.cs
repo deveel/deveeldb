@@ -6,7 +6,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class SelectStatement : SqlStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {

@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Parser {
 					args.Add((IExpressionNode)childNode);
 			}
 
-			Arguments = args.AsReadOnly();
+			Arguments = args.ToArray();
 		}
 
 		/// <inheritdoc/>

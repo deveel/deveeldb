@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql {
 				rowSet[n] = bb;
 			}
 
-			return rowSet.AsReadOnly();
+			return rowSet.ToArray();
 		}
 	}
 }

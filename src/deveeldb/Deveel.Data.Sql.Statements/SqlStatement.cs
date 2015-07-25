@@ -39,7 +39,6 @@ namespace Deveel.Data.Sql.Statements {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="SqlPreparedStatement"/>
-	[Serializable]
 	public abstract class SqlStatement {
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.

@@ -75,10 +75,7 @@ namespace Deveel.Data.Transactions {
 						}
 
 						if (blocked) {
-							try {
-								Monitor.Wait(this);
-							} catch (ThreadInterruptedException) {
-							}
+							Monitor.Wait(this);
 						}
 					} while (blocked);
 				} else {
@@ -90,10 +87,7 @@ namespace Deveel.Data.Transactions {
 						if (index != 0) {
 							blocked = true;
 
-							try {
-								Monitor.Wait(this);
-							} catch (ThreadInterruptedException) {
-							}
+							Monitor.Wait(this);
 						}
 
 					} while (blocked);

@@ -48,7 +48,7 @@ namespace Deveel.Data.Configuration {
 				var properties = new Properties();
 				properties.Load(inputStream);
 
-				foreach (DictionaryEntry entry in properties) {
+				foreach (var entry in properties) {
 					var propKey = (string) entry.Key;
 					SetValue(config, propKey, (string) entry.Value);
 				}

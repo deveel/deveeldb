@@ -61,7 +61,11 @@ namespace Deveel.Data.Sql.Query {
 				return null;
 
 			var typeString = reader.ReadString();
+#if PCL
+			var type = Type.GetType(typeString, true);
+#else
 			var type = Type.GetType(typeString, true, true);
+#endif
 
 			return Deserialize(type, reader);
 		}

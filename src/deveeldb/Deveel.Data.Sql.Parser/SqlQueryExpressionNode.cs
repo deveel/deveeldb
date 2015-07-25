@@ -135,7 +135,7 @@ namespace Deveel.Data.Sql.Parser {
 					items.Add((SelectItemNode)childNode);
 			}
 
-			SelectItems = items.AsReadOnly();
+			SelectItems = items.ToArray();
 		}
 	}
 }

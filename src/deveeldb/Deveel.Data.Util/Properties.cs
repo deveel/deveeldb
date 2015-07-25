@@ -16,12 +16,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace Deveel.Data.Util {
-	[Serializable]
-	class Properties : Hashtable, IEnumerable {
+	class Properties : Dictionary<string, string> {
 
 		protected Properties defaults;
 
@@ -301,7 +301,7 @@ namespace Deveel.Data.Util {
 			writer.WriteLine("#" + DateTime.Now);
 
 			StringBuilder s = new StringBuilder(); // Reuse the same buffer.
-			foreach (DictionaryEntry entry in this) {
+			foreach (var entry in this) {
 				FormatForOutput((String)entry.Key, s, true);
 				s.Append('=');
 				FormatForOutput((String)entry.Value, s, false);
@@ -366,7 +366,7 @@ namespace Deveel.Data.Util {
 				// for that. This prevents modifications from ruining the enumeration,
 				// as well as ignoring duplicates.
 				Properties prop = this;
-				ArrayList s = new ArrayList();
+				var s = new List<string>();
 				// Eliminate tail recursion.
 				do {
 					s.AddRange(prop.Keys);
@@ -395,7 +395,7 @@ namespace Deveel.Data.Util {
 		public void List(StreamWriter output) {
 			output.WriteLine("-- listing properties --");
 
-			foreach (DictionaryEntry entry in this) {
+			foreach (var entry in this) {
 				output.Write((String)entry.Key + "=");
 
 				String s = (String)entry.Value;

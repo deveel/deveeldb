@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public sealed class SqlQueryObject : ISqlObject {
 		public SqlQueryObject(IQueryPlanNode queryPlan) {
 			QueryPlan = queryPlan;

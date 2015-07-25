@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	public sealed class QueryReference {
 		public QueryReference(ObjectName name, int level) {
 			Level = level;

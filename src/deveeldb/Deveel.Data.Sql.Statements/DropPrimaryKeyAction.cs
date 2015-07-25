@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class DropPrimaryKeyAction : IAlterTableAction {
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			return new DropPrimaryKeyAction();

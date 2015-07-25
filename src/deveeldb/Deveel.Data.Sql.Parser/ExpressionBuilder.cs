@@ -120,7 +120,7 @@ namespace Deveel.Data.Sql.Parser {
 		private JoinType GetJoinType(string typeName) {
 			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(typeName, "INNER JOIN", StringComparison.OrdinalIgnoreCase) ||
-			    String.Equals(typeName, ",", StringComparison.InvariantCulture))
+			    String.Equals(typeName, ",", StringComparison.OrdinalIgnoreCase))
 				return JoinType.Inner;
 			if (String.Equals(typeName, "LEFT OUTER", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(typeName, "LFT OUTER JOIN", StringComparison.OrdinalIgnoreCase) ||
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Parser {
 				items.Add(new SelectColumn(exp, alias));
 			}
 
-			return items.AsReadOnly();
+			return items.ToArray();
 		}
 
 		public override void VisitCaseExpression(SqlCaseExpressionNode expressionNode) {

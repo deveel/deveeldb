@@ -23,7 +23,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// if the <see cref="Expression"/> given is between <see cref="MinValue"/>
 	/// (inclusive) and <see cref="MaxValue"/> (exclusive).
 	/// </summary>
-	[Serializable]
 	class SqlBetweenExpressionNode : SqlNode, IExpressionNode {
 		private bool expressionSeen;
 		private bool minValueSeen;

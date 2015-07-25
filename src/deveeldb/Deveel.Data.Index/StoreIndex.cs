@@ -44,11 +44,11 @@ namespace Deveel.Data.Index {
 		public IndexSetStore IndexSetStore { get; private set; }
 
 		public IEnumerable<IIndexBlock<int>> AllBlocks {
-			get { return Blocks.AsReadOnly(); }
+			get { return Blocks.ToArray(); }
 		}
 
 		public IEnumerable<IMappedBlock> DeletedBlocks {
-			get { return deletedBlocks.AsReadOnly(); }
+			get { return deletedBlocks.ToArray(); }
 		}
 
 		private void AssertNotDisposed() {

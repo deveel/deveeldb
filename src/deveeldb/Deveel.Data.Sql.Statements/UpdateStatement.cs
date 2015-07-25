@@ -6,7 +6,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class UpdateStatement : SqlStatement {
 		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
@@ -56,13 +55,13 @@ namespace Deveel.Data.Sql.Statements {
 				columns.Add(assign);
 			}
 
-			return new PreparedUpdateStatement(tableName, queryPlan, columns.AsReadOnly(), Limit);
+			return new PreparedUpdateStatement(tableName, queryPlan, columns.ToArray(), Limit);
 		}
 
 		#region PreparedUpdateStatement
 
 		class PreparedUpdateStatement : SqlPreparedStatement {
-			public PreparedUpdateStatement(ObjectName tableName, IQueryPlanNode queryPlan, IEnumerable<SqlAssignExpression> columns, int limit) {
+			public PreparedUpdateStatement(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
 				TableName = tableName;
 				QueryPlan = queryPlan;
 				Columns = columns;
@@ -73,7 +72,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			public IEnumerable<SqlAssignExpression> Columns { get; private set; }
+			public SqlAssignExpression[] Columns { get; private set; }
 
 			public int Limit { get; private set; }
 

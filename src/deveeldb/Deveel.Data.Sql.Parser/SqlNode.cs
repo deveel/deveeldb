@@ -92,8 +92,8 @@ namespace Deveel.Data.Sql.Parser {
 				}
 			}
 
-			ChildNodes = childNodes.AsReadOnly();
-			Tokens = tokens.AsReadOnly();
+			ChildNodes = childNodes.ToArray();
+			Tokens = tokens.ToArray();
 
 			OnNodeInit();
 		}

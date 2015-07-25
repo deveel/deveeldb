@@ -48,10 +48,7 @@ namespace Deveel.Data.Transactions {
 				// If currently in exclusive mode, block until not.
 
 				while (exclusiveMode) {
-					try {
-						Monitor.Wait(this);
-					} catch (ThreadInterruptedException) {
-					}
+					Monitor.Wait(this);
 				}
 
 				if (Mode == LockingMode.Exclusive) {
@@ -60,10 +57,7 @@ namespace Deveel.Data.Transactions {
 
 					exclusiveMode = true;
 					while (sharedAccess > 0) {
-						try {
-							Monitor.Wait(this);
-						} catch (ThreadInterruptedException) {
-						}
+						Monitor.Wait(this);
 					}
 				} else if (Mode == LockingMode.Shared) {
 					// Increase the threads counter that are in shared mode.

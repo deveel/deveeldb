@@ -18,9 +18,8 @@ using System;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
-	/// Handles expressions computed agaist an unary operator.
+	/// Handles expressions computed against an unary operator.
 	/// </summary>
-	[Serializable]
 	public sealed class SqlUnaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
 

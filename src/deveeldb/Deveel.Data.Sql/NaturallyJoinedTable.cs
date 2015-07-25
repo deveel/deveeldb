@@ -83,7 +83,7 @@ namespace Deveel.Data.DbSystem {
 				rowList[n] = parentRow;
 			}
 
-			return rowList.AsReadOnly();
+			return rowList.ToArray();
 		}
 	}
 }

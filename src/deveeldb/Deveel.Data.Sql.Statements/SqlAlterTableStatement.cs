@@ -21,7 +21,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class SqlAlterTableStatement : SqlStatement {
 		public SqlAlterTableStatement(ObjectName tableName) 
 			: this(tableName, (IAlterTableAction) null) {
@@ -59,7 +58,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region AlterTablePreparedStatement
 
-		[Serializable]
 		class PreparedAlterTableStatement : SqlPreparedStatement {
 			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();

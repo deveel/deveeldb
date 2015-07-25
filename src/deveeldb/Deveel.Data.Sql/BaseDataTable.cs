@@ -83,7 +83,11 @@ namespace Deveel.Data.Sql {
 			} else if (String.Equals(indexTypeName, DefaultIndexTypes.InsertSearch)) {
 				indexType = typeof (InsertSearchIndex);
 			} else {
+#if PCL
+				indexType = Type.GetType(indexTypeName, false);
+#else
 				indexType = Type.GetType(indexTypeName, false, true);
+#endif
 			}
 
 			if (indexType == null) {

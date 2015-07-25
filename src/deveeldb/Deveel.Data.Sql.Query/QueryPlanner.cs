@@ -353,7 +353,7 @@ namespace Deveel.Data.Sql.Query {
 				resolvedColumns.Add(resolved);
 			}
 
-			return resolvedColumns.AsReadOnly();
+			return resolvedColumns.ToArray();
 		}
 
 		public IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns) {

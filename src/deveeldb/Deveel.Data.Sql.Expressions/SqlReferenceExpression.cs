@@ -20,7 +20,6 @@ namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// An expression that references an object within a context.
 	/// </summary>
-	[Serializable]
 	public sealed class SqlReferenceExpression : SqlExpression {
 		internal SqlReferenceExpression(ObjectName name) {
 			ReferenceName = name;

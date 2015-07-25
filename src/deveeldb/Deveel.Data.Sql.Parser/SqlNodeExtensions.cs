@@ -91,7 +91,7 @@ namespace Deveel.Data.Sql.Parser {
 				nodes.AddRange(childNode.FindNodes(nodeType).Cast<ISqlNode>());
 			}
 
-			return nodes.AsReadOnly();
+			return nodes.ToArray();
 		}
 
 		public static int StartColumn(this ISqlNode node) {

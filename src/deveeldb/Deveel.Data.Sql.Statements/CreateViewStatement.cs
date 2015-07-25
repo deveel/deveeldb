@@ -24,7 +24,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class CreateViewStatement : SqlStatement {
 		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
@@ -104,7 +103,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedCreateView
 
-		[Serializable]
 		class PreparedCreateView : SqlPreparedStatement {
 			public PreparedCreateView(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
 				TableInfo = tableInfo;

@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
 	class AlterTableNode : SqlNode {
 		internal AlterTableNode() {
 		}

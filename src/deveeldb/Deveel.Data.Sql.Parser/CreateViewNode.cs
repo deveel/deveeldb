@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
 	class CreateViewNode : SqlNode, IStatementNode {
 		internal CreateViewNode() {
 		}

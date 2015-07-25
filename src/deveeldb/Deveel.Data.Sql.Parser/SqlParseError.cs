@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	[Serializable]
 	public sealed class SqlParseError {
 		public SqlParseError(string message, int line, int column) {
 			Message = message;

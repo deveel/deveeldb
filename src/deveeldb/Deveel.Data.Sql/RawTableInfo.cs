@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql {
 				resultItems.Add(merge1[i]);
 			}
 
-			return new RawTableInfo(resultItems.AsReadOnly());
+			return new RawTableInfo(resultItems.ToArray());
 		}
 
 		public RawTableInfo RemoveDuplicates() {
@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql {
 			var elen = tableItems[0];
 			int len = elen.Rows.Count;
 			if (len == 0)
-				return new RawTableInfo(tableItems.AsReadOnly());
+				return new RawTableInfo(tableItems.ToArray());
 
 			// Create a new row element to sort.
 
@@ -237,7 +237,7 @@ namespace Deveel.Data.Sql {
 				resultTables.Add(items[i]);
 			}
 
-			return new RawTableInfo(resultTables.AsReadOnly());
+			return new RawTableInfo(resultTables.ToArray());
 		}
 
 

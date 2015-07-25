@@ -20,7 +20,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Statements {
-	[Serializable]
 	public sealed class SqlTableColumn : IPreparable {
 		public SqlTableColumn(string columnName, DataType columnType) {
 			if (String.IsNullOrEmpty(columnName))

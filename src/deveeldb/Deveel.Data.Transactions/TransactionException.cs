@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Transactions {
-	[Serializable]
 	public class TransactionException : ErrorException {
 		public TransactionException(int errorCode) 
 			: base(EventClasses.Transactions, errorCode) {

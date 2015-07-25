@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Statements {
 				result.Add(resolved);
 			}
 
-			return result.AsReadOnly();
+			return result.ToArray();
 		}
 
 		public static ColumnChecker Default(IQueryContext context, ObjectName tableName) {

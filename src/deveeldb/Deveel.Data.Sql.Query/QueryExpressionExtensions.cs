@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Query {
 
 			public IEnumerable<ObjectName> Discover(SqlExpression expression) {
 				Visit(expression);
-				return columnNames.AsReadOnly();
+				return columnNames.ToArray();
 			}
 
 			public override SqlExpression VisitConstant(SqlConstantExpression constant) {
