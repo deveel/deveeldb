@@ -15,10 +15,8 @@
 //
 
 using System;
-using System.Diagnostics;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public struct SqlDayToSecond : ISqlObject, IComparable<SqlDayToSecond>, IEquatable<SqlDayToSecond> {
 		private readonly TimeSpan? value;
 

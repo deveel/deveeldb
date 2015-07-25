@@ -27,7 +27,6 @@ namespace Deveel.Data.Sql.Query {
 	/// The simple select requires a LHS variable, an operator, and an expression 
 	/// representing the RHS.
 	/// </remarks>
-	[Serializable]
 	class SimpleSelectNode : SingleQueryPlanNode {
 		public SimpleSelectNode(IQueryPlanNode child, ObjectName columnName, SqlExpressionType op, SqlExpression expression)
 			: base(child) {
@@ -43,7 +42,11 @@ namespace Deveel.Data.Sql.Query {
 		public SqlExpression Expression { get; private set; }
 
 		public override ITable Evaluate(IQueryContext context) {
-			throw new NotImplementedException();
+			// Solve the child branch result
+			var table = Child.Evaluate(context);
+
+			// The select operation.
+			return table.SimpleSelect(context, ColumnName, OperatorType, Expression);
 		}
 	}
 }

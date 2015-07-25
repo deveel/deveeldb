@@ -15,6 +15,8 @@
 //
 
 using System;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Parser;
@@ -29,7 +31,6 @@ namespace Deveel.Data.Sql.Expressions {
 	/// internal to the project, that means it will be possible to construct expressions
 	/// only through this class, calling factory methods (for example <see cref="Binary"/>).
 	/// </remarks>
-	[Serializable]
 	public abstract class SqlExpression {
 		private int precedence;
 
@@ -446,5 +447,34 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		#endregion
+
+		public static void Serialize(SqlExpression expression, Stream stream) {
+			Serialize(expression, stream, Encoding.Unicode);
+		}
+
+		public static void Serialize(SqlExpression expression, Stream stream, Encoding encoding) {
+			using (var writer = new BinaryWriter(stream, encoding)) {
+				Serialize(expression, writer);
+			}
+		}
+
+		public static SqlExpression Deserialize(Stream stream) {
+			return Deserialize(stream, Encoding.Unicode);
+		}
+
+		public static SqlExpression Deserialize(Stream stream, Encoding encoding) {
+			using (var reader = new BinaryReader(stream, encoding)) {
+				return Deserialize(reader);
+			}
+		}
+
+		public static void Serialize(SqlExpression expression, BinaryWriter writer) {
+			var visitor = new ExpressionBinarySerializer(writer);
+			visitor.Visit(expression);
+		}
+
+		public static SqlExpression Deserialize(BinaryReader reader) {
+			throw new NotImplementedException();
+		}
 	}
 }

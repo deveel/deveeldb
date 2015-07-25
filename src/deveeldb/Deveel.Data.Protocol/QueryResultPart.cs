@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class QueryResultPart {
 		private readonly List<QueryResultRow> rows;
 

@@ -104,9 +104,9 @@ namespace Deveel.Data.DbSystem {
 			foreach (var row in table) {
 				var objSchemaName = row.GetValue(1);
 				if (!(objSchemaName.Type is StringType))
-					throw new SystemException("Invalid column type for SCHEMA name table.");
+					throw new InvalidOperationException("Invalid column type for SCHEMA name table.");
 				if (objSchemaName.IsNull)
-					throw new SystemException();
+					throw new InvalidOperationException();
 
 				var schemaName = objSchemaName.Value.ToString();
 				if (String.Equals(schemaName, name, comparison))

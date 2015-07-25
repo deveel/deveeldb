@@ -15,11 +15,9 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class QueryExecuteRequest : IMessage {
 		public QueryExecuteRequest(long commitId, SqlQuery query) {
 			if (query == null)

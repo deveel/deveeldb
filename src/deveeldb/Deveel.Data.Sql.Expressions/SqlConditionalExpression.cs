@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
 	public sealed class SqlConditionalExpression : SqlExpression {
 		internal SqlConditionalExpression(SqlExpression testExpression, SqlExpression trueExpression, SqlExpression falsExpression) {
 			if (testExpression == null) 

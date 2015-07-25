@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class DisposeResultRequest : IMessage {
 		public DisposeResultRequest(int resultId) {
 			ResultId = resultId;

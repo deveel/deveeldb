@@ -20,7 +20,6 @@ using System.Globalization;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class QueryParameter {
 		public QueryParameter(DataType dataType) 
 			: this(Marker, dataType) {

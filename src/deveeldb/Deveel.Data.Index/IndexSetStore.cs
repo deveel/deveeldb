@@ -386,7 +386,7 @@ namespace Deveel.Data.Index {
 					// Commit finished.
 
 				} catch (IOException e) {
-					throw new ApplicationException("IO Error: " + e.Message, e);
+					throw new InvalidOperationException("Error while committing index changed", e);
 				}
 
 			}

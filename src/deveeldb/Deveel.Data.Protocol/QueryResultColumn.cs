@@ -20,7 +20,6 @@ using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public class QueryResultColumn {
 		/// <summary>
 		/// The Constructors if the type does require a size.

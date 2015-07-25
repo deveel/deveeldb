@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class ConnectionEndPoint {
 		public ConnectionEndPoint(string protocol, string address) {
 			if (String.IsNullOrEmpty(protocol))

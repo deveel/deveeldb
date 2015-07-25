@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class FetchViewNode : IQueryPlanNode {
 		public FetchViewNode(ObjectName viewName, ObjectName aliasName) {
 			ViewName = viewName;
@@ -30,7 +29,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName AliasName { get; private set; }
 
-		protected virtual IQueryPlanNode CreateChildNode(IQueryContext context) {
+		private IQueryPlanNode CreateChildNode(IQueryContext context) {
 			return context.GetViewQueryPlan(ViewName);
 		}
 

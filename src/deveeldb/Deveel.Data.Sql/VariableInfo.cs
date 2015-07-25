@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class VariableInfo : IObjectInfo {
 		public VariableInfo(string variableName, DataType type, bool isConstant) {
 			if (String.IsNullOrEmpty(variableName))

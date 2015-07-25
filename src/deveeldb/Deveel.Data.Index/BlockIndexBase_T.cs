@@ -493,12 +493,12 @@ namespace Deveel.Data.Index {
 		/// This is called before any mutable operations on the index: if the index is 
 		/// mutable and empty then an empty block is added to the index.
 		/// </remarks>
-		/// <exception cref="ApplicationException">
+		/// <exception cref="InvalidOperationException">
 		/// Thrown if the index is read-only.
 		/// </exception>
 		private void CheckImmutable() {
 			if (IsReadOnly)
-				throw new ApplicationException("Index is read-only.");
+				throw new InvalidOperationException("Index is read-only.");
 
 			// HACK: We have a side effect of checking whether the list is immutable.
 			//   If the block list doesn't contain any entries we add one here.  This
@@ -519,7 +519,7 @@ namespace Deveel.Data.Index {
 		/// </remarks>
 		internal void CopyToArray(T[] array, int offset, int length) {
 			if (array.Length < length || (offset + length) > Count)
-				throw new ApplicationException("Size mismatch.");
+				throw new InvalidOperationException("Size mismatch.");
 
 			foreach (var block in Blocks) {
 				offset += block.CopyTo(array, offset);
@@ -675,7 +675,7 @@ namespace Deveel.Data.Index {
 			// Remove value into the block,
 			var valRemoved = RemoveFromBlock(blockIndex, block, i);
 			if (!value.Equals(valRemoved))
-				throw new ApplicationException("Incorrect value removed.");
+				throw new InvalidOperationException("Incorrect value removed.");
 
 			// Value removed so return true.
 			return true;
@@ -736,7 +736,7 @@ namespace Deveel.Data.Index {
 
 			if (blockIndex < 0)
 				// Not found in a block,
-				throw new ApplicationException("Value (" + key + ") was not found in the list.");
+				throw new InvalidOperationException("Value (" + key + ") was not found in the list.");
 
 			var block = Blocks[blockIndex];
 			int i = block.IndexOf(value);
@@ -744,7 +744,7 @@ namespace Deveel.Data.Index {
 				// If not found, go to next block
 				++blockIndex;
 				if (blockIndex > lastBlockIndex)
-					throw new ApplicationException("Value (" + key + ") was not found in the list.");
+					throw new InvalidOperationException("Value (" + key + ") was not found in the list.");
 
 				block = Blocks[blockIndex];
 				// Try and find the value within this block

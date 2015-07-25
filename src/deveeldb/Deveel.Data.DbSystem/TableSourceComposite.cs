@@ -350,7 +350,7 @@ namespace Deveel.Data.DbSystem {
 					SystemSchema.Setup(transaction);
 					transaction.Commit();
 				} catch (Exception ex) {
-					throw new ApplicationException("Transaction Exception initializing tables.", ex);
+					throw new InvalidOperationException("Transaction Exception initializing tables.", ex);
 				}
 			}
 		}
@@ -401,7 +401,7 @@ namespace Deveel.Data.DbSystem {
 				transaction.Commit();
 				transaction = null;
 			} catch (TransactionException e) {
-				throw new ApplicationException("Transaction Exception creating composite.", e);
+				throw new InvalidOperationException("Transaction Exception creating composite.", e);
 			} finally {
 				if (transaction != null)
 					transaction.Rollback();
@@ -483,7 +483,7 @@ namespace Deveel.Data.DbSystem {
 					// And return it.
 					return source;
 				} catch (IOException e) {
-					throw new ApplicationException(String.Format("Unable to create source for table '{0}'.", tableInfo.TableName), e);
+					throw new InvalidOperationException(String.Format("Unable to create source for table '{0}'.", tableInfo.TableName), e);
 				}
 			}
 		}
@@ -686,7 +686,7 @@ namespace Deveel.Data.DbSystem {
 			try {
 				StateStore.Flush();
 			} catch (IOException e) {
-				throw new ApplicationException("IO Error: " + e.Message, e);
+				throw new InvalidOperationException("IO Error: " + e.Message, e);
 			}
 		}
 

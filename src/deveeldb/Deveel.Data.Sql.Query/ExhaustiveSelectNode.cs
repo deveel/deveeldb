@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -32,7 +31,6 @@ namespace Deveel.Data.Sql.Query {
 	/// <b>Note:</b> The expression may have correlated sub-queries.
 	/// </para>
 	/// </remarks>
-	[Serializable]
 	class ExhaustiveSelectNode : SingleQueryPlanNode {
 		public ExhaustiveSelectNode(IQueryPlanNode child, SqlExpression exp)
 			: base(child) {

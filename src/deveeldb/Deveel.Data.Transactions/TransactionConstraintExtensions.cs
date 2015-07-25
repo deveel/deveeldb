@@ -293,7 +293,7 @@ namespace Deveel.Data.Transactions {
 				if (sz > 1)
 					return false;
 				if (sz == 0)
-					throw new ApplicationException("Assertion failed: We must be able to find the " +
+					throw new InvalidOperationException("Assertion failed: We must be able to find the " +
 					                               "row we are testing uniqueness against!");
 			}
 
@@ -719,7 +719,7 @@ namespace Deveel.Data.Transactions {
 			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 
 			if (data.Count > 1)
-				throw new ApplicationException("Assertion failed: multiple primary key for: " + tableName);
+				throw new InvalidOperationException("Assertion failed: multiple primary key for: " + tableName);
 
 			if (data.Count == 0)
 				return null;
@@ -800,7 +800,7 @@ namespace Deveel.Data.Transactions {
 			private int FindColumnName(ObjectName variable) {
 				int colIndex = table.TableInfo.IndexOfColumn(variable.Name);
 				if (colIndex == -1)
-					throw new ApplicationException("Can't find column: " + variable);
+					throw new InvalidOperationException("Can't find column: " + variable);
 
 				return colIndex;
 			}

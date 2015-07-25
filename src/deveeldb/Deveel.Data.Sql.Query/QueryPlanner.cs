@@ -176,7 +176,7 @@ namespace Deveel.Data.Sql.Query {
 						throw new InvalidOperationException("The root node of a sub-query plan must be a subset.");
 
 					var subsetNode = (SubsetNode) plan;
-					subsetNode.SetName(subQuerySource.AliasName);
+					subsetNode.SetAliasParentName(subQuerySource.AliasName);
 				} else if (tableSource is FromTableDirectSource) {
 					var directSource = (FromTableDirectSource) tableSource;
 					plan = directSource.QueryPlan;

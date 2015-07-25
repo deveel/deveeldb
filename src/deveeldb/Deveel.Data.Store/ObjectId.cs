@@ -28,7 +28,6 @@ namespace Deveel.Data.Store {
 	/// store: there cannot be two objects in the same store
 	/// having the same identifier.
 	/// </remarks>
-	[Serializable]
 	public struct ObjectId : IEquatable<ObjectId> {
 		/// <summary>
 		/// Constructs the <see cref="ObjectId"/> with the

@@ -25,7 +25,7 @@ namespace Deveel.Data.Store {
 	/// <para>
 	/// Implementations of this interface are large objects
 	/// established in specialized data stores, which value
-	/// is not retrievied immediately.
+	/// is not retrieved immediately.
 	/// </para>
 	/// <para>
 	/// A large object is uniquely referenced using the <see cref="Id"/>

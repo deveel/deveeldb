@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class RowType : DataType {
 		public RowType(ObjectName tableName) 
 			: base(String.Format("{0}%ROWTYPE", tableName), SqlTypeCode.RowType) {

@@ -26,7 +26,6 @@ namespace Deveel.Data.Sql.Query {
 	/// <remarks>
 	/// This is useful for implementing things such as outer joins.
 	/// </remarks>
-	[Serializable]
 	class MarkerNode : SingleQueryPlanNode {
 		public MarkerNode(IQueryPlanNode child, string markName)
 			: base(child) {

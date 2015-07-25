@@ -127,7 +127,7 @@ namespace Deveel.Data.Index {
 			public virtual T Bottom {
 				get {
 					if (count <= 0)
-						throw new ApplicationException("no bottom value.");
+						throw new InvalidOperationException("no bottom value.");
 
 					return GetArray(true)[0];
 				}

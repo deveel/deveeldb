@@ -21,7 +21,6 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class View : IDbObject {
 		public View(ViewInfo viewInfo) {
 			ViewInfo = viewInfo;

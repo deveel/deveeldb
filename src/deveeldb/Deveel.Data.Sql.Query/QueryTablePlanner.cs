@@ -400,7 +400,7 @@ namespace Deveel.Data.Sql.Query {
 						// ( cost_of + value_of < sold_at ), ( id = part_id - 10 )
 						multiVars.Add(exp);
 					} else {
-						throw new ApplicationException("Invalid number of column names");
+						throw new InvalidOperationException("Invalid number of column names");
 					}
 				}
 			}

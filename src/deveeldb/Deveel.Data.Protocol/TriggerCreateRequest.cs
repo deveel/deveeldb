@@ -18,7 +18,6 @@ using System;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class TriggerCreateRequest : IMessage {
 		public TriggerCreateRequest(string triggerName, string objectName, TriggerEventType eventType) {
 			EventType = eventType;

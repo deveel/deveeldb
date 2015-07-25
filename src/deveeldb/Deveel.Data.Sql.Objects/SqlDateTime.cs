@@ -18,7 +18,6 @@ using System;
 using System.Globalization;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime> {
 		private readonly DateTimeOffset? value;
 

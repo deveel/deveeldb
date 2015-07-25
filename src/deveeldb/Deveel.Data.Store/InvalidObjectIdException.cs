@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Store {
-	[Serializable]
 	public sealed class InvalidObjectIdException : DataStorageException {
 		public InvalidObjectIdException(ObjectId id)
 			: this(id, String.Format("The given object reference {0} is invalid.", id)) {

@@ -15,13 +15,10 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
@@ -50,7 +47,6 @@ namespace Deveel.Data.Sql.Query {
 	/// (col &gt; 10 AND col &lt; 100) OR col &gt; 1000 OR col == 10
 	/// </code>
 	/// </example>
-	[Serializable]
 	class RangeSelectNode : SingleQueryPlanNode {
 		public RangeSelectNode(IQueryPlanNode child, SqlExpression expression)
 			: base(child) {
@@ -75,7 +71,7 @@ namespace Deveel.Data.Sql.Query {
 			ObjectName columnName = null;
 			foreach (var cv in columnNames) {
 				if (columnName != null && !cv.Equals(columnName))
-					throw new ApplicationException("Range plan does not contain common column.");
+					throw new InvalidOperationException("Range plan does not contain common column.");
 
 				columnName = cv;
 			}
@@ -83,7 +79,7 @@ namespace Deveel.Data.Sql.Query {
 			// Find the variable field in the table.
 			var col = t.IndexOfColumn(columnName);
 			if (col == -1)
-				throw new ApplicationException("Could not find column reference in table: " + columnName);
+				throw new InvalidOperationException("Could not find column reference in table: " + columnName);
 
 			var field = t.TableInfo[col];
 

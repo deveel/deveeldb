@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class BeginResponse : IMessage {
 		public BeginResponse(int commitId) {
 			CommitId = commitId;

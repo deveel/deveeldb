@@ -22,7 +22,6 @@ namespace Deveel.Data.DbSystem {
 	/// <summary>
 	/// Exception thrown where various problems occur within the database.
 	/// </summary>
-	[Serializable]
 	public class DatabaseSystemException : ErrorException {
 		/// <summary>
 		/// 

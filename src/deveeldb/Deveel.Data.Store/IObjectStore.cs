@@ -41,7 +41,6 @@ namespace Deveel.Data.Store {
 		/// <summary>
 		/// Creates a new large object returning a reference to it.
 		/// </summary>
-		/// <param name="type">The type of object to create in the store.</param>
 		/// <param name="maxSize">The maximum byte size that the object will use. This is
 		/// a value to provide ahead of time and that will not change.</param>
 		/// <param name="compressed">Indicates whether the created object contents

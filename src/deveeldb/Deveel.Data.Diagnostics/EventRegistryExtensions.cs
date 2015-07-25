@@ -26,7 +26,9 @@ namespace Deveel.Data.Diagnostics {
 			var errorEvent = new ErrorEvent(EventClasses.Runtime, -1, ex.Message);
 			errorEvent.ErrorLevel(ErrorLevel.Error);
 			errorEvent.StackTrace(ex.StackTrace);
+#if !PCL
 			errorEvent.ErrorSource(ex.Source);
+#endif
 
 			if (source != null)
 				source.AppendEventData(errorEvent);

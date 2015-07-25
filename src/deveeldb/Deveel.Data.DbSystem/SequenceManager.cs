@@ -731,14 +731,14 @@ namespace Deveel.Data.DbSystem {
 					if (SequenceInfo.Cycle) {
 						val = SequenceInfo.MinValue;
 					} else {
-						throw new ApplicationException("Sequence out of bounds.");
+						throw new InvalidOperationException("Sequence out of bounds.");
 					}
 				}
 				if (val < SequenceInfo.MinValue) {
 					if (SequenceInfo.Cycle) {
 						val = SequenceInfo.MaxValue;
 					} else {
-						throw new ApplicationException("Sequence out of bounds.");
+						throw new InvalidOperationException("Sequence out of bounds.");
 					}
 				}
 				return val;

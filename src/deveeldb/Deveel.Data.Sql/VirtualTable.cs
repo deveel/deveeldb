@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	class VirtualTable : JoinedTable {
 		private IList<int>[] rowList;
 		private int rowCount;

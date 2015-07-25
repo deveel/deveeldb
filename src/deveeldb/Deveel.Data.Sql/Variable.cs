@@ -21,7 +21,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class Variable : IDbObject, IEquatable<Variable> {
 		public Variable(VariableInfo variableInfo) {
 			if (variableInfo == null)

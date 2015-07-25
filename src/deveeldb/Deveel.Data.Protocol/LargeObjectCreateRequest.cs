@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol{
-	[Serializable]
 	public sealed class LargeObjectCreateRequest : IMessage {
 		public LargeObjectCreateRequest(long objectLength) {
 			if (objectLength <= 0)

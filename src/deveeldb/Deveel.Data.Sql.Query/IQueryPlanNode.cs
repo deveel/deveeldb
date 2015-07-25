@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Query {
 	///</summary>
 	/// <remarks>
 	/// A plan of a query is represented as a tree structure of such 
-	/// nodes. The design allows for plan nodes to be easily reorganised 
+	/// nodes. The design allows for plan nodes to be easily reorganized 
 	/// for the construction of better plans.
 	/// </remarks>
 	public interface IQueryPlanNode {

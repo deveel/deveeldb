@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class AuthenticateResponse : IMessage {
 		public AuthenticateResponse(bool authenticated, long timeStamp) {
 			TimeStamp = timeStamp;

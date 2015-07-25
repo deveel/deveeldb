@@ -18,6 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+#if PCL
+using System.Threading.Tasks;
+#endif
 
 using Deveel.Data.Configuration;
 
@@ -34,7 +37,11 @@ namespace Deveel.Data.Diagnostics {
 	/// </para>
 	/// </remarks>
 	public abstract class EventLoggerBase : IEventLogger, IConfigurable, IDisposable {
+#if PCL
+		private Task writeThread;
+#else
 		private Thread writeThread;
+#endif
 		private List<EventLog> logs;
 		private bool isRunning;
 
@@ -55,9 +62,13 @@ namespace Deveel.Data.Diagnostics {
 			isRunning = true;
 			logs = new List<EventLog>();
 
+#if !PCL
 			writeThread = new Thread(Write);
 			writeThread.IsBackground = true;
 			writeThread.Start();
+#else
+			writeThread = Task.Factory.StartNew(Write);
+#endif
 		}
 
 		~EventLoggerBase() {
@@ -159,12 +170,16 @@ namespace Deveel.Data.Diagnostics {
 				isRunning = false;
 
 				if (writeThread != null) {
+#if PCL
+					writeThread.Wait(5000);
+#else
 					try {
 						// wait 5s for the writing to finish
 						writeThread.Join(5000);
 						writeThread.Abort();
 					} catch (ThreadAbortException) {
 					}
+#endif
 				}
 
 				if (logs != null)

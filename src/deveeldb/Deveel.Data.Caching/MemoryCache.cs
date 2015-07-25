@@ -120,7 +120,7 @@ namespace Deveel.Data.Caching {
 			Object key = node.Key;
 			for (ListNode e = nodeHash[index]; e != null; e = e.NextHashEntry) {
 				if (key.Equals(e.Key)) {
-					throw new ApplicationException("ListNode with same key already in the hash - remove first.");
+					throw new ArgumentException("ListNode with same key already in the hash - remove first.");
 				}
 			}
 

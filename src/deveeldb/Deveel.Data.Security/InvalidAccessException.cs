@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Security {
-	[Serializable]
 	public class InvalidAccessException : SecurityException {
 		public InvalidAccessException(ObjectName objectName)
 			: this(objectName, BuildMessage(objectName)) {

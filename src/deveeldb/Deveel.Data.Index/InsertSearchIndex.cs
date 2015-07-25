@@ -80,7 +80,7 @@ namespace Deveel.Data.Index {
 
 		public override void Insert(int rowNumber) {
 			if (IsReadOnly)
-				throw new ApplicationException("Tried to change an read-only index.");
+				throw new InvalidOperationException("Tried to change an read-only index.");
 
 			var value = GetValue(rowNumber);
 			list.InsertSort(value, rowNumber, comparer);
@@ -88,7 +88,7 @@ namespace Deveel.Data.Index {
 
 		public override void Remove(int rowNumber) {
 			if (IsReadOnly)
-				throw new ApplicationException("Tried to change an read-only index.");
+				throw new InvalidOperationException("Tried to change an read-only index.");
 
 			var value = GetValue(rowNumber);
 			var removed = list.RemoveSort(value, rowNumber, comparer);
@@ -107,14 +107,14 @@ namespace Deveel.Data.Index {
 				result.Add(en.Current);
 			}
 
-			return result.AsReadOnly();
+			return result.ToArray();
 		}
 
 		public override ColumnIndex Copy(ITable table, bool readOnly) {
 			// ASSERTION: If readOnly, check the size of the current set is equal to
 			//   when the index was created.
 			if (IsReadOnly && readOnlyCount != list.Count)
-				throw new ApplicationException("Assert failed: read-only size is different from when created.");
+				throw new InvalidOperationException("Assert failed: read-only size is different from when created.");
 
 			// We must create a new InsertSearch object and copy all the state
 			// information from this object to the new one.

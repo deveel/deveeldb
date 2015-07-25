@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.DbSystem {
-	[Serializable]
 	public class ObjectNotFoundException : DatabaseSystemException {
 		public ObjectNotFoundException(ObjectName objectName)
 			: this(objectName, String.Format("The object name '{0}' does not reference any object in the system.", objectName)) {

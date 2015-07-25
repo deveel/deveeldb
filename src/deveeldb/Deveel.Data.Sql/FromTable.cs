@@ -23,7 +23,6 @@ namespace Deveel.Data.Sql {
 	/// Describes a single table declaration in the from clause of a 
 	/// table expression (<c>SELECT</c>).
 	/// </summary>
-	[Serializable]
 	public sealed class FromTable : IPreparable {
 		/// <summary>
 		/// Constructs a table that is aliased under a different name.

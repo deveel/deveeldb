@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 					// Merge in the rows from the input table,
 					IList<int> toMerge = rows[index];
 					if (toMerge.Count != outerRowCount)
-						throw new ApplicationException("Wrong size for rows being merged in.");
+						throw new InvalidOperationException("Wrong size for rows being merged in.");
 
 					list.AddRange(toMerge);
 				}

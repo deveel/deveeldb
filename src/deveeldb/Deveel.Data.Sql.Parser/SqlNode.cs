@@ -27,7 +27,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// in the text analysis parsing of SQL commands.
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
-	[Serializable]
 	public class SqlNode : ISqlNode,  IAstNodeInit {
 		public SqlNode() {
 			ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);

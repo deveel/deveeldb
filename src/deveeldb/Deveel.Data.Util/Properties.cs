@@ -21,7 +21,7 @@ using System.Text;
 
 namespace Deveel.Data.Util {
 	[Serializable]
-	class Properties : Hashtable {
+	class Properties : Hashtable, IEnumerable {
 
 		protected Properties defaults;
 

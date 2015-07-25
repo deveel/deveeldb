@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class ConnectResponse : IMessage {
 		public ConnectResponse(bool opened, string version) 
 			: this(opened, version, false, null) {

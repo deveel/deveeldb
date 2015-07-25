@@ -153,6 +153,9 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IObjectSerializer.cs" />
+    <Compile Include="Deveel.Data.DbSystem\IObjectSerializerResolver.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ISystemModule.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseSystemException.cs" />
@@ -333,6 +336,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\UpdateColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\UpdateStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ValuesInsertNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryPlanSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterCreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertQueryStatement.cs" />
@@ -374,7 +378,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />
@@ -802,9 +805,7 @@
     <None Include="deveeldb.snk" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Spatial\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

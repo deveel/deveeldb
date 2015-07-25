@@ -43,7 +43,7 @@ namespace Deveel.Data.Transactions {
 		public IEnumerable<ObjectName> ObjectsCreated {
 			get {
 				lock (this) {
-					return objectsCreated == null ? new ObjectName[0] : objectsCreated.AsReadOnly().AsEnumerable();
+					return objectsCreated == null ? new ObjectName[0] : objectsCreated.ToArray();
 				}
 			}
 		}
@@ -51,7 +51,7 @@ namespace Deveel.Data.Transactions {
 		public IEnumerable<ObjectName> ObjectsDropped {
 			get {
 				lock (this) {
-					return objectsDropped == null ? new ObjectName[0] : objectsDropped.AsReadOnly().AsEnumerable();	
+					return objectsDropped == null ? new ObjectName[0] : objectsDropped.ToArray();	
 				}
 			}
 		}
@@ -59,7 +59,7 @@ namespace Deveel.Data.Transactions {
 		public IEnumerable<int> TouchedTables {
 			get {
 				lock (this) {
-					return touchedTables == null ? new int[0] : touchedTables.AsReadOnly().AsEnumerable();
+					return touchedTables == null ? new int[0] : touchedTables.ToArray();
 				}
 			}
 		}
@@ -178,7 +178,7 @@ namespace Deveel.Data.Transactions {
 
 		public IEnumerable<ITransactionEvent> GetEvents() {
 			lock (this) {
-				return events.AsReadOnly();
+				return events.ToArray();
 			}
 		}
 

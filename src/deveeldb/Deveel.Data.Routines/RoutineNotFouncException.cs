@@ -21,7 +21,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
-	[Serializable]
 	public class RoutineNotFouncException : ObjectNotFoundException {
 		public RoutineNotFouncException(ObjectName routineName)
 			: this(routineName, new SqlExpression[0]) {

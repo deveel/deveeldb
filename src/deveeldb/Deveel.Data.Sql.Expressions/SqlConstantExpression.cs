@@ -28,7 +28,6 @@ namespace Deveel.Data.Sql.Expressions {
 	/// return <c>false</c> and the value of <see cref="SqlExpression.Evaluate(EvaluateContext)"/>
 	/// will return the expression itself.
 	/// </remarks>
-	[Serializable]
 	public sealed class SqlConstantExpression : SqlExpression {
 		internal SqlConstantExpression(DataObject value) {
 			Value = value;

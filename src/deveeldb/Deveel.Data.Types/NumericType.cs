@@ -22,7 +22,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class NumericType : DataType, ISizeableType {
 		public NumericType(SqlTypeCode sqlType, int size, byte scale) 
 			: base("NUMERIC", sqlType) {
@@ -148,7 +147,7 @@ namespace Deveel.Data.Types {
 
 			// NOTREACHED - can't get here, the last three if statements cover
 			// all possibilities.
-			throw new ApplicationException("Widest type error.");
+			throw new InvalidOperationException("Widest type error.");
 		}
 
 		public override bool IsComparable(DataType type) {

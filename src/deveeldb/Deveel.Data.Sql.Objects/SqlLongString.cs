@@ -119,9 +119,11 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlLongString(largeObject, Encoding.Unicode);
 		}
 
+#if !PCL
 		public static SqlLongString Ascii(ILargeObject largeObject) {
 			return new SqlLongString(largeObject, Encoding.ASCII);
 		}
+#endif
 
 		#region Enumerator
 

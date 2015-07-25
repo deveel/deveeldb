@@ -23,10 +23,7 @@ namespace Deveel.Data.Diagnostics {
 	/// The base class of all the exceptions handled by the system and that
 	/// can be converted to events sent to the diagnostics.
 	/// </summary>
-#if !PORTABLE
-	[Serializable]
-#endif
-	public class ErrorException : ApplicationException {
+	public class ErrorException : Exception {
 		/// <summary>
 		/// Constructs a new exception with the given event class and code and
 		/// without any specific error message.
@@ -93,7 +90,9 @@ namespace Deveel.Data.Diagnostics {
 
 			e.ErrorLevel(ErrorLevel);
 			e.StackTrace(StackTrace);
+#if !PCL
 			e.ErrorSource(Source);
+#endif
 
 			return e;
 		}

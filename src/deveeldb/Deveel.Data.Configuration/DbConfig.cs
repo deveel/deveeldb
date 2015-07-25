@@ -21,7 +21,6 @@ using System.Linq;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Configuration {
-	[Serializable]
 	public class DbConfig : IDbConfig {
 		private readonly bool isRoot;
 		private readonly Dictionary<string, ConfigKey> keys;

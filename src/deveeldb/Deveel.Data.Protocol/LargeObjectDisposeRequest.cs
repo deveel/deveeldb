@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class LargeObjectDisposeRequest : IMessage {
 		public LargeObjectDisposeRequest(long objectId) {
 			ObjectId = objectId;

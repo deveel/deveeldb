@@ -62,7 +62,7 @@ namespace Deveel.Data.DbSystem {
 						}
 					}
 
-					return list.AsReadOnly();
+					return list.ToArray();
 				}
 			}
 		}
@@ -78,7 +78,7 @@ namespace Deveel.Data.DbSystem {
 							list.Add(tableEvent.RowNumber);
 					}
 
-					return list.AsReadOnly();
+					return list.ToArray();
 				}
 			}
 		}

@@ -15,7 +15,9 @@
 //
 
 using System;
+#if !PCL
 using System.Security.Cryptography;
+#endif
 
 using Deveel.Data.Caching;
 using Deveel.Data.Sql;
@@ -24,12 +26,20 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public abstract class QueryContextBase : IQueryContext, IVariableScope {
+#if PCL
+		private Random secureRandom;
+#else
 		private RNGCryptoServiceProvider secureRandom;
+#endif
 		private ICache tableCache;
 		private bool disposed;
 
 		protected QueryContextBase() {
+#if PCL
+			secureRandom = new Random();
+#else
 			secureRandom = new RNGCryptoServiceProvider();
+#endif
 			tableCache = new MemoryCache(512, 1024, 30);
 			VariableManager = new VariableManager(this);
 		}
@@ -60,9 +70,13 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {
+#if PCL
+			var num = secureRandom.NextDouble();
+#else
 			var bytes = new byte[8];
 			secureRandom.GetBytes(bytes);
 			var num = BitConverter.ToInt64(bytes, 0);
+#endif
 			return new SqlNumber(num);
 		}
 

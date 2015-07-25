@@ -21,7 +21,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class DateType : DataType {
 		public DateType(SqlTypeCode sqlType) 
 			: base("DATE", sqlType) {

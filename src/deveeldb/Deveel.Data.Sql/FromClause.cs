@@ -15,10 +15,8 @@
 //
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -29,7 +27,6 @@ namespace Deveel.Data.Sql {
 	/// <remarks>
 	/// This handles the different types of joins.
 	/// </remarks>
-	[Serializable]
 	public sealed class FromClause : IPreparable {
 		internal FromClause() {
 			fromTables = new List<FromTable>();

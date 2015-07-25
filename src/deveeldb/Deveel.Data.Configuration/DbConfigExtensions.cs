@@ -34,7 +34,7 @@ namespace Deveel.Data.Configuration {
 				.Where(value => value != null)
 				.ToList();
 
-			return values.AsReadOnly();
+			return values.ToArray();
 		}
 
 		public static ConfigValue GetConfigValue(this IDbConfig config, string keyName) {
@@ -289,6 +289,7 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
+#if !PCL
 		public static void Load(this IDbConfig config, string fileName, IConfigFormatter formatter) {
 			config.Load(new FileConfigSource(fileName), formatter);
 		}
@@ -296,6 +297,7 @@ namespace Deveel.Data.Configuration {
 		public static void Load(this IDbConfig config, string fileName) {
 			config.Load(fileName, new PropertiesConfigFormatter());
 		}
+#endif
 
 		public static void Load(this IDbConfig config, Stream inputStream, IConfigFormatter formatter) {
 			config.Load(new StreamConfigSource(inputStream), formatter);
@@ -343,6 +345,7 @@ namespace Deveel.Data.Configuration {
 			Save(config, level, new PropertiesConfigFormatter());
 		}
 
+#if !PCL
 		public static void Save(this IDbConfig config, string fileName) {
 			Save(config, ConfigurationLevel.Current, fileName);
 		}
@@ -354,10 +357,10 @@ namespace Deveel.Data.Configuration {
 		public static void Save(this IDbConfig config, string fileName, IConfigFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, fileName, formatter);
 		}
-
 		public static void Save(this IDbConfig config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
 			config.Save(new FileConfigSource(fileName), level, formatter);
 		}
+#endif
 
 		public static void Save(this IDbConfig config, Stream outputStream) {
 			Save(config, ConfigurationLevel.Current, outputStream);

@@ -146,24 +146,24 @@ namespace Deveel.Data.Sql.Query {
 
 			var givenCatalog = catalogName != null ? catalogName.Name : null;
 			if (catalog != null && !StringCompare(catalog, givenCatalog))
-				throw new ApplicationException("Incorrect catalog.");
+				throw new InvalidOperationException("Incorrect catalog.");
 
 			// Does this table name represent the correct schema?
 			var givenSchema = GivenTableName.Parent != null ? GivenTableName.Parent.Name : null;
 			if (schema != null && !StringCompare(schema, givenSchema))
 				// If schema is present and we can't resolve to this schema
-				throw new ApplicationException("Incorrect schema.");
+				throw new InvalidOperationException("Incorrect schema.");
 
 			if (table != null && !StringCompare(table, GivenTableName.Name))
 				// If table name is present and we can't resolve to this table name
-				throw new ApplicationException("Incorrect table.");
+				throw new InvalidOperationException("Incorrect table.");
 
 			if (column != null) {
 				if (!IgnoreCase) {
 					// Can we resolve the column in this table?
 					int i = tableInfo.IndexOfColumn(column);
 					if (i == -1)
-						throw new ApplicationException("Could not resolve '" + column + "'");
+						throw new InvalidOperationException("Could not resolve '" + column + "'");
 
 					return new ObjectName(GivenTableName, column);
 				}
@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql.Query {
 						.FirstOrDefault();
 
 				if (String.IsNullOrEmpty(columnName))
-					throw new ApplicationException(String.Format("Could not resolve column '{0}' within the table '{1}'.", column,
+					throw new InvalidOperationException(String.Format("Could not resolve column '{0}' within the table '{1}'.", column,
 						GivenTableName));
 
 				return new ObjectName(GivenTableName, columnName);

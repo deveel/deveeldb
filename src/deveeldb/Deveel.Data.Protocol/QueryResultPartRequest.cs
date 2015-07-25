@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class QueryResultPartRequest : IMessage {
 		public QueryResultPartRequest(int resultId, int rowIndex, int count) {
 			Count = count;

@@ -36,7 +36,6 @@ namespace Deveel.Data.Sql {
 	/// database system, and a list columns that shape the
 	/// design of the data that the table can accommodate.
 	/// </remarks>
-	[Serializable]
 	public sealed class TableInfo : IObjectInfo, IEnumerable<ColumnInfo> {
 		private readonly IList<ColumnInfo> columns;
 		private readonly Dictionary<ObjectName, int> columnsCache;
@@ -328,26 +327,26 @@ namespace Deveel.Data.Sql {
 			if (columnNames == null)
 				return new int[0];
 
-			return columnNames.Select(IndexOfColumn).ToList().AsReadOnly();
+			return columnNames.Select(IndexOfColumn).ToArray();
 		}
 
-		internal void SerializeTo(Stream stream) {
+		public static void SerializeTo(TableInfo tableInfo, Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			writer.Write(3);	// Version
 
-			var catName = CatalogName;
+			var catName = tableInfo.CatalogName;
 			if (catName == null)
 				catName = String.Empty;
 
 			writer.Write(catName);
-			writer.Write(SchemaName.Name);
-			writer.Write(Name);
+			writer.Write(tableInfo.SchemaName.Name);
+			writer.Write(tableInfo.Name);
 
-			var colCount = columns.Count;
+			var colCount = tableInfo.columns.Count;
 			writer.Write(colCount);
 			for (int i = 0; i < colCount; i++) {
-				var column = columns[i];
-				column.SerializeTo(stream);
+				var column = tableInfo.columns[i];
+				ColumnInfo.SerializeTo(column, writer);
 			}
 		}
 

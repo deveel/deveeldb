@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
-	[Serializable]
 	public class NotificationEvent : IEvent {
 		public NotificationEvent(NotificationLevel level, int eventClass, int eventCode, string eventMessage) {
 			Level = level;

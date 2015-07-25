@@ -20,7 +20,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class EquiJoinNode : BranchQueryPlanNode {
 		public EquiJoinNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumns, ObjectName[] rightColumns) 
 			: base(left, right) {

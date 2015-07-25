@@ -143,7 +143,7 @@ namespace Deveel.Data.Sql.Query {
 
 			var result = columnNames.FirstOrDefault(v => Matches(v, catalog, schema, table, column));
 			if (result == null)
-				throw new ApplicationException("Couldn't resolve to a column.");
+				throw new InvalidOperationException("Couldn't resolve to a column.");
 
 			return result;
 		}

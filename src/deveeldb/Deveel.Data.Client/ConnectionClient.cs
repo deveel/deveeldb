@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Runtime.Remoting;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Protocol;
@@ -119,7 +118,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException("The processor returned no response.");
 
 			if (response.Error != null)
-				throw new ServerException(response.Error.ErrorMessage);
+				throw new DeveelDbServerException(response.Error.ErrorMessage, response.Error.ErrorClass, response.Error.ErrorCode);
 
 			serverMetadata = response.Metadata;
 			return response.Message;
@@ -157,7 +156,7 @@ namespace Deveel.Data.Client {
 				throw new ProtocolException("The returned message is invalid");
 
 			if (!response.Opened)
-				throw new ServerException("Was not able to open the connection on the server.");
+				throw new DeveelDbServerException("Was not able to open the connection on the server.", -1, -1);
 
 			if (response.IsEncryted)
 				Connector.SetEncrypton(response.EncryptionData);
@@ -175,7 +174,7 @@ namespace Deveel.Data.Client {
 					throw new InvalidOperationException();
 
 				if (!response.State)
-					throw new ServerException("Unable to close the connection on the server.");
+					throw new DeveelDbServerException("Unable to close the connection on the server.", -1, -1);
 			} finally {
 				IsClosed = true;
 			}
@@ -219,7 +218,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException();
 
 			if (!response.State)
-				throw new ServerException();
+				throw new DeveelDbServerException(null, -1, -1);
 		}
 
 		public int BeginTransaction(IsolationLevel isolationLevel) {
@@ -258,7 +257,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException();
 
 			if (!response.State)
-				throw new ServerException("Unable to commit the transaction on the server.");
+				throw new DeveelDbServerException("Unable to commit the transaction on the server.", -1, -1);
 		}
 
 		public void RollbackTransaction(int transactionId) {
@@ -269,7 +268,7 @@ namespace Deveel.Data.Client {
 				throw new InvalidOperationException();
 
 			if (!response.State)
-				throw new ServerException("Unable to rollback the transaction on the server.");
+				throw new DeveelDbServerException("Unable to rollback the transaction on the server.", -1, -1);
 
 		}
 

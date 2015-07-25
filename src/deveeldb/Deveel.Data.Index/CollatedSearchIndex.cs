@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 
 using Deveel.Data.Sql;
 
@@ -188,7 +187,7 @@ namespace Deveel.Data.Index {
 					return p + 1;
 
 				default:
-					throw new ApplicationException("Unrecognised position.");
+					throw new InvalidOperationException("Unrecognised position.");
 			}
 
 		}

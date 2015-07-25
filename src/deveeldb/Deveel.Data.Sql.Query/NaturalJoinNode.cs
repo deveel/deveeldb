@@ -27,7 +27,6 @@ namespace Deveel.Data.Sql.Query {
 	/// These branches should be optimized out if possible because they 
 	/// result in huge results.
 	/// </remarks>
-	[Serializable]
 	class NaturalJoinNode : BranchQueryPlanNode {
 		public NaturalJoinNode(IQueryPlanNode left, IQueryPlanNode right)
 			: base(left, right) {

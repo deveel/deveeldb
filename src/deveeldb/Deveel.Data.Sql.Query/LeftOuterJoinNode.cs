@@ -42,7 +42,6 @@ namespace Deveel.Data.Sql.Query {
 	/// </code>
 	/// </para>
 	/// </remarks>
-	[Serializable]
 	class LeftOuterJoinNode : SingleQueryPlanNode {
 		public LeftOuterJoinNode(IQueryPlanNode child, string markerName) 
 			: base(child) {

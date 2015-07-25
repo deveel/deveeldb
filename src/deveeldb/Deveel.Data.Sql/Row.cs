@@ -436,11 +436,11 @@ namespace Deveel.Data.Sql {
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);
 				if (colIndex == -1)
-					throw new ApplicationException(String.Format("Column '{0}' could not be found in table '{1}'", colName, row.Table.FullName));
+					throw new InvalidOperationException(String.Format("Column '{0}' could not be found in table '{1}'", colName, row.Table.FullName));
 
 				DataObject value;
 				if (!row.values.TryGetValue(colIndex, out value))
-					throw new ApplicationException("Column " + colName + " hasn't been set yet.");
+					throw new InvalidOperationException("Column " + colName + " hasn't been set yet.");
 
 				return value;
 			}
@@ -450,7 +450,7 @@ namespace Deveel.Data.Sql {
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);
 				if (colIndex == -1)
-					throw new ApplicationException("Can't find column: " + colName);
+					throw new InvalidOperationException("Can't find column: " + colName);
 
 				return row.Table.TableInfo[colIndex].ColumnType;
 			}

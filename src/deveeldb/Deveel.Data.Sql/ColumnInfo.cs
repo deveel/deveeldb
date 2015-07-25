@@ -31,7 +31,6 @@ namespace Deveel.Data.Sql {
 	/// <see cref="DataType"/> that is used to define the type
 	/// of data cells in the table will handle.
 	/// </remarks>
-	[Serializable]
 	public sealed class ColumnInfo {
 		/// <summary>
 		/// Constructs a new column with the given name and type.
@@ -151,24 +150,33 @@ namespace Deveel.Data.Sql {
 
 		public string IndexType { get; internal set; }
 
-		internal void SerializeTo(Stream stream) {
-			var writer = new BinaryWriter(stream, Encoding.Unicode);
+		public static void SerializeTo(ColumnInfo columnInfo, BinaryWriter writer) {
 			writer.Write(3);	// Version
-			writer.Write(ColumnName);
+			writer.Write(columnInfo.ColumnName);
 
-			TypeSerializer.SerializeTo(stream, ColumnType);
+			TypeSerializer.SerializeTo(writer, columnInfo.ColumnType);
 
-			writer.Write(IsNotNull ? (byte)1 : (byte)0);
+			writer.Write(columnInfo.IsNotNull ? (byte)1 : (byte)0);
 
-			if (DefaultExpression != null) {
-				writer.Write((byte) 1);
-				SqlExpressionSerializer.SerializeTo(stream, DefaultExpression);
+			if (columnInfo.DefaultExpression != null) {
+				writer.Write((byte)1);
+				SqlExpression.Serialize(columnInfo.DefaultExpression, writer);
 			} else {
 				writer.Write((byte)0);
 			}
 		}
 
-		internal static ColumnInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
+		public static void SerializeTo(ColumnInfo columnInfo, Stream stream, Encoding encoding) {
+			using (var writer = new BinaryWriter(stream, encoding)) {
+				SerializeTo(columnInfo, writer);
+			}
+		}
+
+		public static void SerializeTo(ColumnInfo columnInfo, Stream stream) {
+			SerializeTo(columnInfo, stream, Encoding.Unicode);
+		}
+
+		public static ColumnInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
 
 			var version = reader.ReadInt32();
@@ -185,7 +193,7 @@ namespace Deveel.Data.Sql {
 
 			var hasDefault = reader.ReadByte() == 1;
 			if (hasDefault)
-				columnInfo.DefaultExpression = SqlExpressionSerializer.DeserializeFrom(stream);
+				columnInfo.DefaultExpression = SqlExpression.Deserialize(reader);
 
 			return columnInfo;
 		}

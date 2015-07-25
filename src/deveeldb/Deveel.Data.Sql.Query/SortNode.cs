@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class SortNode : SingleQueryPlanNode {
 		public SortNode(IQueryPlanNode child, ObjectName[] columnNames, bool[] ascending) 
 			: base(child) {

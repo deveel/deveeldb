@@ -627,7 +627,7 @@ namespace Deveel.Data.Sql {
 
 			// If the column type is not a string type then report an error.
 			if (!(colType is StringType))
-				throw new ApplicationException("Unable to perform a pattern search on a non-String type column.");
+				throw new InvalidOperationException("Unable to perform a pattern search on a non-String type column.");
 
 			// First handle the case that the column has an index that supports text search
 			var index = table.GetIndex(column);
@@ -955,7 +955,7 @@ namespace Deveel.Data.Sql {
 							++rowListIndex;
 						}
 					} else {
-						throw new ApplicationException("'this_val' > 'in_val'");
+						throw new InvalidOperationException("'this_val' > 'in_val'");
 					}
 				} else {
 					resultList.Add(thisVal);
@@ -1178,7 +1178,7 @@ namespace Deveel.Data.Sql {
 
 			// A nice post condition to check on.
 			if (resultTable.RowCount != table.RowCount)
-				throw new ApplicationException("The final row count mismatches.");
+				throw new InvalidOperationException("The final row count mismatches.");
 
 			return table;
 		}
@@ -1208,7 +1208,7 @@ namespace Deveel.Data.Sql {
 
 		public static ITable ColumnMerge(this ITable table, ITable other) {
 			if (table.RowCount != other.RowCount)
-				throw new ApplicationException("Tables have different row counts.");
+				throw new InvalidOperationException("Tables have different row counts.");
 
 			// Create the new VirtualTable with the joined tables.
 

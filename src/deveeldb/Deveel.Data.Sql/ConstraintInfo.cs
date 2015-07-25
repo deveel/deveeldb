@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class ConstraintInfo {
 		public ConstraintInfo(ConstraintType constraintType, ObjectName tableName, string[] columnNames) 
 			: this(null, constraintType, tableName, columnNames) {

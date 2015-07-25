@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class LogicalUnionNode : BranchQueryPlanNode {
 		public LogicalUnionNode(IQueryPlanNode left, IQueryPlanNode right) 
 			: base(left, right) {

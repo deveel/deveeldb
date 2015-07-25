@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 
@@ -24,7 +23,6 @@ namespace Deveel.Data.Sql.Query {
 	/// A <see cref="IQueryPlanNode"/> implementation that is a branch with 
 	/// two child nodes.
 	/// </summary>
-	[Serializable]
 	abstract class BranchQueryPlanNode : IQueryPlanNode {
 		// The left and right node.
 

@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
 	public sealed class SqlBinaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
 

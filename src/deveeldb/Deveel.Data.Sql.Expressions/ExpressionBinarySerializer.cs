@@ -20,10 +20,10 @@ using System.Text;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ExpressionBinarySerializer : SqlExpressionVisitor {
-		private BinaryWriter writer;
+		private readonly BinaryWriter writer;
 
-		public ExpressionBinarySerializer(Stream outputStream) {
-			writer = new BinaryWriter(outputStream, Encoding.Unicode);
+		public ExpressionBinarySerializer(BinaryWriter writer) {
+			this.writer = writer;
 		}
 
 		public override SqlExpression Visit(SqlExpression expression) {

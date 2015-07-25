@@ -150,7 +150,7 @@ namespace Deveel.Data.DbSystem {
 					var value = table.GetValue(row, columnOffset);
 					SetValue(rowCount-1, i, value);
 				} catch (Exception e) {
-					throw new ApplicationException(e.Message, e);
+					throw new InvalidOperationException(e.Message, e);
 				}
 			}
 		}

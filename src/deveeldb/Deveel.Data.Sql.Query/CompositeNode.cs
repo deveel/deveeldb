@@ -28,7 +28,6 @@ namespace Deveel.Data.Sql.Query {
 	/// composites. The left and right branch results must have the same number of 
 	/// columns and column types.
 	/// </remarks>
-	[Serializable]
 	class CompositeNode : BranchQueryPlanNode {
 		public CompositeNode(IQueryPlanNode left, IQueryPlanNode right, CompositeFunction compositeOp, bool allOp)
 			: base(left, right) {

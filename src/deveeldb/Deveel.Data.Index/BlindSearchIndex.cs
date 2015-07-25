@@ -189,7 +189,7 @@ namespace Deveel.Data.Index {
 					} else if (lf.Equals(RangeFieldOffset.AfterLastValue)) {
 						lowerFlags[i] = CheckLesserOrGreater;  // >
 					} else {
-						throw new ApplicationException("Incorrect lower flag.");
+						throw new InvalidOperationException("Incorrect lower flag.");
 					}
 					lowerCells[i] = ResolveCell(l);
 				}
@@ -205,7 +205,7 @@ namespace Deveel.Data.Index {
 					} else if (uf.Equals( RangeFieldOffset.BeforeFirstValue)) {
 						upperFlags[i] = CheckLesserOrGreater;  // <
 					} else {
-						throw new ApplicationException("Incorrect upper flag.");
+						throw new InvalidOperationException("Incorrect upper flag.");
 					}
 					upperCells[i] = ResolveCell(u);
 				}
@@ -240,7 +240,7 @@ namespace Deveel.Data.Index {
 							} else if (lf == CheckLesserEqualOrGreaterEqual) {  // >=
 								result = (compare <= 0);
 							} else {
-								throw new ApplicationException("Incorrect flag.");
+								throw new InvalidOperationException("Incorrect flag.");
 							}
 						}
 						if (result) {
@@ -254,7 +254,7 @@ namespace Deveel.Data.Index {
 								} else if (uf == CheckLesserEqualOrGreaterEqual) {  // >=
 									result = (compare >= 0);
 								} else {
-									throw new ApplicationException("Incorrect flag.");
+									throw new InvalidOperationException("Incorrect flag.");
 								}
 							}
 							// Pick this row

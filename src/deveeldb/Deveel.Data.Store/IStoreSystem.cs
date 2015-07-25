@@ -30,7 +30,7 @@ namespace Deveel.Data.Store {
 	/// </remarks>
 	public interface IStoreSystem : IDisposable {
 		/// <summary>
-		/// Gets a value that indicates wheter this storage system
+		/// Gets a value that indicates whether this storage system
 		/// stores and retrieves data within the file system
 		/// or the random-access memory.
 		/// </summary>

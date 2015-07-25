@@ -23,7 +23,6 @@ namespace Deveel.Data.Sql.Query {
 	/// <summary>
 	/// A <see cref="IQueryPlanNode"/> with a single child.
 	/// </summary>
-	[Serializable]
 	abstract class SingleQueryPlanNode : IQueryPlanNode {
 		protected SingleQueryPlanNode(IQueryPlanNode child) {
 			Child = child;

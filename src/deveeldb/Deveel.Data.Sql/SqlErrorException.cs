@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public class SqlErrorException : ErrorException {
 		public SqlErrorException(int errorCode) 
 			: base(EventClasses.SqlModel, errorCode) {

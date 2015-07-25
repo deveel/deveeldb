@@ -70,7 +70,7 @@ namespace Deveel.Data.Transactions {
 
 					++sharedAccess;
 				} else {
-					throw new ApplicationException("Invalid mode");
+					throw new InvalidOperationException("Invalid mode");
 				}
 			}
 		}
@@ -90,7 +90,7 @@ namespace Deveel.Data.Transactions {
 						throw new Exception("Too many 'Sahred Locks Release' calls");
 					}
 				} else {
-					throw new ApplicationException("Invalid mode");
+					throw new InvalidOperationException("Invalid mode");
 				}
 			}
 		}
@@ -109,7 +109,7 @@ namespace Deveel.Data.Transactions {
 		internal void CheckAccess(AccessType accessType) {
 			if (AccessType == AccessType.Write && 
 				accessType != AccessType.Write)
-				throw new ApplicationException("Access error on Lock: Tried to Write to a non Write Lock.");
+				throw new InvalidOperationException("Access error on Lock: Tried to Write to a non Write Lock.");
 
 			if (!WasChecked) {
 				Queue.CheckAccess(this);

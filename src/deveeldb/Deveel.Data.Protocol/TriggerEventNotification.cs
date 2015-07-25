@@ -15,11 +15,9 @@
 
 using System;
 
-using Deveel.Data.Routines;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class TriggerEventNotification : IMessage {
 		public TriggerEventNotification(string triggerName, string objectName, TriggerType triggerType, TriggerEventType eventType, int invokeCount) {
 			InvokeCount = invokeCount;

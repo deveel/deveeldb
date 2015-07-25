@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Security {
-	[Serializable]
 	public sealed class UserGroup {
 		public UserGroup(string name, Privileges privileges) {
 			Name = name;

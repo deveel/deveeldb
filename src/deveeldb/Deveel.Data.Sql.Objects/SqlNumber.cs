@@ -19,7 +19,6 @@ using System;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public struct SqlNumber : ISqlObject, IComparable<SqlNumber>, IConvertible, IEquatable<SqlNumber> {
 		private readonly BigDecimal innerValue;
 		private readonly int byteCount;
@@ -207,7 +206,7 @@ namespace Deveel.Data.Sql.Objects {
 				if (other.State == NumericState.NegativeInfinity)
 					return 1;
 
-				throw new ApplicationException("Unknown number state.");
+				throw new ArgumentException("Unknown number state.");
 			}
 
 			// This number is a NaN number.
@@ -222,7 +221,7 @@ namespace Deveel.Data.Sql.Objects {
 				    State == NumericState.NotANumber)
 					return 1;
 
-				throw new ApplicationException("Unknown number state.");
+				throw new ArgumentException("Unknown number state.");
 			}
 
 			// Comparing NaN number with a NaN number.
@@ -349,7 +348,7 @@ namespace Deveel.Data.Sql.Objects {
 				case (NumericState.NotANumber):
 					return "NaN";
 				default:
-					throw new ApplicationException("Unknown number state");
+					throw new InvalidCastException("Unknown number state");
 			}
 		}
 
@@ -364,7 +363,7 @@ namespace Deveel.Data.Sql.Objects {
 				case (NumericState.NotANumber):
 					return Double.NaN;
 				default:
-					throw new ApplicationException("Unknown number state");
+					throw new InvalidCastException("Unknown number state");
 			}
 		}
 
@@ -379,7 +378,7 @@ namespace Deveel.Data.Sql.Objects {
 				case (NumericState.NotANumber):
 					return Single.NaN;
 				default:
-					throw new ApplicationException("Unknown number state");
+					throw new InvalidCastException("Unknown number state");
 			}
 		}
 

@@ -23,7 +23,6 @@ namespace Deveel.Data.Sql {
 	/// Object used to represent a column in the <c>ORDER BY</c> clauses 
 	/// of a select statement.
 	/// </summary>
-	[Serializable]
 	public sealed class SortColumn : IPreparable {
 		/// <summary>
 		/// Constructs the <c>BY</c> column reference with the expression

@@ -22,7 +22,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	abstract class JoinedTable : Table {
 		private ITable[] referenceList;
 		private ColumnIndex[] indexes;

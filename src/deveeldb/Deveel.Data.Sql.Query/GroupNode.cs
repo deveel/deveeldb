@@ -20,7 +20,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class GroupNode : SingleQueryPlanNode {
 		public GroupNode(IQueryPlanNode child, ObjectName groupMaxColumn, SqlExpression[] functions, string[] names) 
 			: this(child, new ObjectName[0], groupMaxColumn, functions, names) {

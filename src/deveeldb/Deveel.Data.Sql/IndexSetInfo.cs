@@ -22,7 +22,6 @@ using System.Linq;
 using System.Text;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class IndexSetInfo : IEnumerable<IndexInfo> {
 		private readonly List<IndexInfo> indexes;
 

@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 
 				RemoveDuplicates(all);
 			} else {
-				throw new ApplicationException("Unrecognised composite function");
+				throw new InvalidOperationException("Unrecognised composite function");
 			}
 
 		}

@@ -184,17 +184,17 @@ namespace Deveel.Data.Types {
 			if (System.String.IsNullOrEmpty(name))
 				return false;
 
-			if (name.EndsWith("%TYPE", StringComparison.InvariantCultureIgnoreCase) ||
-				name.EndsWith("%ROWTYPE", StringComparison.InvariantCultureIgnoreCase))
+			if (name.EndsWith("%TYPE", StringComparison.OrdinalIgnoreCase) ||
+				name.EndsWith("%ROWTYPE", StringComparison.OrdinalIgnoreCase))
 				return true;
 
 			// TODO: Support also the other SQL type names?
-			if (name.Equals("NUMERIC", StringComparison.InvariantCultureIgnoreCase) ||
-				name.Equals("STRING", StringComparison.InvariantCultureIgnoreCase) ||
-				name.Equals("DATE", StringComparison.InvariantCultureIgnoreCase) ||
-				name.Equals("NULL", StringComparison.InvariantCultureIgnoreCase) ||
-				name.Equals("BOOLEAN", StringComparison.InvariantCultureIgnoreCase) ||
-				name.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase))
+			if (name.Equals("NUMERIC", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("STRING", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("DATE", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("NULL", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("BOOLEAN", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("BINARY", StringComparison.OrdinalIgnoreCase))
 				return true;
 
 			return false;
@@ -274,7 +274,7 @@ namespace Deveel.Data.Types {
 				if (maxSizeMeta != null)
 					maxSize = maxSizeMeta.ToInt32();
 				if (localeMeta != null)
-					locale = CultureInfo.GetCultureInfo(localeMeta.Value);
+					locale = new CultureInfo(localeMeta.Value);
 				if (encodingMeta != null)
 					encoding = Encoding.GetEncoding(encodingMeta.Value);
 

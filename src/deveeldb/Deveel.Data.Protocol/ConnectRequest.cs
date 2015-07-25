@@ -18,7 +18,6 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class ConnectRequest : IMessage {
 		public ConnectRequest(ConnectionEndPoint localEndPoint, ConnectionEndPoint remoteEndPoint) {
 			if (localEndPoint == null) 

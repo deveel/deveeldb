@@ -21,7 +21,6 @@ namespace Deveel.Data.Sql.Expressions {
 	/// An error occurring while evaluating an <see cref="SqlExpression"/>.
 	/// </summary>
 	/// <seealso cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
-	[Serializable]
 	public class ExpressionEvaluateException : SqlExpressionException {
 		/// <summary>
 		/// Constructs a new exception with no detailed message.

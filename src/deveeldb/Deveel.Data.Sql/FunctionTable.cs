@@ -454,7 +454,7 @@ namespace Deveel.Data.Sql {
 			public DataObject Resolve(ObjectName variable, int setIndex) {
 				int colIndex = Table.ReferenceTable.FindColumn(variable);
 				if (colIndex == -1)
-					throw new ApplicationException(String.Format("Column {0} not found in table {1}.", variable, Table.TableName));
+					throw new InvalidOperationException(String.Format("Column {0} not found in table {1}.", variable, Table.TableName));
 
 				EnsureGroup();
 

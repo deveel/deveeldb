@@ -410,7 +410,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// Check table_id isn't too large.
 				if ((TableId & 0x0F0000000) != 0)
-					throw new ApplicationException("'table_id' exceeds maximum possible keys.");
+					throw new InvalidOperationException("'table_id' exceeds maximum possible keys.");
 
 				info.Establish(TableId);
 				TableInfo = info;
@@ -509,7 +509,7 @@ namespace Deveel.Data.DbSystem {
 			using (var stream = new MemoryStream()) {
 				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
-				TableInfo.SerializeTo(stream);
+				TableInfo.SerializeTo(TableInfo, stream);
 
 				tableInfoBuf = stream.ToArray();
 			}
@@ -656,7 +656,7 @@ namespace Deveel.Data.DbSystem {
 						Store.UnlockForWrite();
 					}
 				} catch (IOException e) {
-					throw new ApplicationException("IO Error: " + e.Message);
+					throw new InvalidOperationException("IO Error: " + e.Message);
 				}
 
 				return v;
@@ -679,7 +679,7 @@ namespace Deveel.Data.DbSystem {
 						Store.UnlockForWrite();
 					}
 				} catch (IOException e) {
-					throw new ApplicationException("IO Error: " + e.Message, e);
+					throw new InvalidOperationException("IO Error: " + e.Message, e);
 				}
 			}
 		}
@@ -696,7 +696,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// ASSERT: Can't do this if source is Read only.
 				if (IsReadOnly)
-					throw new ApplicationException("Can't commit transaction journal, table is Read only.");
+					throw new InvalidOperationException("Can't commit transaction journal, table is Read only.");
 
 				change.CommitId = commitId;
 
@@ -738,7 +738,7 @@ namespace Deveel.Data.DbSystem {
 								// it.
 								if (oldType != RecordState.Uncommitted) {
 									WriteRecordState(rowIndex, oldType);
-									throw new ApplicationException(String.Format("Record {0} of table {1} was not in an uncommitted state!",
+									throw new InvalidOperationException(String.Format("Record {0} of table {1} was not in an uncommitted state!",
 										rowIndex, TableName));
 								}
 							} else if (rowEvent.EventType == TableRowEventType.Remove) {
@@ -748,7 +748,7 @@ namespace Deveel.Data.DbSystem {
 								// Check the record was in an added state before we removed it.
 								if (oldType != RecordState.CommittedAdded) {
 									WriteRecordState(rowIndex, oldType);
-									throw new ApplicationException(String.Format("Record {0} of table {1} was not in an added state!", rowIndex,
+									throw new InvalidOperationException(String.Format("Record {0} of table {1} was not in an added state!", rowIndex,
 										TableName));
 								}
 
@@ -758,7 +758,7 @@ namespace Deveel.Data.DbSystem {
 						}
 					}
 				} catch (IOException e) {
-					throw new ApplicationException("IO Error: " + e.Message, e);
+					throw new InvalidOperationException("IO Error: " + e.Message, e);
 				}
 
 			}
@@ -818,12 +818,12 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// ASSERTION: We are not under a root Lock.
 				if (IsRootLocked)
-					throw new ApplicationException("Cannot remove row, table is locked");
+					throw new InvalidOperationException("Cannot remove row, table is locked");
 
 				var typeKey = ReadRecordState(rowIndex);
 				// Check this record is marked as committed removed.
 				if (typeKey != RecordState.CommittedRemoved)
-					throw new ApplicationException(String.Format("The row {0} is not marked as committed removed", rowIndex));
+					throw new InvalidOperationException(String.Format("The row {0} is not marked as committed removed", rowIndex));
 
 				DoHardRowRemove(rowIndex);
 			}
@@ -833,7 +833,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// ASSERTION: We are not under a root Lock.
 				if (IsRootLocked)
-					throw new ApplicationException("Assertion failed: Can't remove row, table is under a root Lock.");
+					throw new InvalidOperationException("Assertion failed: Can't remove row, table is under a root Lock.");
 
 				// Row already deleted?
 				if (IsRecordDeleted(recordIndex))
@@ -959,7 +959,7 @@ namespace Deveel.Data.DbSystem {
 				// Status of the recycled block
 				var status = (RecordState) block.ReadInt4();
 				if (status != RecordState.Deleted)
-					throw new ApplicationException(String.Format("Record {0} is not deleted. ({1})", recPos, status));
+					throw new InvalidOperationException(String.Format("Record {0} is not deleted. ({1})", recPos, status));
 
 				// The pointer to the next input the chain.
 				long nextChain = block.ReadInt8();
@@ -1108,7 +1108,7 @@ namespace Deveel.Data.DbSystem {
 						int cellType = cellTypes[i];
 						if (cellType == 1) {
 							// Regular object
-							obj.SerializeTo(areaStream, SystemContext);
+							obj.SerializeValueTo(areaStream, SystemContext);
 						} else if (cellType == 2) {
 							// This is a binary large object and must be represented as a ref
 							// to a blob input the BlobStore.
@@ -1263,7 +1263,7 @@ namespace Deveel.Data.DbSystem {
 					// TODO: Emit the event to the system
 
 					if (rootLock == 0)
-						throw new ApplicationException("Too many root locks removed!");
+						throw new InvalidOperationException("Too many root locks removed!");
 
 					--rootLock;
 
@@ -1324,7 +1324,7 @@ namespace Deveel.Data.DbSystem {
 					var status = (RecordState) listBlock.ReadInt4();
 					// Check it's not deleted
 					if (status == RecordState.Deleted)
-						throw new ApplicationException(String.Format("Record {0} was deleted: unable to read.", rowIndex));
+						throw new InvalidOperationException(String.Format("Record {0} was deleted: unable to read.", rowIndex));
 
 					// Get the pointer to the record we are reading
 					recordPointer = listBlock.ReadInt8();
@@ -1376,7 +1376,11 @@ namespace Deveel.Data.DbSystem {
 					cell = new DataObject(type, ob);
 
 					// And close the reader.
+#if PCL
+					reader.Dispose();
+#else
 					reader.Close();
+#endif
 				}
 			} catch (IOException e) {
 				throw new Exception(String.Format("Error getting cell at ({0}, {1}) pointer = " + recordPointer + ".", rowIndex,
@@ -1494,7 +1498,7 @@ namespace Deveel.Data.DbSystem {
 			lock (this) {
 				// ASSERT: Can't do this is source is Read only.
 				if (IsReadOnly)
-					throw new ApplicationException("Can't rollback transaction journal, table is Read only.");
+					throw new InvalidOperationException("Can't rollback transaction journal, table is Read only.");
 
 				// Any rows added in the journal are marked as committed deleted and the
 				// journal is then discarded.
@@ -1517,7 +1521,7 @@ namespace Deveel.Data.DbSystem {
 						}
 					}
 				} catch (IOException e) {
-					throw new ApplicationException("IO Error: " + e.Message, e);
+					throw new InvalidOperationException("IO Error: " + e.Message, e);
 				}
 			}
 		}

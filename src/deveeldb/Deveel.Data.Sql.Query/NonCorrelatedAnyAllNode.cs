@@ -20,7 +20,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class NonCorrelatedAnyAllNode : BranchQueryPlanNode {
 		public NonCorrelatedAnyAllNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumnNames, SqlExpressionType subQueryType) 
 			: base(left, right) {

@@ -19,8 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Transactions {
 	public sealed class LockingQueue {
 		private readonly List<Lock> locks;
@@ -58,7 +56,7 @@ namespace Deveel.Data.Transactions {
 			lock (this) {
 				// Error checking.  The queue must contain the Lock.
 				if (!locks.Contains(@lock))
-					throw new ApplicationException("Queue does not contain the given Lock");
+					throw new InvalidOperationException("Queue does not contain the given Lock");
 
 				// If 'READ'
 				bool blocked;

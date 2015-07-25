@@ -95,7 +95,7 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("serviceType");
 
 			if (container == null)
-				throw new SystemException("The container was not initialized.");
+				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
 				var resolved = OnResolve(serviceType, name);
@@ -119,7 +119,7 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("serviceType");
 
 			if (container == null)
-				throw new SystemException("The container was not initialized.");
+				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
 				IEnumerable list = OnResolveAll(serviceType);
@@ -140,7 +140,7 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("serviceType");
 
 			if (container == null)
-				throw new SystemException("The container was not initialized.");
+				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
 				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
@@ -159,7 +159,7 @@ namespace Deveel.Data.DbSystem {
 				return;
 
 			if (container == null)
-				throw new SystemException("The container was not initialized.");
+				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
 				var serviceType = service.GetType();

@@ -536,7 +536,7 @@ namespace Deveel.Data.DbSystem {
 
 				}  // for each visible table
 
-				throw new ApplicationException("Row out of bounds.");
+				throw new ArgumentOutOfRangeException("rowNumber", "Row out of bounds.");
 			}
 
 			protected override void Dispose(bool disposing) {

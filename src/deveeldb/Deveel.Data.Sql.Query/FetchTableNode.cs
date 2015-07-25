@@ -26,11 +26,10 @@ namespace Deveel.Data.Sql.Query {
 	/// <remarks>
 	/// This is a tree node and has no children.
 	/// </remarks>
-	[Serializable]
 	class FetchTableNode : IQueryPlanNode {
 		public FetchTableNode(ObjectName tableName, ObjectName aliasName) {
-			this.TableName = tableName;
-			this.AliasName = aliasName;
+			TableName = tableName;
+			AliasName = aliasName;
 		}
 
 		/// <summary>

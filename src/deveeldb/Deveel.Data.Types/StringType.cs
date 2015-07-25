@@ -25,7 +25,6 @@ using Deveel.Data.Store;
 using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class StringType : DataType, ISizeableType {
 		private CompareInfo collator;
 
@@ -422,8 +421,8 @@ namespace Deveel.Data.Types {
 					// Must be equal
 					return 0;
 				} finally {
-					r1.Close();
-					r2.Close();
+					r1.Dispose();
+					r2.Dispose();
 				}
 			} catch (IOException e) {
 				throw new Exception("IO Error: " + e.Message);

@@ -19,17 +19,26 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	sealed class CachePointNode : SingleQueryPlanNode {
 		private readonly static Object GlobLock = new Object();
 		private static int GlobId;
 
 		public CachePointNode(IQueryPlanNode child)
+			: this(child,NewId()) {
+		}
+
+		public CachePointNode(IQueryPlanNode child, long id)
 			: base(child) {
+			Id = id;
+		}
+
+		private static long NewId() {
+			long id;
 			lock (GlobLock) {
-				Id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
+				id = ((int)DateTime.Now.Ticks << 16) | (GlobId & 0x0FFFF);
 				++GlobId;
 			}
+			return id;
 		}
 
 		public long Id { get; private set; }

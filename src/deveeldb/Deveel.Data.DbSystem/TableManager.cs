@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 
 using Deveel.Data.Index;
@@ -67,7 +66,7 @@ namespace Deveel.Data.DbSystem {
 		internal IEnumerable<TableSource> SelectedTables {
 			get {
 				lock (selectedTables) {
-					return selectedTables.AsReadOnly();
+					return selectedTables.ToArray();
 				}
 			}
 		} 
@@ -707,7 +706,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		internal IEnumerable<TableSource> GetVisibleTables() {
-			return visibleTables.AsReadOnly();
+			return visibleTables.ToArray();
 		}
 
 		internal void AddVisibleTables(IEnumerable<TableSource> tableSources, IEnumerable<IIndexSet> indexSets) {
@@ -727,7 +726,7 @@ namespace Deveel.Data.DbSystem {
 			if (dynamicTables != null)
 				result.AddRange(dynamicTables);
 
-			return result.AsReadOnly();
+			return result.ToArray();
 		}
 	}
 }

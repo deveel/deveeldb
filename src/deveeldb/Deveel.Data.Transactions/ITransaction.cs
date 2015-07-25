@@ -58,7 +58,7 @@ namespace Deveel.Data.Transactions {
 		TransactionRegistry Registry { get; }
 
 		/// <summary>
-		/// Commits all wirte operation done during the lifetime of 
+		/// Commits all write operation done during the lifetime of 
 		/// this transaction and invalidates it.
 		/// </summary>
 		/// <seealso cref="TransactionExtensions.ReadOnly(Deveel.Data.Transactions.ITransaction)"/>

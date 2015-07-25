@@ -40,7 +40,7 @@ namespace Deveel.Data.DbSystem {
 		public void DeleteRow(int rowIndex) {
 			if (!fullSweep) {
 				if (!deletedRows.UniqueInsertSort(rowIndex))
-					throw new ApplicationException("Row marked twice for deletion.");
+					throw new InvalidOperationException("Row marked twice for deletion.");
 			}
 		}
 

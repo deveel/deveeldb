@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class AcknowledgeResponse : IMessage {
 		public AcknowledgeResponse() 
 			: this(true) {

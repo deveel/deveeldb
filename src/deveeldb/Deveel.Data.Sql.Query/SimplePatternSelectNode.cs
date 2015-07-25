@@ -20,7 +20,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class SimplePatternSelectNode : SingleQueryPlanNode {
 		public SimplePatternSelectNode(IQueryPlanNode child, SqlExpression expression) 
 			: base(child) {

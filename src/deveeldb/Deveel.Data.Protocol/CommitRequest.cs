@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class CommitRequest : IMessage {
 		public CommitRequest(int transactionId) {
 			TransactionId = transactionId;

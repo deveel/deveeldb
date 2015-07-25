@@ -27,7 +27,6 @@ namespace Deveel.Data.Sql {
 	/// This includes being either an aggregate function, a column or "*" 
 	/// which is the entire set of columns.
 	/// </remarks>
-	[Serializable]
 	public sealed class SelectColumn : IPreparable {
 		/// <summary>
 		/// Constructs a new <see cref="SelectColumn"/> for the given

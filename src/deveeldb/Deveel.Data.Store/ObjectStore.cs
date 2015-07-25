@@ -16,7 +16,9 @@
 
 using System;
 using System.IO;
+#if !PCL
 using System.IO.Compression;
+#endif
 
 namespace Deveel.Data.Store {
 	public class ObjectStore : IObjectStore {
@@ -93,7 +95,7 @@ namespace Deveel.Data.Store {
 				// Status of the recycled block
 				int status = block.ReadInt4();
 				if ((status & DeletedFlag) == 0)
-					throw new ApplicationException("Assertion failed: record is not deleted!");
+					throw new InvalidOperationException("Assertion failed: record is not deleted!");
 
 				// Reference count (currently unused in delete chains).
 				block.ReadInt4();
@@ -328,7 +330,7 @@ namespace Deveel.Data.Store {
 				IArea block = fixedList.GetRecord(id);
 				var status = block.ReadInt4();
 				if ((status & DeletedFlag) != 0)
-					throw new ApplicationException("Assertion failed: record is deleted!");
+					throw new InvalidOperationException("Assertion failed: record is deleted!");
 
 				block.ReadInt4();		// Ref count
 				maxSize = block.ReadInt8();		// Total Size / Max Size
@@ -363,9 +365,13 @@ namespace Deveel.Data.Store {
 			int writeLength;
 			if ((type & CompressedFlag) != 0) {
 				// Yes, compression
+#if !PCL
 				var deflateStream = new DeflateStream(new MemoryStream(buffer, off, length), CompressionMode.Compress, false);
 				toWrite = new byte[PageSize * 1024];
 				writeLength = deflateStream.Read(toWrite, 0, toWrite.Length);
+#else
+				throw new NotSupportedException("Compression not supported in PCL.");
+#endif
 			} else {
 				// No compression
 				toWrite = buffer;
@@ -422,7 +428,7 @@ namespace Deveel.Data.Store {
 				status = block.ReadInt4();
 				// Assert that the status is not deleted
 				if ((status & DeletedFlag) != 0)
-					throw new ApplicationException("Assertion failed: record is deleted!");
+					throw new InvalidOperationException("Assertion failed: record is deleted!");
 
 				// Get the reference count
 				block.ReadInt4();
@@ -457,6 +463,7 @@ namespace Deveel.Data.Store {
 			int pageSize = pageArea.ReadInt4();
 
 			if ((type & CompressedFlag) != 0) {
+#if !PCL
 				// The page is compressed
 				byte[] pageBuf = new byte[pageSize];
 				int readCount = pageArea.Read(pageBuf, 0, pageSize);
@@ -471,6 +478,9 @@ namespace Deveel.Data.Store {
 				} catch(InvalidDataException e) {
 					throw new IOException("ZIP Data Format Error: " + e.Message);
 				}
+#else
+				throw new NotSupportedException("Compression not supported in PCL.");
+#endif
 			}
 
 			// The page is not compressed
@@ -496,7 +506,7 @@ namespace Deveel.Data.Store {
 				int status = block.ReadInt4();
 				// Assert that the status is not deleted
 				if ((status & DeletedFlag) != 0)
-					throw new ApplicationException("Assertion failed: record is deleted!");
+					throw new InvalidOperationException("Assertion failed: record is deleted!");
 
 				// Get the reference count
 				int refCount = block.ReadInt4();

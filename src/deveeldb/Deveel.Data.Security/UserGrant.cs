@@ -23,7 +23,6 @@ namespace Deveel.Data.Security {
 	/// The entity that holds the access control granted to an
 	/// user to a specific object in a database.
 	/// </summary>
-	[Serializable]
 	public sealed class UserGrant {
 		/// <summary>
 		/// Constructs a new grant for the given user on the given

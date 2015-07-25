@@ -29,7 +29,6 @@ namespace Deveel.Data.Sql.Objects {
 	/// state cannot be determined.
 	/// </para>
 	/// </remarks>
-	[Serializable]
 	public struct SqlBoolean : ISqlObject, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, IConvertible {
 		private readonly byte? value;
 
@@ -39,7 +38,7 @@ namespace Deveel.Data.Sql.Objects {
 		public static readonly SqlBoolean True = new SqlBoolean(1);
 
 		/// <summary>
-		/// Rapresents the materialization of a <c>false</c> boolean.
+		/// Represents the materialization of a <c>false</c> boolean.
 		/// </summary>
 		public static readonly SqlBoolean False = new SqlBoolean(0);
 
@@ -103,7 +102,7 @@ namespace Deveel.Data.Sql.Objects {
 				} else if (num == SqlNumber.Zero) {
 					otherBoolean = False;
 				} else {
-					throw new ArgumentOutOfRangeException("other", other, "The given numeric value is out of range for a comparison with SQL BOOLEAN.");
+					throw new ArgumentOutOfRangeException("other", "The given numeric value is out of range for a comparison with SQL BOOLEAN.");
 				}
 			} else if (other is SqlBoolean) {
 				otherBoolean = (SqlBoolean) other;
@@ -177,7 +176,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == 0)
 				return True;
 
-			throw new SystemException();
+			throw new InvalidOperationException();
 		}
 
 		public SqlBoolean Or(SqlBoolean other) {

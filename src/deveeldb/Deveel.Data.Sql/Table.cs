@@ -24,7 +24,6 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public abstract class Table : IQueryTable, ILockable {
 		// Stores col name -> col index lookups
 		private Dictionary<ObjectName, int> colNameLookup;
@@ -191,7 +190,7 @@ namespace Deveel.Data.Sql {
 			private int FindColumnName(ObjectName columnName) {
 				int colIndex = table.FindColumn(columnName);
 				if (colIndex == -1) {
-					throw new ApplicationException("Can't find column: " + columnName);
+					throw new InvalidOperationException("Can't find column: " + columnName);
 				}
 				return colIndex;
 			}

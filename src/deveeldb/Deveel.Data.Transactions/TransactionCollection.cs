@@ -43,7 +43,7 @@ namespace Deveel.Data.Transactions {
 			lock (this) {
 				long currentCommitId = transaction.CommitId;
 				if (currentCommitId < maxCommitId)
-					throw new ApplicationException("Added a transaction with a lower than maximum commit id");
+					throw new InvalidOperationException("Added a transaction with a lower than maximum commit id");
 				
 				transactions.Add(transaction);
 				//TODO: SystemContext.Stats.Increment(StatsDefaultKeys.OpenTransactionsCount);
@@ -68,7 +68,7 @@ namespace Deveel.Data.Transactions {
 					// Last in list.
 					maxCommitId = transactions[i - 1].CommitId;
 				} else if (i == -1) {
-					throw new ApplicationException("Unable to find transaction in the list.");
+					throw new InvalidOperationException("Unable to find transaction in the list.");
 				}
 
 				transactions.RemoveAt(i);

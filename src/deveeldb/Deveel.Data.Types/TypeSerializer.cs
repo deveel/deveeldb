@@ -21,26 +21,25 @@ using System.Text;
 
 namespace Deveel.Data.Types {
 	static class TypeSerializer {
-		public static void SerializeTo(Stream stream, DataType type) {
-			var writer = new BinaryWriter(stream, Encoding.Unicode);
-			writer.Write((byte) type.SqlType);
+		public static void SerializeTo(BinaryWriter writer, DataType type) {
+			writer.Write((byte)type.SqlType);
 
 			if (type is NumericType) {
-				var numericType = (NumericType) type;
+				var numericType = (NumericType)type;
 				writer.Write(numericType.Size);
 				writer.Write(numericType.Scale);
 			} else if (type is StringType) {
-				var stringType = (StringType) type;
+				var stringType = (StringType)type;
 				writer.Write(stringType.MaxSize);
 
 				if (stringType.Locale != null) {
-					writer.Write((byte) 1);
-					writer.Write(stringType.Locale.LCID);
+					writer.Write((byte)1);
+					writer.Write(stringType.Locale.Name);
 				} else {
-					writer.Write((byte) 0);
+					writer.Write((byte)0);
 				}
 			} else if (type is BinaryType) {
-				var binaryType = (BinaryType) type;
+				var binaryType = (BinaryType)type;
 
 				writer.Write(binaryType.MaxSize);
 			} else if (type is BooleanType ||
@@ -48,8 +47,13 @@ namespace Deveel.Data.Types {
 			           type is DateType ||
 			           type is NullType) {
 				// nothing to add to the SQL Type Code
-			}  else {
+			} else {
 				throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
+			}
+		}
+		public static void SerializeTo(Stream stream, DataType type) {
+			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
+				SerializeTo(writer, type);
 			}
 		}
 
@@ -71,8 +75,8 @@ namespace Deveel.Data.Types {
 				CultureInfo locale = null;
 				var hasLocale = reader.ReadByte() == 1;
 				if (hasLocale) {
-					var lcid = reader.ReadInt32();
-					locale = CultureInfo.GetCultureInfo(lcid);
+					var name = reader.ReadString();
+					locale = new CultureInfo(name);
 				}
 
 				// TODO: Get the encoding from the serialization...

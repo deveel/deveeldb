@@ -29,7 +29,6 @@ namespace Deveel.Data {
 	/// Represents a dynamic object that encapsulates a defined
 	/// <see cref="DataType"/> and a compatible constant <see cref="ISqlObject"/> value.
 	/// </summary>
-	[Serializable]
 	public sealed class DataObject : IComparable, IComparable<DataObject>, IEquatable<DataObject> {
 		/// <summary>
 		/// The representation of a BOOLEAN <c>true</c> as <see cref="DataObject"/>
@@ -680,6 +679,7 @@ namespace Deveel.Data {
 			return a.IsEqualTo(b);
 		}
 
+#if !PCL
 		public static DataObject operator ==(DataObject a, DBNull b) {
 			if (Equals(a, null) || a.IsNull)
 				return BooleanTrue;
@@ -690,6 +690,8 @@ namespace Deveel.Data {
 		public static DataObject operator !=(DataObject a, DBNull b) {
 			return !(a == b);
 		}
+
+#endif
 
 		/// <summary>
 		/// The inequality operation between two <see cref="DataObject"/> instances.
@@ -872,6 +874,7 @@ namespace Deveel.Data {
 			return ((SqlDateTime)value.AsDate().Value).ToDateTime();
 		}
 
+#if !PCL
 		public static implicit operator DBNull(DataObject value) {
 			if (ReferenceEquals(value, null) || value.IsNull)
 				return DBNull.Value;
@@ -879,9 +882,11 @@ namespace Deveel.Data {
 			throw new InvalidCastException("Cannot convert non-nullable value to DBNull.");
 		}
 
+#endif
+
 		#endregion
 
-		internal void SerializeTo(Stream stream, ISystemContext systemContext) {
+		internal void SerializeValueTo(Stream stream, ISystemContext systemContext) {
 			Type.SerializeObject(stream, Value, systemContext);
 		}
 	}

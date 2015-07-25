@@ -20,7 +20,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Deveel.Data.Sql {
-	[Serializable]
 	public sealed class SqlQuery {
 		public SqlQuery(string text) 
 			: this(text, QueryParameterStyle.Default) {

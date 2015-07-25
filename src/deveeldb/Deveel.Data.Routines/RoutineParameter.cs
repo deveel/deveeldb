@@ -20,7 +20,6 @@ using System.Text;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
-	[Serializable]
 	public sealed class RoutineParameter {
 		public RoutineParameter(string name, DataType type, ParameterAttributes attributes) 
 			: this(name, type, ParameterDirection.Input, attributes) {

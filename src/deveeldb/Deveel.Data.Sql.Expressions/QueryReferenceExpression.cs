@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
 	class QueryReferenceExpression : SqlExpression {
 		public QueryReferenceExpression(QueryReference reference) {
 			Reference = reference;

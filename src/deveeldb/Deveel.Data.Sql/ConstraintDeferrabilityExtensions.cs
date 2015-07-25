@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 				case (ConstraintDeferrability.InitiallyDeferred):
 					return "Deferred";
 				default:
-					throw new ApplicationException("Unknown deferred string.");
+					throw new InvalidOperationException("Unknown deferred string.");
 			}
 		}
 	}

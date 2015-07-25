@@ -15,8 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -30,7 +28,6 @@ namespace Deveel.Data.Sql.Query {
 	/// For example, we may want to add an expression <c>a + 10</c> or 
 	/// <c>coalesce(a, b, 1)</c>.
 	/// </remarks>
-	[Serializable]
 	class CreateFunctionsNode : SingleQueryPlanNode {
 		public CreateFunctionsNode(IQueryPlanNode child, SqlExpression[] functionList, string[] nameList)
 			: base(child) {

@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Security {
-	[Serializable]
 	public class SecurityException : ErrorException {
 		public SecurityException() 
 			: this(SecurityErrorCodes.Unknown) {

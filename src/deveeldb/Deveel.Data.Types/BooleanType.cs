@@ -15,13 +15,13 @@
 //
 
 using System;
+using System.Globalization;
 using System.IO;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	[Serializable]
 	public sealed class BooleanType : DataType {
 		public BooleanType(SqlTypeCode sqlType) 
 			: base("BOOLEAN", sqlType) {
@@ -95,7 +95,7 @@ namespace Deveel.Data.Types {
 				return new DataObject(destType, num);
 			}
 			if (destType is BinaryType) {
-				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]));
+				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]), CultureInfo.InvariantCulture);
 				return new DataObject(destType, new SqlBinary(bytes));
 			}
 			if (destType is BooleanType)

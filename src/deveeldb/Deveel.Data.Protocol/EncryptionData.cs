@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class EncryptionData {
 		public EncryptionData(string hashAlgorithm, string key) 
 			: this(hashAlgorithm, key, String.Empty) {

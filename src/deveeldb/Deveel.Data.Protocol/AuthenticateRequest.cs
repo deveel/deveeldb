@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class AuthenticateRequest : IMessage {
 		public AuthenticateRequest(string userName, string password) 
 			: this(null, userName, password) {

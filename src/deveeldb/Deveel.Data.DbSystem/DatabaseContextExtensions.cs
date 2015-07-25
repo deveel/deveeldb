@@ -39,7 +39,11 @@ namespace Deveel.Data.DbSystem {
 			if (string.Equals(value, DefaultStorageSystemNames.Heap))
 				return typeof (InMemoryStorageSystem);
 
+#if !PCL
 			return Type.GetType(value, false, true);
+#else
+			return Type.GetType(value, false);
+#endif
 		}
 
 		public static bool ReadOnly(this IDatabaseContext context) {

@@ -15,11 +15,9 @@
 //
 
 using System;
-using System.Runtime.Serialization;
 
 namespace Deveel.Data.Configuration {
-	[Serializable]
-	public class DatabaseConfigurationException : ApplicationException {
+	public class DatabaseConfigurationException : Exception {
 		public DatabaseConfigurationException(string message, Exception innerException)
 			: base(message, innerException) {
 		}
@@ -29,10 +27,6 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public DatabaseConfigurationException() {
-		}
-
-		protected DatabaseConfigurationException(SerializationInfo info, StreamingContext context)
-			: base(info, context) {
 		}
 	}
 }

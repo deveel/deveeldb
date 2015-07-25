@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class DistinctNode : SingleQueryPlanNode {
 		public DistinctNode(IQueryPlanNode child, ObjectName[] columnNames) 
 			: base(child) {

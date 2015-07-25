@@ -20,7 +20,6 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Store {
-	[Serializable]
 	public class DataStorageException : ErrorException {
 		public DataStorageException(int errorCode) 
 			: this(errorCode, null) {

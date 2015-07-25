@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Expressions {
-	[Serializable]
 	public sealed class SqlAssignExpression : SqlExpression {
 		internal SqlAssignExpression(SqlExpression reference, SqlExpression valueExpression) {
 			if (reference == null)

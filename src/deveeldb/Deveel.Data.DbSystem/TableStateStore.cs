@@ -58,7 +58,6 @@ namespace Deveel.Data.DbSystem {
 
 					list.Add(name, new TableState((int)tableId, name));
 				}
-				reader.Close();
 			}
 		}
 

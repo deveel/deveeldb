@@ -134,7 +134,7 @@ namespace Deveel.Data.Index {
 			public override int Top {
 				get {
 					if (Count == 0)
-						throw new ApplicationException("No first int in block.");
+						throw new InvalidOperationException("No first int in block.");
 
 					lock (blockLock) {
 						return BaseArray == null ? (int)LastEntry : BaseArray[Count - 1];
@@ -145,7 +145,7 @@ namespace Deveel.Data.Index {
 			public override int Bottom {
 				get {
 					if (Count == 0)
-						throw new ApplicationException("No first int in block.");
+						throw new InvalidOperationException("No first int in block.");
 
 					lock (blockLock) {
 						return BaseArray == null ? (int)FirstEntry : BaseArray[0];
@@ -260,7 +260,7 @@ namespace Deveel.Data.Index {
 					try {
 						Store.GetArea(BlockPointer).Read(buf, 0, areaSize);
 					} catch (IOException e) {
-						throw new ApplicationException("IO Error: " + e.Message);
+						throw new InvalidOperationException("IO Error: " + e.Message);
 					}
 
 					// Uncompact it into the int array

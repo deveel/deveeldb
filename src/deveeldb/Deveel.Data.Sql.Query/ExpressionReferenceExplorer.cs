@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Query {
 		public static IEnumerable<ObjectName> AllReferences(this SqlExpression expression) {
 			var discover = new ReferenceDiscover();
 			discover.Visit(expression);
-			return discover.References.AsReadOnly();
+			return discover.References.ToArray();
 		}
 
 		#region ReferenceDiscover

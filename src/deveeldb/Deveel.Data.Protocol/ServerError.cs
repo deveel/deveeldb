@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class ServerError {
 		public ServerError(int errorClass, int errorCode, string errorMessage) {
 			ErrorMessage = errorMessage;

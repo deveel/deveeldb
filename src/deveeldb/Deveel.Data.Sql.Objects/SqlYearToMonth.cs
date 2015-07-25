@@ -20,7 +20,6 @@ namespace Deveel.Data.Sql.Objects {
 	/// <summary>
 	/// A month span representation of time.
 	/// </summary>
-	[Serializable]
 	public struct SqlYearToMonth : ISqlObject, IComparable<SqlYearToMonth> {
 		private int? months;
 

@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -25,7 +24,6 @@ namespace Deveel.Data.Sql.Query {
 	/// The node for evaluating an expression that contains entirely 
 	/// constant values (no variables).
 	/// </summary>
-	[Serializable]
 	class ConstantSelectNode : SingleQueryPlanNode {
 		public ConstantSelectNode(IQueryPlanNode child, SqlExpression expression)
 			: base(child) {

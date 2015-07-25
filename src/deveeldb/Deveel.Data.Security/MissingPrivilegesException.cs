@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Security {
-	[Serializable]
 	public class MissingPrivilegesException : SecurityException {
 		public MissingPrivilegesException()
 			: this((ObjectName)null) {

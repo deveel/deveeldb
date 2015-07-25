@@ -84,12 +84,12 @@ namespace Deveel.Data.Transactions {
 					    rowEvent.EventType == TableRowEventType.UpdateAdd) {
 						// Add to 'row_list'.
 						if (!RowIndex.UniqueInsertSort(index))
-							throw new ApplicationException(String.Format("Row index already used in this table ({0})", index));
+							throw new InvalidOperationException(String.Format("Row index already used in this table ({0})", index));
 					} else if (rowEvent.EventType == TableRowEventType.Remove ||
 					           rowEvent.EventType == TableRowEventType.UpdateRemove) {
 						// Remove from 'row_list'
 						if (!RowIndex.RemoveSort(index))
-							throw new ApplicationException("Row index removed that wasn't in this table!");
+							throw new InvalidOperationException("Row index removed that wasn't in this table!");
 					} else {
 						throw new InvalidOperationException(String.Format("Table row event type {0} is invalid.", rowEvent.EventType));
 					}
@@ -227,13 +227,13 @@ namespace Deveel.Data.Transactions {
 				throw new Exception("Transaction is Read only.");
 
 			if (TableSource.IsReadOnly)
-				throw new ApplicationException("Can not add row - table is read-only.");
+				throw new InvalidOperationException("Can not add row - table is read-only.");
 
 			int rowNum;
 			try {
 				rowNum = TableSource.AddRow(row);
 			} catch (Exception ex) {
-				throw new ApplicationException(
+				throw new InvalidOperationException(
 					String.Format("Unknown error when adding a row to the table '{0}'.", TableInfo.TableName), ex);
 			}
 
@@ -253,7 +253,7 @@ namespace Deveel.Data.Transactions {
 
 			// Check this isn't a Read only source
 			if (TableSource.IsReadOnly)
-				throw new ApplicationException("Can not update row - table is read-only.");
+				throw new InvalidOperationException("Can not update row - table is read-only.");
 
 			if (row.RowId.IsNull)
 				throw new ArgumentException("The ROWID cannot be null in an update.");
@@ -275,7 +275,7 @@ namespace Deveel.Data.Transactions {
 			try {
 				newRowIndex = TableSource.AddRow(row);
 			} catch (IOException e) {
-				throw new ApplicationException("IO Error: " + e.Message, e);
+				throw new InvalidOperationException("IO Error: " + e.Message, e);
 			}
 
 			row.SetRowNumber(newRowIndex);
@@ -299,7 +299,7 @@ namespace Deveel.Data.Transactions {
 
 			// Check this isn't a Read only source
 			if (TableSource.IsReadOnly)
-				throw new ApplicationException("Can not remove row - table is Read only.");
+				throw new InvalidOperationException("Can not remove row - table is Read only.");
 
 			// NOTE: This must <b>NOT</b> call 'RemoveRow' in TableSource.
 			//   We do not want to delete a row permanently from the underlying

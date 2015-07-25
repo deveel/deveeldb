@@ -17,7 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public struct SqlNull : ISqlObject, IConvertible {
 		public static readonly SqlNull Value = new SqlNull();
 
@@ -64,7 +63,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		TypeCode IConvertible.GetTypeCode() {
-			return TypeCode.DBNull;
+			return TypeCode.Object;
 		}
 
 		bool IConvertible.ToBoolean(IFormatProvider provider) {

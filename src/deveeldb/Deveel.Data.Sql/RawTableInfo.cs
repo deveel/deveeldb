@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql {
 			// First check number of tables in each merge is correct.
 
 			if (merge1.Length != merge2.Length)
-				throw new ApplicationException("Incorrect format in table union");
+				throw new InvalidOperationException("Incorrect format in table union");
 
 			// Check each table in the merge1 set has identical length row_sets
 
@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 					size1 = merge1[i].Rows.Count;
 				} else {
 					if (size1 != merge1[i].Rows.Count)
-						throw new ApplicationException("Incorrect format in table union");
+						throw new InvalidOperationException("Incorrect format in table union");
 				}
 			}
 
@@ -82,13 +82,13 @@ namespace Deveel.Data.Sql {
 			for (int i = 0; i < merge2.Length; ++i) {
 				// Check the tables in merge2 are identical to the tables in merge1
 				if (!merge2[i].Table.TypeEquals(merge1[i].Table))
-					throw new ApplicationException("Incorrect format in table union");
+					throw new InvalidOperationException("Incorrect format in table union");
 
 				if (size2 == -1) {
 					size2 = merge2[i].Rows.Count;
 				} else {
 					if (size2 != merge2[i].Rows.Count)
-						throw new ApplicationException("Incorrect format in table union");
+						throw new InvalidOperationException("Incorrect format in table union");
 				}
 			}
 
@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql {
 			// 0 for an empty table).
 
 			if (size1 == -1 || size2 == -1)
-				throw new ApplicationException("Incorrect format in table union");
+				throw new InvalidOperationException("Incorrect format in table union");
 
 			// We don't need information in 'raw_info' vector anymore so clear it.
 			// This may help garbage collection.

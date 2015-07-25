@@ -25,7 +25,6 @@ namespace Deveel.Data.Sql.Objects {
 	/// An object that provides methods for accessing a
 	/// finite collection of SQL expressions.
 	/// </summary>
-	[Serializable]
 	public sealed class SqlArray : ISqlObject, IEnumerable<SqlExpression> {
 		private readonly SqlExpression[] expressions;
 

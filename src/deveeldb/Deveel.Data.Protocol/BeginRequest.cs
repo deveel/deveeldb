@@ -18,7 +18,6 @@ using System;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class BeginRequest : IMessage {
 		public BeginRequest() 
 			: this(TransactionIsolation.Serializable) {

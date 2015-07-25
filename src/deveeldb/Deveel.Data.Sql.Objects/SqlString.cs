@@ -21,7 +21,6 @@ using System.IO;
 using System.Text;
 
 namespace Deveel.Data.Sql.Objects {
-	[Serializable]
 	public struct SqlString : ISqlString, IEquatable<SqlString>, IConvertible {
 		public const int MaxLength = Int16.MaxValue;
 
@@ -112,7 +111,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public long Length {
-			get { return source == null ? 0 : source.LongLength; }
+			get { return source == null ? 0 : source.Length; }
 		}
 
 		public TextReader GetInput() {
@@ -187,8 +186,8 @@ namespace Deveel.Data.Sql.Objects {
 					throw new ArgumentException("The final string will be over the maximum length");
 
 				var destChars = new char[length];
-				Array.Copy(source, 0, destChars, 0, Length);
-				Array.Copy(otheString.source, 0, destChars, Length, otheString.Length);
+				Array.Copy(source, 0, destChars, 0, (int)Length);
+				Array.Copy(otheString.source, 0, destChars, (int)Length, (int)otheString.Length);
 				return new SqlString(destChars, length);
 			}
 
@@ -215,9 +214,15 @@ namespace Deveel.Data.Sql.Objects {
 				output.Flush();
 			}
 
+#if PCL
+			var s = sb.ToString();
+			return new SqlString(s);
+
+#else
 			var outChars = new char[sb.Length];
 			sb.CopyTo(0, outChars, 0, sb.Length);
 			return new SqlString(outChars, outChars.Length);
+#endif
 		}
 
 		public int GetByteCount(Encoding encoding) {
@@ -411,7 +416,7 @@ namespace Deveel.Data.Sql.Objects {
 				return new char[0];
 
 			var chars = new char[Length];
-			Array.Copy(source, 0, chars, 0, Length);
+			Array.Copy(source, 0, chars, 0, (int)Length);
 			return chars;
 		}
 	}

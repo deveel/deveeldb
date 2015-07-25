@@ -19,7 +19,6 @@ using System;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Sql.Query {
-	[Serializable]
 	class SubsetNode : SingleQueryPlanNode {
 		public SubsetNode(IQueryPlanNode child, ObjectName[] originalColumnNames, ObjectName[] aliasColumnNames) 
 			: base(child) {
@@ -42,7 +41,7 @@ namespace Deveel.Data.Sql.Query {
 			return new SubsetColumnTable(table, columnMap, AliasColumnNames);
 		}
 
-		public void SetName(ObjectName parentName) {
+		public void SetAliasParentName(ObjectName parentName) {
 			var aliases = new ObjectName[AliasColumnNames.Length];
 			for (int i = 0; i < aliases.Length; i++) {
 				aliases[i] = new ObjectName(parentName, aliases[i].Name);

@@ -16,7 +16,6 @@
 using System;
 
 namespace Deveel.Data.Protocol {
-	[Serializable]
 	public sealed class QueryResultPartResponse : IMessage {
 		public QueryResultPartResponse(int resultId, QueryResultPart part) {
 			Part = part;
