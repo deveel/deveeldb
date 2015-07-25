@@ -88,17 +88,32 @@ namespace Deveel.Data.Spatial {
 			return geometry.Envelope;
 		}
 
-		public static DataObject Distance(DataObject geometry) {
+		public static DataObject Distance(DataObject geometry, DataObject other) {
 			var input = (SqlGeometry)geometry.Value;
-			var result = Distance(input);
+			var otherGeometry = (SqlGeometry) other.Value;
+			var result = Distance(input, otherGeometry);
 			return DataObject.Number(result);
 		}
 
-		private static SqlNumber Distance(SqlGeometry geometry) {
+		public static SqlNumber Distance(SqlGeometry geometry, SqlGeometry other) {
 			if (geometry == null || geometry.IsNull)
 				return SqlNumber.Null;
 
-			return geometry.Distance(geometry);
+			return geometry.Distance(other);
+		}
+
+		public static SqlBoolean Contains(SqlGeometry geometry, SqlGeometry other) {
+			if (geometry == null || geometry.IsNull)
+				return SqlBoolean.Null;
+
+			return geometry.Contains(other);
+		}
+
+		public static DataObject Contains(DataObject geometry, DataObject other) {
+			var g1 = (SqlGeometry) geometry.Value;
+			var g2 = (SqlGeometry) other.Value;
+			var result = Contains(g1, g2);
+			return DataObject.Boolean(result);
 		}
 	}
 }

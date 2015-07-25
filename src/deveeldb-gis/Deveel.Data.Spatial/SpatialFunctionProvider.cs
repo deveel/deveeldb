@@ -51,9 +51,16 @@ namespace Deveel.Data.Spatial {
 				.ReturnsType(SpatialType.Geometry()));
 
 			Register(config => config.Named("distance")
-				.WithParameter(p => p.Named("g").OfType(SpatialType.Geometry()))
-				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Distance(args[0])))
+				.WithParameter(p => p.Named("g1").OfType(SpatialType.Geometry()))
+				.WithParameter(p => p.Named("g2").OfType(SpatialType.Geometry()))
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Distance(args[0], args[1])))
 				.ReturnsNumeric());
+
+			Register(config => config.Named("contains")
+				.WithParameter(p => p.Named("g1").OfType(SpatialType.Geometry()))
+				.WithParameter(p => p.Named("g2").OfType(SpatialType.Geometry()))
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Contains(args[0], args[1])))
+				.ReturnsBoolean());
 
 			// TODO: Implement the functions
 		}

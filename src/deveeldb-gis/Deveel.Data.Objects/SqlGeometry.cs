@@ -52,6 +52,24 @@ namespace Deveel.Data.Objects {
 
 		public bool IsNull { get; private set; }
 
+		public SqlNumber Area {
+			get {
+				if (IsNull)
+					return SqlNumber.Null;
+
+				return new SqlNumber(Geometry.Area);
+			}
+		}
+
+		public SqlNumber Length {
+			get {
+				if (IsNull)
+					return SqlNumber.Null;
+
+				return new SqlNumber(Geometry.Length);
+			}
+		}
+
 		public SqlGeometry Boundary {
 			get {
 				if (IsNull)
