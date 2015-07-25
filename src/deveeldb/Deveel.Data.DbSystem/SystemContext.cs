@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Query;
 
@@ -74,6 +75,7 @@ namespace Deveel.Data.DbSystem {
 			this.UseDefaultSqlCompiler();
 			this.UseDefaultQueryPlanner();
 			this.UseDefaultTableCellCache();
+			this.UseSystemFunctions();
 
 			ServiceProvider.AttachContext(this);
 		}

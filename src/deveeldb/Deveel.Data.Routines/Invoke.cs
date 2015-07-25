@@ -28,7 +28,7 @@ namespace Deveel.Data.Routines {
 	/// the full name and arguments (as <see cref="SqlExpression"/>).
 	/// </summary>
 	public sealed class Invoke {
-		private IFunction cached;
+		private IRoutine cached;
 
 		/// <summary>
 		/// Constructs a new <see cref="Invoke"/> with the given
@@ -89,8 +89,7 @@ namespace Deveel.Data.Routines {
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
 		public bool IsAggregate(IQueryContext context) {
-			var resolver = context.DatabaseContext().RoutineResolver;
-			if (resolver.IsAggregateFunction(this, context))
+			if (context.IsAggregateFunction(this))
 				return true;
 
 			// Look at parameterss
@@ -117,14 +116,12 @@ namespace Deveel.Data.Routines {
 			if (cached != null)
 				return cached;
 
-			IRoutineResolver resolver;
 			if (context == null) {
-				resolver = SystemFunctions.Provider;
+				cached = SystemFunctions.Provider.ResolveFunction(this, null);
 			} else {
-				resolver = context.DatabaseContext().RoutineResolver;
+				cached = context.ResolveRoutine(this);
 			}
 
-			cached = resolver.ResolveRoutine(this, context) as IFunction;
 			if (cached == null)
 				throw new InvalidOperationException(String.Format("Unable to resolve the call {0} to a function", this));
 

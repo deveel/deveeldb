@@ -299,7 +299,6 @@
     <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
     <Compile Include="Deveel.Data.Routines\AggregateFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionProvider.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
@@ -311,9 +310,11 @@
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
     <Compile Include="Deveel.Data.Routines\SystemRoutineProvider.cs" />
+    <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />

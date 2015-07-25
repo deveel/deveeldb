@@ -10,12 +10,6 @@ using NUnit.Framework;
 namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class SystemFunctionTests : ContextBasedTest {
-		protected override IDatabaseContext CreateDatabaseContext(ISystemContext context) {
-			var dbContext = base.CreateDatabaseContext(context);
-			dbContext.UseSystemFunctions();
-			return dbContext;
-		}
-
 		private DataObject InvokeFunction(string name) {
 			return QueryContext.InvokeSystemFunction(name);
 		}

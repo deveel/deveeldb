@@ -43,7 +43,6 @@ namespace Deveel.Data.DbSystem {
 			Configuration = configuration;
 			Locker = new Locker(this);
 
-			RoutineResolver = new SystemRoutineProvider(this);
 			Sessions = new ActiveSessionList(this);
 
 			Init();
@@ -89,15 +88,10 @@ namespace Deveel.Data.DbSystem {
 
 		public IStoreSystem StoreSystem { get; private set; }
 
-		public IRoutineResolver RoutineResolver { get; private set; }
-
 		public Locker Locker { get; private set; }
 
 		private void Init() {
 			InitStorageSystem();
-
-			this.UseSystemFunctions();
-			this.UseSystemProcedures();
 		}
 
 		private void InitStorageSystem() {

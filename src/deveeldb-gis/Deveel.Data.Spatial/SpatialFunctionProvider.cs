@@ -18,6 +18,12 @@ namespace Deveel.Data.Spatial {
 			return base.NormalizeName(functionName);
 		}
 
+		private static ExecuteResult Simple(ExecuteContext context, Func<DataObject[], DataObject> func) {
+			var args = context.EvaluatedArguments;
+			var funcResult = func(args);
+			return context.Result(funcResult);
+		}
+
 		protected override void OnInit() {
 			Register(config => config.Named("from_wkb")
 				.WithParameter(p => p.Named("source").OfType(PrimitiveTypes.Binary()))
@@ -29,10 +35,12 @@ namespace Deveel.Data.Spatial {
 
 			Register(config => config.Named("from_wkt")
 				.WithParameter(p => p.Named("source").OfType(PrimitiveTypes.String()))
-				.WhenExecute(context => {
-					var arg = context.EvaluatedArguments[0];
-					return context.Result(SpatialSystemFunctions.FromWkt(arg));
-				})
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.FromWkt(context.QueryContext, args[0])))
+				.ReturnsType(SpatialType.Geometry()));
+
+			Register(config => config.Named("envelope")
+				.WithParameter(p => p.Named("g").OfType(SpatialType.Geometry()))
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Envelope(args[0])))
 				.ReturnsType(SpatialType.Geometry()));
 
 			// TODO: Implement the functions

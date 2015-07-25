@@ -31,8 +31,6 @@ namespace Deveel.Data.DbSystem {
 
 		IStoreSystem StoreSystem { get; }
 
-		IRoutineResolver RoutineResolver { get; }
-
 		Locker Locker { get; }
 	}
 }

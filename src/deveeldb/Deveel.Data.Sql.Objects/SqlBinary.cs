@@ -28,6 +28,7 @@ namespace Deveel.Data.Sql.Objects {
 	[Serializable]
 	public struct SqlBinary : ISqlBinary {
 		private readonly byte[] bytes;
+		public static readonly SqlBinary Null = new SqlBinary(null);
 
 		/// <summary>
 		/// A constant value defining the maximum allowed length of bytes

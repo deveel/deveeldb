@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
@@ -30,8 +31,34 @@ namespace Deveel.Data.Routines {
 			       info.FunctionType != FunctionType.UserDefined;
 		}
 
+		public static bool IsAggregateFunction(this IQueryContext context, Invoke invoke) {
+			var function = context.ResolveFunction(invoke);
+			return function != null && function.FunctionType == FunctionType.Aggregate;
+		}
+
+		public static IRoutine ResolveRoutine(this IQueryContext context, Invoke invoke) {
+			var routine = context.ResolveSystemRoutine(invoke);
+			if (routine == null)
+				routine = context.ResolveUserRoutine(invoke);
+
+			return routine;
+		}
+
+		public static IRoutine ResolveSystemRoutine(this IQueryContext context, Invoke invoke) {
+			return context.SystemContext().ResolveRoutine(invoke, context);
+		}
+
+		public static IRoutine ResolveUserRoutine(this IQueryContext context, Invoke invoke) {
+			var routine = context.Session.ResolveRoutine(invoke);
+			if (routine != null &&
+				!context.UserCanExecute(routine.Type, invoke))
+				throw new InvalidOperationException();
+
+			return routine;
+		}
+
 		public static IFunction ResolveFunction(this IQueryContext context, Invoke invoke) {
-			return context.DatabaseContext().ResolveRoutine(invoke, context) as IFunction;
+			return context.ResolveRoutine(invoke) as IFunction;
 		}
 
 		public static IFunction ResolveFunction(this IQueryContext context, ObjectName functionName, params SqlExpression[] args) {
@@ -40,7 +67,15 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static FunctionInfo ResolveFunctionInfo(this IQueryContext context, Invoke invoke) {
-			return context.DatabaseContext().ResolveFunctionInfo(invoke, context);
+			return context.ResolveRoutineInfo(invoke) as FunctionInfo;
+		}
+
+		public static RoutineInfo ResolveRoutineInfo(this IQueryContext context, Invoke invoke) {
+			var routine = context.ResolveRoutine(invoke);
+			if (routine == null)
+				return null;
+
+			return routine.RoutineInfo;
 		}
 
 		public static DataObject InvokeSystemFunction(this IQueryContext context, string functionName,
