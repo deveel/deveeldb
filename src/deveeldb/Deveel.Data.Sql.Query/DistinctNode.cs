@@ -28,15 +28,8 @@ namespace Deveel.Data.Sql.Query {
 		public ObjectName[] ColumnNames { get; private set; }
 
 		public override ITable Evaluate(IQueryContext context) {
-			var t = Child.Evaluate(context);
-
-			int sz = ColumnNames.Length;
-			int[] colMap = new int[sz];
-			for (int i = 0; i < sz; ++i) {
-				colMap[i] = t.IndexOfColumn(ColumnNames[i]);
-			}
-
-			return t.Distinct(colMap);
+			var table = Child.Evaluate(context);
+			return table.DistinctBy(ColumnNames);
 		}
 	}
 }

@@ -388,7 +388,7 @@ namespace Deveel.Data.Sql.Query {
 					patternExpressions.Add(exp);
 				} else {
 					// The list of variables in the expression.
-					var columnNames = exp.DiscoverColumnNames().ToList();
+					var columnNames = exp.DiscoverReferences().ToList();
 					if (columnNames.Count == 0) {
 						// These are ( 54 + 9 = 9 ), ( "z" > "a" ), ( 9.01 - 2 ), etc
 						constants.Add(exp);
@@ -460,7 +460,7 @@ namespace Deveel.Data.Sql.Query {
 				TablePlan common = null;
 
 				foreach (var orExpr in orExprs) {
-					var vars = orExpr.DiscoverColumnNames().ToArray();
+					var vars = orExpr.DiscoverReferences().ToArray();
 
 					bool breakRule = false;
 
@@ -560,7 +560,7 @@ namespace Deveel.Data.Sql.Query {
 				if (exhaustive) {
 					// This expression could involve multiple variables, so we may need
 					// to join.
-					var columnNames = expression.DiscoverColumnNames().ToList();
+					var columnNames = expression.DiscoverReferences().ToList();
 
 					// Also find all correlated variables.
 					int level = 0;
@@ -625,18 +625,18 @@ namespace Deveel.Data.Sql.Query {
 					if (singleVar != null) {
 						plans.Add(new SimpleSelectPlan(this, singleVar, op, expression.Right));
 					} else {
-						singleVar = expression.Left.DiscoverColumnNames().First();
+						singleVar = expression.Left.DiscoverReferences().First();
 						plans.Add(new ComplexSinglePlan(this, singleVar, expression));
 					}
 				} else {
-					singleVar = expression.Left.DiscoverColumnNames().FirstOrDefault();
+					singleVar = expression.Left.DiscoverReferences().FirstOrDefault();
 					if (singleVar == null) {
 						// Reverse the expressions and the operator
 						var tempExp = left;
 						left = right;
 						right = tempExp;
 						op = op.Reverse();
-						singleVar = left.DiscoverColumnNames().First();
+						singleVar = left.DiscoverReferences().First();
 					}
 
 					var tableSource = FindPlan(singleVar);
@@ -967,7 +967,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			public override void AddToPlanTree() {
-				var columnNames = expression.DiscoverColumnNames();
+				var columnNames = expression.DiscoverReferences();
 				var tablePlan = planner.JoinPlansForColumns(columnNames);
 				tablePlan.UpdatePlan(new ExhaustiveSelectNode(tablePlan.Plan, expression));
 			}
@@ -1036,7 +1036,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			public override void AddToPlanTree() {
-				var columnNames = expression.DiscoverColumnNames();
+				var columnNames = expression.DiscoverReferences();
 				var tablePlan = planner.JoinPlansForColumns(columnNames);
 				tablePlan.UpdatePlan(new ExhaustiveSelectNode(tablePlan.Plan, expression));
 			}
@@ -1060,8 +1060,8 @@ namespace Deveel.Data.Sql.Query {
 				var op = expression.ExpressionType;
 				var lhsVar = expression.Left.AsReferenceName();
 				var rhsVar = expression.Right.AsReferenceName();
-				var lhsVars = expression.Left.DiscoverColumnNames();
-				var rhsVars = expression.Right.DiscoverColumnNames();
+				var lhsVars = expression.Left.DiscoverReferences();
+				var rhsVars = expression.Right.DiscoverReferences();
 
 				var lhsPlan = planner.JoinPlansForColumns(lhsVars);
 				var rhsPlan = planner.JoinPlansForColumns(rhsVars);
@@ -1095,7 +1095,7 @@ namespace Deveel.Data.Sql.Query {
 				// this via a natural join of the variables involved coupled with an
 				// exhaustive select.  These types of queries are poor performing.
 
-				var columnNames = expression.DiscoverColumnNames();
+				var columnNames = expression.DiscoverReferences();
 				var tablePlan = planner.JoinPlansForColumns(columnNames);
 				tablePlan.UpdatePlan(new ExhaustiveSelectNode(tablePlan.Plan, expression));
 			}

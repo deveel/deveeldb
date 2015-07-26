@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Query {
 			var rightResult = Right.Evaluate(context);
 
 			// Form the composite table
-			return new CompositeTable(leftResult, new[] { leftResult, rightResult }, CompositeFunction, All);
+			return leftResult.Composite(rightResult, CompositeFunction, All);
 		}
 	}
 }

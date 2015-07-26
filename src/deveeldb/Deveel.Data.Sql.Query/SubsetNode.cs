@@ -32,13 +32,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public override ITable Evaluate(IQueryContext context) {
 			var table = Child.Evaluate(context);
-			var columnMap = new int[OriginalColumnNames.Length];
-
-			for (int i = 0; i < columnMap.Length; i++) {
-				columnMap[i] = table.IndexOfColumn(OriginalColumnNames[i]);
-			}
-
-			return new SubsetColumnTable(table, columnMap, AliasColumnNames);
+			return table.Subset(OriginalColumnNames, AliasColumnNames);
 		}
 
 		public void SetAliasParentName(ObjectName parentName) {

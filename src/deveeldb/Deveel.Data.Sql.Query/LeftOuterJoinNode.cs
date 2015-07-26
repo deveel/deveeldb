@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Query {
 
 			// The rows in 'complete_left' that are outside (not in) the rows in the
 			// left result.
-			var outside = completeLeft.Outer(result);
+			var outside = completeLeft.OuterJoin(result);
 
 			// Create an OuterTable
 			var outerTable = OuterTable.Create(result);

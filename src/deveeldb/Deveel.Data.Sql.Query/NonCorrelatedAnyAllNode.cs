@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Query {
 
 			// Solve the sub query on the left columns with the right plan and the
 			// given operator.
-			return leftResult.AnyAllNonCorrelated(LeftColumnNames, SubQueryType, rightResult);
+			return leftResult.SelectAnyAllNonCorrelated(LeftColumnNames, SubQueryType, rightResult);
 		}
 	}
 }

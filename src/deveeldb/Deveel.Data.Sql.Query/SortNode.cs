@@ -56,12 +56,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public override ITable Evaluate(IQueryContext context) {
 			var t = Child.Evaluate(context);
-			// Sort the results by the columns in reverse-safe order.
-			int sz = Ascending.Length;
-			for (int n = sz - 1; n >= 0; --n) {
-				t = t.OrderByColumn(ColumnNames[n], Ascending[n]);
-			}
-			return t;
+			return t.OrderBy(ColumnNames, Ascending);
 		}
 	}
 }

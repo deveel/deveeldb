@@ -187,60 +187,44 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Routines\AggregateFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\ConnectionTriggerManager.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionBuilder.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionFactory.old.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionProvider.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionProvider.old.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
     <Compile Include="Deveel.Data.Routines\Invoke.cs" />
     <Compile Include="Deveel.Data.Routines\IProcedure.cs" />
-    <Compile Include="Deveel.Data.Routines\IProcedureConnection.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutine.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineResolver.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineResolverContainer.cs" />
-    <Compile Include="Deveel.Data.Routines\LegacySystemFunctions.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
-    <Compile Include="Deveel.Data.Routines\ProcedureException.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
     <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineBuilder.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineInvoke.old.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineParameter.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineResolverExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineType.cs" />
     <Compile Include="Deveel.Data.Routines\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctionNames.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctions.old.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemFunctionsFactory.old.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionsProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
     <Compile Include="Deveel.Data.Routines\SystemRoutineProvider.cs" />
-    <Compile Include="Deveel.Data.Routines\TriggerCallback.cs" />
-    <Compile Include="Deveel.Data.Routines\TriggerEventArgs.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
-    <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs" />
     <Compile Include="Deveel.Data.Security\GrantManager.cs" />
     <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
@@ -248,7 +232,6 @@
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
-    <Compile Include="Deveel.Data.Security\PasswordCrypto.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
@@ -286,7 +269,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
@@ -565,6 +547,7 @@
     <Compile Include="Deveel.Data.Sql\SubsetColumnTable.cs" />
     <Compile Include="Deveel.Data.Sql\Table.cs" />
     <Compile Include="Deveel.Data.Sql\TableInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\TableInternalExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\TableQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\UserContextTable.cs" />
     <Compile Include="Deveel.Data.Sql\Variable.cs" />
@@ -664,13 +647,15 @@
     <Compile Include="Deveel.Data\DataObject.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
-    <Compile Include="DryIoc\Container.cs" />
-    <Compile Include="DryIoc\Ported-net45.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Deveel.Math, Version=1.5.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\dmath-pcl.1.5.63\lib\portable-net40+sl50+win+wpa81+wp80\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DryIoc, Version=2.0.0.295, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0-rc2build295\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Irony">

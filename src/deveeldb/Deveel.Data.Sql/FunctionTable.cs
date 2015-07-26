@@ -340,7 +340,7 @@ namespace Deveel.Data.Sql {
 				colLookup[i] = rootTable.IndexOfColumn(columns[i]);
 			}
 
-			var rowList = rootTable.OrderedRows(colLookup).ToList();
+			var rowList = rootTable.OrderRowsByColumns(colLookup).ToList();
 
 			// 'row_list' now contains rows in this table sorted by the columns to
 			// group by.

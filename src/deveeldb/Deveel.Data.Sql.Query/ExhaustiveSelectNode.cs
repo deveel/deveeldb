@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Query {
 	/// </summary>
 	/// <remarks>
 	/// This node will iterate through the entire child result and all
-	/// results that evaulate to true are included in the result.
+	/// results that evaluate to true are included in the result.
 	/// <para>
 	/// <b>Note:</b> The expression may have correlated sub-queries.
 	/// </para>

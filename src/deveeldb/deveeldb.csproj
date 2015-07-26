@@ -431,6 +431,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementType.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />
+    <Compile Include="Deveel.Data.Sql\TableInternalExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\UserContextTable.cs" />
     <Compile Include="Deveel.Data.Sql\FilterTable.cs" />
     <Compile Include="Deveel.Data.Sql\IQueryTable.cs" />

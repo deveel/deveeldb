@@ -39,8 +39,8 @@ namespace Deveel.Data.Sql.Query {
 			return visitor.References;
 		}
 
-		public static IEnumerable<ObjectName> DiscoverColumnNames(this SqlExpression expression) {
-			var discovery = new ColumnNameDiscovery();
+		public static IEnumerable<ObjectName> DiscoverReferences(this SqlExpression expression) {
+			var discovery = new ReferenceDiscovery();
 			return discovery.Discover(expression);
 		}
 
@@ -50,10 +50,10 @@ namespace Deveel.Data.Sql.Query {
 
 		#region ColumnNameDiscovery
 
-		class ColumnNameDiscovery : SqlExpressionVisitor {
+		class ReferenceDiscovery : SqlExpressionVisitor {
 			private readonly List<ObjectName> columnNames;
 
-			public ColumnNameDiscovery() {
+			public ReferenceDiscovery() {
 				columnNames = new List<ObjectName>();
 			}
 
@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Query {
 				if (value.Type is ArrayType) {
 					var array = (SqlArray) value.Value;
 					foreach (var element in array) {
-						columnNames.AddRange(element.DiscoverColumnNames());
+						columnNames.AddRange(element.DiscoverReferences());
 					}
 				}
 
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Query {
 			public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 				var args = expression.Arguments;
 				foreach (var arg in args) {
-					columnNames.AddRange(arg.DiscoverColumnNames());
+					columnNames.AddRange(arg.DiscoverReferences());
 				}
 
 				return base.VisitFunctionCall(expression);

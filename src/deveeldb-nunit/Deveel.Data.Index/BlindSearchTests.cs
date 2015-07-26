@@ -88,7 +88,7 @@ namespace Deveel.Data.Index {
 		public void SelectGreater() {
 			var id = DataObject.BigInt(1);
 
-			var result = table.SelectGreater(0, id);
+			var result = table.SelectRowsGreater(0, id);
 
 			Assert.IsNotNull(result);
 			Assert.IsNotEmpty(result);

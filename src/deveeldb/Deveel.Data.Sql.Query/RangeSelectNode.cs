@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Query {
 			var exp = Expression;
 
 			// Assert that all variables in the expression are identical.
-			var columnNames = exp.DiscoverColumnNames();
+			var columnNames = exp.DiscoverReferences();
 			ObjectName columnName = null;
 			foreach (var cv in columnNames) {
 				if (columnName != null && !cv.Equals(columnName))
@@ -90,7 +90,7 @@ namespace Deveel.Data.Sql.Query {
 
 			// Select the range from the table
 			var ranges = range.ToArray();
-			return t.RangeSelect(columnName, ranges);
+			return t.SelectRange(columnName, ranges);
 		}
 
 		#region RangeSetUpdater

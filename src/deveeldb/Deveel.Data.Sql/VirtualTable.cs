@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql {
 			: this(tables, null) {
 		}
 
-		public VirtualTable(IEnumerable<ITable> tables, IList<IEnumerable<int>> rows) 
+		public VirtualTable(IEnumerable<ITable> tables, IList<IList<int>> rows) 
 			: base(tables) {
 			SetRows(rows);
 		}
@@ -36,12 +36,12 @@ namespace Deveel.Data.Sql {
 			: this(table, null) {
 		}
 
-		public VirtualTable(ITable table, IEnumerable<int> rows) 
+		public VirtualTable(ITable table, IList<int> rows) 
 			: base(table) {
 			SetRows(new []{rows});
 		}
 
-		private void SetRows(IList<IEnumerable<int>> rows) {
+		private void SetRows(IList<IList<int>> rows) {
 			var tableList = ReferenceTables.ToList();
 
 			for (int i = 0; i < tableList.Count; ++i) {

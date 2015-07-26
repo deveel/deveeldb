@@ -390,6 +390,9 @@ namespace Deveel.Data.Security {
 						return null;
 
 				} else if (type == 2) {
+#if PCL
+					throw new NotSupportedException("Hashed passwords are not currently supported in PCL");
+#else
 					// Hashed password ...
 					var pass = t.GetValue(0, passwColumn);
 					var salt = t.GetValue(0, saltColumn);
@@ -401,6 +404,7 @@ namespace Deveel.Data.Security {
 					var crypto = PasswordCrypto.Parse(hash);
 					if (!crypto.Verify(pass, password, salt))
 						return null;
+#endif
 				} else if (type == 3) {
 					// External authenticator ...
 					// TODO:

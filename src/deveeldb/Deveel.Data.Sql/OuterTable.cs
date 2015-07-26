@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql {
 		private readonly IList<int>[] outerRows;
 		private int outerRowCount;
 
-		private OuterTable(IEnumerable<ITable> tables, IList<IEnumerable<int>> rows)
+		private OuterTable(IEnumerable<ITable> tables, IList<IList<int>> rows)
 			: base(tables, rows) {
 			outerRows = new IList<int>[rows.Count];
 		}

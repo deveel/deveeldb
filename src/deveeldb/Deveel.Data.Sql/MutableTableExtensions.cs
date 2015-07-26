@@ -20,10 +20,13 @@ using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.DbSystem {
 	public static class MutableTableExtensions {
+		public static bool RemoveRow(this IMutableTable table, int rowIndex) {
+			return table.RemoveRow(new RowId(table.TableInfo.Id, rowIndex));
+		}
+
 		/// <summary>
 		/// Creates a new row that is compatible with the 
 		/// table context, ready to be populated and added.
@@ -45,10 +48,6 @@ namespace Deveel.Data.DbSystem {
 		/// </returns>
 		public static Row NewRow(this IMutableTable table) {
 			return new Row(table);
-		}
-
-		public static Row GetRow(this IMutableTable table, int rowNumber) {
-			return new Row(table, new RowId(table.TableInfo.Id, rowNumber));
 		}
 
 		public static int Delete(this IMutableTable table, ITable t) {
