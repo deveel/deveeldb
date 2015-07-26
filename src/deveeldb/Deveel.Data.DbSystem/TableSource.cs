@@ -603,7 +603,7 @@ namespace Deveel.Data.DbSystem {
 					throw new IOException("Incorrect TableInfo version identifier.");
 
 				var userTypeResolver = new TypeResolver(Database);
-				TableInfo = TableInfo.DeserializeFrom(stream, userTypeResolver);
+				TableInfo = TableInfo.Deserialize(stream, userTypeResolver);
 				TableInfo.Establish(TableId);
 			}
 

@@ -346,13 +346,16 @@ namespace Deveel.Data.Sql {
 			writer.Write(colCount);
 			for (int i = 0; i < colCount; i++) {
 				var column = tableInfo.columns[i];
-				ColumnInfo.SerializeTo(column, writer);
+				ColumnInfo.Serialize(column, writer);
 			}
 		}
 
-		internal static TableInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
+		public static TableInfo Deserialize(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
+			return Deserialize(reader, typeResolver);
+		}
 
+		public static TableInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
 			var version = reader.ReadInt32();
 			if (version != 3)
 				throw new FormatException("Invalid version of the table info.");
@@ -371,7 +374,7 @@ namespace Deveel.Data.Sql {
 
 			var colCount = reader.ReadInt32();
 			for (int i = 0; i < colCount; i++) {
-				var columnInfo = ColumnInfo.DeserializeFrom(stream, typeResolver);
+				var columnInfo = ColumnInfo.Deserialize(reader, typeResolver);
 
 				if (columnInfo != null)
 					tableInfo.AddColumn(columnInfo);

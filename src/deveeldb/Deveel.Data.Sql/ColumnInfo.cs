@@ -150,7 +150,7 @@ namespace Deveel.Data.Sql {
 
 		public string IndexType { get; internal set; }
 
-		public static void SerializeTo(ColumnInfo columnInfo, BinaryWriter writer) {
+		public static void Serialize(ColumnInfo columnInfo, BinaryWriter writer) {
 			writer.Write(3);	// Version
 			writer.Write(columnInfo.ColumnName);
 
@@ -166,25 +166,27 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public static void SerializeTo(ColumnInfo columnInfo, Stream stream, Encoding encoding) {
-			using (var writer = new BinaryWriter(stream, encoding)) {
-				SerializeTo(columnInfo, writer);
-			}
+		public static void Serialize(ColumnInfo columnInfo, Stream stream, Encoding encoding) {
+			var writer = new BinaryWriter(stream, encoding);
+			Serialize(columnInfo, writer);
 		}
 
-		public static void SerializeTo(ColumnInfo columnInfo, Stream stream) {
-			SerializeTo(columnInfo, stream, Encoding.Unicode);
+		public static void Serialize(ColumnInfo columnInfo, Stream stream) {
+			Serialize(columnInfo, stream, Encoding.Unicode);
 		}
 
-		public static ColumnInfo DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
+		public static ColumnInfo Deserialize(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
+			return Deserialize(reader, typeResolver);
+		}
 
+		public static ColumnInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
 			var version = reader.ReadInt32();
 			if (version != 3)
 				throw new FormatException("Invalid version of the Column-Info");
 
 			var columnName = reader.ReadString();
-			var columnType = TypeSerializer.DeserializeFrom(stream, typeResolver);
+			var columnType = TypeSerializer.Deserialize(reader, typeResolver);
 
 			var notNull = reader.ReadByte() == 1;
 

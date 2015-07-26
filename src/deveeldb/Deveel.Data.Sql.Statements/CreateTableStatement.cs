@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -133,7 +134,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			#region Serializer
 
-			internal sealed class Serializer : SqlPreparedStatementSerializer<Prepared> {
+			internal sealed class Serializer : ObjectBinarySerializer<Prepared> {
 				public override void Serialize(Prepared statement, BinaryWriter writer) {
 					TableInfo.SerializeTo(statement.TableInfo, writer.BaseStream);
 					writer.Write(statement.Temporary);
@@ -142,7 +143,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				public override Prepared Deserialize(BinaryReader reader) {
 					// TODO: have the type resolver passed
-					var tableInfo = TableInfo.DeserializeFrom(reader.BaseStream, null);
+					var tableInfo = TableInfo.Deserialize(reader, null);
 					var temporary = reader.ReadBoolean();
 					var ifNotExists = reader.ReadBoolean();
 

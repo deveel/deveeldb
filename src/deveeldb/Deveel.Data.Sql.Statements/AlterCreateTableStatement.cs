@@ -59,20 +59,6 @@ namespace Deveel.Data.Sql.Statements {
 			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();
 			}
-
-			#region Serializer
-
-			internal sealed class Serializer : SqlPreparedStatementSerializer<Prepared> {
-				public override void Serialize(Prepared statement, BinaryWriter writer) {
-					throw new NotImplementedException();
-				}
-
-				public override Prepared Deserialize(BinaryReader reader) {
-					throw new NotImplementedException();
-				}
-			}
-
-			#endregion
 		}
 
 		#endregion

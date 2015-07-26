@@ -53,16 +53,15 @@ namespace Deveel.Data.Types {
 				throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
 			}
 		}
+
 		public static void SerializeTo(Stream stream, DataType type) {
-			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-				SerializeTo(writer, type);
-			}
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+			SerializeTo(writer, type);
 		}
 
-		public static DataType DeserializeFrom(Stream stream, ITypeResolver typeResolver) {
-			var reader = new BinaryReader(stream, Encoding.Unicode);
+		public static DataType Deserialize(BinaryReader reader, ITypeResolver resolver) {
 
-			var typeCode = (SqlTypeCode) reader.ReadByte();
+			var typeCode = (SqlTypeCode)reader.ReadByte();
 
 			if (BooleanType.IsBooleanType(typeCode))
 				return PrimitiveTypes.Boolean(typeCode);
@@ -97,7 +96,12 @@ namespace Deveel.Data.Types {
 				return PrimitiveTypes.Binary(typeCode, size);
 			}
 
-			throw new NotSupportedException();
+			throw new NotSupportedException();			
+		}
+
+		public static DataType Deserialize(Stream stream, ITypeResolver typeResolver) {
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+			return Deserialize(reader, typeResolver);
 		}
 	}
 }

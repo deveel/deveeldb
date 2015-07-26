@@ -907,7 +907,7 @@ namespace Deveel.Data {
 			if (status == 0)
 				return null;
 
-			var type = TypeSerializer.DeserializeFrom(reader.BaseStream, resolver);
+			var type = TypeSerializer.Deserialize(reader.BaseStream, resolver);
 			var obj = type.DeserializeObject(reader.BaseStream);
 
 			return new DataObject(type, obj);

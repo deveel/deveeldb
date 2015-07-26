@@ -453,9 +453,8 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static void Serialize(SqlExpression expression, Stream stream, Encoding encoding) {
-			using (var writer = new BinaryWriter(stream, encoding)) {
-				Serialize(expression, writer);
-			}
+			var writer = new BinaryWriter(stream, encoding);
+			Serialize(expression, writer);
 		}
 
 		public static SqlExpression Deserialize(Stream stream) {
@@ -463,9 +462,8 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static SqlExpression Deserialize(Stream stream, Encoding encoding) {
-			using (var reader = new BinaryReader(stream, encoding)) {
-				return Deserialize(reader);
-			}
+			var reader = new BinaryReader(stream, encoding);
+			return Deserialize(reader);
 		}
 
 		public static void Serialize(SqlExpression expression, BinaryWriter writer) {
