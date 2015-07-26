@@ -94,21 +94,24 @@ namespace Deveel.Data.Sql.Statements {
 			var table = queryPlan.Evaluate(context);
 			var tableInfo = table.TableInfo.Alias(viewName);
 
-			return new PreparedCreateView(tableInfo, QueryExpression, queryPlan);
+			return new Prepared(tableInfo, QueryExpression, queryPlan, ReplaceIfExists);
 		}
 
-		#region PreparedCreateView
+		#region Prepared
 
-		class PreparedCreateView : SqlPreparedStatement {
-			public PreparedCreateView(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
+		public sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
 				TableInfo = tableInfo;
 				QueryPlan = queryPlan;
+				ReplaceIfExists = replaceIfExists;
 				QueryExpression = queryExpression;
 			}
 
 			public TableInfo TableInfo { get; private set; }
 
 			public IQueryPlanNode QueryPlan { get; private set; }
+
+			public bool ReplaceIfExists { get; set; }
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 

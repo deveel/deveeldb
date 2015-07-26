@@ -71,13 +71,13 @@ namespace Deveel.Data.Sql.Statements {
 				assignments.Add(valueAssign);
 			}
 
-			return new PreparedInsertStatement(tableName, assignments);
+			return new Prepared(tableName, assignments);
 		}
 
-		#region PreparedInsertStatement
+		#region Prepared
 
-		class PreparedInsertStatement : SqlPreparedStatement {
-			public PreparedInsertStatement(ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
+		class Prepared : SqlPreparedStatement {
+			internal Prepared(ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
 				TableName = tableName;
 				Assignments = assignments;
 			}

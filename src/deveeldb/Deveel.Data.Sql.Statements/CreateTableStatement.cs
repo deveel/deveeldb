@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
@@ -53,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
-			return new PreparedCreateTableStatement(tableInfo, IfNotExists, Temporary);
+			return new Prepared(tableInfo, IfNotExists, Temporary);
 		}
 
 		private TableInfo CreateTableInfo(IQueryContext context) {
@@ -95,29 +96,31 @@ namespace Deveel.Data.Sql.Statements {
 			};
 		}
 
-		#region PreparedCreateTableStatement
+		#region Prepared
 
-		class PreparedCreateTableStatement : SqlPreparedStatement {
-			private readonly TableInfo tableInfo;
-			private readonly bool temporary;
-			private readonly bool ifNotExists;
+		public sealed class Prepared : SqlPreparedStatement {
+			public TableInfo TableInfo { get; private set; }
 
-			public PreparedCreateTableStatement(TableInfo tableInfo, bool ifNotExists, bool temporary) {
-				this.tableInfo = tableInfo;
-				this.ifNotExists = ifNotExists;
-				this.temporary = temporary;
+			public bool Temporary { get; private set; }
+
+			public bool IfNotExists { get; private set; }
+
+			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+				TableInfo = tableInfo;
+				IfNotExists = ifNotExists;
+				Temporary = temporary;
 			}
 
 			public override ITable Evaluate(IQueryContext context) {
-				if (!context.UserCanCreateTable(tableInfo.TableName))
-					throw new MissingPrivilegesException(tableInfo.TableName,
-						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User().Name, tableInfo.TableName));
+				if (!context.UserCanCreateTable(TableInfo.TableName))
+					throw new MissingPrivilegesException(TableInfo.TableName,
+						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User().Name, TableInfo.TableName));
 
 				try {
-					context.CreateTable(tableInfo, ifNotExists, temporary);
+					context.CreateTable(TableInfo, IfNotExists, Temporary);
 
 					using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
-						systemContext.GrantToUserOnTable(tableInfo.TableName, Privileges.TableAll);
+						systemContext.GrantToUserOnTable(TableInfo.TableName, Privileges.TableAll);
 					}
 					return FunctionTable.ResultTable(context, 0);
 				} catch (SecurityException ex) {
@@ -127,6 +130,27 @@ namespace Deveel.Data.Sql.Statements {
 					throw;
 				}
 			}
+
+			#region Serializer
+
+			internal sealed class Serializer : SqlPreparedStatementSerializer<Prepared> {
+				public override void Serialize(Prepared statement, BinaryWriter writer) {
+					TableInfo.SerializeTo(statement.TableInfo, writer.BaseStream);
+					writer.Write(statement.Temporary);
+					writer.Write(statement.IfNotExists);
+				}
+
+				public override Prepared Deserialize(BinaryReader reader) {
+					// TODO: have the type resolver passed
+					var tableInfo = TableInfo.DeserializeFrom(reader.BaseStream, null);
+					var temporary = reader.ReadBoolean();
+					var ifNotExists = reader.ReadBoolean();
+
+					return new Prepared(tableInfo, ifNotExists, temporary);
+				}
+			}
+
+			#endregion
 		}
 
 		#endregion

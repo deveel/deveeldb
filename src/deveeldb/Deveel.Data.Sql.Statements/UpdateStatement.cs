@@ -51,13 +51,13 @@ namespace Deveel.Data.Sql.Statements {
 				columns.Add(assign);
 			}
 
-			return new PreparedUpdateStatement(tableName, queryPlan, columns.ToArray(), Limit);
+			return new Prepared(tableName, queryPlan, columns.ToArray(), Limit);
 		}
 
-		#region PreparedUpdateStatement
+		#region Prepared
 
-		class PreparedUpdateStatement : SqlPreparedStatement {
-			public PreparedUpdateStatement(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
+		public sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
 				TableName = tableName;
 				QueryPlan = queryPlan;
 				Columns = columns;

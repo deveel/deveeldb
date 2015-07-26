@@ -232,7 +232,7 @@ namespace Deveel.Data.Sql.Parser {
 				statements.Add(MakeCreateTable(tableName.Name, columns, node.IfNotExists, node.Temporary));
 
 				foreach (var constraint in constraints) {
-					statements.Add(MakeAlterTableAddConstraint(objTableName, constraint));
+					statements.Add(MakeAlterTableAddConstraint(tableName.Name, constraint));
 				}
 			}
 
@@ -252,10 +252,10 @@ namespace Deveel.Data.Sql.Parser {
 				throw new NotSupportedException();
 			}
 
-			private static SqlStatement MakeAlterTableAddConstraint(ObjectName tableName, ConstraintInfo constraint) {
+			private static SqlStatement MakeAlterTableAddConstraint(string tableName, ConstraintInfo constraint) {
 				var action = new AddConstraintAction(constraint);
 
-				return new SqlAlterTableStatement(tableName,new List<IAlterTableAction>{action});
+				return new AlterTableStatement(tableName, action);
 			}
 
 			private static SqlStatement MakeCreateTable(string tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {

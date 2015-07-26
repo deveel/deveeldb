@@ -26,8 +26,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedInsertStatement
 
-		class PreparedInsertSyatement : SqlPreparedStatement {
-			public PreparedInsertSyatement(ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan) {
+		public sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan) {
 				TableName = tableName;
 				ColumnNames = columnNames;
 				QueryPlan = queryPlan;

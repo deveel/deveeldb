@@ -341,10 +341,13 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertValuesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ISqlPreparedStatementBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PreparedStaementSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatementSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
@@ -570,7 +573,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\AddColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AddConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableActionType.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlAlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropConstraintAction.cs" />

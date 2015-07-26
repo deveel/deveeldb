@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
@@ -38,15 +39,15 @@ namespace Deveel.Data.Sql.Statements {
 				throw new StatementPrepareException("The CREATE TABLE statement is required.");
 
 			var tableName = context.ResolveTableName(TableName);
-			var preparedCreate = CreateStatement.Prepare(preparer, context);
+			var preparedCreate = (CreateTableStatement.Prepared) CreateStatement.Prepare(preparer, context);
 
-			return new PreparedAlterTableStatement(tableName, preparedCreate);
+			return new Prepared(tableName, preparedCreate);
 		}
 
-		#region PreparedAlterTableStatement
+		#region Prepared
 
-		class PreparedAlterTableStatement : SqlPreparedStatement {
-			public PreparedAlterTableStatement(ObjectName tableName, SqlPreparedStatement createStatement) {
+		public sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(ObjectName tableName, CreateTableStatement.Prepared createStatement) {
 				TableName = tableName;
 				CreateStatement = createStatement;
 			}
@@ -58,6 +59,20 @@ namespace Deveel.Data.Sql.Statements {
 			public override ITable Evaluate(IQueryContext context) {
 				throw new NotImplementedException();
 			}
+
+			#region Serializer
+
+			internal sealed class Serializer : SqlPreparedStatementSerializer<Prepared> {
+				public override void Serialize(Prepared statement, BinaryWriter writer) {
+					throw new NotImplementedException();
+				}
+
+				public override Prepared Deserialize(BinaryReader reader) {
+					throw new NotImplementedException();
+				}
+			}
+
+			#endregion
 		}
 
 		#endregion

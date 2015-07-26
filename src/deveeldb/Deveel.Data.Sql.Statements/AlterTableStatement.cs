@@ -36,13 +36,13 @@ namespace Deveel.Data.Sql.Statements {
 				throw new StatementPrepareException("The table name is required.");
 
 			var tableName = context.ResolveTableName(TableName);
-			return new PreparedAlterTableStatement(tableName, Action);
+			return new Prepared(tableName, Action);
 		}
 
 		#region PreparedAlterTableStatemet
 
-		class PreparedAlterTableStatement : SqlPreparedStatement {
-			public PreparedAlterTableStatement(ObjectName tableName, IAlterTableAction action) {
+		public sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(ObjectName tableName, IAlterTableAction action) {
 				TableName = tableName;
 				Action = action;
 			}

@@ -25,13 +25,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, OrderBy);
-			return new PreparedSelectStatement(queryPlan);
+			return new Prepared(queryPlan);
 		}
 
-		#region PreparedSelectStatement
+		#region Prepared
 
-		class PreparedSelectStatement : SqlPreparedStatement {
-			public PreparedSelectStatement(IQueryPlanNode queryPlan) {
+		class Prepared : SqlPreparedStatement {
+			public Prepared(IQueryPlanNode queryPlan) {
 				QueryPlan = queryPlan;
 			}
 
