@@ -19,10 +19,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		public override StatementType StatementType {
-			get { return StatementType.InsertQuery; }
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			
 			throw new NotImplementedException();

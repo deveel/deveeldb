@@ -23,10 +23,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SortColumn> OrderBy { get; set; }
 
-		public override StatementType StatementType {
-			get { return StatementType.Select; }
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, OrderBy);
 			return new PreparedSelectStatement(queryPlan);

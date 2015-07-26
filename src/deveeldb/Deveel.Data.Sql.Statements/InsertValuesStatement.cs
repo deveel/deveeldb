@@ -26,10 +26,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; } 
 
-		public override StatementType StatementType {
-			get { return StatementType.InsertValues; }
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 

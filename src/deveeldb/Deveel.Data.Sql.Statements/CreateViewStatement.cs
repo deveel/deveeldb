@@ -48,10 +48,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		public override StatementType StatementType {
-			get { return StatementType.CreateView;}
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var viewName = context.ResolveTableName(ViewName);
 

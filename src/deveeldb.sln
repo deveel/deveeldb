@@ -18,8 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-gis", "deveeldb-gi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PCL", "PCL", "{F1A8974D-8B78-4B90-BB79-B1792D801E17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\deveeldb.pcl.csproj", "{ADD851E0-1314-46C6-9312-7861F46438D0}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compact", "Compact", "{49301CBB-E964-42D8-AD76-F7CCB0C941CE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-lucene", "deveeldb-lucene\deveeldb-lucene.csproj", "{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}"
@@ -69,14 +67,6 @@ Global
 		{4609733F-0316-4137-ACE5-1BE52CE9CE73}.Release|x64.Build.0 = Release|x64
 		{4609733F-0316-4137-ACE5-1BE52CE9CE73}.Release|x86.ActiveCfg = Release|x86
 		{4609733F-0316-4137-ACE5-1BE52CE9CE73}.Release|x86.Build.0 = Release|x86
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x64.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -96,9 +86,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{ADD851E0-1314-46C6-9312-7861F46438D0} = {F1A8974D-8B78-4B90-BB79-B1792D801E17}
 	EndGlobalSection
 	GlobalSection(CodealikeProperties) = postSolution
 		SolutionGuid = e885a04d-3da6-4847-8d1c-ce831651671c

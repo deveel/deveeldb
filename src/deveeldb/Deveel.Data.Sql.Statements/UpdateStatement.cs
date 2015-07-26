@@ -28,10 +28,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		public override StatementType StatementType {
-			get { return StatementType.Update; }
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 			if (!context.TableExists(tableName))

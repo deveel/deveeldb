@@ -19,10 +19,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public int Limit { get; set; }
 
-		public override StatementType StatementType {
-			get { return StatementType.UpdateQuery; }
-		}
-
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			throw new NotImplementedException();
 		}

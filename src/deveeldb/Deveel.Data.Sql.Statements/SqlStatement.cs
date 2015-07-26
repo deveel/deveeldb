@@ -66,12 +66,6 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		/// <summary>
-		/// Gets the type of this SQL statement 
-		/// </summary>
-		/// <seealso cref="StatementType"/>
-		public abstract StatementType StatementType { get; }
-
-		/// <summary>
 		/// When overridden by an implementing class, this method generates a prepared
 		/// version of this statement that can be executed.
 		/// </summary>
@@ -129,7 +123,7 @@ namespace Deveel.Data.Sql.Statements {
 			} catch(StatementPrepareException) {
 				throw;
 			} catch (Exception ex) {
-				throw new StatementPrepareException(String.Format("An error occurred while preparing a statement of type '{0}'.", StatementType), ex);
+				throw new StatementPrepareException(String.Format("An error occurred while preparing a statement of type '{0}'.", GetType()), ex);
 			}
 
 			return prepared;

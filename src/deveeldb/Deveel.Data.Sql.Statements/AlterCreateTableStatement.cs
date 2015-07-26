@@ -21,13 +21,14 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class AlterCreateTableStatement : SqlStatement {
-		public override StatementType StatementType {
-			get { return StatementType.AlterTable; }
+		public AlterCreateTableStatement(string tableName, CreateTableStatement createStatement) {
+			TableName = tableName;
+			CreateStatement = createStatement;
 		}
 
-		public string TableName { get; set; }
+		public string TableName { get; private set; }
 
-		public CreateTableStatement CreateStatement { get; set; }
+		public CreateTableStatement CreateStatement { get; private set; }
 
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			if (String.IsNullOrEmpty(TableName))

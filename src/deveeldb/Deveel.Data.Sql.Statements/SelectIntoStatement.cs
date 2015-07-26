@@ -16,11 +16,6 @@ namespace Deveel.Data.Sql.Statements {
 			Reference = reference;
 		}
 
-		// TODO: Maybe another type of statement?
-		public override StatementType StatementType {
-			get { return StatementType.SelectInto; }
-		}
-
 		public SqlQueryExpression QueryExpression { get; private set; }
 
 		public SqlExpression Reference { get; private set; }

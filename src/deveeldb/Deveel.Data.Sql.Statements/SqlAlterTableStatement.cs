@@ -44,10 +44,6 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		public override StatementType StatementType {
-			get { return StatementType.AlterTable; }
-		}
-
 		public ObjectName TableName { get; private set; }
 
 		public IList<IAlterTableAction> Actions { get; private set; } 

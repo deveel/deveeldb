@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
@@ -23,13 +22,14 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class AlterTableStatement : SqlStatement {
-		public override StatementType StatementType {
-			get { return StatementType.AlterTable;}
+		public AlterTableStatement(string tableName, IAlterTableAction action) {
+			TableName = tableName;
+			Action = action;
 		}
 
-		public string TableName { get; set; }
+		public string TableName { get; private set; }
 
-		public IAlterTableAction Action { get; set; }
+		public IAlterTableAction Action { get; private set; }
 
 		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			if (String.IsNullOrEmpty(TableName))
