@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 
 using DryIoc;
 

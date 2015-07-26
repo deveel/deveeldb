@@ -1352,7 +1352,7 @@ namespace Deveel.Data.DbSystem {
 					ISqlObject ob;
 					if (cellType == 1) {
 						// If standard object type
-						ob = type.DeserializeObject(stream, SystemContext);
+						ob = type.DeserializeObject(stream);
 					} else if (cellType == 2) {
 						// If reference to a blob input the BlobStore
 						int fType = reader.ReadInt32();

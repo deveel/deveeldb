@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 using DryIoc;
@@ -20,7 +21,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public static void Serialize(IQueryPlanNode queryPlan, BinaryWriter writer) {
 			var nodeType = queryPlan.GetType();
-			var seriializer = Resolver.ResolveSerializer(nodeType) as IQueryPlanNodeBinarySerializer;
+			var seriializer = Resolver.ResolveSerializer(nodeType) as IObjectBinarySerializer;
 			if (seriializer == null)
 				throw new InvalidOperationException(String.Format("Could not find any serializer for type '{0}'.", nodeType));
 
@@ -36,11 +37,11 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public static IQueryPlanNode Deserialize(Type nodeType, BinaryReader reader) {
-			var seriializer = Resolver.ResolveSerializer(nodeType) as IQueryPlanNodeBinarySerializer;
+			var seriializer = Resolver.ResolveSerializer(nodeType) as IObjectBinarySerializer;
 			if (seriializer == null)
 				throw new InvalidOperationException(String.Format("Could not find any serializer for type '{0}'.", nodeType));
 
-			return seriializer.Deserialize(reader);
+			return (IQueryPlanNode) seriializer.Deserialize(reader);
 		}
 
 		private static void WriteChildNode(BinaryWriter writer, IQueryPlanNode node) {
@@ -116,58 +117,32 @@ namespace Deveel.Data.Sql.Query {
 			return ReadArray(reader, binaryReader => binaryReader.ReadString());
 		}
 
-		#region IQueryPlanNodeBinarySerializer
-
-		interface IQueryPlanNodeBinarySerializer : IObjectSerializer {
-			void Serialize(IQueryPlanNode queryPlan, BinaryWriter writer);
-
-			IQueryPlanNode Deserialize(BinaryReader reader);
-		}
-
-		#endregion
-
 		#region QueryPlanNodeSerializerResolver
 
-		class QueryPlanNodeSerializerResolver : IObjectSerializerResolver {
-			private readonly Container container;
-
-			public QueryPlanNodeSerializerResolver() {
-				container = new Container();
-				Init();
-			}
-
-			private void Register<TSerializer, TNode>() where TSerializer : IObjectSerializer where TNode : IQueryPlanNode {
-				container.Register<IObjectSerializer, TSerializer>(serviceKey:typeof(TNode).FullName);
-			}
-
-			private void Init() {
-				Register<CacheNodePointSerializer, CachePointNode>();
-				Register<CompositeNodeSerializer, CompositeNode>();
-				Register<ConstantSelectNodeSerializer, ConstantSelectNode>();
-				Register<CreateFunctionNodeSerializer, CreateFunctionsNode>();
-				Register<DistinctNodeSerializer, DistinctNode>();
-				Register<EquiJoinNodeSerializer, EquiJoinNode>();
-				Register<ExhaustiveSelectNodeSerializer, ExhaustiveSelectNode>();
-				Register<FetchTableNodeSerializer, FetchTableNode>();
-				Register<FetchViewNodeSerializer, FetchViewNode>();
-				Register<GroupNodeSerializer, GroupNode>();
-				Register<JoinNodeSerializer, JoinNode>();
-				Register<LeftOuterJoinNodeSerializer, LeftOuterJoinNode>();
-				Register<LogicalUnionNodeSerializer, LogicalUnionNode>();
-				Register<MarkerNodeSerializer, MarkerNode>();
-				Register<NaturalJoinNodeSerializer, NaturalJoinNode>();
-				Register<NonCorrelatedAnyAllNodeSerializer, NonCorrelatedAnyAllNode>();
-				Register<RageSelectNodeSerializer, RangeSelectNode>();
-				Register<SimplePatternSelectNodeSerializer, SimplePatternSelectNode>();
-				Register<SimpleSelectNodeSerializer, SimpleSelectNode>();
-				Register<SingleRowTableNodeSerializer, SingleRowTableNode>();
-				Register<SortNodeSerializer, SortNode>();
-				Register<SubsetNodeSerializer, SubsetNode>();
-			}
-
-			public IObjectSerializer ResolveSerializer(Type objectType) {
-				var fullName = objectType.FullName;
-				return container.Resolve<IObjectSerializer>(fullName);
+		class QueryPlanNodeSerializerResolver : ObjectSerializerProvider {
+			protected override void Init() {
+				Register<CachePointNode, CacheNodePointSerializer>();
+				Register<CompositeNode, CompositeNodeSerializer>();
+				Register<ConstantSelectNode, ConstantSelectNodeSerializer>();
+				Register<CreateFunctionsNode, CreateFunctionNodeSerializer>();
+				Register<DistinctNode, DistinctNodeSerializer>();
+				Register<EquiJoinNode, EquiJoinNodeSerializer>();
+				Register<ExhaustiveSelectNode, ExhaustiveSelectNodeSerializer>();
+				Register<FetchTableNode, FetchTableNodeSerializer>();
+				Register<FetchViewNode, FetchViewNodeSerializer>();
+				Register<GroupNode, GroupNodeSerializer>();
+				Register<JoinNode, JoinNodeSerializer>();
+				Register<LeftOuterJoinNode, LeftOuterJoinNodeSerializer>();
+				Register<LogicalUnionNode, LogicalUnionNodeSerializer>();
+				Register<MarkerNode, MarkerNodeSerializer>();
+				Register<NaturalJoinNode, NaturalJoinNodeSerializer>();
+				Register<NonCorrelatedAnyAllNode, NonCorrelatedAnyAllNodeSerializer>();
+				Register<RangeSelectNode, RageSelectNodeSerializer>();
+				Register<SimplePatternSelectNode, SimplePatternSelectNodeSerializer>();
+				Register<SimpleSelectNode, SimpleSelectNodeSerializer>();
+				Register<SingleRowTableNode, SingleRowTableNodeSerializer>();
+				Register<SortNode, SortNodeSerializer>();
+				Register<SubsetNode, SubsetNodeSerializer>();
 			}
 		}
 
@@ -175,26 +150,7 @@ namespace Deveel.Data.Sql.Query {
 
 		#region QueryPlanNodeSerializer
 
-		abstract class QueryPlanNodeSerializer<TNode> : IQueryPlanNodeBinarySerializer where TNode : class, IQueryPlanNode {
-			void IObjectSerializer.Serialize(object obj, Stream outputStream) {
-				Serialize((TNode)obj, new BinaryWriter(outputStream, Encoding.Unicode));
-			}
-
-			object IObjectSerializer.Deserialize(Stream inputStream) {
-				return Deserialize(new BinaryReader(inputStream, Encoding.Unicode));
-			}
-
-			protected abstract void Serialize(TNode node, BinaryWriter writer);
-
-			void IQueryPlanNodeBinarySerializer.Serialize(IQueryPlanNode queryPlan, BinaryWriter writer) {
-				Serialize((TNode)queryPlan, writer);
-			}
-
-			IQueryPlanNode IQueryPlanNodeBinarySerializer.Deserialize(BinaryReader reader) {
-				return Deserialize(reader);
-			}
-
-			protected abstract TNode Deserialize(BinaryReader reader);
+		abstract class QueryPlanNodeSerializer<TNode> : ObjectBinarySerializer<TNode> where TNode : class, IQueryPlanNode {
 		}
 
 		#endregion
@@ -202,12 +158,12 @@ namespace Deveel.Data.Sql.Query {
 		#region CacheNodePointSerializer
 
 		class CacheNodePointSerializer : QueryPlanNodeSerializer<CachePointNode> {
-			protected override void Serialize(CachePointNode node, BinaryWriter writer) {
+			public override void Serialize(CachePointNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				writer.Write(node.Id);
 			}
 
-			protected override CachePointNode Deserialize(BinaryReader reader) {
+			public override CachePointNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var id = reader.ReadInt64();
 				return new CachePointNode(child, id);
@@ -219,7 +175,7 @@ namespace Deveel.Data.Sql.Query {
 		#region CompositeNodeSerializer
 
 		class CompositeNodeSerializer : QueryPlanNodeSerializer<CompositeNode> {
-			protected override void Serialize(CompositeNode node, BinaryWriter writer) {
+			public override void Serialize(CompositeNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 				
@@ -227,7 +183,7 @@ namespace Deveel.Data.Sql.Query {
 				writer.Write((byte)node.CompositeFunction);
 			}
 
-			protected override CompositeNode Deserialize(BinaryReader reader) {
+			public override CompositeNode Deserialize(BinaryReader reader) {
 				var left = ReadChildNode(reader);
 				var right = ReadChildNode(reader);
 				bool all = reader.ReadBoolean();
@@ -242,12 +198,12 @@ namespace Deveel.Data.Sql.Query {
 		#region ConstantSelectNodeSerializer
 
 		class ConstantSelectNodeSerializer : QueryPlanNodeSerializer<ConstantSelectNode> {
-			protected override void Serialize(ConstantSelectNode node, BinaryWriter writer) {
+			public override void Serialize(ConstantSelectNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				SqlExpression.Serialize(node.Expression, writer);
 			}
 
-			protected override ConstantSelectNode Deserialize(BinaryReader reader) {
+			public override ConstantSelectNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var expression = SqlExpression.Deserialize(reader);
 
@@ -260,13 +216,13 @@ namespace Deveel.Data.Sql.Query {
 		#region CreateFunctionNodeSerializer
 
 		class CreateFunctionNodeSerializer : QueryPlanNodeSerializer<CreateFunctionsNode> {
-			protected override void Serialize(CreateFunctionsNode node, BinaryWriter writer) {
+			public override void Serialize(CreateFunctionsNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				WriteExpressions(node.Functions, writer);
 				WriteStrings(node.Names, writer);				
 			}
 
-			protected override CreateFunctionsNode Deserialize(BinaryReader reader) {
+			public override CreateFunctionsNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 
 				var functions = ReadExpressions(reader);
@@ -281,12 +237,12 @@ namespace Deveel.Data.Sql.Query {
 		#region DistinctNodeSerializer
 
 		class DistinctNodeSerializer : QueryPlanNodeSerializer<DistinctNode> {
-			protected override void Serialize(DistinctNode node, BinaryWriter writer) {
+			public override void Serialize(DistinctNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				WriteObjectNames(node.ColumnNames, writer);
 			}
 
-			protected override DistinctNode Deserialize(BinaryReader reader) {
+			public override DistinctNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var names = ReadObjectNames(reader);
 
@@ -299,7 +255,7 @@ namespace Deveel.Data.Sql.Query {
 		#region EquiJoinNodeSerializer
 
 		class EquiJoinNodeSerializer : QueryPlanNodeSerializer<EquiJoinNode> {
-			protected override void Serialize(EquiJoinNode node, BinaryWriter writer) {
+			public override void Serialize(EquiJoinNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 
@@ -307,7 +263,7 @@ namespace Deveel.Data.Sql.Query {
 				WriteObjectNames(node.RightColumns, writer);
 			}
 
-			protected override EquiJoinNode Deserialize(BinaryReader reader) {
+			public override EquiJoinNode Deserialize(BinaryReader reader) {
 				var leftNode = ReadChildNode(reader);
 				var rightNode = ReadChildNode(reader);
 
@@ -323,12 +279,12 @@ namespace Deveel.Data.Sql.Query {
 		#region ExhaustiveSelectNodeSerializer
 
 		class ExhaustiveSelectNodeSerializer : QueryPlanNodeSerializer<ExhaustiveSelectNode> {
-			protected override void Serialize(ExhaustiveSelectNode node, BinaryWriter writer) {
+			public override void Serialize(ExhaustiveSelectNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				SqlExpression.Serialize(node.Expression, writer);
 			}
 
-			protected override ExhaustiveSelectNode Deserialize(BinaryReader reader) {
+			public override ExhaustiveSelectNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var expression = SqlExpression.Deserialize(reader);
 
@@ -341,12 +297,12 @@ namespace Deveel.Data.Sql.Query {
 		#region FetchTableNodeSerializer
 
 		class FetchTableNodeSerializer : QueryPlanNodeSerializer<FetchTableNode> {
-			protected override void Serialize(FetchTableNode node, BinaryWriter writer) {
+			public override void Serialize(FetchTableNode node, BinaryWriter writer) {
 				ObjectName.Serialize(node.TableName, writer);
 				ObjectName.Serialize(node.AliasName, writer);
 			}
 
-			protected override FetchTableNode Deserialize(BinaryReader reader) {
+			public override FetchTableNode Deserialize(BinaryReader reader) {
 				var tableName = ObjectName.Deserialize(reader);
 				var alias = ObjectName.Deserialize(reader);
 
@@ -360,12 +316,12 @@ namespace Deveel.Data.Sql.Query {
 
 
 		class FetchViewNodeSerializer : QueryPlanNodeSerializer<FetchViewNode> {
-			protected override void Serialize(FetchViewNode node, BinaryWriter writer) {
+			public override void Serialize(FetchViewNode node, BinaryWriter writer) {
 				ObjectName.Serialize(node.ViewName, writer);
 				ObjectName.Serialize(node.AliasName, writer);
 			}
 
-			protected override FetchViewNode Deserialize(BinaryReader reader) {
+			public override FetchViewNode Deserialize(BinaryReader reader) {
 				var viewName = ObjectName.Deserialize(reader);
 				var aliasName = ObjectName.Deserialize(reader);
 
@@ -378,7 +334,7 @@ namespace Deveel.Data.Sql.Query {
 		#region GroupNodeSerializer
 
 		class GroupNodeSerializer : QueryPlanNodeSerializer<GroupNode> {
-			protected override void Serialize(GroupNode node, BinaryWriter writer) {
+			public override void Serialize(GroupNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				WriteObjectNames(node.ColumnNames, writer);
 				
@@ -388,7 +344,7 @@ namespace Deveel.Data.Sql.Query {
 				WriteStrings(node.Names, writer);
 			}
 
-			protected override GroupNode Deserialize(BinaryReader reader) {
+			public override GroupNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var colNames = ReadObjectNames(reader);
 				var groupMax = ObjectName.Deserialize(reader);
@@ -404,7 +360,7 @@ namespace Deveel.Data.Sql.Query {
 		#region JoinNodeSerializer
 
 		class JoinNodeSerializer : QueryPlanNodeSerializer<JoinNode> {
-			protected override void Serialize(JoinNode node, BinaryWriter writer) {
+			public override void Serialize(JoinNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 
@@ -415,7 +371,7 @@ namespace Deveel.Data.Sql.Query {
 				SqlExpression.Serialize(node.RightExpression, writer);
 			}
 
-			protected override JoinNode Deserialize(BinaryReader reader) {
+			public override JoinNode Deserialize(BinaryReader reader) {
 				var left = ReadChildNode(reader);
 				var right = ReadChildNode(reader);
 
@@ -432,12 +388,12 @@ namespace Deveel.Data.Sql.Query {
 		#region LeftOuterJoinNodeSerializer
 
 		class LeftOuterJoinNodeSerializer : QueryPlanNodeSerializer<LeftOuterJoinNode> {
-			protected override void Serialize(LeftOuterJoinNode node, BinaryWriter writer) {
+			public override void Serialize(LeftOuterJoinNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				writer.Write(node.MarkerName);
 			}
 
-			protected override LeftOuterJoinNode Deserialize(BinaryReader reader) {
+			public override LeftOuterJoinNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var markerName = reader.ReadString();
 
@@ -450,12 +406,12 @@ namespace Deveel.Data.Sql.Query {
 		#region LogicalUnionNodeSerializer
 
 		class LogicalUnionNodeSerializer : QueryPlanNodeSerializer<LogicalUnionNode> {
-			protected override void Serialize(LogicalUnionNode node, BinaryWriter writer) {
+			public override void Serialize(LogicalUnionNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 			}
 
-			protected override LogicalUnionNode Deserialize(BinaryReader reader) {
+			public override LogicalUnionNode Deserialize(BinaryReader reader) {
 				var left = ReadChildNode(reader);
 				var right = ReadChildNode(reader);
 
@@ -468,12 +424,12 @@ namespace Deveel.Data.Sql.Query {
 		#region MarkerNodeSerializer
 
 		class MarkerNodeSerializer : QueryPlanNodeSerializer<MarkerNode> {
-			protected override void Serialize(MarkerNode node, BinaryWriter writer) {
+			public override void Serialize(MarkerNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				writer.Write(node.MarkName);
 			}
 
-			protected override MarkerNode Deserialize(BinaryReader reader) {
+			public override MarkerNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var markerName = reader.ReadString();
 
@@ -486,12 +442,12 @@ namespace Deveel.Data.Sql.Query {
 		#region NaturalJoinNodeSerializer
 
 		class NaturalJoinNodeSerializer : QueryPlanNodeSerializer<NaturalJoinNode> {
-			protected override void Serialize(NaturalJoinNode node, BinaryWriter writer) {
+			public override void Serialize(NaturalJoinNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 			}
 
-			protected override NaturalJoinNode Deserialize(BinaryReader reader) {
+			public override NaturalJoinNode Deserialize(BinaryReader reader) {
 				var left = ReadChildNode(reader);
 				var right = ReadChildNode(reader);
 
@@ -504,7 +460,7 @@ namespace Deveel.Data.Sql.Query {
 		#region NonCorrelatedAnyAllNodeSerializer
 
 		class NonCorrelatedAnyAllNodeSerializer : QueryPlanNodeSerializer<NonCorrelatedAnyAllNode> {
-			protected override void Serialize(NonCorrelatedAnyAllNode node, BinaryWriter writer) {
+			public override void Serialize(NonCorrelatedAnyAllNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Left);
 				WriteChildNode(writer, node.Right);
 
@@ -512,7 +468,7 @@ namespace Deveel.Data.Sql.Query {
 				writer.Write((byte)node.SubQueryType);
 			}
 
-			protected override NonCorrelatedAnyAllNode Deserialize(BinaryReader reader) {
+			public override NonCorrelatedAnyAllNode Deserialize(BinaryReader reader) {
 				var left = ReadChildNode(reader);
 				var right = ReadChildNode(reader);
 
@@ -528,12 +484,12 @@ namespace Deveel.Data.Sql.Query {
 		#region RangeSelectNodeSerializer
 
 		class RageSelectNodeSerializer : QueryPlanNodeSerializer<RangeSelectNode> {
-			protected override void Serialize(RangeSelectNode node, BinaryWriter writer) {
+			public override void Serialize(RangeSelectNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				SqlExpression.Serialize(node.Expression, writer);
 			}
 
-			protected override RangeSelectNode Deserialize(BinaryReader reader) {
+			public override RangeSelectNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var expression = SqlExpression.Deserialize(reader);
 
@@ -546,12 +502,12 @@ namespace Deveel.Data.Sql.Query {
 		#region SimplePatternSelectNodeSerializer
 
 		class SimplePatternSelectNodeSerializer : QueryPlanNodeSerializer<SimplePatternSelectNode> {
-			protected override void Serialize(SimplePatternSelectNode node, BinaryWriter writer) {
+			public override void Serialize(SimplePatternSelectNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				SqlExpression.Serialize(node.Expression, writer);
 			}
 
-			protected override SimplePatternSelectNode Deserialize(BinaryReader reader) {
+			public override SimplePatternSelectNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var expression = SqlExpression.Deserialize(reader);
 
@@ -564,14 +520,14 @@ namespace Deveel.Data.Sql.Query {
 		#region SimpleSelectNodeSerializer
 
 		class SimpleSelectNodeSerializer : QueryPlanNodeSerializer<SimpleSelectNode> {
-			protected override void Serialize(SimpleSelectNode node, BinaryWriter writer) {
+			public override void Serialize(SimpleSelectNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				ObjectName.Serialize(node.ColumnName, writer);
 				writer.Write((byte)node.OperatorType);
 				SqlExpression.Serialize(node.Expression, writer);
 			}
 
-			protected override SimpleSelectNode Deserialize(BinaryReader reader) {
+			public override SimpleSelectNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var columnName = ObjectName.Deserialize(reader);
 				var opType = (SqlExpressionType) reader.ReadByte();
@@ -586,10 +542,10 @@ namespace Deveel.Data.Sql.Query {
 		#region SingleRowTableNodeSerializer
 
 		class SingleRowTableNodeSerializer : QueryPlanNodeSerializer<SingleRowTableNode> {
-			protected override void Serialize(SingleRowTableNode node, BinaryWriter writer) {
+			public override void Serialize(SingleRowTableNode node, BinaryWriter writer) {
 			}
 
-			protected override SingleRowTableNode Deserialize(BinaryReader reader) {
+			public override SingleRowTableNode Deserialize(BinaryReader reader) {
 				return new SingleRowTableNode();
 			}
 		}
@@ -599,13 +555,13 @@ namespace Deveel.Data.Sql.Query {
 		#region SortNodeSerializer
 
 		class SortNodeSerializer : QueryPlanNodeSerializer<SortNode> {
-			protected override void Serialize(SortNode node, BinaryWriter writer) {
+			public override void Serialize(SortNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				WriteObjectNames(node.ColumnNames, writer);
 				WriteArray(node.Ascending, writer, (b, binaryWriter) => binaryWriter.Write(b));
 			}
 
-			protected override SortNode Deserialize(BinaryReader reader) {
+			public override SortNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var columnNames = ReadObjectNames(reader);
 				var ascending = ReadArray(reader, binaryReader => binaryReader.ReadBoolean());
@@ -619,13 +575,13 @@ namespace Deveel.Data.Sql.Query {
 		#region SubsetNodeSerializer
 
 		class SubsetNodeSerializer : QueryPlanNodeSerializer<SubsetNode> {
-			protected override void Serialize(SubsetNode node, BinaryWriter writer) {
+			public override void Serialize(SubsetNode node, BinaryWriter writer) {
 				WriteChildNode(writer, node.Child);
 				WriteObjectNames(node.OriginalColumnNames, writer);
 				WriteObjectNames(node.AliasColumnNames, writer);
 			}
 
-			protected override SubsetNode Deserialize(BinaryReader reader) {
+			public override SubsetNode Deserialize(BinaryReader reader) {
 				var child = ReadChildNode(reader);
 				var columnNames = ReadObjectNames(reader);
 				var aliasNames = ReadObjectNames(reader);

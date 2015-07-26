@@ -18,7 +18,6 @@ using System;
 using System.Globalization;
 using System.IO;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -109,7 +108,7 @@ namespace Deveel.Data.Types {
 			return b.Not();
 		}
 
-		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var b = (SqlBoolean) obj;
 			var writer = new BinaryWriter(stream);
 
@@ -122,7 +121,7 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();

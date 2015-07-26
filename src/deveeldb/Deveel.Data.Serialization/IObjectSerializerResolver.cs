@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Serialization {
 	public interface IObjectSerializerResolver {
 		IObjectSerializer ResolveSerializer(Type objectType);
 	}

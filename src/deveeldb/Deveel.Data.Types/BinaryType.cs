@@ -19,7 +19,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -107,7 +106,7 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException();
 		}
 
-		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlBinary) {
@@ -124,11 +123,11 @@ namespace Deveel.Data.Types {
 
 				throw new NotImplementedException();
 			} else {
-				base.SerializeObject(stream, obj, systemContext);
+				base.SerializeObject(stream, obj);
 			}
 		}
 
-		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream) {
 			var reader = new BinaryReader(stream);
 
 			var type = reader.ReadByte();

@@ -469,12 +469,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static void Serialize(SqlExpression expression, BinaryWriter writer) {
-			var visitor = new ExpressionBinarySerializer(writer);
-			visitor.Visit(expression);
+			SqlExpressionSerializers.Serialize(expression, writer);
 		}
 
 		public static SqlExpression Deserialize(BinaryReader reader) {
-			throw new NotImplementedException();
+			return SqlExpressionSerializers.Deserialize(reader);
 		}
 	}
 }

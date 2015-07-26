@@ -153,8 +153,6 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IObjectSerializer.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemModule.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseExtensions.cs" />
@@ -318,6 +316,11 @@
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
     <Compile Include="Deveel.Data.Routines\SystemRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />
@@ -325,6 +328,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
@@ -378,7 +382,6 @@
     <Compile Include="Deveel.Data.Protocol\ConnectionEndPoint.cs" />
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
@@ -786,6 +789,7 @@
     <Compile Include="Deveel.Data.Types\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Types\TypeResolveContext.cs" />
+    <Compile Include="Deveel.Data.Types\TypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\TypeSerializer.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />

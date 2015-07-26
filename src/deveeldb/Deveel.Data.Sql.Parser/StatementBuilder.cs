@@ -155,7 +155,7 @@ namespace Deveel.Data.Sql.Parser {
 				var expBuilder = new ExpressionBuilder();
 
 				foreach (var column in node.Columns) {
-					var dataType = dataTypeBuilder.Build(context, column.DataType);
+					var dataType = dataTypeBuilder.Build(context.TypeResolver(), column.DataType);
 
 					var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
 

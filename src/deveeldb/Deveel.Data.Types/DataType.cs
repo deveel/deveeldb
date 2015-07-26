@@ -335,7 +335,7 @@ namespace Deveel.Data.Types {
 					throw new NotSupportedException(String.Format("The type '{0}' is not primitive and no resolve context is provided.", node.TypeName));
 
 				var builder = new DataTypeBuilder();
-				return builder.Build(context, node);
+				return builder.Build(context.TypeResolver(), node);
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}
@@ -383,12 +383,12 @@ namespace Deveel.Data.Types {
 			return Name;
 		}
 
-		public virtual void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public virtual void SerializeObject(Stream stream, ISqlObject obj) {
 			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(),
 				obj.GetType()));
 		}
 
-		public virtual ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+		public virtual ISqlObject DeserializeObject(Stream stream) {
 			throw new NotSupportedException(String.Format("Type {0} cannot deserialize types.", GetType()));
 		}
 

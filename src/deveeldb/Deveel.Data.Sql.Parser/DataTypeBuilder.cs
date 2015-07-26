@@ -27,15 +27,16 @@ namespace Deveel.Data.Sql.Parser {
 			return Build(null, sqlNode);
 		}
 
-		public DataType Build(IQueryContext context, ISqlNode sqlNode) {
+		public DataType Build(ITypeResolver resolver, ISqlNode sqlNode) {
 			var node = sqlNode as DataTypeNode;
 			if (node == null)
 				throw new ArgumentException();
 
 			var typeName = node.TypeName;
+			var typeMeta = new List<DataTypeMeta>();
+			SqlTypeCode sqlTypeCode;
 
 			if (node.IsPrimitive) {
-				SqlTypeCode sqlTypeCode;
 				if (String.Equals(typeName, "LONG VARCHAR")) {
 					sqlTypeCode = SqlTypeCode.LongVarChar;
 				} else if (String.Equals(node.TypeName, "LONG VARBINARY")) {
@@ -49,72 +50,48 @@ namespace Deveel.Data.Sql.Parser {
 						sqlTypeCode = SqlTypeCode.Unknown;
 					}
 				}
-
-				if (sqlTypeCode == SqlTypeCode.Bit ||
-				    sqlTypeCode == SqlTypeCode.Boolean ||
-				    sqlTypeCode == SqlTypeCode.BigInt ||
-				    sqlTypeCode == SqlTypeCode.Integer ||
-				    sqlTypeCode == SqlTypeCode.SmallInt ||
-				    sqlTypeCode == SqlTypeCode.TinyInt)
-					return PrimitiveTypes.Resolve(sqlTypeCode,typeName);
-
+				 
 				if (sqlTypeCode == SqlTypeCode.Float ||
 				    sqlTypeCode == SqlTypeCode.Real ||
 				    sqlTypeCode == SqlTypeCode.Double ||
 				    sqlTypeCode == SqlTypeCode.Decimal ||
 				    sqlTypeCode == SqlTypeCode.Numeric) {
-					var typeMeta = new List<DataTypeMeta>();
 					if (node.HasScale)
 						typeMeta.Add(new DataTypeMeta("Scale", node.Scale.ToString()));
 					if (node.HasPrecision)
 						typeMeta.Add(new DataTypeMeta("Precision", node.Precision.ToString()));
-
-					return PrimitiveTypes.Resolve(sqlTypeCode, typeName, typeMeta.ToArray());
-				}
-
-				if (sqlTypeCode == SqlTypeCode.Char ||
-				    sqlTypeCode == SqlTypeCode.VarChar ||
-				    sqlTypeCode == SqlTypeCode.LongVarChar) {
-						var typeMeta = new List<DataTypeMeta>();
+				} else if (sqlTypeCode == SqlTypeCode.Char ||
+				           sqlTypeCode == SqlTypeCode.VarChar ||
+				           sqlTypeCode == SqlTypeCode.LongVarChar) {
 					if (node.HasSize)
 						typeMeta.Add(new DataTypeMeta("MaxSize", node.Size.ToString()));
 					if (node.HasLocale)
 						typeMeta.Add(new DataTypeMeta("Locale", node.Locale));
 					if (node.HasEncoding)
 						typeMeta.Add(new DataTypeMeta("Encoding", node.Encoding));
-
-					return PrimitiveTypes.Resolve(sqlTypeCode, typeName, typeMeta.ToArray());
-				}
-
-				if (sqlTypeCode == SqlTypeCode.Binary ||
-				    sqlTypeCode == SqlTypeCode.VarBinary ||
-				    sqlTypeCode == SqlTypeCode.LongVarBinary) {
-					var typeMeta = new List<DataTypeMeta>();
+				} else if (sqlTypeCode == SqlTypeCode.Binary ||
+				           sqlTypeCode == SqlTypeCode.VarBinary ||
+				           sqlTypeCode == SqlTypeCode.LongVarBinary) {
 					if (node.HasSize)
 						typeMeta.Add(new DataTypeMeta("MaxSize", node.Size.ToString()));
-
-					return PrimitiveTypes.Resolve(sqlTypeCode, typeName, typeMeta.ToArray());
 				}
 
-				if (sqlTypeCode == SqlTypeCode.Date ||
-				    sqlTypeCode == SqlTypeCode.Time ||
-				    sqlTypeCode == SqlTypeCode.TimeStamp)
-					return PrimitiveTypes.Resolve(sqlTypeCode, typeName);
-
 				// TODO: Support %ROWTYPE and %TYPE
+			} else {
+				sqlTypeCode = SqlTypeCode.Type;
 			}
 
 			if (String.IsNullOrEmpty(typeName))
 				throw new SqlParseException("Could not determine type name.");
 
-			if (context == null)
+			if (resolver == null)
 				throw new SqlParseException(String.Format("The type {0} could not be resolved.", node.TypeName));
 
-			DataTypeMeta[] meta = null;
-			if (node.Metadata != null)
+			DataTypeMeta[] meta = typeMeta.ToArray();
+			if (!node.IsPrimitive && node.Metadata != null)
 				meta = BuildTypeMeta(node.Metadata);
 
-			var type = context.ResolveType(typeName, meta);
+			var type = TypeResolver.Resolve(sqlTypeCode, typeName, meta, resolver);
 
 			if (type == null)
 				throw new SqlParseException(String.Format("User defined type {0} could not be resolved.", typeName));

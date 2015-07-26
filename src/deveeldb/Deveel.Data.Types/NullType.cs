@@ -17,7 +17,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -34,7 +33,7 @@ namespace Deveel.Data.Types {
 			: base("NULL", sqlType) {
 		}
 
-		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
+		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlNull) {
@@ -46,7 +45,7 @@ namespace Deveel.Data.Types {
 			throw new FormatException();
 		}
 
-		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
+		public override ISqlObject DeserializeObject(Stream stream) {
 			var reader = new BinaryReader(stream);
 			var type = reader.ReadByte();
 

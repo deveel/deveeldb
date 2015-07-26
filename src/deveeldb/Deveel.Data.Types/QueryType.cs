@@ -17,7 +17,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -34,12 +33,12 @@ namespace Deveel.Data.Types {
 			get { return false; }
 		}
 
-		public override ISqlObject DeserializeObject(Stream stream, ISystemContext context) {
-			return base.DeserializeObject(stream, context);
+		public override ISqlObject DeserializeObject(Stream stream) {
+			return base.DeserializeObject(stream);
 		}
 
-		public override void SerializeObject(Stream stream, ISqlObject obj, ISystemContext systemContext) {
-			base.SerializeObject(stream, obj, systemContext);
+		public override void SerializeObject(Stream stream, ISqlObject obj) {
+			base.SerializeObject(stream, obj);
 		}
 	}
 }

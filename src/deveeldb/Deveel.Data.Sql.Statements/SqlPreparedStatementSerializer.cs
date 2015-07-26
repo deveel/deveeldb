@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	abstract class SqlPreparedStatementSerializer<TStatement> : ISqlPreparedStatementBinarySerializer where TStatement : SqlPreparedStatement {

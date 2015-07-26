@@ -19,6 +19,8 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Types {
 	static class TypeSerializer {
 		public static void SerializeTo(BinaryWriter writer, DataType type) {
