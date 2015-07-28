@@ -79,8 +79,6 @@
     <Compile Include="Deveel.Data.DbSystem\InformationSchema.cs" />
     <Compile Include="Deveel.Data.DbSystem\IObjectManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\IObjectManagerResolver.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IObjectSerializer.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.DbSystem\IQueryContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\IServiceResolveContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
@@ -132,11 +130,9 @@
     <Compile Include="Deveel.Data.Diagnostics\EventClasses.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventLog.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventLoggerBase.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventMetadataKeys.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistryExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventType.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\FileEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICommandEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventLogger.cs" />
@@ -241,6 +237,11 @@
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />
@@ -251,7 +252,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ConstantVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluateException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
@@ -269,6 +269,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
@@ -466,7 +467,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlAlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStatement.cs" />
@@ -475,7 +475,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
@@ -636,6 +635,7 @@
     <Compile Include="Deveel.Data.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Types\TypeManager.cs" />
     <Compile Include="Deveel.Data.Types\TypeResolveContext.cs" />
+    <Compile Include="Deveel.Data.Types\TypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\TypeSerializer.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
@@ -658,8 +658,8 @@
       <HintPath>..\packages\DryIoc.dll.2.0.0-rc2build295\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
+    <Reference Include="Irony.Shared">
+      <HintPath>..\..\lib\irony.pcl\Irony.Shared.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -668,7 +668,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
-$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(SolutionDir)..\lib\irony.net35\irony.dll" "$(TargetDir)\Deveel.Math.dll"</PostBuildEvent>
+$(SolutionDir)..\util\ilmerge\ilmerge.exe /internalize /targetplatform:v4 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll" "$(TargetDir)\DryIoc.dll"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

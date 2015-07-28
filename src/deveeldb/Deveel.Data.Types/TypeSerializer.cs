@@ -24,33 +24,41 @@ using Deveel.Data.Serialization;
 namespace Deveel.Data.Types {
 	static class TypeSerializer {
 		public static void SerializeTo(BinaryWriter writer, DataType type) {
-			writer.Write((byte)type.SqlType);
+			writer.Write((byte) type.SqlType);
 
-			if (type is NumericType) {
-				var numericType = (NumericType)type;
-				writer.Write(numericType.Size);
-				writer.Write(numericType.Scale);
-			} else if (type is StringType) {
-				var stringType = (StringType)type;
-				writer.Write(stringType.MaxSize);
+			if (type.IsPrimitive) {
+				if (type is NumericType) {
+					var numericType = (NumericType) type;
+					writer.Write(numericType.Size);
+					writer.Write(numericType.Scale);
+				} else if (type is StringType) {
+					var stringType = (StringType) type;
+					writer.Write(stringType.MaxSize);
 
-				if (stringType.Locale != null) {
-					writer.Write((byte)1);
-					writer.Write(stringType.Locale.Name);
+					if (stringType.Locale != null) {
+						writer.Write((byte) 1);
+						writer.Write(stringType.Locale.Name);
+					} else {
+						writer.Write((byte) 0);
+					}
+				} else if (type is BinaryType) {
+					var binaryType = (BinaryType) type;
+
+					writer.Write(binaryType.MaxSize);
+				} else if (type is BooleanType ||
+				           type is IntervalType ||
+				           type is DateType ||
+				           type is NullType) {
+					// nothing to add to the SQL Type Code
+				} else if (type is UserType) {
+					var userType = (UserType) type;
+					writer.Write((byte)1);		// The code of custom type
+					writer.Write(userType.FullName.FullName);
 				} else {
-					writer.Write((byte)0);
+					throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
 				}
-			} else if (type is BinaryType) {
-				var binaryType = (BinaryType)type;
-
-				writer.Write(binaryType.MaxSize);
-			} else if (type is BooleanType ||
-			           type is IntervalType ||
-			           type is DateType ||
-			           type is NullType) {
-				// nothing to add to the SQL Type Code
 			} else {
-				throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
+				throw new NotSupportedException();
 			}
 		}
 
@@ -94,6 +102,10 @@ namespace Deveel.Data.Types {
 			if (BinaryType.IsBinaryType(typeCode)) {
 				var size = reader.ReadInt32();
 				return PrimitiveTypes.Binary(typeCode, size);
+			}
+
+			if (typeCode == SqlTypeCode.Type) {
+				// TODO:
 			}
 
 			throw new NotSupportedException();			

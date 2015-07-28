@@ -345,8 +345,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertValuesStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ISqlPreparedStatementBinarySerializer.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\PreparedStaementSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />

@@ -200,12 +200,27 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Parses the given SQL string to an expression that can be evaluated.
 		/// </summary>
 		/// <param name="s">The string to parse.</param>
+		/// <param name="context"></param>
 		/// <returns>
 		/// Returns an instance of <seealso cref="SqlExpression"/> that represents
 		/// the given SQL string parsed.
 		/// </returns>
 		public static SqlExpression Parse(string s) {
+			return Parse(s, null);
+		}
+
+		/// <summary>
+		/// Parses the given SQL string to an expression that can be evaluated.
+		/// </summary>
+		/// <param name="s">The string to parse.</param>
+		/// <param name="context"></param>
+		/// <returns>
+		/// Returns an instance of <seealso cref="SqlExpression"/> that represents
+		/// the given SQL string parsed.
+		/// </returns>
+		public static SqlExpression Parse(string s, ISystemContext context) {
 			try {
+				// TODO: Get the expression compiler from the context
 				var compiler = SqlParsers.Expression;
 				var result = compiler.Parse(s);
 

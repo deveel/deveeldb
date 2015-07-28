@@ -9,7 +9,7 @@ namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public class SqlBinaryExpressionBinarySerializeTests {
 		[Test]
-		public void SerializeAdd() {
+		public static void SerializeAdd() {
 			var exp1 = SqlExpression.Add(SqlExpression.Constant(DataObject.BigInt(22)),
 				SqlExpression.Constant(DataObject.Float(45.4f)));
 

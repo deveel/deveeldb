@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			var typeName = reader.ReadString();
 #if PCL
-			var type = Type.GetType(typeName, true)
+			var type = Type.GetType(typeName, true);
 #else
 			var type = Type.GetType(typeName, true, true);
 #endif
