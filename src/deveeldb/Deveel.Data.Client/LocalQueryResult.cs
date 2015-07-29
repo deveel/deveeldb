@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using Deveel.Data.Client;
@@ -218,49 +219,15 @@ namespace Deveel.Data.Protocol {
 		public object GetRuntimeValue(int ordinal) {
 			var value = GetRawColumn(ordinal);
 
-			if (value == null ||
-				value == DBNull.Value)
+			if (value == null || value.IsNull)
 				return DBNull.Value;
 
-			throw new NotImplementedException();
-
-			/*
-			TODO:
 			var destType = GetColumn(ordinal).RuntimeType;
 
-			if (value is BigNumber) {
-				var number = (BigNumber) value;
-				if (destType == typeof (byte))
-					return number.ToByte();
-				if (destType == typeof (short))
-					return number.ToInt16();
-				if (destType == typeof (int))
-					return number.ToInt32();
-				if (destType == typeof (long))
-					return number.ToInt64();
-				if (destType == typeof (float))
-					return number.ToSingle();
-				if (destType == typeof (double))
-					return number.ToDouble();
-				if (destType == typeof(decimal))
-					throw new NotSupportedException();
-
-				// TODO: throw an exception?
-			}
-
-			if (value is StringObject)
-				return value.ToString();
-
-			if (value is ByteLongObject) {
-				var blob = (ByteLongObject) value;
-				return blob.ToArray();
-			}
-
-			return value;
-			*/
+			return Convert.ChangeType(value, destType, CultureInfo.InvariantCulture);
 		}
 
-		public object GetRawColumn(int column) {
+		public ISqlObject GetRawColumn(int column) {
 			// ASSERTION -
 			// Is the given column in bounds?
 	        if (column < 0 || column >= ColumnCount)

@@ -807,7 +807,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data\ObjectName.cs" />
-    <Compile Include="Deveel.Data\ParameterDirection.cs" />
+    <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

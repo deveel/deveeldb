@@ -17,15 +17,24 @@
 using System;
 using System.Globalization;
 
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	public sealed class QueryParameter {
 		public QueryParameter(DataType dataType) 
-			: this(Marker, dataType) {
+			: this(dataType, null) {
 		}
 
-		public QueryParameter(string name, DataType dataType) {
+		public QueryParameter(DataType dataType, ISqlObject value) 
+			: this(Marker, dataType, value) {
+		}
+
+		public QueryParameter(string name, DataType dataType) 
+			: this(name, dataType, null) {
+		}
+
+		public QueryParameter(string name, DataType dataType, ISqlObject value) {
 			if (dataType == null)
 				throw new ArgumentNullException("dataType");
 
@@ -38,6 +47,7 @@ namespace Deveel.Data.Sql {
 
 			Name = name;
 			DataType = dataType;
+			Value = value;
 			Direction = QueryParameterDirection.In;
 		}
 
@@ -50,6 +60,6 @@ namespace Deveel.Data.Sql {
 
 		public QueryParameterDirection Direction { get; set; }
 
-		public object Value { get; set; }
+		public ISqlObject Value { get; set; }
 	}
 }

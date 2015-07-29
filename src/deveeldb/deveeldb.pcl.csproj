@@ -201,6 +201,7 @@
     <Compile Include="Deveel.Data.Routines\IRoutineResolver.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineResolverContainer.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
+    <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
     <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
@@ -653,7 +654,6 @@
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data\DataObject.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
-    <Compile Include="Deveel.Data\ParameterDirection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

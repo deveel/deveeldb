@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Routines {
 	/// <summary>
 	/// The possible directions of a procedure parameter.
 	/// </summary>

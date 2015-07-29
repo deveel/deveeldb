@@ -16,7 +16,6 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace Deveel.Data.Types {
@@ -184,11 +183,15 @@ namespace Deveel.Data.Types {
 			if (System.String.IsNullOrEmpty(name))
 				return false;
 
+			if (System.String.Equals("long varchar", name, StringComparison.OrdinalIgnoreCase))
+				name = "longvarchar";
+			if (System.String.Equals("long varbinary", name, StringComparison.OrdinalIgnoreCase))
+				name = "longvarbinary";
+
 			if (name.EndsWith("%TYPE", StringComparison.OrdinalIgnoreCase) ||
 				name.EndsWith("%ROWTYPE", StringComparison.OrdinalIgnoreCase))
 				return true;
 
-			// TODO: Support also the other SQL type names?
 			if (name.Equals("NUMERIC", StringComparison.OrdinalIgnoreCase) ||
 				name.Equals("STRING", StringComparison.OrdinalIgnoreCase) ||
 				name.Equals("DATE", StringComparison.OrdinalIgnoreCase) ||
@@ -197,10 +200,50 @@ namespace Deveel.Data.Types {
 				name.Equals("BINARY", StringComparison.OrdinalIgnoreCase))
 				return true;
 
+			if (name.Equals("BIT", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("BOOLEAN", StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (name.Equals("TINYINT", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("SMALLINT", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("INTEGER", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("INT", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("BIGINT", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("REAL", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("FLOAT", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("DOUBLE", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("DECIMAL", StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (name.Equals("DATE", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("TIME", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("TIMESTAMP", StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (name.Equals("YEAR TO MONTH", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("DAY TO SECOND", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("INTERVAL", StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (name.Equals("CHAR", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("VARCHAR", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("LONGVARCHAR", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("CLOB", StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			if (name.Equals("BINARY", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("VARBINARY", StringComparison.OrdinalIgnoreCase) ||
+			    name.Equals("LONGVARBINARY", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("BLOB", StringComparison.OrdinalIgnoreCase))
+				return true;
+
 			return false;
 		}
 
 		public static DataType Resolve(string typeName, params DataTypeMeta[] args) {
+			if (!IsPrimitive(typeName))
+				return Null();
+
 			if (System.String.Equals("long varchar", typeName, StringComparison.OrdinalIgnoreCase))
 				typeName = "longvarchar";
 			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
@@ -215,6 +258,26 @@ namespace Deveel.Data.Types {
 			}
 
 			return Resolve(typeCode, typeName, args);
+		}
+
+		public static SqlTypeCode ResolveTypeCode(string typeName) {
+			if (System.String.Equals("long varchar", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "longvarchar";
+			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "longvarbinary";
+
+			SqlTypeCode typeCode;
+
+			try {
+				typeCode = (SqlTypeCode)Enum.Parse(typeof(SqlTypeCode), typeName, true);
+			} catch (Exception) {
+				throw new ArgumentException(System.String.Format("The name {0} is not a valid SQL type.", typeName));
+			}
+
+			if (!IsPrimitive(typeCode))
+				return SqlTypeCode.Unknown;
+
+			return typeCode;
 		}
 
 		public static DataType Resolve(SqlTypeCode sqlType, string typeName, params DataTypeMeta[] args) {

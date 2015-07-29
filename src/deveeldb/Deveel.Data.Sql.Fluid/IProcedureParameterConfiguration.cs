@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Fluid {

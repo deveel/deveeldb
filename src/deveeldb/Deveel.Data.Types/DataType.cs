@@ -405,22 +405,69 @@ namespace Deveel.Data.Types {
 			return 0;
 		}
 
+		public virtual Type GetRuntimeType() {
+			throw new NotSupportedException();
+		}
+
+		public virtual Type GetObjectType() {
+			throw new NotSupportedException();
+		}
+
 		public virtual ISqlObject CreateFromLargeObject(ILargeObject objRef) {
 			throw new NotSupportedException(String.Format("SQL Type {0} cannot be created from a large object.", SqlType));
 		}
 
 		public static bool IsPrimitiveType(SqlTypeCode typeCode) {
-			return typeCode != SqlTypeCode.Object &&
-			       typeCode != SqlTypeCode.Unknown &&
-			       typeCode != SqlTypeCode.Type &&
-			       typeCode != SqlTypeCode.Array &&
-			       typeCode != SqlTypeCode.RowType &&
-			       typeCode != SqlTypeCode.ColumnType;
-
+			return PrimitiveTypes.IsPrimitive(typeCode);
 		}
 
 		public virtual ISqlObject CreateFrom(object value) {
 			throw new NotSupportedException(String.Format("The type {0} does not support runtime object conversion.", ToString()));
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode) {
+			return Resolve(typeCode, new DataTypeMeta[0]);
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta) {
+			return Resolve(typeCode, meta, null);
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta, ITypeResolver resolver) {
+			return Resolve(typeCode, typeCode.ToString().ToUpperInvariant(), meta, resolver);
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode, string name) {
+			return Resolve(typeCode, name, new DataTypeMeta[0]);
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta) {
+			return Resolve(typeCode, name, meta, null);
+		}
+
+		public static DataType Resolve(string name) {
+			return Resolve(name, new DataTypeMeta[0]);
+		}
+
+		public static DataType Resolve(string name, DataTypeMeta[] meta) {
+			return Resolve(name, meta, null);
+		}
+
+		public static DataType Resolve(string name, DataTypeMeta[] meta, ITypeResolver resolver) {
+			var typeCode = ResolveTypeCode(name);
+			return Resolve(typeCode, name, meta, resolver);
+		}
+
+		public static DataType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta, ITypeResolver resolver) {
+			return TypeResolver.Resolve(typeCode, name, meta, resolver);
+		}
+
+		private static SqlTypeCode ResolveTypeCode(string name) {
+			var typeCode = PrimitiveTypes.ResolveTypeCode(name);
+			if (typeCode == SqlTypeCode.Unknown)
+				typeCode = SqlTypeCode.Type;
+
+			return typeCode;
 		}
 	}
 }

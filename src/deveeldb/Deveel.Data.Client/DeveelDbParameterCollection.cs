@@ -15,6 +15,15 @@ namespace Deveel.Data.Client {
 
 		private DeveelDbCommand Command { get; set; }
 
+		public new DeveelDbParameter this[int offset] {
+			get { return(DeveelDbParameter) GetParameter(offset); }
+			set { SetParameter(offset, value); }
+		}
+
+		public new DeveelDbParameter this[string name] {
+			get { return (DeveelDbParameter) GetParameter(name); }
+		}
+
 		private QueryParameterStyle ParameterStyle {
 			get { return Command.Connection.Settings.ParameterStyle; }
 		}

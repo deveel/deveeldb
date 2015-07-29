@@ -117,6 +117,14 @@ namespace Deveel.Data.Protocol {
 			get { return Name.StartsWith("@a"); }
 		}
 
+		public Type RuntimeType {
+			get { return Type.GetRuntimeType(); }
+		}
+
+		public Type ValueType {
+			get { return Type.GetObjectType(); }
+		}
+
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {
 			var cd = (QueryResultColumn)ob;
@@ -130,24 +138,6 @@ namespace Deveel.Data.Protocol {
 
 		public override int GetHashCode() {
 			return base.GetHashCode();
-		}
-
-		/// <summary>
-		/// Writes this <see cref="QueryResultColumn"/> to the given <see cref="BinaryWriter"/>.
-		/// </summary>
-		/// <param name="output"></param>
-		public void WriteTo(BinaryWriter output) {
-		}
-
-
-		/// <summary>
-		/// Reads a <see cref="QueryResultColumn"/> from the given 
-		/// <see cref="BinaryReader"/> and returns a new instance of it.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static QueryResultColumn ReadFrom(BinaryReader input) {
-			throw new NotImplementedException();
 		}
 	}
 }
