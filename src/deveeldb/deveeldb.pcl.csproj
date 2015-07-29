@@ -643,7 +643,6 @@
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
-    <Compile Include="Deveel.Data.Util\StreamTokenizer.cs" />
     <Compile Include="Deveel.Data\DataObject.cs" />
     <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Deveel.Data\ParameterDirection.cs" />
