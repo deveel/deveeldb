@@ -404,7 +404,7 @@ namespace Deveel.Data.Sql {
 			var names = new[] { "result" };
 			var table = new FunctionTable(exp, names, context);
 
-			return new SubsetColumnTable(table, new int[0], new []{new ObjectName("result") });
+			return new SubsetColumnTable(table, new[]{0}, new []{new ObjectName("result") });
 		}
 
 		public static ITable ResultTable(IQueryContext context, DataObject value) {

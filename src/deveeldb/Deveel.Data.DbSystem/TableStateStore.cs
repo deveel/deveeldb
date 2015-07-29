@@ -27,11 +27,11 @@ namespace Deveel.Data.DbSystem {
 		private IArea headerArea;
 
 		private long delAreaPointer;
-		private Dictionary<string, TableState> deleteList;
+		private List<TableState> deleteList;
 		private bool delListChange;
 
 		private long visAreaPointer;
-		private Dictionary<string, TableState> visibleList;
+		private List<TableState> visibleList;
 		private bool visListChange;
 
 		private int currentTableId;
@@ -47,7 +47,7 @@ namespace Deveel.Data.DbSystem {
 
 		public IStore Store { get; private set; }
 
-		private void ReadStateResourceList(Dictionary<string, TableState> list, long pointer) {
+		private void ReadStateResourceList(IList<TableState> list, long pointer) {
 			using (var reader = new BinaryReader(Store.GetAreaInputStream(pointer), Encoding.Unicode)) {
 				reader.ReadInt32(); // version
 
@@ -56,7 +56,7 @@ namespace Deveel.Data.DbSystem {
 					long tableId = reader.ReadInt64();
 					string name = reader.ReadString();
 
-					list.Add(name, new TableState((int)tableId, name));
+					list.Add(new TableState((int)tableId, name));
 				}
 			}
 		}
@@ -121,8 +121,8 @@ namespace Deveel.Data.DbSystem {
 				// Reset currentTableId
 				currentTableId = 0;
 
-				visibleList = new Dictionary<string, TableState>();
-				deleteList = new Dictionary<string, TableState>();
+				visibleList = new List<TableState>();
+				deleteList = new List<TableState>();
 
 				// Return pointer to the header area
 				return headerP;
@@ -144,8 +144,8 @@ namespace Deveel.Data.DbSystem {
 				delAreaPointer = headerArea.ReadInt8();
 
 				// Setup the visible and delete list
-				visibleList = new Dictionary<string, TableState>();
-				deleteList = new Dictionary<string, TableState>();
+				visibleList = new List<TableState>();
+				deleteList = new List<TableState>();
 
 				// Read the resource list for the visible and delete list.
 				ReadStateResourceList(visibleList, visAreaPointer);
@@ -177,19 +177,19 @@ namespace Deveel.Data.DbSystem {
 
 		public IEnumerable<TableState> GetVisibleList() {
 			lock (this) {
-				return visibleList.Values.AsEnumerable();
+				return visibleList.AsEnumerable();
 			}
 		}
 
 		public IEnumerable<TableState> GetDeleteList() {
 			lock (this) {
-				return deleteList.Values.AsEnumerable();
+				return deleteList.AsEnumerable();
 			}
 		}
 
 		public bool ContainsVisibleResource(int tableId) {
 			lock (this) {
-				foreach (var resource in visibleList.Values) {
+				foreach (var resource in visibleList) {
 					if (resource.TableId == tableId)
 						return true;
 				}
@@ -199,30 +199,42 @@ namespace Deveel.Data.DbSystem {
 
 		public void AddVisibleResource(TableState resource) {
 			lock (this) {
-				visibleList.Add(resource.SourceName, resource);
+				visibleList.Add(resource);
 				visListChange = true;
 			}
 		}
 
 		public void AddDeleteResource(TableState resource) {
 			lock (this) {
-				deleteList.Add(resource.SourceName, resource);
+				deleteList.Add(resource);
 				delListChange = true;
 			}
 		}
 
 		public void RemoveVisibleResource(string name) {
 			lock (this) {
-				if (visibleList.Remove(name))
-					visListChange = true;
+				RemoveState(visibleList, name);
+				visListChange = true;
 			}
 		}
 
 		public void RemoveDeleteResource(string name) {
 			lock (this) {
-				if (deleteList.Remove(name))
-					delListChange = true;
+				RemoveState(deleteList, name);
+				delListChange = true;
 			}
+		}
+
+		private static void RemoveState(IList<TableState> list, String name) {
+			int sz = list.Count;
+			for (int i = 0; i < sz; ++i) {
+				var state = list[i];
+				if (name.Equals(state.SourceName)) {
+					list.RemoveAt(i);
+					return;
+				}
+			}
+			throw new Exception("Couldn't find resource '" + name + "' in list.");
 		}
 
 		public void Flush() {
@@ -236,12 +248,12 @@ namespace Deveel.Data.DbSystem {
 
 					// If the lists changed, then Write new state areas to the store.
 					if (visListChange) {
-						newVisP = WriteListToStore(visibleList.Values);
+						newVisP = WriteListToStore(visibleList);
 						visListChange = false;
 						changes = true;
 					}
 					if (delListChange) {
-						newDelP = WriteListToStore(deleteList.Values);
+						newDelP = WriteListToStore(deleteList);
 						delListChange = false;
 						changes = true;
 					}

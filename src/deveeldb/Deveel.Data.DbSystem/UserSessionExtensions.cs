@@ -107,6 +107,7 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static ITable GetTable(this IUserSession session, ObjectName tableName) {
+			tableName = session.ResolveTableName(tableName);
 			return session.Transaction.GetTable(tableName);
 		}
 

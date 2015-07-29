@@ -4,6 +4,7 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using NUnit.Framework;
@@ -44,6 +45,19 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = list[0];
 
 			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0,  ((SqlNumber) result.GetValue(0,0).Value).ToInt32());
+
+			var testTable = QueryContext.GetTable(new ObjectName("test_table"));
+
+			Assert.IsNotNull(testTable);
+			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
 		}
 	}
 }

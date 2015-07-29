@@ -112,6 +112,12 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			public int FindByName(ObjectName tableName) {
+				if (tableName == null)
+					throw new ArgumentNullException("tableName");
+
+				if (tableName.Parent == null)
+					return -1;
+
 				var seqInfo = SystemSchema.SequenceInfoTableName;
 				if (transaction.RealTableExists(seqInfo)) {
 					// Search the table.
