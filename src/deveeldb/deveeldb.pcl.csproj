@@ -323,7 +323,9 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlYearToMonth.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterTableActionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AddColumnNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
@@ -335,11 +337,17 @@
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropColumnNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropConstraintNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropCoulmnNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropDefaultNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropPrimaryKeyNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromClauseNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromQuerySourceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromTableSourceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GroupByNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IdentifierNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IFromSourceNode.cs" />
@@ -363,6 +371,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\SelectItemNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SelectStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SequenceOfStatementsNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SetDefaultNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleUpdateNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlBetweenExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlBinaryExpressionNode.cs" />

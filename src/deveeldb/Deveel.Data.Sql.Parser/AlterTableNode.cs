@@ -18,17 +18,22 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	class AlterTableNode : SqlNode {
-		internal AlterTableNode() {
-		}
+	class AlterTableNode : SqlNode, IStatementNode {
+		public string TableName { get; private set; }
 
-		public ObjectNameNode TableName { get; private set; }
-
-		public IEnumerable<AlterTableActionNode> Actions { get; private set; }
+		public IEnumerable<IAlterActionNode> Actions { get; private set; }
 
 		public CreateTableNode CreateTable { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is ObjectNameNode) {
+				TableName = ((ObjectNameNode) node).Name;
+			} else if (node is CreateTableNode) {
+				CreateTable = (CreateTableNode)node;
+			} else if (node.NodeName == "alter_actions") {
+				Actions = node.FindNodes<IAlterActionNode>();
+			}
+
 			return base.OnChildNode(node);
 		}
 	}

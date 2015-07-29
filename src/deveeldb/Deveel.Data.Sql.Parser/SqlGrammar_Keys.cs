@@ -23,13 +23,8 @@ namespace Deveel.Data.Sql.Parser {
 	partial class SqlGrammar {
 		#region Keywords
 
-		private KeyTerm ABSOLUTE;
 		private KeyTerm ACCOUNT;
-		private KeyTerm ALL;
-		private KeyTerm ACTION;
-		private KeyTerm ADD;
 		private KeyTerm AFTER;
-		private KeyTerm ALTER;
 		private KeyTerm AND;
 		private KeyTerm ANY;
 		private KeyTerm ARRAY;
@@ -114,12 +109,12 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected override void ReservedWords() {
 			var reserved = new List<string> {
-				ABSOLUTE.Text,
-				ACTION.Text,
-				ADD.Text,
-				AFTER.Text,
-				ALL.Text,
-				ALTER.Text,
+				"ABSOLUTE",
+				"ACTION",
+				"ADD",
+				"AFTER",
+				"ALL",
+				"ALTER",
 				AND.Text,
 				ANY.Text,
 				ARRAY.Text,
@@ -145,12 +140,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void Keywords() {
-			ABSOLUTE = ToTerm("ABSOLUTE");
-			ACTION = ToTerm("ACTION");
 			ACCOUNT = ToTerm("ACCOUNT");
-			ALL = ToTerm("ALL");
-			ALTER = ToTerm("ALTER");
-			ADD = ToTerm("ADD");
 			AFTER = ToTerm("AFTER");
 			AND = ToTerm("AND");
 			ANY = ToTerm("ANY");

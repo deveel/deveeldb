@@ -22,23 +22,41 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Parser {
-	class ExpressionBuilder : SqlNodeVisitor {
-		private SqlExpression outputExpression;
+	class ExpressionBuilder {
+		public static SqlExpression Build(IExpressionNode node) {
+			if (node is SqlVariableRefExpressionNode)
+				return VisitVariableRefExpression((SqlVariableRefExpressionNode) node);
+			if (node is SqlExpressionTupleNode)
+				return VisitTupleExpression((SqlExpressionTupleNode) node);
+			if (node is SqlQueryExpressionNode)
+				return VisitQueryExpression((SqlQueryExpressionNode) node);
+			if (node is SqlCaseExpressionNode)
+				return VisitCaseExpression((SqlCaseExpressionNode) node);
+			if (node is SqlConstantExpressionNode)
+				return VisitConstantExpression((SqlConstantExpressionNode) node);
+			if (node is SqlFunctionCallExpressionNode)
+				return VisitFunctionCall((SqlFunctionCallExpressionNode) node);
+			if (node is SqlReferenceExpressionNode)
+				return VisitReferenceExpression((SqlReferenceExpressionNode) node);
+			if (node is SqlBinaryExpressionNode)
+				return VisitBinaryExpression((SqlBinaryExpressionNode) node);
+			if (node is SqlUnaryExpressionNode)
+				return VisitUnaryExpression((SqlUnaryExpressionNode) node);
+			if (node is SqlBetweenExpressionNode)
+				return VisitBetweenExpression((SqlBetweenExpressionNode) node);
 
-		public SqlExpression Build(ISqlNode node) {
-			Visit(node);
-			return outputExpression;
+			throw new NotSupportedException();
 		}
 
-		public override void VisitVariableRefExpression(SqlVariableRefExpressionNode node) {
-			outputExpression = SqlExpression.VariableReference(node.Variable);
+		private static SqlExpression VisitVariableRefExpression(SqlVariableRefExpressionNode node) {
+			return SqlExpression.VariableReference(node.Variable);
 		}
 
-		public override void VisitTupleExpression(SqlExpressionTupleNode node) {
-			outputExpression = SqlExpression.Tuple(node.Expressions.Select(Build).ToArray());
+		private static SqlExpression VisitTupleExpression(SqlExpressionTupleNode node) {
+			return SqlExpression.Tuple(node.Expressions.Select(Build).ToArray());
 		}
 
-		public override void VisitQueryExpression(SqlQueryExpressionNode node) {
+		private static SqlExpression VisitQueryExpression(SqlQueryExpressionNode node) {
 			var selectColumns = GetSelectColumns(node);
 			var exp = new SqlQueryExpression(selectColumns);
 
@@ -70,7 +88,7 @@ namespace Deveel.Data.Sql.Parser {
 				exp.CompositeFunction = GetCompositeFunction(node.Composite.CompositeFunction);
 			}
 
-			outputExpression = exp;
+			return exp;
 		}
 
 		private static CompositeFunction GetCompositeFunction(string s) {
@@ -84,7 +102,7 @@ namespace Deveel.Data.Sql.Parser {
 			throw new InvalidOperationException(String.Format("Composite function {0} is invalid.", s));
 		}
 
-		private void SetFromTableInClause(FromClause clause, IFromSourceNode source, JoinNode join) {
+		private static void SetFromTableInClause(FromClause clause, IFromSourceNode source, JoinNode join) {
 			AddSourceToClause(clause, source);
 
 			if (join != null) {
@@ -102,7 +120,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		private void AddSourceToClause(FromClause clause, IFromSourceNode source) {
+		private static void AddSourceToClause(FromClause clause, IFromSourceNode source) {
 			string alias = null;
 			if (source.Alias != null)
 				alias = source.Alias.Text;
@@ -117,7 +135,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		private JoinType GetJoinType(string typeName) {
+		private static JoinType GetJoinType(string typeName) {
 			if (String.Equals(typeName, "INNER", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(typeName, "INNER JOIN", StringComparison.OrdinalIgnoreCase) ||
 			    String.Equals(typeName, ",", StringComparison.OrdinalIgnoreCase))
@@ -136,11 +154,11 @@ namespace Deveel.Data.Sql.Parser {
 			return JoinType.None;
 		}
 
-		private void SetFromClause(FromClause clause, FromClauseNode node) {
+		private static void SetFromClause(FromClause clause, FromClauseNode node) {
 			SetFromTableInClause(clause, node.Source, node.Join);
 		}
 
-		private IEnumerable<SelectColumn> GetSelectColumns(SqlQueryExpressionNode node) {
+		private static IEnumerable<SelectColumn> GetSelectColumns(SqlQueryExpressionNode node) {
 			if (node.IsAll) {
 				return new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("*")))};
 			}
@@ -166,11 +184,11 @@ namespace Deveel.Data.Sql.Parser {
 			return items.ToArray();
 		}
 
-		public override void VisitCaseExpression(SqlCaseExpressionNode expressionNode) {
+		private static SqlExpression VisitCaseExpression(SqlCaseExpressionNode expressionNode) {
 			throw new NotImplementedException();
 		}
 
-		public override void VisitConstantExpression(SqlConstantExpressionNode expressionNode) {
+		private static SqlExpression VisitConstantExpression(SqlConstantExpressionNode expressionNode) {
 			var sqlValue = expressionNode.Value;
 			DataObject obj;
 			if (sqlValue is SqlString) {
@@ -183,22 +201,22 @@ namespace Deveel.Data.Sql.Parser {
 				throw new NotSupportedException("Constant value is not supported.");
 			}
 
-			outputExpression = SqlExpression.Constant(obj);
+			return SqlExpression.Constant(obj);
 		}
 
-		public override void VisitReferenceExpression(SqlReferenceExpressionNode node) {
-			outputExpression = SqlExpression.Reference(ObjectName.Parse(node.Reference.Name));
+		private static SqlExpression VisitReferenceExpression(SqlReferenceExpressionNode node) {
+			return SqlExpression.Reference(ObjectName.Parse(node.Reference.Name));
 		}
 
-		public override void VisitFunctionCall(SqlFunctionCallExpressionNode node) {
+		private static SqlExpression VisitFunctionCall(SqlFunctionCallExpressionNode node) {
 			var args = new List<SqlExpression>();
 			if (node.Arguments != null)
 				args.AddRange(node.Arguments.Select(Build));
 
-			outputExpression = SqlExpression.FunctionCall(node.FunctionName, args.ToArray());
+			return SqlExpression.FunctionCall(node.FunctionName, args.ToArray());
 		}
 
-		public override void VisitBetweenExpression(SqlBetweenExpressionNode expressionNode) {
+		private static SqlExpression VisitBetweenExpression(SqlBetweenExpressionNode expressionNode) {
 			var testExp = Build(expressionNode.Expression);
 			var minValue = Build(expressionNode.MinValue);
 			var maxValue = Build(expressionNode.MaxValue);
@@ -206,23 +224,25 @@ namespace Deveel.Data.Sql.Parser {
 			var smallerExp = SqlExpression.SmallerOrEqualThan(testExp, maxValue);
 			var greaterExp = SqlExpression.GreaterOrEqualThan(testExp, minValue);
 
-			outputExpression = SqlExpression.And(smallerExp, greaterExp);
+			SqlExpression exp = SqlExpression.And(smallerExp, greaterExp);
 
 			if (expressionNode.Not)
-				outputExpression = SqlExpression.Not(outputExpression);
+				exp = SqlExpression.Not(exp);
+
+			return exp;
 		}
 
-		public override void VisitBinaryExpression(SqlBinaryExpressionNode expressionNode) {
+		private static SqlExpression VisitBinaryExpression(SqlBinaryExpressionNode expressionNode) {
 			var left = Build(expressionNode.Left);
 			var right = Build(expressionNode.Right);
 			var op = expressionNode.Operator;
 
 			var expType = GetBinaryExpressionType(op);
 
-			outputExpression = SqlExpression.Binary(left, expType, right);
+			return SqlExpression.Binary(left, expType, right);
 		}
 
-		private SqlExpressionType GetBinaryExpressionType(string op) {
+		private static SqlExpressionType GetBinaryExpressionType(string op) {
 			if (op == "+" ||
 			    op == "||")
 				return SqlExpressionType.Add;
@@ -265,14 +285,14 @@ namespace Deveel.Data.Sql.Parser {
 			throw new ArgumentException(String.Format("The operator {0} is not a binary one.", op));
 		}
 
-		public override void VisitUnaryExpression(SqlUnaryExpressionNode expressionNode) {
+		private static SqlExpression VisitUnaryExpression(SqlUnaryExpressionNode expressionNode) {
 			var expressionType = GetUnaryExpressionType(expressionNode.Operator);
 			var operand = Build(expressionNode.Operand);
 
-			outputExpression = SqlExpression.Unary(expressionType, operand);
+			return SqlExpression.Unary(expressionType, operand);
 		}
 
-		private SqlExpressionType GetUnaryExpressionType(string op) {
+		private static SqlExpressionType GetUnaryExpressionType(string op) {
 			if (op == "+")
 				return SqlExpressionType.UnaryPlus;
 			if (op == "-")

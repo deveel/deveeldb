@@ -183,7 +183,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		public virtual void VisitAlterTableAction(AlterTableActionNode action) {
+		public virtual void VisitAlterTableAction(IAlterActionNode action) {
 		}
 
 		public virtual void VisitTableConstraints(IEnumerable<TableConstraintNode> constraints) {

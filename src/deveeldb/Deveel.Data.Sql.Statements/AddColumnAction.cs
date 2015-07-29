@@ -20,17 +20,17 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class AddColumnAction : IAlterTableAction {
-		public AddColumnAction(ColumnInfo column) {
+		public AddColumnAction(SqlTableColumn column) {
 			if (column == null)
 				throw new ArgumentNullException("column");
 
 			Column = column;
 		}
 
-		public ColumnInfo Column { get; private set; }
+		public SqlTableColumn Column { get; private set; }
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			var newColumn = new ColumnInfo(Column.ColumnName, Column.ColumnType) {
+			var newColumn = new SqlTableColumn(Column.ColumnName, Column.ColumnType) {
 				IsNotNull = Column.IsNotNull
 			};
 

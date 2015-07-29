@@ -115,7 +115,9 @@ namespace Deveel.Data.Sql.Parser {
 		public Dictionary<string, string> Metadata { get; private set; } 
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "decimal_type") {
+			if (node.NodeName == "boolean_type") {
+				GetBooleanType(node);
+			} else if (node.NodeName == "decimal_type") {
 				GetNumberType(node);
 			} else if (node.NodeName == "character_type" ||
 			           node.NodeName == "binary_type") {
@@ -132,6 +134,11 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		private void GetBooleanType(ISqlNode node) {
+			IsPrimitive = true;
+			TypeName = "BOOLEAN";
 		}
 
 		private void GetUserType(ISqlNode node) {

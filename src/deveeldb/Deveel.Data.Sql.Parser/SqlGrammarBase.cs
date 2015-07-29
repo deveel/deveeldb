@@ -136,6 +136,7 @@ namespace Deveel.Data.Sql.Parser {
 			var characterType = new NonTerminal("character_type");
 			var localeOpt = new NonTerminal("locale_opt");
 			var encodingOp = new NonTerminal("encoding_opt");
+			var booleanType = new NonTerminal("boolean_type");
 			var integerType = new NonTerminal("integer_type");
 			var decimalType = new NonTerminal("decimal_type");
 			var floatType = new NonTerminal("float_type");
@@ -153,6 +154,7 @@ namespace Deveel.Data.Sql.Parser {
 			var userTypeMeta = new NonTerminal("user_type_meta", typeof(DataTypeMetaNode));
 
 			datatype.Rule = characterType |
+			                booleanType |
 			                dateType |
 			                integerType |
 			                decimalType |
@@ -167,6 +169,7 @@ namespace Deveel.Data.Sql.Parser {
 			localeOpt.Rule = Empty | Key("LOCALE") + StringLiteral;
 			encodingOp.Rule = Empty | Key("ENCODING") + StringLiteral;
 			dateType.Rule = Key("DATE") | Key("TIME") | Key("TIMESTAMP");
+			booleanType.Rule = Key("BOOLEAN") | Key("BIT");
 			integerType.Rule = Key("INT") |
 			                   Key("INTEGER") |
 			                   Key("BIGINT") |

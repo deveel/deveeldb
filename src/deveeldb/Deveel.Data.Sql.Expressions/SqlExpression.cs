@@ -227,8 +227,11 @@ namespace Deveel.Data.Sql.Expressions {
 				if (result.HasErrors)
 					throw new SqlParseException();
 
-				var visitor = new ExpressionBuilder();
-				return visitor.Build(result.RootNode);
+				var expNode = result.RootNode as IExpressionNode;
+				if (expNode == null)
+					throw new SqlExpressionException(ExpressionErrorCodes.CannotParse, "The parse of the text did not result into an expression.");
+
+				return ExpressionBuilder.Build(expNode);
 			} catch (SqlParseException ex) {
 				throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
 					"Could not parse input expression: see inner exception for details.", ex);

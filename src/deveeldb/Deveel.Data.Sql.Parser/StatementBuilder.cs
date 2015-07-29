@@ -38,8 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private SqlExpression Expression(IExpressionNode node) {
-			var visitor = new ExpressionBuilder();
-			return visitor.Build(node);
+			return ExpressionBuilder.Build(node);
 		}
 
 		public override void Visit(ISqlNode node) {
@@ -139,29 +138,102 @@ namespace Deveel.Data.Sql.Parser {
 			statements.Add(new InsertValuesStatement(valuesInsert.TableName, valuesInsert.ColumnNames, values));
 		}
 
+		private static SqlTableColumn BuildColumnInfo(IQueryContext context, string tableName, TableColumnNode column, IList<ConstraintInfo> constraints) {
+			var objTableName = ObjectName.Parse(tableName);
+			var dataTypeBuilder = new DataTypeBuilder();
+			var dataType = dataTypeBuilder.Build(context.TypeResolver(), column.DataType);
+
+			var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
+
+			if (column.Default != null)
+				columnInfo.DefaultExpression = ExpressionBuilder.Build(column.Default);
+
+			if (column.IsIdentity) {
+				columnInfo.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
+					new[] { SqlExpression.Constant(tableName) });
+			}
+
+			foreach (var constraint in column.Constraints) {
+				if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					var exp = ExpressionBuilder.Build(constraint.CheckExpression);
+					constraints.Add(ConstraintInfo.Check(objTableName, exp, column.ColumnName.Text));
+				} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					var fTable = ObjectName.Parse(constraint.ReferencedTable.Name);
+					var fColumn = constraint.ReferencedColumn.Text;
+					var fkey = ConstraintInfo.ForeignKey(objTableName, column.ColumnName.Text, fTable, fColumn);
+					if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
+						fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
+					if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
+						fkey.OnUpdate = GetForeignKeyAction(constraint.OnUpdateAction);
+
+					constraints.Add(fkey);
+				} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					constraints.Add(ConstraintInfo.PrimaryKey(objTableName, column.ColumnName.Text));
+				} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					constraints.Add(ConstraintInfo.Unique(objTableName, column.ColumnName.Text));
+				} else if (String.Equals(ConstraintTypeNames.NotNull, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					columnInfo.IsNotNull = true;
+				} else if (String.Equals(ConstraintTypeNames.Null, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					columnInfo.IsNotNull = false;
+				}
+			}
+
+			return columnInfo;
+		}
+
+		private static ConstraintInfo BuildConstraint(IQueryContext context, string tableName, TableConstraintNode constraint) {
+			var objTableName = ObjectName.Parse(tableName);
+			if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+				var exp = ExpressionBuilder.Build(constraint.CheckExpression);
+				return ConstraintInfo.Check(constraint.ConstraintName, objTableName, exp, constraint.Columns.ToArray());
+			}
+			if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase))
+				return ConstraintInfo.PrimaryKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray());
+			if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase))
+				return ConstraintInfo.Unique(constraint.ConstraintName, objTableName, constraint.Columns.ToArray());
+			if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+				var fTable = ObjectName.Parse(constraint.ReferencedTableName.Name);
+				var fColumns = constraint.ReferencedColumns;
+				var fkey = ConstraintInfo.ForeignKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray(), fTable,
+					fColumns.ToArray());
+				if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
+					fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
+				if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
+					fkey.OnUpdate = GetForeignKeyAction(constraint.OnUpdateAction);
+
+				return fkey;
+			}
+
+			throw new NotSupportedException();
+		}
+
+		private static ForeignKeyAction GetForeignKeyAction(string actionName) {
+			if (String.Equals("NO ACTION", actionName, StringComparison.OrdinalIgnoreCase) ||
+				String.Equals("NOACTION", actionName, StringComparison.OrdinalIgnoreCase))
+				return ForeignKeyAction.NoAction;
+			if (String.Equals("CASCADE", actionName, StringComparison.OrdinalIgnoreCase))
+				return ForeignKeyAction.Cascade;
+			if (String.Equals("SET DEFAULT", actionName, StringComparison.OrdinalIgnoreCase) ||
+				String.Equals("SETDEFAULT", actionName, StringComparison.OrdinalIgnoreCase))
+				return ForeignKeyAction.SetDefault;
+			if (String.Equals("SET NULL", actionName, StringComparison.OrdinalIgnoreCase) ||
+				String.Equals("SETNULL", actionName, StringComparison.OrdinalIgnoreCase))
+				return ForeignKeyAction.SetNull;
+
+			throw new NotSupportedException();
+		}
+
 		#region CreateTable
 
 		static class CreateTable {
 			public static void Build(IQueryContext context, CreateTableNode node, ICollection<SqlStatement> statements) {
 				string idColumn = null;
 
-				var dataTypeBuilder = new DataTypeBuilder();
-
 				var tableName = node.TableName;
-				var objTableName = ObjectName.Parse(tableName.Name);
 				var constraints = new List<ConstraintInfo>();
 				var columns = new List<SqlTableColumn>();
 
-				var expBuilder = new ExpressionBuilder();
-
 				foreach (var column in node.Columns) {
-					var dataType = dataTypeBuilder.Build(context.TypeResolver(), column.DataType);
-
-					var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
-
-					if (column.Default != null)
-						columnInfo.DefaultExpression = expBuilder.Build(column.Default);
-
 					if (column.IsIdentity) {
 						if (!String.IsNullOrEmpty(idColumn))
 							throw new InvalidOperationException(String.Format("Table {0} defines already {1} as identity column.",
@@ -172,59 +244,16 @@ namespace Deveel.Data.Sql.Parser {
 								idColumn));
 
 						idColumn = column.ColumnName.Text;
-
-						columnInfo.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-							new[] {SqlExpression.Constant(node.TableName.Name)});
 					}
 
-					foreach (var constraint in column.Constraints) {
-						if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							var exp = expBuilder.Build(constraint.CheckExpression);
-							constraints.Add(ConstraintInfo.Check(objTableName, exp, column.ColumnName.Text));
-						} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							var fTable = ObjectName.Parse(constraint.ReferencedTable.Name);
-							var fColumn = constraint.ReferencedColumn.Text;
-							var fkey = ConstraintInfo.ForeignKey(objTableName, column.ColumnName.Text, fTable, fColumn);
-							if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
-								fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
-							if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
-								fkey.OnUpdate = GetForeignKeyAction(constraint.OnUpdateAction);
-
-							constraints.Add(fkey);
-						} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							constraints.Add(ConstraintInfo.PrimaryKey(objTableName, column.ColumnName.Text));
-						} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							constraints.Add(ConstraintInfo.Unique(objTableName, column.ColumnName.Text));
-						} else if (String.Equals(ConstraintTypeNames.NotNull, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							columnInfo.IsNotNull = true;
-						} else if (String.Equals(ConstraintTypeNames.Null, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-							columnInfo.IsNotNull = false;
-						}
-					}
+					var columnInfo = BuildColumnInfo(context, tableName.Name, column, constraints);
 
 					columns.Add(columnInfo);
 				}
 
 				foreach (var constraint in node.Constraints) {
-					if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						var exp = expBuilder.Build(constraint.CheckExpression);
-						constraints.Add(ConstraintInfo.Check(constraint.ConstraintName, objTableName, exp, constraint.Columns.ToArray()));
-					} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						constraints.Add(ConstraintInfo.PrimaryKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray()));
-					} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						constraints.Add(ConstraintInfo.Unique(constraint.ConstraintName, objTableName, constraint.Columns.ToArray()));
-					} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-						var fTable = ObjectName.Parse(constraint.ReferencedTableName.Name);
-						var fColumns = constraint.ReferencedColumns;
-						var fkey = ConstraintInfo.ForeignKey(constraint.ConstraintName, objTableName, constraint.Columns.ToArray(), fTable,
-							fColumns.ToArray());
-						if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
-							fkey.OnDelete = GetForeignKeyAction(constraint.OnDeleteAction);
-						if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
-							fkey.OnUpdate = GetForeignKeyAction(constraint.OnUpdateAction);
-
-						constraints.Add(fkey);
-					}
+					var constraintInfo = BuildConstraint(context, tableName.Name, constraint);
+					statements.Add(new AlterTableStatement(tableName.Name, new AddConstraintAction(constraintInfo)));
 				}
 
 				//TODO: Optimization: merge same constraints
@@ -234,22 +263,6 @@ namespace Deveel.Data.Sql.Parser {
 				foreach (var constraint in constraints) {
 					statements.Add(MakeAlterTableAddConstraint(tableName.Name, constraint));
 				}
-			}
-
-			private static ForeignKeyAction GetForeignKeyAction(string actionName) {
-				if (String.Equals("NO ACTION", actionName, StringComparison.OrdinalIgnoreCase) ||
-					String.Equals("NOACTION", actionName, StringComparison.OrdinalIgnoreCase))
-					return ForeignKeyAction.NoAction;
-				if (String.Equals("CASCADE", actionName, StringComparison.OrdinalIgnoreCase))
-					return ForeignKeyAction.Cascade;
-				if (String.Equals("SET DEFAULT", actionName, StringComparison.OrdinalIgnoreCase) ||
-					String.Equals("SETDEFAULT", actionName, StringComparison.OrdinalIgnoreCase))
-					return ForeignKeyAction.SetDefault;
-				if (String.Equals("SET NULL", actionName, StringComparison.OrdinalIgnoreCase) ||
-					String.Equals("SETNULL", actionName, StringComparison.OrdinalIgnoreCase))
-					return ForeignKeyAction.SetNull;
-
-				throw new NotSupportedException();
 			}
 
 			private static SqlStatement MakeAlterTableAddConstraint(string tableName, ConstraintInfo constraint) {
@@ -270,9 +283,65 @@ namespace Deveel.Data.Sql.Parser {
 
 		#region AlterTable
 
-		class AlterTable {
+		static class AlterTable {
 			public static void Build(IQueryContext context, AlterTableNode node, ICollection<SqlStatement> statements) {
-				// TODO:
+				if (node.CreateTable != null) {
+					CreateTable.Build(context, node.CreateTable, statements);
+					foreach (var statement in statements) {
+						if (statement is CreateTableStatement)
+							((CreateTableStatement) statement).IfNotExists = true;
+					}
+				} else if (node.Actions != null) {
+					foreach (var action in node.Actions) {
+						BuildAction(context, node.TableName, action, statements);
+					}
+				}
+			}
+
+			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
+				if (action is AddColumnNode) {
+					var column = ((AddColumnNode) action).Column;
+					var constraints = new List<ConstraintInfo>();
+					var columnInfo = BuildColumnInfo(context, tableName, column, constraints);
+
+					statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
+
+					foreach (var constraint in constraints) {
+						statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
+					}
+				} else if (action is AddConstraintNode) {
+					var constraint = ((AddConstraintNode) action).Constraint;
+
+					var constraintInfo = BuildConstraint(context, tableName, constraint);
+					statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraintInfo)));
+				} else if (action is DropColumnNode) {
+					var columnName = ((DropColumnNode) action).ColumnName;
+					statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnName)));
+				} else if (action is DropConstraintNode) {
+					var constraintName = ((DropConstraintNode) action).ConstraintName;
+					statements.Add(new AlterTableStatement(tableName, new DropConstraintAction(constraintName)));
+				} else if (action is SetDefaultNode) {
+					var actionNode = ((SetDefaultNode) action);
+					var columnName =actionNode.ColumnName;
+					var expression = ExpressionBuilder.Build(actionNode.Expression);
+					statements.Add(new AlterTableStatement(tableName, new SetDefaultAction(columnName, expression)));
+				} else if (action is DropDefaultNode) {
+					var columnName = ((DropDefaultNode) action).ColumnName;
+					statements.Add(new AlterTableStatement(tableName, new DropDefaultAction(columnName)));
+				} else if (action is AlterColumnNode) {
+					var column = ((AlterColumnNode) action).Column;
+					var constraints = new List<ConstraintInfo>();
+					var columnInfo = BuildColumnInfo(context, tableName, column, constraints);
+
+					// CHECK: Here we do a drop and add column: is there a better way on the back-end?
+					statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnInfo.ColumnName)));
+
+					statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
+
+					foreach (var constraint in constraints) {
+						statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
+					}
+				}
 			}
 		}
 

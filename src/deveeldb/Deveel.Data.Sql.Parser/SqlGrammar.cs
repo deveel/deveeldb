@@ -14,6 +14,8 @@
 //    limitations under the License.
 //
 
+using Deveel.Data.Sql.Statements;
+
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
@@ -69,6 +71,7 @@ namespace Deveel.Data.Sql.Parser {
 			                    toModifyData;
 
 			toDefineData.Rule = Create() |
+								Alter() |
 			                    Drop();
 
 			toModifyData.Rule = Select() |
@@ -154,6 +157,8 @@ namespace Deveel.Data.Sql.Parser {
 			return plsqlBlock;
 		}
 
+		#region CREATE ...
+
 		private NonTerminal Create() {
 			var createCommand = new NonTerminal("create_command");
 
@@ -212,7 +217,10 @@ namespace Deveel.Data.Sql.Parser {
 			columnIdentityOpt.Rule = Empty | IDENTITY;
 			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
 			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
-			fkeyActionType.Rule = CASCADE | SET + NULL | SET + DEFAULT | NO + ACTION;
+			fkeyActionType.Rule = Key("CASCADE") |
+			                      Key("SET") + Key("NULL") |
+			                      Key("SET") + Key("DEFAULT") |
+			                      Key("NO") + Key("ACTION");
 
 			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
 			tableConstraintNameOpt.Rule = Empty | CONSTRAINT + constraintName;
@@ -345,6 +353,93 @@ namespace Deveel.Data.Sql.Parser {
 
 			return createType;
 		}
+
+		#endregion
+
+		#region ALTER ...
+
+		private NonTerminal Alter() {
+			var alterCommand = new NonTerminal("alter_command");
+
+			alterCommand.Rule = AlterTable();
+
+			return alterCommand;
+		}
+
+		private NonTerminal AlterTable() {
+			var alterTable = new NonTerminal("alter_table", typeof(AlterTableNode));
+			var alterActions = new NonTerminal("alter_actions");
+			var alterAction = new NonTerminal("alter_action");
+			var addColumn = new NonTerminal("add_column", typeof(AddColumnNode));
+			var columnOpt = new NonTerminal("column_opt");
+			var addConstraint = new NonTerminal("add_constraint", typeof(AddConstraintNode));
+			var dropColumn = new NonTerminal("drop_column", typeof(DropColumnNode));
+			var dropConstraint = new NonTerminal("drop_constraint", typeof(DropConstraintNode));
+			var dropPrimaryKey = new NonTerminal("drop_primary_key", typeof(DropPrimaryKeyNode));
+			var setDefault = new NonTerminal("set_default", typeof(SetDefaultNode));
+			var alterColumn = new NonTerminal("alter_column", typeof(AlterColumnNode));
+			var dropDefault = new NonTerminal("drop_default", typeof(DropDefaultNode));
+			var columnDef = new NonTerminal("column_def", typeof(TableColumnNode));
+			var columnConstraintList = new NonTerminal("column_constraint_lst");
+			var columnDefaultOpt = new NonTerminal("column_default_opt");
+			var columnIdentityOpt = new NonTerminal("column_identity_opt");
+			var columnConstraint = new NonTerminal("column_constraint");
+			var columnConstraintRefOpt = new NonTerminal("column_constraint_ref_opt");
+			var fkeyActionList = new NonTerminal("fkey_action_list");
+			var fkeyAction = new NonTerminal("fkey_action");
+			var fkeyActionType = new NonTerminal("fkey_action_type");
+			var tableConstraint = new NonTerminal("table_constraint", typeof(TableConstraintNode));
+			var constraintName = new NonTerminal("constraint_name");
+			var tableConstraintNameOpt = new NonTerminal("table_constraint_name_opt");
+			var defTableConstraint = new NonTerminal("def_table_constraint");
+			var columnList = new NonTerminal("column_list");
+
+			alterTable.Rule = Key("ALTER") + Key("TABLE") + ObjectName() + alterActions;
+			alterActions.Rule = MakePlusRule(alterActions, alterAction);
+			alterAction.Rule = addColumn | addConstraint | dropColumn | dropConstraint | dropPrimaryKey | setDefault | dropDefault | alterColumn;
+			addColumn.Rule = Key("ADD") + columnOpt + columnDef;
+			columnOpt.Rule = Empty | Key("COLUMN");
+			dropColumn.Rule = Key("DROP") + columnOpt + Identifier;
+			addConstraint.Rule = Key("ADD") + Key("CONSTRAINT") + tableConstraint;
+			dropConstraint.Rule = Key("DROP") + Key("CONSTRAINT") + Identifier;
+			dropPrimaryKey.Rule = Key("DROP") + Key("PRIMARY") + Key("KEY");
+			dropDefault.Rule = Key("ALTER") + columnOpt + Identifier + Key("DROP") + Key("DEFAULT");
+			setDefault.Rule = Key("ALTER") + columnOpt + Identifier + Key("SET") + Key("DEFAULT") + SqlExpression();
+			alterColumn.Rule = Key("ALTER") + columnOpt + columnDef;
+			columnDef.Rule = Identifier + DataType() + columnConstraintList + columnDefaultOpt + columnIdentityOpt;
+			columnIdentityOpt.Rule = columnConstraintList.Rule = MakeStarRule(columnConstraintList, columnConstraint);
+			columnConstraint.Rule = Key("NULL") |
+									 Key("NOT") + Key("NULL") |
+									 Key("UNIQUE") |
+									 "PRIMARY" + "KEY" |
+									 "CHECK" + SqlExpression() |
+									 "REFERENCES" + ObjectName() + columnConstraintRefOpt + fkeyActionList;
+			columnConstraintRefOpt.Rule = Empty | "(" + Identifier + ")";
+			columnDefaultOpt.Rule = Empty | DEFAULT + SqlExpression();
+			columnIdentityOpt.Rule = Empty | IDENTITY;
+			columnIdentityOpt.Rule = Empty | IDENTITY;
+			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
+			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
+			fkeyActionType.Rule = Key("CASCADE") |
+								  Key("SET") + Key("NULL") |
+								  Key("SET") + Key("DEFAULT") |
+								  Key("NO") + Key("ACTION");
+
+			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
+			tableConstraintNameOpt.Rule = Empty | CONSTRAINT + constraintName;
+			constraintName.Rule = Identifier;
+			defTableConstraint.Rule = PRIMARY + KEY + "(" + columnList + ")" |
+										UNIQUE + "(" + columnList + ")" |
+										CHECK + "(" + SqlExpression() + ")" |
+										FOREIGN + KEY + "(" + columnList + ")" + REFERENCES + ObjectName() + "(" + columnList +
+										")" +
+										fkeyActionList;
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
+
+			return alterTable;
+		}
+
+		#endregion
 
 		private NonTerminal Drop() {
 			var dropCommand = new NonTerminal("drop_command");
