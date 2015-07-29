@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 using Deveel.Data.Client;
 using Deveel.Data.Configuration;
@@ -141,15 +142,22 @@ namespace Deveel.Data {
 		[SetUp]
 		public void TestSetUp() {
 			connection = (DeveelDbConnection)system.GetConnection(AdminUser, AdminPassword);
+			if (connection.State != ConnectionState.Open)
+				connection.Open();
+
 			OnTestSetUp();
 		}
 
 		[TearDown]
 		public void TestTearDown() {
-			OnTestTearDown();
+			try {
+				OnTestTearDown();
 
-			if (connection != null)
-				connection.Close();
+				Rollback();
+			} finally {
+				if (connection != null)
+					connection.Close();
+			}
 		}
 
 
@@ -189,9 +197,26 @@ namespace Deveel.Data {
 			}
 		}
 
-		protected int ExecuteNonQuery(string commandText) {
-			DeveelDbCommand command = Connection.CreateCommand(commandText);
-			return command.ExecuteNonQuery();
+		protected int ExecuteNonQuery(string commandText, bool autocommit = true) {
+			IDbTransaction tnx = null;
+
+			try {
+				if (autocommit)
+					tnx = Connection.BeginTransaction();
+
+				DeveelDbCommand command = Connection.CreateCommand(commandText);
+				var result = command.ExecuteNonQuery();
+
+				if (tnx != null)
+					tnx.Commit();
+
+				tnx = null;
+
+				return result;
+			} finally {
+				if (tnx != null)
+					tnx.Rollback();
+			}
 		}
 
 		protected object ExecuteScalar(string commandText) {

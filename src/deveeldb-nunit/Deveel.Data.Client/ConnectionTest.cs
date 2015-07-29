@@ -33,20 +33,20 @@ namespace Deveel.Data.Client {
 			Assert.IsTrue(connection.State == ConnectionState.Closed);
 		}
 
-		[Test]
-		public void ConnectToRemote() {
-			// we connect to 127.0.0.1 which is the IPv4 local loopbak
-			// but not specifying the "Local" address to the connection
-			// string triggers the RemoteDatabaseInterface, which is what
-			// we want to test...
+		//[Test]
+		//public void ConnectToRemote() {
+		//	// we connect to 127.0.0.1 which is the IPv4 local loopbak
+		//	// but not specifying the "Local" address to the connection
+		//	// string triggers the RemoteDatabaseInterface, which is what
+		//	// we want to test...
 
-			const string connString = "Host=127.0.0.1;User=SA;Password=123456;Database=testdb";
+		//	const string connString = "Host=127.0.0.1;User=SA;Password=123456;Database=testdb";
 
-			var connection = new DeveelDbConnection(connString);
-			Assert.DoesNotThrow(connection.Open);
-			Assert.IsTrue(connection.State == ConnectionState.Broken);
-			Assert.DoesNotThrow(connection.Close);
-			Assert.IsTrue(connection.State == ConnectionState.Closed);
-		}
+		//	var connection = new DeveelDbConnection(connString);
+		//	Assert.DoesNotThrow(connection.Open);
+		//	Assert.IsTrue(connection.State == ConnectionState.Broken);
+		//	Assert.DoesNotThrow(connection.Close);
+		//	Assert.IsTrue(connection.State == ConnectionState.Closed);
+		//}
 	}
 }

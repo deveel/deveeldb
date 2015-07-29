@@ -23,45 +23,34 @@ namespace Deveel.Data.Client {
 			trigger.ObjectName = "Person";
 			trigger.Create();
 			trigger.Subscribe(invoke => {
-				Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times for {3})", invoke.TriggerName, invoke.ObjectName, invoke.Count, invoke.EventType);
+				Console.Out.WriteLine("Trigger {0} was fired on {1} (fired {2} times for {3})", invoke.TriggerName,
+					invoke.ObjectName, invoke.Count, invoke.EventType);
 
 				Assert.AreEqual(count, invoke.Count);
 				Assert.AreEqual(eventType, invoke.EventType);
 				Assert.AreEqual("PersonModified", invoke.TriggerName);
 			});
 
-			using (var transaction = Connection.BeginTransaction()) {
-				eventType = TriggerEventType.Insert;
+			eventType = TriggerEventType.Insert;
 
-				Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
-				count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')");
+			Console.Out.WriteLine("Inserting a new entry in the table 'Person'.");
+			count = ExecuteNonQuery("INSERT INTO Person (name, age, lives_in) VALUES ('Lorenzo Thione', 30, 'Texas')", true);
 
-				Assert.AreEqual(1, count);
+			Assert.AreEqual(1, count);
 
-				transaction.Commit();
-			}
+			// wait few milliseconds to be sure the test will succeed...
+			Thread.Sleep(300);
 
-			using (var transaction = Connection.BeginTransaction()) {
-				// wait few milliseconds to be sure the test will succeed...
-				Thread.Sleep(300);
+			eventType = TriggerEventType.Update;
+			count = ExecuteNonQuery("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'", true);
 
-				eventType = TriggerEventType.Update;
-				count = ExecuteNonQuery("UPDATE Person SET lives_in = 'San Francisco' WHERE name = 'Lorenzo Thione'");
-
-				Assert.AreEqual(1, count);
-
-				transaction.Commit();
-			}
+			Assert.AreEqual(1, count);
 
 			Thread.Sleep(300);
 
-			using (var transaction = Connection.BeginTransaction()) {
-				count = ExecuteNonQuery("DELETE FROM Person WHERE name = 'Lorenzo Thione'");
+			count = ExecuteNonQuery("DELETE FROM Person WHERE name = 'Lorenzo Thione'", true);
 
-				Assert.AreEqual(1, count);
-
-				transaction.Commit();
-			}
+			Assert.AreEqual(1, count);
 		}
 
 		[Test]

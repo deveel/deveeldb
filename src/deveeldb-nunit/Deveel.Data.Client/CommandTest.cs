@@ -89,7 +89,7 @@ namespace Deveel.Data.Client {
 			command.CommandText = "SELECT * FROM Person WHERE Name = 'antonello'";
 
 			Assert.IsTrue(connection.State == ConnectionState.Closed);
-			Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
+			Assert.Throws<DeveelDbException>(() => command.ExecuteNonQuery());
 		}
 
 		[Test]

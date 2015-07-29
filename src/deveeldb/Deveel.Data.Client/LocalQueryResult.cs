@@ -143,14 +143,14 @@ namespace Deveel.Data.Protocol {
 				Download(realIndex, fetchSize);
 				// Set up the index into the downloaded block.
 				rowOffset = realIndex - blockTopRow;
-				realIndexOffset = rowOffset*ColumnCount;
+				realIndexOffset = rowOffset;
 			} else if (rowOffset < 0) {
 				int fsDif = System.Math.Min(fetchSize, 8);
 				// Need to download the next block from the server.
 				Download(realIndex - fetchSize + fsDif, fetchSize);
 				// Set up the index into the downloaded block.
 				rowOffset = realIndex - blockTopRow;
-				realIndexOffset = rowOffset*ColumnCount;
+				realIndexOffset = rowOffset;
 			}
 		}
 
@@ -359,7 +359,7 @@ namespace Deveel.Data.Protocol {
 		private void RealIndexUpdate() {
 			// Set up the index into the downloaded block.
 			int rowOffset = realIndex - blockTopRow;
-			realIndexOffset = rowOffset * ColumnCount;
+			realIndexOffset = rowOffset;
 		}
 
 		public bool First() {
