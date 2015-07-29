@@ -41,6 +41,8 @@ namespace Deveel.Data.DbSystem {
 			return new SystemQueryContext(queryContext.Session.Transaction, queryContext.CurrentSchema);
 		}
 
+		#region Properties
+
 		public static IDatabase Database(this IQueryContext context) {
 			return context.Session.Database;
 		}
@@ -85,6 +87,8 @@ namespace Deveel.Data.DbSystem {
 			return context.DatabaseContext().SystemContext;
 		}
 
+		#endregion
+
 		#region Objects
 
 		public static bool ObjectExists(this IQueryContext context, ObjectName objectName) {
@@ -111,12 +115,49 @@ namespace Deveel.Data.DbSystem {
 			context.Session.CreateObject(objectInfo);
 		}
 
+		public static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
+			// TODO: Verify also here the user privileges?
+			context.Session.AlterObject(objectInfo);
+		}
+
 		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
 			return context.Session.ResolveObjectName(name);
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			return context.Session.ResolveObjectName(objectType, objectName);
+		}
+
+		public static int DropConstraint(this IQueryContext context, ObjectName tableName, string constraintName) {
+			throw new NotImplementedException();
+		}
+
+		public static void AddConstraint(this IQueryContext context, ObjectName tableName, ConstraintInfo constraintInfo) {
+			throw new NotImplementedException();
+		}
+
+		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		public static void CheckConstraints(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		public static ConstraintInfo[] GetTableImportedForeignKeys(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		public static ConstraintInfo[] GetTableForeignKeys(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		public static ConstraintInfo GetTablePrimaryKey(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		public static ConstraintInfo[] GetTableUniqueKeys(this IQueryContext context, ObjectName tableName) {
+			throw new NotImplementedException();
 		}
 
 		#endregion
@@ -192,6 +233,13 @@ namespace Deveel.Data.DbSystem {
 			}
 
 			context.Session.CreateTable(tableInfo, temporary);			
+		}
+
+		public static void AlterTable(this IQueryContext context, TableInfo tableInfo) {
+			if (!context.UserCanAlterTable(tableInfo.TableName))
+				throw new InvalidAccessException(tableInfo.TableName);
+
+			context.AlterObject(tableInfo);
 		}
 
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {

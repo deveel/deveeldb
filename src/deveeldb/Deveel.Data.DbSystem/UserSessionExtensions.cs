@@ -69,6 +69,10 @@ namespace Deveel.Data.DbSystem {
 			session.Transaction.CreateObject(objectInfo);
 		}
 
+		public static void AlterObject(this IUserSession session, IObjectInfo objectInfo) {
+			session.Transaction.AlterObject(objectInfo);
+		}
+
 		public static bool ObjectExists(this IUserSession session, ObjectName objectName) {
 			return session.Transaction.ObjectExists(objectName);
 		}

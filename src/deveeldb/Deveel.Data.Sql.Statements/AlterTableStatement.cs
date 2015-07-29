@@ -15,6 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
@@ -63,6 +66,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			}
 
+			public bool CheckColumnNamesMatch(IQueryContext db, String col1, String col2) {
+				var comparison = db.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+				return col1.Equals(col2, comparison);
+			}
+
 			public override ITable Evaluate(IQueryContext context) {
 				if (!context.UserCanAlterTable(TableName))
 					throw new InvalidAccessException(TableName);
@@ -76,11 +84,146 @@ namespace Deveel.Data.Sql.Statements {
 
 				var checker = ColumnChecker.Default(context, TableName);
 
-				// Set to true if the table topology is alter, or false if only
-				// the constraints are changed.
 				bool tableAltered = false;
+				bool markDropped = false;
 
-				throw new NotImplementedException();
+				for (int n = 0; n < tableInfo.ColumnCount; ++n) {
+					var column = tableInfo[n];
+
+					string columnName = column.ColumnName;
+					var columnType = column.ColumnType;
+					var defaultExpression = column.DefaultExpression;
+
+					if (Action.ActionType == AlterTableActionType.SetDefault &&
+					    CheckColumnNamesMatch(context, ((SetDefaultAction) Action).ColumnName, columnName)) {
+						var exp = ((SetDefaultAction) Action).DefaultExpression;
+						exp = checker.CheckExpression(exp);
+						defaultExpression = exp;
+						tableAltered = true;
+					} else if (Action.ActionType == AlterTableActionType.DropDefault &&
+					           CheckColumnNamesMatch(context, ((DropDefaultAction) Action).ColumnName, columnName)) {
+						defaultExpression = null;
+						tableAltered = true;
+					} else if (Action.ActionType == AlterTableActionType.DropColumn &&
+					           CheckColumnNamesMatch(context, ((DropColumnAction) Action).ColumnName, columnName)) {
+						// Check there are no referential links to this column
+						var refs = context.GetTableImportedForeignKeys(TableName);
+						foreach (var reference in refs) {
+							CheckColumnConstraint(columnName, reference.ForeignColumnNames, reference.ForeignTable, reference.ConstraintName);
+						}
+
+						// Or from it
+						refs = context.GetTableForeignKeys(TableName);
+						foreach (var reference in refs) {
+							CheckColumnConstraint(columnName, reference.ColumnNames, reference.TableName, reference.ConstraintName);
+						}
+
+						// Or that it's part of a primary key
+						var primaryKey = context.GetTablePrimaryKey(TableName);
+						if (primaryKey != null)
+							CheckColumnConstraint(columnName, primaryKey.ColumnNames, TableName, primaryKey.ConstraintName);
+
+						// Or that it's part of a unique set
+						var uniques = context.GetTableUniqueKeys(TableName);
+						foreach (var unique in uniques) {
+							CheckColumnConstraint(columnName, unique.ColumnNames, TableName, unique.ConstraintName);
+						}
+
+						markDropped = true;
+						tableAltered = true;
+					}
+
+					var newColumn = new ColumnInfo(columnName, columnType);
+					if (defaultExpression != null)
+						newColumn.DefaultExpression = defaultExpression;
+
+					newColumn.IndexType = column.IndexType;
+					newColumn.IsNotNull = column.IsNotNull;
+
+					// If not dropped then add to the new table definition.
+					if (!markDropped) {
+						newTableInfo.AddColumn(newColumn);
+					}
+				}
+
+				if (Action.ActionType == AlterTableActionType.AddColumn) {
+					var col = ((AddColumnAction)Action).Column;
+
+					checker.CheckExpression(col.DefaultExpression);
+					var columnName = col.ColumnName;
+					var columnType = col.ColumnType;
+
+					// If column name starts with [table_name]. then strip it off
+					columnName = checker.StripTableName(TableName.Name, columnName);
+					if (tableInfo.IndexOfColumn(col.ColumnName) != -1)
+						throw new InvalidOperationException("The column '" + col.ColumnName + "' is already in the table '" + tableInfo.TableName + "'.");
+
+					var newColumn = new ColumnInfo(columnName, columnType) {
+						IsNotNull = col.IsNotNull,
+						DefaultExpression = col.DefaultExpression
+					};
+
+					newTableInfo.AddColumn(newColumn);
+					tableAltered = true;
+				}
+
+				if (Action.ActionType == AlterTableActionType.DropConstraint) {
+					string constraintName = ((DropConstraintAction)Action).ConstraintName;
+					int dropCount = context.DropConstraint(TableName, constraintName);
+					if (dropCount == 0)
+						throw new InvalidOperationException("Named constraint to drop on table " + TableName + " was not found: " + constraintName);
+				} else if (Action.ActionType == AlterTableActionType.DropPrimaryKey) {
+					if (!context.DropPrimaryKey(TableName))
+						throw new InvalidOperationException("No primary key to delete on table " + TableName);
+				}
+
+				if (Action.ActionType == AlterTableActionType.AddConstraint) {
+					var constraint = ((AddConstraintAction)Action).Constraint;
+					bool foreignConstraint = (constraint.ConstraintType == ConstraintType.ForeignKey);
+
+					ObjectName refTname = null;
+					if (foreignConstraint) {
+						refTname = context.ResolveTableName(constraint.ForeignTable);
+					}
+
+					var columnNames = checker.StripColumnList(TableName.FullName, constraint.ColumnNames);
+					columnNames = checker.StripColumnList(constraint.ForeignTable.FullName, columnNames);
+					var expression = checker.CheckExpression(constraint.CheckExpression);
+					columnNames = checker.CheckColumns(columnNames);
+
+					IEnumerable<string> refCols = null;
+					if (foreignConstraint && constraint.ForeignColumnNames != null) {
+						var referencedChecker = ColumnChecker.Default(context, refTname);
+						refCols = referencedChecker.CheckColumns(constraint.ForeignColumnNames);
+					}
+
+					var newConstraint = new ConstraintInfo(constraint.ConstraintType, constraint.TableName, columnNames.ToArray());
+					if (foreignConstraint) {
+						newConstraint.ForeignTable = refTname;
+						newConstraint.ForeignColumnNames = refCols.ToArray();
+					}
+
+					if (constraint.ConstraintType == ConstraintType.Check)
+						newConstraint.CheckExpression = expression;
+
+					context.AddConstraint(TableName, newConstraint);
+				}
+
+				// Alter the existing table to the new format...
+				if (tableAltered) {
+					if (newTableInfo.ColumnCount == 0)
+						throw new InvalidOperationException("Can not ALTER table to have 0 columns.");
+
+					context.AlterTable(newTableInfo);
+				} else {
+					// If the table wasn't physically altered, check the constraints.
+					// Calling this method will also make the transaction check all
+					// deferred constraints during the next commit.
+					context.CheckConstraints(TableName);
+				}
+
+				// Return '0' if everything successful.
+				return FunctionTable.ResultTable(context, 0);
 			}
 		}
 
