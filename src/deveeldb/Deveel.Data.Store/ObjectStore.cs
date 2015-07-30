@@ -91,7 +91,7 @@ namespace Deveel.Data.Store {
 				// Pull free block from the delete chain and recycle it.
 				long recycledRecord = firstDeleteChainRecord;
 				IArea block = fixedList.GetRecord(recycledRecord);
-				int recordPos = block.Position;
+				var recordPos = block.Position;
 				// Status of the recycled block
 				int status = block.ReadInt4();
 				if ((status & DeletedFlag) == 0)
@@ -277,7 +277,7 @@ namespace Deveel.Data.Store {
 				IArea block = fixedList.GetRecord(refId);
 
 				// Record the position
-				int recordPos = block.Position;
+				var recordPos = block.Position;
 				// Read the information in the fixed record
 				int status = block.ReadInt4();
 				// Assert that the status is open
@@ -537,7 +537,7 @@ namespace Deveel.Data.Store {
 				lock (fixedList) {
 					// Update the record in the fixed list.
 					IArea block = fixedList.GetRecord(id);
-					int recordPos = block.Position;
+					var recordPos = block.Position;
 					int status = block.ReadInt4();
 					if (status != 1)
 						throw new Exception("Assertion failed: record is not static.");
@@ -559,7 +559,7 @@ namespace Deveel.Data.Store {
 				lock (fixedList) {
 					// Update the record in the fixed list.
 					IArea block = fixedList.GetRecord(id);
-					int recordPos = block.Position;
+					var recordPos = block.Position;
 					int status = block.ReadInt4();
 					if (status != 1)
 						throw new Exception("Assertion failed: Record is not static (status = " + status + ")");

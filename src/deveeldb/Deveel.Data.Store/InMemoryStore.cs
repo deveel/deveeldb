@@ -205,7 +205,7 @@ namespace Deveel.Data.Store {
 
 		class InMemoryArea : IArea {
 			private readonly byte[] data;
-			private int position;
+			private long position;
 			private readonly int startPosition;
 			private readonly int endPosition;
 
@@ -224,10 +224,10 @@ namespace Deveel.Data.Store {
 
 			public bool IsReadOnly { get; private set; }
 
-			public int Position {
+			public long Position {
 				get { return position; }
 				set {
-					int actPosition = startPosition + value;
+					var actPosition = startPosition + value;
 					if (actPosition < 0 || actPosition >= endPosition)
 						throw new IOException("Moved position out of bounds.");
 
@@ -241,13 +241,13 @@ namespace Deveel.Data.Store {
 
 			public int Length { get; private set; }
 
-			private int CheckPositionBounds(int diff) {
-				int newPos = position + diff;
+			private long CheckPositionBounds(int diff) {
+				var newPos = position + diff;
 				if (newPos > endPosition)
 					throw new IOException(String.Format("Attempt to read out of bounds: from {0} to {1} (position {2} to {3})",
 						startPosition, endPosition, position, newPos));
 
-				int oldPos = position;
+				var oldPos = position;
 				position = newPos;
 				return oldPos;
 			}

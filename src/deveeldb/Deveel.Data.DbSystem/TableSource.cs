@@ -771,7 +771,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Find the record entry input the block list.
 				var blockArea = recordList.GetRecord(rowNumber);
-				int pos = blockArea.Position;
+				var pos = blockArea.Position;
 				// Get the status.
 				var oldStatus = (RecordState) blockArea.ReadInt4();
 
@@ -857,7 +857,7 @@ namespace Deveel.Data.DbSystem {
 
 				// Find the record entry input the block list.
 				var blockArea = recordList.GetRecord(rowIndex);
-				int p = blockArea.Position;
+				var p = blockArea.Position;
 				var status = (RecordState) blockArea.ReadInt4();
 
 				// Check it is not already deleted
@@ -904,7 +904,7 @@ namespace Deveel.Data.DbSystem {
 				if (ctype == 1) {
 					// Type 1 is not a large object
 				} else if (ctype == 2) {
-					int curP = recordArea.Position;
+					var curP = recordArea.Position;
 					recordArea.Position = cellOffset + 4 + (ColumnCount * 8);
 
 					int btype = recordArea.ReadInt4();
@@ -954,7 +954,7 @@ namespace Deveel.Data.DbSystem {
 				// Pull free block from the delete chain and recycle it.
 				long recycledRecord = firstDeleteChainRecord;
 				var block = recordList.GetRecord(recycledRecord);
-				int recPos = block.Position;
+				var recPos = block.Position;
 
 				// Status of the recycled block
 				var status = (RecordState) block.ReadInt4();

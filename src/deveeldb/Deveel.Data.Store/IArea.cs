@@ -45,12 +45,7 @@ namespace Deveel.Data.Store {
 		/// <remarks>
 		/// The position starts at beginning of the area.
 		/// </remarks>
-		int Position { get; set; }
-
-		/// <summary>
-		/// Returns the capacity of the area.
-		/// </summary>
-		int Capacity { get; }
+		long Position { get; set; }
 
 		int Length { get; }
 
