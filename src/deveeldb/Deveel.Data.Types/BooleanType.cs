@@ -45,6 +45,14 @@ namespace Deveel.Data.Types {
 			return value is SqlBoolean || value is SqlNull;
 		}
 
+		public override Type GetObjectType() {
+			return typeof (SqlBoolean);
+		}
+
+		public override Type GetRuntimeType() {
+			return typeof(bool);
+		}
+
 		public override int Compare(ISqlObject x, ISqlObject y) {
 			if (!(x is SqlBoolean))
 				throw new ArgumentException();

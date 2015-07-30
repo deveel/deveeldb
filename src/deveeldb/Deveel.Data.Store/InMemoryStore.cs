@@ -266,12 +266,20 @@ namespace Deveel.Data.Store {
 			}
 
 			public int Read(byte[] buffer, int offset, int length) {
+#if PCL
+				Array.Copy(data, (int)CheckPositionBounds(length), buffer, offset, length);
+#else
 				Array.Copy(data, CheckPositionBounds(length), buffer, offset, length);
+#endif
 				return length;
 			}
 
 			public void Write(byte[] buffer, int offset, int length) {
+#if PCL
+				Array.Copy(buffer, offset, data, (int) CheckPositionBounds(length), length);
+#else
 				Array.Copy(buffer, offset, data, CheckPositionBounds(length), length);
+#endif
 			}
 
 			public void Flush() {

@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Sql.Objects;
+using Deveel.Math;
 
 namespace Deveel.Data.Types {
 	public sealed class NumericType : DataType, ISizeableType {
@@ -53,6 +54,31 @@ namespace Deveel.Data.Types {
 			return SqlType == other.SqlType &&
 			       Size == other.Size &&
 			       Scale == other.Scale;
+		}
+
+		public override Type GetObjectType() {
+			return typeof(SqlNumber);
+		}
+
+		public override Type GetRuntimeType() {
+			if (SqlType == SqlTypeCode.TinyInt)
+				return typeof(byte);
+			if (SqlType == SqlTypeCode.SmallInt)
+				return typeof(short);
+			if (SqlType == SqlTypeCode.Integer)
+				return typeof(int);
+			if (SqlType == SqlTypeCode.BigInt)
+				return typeof(long);
+			if (SqlType == SqlTypeCode.Float ||
+				SqlType == SqlTypeCode.Real)
+				return typeof(float);
+			if (SqlType == SqlTypeCode.Double)
+				return typeof(double);
+			if (SqlType == SqlTypeCode.Numeric ||
+				SqlType == SqlTypeCode.Decimal)
+				return typeof(BigDecimal);
+
+			return base.GetRuntimeType();
 		}
 
 		public override bool IsCacheable(ISqlObject value) {

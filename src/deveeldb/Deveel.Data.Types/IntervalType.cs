@@ -48,6 +48,22 @@ namespace Deveel.Data.Types {
 			return value is SqlNumber || value is SqlNull;
 		}
 
+		public override Type GetRuntimeType() {
+			if (SqlType == SqlTypeCode.DayToSecond)
+				return typeof (TimeSpan);
+
+			return base.GetRuntimeType();
+		}
+
+		public override Type GetObjectType() {
+			if (SqlType == SqlTypeCode.YearToMonth)
+				return typeof (SqlYearToMonth);
+			if (SqlType == SqlTypeCode.DayToSecond)
+				return typeof (SqlDayToSecond);
+
+			return base.GetObjectType();
+		}
+
 		/// <inheritdoc/>
 		public override bool IsComparable(DataType type) {
 			if (!(type is IntervalType))

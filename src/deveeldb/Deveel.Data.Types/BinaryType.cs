@@ -58,6 +58,14 @@ namespace Deveel.Data.Types {
 			return value is SqlBinary || value is SqlNull;
 		}
 
+		public override Type GetObjectType() {
+			return typeof(SqlBinary);
+		}
+
+		public override Type GetRuntimeType() {
+			return typeof (Stream);
+		}
+
 		public override string ToString() {
 			var sb = new StringBuilder(Name);
 			if (MaxSize > 0)

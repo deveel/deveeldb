@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Objects;
+
 namespace Deveel.Data.Types {
 	public sealed class ArrayType : DataType, ISizeableType {
 		public ArrayType(int length) 
@@ -27,6 +29,14 @@ namespace Deveel.Data.Types {
 
 		int ISizeableType.Size {
 			get { return Length; }
+		}
+
+		public override Type GetObjectType() {
+			return typeof(SqlArray);
+		}
+
+		public override Type GetRuntimeType() {
+			return typeof(object[]);
 		}
 	}
 }

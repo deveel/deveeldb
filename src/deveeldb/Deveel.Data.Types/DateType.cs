@@ -76,6 +76,14 @@ namespace Deveel.Data.Types {
 			return value is SqlDateTime || value is SqlNull;
 		}
 
+		public override Type GetObjectType() {
+			return typeof (SqlDateTime);
+		}
+
+		public override Type GetRuntimeType() {
+			return typeof (DateTimeOffset);
+		}
+
 		public override bool Equals(object obj) {
 			var other = obj as DataType;
 			if (other == null)

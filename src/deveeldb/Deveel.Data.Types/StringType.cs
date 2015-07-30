@@ -97,6 +97,32 @@ namespace Deveel.Data.Types {
 			return sb.ToString();
 		}
 
+		public override Type GetObjectType() {
+			if (SqlType == SqlTypeCode.Char ||
+			    SqlType == SqlTypeCode.VarChar ||
+			    SqlType == SqlTypeCode.String)
+				return typeof (SqlString);
+
+			if (SqlType == SqlTypeCode.LongVarChar ||
+			    SqlType == SqlTypeCode.Clob)
+				return typeof (SqlLongString);
+
+			return base.GetObjectType();
+		}
+
+		public override Type GetRuntimeType() {
+			if (SqlType == SqlTypeCode.Char ||
+			    SqlType == SqlTypeCode.VarChar ||
+			    SqlType == SqlTypeCode.String)
+				return typeof (string);
+
+			if (SqlType == SqlTypeCode.LongVarChar ||
+			    SqlType == SqlTypeCode.Clob)
+				return typeof (Stream);
+
+			return base.GetRuntimeType();
+		}
+
 		/// <inheritdoc/>
 		public override bool Equals(DataType other) {
 			if (!base.Equals(other))
