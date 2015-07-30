@@ -52,10 +52,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
-			return new Prepared(tableInfo, IfNotExists, Temporary);
+			return new Prepared(this, tableInfo, IfNotExists, Temporary);
 		}
 
 		private TableInfo CreateTableInfo(IQueryContext context) {
@@ -99,59 +99,50 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		public sealed class Prepared : SqlPreparedStatement {
+		class Prepared : SqlPreparedStatement {
 			public TableInfo TableInfo { get; private set; }
 
 			public bool Temporary { get; private set; }
 
 			public bool IfNotExists { get; private set; }
 
-			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+			internal Prepared(CreateTableStatement source, TableInfo tableInfo, bool ifNotExists, bool temporary)
+				: base(source) {
 				TableInfo = tableInfo;
 				IfNotExists = ifNotExists;
 				Temporary = temporary;
 			}
 
-			public override ITable Evaluate(IQueryContext context) {
-				if (!context.UserCanCreateTable(TableInfo.TableName))
-					throw new MissingPrivilegesException(TableInfo.TableName,
-						String.Format("User '{0}' has not enough privileges to create table '{1}'", context.User().Name, TableInfo.TableName));
-
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				try {
 					context.CreateTable(TableInfo, IfNotExists, Temporary);
 
-					using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
-						systemContext.GrantToUserOnTable(TableInfo.TableName, Privileges.TableAll);
-					}
 					return FunctionTable.ResultTable(context, 0);
 				} catch (SecurityException ex) {
-					throw;
-				} catch (Exception ex) {
-					// TODO: Send a specialized error
-					throw;
+					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}
 			}
 
-			#region Serializer
+			//#region Serializer
 
-			internal sealed class Serializer : ObjectBinarySerializer<Prepared> {
-				public override void Serialize(Prepared statement, BinaryWriter writer) {
-					TableInfo.SerializeTo(statement.TableInfo, writer.BaseStream);
-					writer.Write(statement.Temporary);
-					writer.Write(statement.IfNotExists);
-				}
+			//internal sealed class Serializer : ObjectBinarySerializer<Prepared> {
+			//	public override void Serialize(Prepared statement, BinaryWriter writer) {
+			//		TableInfo.SerializeTo(statement.TableInfo, writer.BaseStream);
+			//		writer.Write(statement.Temporary);
+			//		writer.Write(statement.IfNotExists);
+			//	}
 
-				public override Prepared Deserialize(BinaryReader reader) {
-					// TODO: have the type resolver passed
-					var tableInfo = TableInfo.Deserialize(reader, null);
-					var temporary = reader.ReadBoolean();
-					var ifNotExists = reader.ReadBoolean();
+			//	public override Prepared Deserialize(BinaryReader reader) {
+			//		// TODO: have the type resolver passed
+			//		var tableInfo = TableInfo.Deserialize(reader, null);
+			//		var temporary = reader.ReadBoolean();
+			//		var ifNotExists = reader.ReadBoolean();
 
-					return new Prepared(tableInfo, ifNotExists, temporary);
-				}
-			}
+			//		return new Prepared(tableInfo, ifNotExists, temporary);
+			//	}
+			//}
 
-			#endregion
+			//#endregion
 		}
 
 		#endregion

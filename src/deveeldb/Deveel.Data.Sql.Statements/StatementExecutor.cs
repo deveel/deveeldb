@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 				ITable result;
 
 				try {
-					result = prepared.Evaluate(context);
+					result = prepared.Execute(context);
 				} catch (Exception) {
 					// TODO: Invoke diagnostics here before throwing the exception
 					throw;

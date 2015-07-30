@@ -19,15 +19,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			
 			throw new NotImplementedException();
 		}
 
 		#region PreparedInsertStatement
 
-		public sealed class Prepared : SqlPreparedStatement {
-			internal Prepared(ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan) {
+		class Prepared : SqlPreparedStatement {
+			internal Prepared(InsertQueryStatement source, ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan)
+				: base(source) {
 				TableName = tableName;
 				ColumnNames = columnNames;
 				QueryPlan = queryPlan;
@@ -39,7 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IEnumerable<string> ColumnNames { get; private set; }
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				throw new NotImplementedException();
 			}
 		}

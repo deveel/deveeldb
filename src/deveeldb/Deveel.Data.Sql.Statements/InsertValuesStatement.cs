@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; } 
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 
 			var table = context.GetTable(tableName);
@@ -71,13 +71,14 @@ namespace Deveel.Data.Sql.Statements {
 				assignments.Add(valueAssign);
 			}
 
-			return new Prepared(tableName, assignments);
+			return new Prepared(this, tableName, assignments);
 		}
 
 		#region Prepared
 
 		class Prepared : SqlPreparedStatement {
-			internal Prepared(ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
+			internal Prepared(InsertValuesStatement source, ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments)
+				: base(source) {
 				TableName = tableName;
 				Assignments = assignments;
 			}
@@ -86,7 +87,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IEnumerable<SqlAssignExpression[]> Assignments { get; private set; } 
  
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				var insertCount = context.InsertIntoTable(TableName, Assignments);
 				return FunctionTable.ResultTable(context, insertCount);
 			}

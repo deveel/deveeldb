@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	/// <summary>
@@ -33,7 +34,7 @@ namespace Deveel.Data.Security {
 		/// Constructs a new user with the given name.
 		/// </summary>
 		/// <param name="name"></param>
-		public User(string name) {
+		internal User(string name) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
@@ -70,6 +71,43 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
+		}
+
+		public IQueryContext Context { get; private set; }
+
+		public bool IsAuthenticated {
+			get { return Context != null; }
+		}
+
+		public bool HasSecureAccess {
+			get {
+				if (IsSystem)
+					return true;
+				if (!IsAuthenticated)
+					return false;
+
+				return Context.UserHasSecureAccess(Name);
+			}
+		}
+
+		public string[] Groups {
+			get {
+				if (IsSystem || !IsAuthenticated)
+					return new string[0];
+
+				return Context.GetGroupsUserBelongsTo(Name);
+			}
+		}
+
+		public bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (!IsAuthenticated && !IsSystem)
+				return false;
+
+			return Context.UserHasPrivilege(objectType, objectName, privileges);
+		}
+
+		public bool CanCreateInSchema(ObjectName schemaName) {
+			return HasPrivileges(DbObjectType.Schema, schemaName, Privileges.Create);
 		}
 
 		internal bool TryGetObjectGrant(ObjectName objectName, out Privileges grant) {

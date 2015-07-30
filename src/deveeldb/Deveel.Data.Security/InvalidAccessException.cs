@@ -18,14 +18,17 @@ using System;
 
 namespace Deveel.Data.Security {
 	public class InvalidAccessException : SecurityException {
-		public InvalidAccessException(ObjectName objectName)
-			: this(objectName, BuildMessage(objectName)) {
+		public InvalidAccessException(string userName, ObjectName objectName)
+			: this(userName, objectName, BuildMessage(objectName)) {
 		}
 
-		public InvalidAccessException(ObjectName objectName, string message)
+		public InvalidAccessException(string userName, ObjectName objectName, string message)
 			: base(SecurityErrorCodes.InvalidAccess, message) {
+			UserName = userName;
 			ObjectName = objectName;
 		}
+
+		public string UserName { get; private set; }
 
 		public ObjectName ObjectName { get; private set; }
 

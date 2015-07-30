@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
@@ -34,18 +33,19 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			if (String.IsNullOrEmpty(TableName))
 				throw new StatementPrepareException("The table name is required.");
 
 			var tableName = context.ResolveTableName(TableName);
-			return new Prepared(tableName, Action);
+			return new Prepared(this, tableName, Action);
 		}
 
 		#region PreparedAlterTableStatemet
 
-		public sealed class Prepared : SqlPreparedStatement {
-			internal Prepared(ObjectName tableName, IAlterTableAction action) {
+		class Prepared : SqlPreparedStatement {
+			internal Prepared(AlterTableStatement source, ObjectName tableName, IAlterTableAction action)
+				: base(source) {
 				TableName = tableName;
 				Action = action;
 			}
@@ -66,14 +66,14 @@ namespace Deveel.Data.Sql.Statements {
 
 			}
 
-			public bool CheckColumnNamesMatch(IQueryContext db, String col1, String col2) {
-				var comparison = db.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			private bool CheckColumnNamesMatch(IQueryContext context, String col1, String col2) {
+				var comparison = context.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 				return col1.Equals(col2, comparison);
 			}
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				if (!context.UserCanAlterTable(TableName))
-					throw new InvalidAccessException(TableName);
+					throw new InvalidAccessException(context.UserName(), TableName);
 
 				var table = context.GetTable(TableName);
 				if (table == null)

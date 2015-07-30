@@ -116,7 +116,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
-			// TODO: Verify also here the user privileges?
+			if (objectInfo == null)
+				throw new ArgumentNullException("objectInfo");
+
+			if (!context.UserCanAlterObject(objectInfo.ObjectType, objectInfo.FullName))
+				throw new MissingPrivilegesException(context.UserName(), objectInfo.FullName, Privileges.Alter);
+
 			context.Session.AlterObject(objectInfo);
 		}
 
@@ -221,8 +226,7 @@ namespace Deveel.Data.DbSystem {
 			var tableName = tableInfo.TableName;
 
 			if (!context.UserCanCreateTable(tableName))
-				throw new InvalidOperationException(String.Format("The user '{0}' is not allowed to create table '{1}'.",
-					context.User().Name, tableName));
+				throw new MissingPrivilegesException(context.User().Name, tableName, Privileges.Create);
 
 			if (context.TableExists(tableName)) {
 				if (!onlyIfNotExists)
@@ -232,13 +236,14 @@ namespace Deveel.Data.DbSystem {
 				return;
 			}
 
-			context.Session.CreateTable(tableInfo, temporary);			
+			context.Session.CreateTable(tableInfo, temporary);
+
+			using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
+				systemContext.GrantToUserOnTable(tableInfo.TableName, context.User(), Privileges.TableAll);
+			}
 		}
 
 		public static void AlterTable(this IQueryContext context, TableInfo tableInfo) {
-			if (!context.UserCanAlterTable(tableInfo.TableName))
-				throw new InvalidAccessException(tableInfo.TableName);
-
 			context.AlterObject(tableInfo);
 		}
 
@@ -339,7 +344,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, ITable deleteSet, int limit) {
 			if (!context.UserCanDeleteFromTable(tableName))
-				throw new InvalidOperationException();
+				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Delete);
 
 			var table = context.GetMutableTable(tableName);
 			if (table == null)
@@ -350,16 +355,19 @@ namespace Deveel.Data.DbSystem {
 
 		public static int UpdateTable(this IQueryContext context, ObjectName tableName, IQueryPlanNode queryPlan,
 			IEnumerable<SqlAssignExpression> assignments, int limit) {
-			var columnNames = assignments.Select(x => x.Reference).Cast<SqlReferenceExpression>().Select(x => x.ReferenceName.Name).ToArray();
+			var columnNames = assignments.Select(x => x.Reference)
+				.Cast<SqlReferenceExpression>()
+				.Select(x => x.ReferenceName.Name).ToArray();
+
 			if (!context.UserCanUpdateTable(tableName, columnNames))
-				throw new InvalidOperationException();
+				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Update);
 
 			if (!context.UserCanSelectFromPlan(queryPlan))
 				throw new InvalidOperationException();
 
 			var table = context.GetMutableTable(tableName);
 			if (table == null)
-				throw new InvalidOperationException();
+				throw new ObjectNotFoundException(tableName);
 
 			var updateSet = queryPlan.Evaluate(context);
 			return table.Update(context, updateSet, assignments, limit);
@@ -369,7 +377,7 @@ namespace Deveel.Data.DbSystem {
 			var columnNames =
 				assignments.Select(x => x.Reference).Cast<SqlReferenceExpression>().Select(x => x.ReferenceName.Name).ToArray();
 			if (!context.UserCanInsertIntoTable(tableName, columnNames))
-				throw new InvalidOperationException();
+				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Insert);
 
 			var table = context.GetMutableTable(tableName);
 
@@ -403,7 +411,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string[] columnNames, string constraintName) {
 			if (!context.UserCanAlterTable(tableName))
-				throw new InvalidOperationException();	// TODO: throw a specialized exception
+				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Alter);
 
 			context.Session.AddPrimaryKey(tableName, columnNames, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
@@ -425,9 +433,10 @@ namespace Deveel.Data.DbSystem {
 		public static void AddForeignKey(this IQueryContext context, ObjectName table, string[] columns, ObjectName refTable,
 			string[] refColumns, ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred,
 			String constraintName) {
-			// TODO: throw a specialized exception
 			if (!context.UserCanAlterTable(table))
-				throw new InvalidOperationException();
+				throw new MissingPrivilegesException(context.UserName(), table, Privileges.Alter);
+			if (!context.UserCanReferenceTable(refTable))
+				throw new MissingPrivilegesException(context.UserName(), refTable, Privileges.References);
 
 			context.Session.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
 		}
@@ -448,7 +457,7 @@ namespace Deveel.Data.DbSystem {
 		public static void AddUniqueKey(this IQueryContext context, ObjectName tableName, string[] columns,
 			ConstraintDeferrability deferrability, string constraintName) {
 			if (!context.UserCanAlterTable(tableName))
-				throw new InvalidOperationException();
+				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Alter);
 
 			context.Session.AddUniqueKey(tableName, columns, deferrability, constraintName);
 		}
@@ -467,7 +476,7 @@ namespace Deveel.Data.DbSystem {
 			var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
 			foreach (var tableName in tablesInPlan) {
 				if (!context.UserCanSelectFromTable(tableName))
-					throw new InvalidOperationException(String.Format("User '{0}' cannot access the table '{1}' in the view query plan.", context.User(), tableName));
+					throw new InvalidAccessException(context.UserName(), tableName);
 			}
 
 			context.CreateObject(viewInfo);

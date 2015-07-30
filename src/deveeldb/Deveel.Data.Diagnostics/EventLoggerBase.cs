@@ -42,7 +42,7 @@ namespace Deveel.Data.Diagnostics {
 #else
 		private Thread writeThread;
 #endif
-		private List<EventLog> logs;
+		private Queue<EventLog> logs;
 		private bool isRunning;
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace Deveel.Data.Diagnostics {
 			DateFormat = DefaultDateFormat;
 
 			isRunning = true;
-			logs = new List<EventLog>();
+			logs = new Queue<EventLog>();
 
 #if !PCL
 			writeThread = new Thread(Write);
@@ -107,10 +107,12 @@ namespace Deveel.Data.Diagnostics {
 				if (logs.Count == 0)
 					Thread.Sleep(300);
 
-				foreach (var log in logs) {
-					var message = FormatMessage(log);
-					WriteToLog(message);
-				}
+				var log = logs.Dequeue();
+				if (log == null)
+					continue;
+
+				var message = FormatMessage(log);
+				WriteToLog(message);
 			}
 		}
 
@@ -124,7 +126,7 @@ namespace Deveel.Data.Diagnostics {
 			//	}
 			//}
 
-			logs.Add(logEntry);
+			logs.Enqueue(logEntry);
 		}
 
 		protected abstract void WriteToLog(string message);

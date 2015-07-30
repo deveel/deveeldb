@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 			if (!context.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
@@ -51,13 +51,14 @@ namespace Deveel.Data.Sql.Statements {
 				columns.Add(assign);
 			}
 
-			return new Prepared(tableName, queryPlan, columns.ToArray(), Limit);
+			return new Prepared(this, tableName, queryPlan, columns.ToArray(), Limit);
 		}
 
 		#region Prepared
 
-		public sealed class Prepared : SqlPreparedStatement {
-			internal Prepared(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
+		sealed class Prepared : SqlPreparedStatement {
+			internal Prepared(UpdateStatement source, ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit)
+				: base(source) {
 				TableName = tableName;
 				QueryPlan = queryPlan;
 				Columns = columns;
@@ -72,7 +73,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public int Limit { get; private set; }
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				var updateCount = context.UpdateTable(TableName, QueryPlan, Columns, Limit);
 				return FunctionTable.ResultTable(context, updateCount);
 			}

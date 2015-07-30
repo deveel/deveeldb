@@ -23,21 +23,22 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SortColumn> OrderBy { get; set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, OrderBy);
-			return new Prepared(queryPlan);
+			return new Prepared(this, queryPlan);
 		}
 
 		#region Prepared
 
 		class Prepared : SqlPreparedStatement {
-			public Prepared(IQueryPlanNode queryPlan) {
+			public Prepared(SelectStatement source, IQueryPlanNode queryPlan)
+				: base(source) {
 				QueryPlan = queryPlan;
 			}
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				return QueryPlan.Evaluate(context);
 			}
 		}

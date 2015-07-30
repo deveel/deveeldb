@@ -238,6 +238,7 @@
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
+    <Compile Include="Deveel.Data.Security\UserStatus.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
@@ -464,6 +465,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropConstraintAction.cs" />
@@ -472,15 +474,21 @@
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertValuesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetUserStatusStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlNonPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlTableConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />

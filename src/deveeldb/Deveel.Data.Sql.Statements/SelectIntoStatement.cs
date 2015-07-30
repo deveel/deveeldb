@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, null);
 
 			if (IsObjectReference) {
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (table == null)
 					throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", tableRef));
 
-				return new Prepared(queryPlan, table);
+				return new Prepared(this, queryPlan, table);
 			}
 			if (IsVariableReference) {
 				throw new NotImplementedException();
@@ -51,19 +51,20 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		class Prepared : SqlPreparedStatement {
-			internal Prepared(IQueryPlanNode queryPlan, IMutableTable table)
-				: this(queryPlan) {
+			internal Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan, IMutableTable table)
+				: this(source, queryPlan) {
 				IsForTable = true;
 				Table = table;
 			}
 
-			internal Prepared(IQueryPlanNode queryPlan, string varName)
-				: this(queryPlan) {
+			internal Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan, string varName)
+				: this(source, queryPlan) {
 				IsForTable = false;
 				VariableName = varName;
 			}
 
-			private Prepared(IQueryPlanNode queryPlan) {
+			private Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan)
+				: base(source) {
 				QueryPlan = queryPlan;
 			}
 
@@ -75,7 +76,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string VariableName { get; private set; }
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				var result = QueryPlan.Evaluate(context);
 
 				if (IsForTable) {

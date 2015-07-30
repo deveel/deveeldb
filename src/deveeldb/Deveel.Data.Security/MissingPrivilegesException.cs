@@ -18,30 +18,36 @@ using System;
 
 namespace Deveel.Data.Security {
 	public class MissingPrivilegesException : SecurityException {
-		public MissingPrivilegesException()
-			: this((ObjectName)null) {
+		public MissingPrivilegesException(string userName, ObjectName objectName)
+			: this(userName, objectName, Privileges.None) {
 		}
 
-		public MissingPrivilegesException(ObjectName objectName)
-			: this(objectName, MakeMessage(objectName)) {
+		public MissingPrivilegesException(string userName, ObjectName objectName, Privileges privileges)
+			: this(userName, objectName, privileges, MakeMessage(userName, objectName, privileges)) {
 		}
 
-		public MissingPrivilegesException(string message)
-			: this(null, message) {
+		public MissingPrivilegesException(string userName, ObjectName objectName, string message)
+			: this(userName, objectName, Privileges.None, message) {
 		}
 
-		public MissingPrivilegesException(ObjectName objectName, string message)
+		public MissingPrivilegesException(string userName, ObjectName objectName, Privileges privileges, string message)
 			: base(SecurityErrorCodes.MissingPrivileges, message) {
+			UserName = userName;
 			ObjectName = objectName;
+			Privileges = privileges;
 		}
+
+		public string UserName { get; private set; }
 
 		public ObjectName ObjectName { get; private set; }
 
-		private static string MakeMessage(ObjectName objectName) {
-			if (objectName == null)
-				return "User has not enough privileges to execute the operation.";
+		public Privileges Privileges { get; private set; }
 
-			return String.Format("User has not enough privileges to operate on '{0}'.", objectName);
+		private static string MakeMessage(string userName, ObjectName objectName, Privileges privileges) {
+			if (privileges == Privileges.None)
+				return String.Format("User '{0}' has not enough privileges to operate on the object '{1}'.", userName, objectName);
+
+			return String.Format("User '{0}' has not the privilege '{1}' on the object '{2}'.", userName, privileges, objectName);
 		}
 	}
 }

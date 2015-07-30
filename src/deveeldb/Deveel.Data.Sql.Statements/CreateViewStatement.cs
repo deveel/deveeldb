@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		protected override SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var viewName = context.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
@@ -94,13 +94,14 @@ namespace Deveel.Data.Sql.Statements {
 			var table = queryPlan.Evaluate(context);
 			var tableInfo = table.TableInfo.Alias(viewName);
 
-			return new Prepared(tableInfo, QueryExpression, queryPlan, ReplaceIfExists);
+			return new Prepared(this, tableInfo, QueryExpression, queryPlan, ReplaceIfExists);
 		}
 
 		#region Prepared
 
-		public sealed class Prepared : SqlPreparedStatement {
-			internal Prepared(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
+		class Prepared : SqlPreparedStatement {
+			internal Prepared(CreateViewStatement source, TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists)
+				: base(source) {
 				TableInfo = tableInfo;
 				QueryPlan = queryPlan;
 				ReplaceIfExists = replaceIfExists;
@@ -115,7 +116,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 
-			public override ITable Evaluate(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQueryContext context) {
 				var viewName = TableInfo.TableName;
 
 				// We have to execute the plan to get the DataTableInfo that represents the

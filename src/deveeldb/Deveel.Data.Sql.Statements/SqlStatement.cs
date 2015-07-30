@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="SqlPreparedStatement"/>
-	public abstract class SqlStatement {
+	public abstract class SqlStatement : IStatement {
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.
 		/// </summary>
@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// </returns>
 		/// <seealso cref="SqlPreparedStatement"/>
 		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
-		protected abstract SqlPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context);
+		protected abstract IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context);
 
 		/// <summary>
 		/// Prepares this statement and returns an object that can be executed
@@ -93,7 +93,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public SqlPreparedStatement Prepare(IQueryContext context) {
+		public IPreparedStatement Prepare(IQueryContext context) {
 			return Prepare(null, context);
 		}
 
@@ -110,16 +110,14 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public SqlPreparedStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
-			SqlPreparedStatement prepared;
+		public IPreparedStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
+			IPreparedStatement prepared;
 
 			try {
 				prepared = PrepareStatement(preparer, context);
 
 				if (prepared == null)
 					throw new InvalidOperationException("Preparation was invalid.");
-
-				prepared.Source = this;
 			} catch(StatementPrepareException) {
 				throw;
 			} catch (Exception ex) {
@@ -158,7 +156,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
 		public ITable Evaluate(IExpressionPreparer preparer, IQueryContext context) {
-			SqlPreparedStatement prepared;
+			IPreparedStatement prepared;
 
 			try {
 				prepared = Prepare(preparer, context);
@@ -166,7 +164,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}
 
-			return prepared.Evaluate(context);
+			return prepared.Execute(context);
 		}
 
 		/// <summary>

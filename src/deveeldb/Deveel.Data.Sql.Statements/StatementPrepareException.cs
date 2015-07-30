@@ -16,11 +16,12 @@
 
 using System;
 
-using Deveel.Data.Sql;
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
-	/// An exception that happens during the <see cref="SqlStatement.Prepare"/>.
+	/// An exception that happens during the <see cref="SqlStatement.Prepare(IExpressionPreparer, IQueryContext)"/>.
 	/// </summary>
 	public class StatementPrepareException : SqlErrorException {
 		public StatementPrepareException() 

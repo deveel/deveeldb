@@ -22,9 +22,14 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	public static class SqlModelErrorCodes {
 		/// <summary>
-		/// The preparation of a SQL statement caused an unhandled error. 
+		/// The preparation of a SQL statement caused an unhanded error. 
 		/// </summary>
 		public const int StatementPrepare = 50;
+
+		/// <summary>
+		/// The execution of a SQL statement caused an unhanded error.
+		/// </summary>
+		public const int StatementExecute = 51;
 
 		/// <summary>
 		/// A Primary Key constraint violation error code.
