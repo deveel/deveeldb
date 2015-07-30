@@ -107,12 +107,14 @@ namespace Deveel.Data.Diagnostics {
 				if (logs.Count == 0)
 					Thread.Sleep(300);
 
-				var log = logs.Dequeue();
-				if (log == null)
-					continue;
+				if (logs.Count > 0) {
+					var log = logs.Dequeue();
+					if (log == null)
+						continue;
 
-				var message = FormatMessage(log);
-				WriteToLog(message);
+					var message = FormatMessage(log);
+					WriteToLog(message);
+				}
 			}
 		}
 
