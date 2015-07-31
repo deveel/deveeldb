@@ -55,7 +55,7 @@ namespace Deveel.Data.Diagnostics {
 			context.RegisterEvent(new QueryEvent(query, statementText));
 		}
 
-		public static void RegisterQuery(this IQueryContext context, SqlStatement statement) {
+		public static void RegisterQuery(this IQueryContext context, IStatement statement) {
 			if (statement == null)
 				throw new ArgumentNullException("statement");
 

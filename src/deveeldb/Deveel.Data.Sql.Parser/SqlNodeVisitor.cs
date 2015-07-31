@@ -216,13 +216,8 @@ namespace Deveel.Data.Sql.Parser {
 
 
 		public virtual void VisitInsert(InsertStatementNode node) {
-			if (node.ValuesInsert != null)
-				VisitValuesInsert(node.ValuesInsert);
 		}
 
-		protected virtual void VisitValuesInsert(ValuesInsertNode valuesInsert) {
-			
-		}
 
 		#endregion
 	}

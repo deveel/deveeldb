@@ -180,7 +180,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
-		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
+		public static IEnumerable<IStatement> Parse(string sqlSource) {
 			return Parse(null, sqlSource);
 		}
 
@@ -197,17 +197,17 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
-		public static IEnumerable<SqlStatement> Parse(IQueryContext context, string sqlSource) {
+		public static IEnumerable<IStatement> Parse(IQueryContext context, string sqlSource) {
 			return Parse(context, new SqlQuery(sqlSource));
 		}
 
-		public static IEnumerable<SqlStatement> Parse(SqlQuery query) {
+		public static IEnumerable<IStatement> Parse(SqlQuery query) {
 			return Parse(null, query);
 		}
 
 		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
 
-		public static IEnumerable<SqlStatement> Parse(IQueryContext context, SqlQuery query) {
+		public static IEnumerable<IStatement> Parse(IQueryContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
@@ -233,7 +233,7 @@ namespace Deveel.Data.Sql.Statements {
 						statement.SetSource(query);
 				}
 
-				return statements;
+				return statements.Cast<IStatement>();
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {

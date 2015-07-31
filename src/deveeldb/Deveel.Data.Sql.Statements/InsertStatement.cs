@@ -6,8 +6,8 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertValuesStatement : SqlStatement {
-		public InsertValuesStatement(string tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
+	public sealed class InsertStatement : SqlStatement {
+		public InsertStatement(string tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
 			if (columnNames == null)
 				throw new ArgumentNullException("columnNames");
 			if (values == null)
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		class Prepared : SqlPreparedStatement {
-			internal Prepared(InsertValuesStatement source, ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments)
+			internal Prepared(InsertStatement source, ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments)
 				: base(source) {
 				TableName = tableName;
 				Assignments = assignments;

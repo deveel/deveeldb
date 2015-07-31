@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleCreateView() {
 			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
 
-			IEnumerable<SqlStatement> statements = null;
+			IEnumerable<IStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseCreateViewWithColumns() {
 			const string sql = "CREATE VIEW text_view1 (a, b, c) AS SELECT * FROM test_table WHERE a = 1";
 
-			IEnumerable<SqlStatement> statements = null;
+			IEnumerable<IStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseCreateViewWithOrReplace() {
 			const string sql = "CREATE OR REPLACE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
 
-			IEnumerable<SqlStatement> statements = null;
+			IEnumerable<IStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ExecuteSimpleCreateView() {
 			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
 
-			IEnumerable<SqlStatement> statements = null;
+			IEnumerable<IStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateViewStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}

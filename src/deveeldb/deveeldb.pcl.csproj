@@ -331,6 +331,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\ColumnSetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CompileErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTableNode.cs" />
@@ -353,8 +354,8 @@
     <Compile Include="Deveel.Data.Sql.Parser\IdentifierNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IFromSourceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\InsertSetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\InsertStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\InsertValueNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IntegerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ISqlChildNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ISqlNode.cs" />
@@ -369,11 +370,13 @@
     <Compile Include="Deveel.Data.Sql.Parser\ObjectNameNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\OrderByNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryCompositeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\QueryInsertNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryUpdateNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SelectItemNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SelectStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SequenceOfStatementsNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetDefaultNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SetInsertNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SimpleUpdateNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlBetweenExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlBinaryExpressionNode.cs" />
@@ -472,8 +475,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\InsertQueryStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\InsertValuesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />

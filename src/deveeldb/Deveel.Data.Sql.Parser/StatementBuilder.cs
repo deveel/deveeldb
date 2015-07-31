@@ -116,6 +116,11 @@ namespace Deveel.Data.Sql.Parser {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
+		public override void VisitInsert(InsertStatementNode node) {
+			InsertIntoTable.Build(context, node, statements);
+			base.VisitInsert(node);
+		}
+
 		public override void VisitSimpleUpdate(SimpleUpdateNode node) {
 			var whereExpression = Expression(node.WhereExpression);
 			var assignments = UpdateAssignments(node.Columns);
@@ -131,11 +136,6 @@ namespace Deveel.Data.Sql.Parser {
 
 		public override void VisitQueryUpdate(QueryUpdateNode node) {
 			base.VisitQueryUpdate(node);
-		}
-
-		protected override void VisitValuesInsert(ValuesInsertNode valuesInsert) {
-			var values = valuesInsert.Values.Select(x => x.Values.Select(Expression).ToArray());
-			statements.Add(new InsertValuesStatement(valuesInsert.TableName, valuesInsert.ColumnNames, values));
 		}
 
 		private static SqlTableColumn BuildColumnInfo(IQueryContext context, string tableName, TableColumnNode column, IList<ConstraintInfo> constraints) {
@@ -341,6 +341,42 @@ namespace Deveel.Data.Sql.Parser {
 					foreach (var constraint in constraints) {
 						statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
 					}
+				}
+			}
+		}
+
+		#endregion
+
+		#region InsertIntoTable
+
+		static class InsertIntoTable {
+			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<SqlStatement> statements) {
+				if (node.ValuesInsert != null) {
+					var valueInsert = node.ValuesInsert;
+					var values =
+						valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
+					statements.Add(new InsertStatement(node.TableName, node.ColumnNames, values));
+				} else if (node.SetInsert != null) {
+					var assignments = node.SetInsert.Assignments;
+
+					var columnNames = new List<string>();
+					var values = new List<SqlExpression>();
+					foreach (var assignment in assignments) {
+						var columnName = assignment.ColumnName;
+						var value = ExpressionBuilder.Build(assignment.Value);
+
+						columnNames.Add(columnName);
+						values.Add(value);
+					}
+
+					statements.Add(new InsertStatement(node.TableName, columnNames.ToArray(), new[] {values.ToArray()}));
+				} else if (node.QueryInsert != null) {
+					var queryInsert = node.QueryInsert;
+					var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;
+					if (queryExpression == null)
+						throw new SqlParseException();
+
+					statements.Add(new InsertSelectStatement(node.TableName, node.ColumnNames, queryExpression));
 				}
 			}
 		}

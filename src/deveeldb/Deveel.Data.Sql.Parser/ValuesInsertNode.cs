@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-
-using Deveel.Data.Sql.Parser;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	class ValuesInsertNode : SqlNode {
-		internal ValuesInsertNode() {
+		public IEnumerable<InsertValueNode> Values { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName.Equals("insert_tuple")) {
+				Values = node.FindNodes<InsertValueNode>();
+			}
+
+			return base.OnChildNode(node);
 		}
-
-		public string TableName { get; private set; }
-
-		public IEnumerable<string> ColumnNames { get; private set; }
-
-		public IEnumerable<InsertSetNode> Values { get; private set; } 
 	}
 }

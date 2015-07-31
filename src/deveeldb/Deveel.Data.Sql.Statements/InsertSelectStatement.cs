@@ -6,8 +6,8 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertQueryStatement : SqlStatement {
-		public InsertQueryStatement(string tableName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
+	public sealed class InsertSelectStatement : SqlStatement {
+		public InsertSelectStatement(string tableName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			TableName = tableName;
 			ColumnNames = columnNames;
 			QueryExpression = queryExpression;
@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region PreparedInsertStatement
 
 		class Prepared : SqlPreparedStatement {
-			internal Prepared(InsertQueryStatement source, ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan)
+			internal Prepared(InsertSelectStatement source, ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan)
 				: base(source) {
 				TableName = tableName;
 				ColumnNames = columnNames;
