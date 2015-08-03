@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
@@ -23,15 +22,28 @@ using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Security {
 	public static class SecurityQueryExtensions {
 		#region User Management
 
+		public static User GetUser(this IQueryContext context, string userName) {
+			if (context.UserName().Equals(userName, StringComparison.OrdinalIgnoreCase))
+				return new User(context, userName);
+
+			if (!context.UserCanAccessUsers())
+				throw new MissingPrivilegesException(context.UserName(), new ObjectName(userName), Privileges.Select,
+					String.Format("The user '{0}' has not enough rights to access other users information.", context.UserName()));
+
+			return new User(context, userName);
+		}
+
 		public static void SetUserStatus(this IQueryContext queryContext, string username, UserStatus status) {
+			if (!queryContext.UserCanAlterUser(username))
+				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(username), Privileges.Alter,
+					String.Format("User '{0}' cannot change password of user '{1}'", queryContext.UserName(), username));
+
 			// Internally we implement this by adding the user to the #locked group.
 			var table = queryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
 			var c1 = table.GetResolvedColumnName(0);
@@ -73,6 +85,10 @@ namespace Deveel.Data.Security {
 			if (String.IsNullOrEmpty(password))
 				throw new ArgumentNullException("password");
 
+			if (!context.UserCanCreateUsers())
+				throw new MissingPrivilegesException(userName, new ObjectName(userName), Privileges.Create,
+					String.Format("User '{0}' cannot create users.", context.UserName()));
+
 			// TODO: make these rules configurable?
 
 			if (userName.Length <= 1)
@@ -87,7 +103,7 @@ namespace Deveel.Data.Security {
 			if (c == '#' || c == '@' || c == '$' || c == '&')
 				throw new ArgumentException(String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
 			if (context.UserExists(userName))
-				throw new DatabaseSystemException(String.Format("User '{0}' is already registered.", userName));
+				throw new SecurityException(String.Format("User '{0}' is already registered.", userName));
 
 			// Add to the key 'user' table
 			var table = context.GetMutableTable(SystemSchema.UserTableName);
@@ -104,12 +120,42 @@ namespace Deveel.Data.Security {
 			row.SetValue(2, password);
 			table.AddRow(row);
 
-			return new User(userName);
+			return new User(context, userName);
+		}
+
+		public static void AlterUserPassword(this IQueryContext queryContext, string username, string password) {
+			if (!queryContext.UserCanAlterUser(username))
+				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(username), Privileges.Alter);
+
+			var userExpr = SqlExpression.Constant(DataObject.String(username));
+
+			// Delete the current username from the 'password' table
+			var table = queryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			var c1 = table.GetResolvedColumnName(0);
+			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, userExpr);
+			if (t.RowCount != 1)
+				throw new SecurityException(String.Format("Username '{0}' was not found.", username));
+
+			table.Delete(t);
+
+			// TODO: get the hash algorithm and hash ...
+
+			// Add the new username
+			table = queryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			var row = table.NewRow();
+			row.SetValue(0, username);
+			row.SetValue(1, password);
+			row.SetValue(2, String.Empty);		// TODO: SALT
+			row.SetValue(3, String.Empty);		// TODO: Hash Algorithm
+			table.AddRow(row);
 		}
 
 		public static bool DeleteUser(this IQueryContext context, string userName) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
+
+			if (!context.UserCanDropUser(userName))
+				throw new MissingPrivilegesException(context.UserName(), new ObjectName(userName), Privileges.Drop);
 
 			var userExpr = SqlExpression.Constant(DataObject.String(userName));
 
@@ -189,7 +235,7 @@ namespace Deveel.Data.Security {
 					return null;
 
 				// Successfully authenticated...
-				return new User(username);
+				return new User(queryContext, username);
 			} catch (Exception ex) {
 				throw new DatabaseSystemException("Could not authenticate user.", ex);
 			}
@@ -560,6 +606,39 @@ namespace Deveel.Data.Security {
 			}
 
 			return (grant & privileges) != 0;
+		}
+
+		public static bool UserCanCreateUsers(this IQueryContext context) {
+			return UserCanCreateUsers(context, context.UserName());
+		}
+
+		public static bool UserCanCreateUsers(this IQueryContext context, string userName) {
+			return context.UserHasSecureAccess(userName) || 
+				context.UserBelongsToGroup(userName, SystemGroupNames.UserManagerGroup);
+		}
+
+		public static bool UserCanDropUser(this IQueryContext context, string userToDrop) {
+			return UserCanDropUser(context, context.UserName(), userToDrop);
+		}
+
+		public static bool UserCanDropUser(this IQueryContext context, string userName, string userToDrop) {
+			return context.UserHasSecureAccess(userName) ||
+			       context.UserBelongsToGroup(userName, SystemGroupNames.UserManagerGroup) ||
+			       userName.Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
+		}
+
+		public static bool UserCanAlterUser(this IQueryContext context, string userName) {
+			if (context.UserName().Equals(userName))
+				return true;
+
+			if (userName.Equals(User.PublicName, StringComparison.OrdinalIgnoreCase))
+				return false;
+
+			return context.UserHasSecureAccess();
+		}
+
+		public static bool UserCanAccessUsers(this IQueryContext context) {
+			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroupNames.UserManagerGroup);
 		}
 
 		public static bool UserHasTablePrivilege(this IQueryContext context, ObjectName tableName, Privileges privileges) {

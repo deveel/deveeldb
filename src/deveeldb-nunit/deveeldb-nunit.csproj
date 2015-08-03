@@ -103,6 +103,7 @@
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Security\UserManagementTests.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialFunctionsTest.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBetweenEspressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionBinarySerializeTests.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertIntoStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatementTests.cs" />

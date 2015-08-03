@@ -361,7 +361,7 @@ namespace Deveel.Data.Sql.Parser {
 		private NonTerminal Alter() {
 			var alterCommand = new NonTerminal("alter_command");
 
-			alterCommand.Rule = AlterTable();
+			alterCommand.Rule = AlterTable() | AlterUser();
 
 			return alterCommand;
 		}
@@ -437,6 +437,26 @@ namespace Deveel.Data.Sql.Parser {
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
 
 			return alterTable;
+		}
+
+		private NonTerminal AlterUser() {
+			var alterUser = new NonTerminal("alter_user", typeof(AlterUserNode));
+			var actionList = new NonTerminal("action_list");
+			var action = new NonTerminal("action");
+			var setAccountStatus = new NonTerminal("set_account_status", typeof(SetAccountStatusNode));
+			var setPassword = new NonTerminal("set_password", typeof(SetPasswordNode));
+			var setGroups = new NonTerminal("set_groups", typeof(SetGroupsNode));
+			var accountStatus = new NonTerminal("account_status");
+
+			alterUser.Rule = Key("ALTER") + Key("USER") + Identifier + actionList;
+			actionList.Rule = MakePlusRule(actionList, action);
+			action.Rule = setAccountStatus | setPassword | setGroups;
+			setAccountStatus.Rule = Key("SET") + Key("ACCOUNT") + accountStatus;
+			accountStatus.Rule = Key("LOCK") | Key("UNLOCK");
+			setPassword.Rule = Key("SET") + Key("PASSWORD") + SqlExpression();
+			setGroups.Rule = Key("SET") + Key("GROUPS") + SqlExpressionList();
+
+			return alterUser;
 		}
 
 		#endregion

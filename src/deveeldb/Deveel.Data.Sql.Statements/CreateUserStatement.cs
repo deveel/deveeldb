@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -21,7 +22,14 @@ namespace Deveel.Data.Sql.Statements {
 
 
 		public override ITable Execute(IQueryContext context) {
-			throw new NotImplementedException();
+			var passwordText = Password.EvaluateToConstant(context, null).Value.ToString();
+
+			try {
+				context.CreateUser(UserName, passwordText);
+				return FunctionTable.ResultTable(context, 0);
+			} catch (Exception ex) {
+				throw new StatementException(String.Format("Could not create user '{0}' because of an error", UserName), ex);
+			}
 		}
 	}
 }

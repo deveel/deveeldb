@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	class StatementBuilder : SqlNodeVisitor {
+	class StatementBuilder {
 		private readonly IQueryContext context;
 		private readonly List<SqlStatement> statements;
 
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Parser {
 			return ExpressionBuilder.Build(node);
 		}
 
-		public override void Visit(ISqlNode node) {
+		public void Visit(ISqlNode node) {
 			if (node is CreateTableNode)
 				VisitCreateTable((CreateTableNode) node);
 			if (node is CreateViewNode)
@@ -70,7 +70,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		public override void VisitSelect(SelectStatementNode node) {
+		public void VisitSelect(SelectStatementNode node) {
 			var queryExpression = (SqlQueryExpression) Expression(node.QueryExpression);
 			if (node.QueryExpression.IntoClause != null) {
 				var refExp = Expression(node.QueryExpression.IntoClause);
@@ -89,17 +89,17 @@ namespace Deveel.Data.Sql.Parser {
 			return nodes.Select(node => new SortColumn(Expression(node.Expression), node.Ascending));
 		} 
 
-		public override void VisitCreateTrigger(CreateTriggerNode node) {
+		public void VisitCreateTrigger(CreateTriggerNode node) {
 			
 		}
 
-		public override void VisitCreateView(CreateViewNode node) {
+		public void VisitCreateView(CreateViewNode node) {
 			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
 			var statement = new CreateViewStatement(node.ViewName.Name, node.ColumnNames, queryExpression);
 			statements.Add(statement);
 		}
 
-		public override void VisitCreateTable(CreateTableNode node) {
+		public void VisitCreateTable(CreateTableNode node) {
 			CreateTable.Build(context, node, statements);
 		}
 
@@ -108,7 +108,7 @@ namespace Deveel.Data.Sql.Parser {
 			return statements.ToArray();
 		}
 
-		public override void VisitAlterTable(AlterTableNode node) {
+		public void VisitAlterTable(AlterTableNode node) {
 			AlterTable.Build(context, node, statements);
 		}
 
@@ -116,12 +116,19 @@ namespace Deveel.Data.Sql.Parser {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
-		public override void VisitInsert(InsertStatementNode node) {
+		public void VisitInsert(InsertStatementNode node) {
 			InsertIntoTable.Build(context, node, statements);
-			base.VisitInsert(node);
 		}
 
-		public override void VisitSimpleUpdate(SimpleUpdateNode node) {
+		private void VisitUpdate(UpdateStatementNode node) {
+			if (node.SimpleUpdate != null) {
+				VisitSimpleUpdate(node.SimpleUpdate);
+			} else if (node.QueryUpdate != null) {
+				VisitQueryUpdate(node.QueryUpdate);
+			}
+		}
+
+		public void VisitSimpleUpdate(SimpleUpdateNode node) {
 			var whereExpression = Expression(node.WhereExpression);
 			var assignments = UpdateAssignments(node.Columns);
 			statements.Add(new UpdateStatement(node.TableName, whereExpression, assignments));
@@ -134,8 +141,8 @@ namespace Deveel.Data.Sql.Parser {
 			return columns.Select(column => new SqlColumnAssignment(column.ColumnName, Expression(column.Expression)));
 		}
 
-		public override void VisitQueryUpdate(QueryUpdateNode node) {
-			base.VisitQueryUpdate(node);
+		public void VisitQueryUpdate(QueryUpdateNode node) {
+			throw new NotImplementedException();
 		}
 
 		private static SqlTableColumn BuildColumnInfo(IQueryContext context, string tableName, TableColumnNode column, IList<ConstraintInfo> constraints) {

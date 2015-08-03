@@ -34,10 +34,19 @@ namespace Deveel.Data.Security {
 		/// Constructs a new user with the given name.
 		/// </summary>
 		/// <param name="name"></param>
-		internal User(string name) {
+		internal User(string name) 
+			: this(null, name) {
+		}
+
+		/// <summary>
+		/// Constructs a new user with the given name.
+		/// </summary>
+		/// <param name="name"></param>
+		internal User(IQueryContext context, string name) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
+			Context = context;
 			Name = name;
 		}
 
@@ -76,7 +85,9 @@ namespace Deveel.Data.Security {
 		public IQueryContext Context { get; private set; }
 
 		public bool IsAuthenticated {
-			get { return Context != null; }
+			get { return IsSystem || 
+				IsPublic || 
+				(Context != null && Context.UserName().Equals(Name, StringComparison.OrdinalIgnoreCase)); }
 		}
 
 		public bool HasSecureAccess {
@@ -92,7 +103,7 @@ namespace Deveel.Data.Security {
 
 		public string[] Groups {
 			get {
-				if (IsSystem || !IsAuthenticated)
+				if (IsSystem)
 					return new string[0];
 
 				return Context.GetGroupsUserBelongsTo(Name);
