@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 		private NonTerminal SqlStatementList() {
 			var commandList = new NonTerminal("command_list", typeof(SequenceOfStatementsNode));
 
-			commandList.Rule = MakePlusRule(commandList, Semicolon, SqlStatement());
+			commandList.Rule = MakePlusRule(commandList, SqlStatement());
 
 			return commandList;
 		}
@@ -65,10 +65,11 @@ namespace Deveel.Data.Sql.Parser {
 			var toDefineData = new NonTerminal("to_define_data");
 			var toControlData = new NonTerminal("to_control_data");
 			var toModifyData = new NonTerminal("to_modify_data");
+			var statementEnd = new NonTerminal("end");
 
-			sqlStatement.Rule = toDefineData |
-			                    toControlData |
-			                    toModifyData;
+			sqlStatement.Rule = toDefineData + statementEnd |
+			                    toControlData + statementEnd |
+			                    toModifyData + statementEnd;
 
 			toDefineData.Rule = Create() |
 								Alter() |
@@ -83,6 +84,8 @@ namespace Deveel.Data.Sql.Parser {
 
 			toControlData.Rule = Grant() |
 			                     Revoke();
+
+			statementEnd.Rule = Eof | ";";
 
 			return sqlStatement;
 		}
@@ -250,20 +253,24 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal CreateUser() {
-			var createUser = new NonTerminal("create_user");
+			var createUser = new NonTerminal("create_user", typeof (CreateUserStatementNode));
 
 			var identifiedRule = new NonTerminal("identified");
+			var identifiedByPassword = new NonTerminal("identified_by_password", typeof (IdentifiedByPasswordNode));
+			var identifiedByAuth = new NonTerminal("identified_by_auth");
 			var setAccountLockOpt = new NonTerminal("set_account_lock_opt");
 			var setGroupsOpt = new NonTerminal("set_groups_opt");
 
-			createUser.Rule = CREATE + USER + Identifier + identifiedRule;
-			identifiedRule.Rule = IDENTIFIED + BY + PASSWORD + StringLiteral + setAccountLockOpt + setGroupsOpt |
-			                       IDENTIFIED + BY + StringLiteral + setAccountLockOpt + setGroupsOpt |
-			                       IDENTIFIED + EXTERNALLY;
-			setAccountLockOpt.Rule = SET + ACCOUNT + LOCK |
-			                            SET + ACCOUNT + UNLOCK |
-			                            Empty;
-			setGroupsOpt.Rule = SET + GROUPS + StringLiteral | Empty;
+			createUser.Rule = Key("CREATE") + Key("USER") + Identifier +
+			                  Key("IDENTIFIED") + identifiedRule + setAccountLockOpt + setGroupsOpt;
+			identifiedRule.Rule = identifiedByPassword | identifiedByAuth;
+			identifiedByPassword.Rule = Key("BY") + Key("PASSWORD") + SqlExpression();
+			identifiedByAuth.Rule = Key("BY") + StringLiteral;
+
+			setAccountLockOpt.Rule = Empty |
+			                         SET + ACCOUNT + LOCK |
+			                         SET + ACCOUNT + UNLOCK;
+			setGroupsOpt.Rule = Empty | SET + GROUPS + StringLiteral;
 
 			return createUser;
 		}

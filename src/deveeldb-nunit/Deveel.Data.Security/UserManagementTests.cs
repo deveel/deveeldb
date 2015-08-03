@@ -67,5 +67,11 @@ namespace Deveel.Data.Security {
 			Assert.Contains("test_group", userGroups);
 			Assert.Contains(SystemGroupNames.UserManagerGroup, userGroups);
 		}
+
+		[Test]
+		public void LockUser() {
+			Assert.DoesNotThrow(() => QueryContext.SetUserStatus("tester", UserStatus.Locked));
+
+		}
 	}
 }

@@ -40,9 +40,9 @@ namespace Deveel.Data.Security {
 		}
 
 		public static void SetUserStatus(this IQueryContext queryContext, string username, UserStatus status) {
-			if (!queryContext.UserCanAlterUser(username))
+			if (!queryContext.UserCanManageUsers())
 				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(username), Privileges.Alter,
-					String.Format("User '{0}' cannot change password of user '{1}'", queryContext.UserName(), username));
+					String.Format("User '{0}' cannot change the status of user '{1}'", queryContext.UserName(), username));
 
 			// Internally we implement this by adding the user to the #locked group.
 			var table = queryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
@@ -635,6 +635,10 @@ namespace Deveel.Data.Security {
 				return false;
 
 			return context.UserHasSecureAccess();
+		}
+
+		public static bool UserCanManageUsers(this IQueryContext context) {
+			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroupNames.UserManagerGroup);
 		}
 
 		public static bool UserCanAccessUsers(this IQueryContext context) {

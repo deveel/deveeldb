@@ -337,6 +337,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTriggerNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateViewNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
@@ -353,6 +354,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\GroupByNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterUserActionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IdentifiedByPasswordNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IdentifierNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IFromSourceNode.cs" />
@@ -367,6 +369,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\ISqlVisitableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ITableElementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IUserIdentificatorNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\JoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NumerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ObjectNameNode.cs" />

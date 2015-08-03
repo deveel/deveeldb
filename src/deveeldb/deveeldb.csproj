@@ -334,6 +334,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterUserNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropConstraintNode.cs" />
@@ -342,8 +343,10 @@
     <Compile Include="Deveel.Data.Sql.Parser\DropPrimaryKeyNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnSetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterUserActionNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IdentifiedByPasswordNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\InsertStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\InsertValueNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IUserIdentificatorNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryInsertNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryUpdateNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetAccountStatusNode.cs" />

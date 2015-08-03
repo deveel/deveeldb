@@ -10,7 +10,7 @@ namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateUserStatementTests : ContextBasedTest {
 		[Test]
 		public void ParseSimpleCreateUser() {
-			const string sql = "CREATE USER test IDENTIFIED BY '123456789';";
+			const string sql = "CREATE USER test IDENTIFIED BY PASSWORD '123456789';";
 
 			IEnumerable<IStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
