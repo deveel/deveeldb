@@ -47,7 +47,6 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm CONSTANT;
 		private KeyTerm CONSTRAINT;
 		private KeyTerm CREATE;
-		private KeyTerm CURSOR;
 		private KeyTerm CYCLE;
 		private KeyTerm DECLARE;
 		private KeyTerm DEFAULT;
@@ -57,34 +56,25 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm ELSE;
 		private KeyTerm ELSIF;
 		private KeyTerm EXCEPTION;
-		private KeyTerm EXCEPTION_INIT;
 		private KeyTerm EXECUTE;
 		private KeyTerm EXISTS;
-		private KeyTerm EXIT;
-		private KeyTerm EXTERNALLY;
 		private KeyTerm FOR;
 		private KeyTerm FOREIGN;
-		private KeyTerm GOTO;
 		private KeyTerm GROUPS;
 		private KeyTerm KEY;
-		private KeyTerm IDENTIFIED;
 		private KeyTerm IDENTITY;
 		private KeyTerm IF;
 		private KeyTerm INCREMENT;
 		private KeyTerm INDEX;
 		private KeyTerm INSERT;
-		private KeyTerm IS;
 		private KeyTerm LOCK;
 		private KeyTerm MAXVALUE;
 		private KeyTerm MINVALUE;
-		private KeyTerm NO;
 		private KeyTerm NOT;
 		private KeyTerm NULL;
 		private KeyTerm ON;
 		private KeyTerm OR;
-		private KeyTerm PASSWORD;
 		private KeyTerm PRIMARY;
-		private KeyTerm PRAGMA;
 		private KeyTerm PROCEDURE;
 		private KeyTerm REFERENCES;
 		private KeyTerm REPLACE;
@@ -100,9 +90,7 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm UPDATE;
 		private KeyTerm UNIQUE;
 		private KeyTerm UNLOCK;
-		private KeyTerm USER;
 		private KeyTerm VIEW;
-		private KeyTerm WHEN;
 		private KeyTerm WITH;
 
 		#endregion
@@ -164,7 +152,6 @@ namespace Deveel.Data.Sql.Parser {
 			CONSTANT = ToTerm("CONSTANT");
 			CONSTRAINT = ToTerm("CONSTRAINT");
 			CREATE = ToTerm("CREATE");
-			CURSOR = ToTerm("CURSOR");
 			CYCLE = ToTerm("CYCLE");
 			DECLARE = ToTerm("DECLARE");
 			DELETE = ToTerm("DELETE");
@@ -174,34 +161,25 @@ namespace Deveel.Data.Sql.Parser {
 			ELSE = ToTerm("ELSE");
 			ELSIF = ToTerm("ELSIF");
 			EXCEPTION = ToTerm("EXCEPTION");
-			EXCEPTION_INIT = ToTerm("EXCEPTION_INIT");
 			EXECUTE = ToTerm("EXECUTE");
 			EXISTS = ToTerm("EXISTS");
-			EXIT = ToTerm("EXIT");
-			EXTERNALLY = ToTerm("EXTERNALLY");
 			FOR = ToTerm("FOR");
 			FOREIGN = ToTerm("FOREIGN");
-			GOTO = ToTerm("GOTO");
 			GROUPS = ToTerm("GROUPS");
 			KEY = ToTerm("KEY");
-			IDENTIFIED = ToTerm("IDENTIFIED");
 			IDENTITY = ToTerm("IDENTITY");
 			IF = ToTerm("IF");
 			INCREMENT = ToTerm("INCREMENT");
 			INDEX = ToTerm("INDEX");
 			INSERT = ToTerm("INSERT");
-			IS = ToTerm("IS");
 			LOCK = ToTerm("LOCK");
 			MAXVALUE = ToTerm("MAXVALUE");
 			MINVALUE = ToTerm("MINVALUE");
-			NO = ToTerm("NO");
 			NOT = ToTerm("NOT");
 			NULL = ToTerm("NULL");
 			ON = ToTerm("ON");
 			OR = ToTerm("OR");
-			PASSWORD = ToTerm("PASSWORD");
 			PRIMARY = ToTerm("PRIMARY");
-			PRAGMA = ToTerm("PRAGMA");
 			PROCEDURE = ToTerm("PROCEDURE");
 			REPLACE = ToTerm("REPLACE");
 			REFERENCES = ToTerm("REFERENCES");
@@ -217,9 +195,7 @@ namespace Deveel.Data.Sql.Parser {
 			UPDATE = ToTerm("UPDATE");
 			UNIQUE = ToTerm("UNIQUE");
 			UNLOCK = ToTerm("UNLOCK");
-			USER = ToTerm("USER");
 			VIEW = ToTerm("VIEW");
-			WHEN = ToTerm("WHEN");
 			WITH = ToTerm("WITH");
 		}
 	}

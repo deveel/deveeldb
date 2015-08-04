@@ -119,6 +119,7 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongStringTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlNumberTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockTests.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatementTests.cs" />
