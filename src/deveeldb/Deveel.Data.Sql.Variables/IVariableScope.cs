@@ -16,9 +16,7 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Sql.Variables {
 	public interface IVariableScope : IVariableResolver {
 		void OnVariableDefined(Variable variable);
 

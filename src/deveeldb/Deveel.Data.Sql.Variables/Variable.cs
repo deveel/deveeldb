@@ -20,7 +20,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Variables {
 	public sealed class Variable : IDbObject, IEquatable<Variable> {
 		public Variable(VariableInfo variableInfo) {
 			if (variableInfo == null)

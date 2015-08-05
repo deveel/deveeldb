@@ -79,6 +79,12 @@ namespace Deveel.Data.Sql {
 		Routine = 20,
 
 		/// <summary>
+		/// A cursor is a named, precomputed, query, that accepts optional parameters and
+		/// handles a state of the iteration over the query.
+		/// </summary>
+		Cursor = 25,
+
+		/// <summary>
 		/// A <c>SCHEMA</c> object, that is a named container of multiple types
 		/// of objects (eg. <c>TABLE</c>, <c>PROCEDURE</c>, <c>VIEW</c>, etc.).
 		/// </summary>

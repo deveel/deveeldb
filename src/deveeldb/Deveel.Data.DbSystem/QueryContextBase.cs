@@ -21,7 +21,9 @@ using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
@@ -42,6 +44,7 @@ namespace Deveel.Data.DbSystem {
 #endif
 			tableCache = new MemoryCache(512, 1024, 30);
 			VariableManager = new VariableManager(this);
+			CursorManager = new CursorManager(this);
 		}
 
 		~QueryContextBase() {
@@ -54,6 +57,8 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public VariableManager VariableManager { get; private set; }
+
+		public CursorManager CursorManager { get; private set; }
 
 		public abstract IUserSession Session { get; }
 
@@ -89,6 +94,7 @@ namespace Deveel.Data.DbSystem {
 			} finally {
 				tableCache = null;
 				VariableManager = null;
+				CursorManager = null;
 				secureRandom = null;
 
 				disposed = true;
@@ -98,7 +104,12 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		protected virtual void Dispose(bool disposing) {
-
+			if (disposing) {
+				if (VariableManager != null)
+					VariableManager.Dispose();
+				if (CursorManager != null)
+					CursorManager.Dispose();
+			}
 		}
 
 		DataObject IVariableResolver.Resolve(ObjectName variable) {

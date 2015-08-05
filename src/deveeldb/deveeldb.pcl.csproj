@@ -251,6 +251,9 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorState.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ConstantVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
@@ -486,6 +489,9 @@
     <Compile Include="Deveel.Data.Sql.Statements\AddConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableActionType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterUserActionType.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterUserStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\BlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
@@ -495,14 +501,19 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetAccountStatusAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetPasswordAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetUserGroupsAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserStatusStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlNonPreparableStatement.cs" />
@@ -513,6 +524,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
@@ -529,6 +541,10 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnInfo.cs" />
@@ -539,6 +555,8 @@
     <Compile Include="Deveel.Data.Sql\ConstraintInfo.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql\ConstraintViolationException.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\Cursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorInfo.cs" />
     <Compile Include="Deveel.Data.Sql\DbObjectType.cs" />
     <Compile Include="Deveel.Data.Sql\FilterTable.cs" />
     <Compile Include="Deveel.Data.Sql\ForeignKeyAction.cs" />
@@ -553,7 +571,6 @@
     <Compile Include="Deveel.Data.Sql\IObjectInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IQueryTable.cs" />
     <Compile Include="Deveel.Data.Sql\IRootTable.cs" />
-    <Compile Include="Deveel.Data.Sql\IRowIndex.cs" />
     <Compile Include="Deveel.Data.Sql\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql\ISequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql\ITable.cs" />

@@ -17,9 +17,9 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Sql;
+using Deveel.Data.DbSystem;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data.Sql.Variables {
 	public class VariableManager : IObjectManager {
 		private Dictionary<string, Variable> variables;
  

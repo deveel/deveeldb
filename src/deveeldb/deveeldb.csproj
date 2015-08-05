@@ -170,8 +170,12 @@
     <Compile Include="Deveel.Data.DbSystem\ISystemContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\ITableContainer.cs" />
     <Compile Include="Deveel.Data.DbSystem\IUserSession.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IVariableAccessContext.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IVariableScope.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\Cursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorState.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\QueryContextBase.cs" />
@@ -204,7 +208,7 @@
     <Compile Include="Deveel.Data.DbSystem\UserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.DbSystem\SessionInfo.cs" />
-    <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleEventLogger.cs" />
@@ -500,7 +504,7 @@
     <Compile Include="Deveel.Data.Sql\Table.cs" />
     <Compile Include="Deveel.Data.Sql\IndexInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IndexSetInfo.cs" />
-    <Compile Include="Deveel.Data.Sql\Variable.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
     <Compile Include="Deveel.Data.Sql\VariableInfo.cs" />
     <Compile Include="Deveel.Data.Sql\ViewInfo.cs" />
     <Compile Include="Deveel.Data.Sql\VirtualTable.cs" />

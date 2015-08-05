@@ -21,6 +21,7 @@ using System.Linq;
 using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {

@@ -1,0 +1,25 @@
+﻿using System;
+
+using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Expressions;
+
+namespace Deveel.Data.Sql.Statements {
+	public sealed class OpenStatement : SqlStatement {
+		public OpenStatement(string cursorName) 
+			: this(cursorName, new SqlExpression[] {}) {
+		}
+
+		public OpenStatement(string cursorName, SqlExpression[] arguments) {
+			CursorName = cursorName;
+			Arguments = arguments;
+		}
+
+		public string CursorName { get; private set; }
+
+		public SqlExpression[] Arguments { get; set; }
+
+		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+			throw new NotImplementedException();
+		}
+	}
+}

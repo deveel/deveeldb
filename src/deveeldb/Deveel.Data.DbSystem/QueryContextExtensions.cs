@@ -25,6 +25,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {

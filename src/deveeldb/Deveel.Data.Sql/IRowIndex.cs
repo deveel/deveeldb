@@ -1,4 +1,4 @@
-﻿// 
+// 
 //  Copyright 2010-2015 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,3 @@
 //    limitations under the License.
 //
 
-using System;
-
-using Deveel.Data.Index;
-
-namespace Deveel.Data.Sql {
-	public interface IRowIndex : IIndex<long> {
-	}
-}
