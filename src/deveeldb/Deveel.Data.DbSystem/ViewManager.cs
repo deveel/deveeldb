@@ -27,7 +27,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.DbSystem {
 	public sealed class ViewManager : IObjectManager {
-		private Dictionary<long, View> viewCache;
+		private Dictionary<long, ViewInfo> viewCache;
 		private bool viewTableChanged;
 
 		public ViewManager(ITransaction transaction) {
@@ -35,7 +35,7 @@ namespace Deveel.Data.DbSystem {
 				throw new ArgumentNullException("transaction");
 
 			Transaction = transaction;
-			viewCache = new Dictionary<long, View>();
+			viewCache = new Dictionary<long, ViewInfo>();
 
 			transaction.RegisterOnCommit(OnCommit);
 		}
@@ -175,7 +175,34 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public View GetView(ObjectName viewName) {
-			throw new NotImplementedException();
+			var viewTable = Transaction.GetTable(SystemSchema.ViewTableName);
+			var e = viewTable.GetEnumerator();
+			while (e.MoveNext()) {
+				int row = e.Current.RowId.RowNumber;
+
+				var cSchema = viewTable.GetValue(row, 0).Value.ToString();
+				var cName = viewTable.GetValue(row, 1).Value.ToString();
+
+				if (viewName.ParentName.Equals(cSchema) &&
+					viewName.Name.Equals(cName)) {
+
+					ViewInfo viewInfo;
+					if (!viewCache.TryGetValue(row, out viewInfo)) { 
+						var blob = (SqlBinary)viewTable.GetValue(row, 3).Value;
+
+						using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
+							viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.TypeResolver());
+						}
+
+						viewCache[row] = viewInfo;
+
+					}
+					return new View(viewInfo);
+				}
+
+			}
+
+			return null;
 		}
 
 		public bool ViewExists(ObjectName viewName) {
@@ -183,7 +210,21 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public bool DropView(ObjectName viewName) {
-			throw new NotImplementedException();
+			var table = Transaction.GetMutableTable(SystemSchema.ViewTableName);
+
+			var t = FindViewEntry(viewName);
+
+			if (t.RowCount == 0)
+				return false;
+
+			table.Delete(t);
+
+			// Notify that this database object has been successfully dropped.
+			Transaction.Registry.RegisterEvent(new ObjectDroppedEvent(DbObjectType.View, viewName));
+
+			viewTableChanged = true;
+
+			return true;
 		}
 
 		public ITableContainer CreateInternalTableInfo() {
@@ -201,17 +242,18 @@ namespace Deveel.Data.DbSystem {
 				var row = e.Current.RowId.RowNumber;
 
 				if (i == offset) {
-					View view;
-					if (!viewCache.TryGetValue(row, out view)) {
-						// Not in the cache, so deserialize it and write it in the cache.
+					ViewInfo viewInfo;
+					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
-						// Derserialize the binary
-						view = View.Deserialize(binary);
-						// Put this in the cache....
-						viewCache[row] = view;
+
+						using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
+							viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.TypeResolver());
+						}
+
+						viewCache[row] = viewInfo;
 					}
 
-					return view;
+					return new View(viewInfo);
 				}
 
 				++i;
