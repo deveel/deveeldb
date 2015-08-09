@@ -739,6 +739,10 @@ namespace Deveel.Data.Security {
 			return context.UserHasPrivilege(objectType, objectName, Privileges.Create);
 		}
 
+		public static bool UserCanDropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			return context.UserHasPrivilege(objectType, objectName, Privileges.Drop);
+		}
+
 		public static bool UserCanAlterObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			return context.UserHasPrivilege(objectType, objectName, Privileges.Alter);
 		}

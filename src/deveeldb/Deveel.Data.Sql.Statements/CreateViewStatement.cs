@@ -89,26 +89,21 @@ namespace Deveel.Data.Sql.Statements {
 			// Wrap the plan around a SubsetNode plan
 			queryPlan = new SubsetNode(queryPlan, originalNames, newColumnNames);
 
-			// We have to execute the plan to get the TableInfo that represents the
-			// result of the view execution.
-			var table = queryPlan.Evaluate(context);
-			var tableInfo = table.TableInfo.Alias(viewName);
-
-			return new Prepared(this, tableInfo, QueryExpression, queryPlan, ReplaceIfExists);
+			return new Prepared(this, viewName, QueryExpression, queryPlan, ReplaceIfExists);
 		}
 
 		#region Prepared
 
 		class Prepared : SqlPreparedStatement {
-			internal Prepared(CreateViewStatement source, TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists)
+			internal Prepared(CreateViewStatement source, ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists)
 				: base(source) {
-				TableInfo = tableInfo;
+				ViewName = viewName;
 				QueryPlan = queryPlan;
 				ReplaceIfExists = replaceIfExists;
 				QueryExpression = queryExpression;
 			}
 
-			public TableInfo TableInfo { get; private set; }
+			public ObjectName ViewName { get; private set; }
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
@@ -117,19 +112,13 @@ namespace Deveel.Data.Sql.Statements {
 			public SqlQueryExpression QueryExpression { get; private set; }
 
 			protected override ITable ExecuteStatement(IQueryContext context) {
-				var viewName = TableInfo.TableName;
-
-				// We have to execute the plan to get the DataTableInfo that represents the
+				// We have to execute the plan to get the TableInfo that represents the
 				// result of the view execution.
-				var t = QueryPlan.Evaluate(context);
-				var tableInfo = t.TableInfo.Alias(viewName);
+				var table = QueryPlan.Evaluate(context);
+				var tableInfo = table.TableInfo.Alias(ViewName);
+
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-
-				context.DefineView(viewInfo);
-
-				// The initial grants for a view is to give the user who created it
-				// full access.
-				context.GrantToUserOnTable(viewName, Privileges.TableAll);
+				context.DefineView(viewInfo, ReplaceIfExists);
 
 				return FunctionTable.ResultTable(context, 0);
 			}

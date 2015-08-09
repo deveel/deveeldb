@@ -122,27 +122,6 @@ namespace Deveel.Data.Sql.Statements {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}
 			}
-
-			//#region Serializer
-
-			//internal sealed class Serializer : ObjectBinarySerializer<Prepared> {
-			//	public override void Serialize(Prepared statement, BinaryWriter writer) {
-			//		TableInfo.SerializeTo(statement.TableInfo, writer.BaseStream);
-			//		writer.Write(statement.Temporary);
-			//		writer.Write(statement.IfNotExists);
-			//	}
-
-			//	public override Prepared Deserialize(BinaryReader reader) {
-			//		// TODO: have the type resolver passed
-			//		var tableInfo = TableInfo.Deserialize(reader, null);
-			//		var temporary = reader.ReadBoolean();
-			//		var ifNotExists = reader.ReadBoolean();
-
-			//		return new Prepared(tableInfo, ifNotExists, temporary);
-			//	}
-			//}
-
-			//#endregion
 		}
 
 		#endregion

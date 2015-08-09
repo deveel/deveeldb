@@ -116,6 +116,13 @@ namespace Deveel.Data.DbSystem {
 			context.Session.CreateObject(objectInfo);
 		}
 
+		public static void DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			if (!context.UserCanDropObject(objectType, objectName))
+				throw new MissingPrivilegesException(context.UserName(), objectName, Privileges.Drop);
+
+			context.Session.DropObject(objectType, objectName);
+		}
+
 		public static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
 			if (objectInfo == null)
 				throw new ArgumentNullException("objectInfo");
@@ -473,14 +480,42 @@ namespace Deveel.Data.DbSystem {
 			return context.ObjectExists(DbObjectType.View, viewName);
 		}
 
-		public static void DefineView(this IQueryContext context, ViewInfo viewInfo) {
+		public static void DefineView(this IQueryContext context, ViewInfo viewInfo, bool replaceIfExists) {
 			var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
 			foreach (var tableName in tablesInPlan) {
 				if (!context.UserCanSelectFromTable(tableName))
 					throw new InvalidAccessException(context.UserName(), tableName);
 			}
 
+			if (context.ViewExists(viewInfo.ViewName)) {
+				if (!replaceIfExists)
+					throw new InvalidOperationException(
+						String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
+
+				context.DropView(viewInfo.ViewName);
+			}
+
 			context.CreateObject(viewInfo);
+
+			// The initial grants for a view is to give the user who created it
+			// full access.
+			using (var systemContext = context.ForSystemUser()) {
+				systemContext.GrantToUserOnTable(viewInfo.ViewName, Privileges.TableAll);
+			}
+		}
+
+		public static void DefineView(this IQueryContext context, ObjectName viewName, IQueryPlanNode queryPlan, bool replaceIfExists) {
+			// We have to execute the plan to get the TableInfo that represents the
+			// result of the view execution.
+			var table = queryPlan.Evaluate(context);
+			var tableInfo = table.TableInfo.Alias(viewName);
+
+			var viewInfo = new ViewInfo(tableInfo, null, queryPlan);
+			context.DefineView(viewInfo, replaceIfExists);
+		}
+
+		public static void DropView(this IQueryContext context, ObjectName viewName) {
+			context.DropObject(DbObjectType.View, viewName);
 		}
 
 		public static View GetView(this IQueryContext context, ObjectName viewName) {

@@ -85,6 +85,10 @@ namespace Deveel.Data.DbSystem {
 			return session.Transaction.FindObject(objectName);
 		}
 
+		public static void DropObject(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
+			session.Transaction.DropObject(objectType, objectName);
+		}
+
 		public static ObjectName ResolveObjectName(this IUserSession session, string name) {
 			return session.ResolveObjectName(new ObjectName(new ObjectName(session.CurrentSchema), name));
 		}

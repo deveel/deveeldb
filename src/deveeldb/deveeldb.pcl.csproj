@@ -87,7 +87,6 @@
     <Compile Include="Deveel.Data.DbSystem\ITableContainer.cs" />
     <Compile Include="Deveel.Data.DbSystem\IUserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\IVariableAccessContext.cs" />
-    <Compile Include="Deveel.Data.DbSystem\IVariableScope.cs" />
     <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.DbSystem\QueryContextBase.cs" />
@@ -121,7 +120,6 @@
     <Compile Include="Deveel.Data.DbSystem\TemporaryTable.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSession.cs" />
     <Compile Include="Deveel.Data.DbSystem\UserSessionExtensions.cs" />
-    <Compile Include="Deveel.Data.DbSystem\VariableManager.cs" />
     <Compile Include="Deveel.Data.DbSystem\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.DbSystem\ViewManager.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
@@ -606,7 +604,6 @@
     <Compile Include="Deveel.Data.Sql\TableInternalExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\TableQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\UserContextTable.cs" />
-    <Compile Include="Deveel.Data.Sql\Variable.cs" />
     <Compile Include="Deveel.Data.Sql\VariableInfo.cs" />
     <Compile Include="Deveel.Data.Sql\View.cs" />
     <Compile Include="Deveel.Data.Sql\ViewInfo.cs" />

@@ -590,7 +590,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(DateStringFormat);
+			var s = value.Value.ToString(DateStringFormat, CultureInfo.InvariantCulture);
 			return new SqlString(s);
 		}
 
@@ -598,7 +598,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(TimeStringFormat);
+			var s = value.Value.ToString(TimeStringFormat, CultureInfo.InvariantCulture);
 			return new SqlString(s);
 		}
 
@@ -606,7 +606,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (value == null)
 				return SqlString.Null;
 
-			var s = value.Value.ToString(TimeStampStringFormat);
+			var s = value.Value.ToString(TimeStampStringFormat, CultureInfo.InvariantCulture);
 			return new SqlString(s);
 		}
 
