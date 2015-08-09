@@ -20,18 +20,13 @@ namespace Deveel.Data.Mapping {
 	public sealed class UniqueAttribute : ColumnConstraintAttribute, INamedConstraint {
 		public UniqueAttribute(string name)
 			: base(ColumnConstraints.Unique) {
-			this.name = name;
+			this.ConstraintName = name;
 		}
 
 		public UniqueAttribute()
 			: this(null) {
 		}
 
-		private string name;
-
-		public string ConstraintName {
-			get { return name; }
-			set { name = value; }
-		}
+		public string ConstraintName { get; set; }
 	}
 }

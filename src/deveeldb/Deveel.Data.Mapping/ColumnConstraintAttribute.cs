@@ -16,16 +16,12 @@
 using System;
 
 namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true, Inherited = true)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
 	public class ColumnConstraintAttribute : Attribute {
 		public ColumnConstraintAttribute(ColumnConstraints constraints) {
-			this.constraints = constraints;
+			this.Constraints = constraints;
 		}
 
-		private readonly ColumnConstraints constraints;
-
-		public ColumnConstraints Constraints {
-			get { return constraints; }
-		}
+		public ColumnConstraints Constraints { get; private set; }
 	}
 }

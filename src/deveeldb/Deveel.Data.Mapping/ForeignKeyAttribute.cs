@@ -15,25 +15,25 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Mapping {
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property)]
 	public sealed class ForeignKeyAttribute : Attribute, INamedConstraint {
 		// constructors for class attributes...
-		public ForeignKeyAttribute(string name, Type referencedType, ConstraintAction onUpdate, ConstraintAction onDelete) {
-			this.name = name;
-			this.referencedType = referencedType;
-			this.onUpdate = onUpdate;
-			this.onDelete = onDelete;
+		public ForeignKeyAttribute(string name, Type referencedType, ForeignKeyAction onUpdate, ForeignKeyAction onDelete) {
+			ConstraintName = name;
+			ReferencedType = referencedType;
+			OnUpdate = onUpdate;
+			OnDelete = onDelete;
 		}
 
-		public ForeignKeyAttribute(Type referencedType, ConstraintAction onUpdate, ConstraintAction onDelete)
+		public ForeignKeyAttribute(Type referencedType, ForeignKeyAction onUpdate, ForeignKeyAction onDelete)
 			: this(null, referencedType, onUpdate, onDelete) {
 		}
 
 		public ForeignKeyAttribute(string name, Type referencedType)
-			: this(name, referencedType, ConstraintAction.Cascade, ConstraintAction.Cascade) {
+			: this(name, referencedType, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade) {
 		}
 
 		public ForeignKeyAttribute(Type referencedType)
@@ -42,42 +42,23 @@ namespace Deveel.Data.Mapping {
 
 		// constructors for fields and properties...
 		public ForeignKeyAttribute(Type referencedType, string referencedMember) {
-			this.referencedType = referencedType;
-			this.referencedMember = referencedMember;
+			ReferencedType = referencedType;
+			ReferencedMember = referencedMember;
 		}
 
 		public ForeignKeyAttribute(string name, string referencedMember) {
-			this.name = name;
-			this.referencedMember = referencedMember;
+			ConstraintName = name;
+			ReferencedMember = referencedMember;
 		}
 
-		private string name;
-		private readonly Type referencedType;
-		private readonly string referencedMember;
-		private ConstraintAction onUpdate;
-		private ConstraintAction onDelete;
+		public string ConstraintName { get; set; }
 
-		public string ConstraintName {
-			get { return name; }
-			set { name = value; }
-		}
+		public Type ReferencedType { get; private set; }
 
-		public Type ReferencedType {
-			get { return referencedType; }
-		}
+		public string ReferencedMember { get; private set; }
 
-		public string ReferencedMember {
-			get { return referencedMember; }
-		}
+		public ForeignKeyAction OnUpdate { get; set; }
 
-		public ConstraintAction OnUpdate {
-			get { return onUpdate; }
-			set { onUpdate = value; }
-		}
-
-		public ConstraintAction OnDelete {
-			get { return onDelete; }
-			set { onDelete = value; }
-		}
+		public ForeignKeyAction OnDelete { get; set; }
 	}
 }

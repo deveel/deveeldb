@@ -1,5 +1,5 @@
 // 
-//  Copyright 2010  Deveel
+//  Copyright 2010-2015  Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -16,43 +16,44 @@
 using System;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public sealed class ColumnAttribute : Attribute {
-		public ColumnAttribute(string name, SqlType type, int size, int scale) {
-			this.name = name;
-			this.type = type;
-			this.size = size;
-			this.scale = scale;
+		public ColumnAttribute(string name, SqlTypeCode type, int size, int scale) {
+			ColumnName = name;
+			SqlType = type;
+			Size = size;
+			Scale = scale;
 		}
 
-		public ColumnAttribute(string name, SqlType type, int size)
+		public ColumnAttribute(string name, SqlTypeCode type, int size)
 			: this(name, type, size, -1) {
 		}
 
-		public ColumnAttribute(string name, SqlType type)
+		public ColumnAttribute(string name, SqlTypeCode type)
 			: this(name, type, -1) {
 		}
 
 		public ColumnAttribute(string name)
-			: this(name, SqlType.Unknown) {
+			: this(name, SqlTypeCode.Unknown) {
 		}
 
-		public ColumnAttribute(SqlType type, int size, int scale)
+		public ColumnAttribute(SqlTypeCode type, int size, int scale)
 			: this(null, type, size, scale) {
 		}
 
-		public ColumnAttribute(SqlType type, int size)
+		public ColumnAttribute(SqlTypeCode type, int size)
 			: this(type, size, -1) {
 		}
 
-		public ColumnAttribute(SqlType type)
+		public ColumnAttribute(SqlTypeCode type)
 			: this(type, -1) {
 		}
 
 		public ColumnAttribute(int size, int scale)
-			: this(null, SqlType.Unknown, size, scale) {
+			: this(null, SqlTypeCode.Unknown, size, scale) {
 		}
 
 		public ColumnAttribute(int size)
@@ -60,32 +61,15 @@ namespace Deveel.Data.Mapping {
 		}
 
 		public ColumnAttribute()
-			: this(null, SqlType.Unknown, -1, -1) {
+			: this(null, SqlTypeCode.Unknown, -1, -1) {
 		}
 
-		private string name;
-		private SqlType type;
-		private int size;
-		private int scale;
+		public string ColumnName { get; set; }
 
-		public string ColumnName {
-			get { return name; }
-			set { name = value; }
-		}
+		public SqlTypeCode SqlType { get; set; }
 
-		public SqlType SqlType {
-			get { return type; }
-			set { type = value; }
-		}
+		public int Size { get; set; }
 
-		public int Size {
-			get { return size; }
-			set { size = value; }
-		}
-
-		public int Scale {
-			get { return scale; }
-			set { scale = value; }
-		}
+		public int Scale { get; set; }
 	}
 }

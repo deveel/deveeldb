@@ -16,21 +16,16 @@
 using System;
 
 namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 	public sealed class TableAttribute : Attribute {
 		public TableAttribute(string name) {
-			this.name = name;
+			this.TableName = name;
 		}
 
 		public TableAttribute()
 			: this(null) {
 		}
 
-		private string name;
-
-		public string TableName {
-			get { return name; }
-			set { name = value; }
-		}
+		public string TableName { get; set; }
 	}
 }

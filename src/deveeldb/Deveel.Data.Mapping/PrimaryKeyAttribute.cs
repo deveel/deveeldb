@@ -16,22 +16,17 @@
 using System;
 
 namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public sealed class PrimaryKeyAttribute : ColumnConstraintAttribute, INamedConstraint {
 		public PrimaryKeyAttribute(string name)
 			: base(ColumnConstraints.PrimaryKey) {
-			this.name = name;
+			this.ConstraintName = name;
 		}
 
 		public PrimaryKeyAttribute()
 			: this(null) {
 		}
 
-		private string name;
-
-		public string ConstraintName {
-			get { return name; }
-			set { name = value; }
-		}
+		public string ConstraintName { get; set; }
 	}
 }
