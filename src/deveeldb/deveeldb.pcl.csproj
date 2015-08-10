@@ -353,6 +353,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\DropCoulmnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropDefaultNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropPrimaryKeyNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropTableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ExitStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromClauseNode.cs" />
@@ -490,7 +491,9 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserActionType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\BlockQueryContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
@@ -498,6 +501,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
@@ -524,7 +528,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementSqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />

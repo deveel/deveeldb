@@ -21,6 +21,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Parser;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -58,6 +59,8 @@ namespace Deveel.Data.Sql.Statements {
 
 			var preparer = new QueryPreparer(query);
 
+			bool statementSeen = false;
+
 			var results = new List<ITable>();
 			foreach (var statement in statements) {
 				context.RegisterQuery(statement);
@@ -73,10 +76,15 @@ namespace Deveel.Data.Sql.Statements {
 				} catch (Exception) {
 					// TODO: Invoke diagnostics here before throwing the exception
 					throw;
+				} finally {
+					statementSeen = true;
 				}
 
 				results.Add(result);
 			}
+
+			if (!statementSeen)
+				throw new SqlParseException("The input query was not parsed in any statements that could be executed.");
 
 			return results.ToArray();
 		}

@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql;
@@ -198,6 +200,50 @@ namespace Deveel.Data.Transactions {
 					// for a primary key.
 					throw new Exception(String.Format("Unique constraint name '{0}' is already being used.", constraintName));
 
+				throw;
+			}
+		}
+
+		public static void AddCheck(this ITransaction transaction, ObjectName tableName, SqlExpression expression,
+			ConstraintDeferrability deferrability, string constraintName) {
+			var tn = SystemSchema.CheckInfoTableName;
+			var t = transaction.GetMutableTable(tn);
+			int colCount = t.TableInfo.ColumnCount;
+
+			try {
+				byte[] binExp;
+				using (var stream = new MemoryStream()) {
+					using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
+						SqlExpression.Serialize(expression, writer);
+						writer.Flush();
+
+						binExp = stream.ToArray();
+					}
+				}
+
+				// Insert check constraint data.
+				var uniqueId = transaction.NextTableId(tn);
+				constraintName = MakeUniqueConstraintName(constraintName, uniqueId);
+				var rd = t.NewRow();
+				rd.SetValue(0, uniqueId);
+				rd.SetValue(1, constraintName);
+				rd.SetValue(2, tableName.ParentName);
+				rd.SetValue(3, tableName.Name);
+				rd.SetValue(4, expression.ToString());
+				rd.SetValue(5, (short)deferrability);
+				if (colCount > 6) {
+					rd.SetValue(6, DataObject.Binary(new SqlBinary(binExp)));
+				}
+
+				t.AddRow(rd);
+
+			} catch (ConstraintViolationException e) {
+				// Constraint violation when inserting the data.  Check the type and
+				// wrap around an appropriate error message.
+				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation) {
+					// This means we gave a constraint name that's already being used.
+					throw new InvalidOperationException("Check constraint name '" + constraintName + "' is already being used.");
+				}
 				throw;
 			}
 		}
@@ -741,6 +787,25 @@ namespace Deveel.Data.Transactions {
 			return constraint;
 		}
 
+		public static ObjectName[] QueryTablesRelationallyLinkedTo(this ITransaction transaction, ObjectName tableName) {
+			var list = new List<ObjectName>();
+			var refs = QueryTableForeignKeys(transaction, tableName);
+			foreach (var fkeyRef in refs) {
+				var tname = fkeyRef.ForeignTable;
+				if (!list.Contains(tname))
+					list.Add(tname);
+			}
+
+			refs = QueryTableImportedForeignKeys(transaction, tableName);
+			foreach (var fkeyRef in refs) {
+				var tname = fkeyRef.TableName;
+				if (!list.Contains(tname))
+					list.Add(tname);
+			}
+
+			return list.ToArray();
+		}
+
 		public static ConstraintInfo[] QueryTableCheckExpressions(this ITransaction transaction, ObjectName tableName) {
 			var t = transaction.GetTable(SystemSchema.CheckInfoTableName);
 
@@ -785,6 +850,160 @@ namespace Deveel.Data.Transactions {
 			}
 
 			return checks;
+		}
+
+		public static void DropAllTableConstraints(this ITransaction transaction, ObjectName tableName) {
+			var primary = transaction.QueryTablePrimaryKey(tableName);
+			var uniques = transaction.QueryTableUniqueKeys(tableName);
+			var expressions = transaction.QueryTableCheckExpressions(tableName);
+			var refs = transaction.QueryTableForeignKeys(tableName);
+
+			if (primary != null)
+				transaction.DropTablePrimaryKey(tableName, primary.ConstraintName);
+			foreach (var unique in uniques) {
+				transaction.DropTableUniqueKey(tableName, unique.ConstraintName);
+			}
+			foreach (var expression in expressions) {
+				transaction.DropTableCheck(tableName, expression.ConstraintName);
+			}
+			foreach (var reference in refs) {
+				transaction.DropTableForeignKey(tableName, reference.ConstraintName);
+			}
+		}
+
+		public static int DropTableConstraint(this ITransaction transaction, ObjectName tableName, string constraintName) {
+			int dropCount = 0;
+			if (transaction.DropTablePrimaryKey(tableName, constraintName)) {
+				++dropCount;
+			}
+			if (transaction.DropTableUniqueKey(tableName, constraintName)) {
+				++dropCount;
+			}
+			if (transaction.DropTableCheck(tableName, constraintName)) {
+				++dropCount;
+			}
+			if (transaction.DropTableForeignKey(tableName, constraintName)) {
+				++dropCount;
+			}
+			return dropCount;
+		}
+
+		public static bool DropTablePrimaryKey(this ITransaction transaction, ObjectName tableName, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.PrimaryKeyInfoTableName);
+			var t2 = transaction.GetMutableTable(SystemSchema.PrimaryKeyColumnsTableName);
+			IEnumerable<int> data;
+			if (constraintName != null) {
+				// Returns the list of indexes where column 1 = constraint name
+				//                               and column 2 = schema name
+				data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(tableName.ParentName));
+			} else {
+				// Returns the list of indexes where column 3 = table name
+				//                               and column 2 = schema name
+				data = t.SelectRowsEqual(3, DataObject.String(tableName.Name), 2, DataObject.String(tableName.ParentName));
+			}
+
+			var resultList = data.ToList();
+
+			if (resultList.Count > 1)
+				throw new InvalidOperationException("Assertion failed: multiple primary key for: " + tableName);
+
+			if (resultList.Count == 1) {
+				int rowIndex = resultList[0];
+
+				// The id
+				var id = t.GetValue(rowIndex, 0);
+
+				// All columns with this id
+				var columns = t2.SelectRowsEqual(0, id);
+
+				// Delete from the table
+				t2.DeleteRows(columns);
+				t.DeleteRows(resultList);
+				return true;
+			}
+
+			return false;
+		}
+
+		public static bool DropTableUniqueKey(this ITransaction transaction, ObjectName table, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.UniqueKeyInfoTableName);
+			var t2 = transaction.GetMutableTable(SystemSchema.UniqueKeyColumnsTableName);
+
+			// Returns the list of indexes where column 1 = constraint name
+			//                               and column 2 = schema name
+			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+
+			var resultList = data.ToList();
+			if (resultList.Count > 1)
+				throw new InvalidOperationException("Assertion failed: multiple unique constraint name: " + constraintName);
+			
+			if (resultList.Count == 1) {
+				var rowIndex = resultList[0];
+
+				// The id
+				var id = t.GetValue(rowIndex, 0);
+
+				// All columns with this id
+				var columns = t2.SelectRowsEqual(0, id);
+
+				// Delete from the table
+				t2.DeleteRows(columns);
+				t.DeleteRows(resultList);
+				return true;
+			}
+
+			return false;
+		}
+
+		public static bool DropTableCheck(this ITransaction transaction, ObjectName table, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.CheckInfoTableName);
+
+			// Returns the list of indexes where column 1 = constraint name
+			//                               and column 2 = schema name
+			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+			var resultList = data.ToList();
+			if (resultList.Count > 1)
+				throw new InvalidOperationException("Assertion failed: multiple check constraint name: " + constraintName);
+
+			if (resultList.Count == 1) {
+				// Delete the check constraint
+				t.DeleteRows(resultList);
+				return true;
+			}
+
+			// data.size() == 0 so the constraint wasn't found
+			return false;
+		}
+
+		public static bool DropTableForeignKey(this ITransaction transaction, ObjectName table, string constraintName) {
+			var t = transaction.GetMutableTable(SystemSchema.ForeignKeyInfoTableName);
+			var t2 = transaction.GetMutableTable(SystemSchema.ForeignKeyColumnsTableName);
+
+			// Returns the list of indexes where column 1 = constraint name
+			//                               and column 2 = schema name
+			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+			var resultList = data.ToList();
+
+			if (resultList.Count > 1)
+				throw new InvalidOperationException("Assertion failed: multiple foreign key constraint " + "name: " + constraintName);
+
+			if (resultList.Count == 1) {
+				int rowIndex = resultList[0];
+
+				// The id
+				var id = t.GetValue(rowIndex, 0);
+
+				// All columns with this id
+				var columns = t2.SelectRowsEqual(0, id);
+
+				// Delete from the table
+				t2.DeleteRows(columns);
+				t.DeleteRows(resultList);
+				return true;
+			}
+
+			// data.size() == 0 so the constraint wasn't found
+			return false;
 		}
 
 		private sealed class TableRowVariableResolver : IVariableResolver {

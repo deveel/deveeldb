@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Compile;
@@ -170,7 +171,6 @@ namespace Deveel.Data.Sql.Statements {
 		/// <summary>
 		/// Parses a given string into one of more statements.
 		/// </summary>
-		/// <param name="context"></param>
 		/// <param name="sqlSource">The input string to be parsed.</param>
 		/// <returns>
 		/// Returns a list of <see cref="SqlStatement"/> objects resulting from
@@ -239,12 +239,6 @@ namespace Deveel.Data.Sql.Statements {
 			} catch (Exception ex) {
 				throw new SqlParseException("The input string cannot be parsed into SQL Statements", ex);
 			}
-		}
-
-		public override string ToString() {
-			var visitor = new StatementSqlStringBuilder();
-			visitor.Visit(this);
-			return visitor.ToString();
 		}
 	}
 }

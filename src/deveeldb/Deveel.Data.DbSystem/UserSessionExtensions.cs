@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 
@@ -127,6 +128,8 @@ namespace Deveel.Data.DbSystem {
 			session.Transaction.CreateTable(tableInfo, temporary);
 		}
 
+		#region Constraints
+
 		public static void AddPrimaryKey(this IUserSession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
 			session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
 		}
@@ -140,6 +143,53 @@ namespace Deveel.Data.DbSystem {
 		public static void AddUniqueKey(this IUserSession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
 			session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
 		}
+
+		public static void AddCheck(this IUserSession session, ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
+			string constraintName) {
+			session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
+		}
+
+		public static void DropAllTableConstraints(this IUserSession session, ObjectName tableName) {
+			session.Transaction.DropAllTableConstraints(tableName);
+		}
+
+		public static int DropTableConstraint(this IUserSession session, ObjectName tableName, string constraintName) {
+			return session.Transaction.DropTableConstraint(tableName, constraintName);
+		}
+
+		public static bool DropTablePrimaryKey(this IUserSession session, ObjectName tableName, string constraintName) {
+			return session.Transaction.DropTablePrimaryKey(tableName, constraintName);
+		}
+
+		public static ObjectName[] QueryTablesRelationallyLinkedTo(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.QueryTablesRelationallyLinkedTo(tableName);
+		}
+
+		public static ConstraintInfo[] QueryTableCheckExpressions(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.QueryTableCheckExpressions(tableName);
+		}
+
+		public static ConstraintInfo QueryTablePrimaryKey(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.QueryTablePrimaryKey(tableName);
+		}
+
+		public static ConstraintInfo[] QueryTableUniqueKeys(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.QueryTableUniqueKeys(tableName);
+		}
+
+		public static ConstraintInfo[] QueryTableImportedForeignKeys(this IUserSession session, ObjectName refTableName) {
+			return session.Transaction.QueryTableImportedForeignKeys(refTableName);
+		}
+
+		public static ConstraintInfo[] QueryTableForeignKeys(this IUserSession session, ObjectName tableName) {
+			return session.Transaction.QueryTableForeignKeys(tableName);
+		}
+
+		public static void CheckConstraintViolations(this IUserSession session, ObjectName tableName) {
+			throw new NotImplementedException();
+		}
+
+		#endregion
 
 		#endregion
 

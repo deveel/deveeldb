@@ -27,6 +27,12 @@ namespace Deveel.Data.DbSystem {
 			return table.RemoveRow(new RowId(table.TableInfo.Id, rowIndex));
 		}
 
+		public static void DeleteRows(this IMutableTable table, IEnumerable<int> rows) {
+			foreach (var row in rows) {
+				table.RemoveRow(row);
+			}
+		}
+
 		/// <summary>
 		/// Creates a new row that is compatible with the 
 		/// table context, ready to be populated and added.

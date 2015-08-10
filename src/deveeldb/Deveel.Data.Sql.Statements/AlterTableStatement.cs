@@ -173,7 +173,8 @@ namespace Deveel.Data.Sql.Statements {
 					if (dropCount == 0)
 						throw new InvalidOperationException("Named constraint to drop on table " + TableName + " was not found: " + constraintName);
 				} else if (Action.ActionType == AlterTableActionType.DropPrimaryKey) {
-					if (!context.DropPrimaryKey(TableName))
+					string constraintName = ((DropConstraintAction)Action).ConstraintName;
+					if (!context.DropPrimaryKey(TableName, constraintName))
 						throw new InvalidOperationException("No primary key to delete on table " + TableName);
 				}
 

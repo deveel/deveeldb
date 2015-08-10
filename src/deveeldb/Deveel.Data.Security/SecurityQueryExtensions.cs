@@ -330,12 +330,32 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public static void RevokeAllFromUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, User revoker, bool withOption = false) {
-			context.RevokeAllGrants(objectType, objectName, user, revoker, withOption);
+		public static void RevokeAllGrantsOnTable(this IQueryContext context, ObjectName objectName) {
+			RevokeAllGrantsOn(context, DbObjectType.Table, objectName);
 		}
 
-		private static void RevokeAllGrants(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
+		public static void RevokeAllGrantsOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
+
+			var objectTypeColumn = grantTable.GetResolvedColumnName(1);
+			var objectNameColumn = grantTable.GetResolvedColumnName(2);
+			// All that match the given object
+			var t1 = grantTable.SimpleSelect(context, objectTypeColumn, SqlExpressionType.Equal,
+				SqlExpression.Constant(DataObject.Integer((int) objectType)));
+			// All that match the given parameter
+			t1 = t1.SimpleSelect(context, objectNameColumn, SqlExpressionType.Equal,
+				SqlExpression.Constant(DataObject.String(objectName.FullName)));
+
+			// Remove these rows from the table
+			grantTable.Delete(t1);
+		}
+
+		public static void RevokeAllFromUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
+			User user, User revoker, bool withOption = false) {
+			context.RevokeAllGrantsFromUser(objectType, objectName, user, revoker, withOption);
+		}
+
+		private static void RevokeAllGrantsFromUser(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
 			User user, User revoker, bool withOption = false) {
 			var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
 

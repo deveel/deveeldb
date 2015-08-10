@@ -60,8 +60,15 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is InsertStatementNode)
 				VisitInsert((InsertStatementNode) node);
 
+			if (node is DropTableStatementNode)
+				VisitDropTable((DropTableStatementNode) node);
+
 			if (node is SequenceOfStatementsNode)
 				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
+		}
+
+		private void VisitDropTable(DropTableStatementNode node) {
+			statements.Add(new DropTableStatement(node.TableNames.ToArray(), node.IfExists));
 		}
 
 		private void VisitSequenceOfStatements(SequenceOfStatementsNode node) {

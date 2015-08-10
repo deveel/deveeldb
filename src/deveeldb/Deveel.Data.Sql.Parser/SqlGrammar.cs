@@ -14,6 +14,8 @@
 //    limitations under the License.
 //
 
+using System.Runtime.InteropServices;
+
 using Deveel.Data.Sql.Statements;
 
 using Irony.Parsing;
@@ -598,13 +600,20 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal DropSchema() {
 			var dropSchema = new NonTerminal("drop_schema");
+
 			dropSchema.Rule = Key("DROP") + Key("SCHEMA") + ObjectName();
 			return dropSchema;
 		}
 
 		private NonTerminal DropTable() {
-			var dropTable = new NonTerminal("drop_table");
-			dropTable.Rule = Key("DROP") + Key("TABLE") + ObjectName();
+			var dropTable = new NonTerminal("drop_table", typeof(DropTableStatementNode));
+			var tableNameList = new NonTerminal("table_name_list");
+			var ifExistsOpt = new NonTerminal("if_exists_opt");
+
+			dropTable.Rule = Key("DROP") + Key("TABLE") + ifExistsOpt + tableNameList;
+			tableNameList.Rule = MakePlusRule(tableNameList, Comma, ObjectName());
+			ifExistsOpt.Rule = Empty | Key("IF") + Key("EXISTS");
+
 			return dropTable;
 		}
 

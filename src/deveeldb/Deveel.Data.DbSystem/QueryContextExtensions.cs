@@ -100,7 +100,7 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.ObjectExists(objectType, objectName);
 		}
 
-		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
+		private static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
 			// TODO: throw a specialized exception
 			if (!context.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
@@ -108,7 +108,7 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.GetObject(objType, objName);
 		}
 
-		public static void CreateObject(this IQueryContext context, IObjectInfo objectInfo) {
+		private static void CreateObject(this IQueryContext context, IObjectInfo objectInfo) {
 			// TODO: throw a specialized exception
 			if (!context.UserCanCreateObject(objectInfo.ObjectType, objectInfo.FullName))
 				throw new InvalidOperationException();
@@ -116,7 +116,7 @@ namespace Deveel.Data.DbSystem {
 			context.Session.CreateObject(objectInfo);
 		}
 
-		public static void DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+		private static void DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			if (!context.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(context.UserName(), objectName, Privileges.Drop);
 
@@ -141,36 +141,57 @@ namespace Deveel.Data.DbSystem {
 			return context.Session.ResolveObjectName(objectType, objectName);
 		}
 
+		public static void DropAllConstraintsForTable(this IQueryContext context, ObjectName tableName) {
+			context.Session.DropAllTableConstraints(tableName);
+		}
+
 		public static int DropConstraint(this IQueryContext context, ObjectName tableName, string constraintName) {
-			throw new NotImplementedException();
+			return context.Session.DropTableConstraint(tableName, constraintName);
 		}
 
 		public static void AddConstraint(this IQueryContext context, ObjectName tableName, ConstraintInfo constraintInfo) {
-			throw new NotImplementedException();
+			if (constraintInfo.ConstraintType == ConstraintType.PrimaryKey) {
+				var columnNames = constraintInfo.ColumnNames;
+				if (columnNames.Length > 1)
+					throw new ArgumentException();
+
+				context.AddPrimaryKey(tableName, columnNames[0], constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Unique) {
+				context.AddUniqueKey(tableName, constraintInfo.ColumnNames, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Check) {
+				context.AddCheck(tableName, constraintInfo.CheckExpression, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.ForeignKey) {
+				context.AddForeignKey(tableName, constraintInfo.ColumnNames, constraintInfo.ForeignTable,
+					constraintInfo.ForeignColumnNames, constraintInfo.OnDelete, constraintInfo.OnUpdate, constraintInfo.ConstraintName);
+			}
 		}
 
-		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName, string constraintName) {
+			return context.Session.DropTablePrimaryKey(tableName, constraintName);
 		}
 
 		public static void CheckConstraints(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+			context.Session.CheckConstraintViolations(tableName);
+		}
+
+		public static ConstraintInfo[] GetTableCheckExpressions(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTableCheckExpressions(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableImportedForeignKeys(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+			return context.Session.QueryTableImportedForeignKeys(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableForeignKeys(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+			return context.Session.QueryTableForeignKeys(tableName);
 		}
 
 		public static ConstraintInfo GetTablePrimaryKey(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+			return context.Session.QueryTablePrimaryKey(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableUniqueKeys(this IQueryContext context, ObjectName tableName) {
-			throw new NotImplementedException();
+			return context.Session.QueryTableUniqueKeys(tableName);
 		}
 
 		#endregion
@@ -212,7 +233,11 @@ namespace Deveel.Data.DbSystem {
 			if (objSchemaName == null)
 				throw new InvalidOperationException(String.Format("The default schema of the session '{0}' is not defined in the database.", schema));
 
-			return context.ResolveTableName(new ObjectName(objSchemaName, name));
+			var objName = ObjectName.Parse(name);
+			if (objName.Parent == null)
+				objName = new ObjectName(objSchemaName, objName.Name);
+
+			return context.ResolveTableName(objName);
 		}
 
 		public static bool TableExists(this IQueryContext context, ObjectName tableName) {
@@ -249,6 +274,67 @@ namespace Deveel.Data.DbSystem {
 			using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
 				systemContext.GrantToUserOnTable(tableInfo.TableName, context.User(), Privileges.TableAll);
 			}
+		}
+
+		public static void DropTables(this IQueryContext context, IEnumerable<ObjectName> tableNames) {
+			DropTables(context, tableNames, false);
+		}
+
+		public static void DropTables(this IQueryContext context, IEnumerable<ObjectName> tableNames, bool onlyIfExists) {
+			var tableNameList = tableNames.ToList();
+			foreach (var tableName in tableNameList) {
+				if (!context.UserCanDropObject(DbObjectType.Table, tableName))
+					throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Drop);
+			}
+
+			// Check there are no referential links to any tables being dropped
+			foreach (var tableName in tableNameList) {
+				var refs = context.GetTableImportedForeignKeys(tableName);
+
+				foreach (var reference in refs) {
+					// If the key table isn't being dropped then error
+					if (!tableNameList.Contains(reference.TableName)) {
+						throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
+							String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
+								reference.ConstraintName, tableName, reference.TableName));
+					}
+				}
+			}
+
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!onlyIfExists) {
+				// For each table to drop.
+				foreach (var tableName in tableNameList) {
+					// If table doesn't exist, throw an error
+					if (!context.TableExists(tableName)) {
+						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
+							tableName));
+					}
+				}
+			}
+
+			foreach (var tname in tableNameList) {
+				// Does the table already exist?
+				if (context.TableExists(tname)) {
+					// Drop table in the transaction
+					context.DropObject(DbObjectType.Table, tname);
+
+					// Revoke all the grants on the table
+					context.RevokeAllGrantsOnTable(tname);
+
+					// Drop all constraints from the schema
+					context.DropAllConstraintsForTable(tname);
+				}
+			}
+		}
+
+		public static void DropTable(this IQueryContext context, ObjectName tableName) {
+			DropTable(context, tableName, false);
+		}
+
+		public static void DropTable(this IQueryContext context, ObjectName tableName, bool onlyIfExists) {
+			context.DropTables(new []{tableName}, onlyIfExists);
 		}
 
 		public static void AlterTable(this IQueryContext context, TableInfo tableInfo) {
@@ -468,6 +554,14 @@ namespace Deveel.Data.DbSystem {
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Alter);
 
 			context.Session.AddUniqueKey(tableName, columns, deferrability, constraintName);
+		}
+
+		public static void AddCheck(this IQueryContext context, ObjectName tableName, SqlExpression expression, string constraintName) {
+			AddCheck(context, tableName, expression, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public static void AddCheck(this IQueryContext context, ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferred, string constraintName) {
+			context.Session.AddCheck(tableName, expression, deferred, constraintName);
 		}
 
 		#endregion
