@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (table == null)
 					throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", tableRef));
 
-				return new Prepared(this, queryPlan, table);
+				return new Prepared(queryPlan, table);
 			}
 			if (IsVariableReference) {
 				throw new NotImplementedException();
@@ -66,21 +66,20 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
-			internal Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan, IMutableTable table)
-				: this(source, queryPlan) {
+		class Prepared : SqlStatement {
+			internal Prepared(IQueryPlanNode queryPlan, IMutableTable table)
+				: this(queryPlan) {
 				IsForTable = true;
 				Table = table;
 			}
 
-			internal Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan, string varName)
-				: this(source, queryPlan) {
+			internal Prepared(IQueryPlanNode queryPlan, string varName)
+				: this(queryPlan) {
 				IsForTable = false;
 				VariableName = varName;
 			}
 
-			private Prepared(SelectIntoStatement source, IQueryPlanNode queryPlan)
-				: base(source) {
+			private Prepared(IQueryPlanNode queryPlan) {
 				QueryPlan = queryPlan;
 			}
 
@@ -91,6 +90,10 @@ namespace Deveel.Data.Sql.Statements {
 			public IMutableTable Table { get; private set; }
 
 			public string VariableName { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				var result = QueryPlan.Evaluate(context);

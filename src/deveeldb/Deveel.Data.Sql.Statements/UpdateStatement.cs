@@ -67,18 +67,21 @@ namespace Deveel.Data.Sql.Statements {
 				columns.Add(assign);
 			}
 
-			return new Prepared(this, tableName, queryPlan, columns.ToArray(), Limit);
+			return new Prepared(tableName, queryPlan, columns.ToArray(), Limit);
 		}
 
 		#region Prepared
 
-		sealed class Prepared : SqlPreparedStatement {
-			internal Prepared(UpdateStatement source, ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit)
-				: base(source) {
+		sealed class Prepared : SqlStatement {
+			internal Prepared(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
 				TableName = tableName;
 				QueryPlan = queryPlan;
 				Columns = columns;
 				Limit = limit;
+			}
+
+			protected override bool IsPreparable {
+				get { return false; }
 			}
 
 			public ObjectName TableName { get; private set; }

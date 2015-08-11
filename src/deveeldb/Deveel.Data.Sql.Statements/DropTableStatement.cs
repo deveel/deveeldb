@@ -50,14 +50,13 @@ namespace Deveel.Data.Sql.Statements {
 
 			var resolvedTableNames = dropTables.Select(context.ResolveTableName);
 
-			return new Prepared(this, resolvedTableNames, IfExists);
+			return new Prepared(resolvedTableNames, IfExists);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
-			public Prepared(DropTableStatement source, IEnumerable<ObjectName> tableNames, bool ifExists) 
-				: base(source) {
+		class Prepared : SqlStatement {
+			public Prepared(IEnumerable<ObjectName> tableNames, bool ifExists) {
 				TableNames = tableNames;
 				IfExists = ifExists;
 			}
@@ -65,6 +64,10 @@ namespace Deveel.Data.Sql.Statements {
 			public IEnumerable<ObjectName> TableNames { get; private set; }
 
 			public bool IfExists { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				context.DropTables(TableNames, IfExists);

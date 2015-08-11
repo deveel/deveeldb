@@ -87,22 +87,25 @@ namespace Deveel.Data.Sql.Statements {
 				assignments.Add(valueAssign);
 			}
 
-			return new Prepared(this, tableName, assignments);
+			return new Prepared(tableName, assignments);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
-			internal Prepared(InsertStatement source, ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments)
-				: base(source) {
+		class Prepared : SqlStatement {
+			internal Prepared(ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
 				TableName = tableName;
 				Assignments = assignments;
 			}
 
 			public ObjectName TableName { get; private set; }
 
-			public IEnumerable<SqlAssignExpression[]> Assignments { get; private set; } 
- 
+			public IEnumerable<SqlAssignExpression[]> Assignments { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
+
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				var insertCount = context.InsertIntoTable(TableName, Assignments);
 				return FunctionTable.ResultTable(context, insertCount);

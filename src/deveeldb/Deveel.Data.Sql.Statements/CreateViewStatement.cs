@@ -89,18 +89,21 @@ namespace Deveel.Data.Sql.Statements {
 			// Wrap the plan around a SubsetNode plan
 			queryPlan = new SubsetNode(queryPlan, originalNames, newColumnNames);
 
-			return new Prepared(this, viewName, QueryExpression, queryPlan, ReplaceIfExists);
+			return new Prepared(viewName, QueryExpression, queryPlan, ReplaceIfExists);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
-			internal Prepared(CreateViewStatement source, ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists)
-				: base(source) {
+		class Prepared : SqlStatement {
+			internal Prepared(ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
 				ViewName = viewName;
 				QueryPlan = queryPlan;
 				ReplaceIfExists = replaceIfExists;
 				QueryExpression = queryExpression;
+			}
+
+			protected override bool IsPreparable {
+				get { return false; }
 			}
 
 			public ObjectName ViewName { get; private set; }

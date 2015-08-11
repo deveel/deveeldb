@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
-			return new Prepared(this, tableInfo, IfNotExists, Temporary);
+			return new Prepared(tableInfo, IfNotExists, Temporary);
 		}
 
 		private TableInfo CreateTableInfo(IQueryContext context) {
@@ -99,18 +99,21 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			public TableInfo TableInfo { get; private set; }
 
 			public bool Temporary { get; private set; }
 
 			public bool IfNotExists { get; private set; }
 
-			internal Prepared(CreateTableStatement source, TableInfo tableInfo, bool ifNotExists, bool temporary)
-				: base(source) {
+			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
 				TableInfo = tableInfo;
 				IfNotExists = ifNotExists;
 				Temporary = temporary;
+			}
+
+			protected override bool IsPreparable {
+				get { return false; }
 			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {

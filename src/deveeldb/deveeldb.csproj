@@ -515,7 +515,6 @@
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />

@@ -42,9 +42,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedInsertStatement
 
-		class Prepared : SqlPreparedStatement {
-			internal Prepared(InsertSelectStatement source, ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan)
-				: base(source) {
+		class Prepared : SqlStatement {
+			internal Prepared(ObjectName tableName, IEnumerable<string> columnNames, IQueryPlanNode queryPlan) {
 				TableName = tableName;
 				ColumnNames = columnNames;
 				QueryPlan = queryPlan;
@@ -55,6 +54,10 @@ namespace Deveel.Data.Sql.Statements {
 			public IQueryPlanNode QueryPlan { get; private set; }
 
 			public IEnumerable<string> ColumnNames { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				throw new NotImplementedException();

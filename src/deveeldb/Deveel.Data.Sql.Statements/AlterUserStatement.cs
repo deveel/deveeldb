@@ -44,14 +44,13 @@ namespace Deveel.Data.Sql.Statements {
 			if (action == null)
 				throw new StatementPrepareException("Could not prepare the action");
 
-			return new Prepared(this, UserName, action);
+			return new Prepared(UserName, action);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
-			public Prepared(AlterUserStatement source, string userName, IAlterUserAction action) 
-				: base(source) {
+		class Prepared : SqlStatement {
+			public Prepared(string userName, IAlterUserAction action) {
 				Action = action;
 				UserName = userName;
 			}
@@ -59,6 +58,10 @@ namespace Deveel.Data.Sql.Statements {
 			public string UserName { get; private set; }
 
 			private IAlterUserAction Action { get; set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				if (Action.ActionType == AlterUserActionType.SetPassword) {

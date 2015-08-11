@@ -34,20 +34,23 @@ namespace Deveel.Data.Sql.Statements {
 
 			var resolvedNames = dropViews.Select(context.ResolveObjectName);
 
-			return new Prepared(this, resolvedNames.ToArray(), IfExists);
+			return new Prepared(resolvedNames.ToArray(), IfExists);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			public ObjectName[] ViewNames { get; set; }
 
 			public bool IfExists { get; set; }
 
-			public Prepared(SqlStatement source, ObjectName[] viewNames, bool ifExists) 
-				: base(source) {
+			public Prepared(ObjectName[] viewNames, bool ifExists) {
 				ViewNames = viewNames;
 				IfExists = ifExists;
+			}
+
+			protected override bool IsPreparable {
+				get { return false; }
 			}
 
 			protected override ITable ExecuteStatement(IQueryContext context) {

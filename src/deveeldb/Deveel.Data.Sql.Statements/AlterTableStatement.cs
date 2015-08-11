@@ -16,10 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -38,14 +40,13 @@ namespace Deveel.Data.Sql.Statements {
 				throw new StatementPrepareException("The table name is required.");
 
 			var tableName = context.ResolveTableName(TableName);
-			return new Prepared(this, tableName, Action);
+			return new Prepared(tableName, Action);
 		}
 
 		#region PreparedAlterTableStatemet
 
-		class Prepared : SqlPreparedStatement {
-			internal Prepared(AlterTableStatement source, ObjectName tableName, IAlterTableAction action)
-				: base(source) {
+		class Prepared : SqlStatement {
+			internal Prepared(ObjectName tableName, IAlterTableAction action) {
 				TableName = tableName;
 				Action = action;
 			}
@@ -53,6 +54,10 @@ namespace Deveel.Data.Sql.Statements {
 			public ObjectName TableName { get; private set; }
 
 			public IAlterTableAction Action { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
 
 			private static void CheckColumnConstraint(string columnName, string[] columns, ObjectName table, string constraintName) {
 				foreach (string column in columns) {
@@ -225,6 +230,26 @@ namespace Deveel.Data.Sql.Statements {
 
 				// Return '0' if everything successful.
 				return FunctionTable.ResultTable(context, 0);
+			}
+		}
+
+		#endregion
+
+		#region Serializer
+
+		class Serializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				throw new NotImplementedException();
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var tableName = ObjectName.Deserialize(reader);
+				var action = DeserializeAction(reader);
+				return new Prepared(tableName, action);
+			}
+
+			private IAlterTableAction DeserializeAction(BinaryReader reader) {
+				throw new NotImplementedException();
 			}
 		}
 
