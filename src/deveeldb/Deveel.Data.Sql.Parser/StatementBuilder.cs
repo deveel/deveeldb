@@ -41,43 +41,49 @@ namespace Deveel.Data.Sql.Parser {
 			return ExpressionBuilder.Build(node);
 		}
 
-		public void Visit(ISqlNode node) {
+		public void Build(ISqlNode node) {
 			if (node is CreateTableNode)
-				VisitCreateTable((CreateTableNode) node);
+				BuildCreateTable((CreateTableNode) node);
 			if (node is CreateViewNode)
-				VisitCreateView((CreateViewNode) node);
+				BuildCreateView((CreateViewNode) node);
 			if (node is CreateTriggerNode)
-				VisitCreateTrigger((CreateTriggerNode) node);
+				BuildCreateTrigger((CreateTriggerNode) node);
 
 			if (node is AlterTableNode)
-				VisitAlterTable((AlterTableNode) node);
+				BuildAlterTable((AlterTableNode) node);
 
 			if (node is SelectStatementNode)
-				VisitSelect((SelectStatementNode) node);
+				BuildSelect((SelectStatementNode) node);
 
 			if (node is UpdateStatementNode)
-				VisitUpdate((UpdateStatementNode)node);
+				BuildUpdate((UpdateStatementNode)node);
 			if (node is InsertStatementNode)
-				VisitInsert((InsertStatementNode) node);
+				BuildInsert((InsertStatementNode) node);
 
 			if (node is DropTableStatementNode)
-				VisitDropTable((DropTableStatementNode) node);
+				BuildDropTable((DropTableStatementNode) node);
+			if (node is DropViewStatementNode)
+				BuildDropView((DropViewStatementNode) node);
 
 			if (node is SequenceOfStatementsNode)
-				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
+				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
 		}
 
-		private void VisitDropTable(DropTableStatementNode node) {
+		private void BuildDropView(DropViewStatementNode node) {
+			statements.Add(new DropViewStatement(node.ViewNames.ToArray(), node.IfExists));
+		}
+
+		private void BuildDropTable(DropTableStatementNode node) {
 			statements.Add(new DropTableStatement(node.TableNames.ToArray(), node.IfExists));
 		}
 
-		private void VisitSequenceOfStatements(SequenceOfStatementsNode node) {
+		private void BuildSequenceOfStatements(SequenceOfStatementsNode node) {
 			foreach (var statementNode in node.Statements) {
-				Visit(statementNode);
+				Build(statementNode);
 			}
 		}
 
-		public void VisitSelect(SelectStatementNode node) {
+		public void BuildSelect(SelectStatementNode node) {
 			var queryExpression = (SqlQueryExpression) Expression(node.QueryExpression);
 			if (node.QueryExpression.IntoClause != null) {
 				var refExp = Expression(node.QueryExpression.IntoClause);
@@ -96,26 +102,26 @@ namespace Deveel.Data.Sql.Parser {
 			return nodes.Select(node => new SortColumn(Expression(node.Expression), node.Ascending));
 		} 
 
-		public void VisitCreateTrigger(CreateTriggerNode node) {
+		public void BuildCreateTrigger(CreateTriggerNode node) {
 			
 		}
 
-		public void VisitCreateView(CreateViewNode node) {
+		public void BuildCreateView(CreateViewNode node) {
 			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
 			var statement = new CreateViewStatement(node.ViewName.Name, node.ColumnNames, queryExpression);
 			statements.Add(statement);
 		}
 
-		public void VisitCreateTable(CreateTableNode node) {
+		public void BuildCreateTable(CreateTableNode node) {
 			CreateTable.Build(context, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
-			Visit(rootNode);
+			Build(rootNode);
 			return statements.ToArray();
 		}
 
-		public void VisitAlterTable(AlterTableNode node) {
+		public void BuildAlterTable(AlterTableNode node) {
 			AlterTable.Build(context, node, statements);
 		}
 
@@ -123,11 +129,11 @@ namespace Deveel.Data.Sql.Parser {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
-		public void VisitInsert(InsertStatementNode node) {
+		public void BuildInsert(InsertStatementNode node) {
 			InsertIntoTable.Build(context, node, statements);
 		}
 
-		private void VisitUpdate(UpdateStatementNode node) {
+		private void BuildUpdate(UpdateStatementNode node) {
 			if (node.SimpleUpdate != null) {
 				VisitSimpleUpdate(node.SimpleUpdate);
 			} else if (node.QueryUpdate != null) {

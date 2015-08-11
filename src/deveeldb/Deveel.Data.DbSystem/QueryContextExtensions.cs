@@ -123,7 +123,7 @@ namespace Deveel.Data.DbSystem {
 			context.Session.DropObject(objectType, objectName);
 		}
 
-		public static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
+		private static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
 			if (objectInfo == null)
 				throw new ArgumentNullException("objectInfo");
 
@@ -139,59 +139,6 @@ namespace Deveel.Data.DbSystem {
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			return context.Session.ResolveObjectName(objectType, objectName);
-		}
-
-		public static void DropAllConstraintsForTable(this IQueryContext context, ObjectName tableName) {
-			context.Session.DropAllTableConstraints(tableName);
-		}
-
-		public static int DropConstraint(this IQueryContext context, ObjectName tableName, string constraintName) {
-			return context.Session.DropTableConstraint(tableName, constraintName);
-		}
-
-		public static void AddConstraint(this IQueryContext context, ObjectName tableName, ConstraintInfo constraintInfo) {
-			if (constraintInfo.ConstraintType == ConstraintType.PrimaryKey) {
-				var columnNames = constraintInfo.ColumnNames;
-				if (columnNames.Length > 1)
-					throw new ArgumentException();
-
-				context.AddPrimaryKey(tableName, columnNames[0], constraintInfo.ConstraintName);
-			} else if (constraintInfo.ConstraintType == ConstraintType.Unique) {
-				context.AddUniqueKey(tableName, constraintInfo.ColumnNames, constraintInfo.ConstraintName);
-			} else if (constraintInfo.ConstraintType == ConstraintType.Check) {
-				context.AddCheck(tableName, constraintInfo.CheckExpression, constraintInfo.ConstraintName);
-			} else if (constraintInfo.ConstraintType == ConstraintType.ForeignKey) {
-				context.AddForeignKey(tableName, constraintInfo.ColumnNames, constraintInfo.ForeignTable,
-					constraintInfo.ForeignColumnNames, constraintInfo.OnDelete, constraintInfo.OnUpdate, constraintInfo.ConstraintName);
-			}
-		}
-
-		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName, string constraintName) {
-			return context.Session.DropTablePrimaryKey(tableName, constraintName);
-		}
-
-		public static void CheckConstraints(this IQueryContext context, ObjectName tableName) {
-			context.Session.CheckConstraintViolations(tableName);
-		}
-
-		public static ConstraintInfo[] GetTableCheckExpressions(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableCheckExpressions(tableName);
-		}
-
-		public static ConstraintInfo[] GetTableImportedForeignKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableImportedForeignKeys(tableName);
-		}
-
-		public static ConstraintInfo[] GetTableForeignKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableForeignKeys(tableName);
-		}
-
-		public static ConstraintInfo GetTablePrimaryKey(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTablePrimaryKey(tableName);
-		}
-
-		public static ConstraintInfo[] GetTableUniqueKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableUniqueKeys(tableName);
 		}
 
 		#endregion
@@ -324,7 +271,7 @@ namespace Deveel.Data.DbSystem {
 					context.RevokeAllGrantsOnTable(tname);
 
 					// Drop all constraints from the schema
-					context.DropAllConstraintsForTable(tname);
+					context.DropAllTableConstraints(tname);
 				}
 			}
 		}
@@ -564,6 +511,59 @@ namespace Deveel.Data.DbSystem {
 			context.Session.AddCheck(tableName, expression, deferred, constraintName);
 		}
 
+		public static void DropAllTableConstraints(this IQueryContext context, ObjectName tableName) {
+			context.Session.DropAllTableConstraints(tableName);
+		}
+
+		public static int DropConstraint(this IQueryContext context, ObjectName tableName, string constraintName) {
+			return context.Session.DropTableConstraint(tableName, constraintName);
+		}
+
+		public static void AddConstraint(this IQueryContext context, ObjectName tableName, ConstraintInfo constraintInfo) {
+			if (constraintInfo.ConstraintType == ConstraintType.PrimaryKey) {
+				var columnNames = constraintInfo.ColumnNames;
+				if (columnNames.Length > 1)
+					throw new ArgumentException();
+
+				context.AddPrimaryKey(tableName, columnNames[0], constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Unique) {
+				context.AddUniqueKey(tableName, constraintInfo.ColumnNames, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Check) {
+				context.AddCheck(tableName, constraintInfo.CheckExpression, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.ForeignKey) {
+				context.AddForeignKey(tableName, constraintInfo.ColumnNames, constraintInfo.ForeignTable,
+					constraintInfo.ForeignColumnNames, constraintInfo.OnDelete, constraintInfo.OnUpdate, constraintInfo.ConstraintName);
+			}
+		}
+
+		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName, string constraintName) {
+			return context.Session.DropTablePrimaryKey(tableName, constraintName);
+		}
+
+		public static void CheckConstraints(this IQueryContext context, ObjectName tableName) {
+			context.Session.CheckConstraintViolations(tableName);
+		}
+
+		public static ConstraintInfo[] GetTableCheckExpressions(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTableCheckExpressions(tableName);
+		}
+
+		public static ConstraintInfo[] GetTableImportedForeignKeys(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTableImportedForeignKeys(tableName);
+		}
+
+		public static ConstraintInfo[] GetTableForeignKeys(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTableForeignKeys(tableName);
+		}
+
+		public static ConstraintInfo GetTablePrimaryKey(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTablePrimaryKey(tableName);
+		}
+
+		public static ConstraintInfo[] GetTableUniqueKeys(this IQueryContext context, ObjectName tableName) {
+			return context.Session.QueryTableUniqueKeys(tableName);
+		}
+
 		#endregion
 
 		#endregion
@@ -586,7 +586,7 @@ namespace Deveel.Data.DbSystem {
 					throw new InvalidOperationException(
 						String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
 
-				context.DropView(viewInfo.ViewName);
+				context.DropObject(DbObjectType.View, viewInfo.ViewName);
 			}
 
 			context.CreateObject(viewInfo);
@@ -609,7 +609,46 @@ namespace Deveel.Data.DbSystem {
 		}
 
 		public static void DropView(this IQueryContext context, ObjectName viewName) {
-			context.DropObject(DbObjectType.View, viewName);
+			DropView(context, viewName, false);
+		}
+
+		public static void DropView(this IQueryContext context, ObjectName viewName, bool ifExists) {
+			context.DropViews(new []{viewName}, ifExists);
+		}
+
+		public static void DropViews(this IQueryContext context, IEnumerable<ObjectName> viewNames) {
+			DropViews(context, viewNames, false);
+		}
+
+		public static void DropViews(this IQueryContext context, IEnumerable<ObjectName> viewNames, bool onlyIfExists) {
+			var viewNameList = viewNames.ToList();
+			foreach (var tableName in viewNameList) {
+				if (!context.UserCanDropObject(DbObjectType.View, tableName))
+					throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Drop);
+			}
+
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!onlyIfExists) {
+				// For each table to drop.
+				foreach (var viewName in viewNameList) {
+					// If view doesn't exist, throw an error
+					if (!context.ViewExists(viewName)) {
+						throw new ObjectNotFoundException(viewName, String.Format("The view '{0}' does not exist and cannot be dropped.", viewName));
+					}
+				}
+			}
+
+			foreach (var viewName in viewNameList) {
+				// Does the table already exist?
+				if (context.ViewExists(viewName)) {
+					// Drop table in the transaction
+					context.DropObject(DbObjectType.Table, viewName);
+
+					// Revoke all the grants on the table
+					context.RevokeAllGrantsOnView(viewName);
+				}
+			}
 		}
 
 		public static View GetView(this IQueryContext context, ObjectName viewName) {

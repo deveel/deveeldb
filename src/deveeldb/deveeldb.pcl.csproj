@@ -354,6 +354,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\DropDefaultNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropPrimaryKeyNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTableStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropViewStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ExitStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromClauseNode.cs" />
@@ -502,6 +503,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />

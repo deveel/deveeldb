@@ -14,10 +14,6 @@
 //    limitations under the License.
 //
 
-using System.Runtime.InteropServices;
-
-using Deveel.Data.Sql.Statements;
-
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
@@ -618,8 +614,14 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal DropView() {
-			var dropView = new NonTerminal("drop_view");
-			dropView.Rule = Key("DROP") + Key("VIEW") + ObjectName();
+			var dropView = new NonTerminal("drop_view", typeof(DropViewStatementNode));
+			var viewNameList = new NonTerminal("view_name_list");
+			var ifExistsOpt = new NonTerminal("if_exists_opt");
+
+			dropView.Rule = Key("DROP") + Key("VIEW") + ifExistsOpt + viewNameList;
+			viewNameList.Rule = MakePlusRule(viewNameList, Comma, ObjectName());
+			ifExistsOpt.Rule = Empty | Key("IF") + Key("EXISTS");
+
 			return dropView;
 		}
 

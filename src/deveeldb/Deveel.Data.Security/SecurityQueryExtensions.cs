@@ -334,6 +334,10 @@ namespace Deveel.Data.Security {
 			RevokeAllGrantsOn(context, DbObjectType.Table, objectName);
 		}
 
+		public static void RevokeAllGrantsOnView(this IQueryContext context, ObjectName objectName) {
+			context.RevokeAllGrantsOn(DbObjectType.View, objectName);
+		}
+
 		public static void RevokeAllGrantsOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
 

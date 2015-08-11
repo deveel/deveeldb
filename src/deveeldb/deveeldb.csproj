@@ -196,7 +196,9 @@
     <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorState.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTableStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropViewStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
