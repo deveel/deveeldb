@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Compile {
 
             CompileContext = compileContext;
 			Messages = new List<SqlCompileMessage>();
-			Statements = new List<SqlStatement>();
+			Statements = new List<IStatement>();
         }
 
         public SqlCompileContext CompileContext { get; private set; }
@@ -38,6 +38,6 @@ namespace Deveel.Data.Sql.Compile {
 		    get { return Messages.Any(x => x.Level == CompileMessageLevel.Error); }
 	    }
 
-	    public ICollection<SqlStatement> Statements { get; private set; }
+	    public ICollection<IStatement> Statements { get; private set; }
     }
 }

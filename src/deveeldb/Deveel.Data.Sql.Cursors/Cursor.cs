@@ -20,20 +20,15 @@ using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class Cursor : IDbObject, IDisposable {
-		internal Cursor(CursorManager manager, CursorInfo cursorInfo) {
-			if (manager == null)
-				throw new ArgumentNullException("manager");
+		internal Cursor(CursorInfo cursorInfo) {
 			if (cursorInfo == null)
 				throw new ArgumentNullException("cursorInfo");
 
-			Manager = manager;
 			CursorInfo = cursorInfo;
+			State = new CursorState(this);
 		}
 
 		~Cursor() {
@@ -42,16 +37,14 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public CursorInfo CursorInfo { get; private set; }
 
-		public ITable Result { get; private set; }
+		public CursorStatus Status {
+			get { return State.Status; }
+		}
 
 		public CursorState State { get; private set; }
 
-		public int CurrentOffset { get; private set; }
-
-		public CursorManager Manager { get; private set; }
-
 		ObjectName IDbObject.FullName {
-			get { return CursorInfo.CursorName; }
+			get { return new ObjectName(CursorInfo.CursorName); }
 		}
 
 		DbObjectType IDbObject.ObjectType {
@@ -59,16 +52,16 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		private void AssertNotDisposed() {
-			if (State == CursorState.Disposed)
+			if (Status == CursorStatus.Disposed)
 				throw new ObjectDisposedException("Cursor");
 		}
 
-		private SqlExpression PrepareQuery(SqlExpression[] args) {
-			SqlExpression query = CursorInfo.QueryExpression;
+		private SqlQueryExpression PrepareQuery(SqlExpression[] args) {
+			SqlQueryExpression query = CursorInfo.QueryExpression;
 			if (CursorInfo.Parameters.Count > 0) {
 				var cursorArgs = BuildArgs(CursorInfo.Parameters, args);
 				var preparer = new CursorArgumentPreparer(cursorArgs);
-				query = query.Prepare(preparer);
+				query = query.Prepare(preparer) as SqlQueryExpression;
 			}
 
 			return query;
@@ -89,36 +82,64 @@ namespace Deveel.Data.Sql.Cursors {
 			return result;
 		}
 
+		private ITable Evaluate(IQueryContext context, SqlExpression[] args) {
+			try {
+				var prepared = PrepareQuery(args);
+				var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, prepared, null);
+				return queryPlan.Evaluate(context);
+			} catch (Exception) {
+
+				throw;
+			}
+		}
+
 		public void Open(IQueryContext context, params SqlExpression[] args) {
 			lock (this) {
 				AssertNotDisposed();
 
-				try {
-					var prepared = PrepareQuery(args);
-					var evalQuery = prepared.Evaluate(context, null);
-					if (evalQuery.ExpressionType != SqlExpressionType.Constant ||
-						!(((SqlConstantExpression)evalQuery).Value.Type is QueryType))
-						throw new InvalidOperationException();
+				ITable result = null;
+				if (CursorInfo.IsInsensitive)
+					result = Evaluate(context, args);
 
-					var queryPlan = ((SqlQueryObject) ((SqlConstantExpression) evalQuery).Value.Value).QueryPlan;
-					Result = queryPlan.Evaluate(context);
-				} catch (Exception) {
-					
-					throw;
-				}
+				State.Open(result, args);
 			}
 		}
 
 		public void Close() {
 			lock (this) {
 				AssertNotDisposed();
-				CurrentOffset = -1;
-				State = CursorState.Closed;
-				Result = null;
+				State.Close();
 			}
 		}
 
-		public void FetchInto(IQueryContext context, ObjectName refName) {
+		public void FetchInto(FetchContext context) {
+			if (context == null)
+				throw new ArgumentNullException("context");
+
+			if (!CursorInfo.IsScroll &&
+				context.Direction != FetchDirection.Next)
+				throw new ArgumentException(String.Format("Cursor '{0}' is not SCROLL: can fetch only NEXT value.", CursorInfo.CursorName));
+
+			var table = State.Result;
+			if (!CursorInfo.IsInsensitive)
+				table = Evaluate(context.QueryContext, State.OpenArguments);
+
+			var fetchRow = State.FetchRowFrom(table, context.Direction, context.Offset);
+
+			if (context.IsGlobalReference) {
+				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;
+				FetchIntoReference(context.QueryContext, fetchRow, reference);
+			} else if (context.IsVariableReference) {
+				var varName = ((SqlVariableReferenceExpression) context.Reference).VariableName;
+				FetchIntoVatiable(context.QueryContext, fetchRow, varName);
+			}
+		}
+
+		private void FetchIntoVatiable(IQueryContext queryContext, Row row, string varName) {
+			throw new NotImplementedException();
+		}
+
+		private void FetchIntoReference(IQueryContext queryContext, Row row, ObjectName reference) {
 			throw new NotImplementedException();
 		}
 
@@ -129,16 +150,11 @@ namespace Deveel.Data.Sql.Cursors {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (Result != null)
-					Result.Dispose();
-
-				if (Manager != null)
-					Manager.DisposeCursor(this);
+				if (State != null)
+					State.Dispose();
 			}
 
-			Manager = null;
-			Result = null;
-			State = CursorState.Disposed;
+			State = null;
 		}
 
 		#region CursorArgumentPreparer

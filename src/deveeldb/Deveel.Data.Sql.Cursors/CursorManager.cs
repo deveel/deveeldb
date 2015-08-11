@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		IDbObject IObjectManager.GetObject(ObjectName objName) {
-			return GetCursor(objName);
+			return GetCursor(objName.Name);
 		}
 
 		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
@@ -91,10 +91,12 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
+			var ojectName = objName.Name;
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			foreach (var cursor in cursors) {
 				var cursorName = cursor.CursorInfo.CursorName;
-				if (cursorName.Equals(objName, ignoreCase))
-					return cursorName;
+				if (cursorName.Equals(ojectName, comparison))
+					return new ObjectName(cursorName);
 			}
 
 			return null;
@@ -107,29 +109,31 @@ namespace Deveel.Data.Sql.Cursors {
 
 			lock (this) {
 				var cursorName = cursorInfo.CursorName;
-				if (cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName, true)))
+				if (cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName, StringComparison.OrdinalIgnoreCase)))
 					throw new ArgumentException(String.Format("Cursor '{0}' was already declared.", cursorName));
 
-				var cursor = new Cursor(this, cursorInfo);
+				var cursor = new Cursor(cursorInfo);
 				cursors.Add(cursor);
 			}
 		}
 
 		public bool CursorExists(ObjectName cursorName) {
 			var ignoreCase = Context.IgnoreIdentifiersCase();
-			return cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName, ignoreCase));
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName.Name, comparison));
 		}
 
-		public Cursor GetCursor(ObjectName cursorName) {
+		public Cursor GetCursor(string cursorName) {
 			var ignoreCase = Context.IgnoreIdentifiersCase();
-			return cursors.FirstOrDefault(x => x.CursorInfo.CursorName.Equals(cursorName, ignoreCase));
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			return cursors.FirstOrDefault(x => x.CursorInfo.CursorName.Equals(cursorName, comparison));
 		}
 
 		internal void DisposeCursor(Cursor cursor) {
 			var name = cursor.CursorInfo.CursorName;
 			for (int i = cursors.Count - 1; i >= 0; i--) {
 				var cursorName = cursors[i].CursorInfo.CursorName;
-				if (cursorName.Equals(name, true))
+				if (cursorName.Equals(name, StringComparison.OrdinalIgnoreCase))
 					cursors.RemoveAt(i);
 			}
 		}

@@ -249,9 +249,14 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorFlags.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorManager.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorState.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorStatus.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\FetchContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\FetchDirection.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ConstantVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\EvaluateContext.cs" />
@@ -332,6 +337,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterUserNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnSetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CommitStatementNode.cs" />
@@ -341,6 +347,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\CreateTriggerNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateViewNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CursorParameterNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeNode.cs" />
@@ -385,6 +392,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\LabelNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NumerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ObjectNameNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\OpenCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\OrderByNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryCompositeNode.cs" />
@@ -493,11 +501,13 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\BlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CloseStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropDefaultAction.cs" />

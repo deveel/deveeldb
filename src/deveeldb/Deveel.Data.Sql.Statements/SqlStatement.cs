@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <seealso cref="SourceQuery"/>
 		public bool IsFromQuery { get; private set; }
 
-		internal void SetSource(SqlQuery query) {
+		void IStatement.SetSource(SqlQuery query) {
 			SourceQuery = query;
 			IsFromQuery = true;
 		}

@@ -4,7 +4,7 @@ using Deveel.Data.DbSystem;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class OpenStatement : SqlStatement {
+	public sealed class OpenStatement : SqlNonPreparableStatement {
 		public OpenStatement(string cursorName) 
 			: this(cursorName, new SqlExpression[] {}) {
 		}
@@ -18,8 +18,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression[] Arguments { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
-			throw new NotImplementedException();
+		public override ITable Execute(IQueryContext context) {
+			
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

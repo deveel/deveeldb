@@ -20,10 +20,15 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorInfo : IObjectInfo {
-		public CursorInfo(ObjectName cursorName, SqlQueryExpression queryExpression) {
+		public CursorInfo(string cursorName, SqlQueryExpression queryExpression) 
+			: this(cursorName, CursorFlags.Insensitive, queryExpression) {
+		}
+
+		public CursorInfo(string cursorName, CursorFlags flags, SqlQueryExpression queryExpression) {
 			if (cursorName == null)
 				throw new ArgumentNullException("cursorName");
 			if (queryExpression == null)
@@ -32,20 +37,33 @@ namespace Deveel.Data.Sql.Cursors {
 			CursorName = cursorName;
 			QueryExpression = queryExpression;
 			Parameters = new ParameterCollection();
+
+			Flags = flags;
 		}
 
-		public ObjectName CursorName { get; private set; }
+		public string CursorName { get; private set; }
 
 		public ICollection<CursorParameter> Parameters { get; private set; }
 
+		public CursorFlags Flags { get; set; }
+
+		public bool IsInsensitive {
+			get { return (Flags & CursorFlags.Insensitive) != 0; }
+		}
+
+
+		public bool IsScroll {
+			get { return (Flags & CursorFlags.Scroll) != 0; }
+		}
+
 		public SqlQueryExpression QueryExpression { get; private set; }
-			
+
 		DbObjectType IObjectInfo.ObjectType {
 			get { return DbObjectType.Cursor; }
 		}
 
 		ObjectName IObjectInfo.FullName {
-			get { return CursorName; }
+			get { return new ObjectName(CursorName); }
 		}
 
 		#region ParameterCollection

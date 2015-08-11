@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Types;
@@ -26,7 +27,7 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Parser {
 	class StatementBuilder {
 		private readonly IQueryContext context;
-		private readonly List<SqlStatement> statements;
+		private readonly List<IStatement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
@@ -34,7 +35,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public StatementBuilder(IQueryContext context) {
 			this.context = context;
-			statements = new List<SqlStatement>();
+			statements = new List<IStatement>();
 		}
 
 		private SqlExpression Expression(IExpressionNode node) {
@@ -65,8 +66,54 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is DropViewStatementNode)
 				BuildDropView((DropViewStatementNode) node);
 
+			if (node is DeclareCursorNode)
+				BuildDeclareCursor((DeclareCursorNode) node);
+			if (node is OpenCursorStatementNode)
+				BuildOpenCursor((OpenCursorStatementNode) node);
+			if (node is CloseCursorStatementNode)
+				BuildCloseCursor((CloseCursorStatementNode) node);
+
 			if (node is SequenceOfStatementsNode)
 				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
+		}
+
+		private void BuildCloseCursor(CloseCursorStatementNode node) {
+			statements.Add(new CloseStatement(node.CursorName));
+		}
+
+		private void BuildOpenCursor(OpenCursorStatementNode node) {
+			var args = new List<SqlExpression>();
+			if (node.Arguments != null) {
+				args = node.Arguments.Select(ExpressionBuilder.Build).ToList();
+			}
+
+			statements.Add(new OpenStatement(node.CursorName, args.ToArray()));
+		}
+
+		private DataType BuildDataType(DataTypeNode node) {
+			var builder = new DataTypeBuilder();
+			var typeResolver = context.TypeResolver();
+			return builder.Build(typeResolver, node);
+		}
+
+		private void BuildDeclareCursor(DeclareCursorNode node) {
+			var parameters = new List<CursorParameter>();
+			if (node.Parameters != null) {
+				foreach (var parameterNode in node.Parameters) {
+					var dataType = BuildDataType(parameterNode.ParameterType);
+					parameters.Add(new CursorParameter(parameterNode.ParameterName, dataType));
+				}
+			}
+
+			var flags = new CursorFlags();
+			if (node.Insensitive)
+				flags |= CursorFlags.Insensitive;
+			if (node.Scroll)
+				flags |= CursorFlags.Scroll;
+
+			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(node.QueryExpression);
+
+			statements.Add(new DeclareCursorStatement(node.CursorName, flags, queryExpression));
 		}
 
 		private void BuildDropView(DropViewStatementNode node) {
@@ -116,7 +163,7 @@ namespace Deveel.Data.Sql.Parser {
 			CreateTable.Build(context, node, statements);
 		}
 
-		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
+		public IEnumerable<IStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			Build(rootNode);
 			return statements.ToArray();
 		}
@@ -125,7 +172,7 @@ namespace Deveel.Data.Sql.Parser {
 			AlterTable.Build(context, node, statements);
 		}
 
-		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
+		public IEnumerable<IStatement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
@@ -246,7 +293,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IQueryContext context, CreateTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(IQueryContext context, CreateTableNode node, ICollection<IStatement> statements) {
 				string idColumn = null;
 
 				var tableName = node.TableName;
@@ -304,7 +351,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region AlterTable
 
 		static class AlterTable {
-			public static void Build(IQueryContext context, AlterTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(IQueryContext context, AlterTableNode node, ICollection<IStatement> statements) {
 				if (node.CreateTable != null) {
 					CreateTable.Build(context, node.CreateTable, statements);
 					foreach (var statement in statements) {
@@ -318,7 +365,7 @@ namespace Deveel.Data.Sql.Parser {
 				}
 			}
 
-			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
+			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<IStatement> statements) {
 				if (action is AddColumnNode) {
 					var column = ((AddColumnNode) action).Column;
 					var constraints = new List<ConstraintInfo>();
@@ -370,7 +417,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region InsertIntoTable
 
 		static class InsertIntoTable {
-			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<SqlStatement> statements) {
+			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<IStatement> statements) {
 				if (node.ValuesInsert != null) {
 					var valueInsert = node.ValuesInsert;
 					var values =

@@ -27,6 +27,10 @@ namespace Deveel.Data.Sql.Statements {
 			return this;
 		}
 
+		public void SetSource(SqlQuery query) {
+			SourceQuery = query;
+		}
+
 		IStatement IPreparedStatement.Source {
 			get { return this; }
 		}

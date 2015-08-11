@@ -70,6 +70,9 @@ namespace Deveel.Data.Sql.Parser {
 			               Alter() |
 			               Drop() |
 			               Declare() |
+						   Open() |
+						   Close() |
+						   Fetch() |
 			               Select() |
 			               Insert() |
 			               Update() |
@@ -96,13 +99,19 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal CursorDeclaration() {
 			var declareCursor = new NonTerminal("cursor_declaration", typeof(DeclareCursorNode));
+			var insensitiveOpt = new NonTerminal("insensitive_opt");
+			var scrollOpt = new NonTerminal("scroll_opt");
 			var cursorArgsOpt = new NonTerminal("cursor_args_opt");
 			var cursorArgs = new NonTerminal("cursor_args");
-			var cursorArg = new NonTerminal("cursor_arg");
-			declareCursor.Rule = Key("CURSOR") + Identifier + cursorArgsOpt + Key("IS") + SqlQueryExpression();
+			var cursorArg = new NonTerminal("cursor_arg", typeof(CursorParameterNode));
+			declareCursor.Rule = Key("CURSOR") + Identifier + cursorArgsOpt + 
+				insensitiveOpt + scrollOpt +
+				Key("IS") + SqlQueryExpression();
 			cursorArgsOpt.Rule = Empty | "(" + cursorArgs + ")";
 			cursorArgs.Rule = MakePlusRule(cursorArgs, Comma, cursorArg);
 			cursorArg.Rule = Identifier + DataType();
+			insensitiveOpt.Rule = Empty | Key("INSENSITIVE");
+			scrollOpt.Rule = Empty | Key("SCROLL");
 			return declareCursor;
 		}
 
@@ -146,38 +155,78 @@ namespace Deveel.Data.Sql.Parser {
 			return declareVariable;
 		}
 
-		private NonTerminal PlSqlBlock() {
-			var plsqlBlock = new NonTerminal("plsql_block", typeof(PlSqlBlockNode));
-			var labelStatement = new NonTerminal("plsql_label", typeof(LabelNode));
-			var labelStatementOpt = new NonTerminal("plsql_label_opt");
-			var declareStatementOpt = new NonTerminal("declare_statement_opt");
-			var declareSpec = new NonTerminal("declare_spec");
-			var declareCommand = new NonTerminal("declare_command");
-			var declareSpecList = new NonTerminal("declare_spec_list");
-			var plsqlCodeBlock = new NonTerminal("plsql_code_block");
-			var plsqlStatementList = new NonTerminal("plsql_statement_list");
-			var plsqlStatement = new NonTerminal("plsql_statement");
-			var plsqlCommand = new NonTerminal("plsql_command");
-			var sqlStatement = new NonTerminal("sql_statement");
-			var sqlStatementList = new NonTerminal("sql_statement_list");
+		private NonTerminal Open() {
+			var openCommand = new NonTerminal("open_command", typeof(OpenCursorStatementNode));
+			var argsOpt = new NonTerminal("args_opt");
+			var argList = new NonTerminal("arg_list");
+
+			openCommand.Rule = Key("OPEN") + Identifier + argsOpt;
+			argsOpt.Rule = Empty | "(" + argList + ")";
+			argList.Rule = MakePlusRule(argList, Comma, SqlExpression());
+			return openCommand;
+		}
+
+		private NonTerminal Close() {
+			var closeCommand = new NonTerminal("close_command", typeof(CloseCursorStatementNode));
+			closeCommand.Rule = Key("CLOSE") + Identifier;
+			return closeCommand;
+		}
+
+		private NonTerminal Fetch() {
+			var fetchCommand=new NonTerminal("fetch_command");
+			var directionOpt = new NonTerminal("direction_opt");
+			var fetchDirection = new NonTerminal("fetch_direction");
+			var fromOpt = new NonTerminal("from_opt");
+			var intoOpt = new NonTerminal("into_opt");
+
+			fetchCommand.Rule = Key("FETCH") + directionOpt + fromOpt + Identifier + intoOpt;
+			directionOpt.Rule = Empty | fetchDirection;
+			fetchDirection.Rule = Key("NEXT") |
+			                      Key("PRIOR") |
+			                      Key("FIRST") |
+			                      Key("LAST") |
+			                      Key("ABSOLUTE") + SqlExpression() |
+			                      Key("RELATIVE") + SqlExpression();
+			fromOpt.Rule = Empty | Key("FROM");
+			intoOpt.Rule = Empty | Key("INTO") + SqlExpression();
+			return fetchCommand;
+		}
+
+		private NonTerminal Exit() {
 			var exitStatement = new NonTerminal("exit_statement", typeof(ExitStatementNode));
-			var labelOpt = new NonTerminal("label_opt");
 			var exitWhenOpt = new NonTerminal("exit_when_opt");
+			var labelOpt = new NonTerminal("label_opt");
+
+			exitStatement.Rule = Key("EXIT") + labelOpt + exitWhenOpt;
+			labelOpt.Rule = Empty | Identifier;
+			exitWhenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
+
+			return exitStatement;
+		}
+
+		private NonTerminal GoTo() {
 			var gotoStatement = new NonTerminal("goto_statement", typeof(GotoStatementNode));
+			gotoStatement.Rule = Key("GOTO") + Identifier;
+
+			return gotoStatement;
+		}
+
+		private NonTerminal Return() {
 			var returnStatement = new NonTerminal("return_statement", typeof(ReturnStatementNode));
+			returnStatement.Rule = Key("RETURN") + SqlExpression();
+
+			return returnStatement;
+		}
+
+		private NonTerminal Raise() {
 			var raiseStatement = new NonTerminal("raise_statement");
 			var exceptionNameOpt = new NonTerminal("exception_name_opt");
-			var conditionalStatement = new NonTerminal("conditional_statement");
-			var conditionalElsifList = new NonTerminal("conditional_elsif_list");
-			var conditionalElsif = new NonTerminal("conditional_elsif");
-			var conditionalElseOpt = new NonTerminal("conditional_else_opt");
-			var declarePragma = new NonTerminal("declare_pragma", typeof(DeclarePragmaNode));
-			var exceptionBlockOpt = new NonTerminal("exception_block_opt");
-			var exceptionBlock = new NonTerminal("exception_block");
-			var exceptionHandler = new NonTerminal("exception_handler");
-			var exceptionHandlerList = new NonTerminal("exception_handler_list");
-			var exceptionNames = new NonTerminal("exception_names");
-			var handledExceptions = new NonTerminal("handled_exceptions");
+			raiseStatement.Rule = Key("RAISE") + exceptionNameOpt;
+			exceptionNameOpt.Rule = Empty | Identifier;
+			return raiseStatement;
+		}
+
+		private NonTerminal Loop() {
 			var loopStatement = new NonTerminal("loop_statement");
 			var loopLabelOpt = new NonTerminal("loop_label_opt");
 			var loopHeadOpt = new NonTerminal("loop_head_opt");
@@ -188,6 +237,95 @@ namespace Deveel.Data.Sql.Parser {
 			var reverseOpt = new NonTerminal("reverse_opt");
 			var forLoopParam = new NonTerminal("for_loop_param");
 			var cursorLoopParam = new NonTerminal("cursor_loop_param");
+
+			loopStatement.Rule = loopLabelOpt + loopHeadOpt + Key("LOOP") + PlSqlStatementList() + Key("LOOP") + Key("END");
+			loopLabelOpt.Rule = Empty | Identifier;
+			loopHeadOpt.Rule = Empty | loopHead;
+			loopHead.Rule = whileLoop | forLoop;
+			whileLoop.Rule = Key("WHILE") + SqlExpression();
+			forLoop.Rule = Key("FOR") + forLoopParam;
+			forLoopParam.Rule = numericLoopParam | cursorLoopParam;
+			numericLoopParam.Rule = Identifier + Key("IN") + reverseOpt + SqlExpression() + ".." + SqlExpression();
+			reverseOpt.Rule = Empty | Key("REVERSE");
+			cursorLoopParam.Rule = Identifier + Key("IN") + ObjectName();
+
+			return loopStatement;
+		}
+
+		private NonTerminal Conditional() {
+			var conditionalStatement = new NonTerminal("conditional_statement");
+			var conditionalElsifList = new NonTerminal("conditional_elsif_list");
+			var conditionalElsif = new NonTerminal("conditional_elsif");
+			var conditionalElseOpt = new NonTerminal("conditional_else_opt");
+
+			conditionalStatement.Rule = IF + SqlExpression() + THEN + PlSqlStatementList() +
+							 conditionalElsifList +
+							 conditionalElseOpt +
+							 END + IF;
+			conditionalElsifList.Rule = MakeStarRule(conditionalElsifList, conditionalElsif);
+			conditionalElsif.Rule = ELSIF + SqlExpression() + THEN + PlSqlStatementList();
+			conditionalElseOpt.Rule = Empty | ELSE + PlSqlStatementList();
+
+			return conditionalStatement;
+		}
+
+		private NonTerminal PlSqlStatement() {
+			var plsqlStatement = new NonTerminal("plsql_statement");
+			var plsqlCommand = new NonTerminal("plsql_command");
+
+			plsqlStatement.Rule = plsqlCommand + StatementEnd();
+			plsqlCommand.Rule = NestedSqlStatement() |
+								   Exit() |
+								   GoTo() |
+								   Return() |
+								   Raise() |
+								   Loop() |
+								   Conditional();
+
+			return plsqlStatement;
+		}
+
+		private NonTerminal PlSqlStatementList() {
+			var plsqlStatementList = new NonTerminal("plsql_statement_list");
+			plsqlStatementList.Rule = MakePlusRule(plsqlStatementList, PlSqlStatement());
+
+			return plsqlStatementList;
+		}
+
+		private NonTerminal NestedSqlStatement() {
+			var sqlStatement = new NonTerminal("sql_statement");
+
+			sqlStatement.Rule = Select() |
+					Insert() |
+					Update() |
+					Delete() |
+					Open() |
+					Close() |
+					Fetch() |
+					Commit() |
+					Set() |
+					Rollback();
+
+			return sqlStatement;
+		}
+
+		private NonTerminal PlSqlBlock() {
+			var plsqlBlock = new NonTerminal("plsql_block", typeof(PlSqlBlockNode));
+			var labelStatement = new NonTerminal("plsql_label", typeof(LabelNode));
+			var labelStatementOpt = new NonTerminal("plsql_label_opt");
+			var declareStatementOpt = new NonTerminal("declare_statement_opt");
+			var declareSpec = new NonTerminal("declare_spec");
+			var declareCommand = new NonTerminal("declare_command");
+			var declareSpecList = new NonTerminal("declare_spec_list");
+			var plsqlCodeBlock = new NonTerminal("plsql_code_block");
+			var sqlStatementList = new NonTerminal("sql_statement_list");
+			var declarePragma = new NonTerminal("declare_pragma", typeof(DeclarePragmaNode));
+			var exceptionBlockOpt = new NonTerminal("exception_block_opt");
+			var exceptionBlock = new NonTerminal("exception_block");
+			var exceptionHandler = new NonTerminal("exception_handler");
+			var exceptionHandlerList = new NonTerminal("exception_handler_list");
+			var exceptionNames = new NonTerminal("exception_names");
+			var handledExceptions = new NonTerminal("handled_exceptions");
 
 			plsqlBlock.Rule = labelStatementOpt + declareStatementOpt + plsqlCodeBlock;
 			labelStatementOpt.Rule = Empty | labelStatement;
@@ -201,60 +339,16 @@ namespace Deveel.Data.Sql.Parser {
 			declareSpec.Rule = declareCommand + StatementEnd();
 			declarePragma.Rule = Key("PRAGMA") + Key("EXCEPTION_INIT") + "(" + StringLiteral + "," + PositiveLiteral + ")";
 
-			plsqlCodeBlock.Rule = Key("BEGIN") + plsqlStatementList + exceptionBlockOpt + Key("END");
-			plsqlStatementList.Rule = MakePlusRule(plsqlStatementList, plsqlStatement);
-			plsqlStatement.Rule = plsqlCommand + StatementEnd();
-			plsqlCommand.Rule = sqlStatement |
-			                       exitStatement |
-			                       gotoStatement |
-								   returnStatement |
-								   raiseStatement |
-								   loopStatement |
-			                       conditionalStatement;
+			plsqlCodeBlock.Rule = Key("BEGIN") + PlSqlStatementList() + exceptionBlockOpt + Key("END");
 
-			sqlStatement.Rule = Select() |
-			                    Insert() |
-			                    Update() |
-			                    Delete() |
-								Commit() |
-								Set() |
-								Rollback();
+			sqlStatementList.Rule = MakePlusRule(sqlStatementList, NestedSqlStatement());
 
-			sqlStatementList.Rule = MakePlusRule(sqlStatementList, sqlStatement);
-
-			exitStatement.Rule = Key("EXIT") + labelOpt + exitWhenOpt;
-			labelOpt.Rule = Empty | Identifier;
-			exitWhenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
-
-			gotoStatement.Rule = Key("GOTO") + Identifier;
-			returnStatement.Rule = Key("RETURN") + SqlExpression();
-
-			conditionalStatement.Rule = IF + SqlExpression() + THEN + plsqlStatementList +
-			                             conditionalElsifList +
-			                             conditionalElseOpt +
-			                             END + IF;
-			conditionalElsifList.Rule = MakeStarRule(conditionalElsifList, conditionalElsif);
-			conditionalElsif.Rule = ELSIF + SqlExpression() + THEN + plsqlStatementList;
-			conditionalElseOpt.Rule = Empty | ELSE + plsqlStatementList;
-			raiseStatement.Rule = Key("RAISE") + exceptionNameOpt;
-			exceptionNameOpt.Rule = Empty | Identifier;
 			exceptionBlockOpt.Rule = Empty | exceptionBlock;
 			exceptionBlock.Rule = Key("EXCEPTION") + exceptionHandlerList;
 			exceptionHandlerList.Rule = MakePlusRule(exceptionHandlerList, exceptionHandler);
-			exceptionHandler.Rule = Key("WHEN") + handledExceptions + Key("THEN") + plsqlStatementList;
+			exceptionHandler.Rule = Key("WHEN") + handledExceptions + Key("THEN") + PlSqlStatementList();
 			handledExceptions.Rule = Key("OTHERS") | exceptionNames;
 			exceptionNames.Rule = MakePlusRule(exceptionNames, OR, Identifier);
-
-			loopStatement.Rule = loopLabelOpt + loopHeadOpt + Key("LOOP") + plsqlStatementList + Key("LOOP") + Key("END");
-			loopLabelOpt.Rule = Empty | Identifier;
-			loopHeadOpt.Rule = Empty | loopHead;
-			loopHead.Rule = whileLoop | forLoop;
-			whileLoop.Rule = Key("WHILE") + SqlExpression();
-			forLoop.Rule = Key("FOR") + forLoopParam;
-			forLoopParam.Rule = numericLoopParam | cursorLoopParam;
-			numericLoopParam.Rule = Identifier + Key("IN") + reverseOpt + SqlExpression() + ".." + SqlExpression();
-			reverseOpt.Rule = Empty | Key("REVERSE");
-			cursorLoopParam.Rule = Identifier + Key("IN") + ObjectName();
 
 			return plsqlBlock;
 		}
