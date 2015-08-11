@@ -64,6 +64,7 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.DbSystem\ActiveSessionList.cs" />
+    <Compile Include="Deveel.Data.DbSystem\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data.DbSystem\Database.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseContext.cs" />

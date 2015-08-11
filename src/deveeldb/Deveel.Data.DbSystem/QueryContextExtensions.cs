@@ -42,6 +42,10 @@ namespace Deveel.Data.DbSystem {
 			return new SystemQueryContext(queryContext.Session.Transaction, queryContext.CurrentSchema);
 		}
 
+		public static IQueryContext CreateChild(this IQueryContext context) {
+			return new ChildQueryContext(context);
+		}
+
 		#region Properties
 
 		public static IDatabase Database(this IQueryContext context) {
