@@ -28,8 +28,8 @@ namespace Deveel.Data.Sql.Statements {
 	/// that is prepared and can be stored and retrieved for
 	/// later execution.
 	/// </remarks>
-	public abstract class SqlPreparedStatement : IPreparedStatement {
-		protected SqlPreparedStatement(IStatement source) {
+	public abstract class SqlPreparedStatement : SqlStatement {
+		protected SqlPreparedStatement(SqlStatement source) {
 			if (source == null)
 				throw new ArgumentNullException("source");
 
@@ -39,49 +39,10 @@ namespace Deveel.Data.Sql.Statements {
 		/// <summary>
 		/// Gets the statement that is the source of this statement.
 		/// </summary>
-		public IStatement Source { get; private set; }
+		public SqlStatement Source { get; private set; }
 
-		/// <summary>
-		/// Gets the query that is the source of the parent statement.
-		/// </summary>
-		/// <seealso cref="SqlStatement.SourceQuery"/>
-		public SqlQuery SourceQuery {
-			get { return Source.SourceQuery; }
+		protected override bool IsPreparable {
+			get { return false; }
 		}
-
-		/// <summary>
-		/// Executes the statement against the context given.
-		/// </summary>
-		/// <param name="context">The query context on within the statement
-		/// is executed.</param>
-		/// <returns>
-		/// Returns a <see cref="ITable"/> that contains the result of the
-		/// execution of the statement.
-		/// </returns>
-		/// <exception cref="StatementException">
-		/// Thrown if the execution of the statement caused an error.
-		/// </exception>
-		public ITable Execute(IQueryContext context) {
-			if (context == null)
-				throw new ArgumentNullException("context");
-
-			try {
-				return ExecuteStatement(context);
-			} catch (StatementException) {
-				throw;
-			} catch (Exception ex) {
-				throw new StatementException("An error occurred while executing the statement.", ex);
-			}
-		}
-
-		/// <summary>
-		/// When overridden by a derived class, it executes the statement.
-		/// </summary>
-		/// <param name="context">The context on which to execute the statement.</param>
-		/// <returns>
-		/// Returns a <see cref="ITable"/> that contains the result of the
-		/// execution of the statement.
-		/// </returns>
-		protected abstract ITable ExecuteStatement(IQueryContext context);
 	}
 }

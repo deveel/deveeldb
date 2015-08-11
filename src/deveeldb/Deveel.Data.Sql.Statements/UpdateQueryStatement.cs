@@ -35,7 +35,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		public int Limit { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+			throw new NotImplementedException();
+		}
+
+		protected override ITable ExecuteStatement(IQueryContext context) {
 			throw new NotImplementedException();
 		}
 	}

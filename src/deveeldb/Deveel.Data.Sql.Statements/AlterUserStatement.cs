@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterUserAction AlterAction { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var action = AlterAction;
 			if (action is IPreparable)
 				action = ((IPreparable) action).Prepare(preparer) as IAlterUserAction;

@@ -21,7 +21,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateUserStatement : SqlNonPreparableStatement {
+	public sealed class CreateUserStatement : SqlStatement {
 		public CreateUserStatement(string userName, SqlExpression password) {
 			if (password == null)
 				throw new ArgumentNullException("password");
@@ -36,8 +36,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression Password { get; private set; }
 
+		protected override bool IsPreparable {
+			get { return false; }
+		}
 
-		public override ITable Execute(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQueryContext context) {
 			var passwordText = Password.EvaluateToConstant(context, null).Value.ToString();
 
 			try {

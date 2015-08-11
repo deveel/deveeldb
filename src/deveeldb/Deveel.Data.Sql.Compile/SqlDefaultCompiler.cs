@@ -16,10 +16,18 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {
+		public SqlDefaultCompiler() {
+			StatementSerializerResolver =new StatementSerializerProvider();
+		}
+
+		public IObjectSerializerResolver StatementSerializerResolver { get; private set; }
+
 		public SqlCompileResult Compile(SqlCompileContext context) {
 			if (context == null)
 				throw new ArgumentNullException("context");

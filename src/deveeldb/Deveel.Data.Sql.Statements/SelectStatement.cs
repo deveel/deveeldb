@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SortColumn> OrderBy { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, OrderBy);
 			return new Prepared(this, queryPlan);
 		}

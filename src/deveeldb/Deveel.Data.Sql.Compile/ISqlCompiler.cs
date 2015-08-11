@@ -15,11 +15,13 @@
 //
 
 using System;
-using System.Collections.Generic;
-using Deveel.Data.Sql.Statements;
+
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Compile {
     public interface ISqlCompiler {
+		IObjectSerializerResolver StatementSerializerResolver { get; }
+
         SqlCompileResult Compile(SqlCompileContext context);
     }
 }

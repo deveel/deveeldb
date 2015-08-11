@@ -7,7 +7,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeclareCursorStatement : SqlNonPreparableStatement {
+	public sealed class DeclareCursorStatement : SqlStatement {
 		public DeclareCursorStatement(string cursorName, SqlQueryExpression queryExpression) 
 			: this(cursorName, null, queryExpression) {
 		}
@@ -32,6 +32,10 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
+		protected override bool IsPreparable {
+			get { return false; }
+		}
+
 		public string CursorName { get; private set; }
 
 		public SqlQueryExpression QueryExpression { get; private set; }
@@ -40,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<CursorParameter> Parameters { get; set; } 
 
-		public override ITable Execute(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQueryContext context) {
 			var cursorInfo = new CursorInfo(CursorName, Flags, QueryExpression);
 			if (Parameters != null) {
 				foreach (var parameter in Parameters) {

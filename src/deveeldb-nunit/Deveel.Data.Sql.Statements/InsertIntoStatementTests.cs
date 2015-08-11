@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Statements {
 			const string sql = "INSERT INTO test_table (first_name, last_name, birth_date) "+
 				"VALUES ('Antonello', 'Provenzano', TOODATE('1980-06-04'))";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
 			Assert.IsNotNull(statements);
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 				"VALUES ('Antonello', 'Provenzano', TOODATE('1980-06-04')), " + 
 				"('Sebastiano', 'Provenzano', TODATE('1981-08-27'))";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
 			Assert.IsNotNull(statements);
 
@@ -75,7 +75,7 @@ namespace Deveel.Data.Sql.Statements {
 			const string sql =
 				"INSERT INTO test_table SET first_name = 'Antonello', last_name = 'Provenzano', birth_date = TODATE('1980-06-04')";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
 			Assert.IsNotNull(statements);
 
@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseInsertSelect() {
 			const string sql = "INSERT INTO test_table FROM (SELECT * FROM table2 WHERE arg1 = 1)";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
 			Assert.IsNotNull(statements);
 

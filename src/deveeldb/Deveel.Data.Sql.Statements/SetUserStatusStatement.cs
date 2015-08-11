@@ -18,10 +18,9 @@ using System;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SetUserStatusStatement : SqlStatement, IPreparedStatement {
+	public sealed class SetUserStatusStatement : SqlStatement {
 		public SetUserStatusStatement(string userName, UserStatus status) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
@@ -34,11 +33,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public UserStatus Status { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
-			return this;
-		}
-		IStatement IPreparedStatement.Source {
-			get { return this; }
+		protected override bool IsPreparable {
+			get { return false; }
 		}
 
 		public ITable Execute(IQueryContext context) {

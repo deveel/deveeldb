@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			if (String.IsNullOrEmpty(TableName))
 				throw new StatementPrepareException("The table name is required.");
 

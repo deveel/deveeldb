@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithFromClause() {
 			const string sql = "SELECT col1 AS a FROM table";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithVariable() {
 			const string sql = "SELECT :a";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -121,7 +121,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithFunction() {
 			const string sql = "SELECT user()";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -145,7 +145,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithOrderByClause() {
 			const string sql = "SELECT col1 AS a FROM table ORDER BY a ASC";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ExecuteSimpleSelect() {
 			const string sql = "SELECT * FROM test_table";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -173,7 +173,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
@@ -182,7 +182,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ExecuteSimpleOrderedSelect() {
 			const string sql = "SELECT * FROM test_table ORDER BY birth_date DESC";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -192,7 +192,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 

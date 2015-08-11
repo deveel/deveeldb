@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new Prepared(this, tableInfo, IfNotExists, Temporary);

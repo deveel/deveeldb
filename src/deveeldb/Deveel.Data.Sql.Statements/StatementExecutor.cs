@@ -72,10 +72,14 @@ namespace Deveel.Data.Sql.Statements {
 				ITable result;
 
 				try {
-					result = prepared.Execute(context);
-				} catch (Exception) {
-					// TODO: Invoke diagnostics here before throwing the exception
+					result = prepared.Evaluate(context);
+				} catch(StatementException ex) {
+					context.RegisterError(ex);
 					throw;
+				} catch (Exception ex) {
+					var sex = new StatementException("An unhanded error occurred while executing the statement.", ex);
+					context.RegisterError(sex);
+					throw sex;
 				} finally {
 					statementSeen = true;
 				}

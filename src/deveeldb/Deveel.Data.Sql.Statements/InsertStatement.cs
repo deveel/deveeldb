@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; } 
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 
 			var table = context.GetTable(tableName);

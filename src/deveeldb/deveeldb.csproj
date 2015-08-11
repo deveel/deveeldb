@@ -211,6 +211,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data.DbSystem\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.DbSystem\OldNewTableState.cs" />
@@ -425,8 +427,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
@@ -434,12 +434,10 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetUserGroupsAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserStatusStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlNonPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />

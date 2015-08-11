@@ -20,7 +20,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var viewNameList = ViewNames.ToList();
 			var dropViews = new List<string>();
 
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool IfExists { get; set; }
 
-			public Prepared(IStatement source, ObjectName[] viewNames, bool ifExists) 
+			public Prepared(SqlStatement source, ObjectName[] viewNames, bool ifExists) 
 				: base(source) {
 				ViewNames = viewNames;
 				IfExists = ifExists;

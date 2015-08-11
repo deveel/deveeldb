@@ -27,7 +27,7 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Parser {
 	class StatementBuilder {
 		private readonly IQueryContext context;
-		private readonly List<IStatement> statements;
+		private readonly List<SqlStatement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public StatementBuilder(IQueryContext context) {
 			this.context = context;
-			statements = new List<IStatement>();
+			statements = new List<SqlStatement>();
 		}
 
 		private SqlExpression Expression(IExpressionNode node) {
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Parser {
 			CreateTable.Build(context, node, statements);
 		}
 
-		public IEnumerable<IStatement> Build(ISqlNode rootNode, SqlQuery query) {
+		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			Build(rootNode);
 			return statements.ToArray();
 		}
@@ -172,7 +172,7 @@ namespace Deveel.Data.Sql.Parser {
 			AlterTable.Build(context, node, statements);
 		}
 
-		public IEnumerable<IStatement> Build(ISqlNode rootNode, string query) {
+		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
@@ -293,7 +293,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IQueryContext context, CreateTableNode node, ICollection<IStatement> statements) {
+			public static void Build(IQueryContext context, CreateTableNode node, ICollection<SqlStatement> statements) {
 				string idColumn = null;
 
 				var tableName = node.TableName;
@@ -351,7 +351,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region AlterTable
 
 		static class AlterTable {
-			public static void Build(IQueryContext context, AlterTableNode node, ICollection<IStatement> statements) {
+			public static void Build(IQueryContext context, AlterTableNode node, ICollection<SqlStatement> statements) {
 				if (node.CreateTable != null) {
 					CreateTable.Build(context, node.CreateTable, statements);
 					foreach (var statement in statements) {
@@ -365,7 +365,7 @@ namespace Deveel.Data.Sql.Parser {
 				}
 			}
 
-			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<IStatement> statements) {
+			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
 				if (action is AddColumnNode) {
 					var column = ((AddColumnNode) action).Column;
 					var constraints = new List<ConstraintInfo>();
@@ -417,7 +417,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region InsertIntoTable
 
 		static class InsertIntoTable {
-			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<IStatement> statements) {
+			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<SqlStatement> statements) {
 				if (node.ValuesInsert != null) {
 					var valueInsert = node.ValuesInsert;
 					var values =

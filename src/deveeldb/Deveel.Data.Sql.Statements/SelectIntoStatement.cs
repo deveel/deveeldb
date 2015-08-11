@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, null);
 
 			if (IsObjectReference) {

@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="SqlPreparedStatement"/>
-	public abstract class SqlStatement : IStatement {
+	public abstract class SqlStatement {
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.
 		/// </summary>
@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// A single SQL query can form multiple <see cref="SqlStatement"/> objects.
 		/// </remarks>
 		/// <seealso cref="SqlQuery"/>
-		public SqlQuery SourceQuery { get; private set; }
+		public SqlQuery SourceQuery { get; set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if this object was formed from the parsing
@@ -61,9 +61,13 @@ namespace Deveel.Data.Sql.Statements {
 		/// <seealso cref="SourceQuery"/>
 		public bool IsFromQuery { get; private set; }
 
-		void IStatement.SetSource(SqlQuery query) {
+		internal void SetSource(SqlQuery query) {
 			SourceQuery = query;
 			IsFromQuery = true;
+		}
+
+		protected virtual bool IsPreparable {
+			get { return true; }
 		}
 
 		/// <summary>
@@ -80,7 +84,9 @@ namespace Deveel.Data.Sql.Statements {
 		/// </returns>
 		/// <seealso cref="SqlPreparedStatement"/>
 		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
-		protected abstract IPreparedStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context);
+		protected virtual SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+			throw new NotSupportedException(String.Format("The statement '{0}' is not preparable.", GetType().Name));
+		}
 
 		/// <summary>
 		/// Prepares this statement and returns an object that can be executed
@@ -94,7 +100,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public IPreparedStatement Prepare(IQueryContext context) {
+		public SqlStatement Prepare(IQueryContext context) {
 			return Prepare(null, context);
 		}
 
@@ -111,8 +117,11 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public IPreparedStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
-			IPreparedStatement prepared;
+		public SqlStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
+			if (!IsPreparable)
+				return this;
+
+			SqlStatement prepared;
 
 			try {
 				prepared = PrepareStatement(preparer, context);
@@ -157,15 +166,21 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
 		public ITable Evaluate(IExpressionPreparer preparer, IQueryContext context) {
-			IPreparedStatement prepared;
+			SqlStatement prepared = this;
 
-			try {
-				prepared = Prepare(preparer, context);
-			} catch (Exception ex) {
-				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
+			if (IsPreparable) {
+				try {
+					prepared = Prepare(preparer, context);
+				} catch (Exception ex) {
+					throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
+				}
 			}
 
-			return prepared.Execute(context);
+			return prepared.ExecuteStatement(context);
+		}
+
+		protected virtual ITable ExecuteStatement(IQueryContext context) {
+			throw new PreparationRequiredException(GetType().FullName);
 		}
 
 		/// <summary>
@@ -180,7 +195,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
-		public static IEnumerable<IStatement> Parse(string sqlSource) {
+		public static IEnumerable<SqlStatement> Parse(string sqlSource) {
 			return Parse(null, sqlSource);
 		}
 
@@ -197,17 +212,17 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
-		public static IEnumerable<IStatement> Parse(IQueryContext context, string sqlSource) {
+		public static IEnumerable<SqlStatement> Parse(IQueryContext context, string sqlSource) {
 			return Parse(context, new SqlQuery(sqlSource));
 		}
 
-		public static IEnumerable<IStatement> Parse(SqlQuery query) {
+		public static IEnumerable<SqlStatement> Parse(SqlQuery query) {
 			return Parse(null, query);
 		}
 
 		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
 
-		public static IEnumerable<IStatement> Parse(IQueryContext context, SqlQuery query) {
+		public static IEnumerable<SqlStatement> Parse(IQueryContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
@@ -233,7 +248,7 @@ namespace Deveel.Data.Sql.Statements {
 						statement.SetSource(query);
 				}
 
-				return statements.Cast<IStatement>();
+				return statements;
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {

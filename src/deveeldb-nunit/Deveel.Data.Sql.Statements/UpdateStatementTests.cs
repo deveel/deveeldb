@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleUpdate() {
 			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleUpdateWithLimit() {
 			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1 LIMIT 20";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 

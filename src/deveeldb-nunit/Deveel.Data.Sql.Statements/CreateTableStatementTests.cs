@@ -15,7 +15,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleCreate() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void SimpleCreate() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void WithColumnDefault() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90)+22, date TIMESTAMP DEFAULT GetDate())";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
@@ -90,7 +90,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnDefault() {
 			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90)+22, date TIMESTAMP DEFAULT GetDate())";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -126,7 +126,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnIdentity() {
 			const string sql = "CREATE TABLE test (id INT IDENTITY, name VARCHAR NOT NULL)";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -158,7 +158,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnConstraints() {
 			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL)";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
@@ -171,7 +171,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseWithColumnAndTableConstraints() {
 			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL, CONSTRAINT uk_test UNIQUE(name))";
 
-			IEnumerable<IStatement> statements = null;
+			IEnumerable<SqlStatement> statements = null;
 			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
 			Assert.IsNotNull(statements);
 
