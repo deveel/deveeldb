@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
@@ -52,6 +53,28 @@ namespace Deveel.Data.Sql.Statements {
 
 			column.IsNotNull = IsNotNull;
 			return column;
+		}
+
+		public static SqlTableColumn Deserialize(BinaryReader reader) {
+			// TODO: Type resolver!!
+			var columnName = reader.ReadString();
+			var columnType = TypeSerializer.Deserialize(reader, null);
+			var notNull = reader.ReadBoolean();
+			var identity = reader.ReadBoolean();
+			var defaultExpression = SqlExpression.Deserialize(reader);
+			return new SqlTableColumn(columnName, columnType) {
+				IsNotNull = notNull,
+				IsIdentity = identity,
+				DefaultExpression = defaultExpression
+			};
+		}
+
+		public static void Serialize(SqlTableColumn column, BinaryWriter writer) {
+			writer.Write(column.ColumnName);
+			TypeSerializer.SerializeTo(writer, column.ColumnType);
+			writer.Write(column.IsNotNull);
+			writer.Write(column.IsIdentity);
+			SqlExpression.Serialize(column.DefaultExpression, writer);
 		}
 	}
 }

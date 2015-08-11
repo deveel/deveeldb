@@ -43,9 +43,9 @@ namespace Deveel.Data.Sql.Statements {
 			return new Prepared(tableName, Action);
 		}
 
-		#region PreparedAlterTableStatemet
+		#region Prepared
 
-		class Prepared : SqlStatement {
+		internal class Prepared : SqlStatement {
 			internal Prepared(ObjectName tableName, IAlterTableAction action) {
 				TableName = tableName;
 				Action = action;
@@ -189,21 +189,21 @@ namespace Deveel.Data.Sql.Statements {
 
 					ObjectName refTname = null;
 					if (foreignConstraint) {
-						refTname = context.ResolveTableName(constraint.ForeignTable);
+						refTname = context.ResolveTableName(constraint.ReferenceTable);
 					}
 
-					var columnNames = checker.StripColumnList(TableName.FullName, constraint.ColumnNames);
-					columnNames = checker.StripColumnList(constraint.ForeignTable.FullName, columnNames);
+					var columnNames = checker.StripColumnList(TableName.FullName, constraint.Columns);
+					columnNames = checker.StripColumnList(constraint.ReferenceTable, columnNames);
 					var expression = checker.CheckExpression(constraint.CheckExpression);
 					columnNames = checker.CheckColumns(columnNames);
 
 					IEnumerable<string> refCols = null;
-					if (foreignConstraint && constraint.ForeignColumnNames != null) {
+					if (foreignConstraint && constraint.ReferenceColumns != null) {
 						var referencedChecker = ColumnChecker.Default(context, refTname);
-						refCols = referencedChecker.CheckColumns(constraint.ForeignColumnNames);
+						refCols = referencedChecker.CheckColumns(constraint.ReferenceColumns);
 					}
 
-					var newConstraint = new ConstraintInfo(constraint.ConstraintType, constraint.TableName, columnNames.ToArray());
+					var newConstraint = new ConstraintInfo(constraint.ConstraintType, TableName, columnNames.ToArray());
 					if (foreignConstraint) {
 						newConstraint.ForeignTable = refTname;
 						newConstraint.ForeignColumnNames = refCols.ToArray();
@@ -235,11 +235,41 @@ namespace Deveel.Data.Sql.Statements {
 
 		#endregion
 
-		#region Serializer
+		#region PreparedSerializer
 
-		class Serializer : ObjectBinarySerializer<Prepared> {
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
 			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				throw new NotImplementedException();
+				ObjectName.Serialize(obj.TableName, writer);
+				SerializeAction(obj.Action, writer);
+			}
+
+			private static void SerializeAction(IAlterTableAction action, BinaryWriter writer) {
+				writer.Write((byte) action.ActionType);
+
+				if (action is AddColumnAction) {
+					var addColumn = (AddColumnAction) action;
+					SqlTableColumn.Serialize(addColumn.Column, writer);
+				} else if (action is AddConstraintAction) {
+					var addConstraint = (AddConstraintAction) action;
+					SqlTableConstraint.Serialize(addConstraint.Constraint, writer);
+				} else if (action is DropColumnAction) {
+					var dropColumn = (DropColumnAction) action;
+					writer.Write(dropColumn.ColumnName);
+				} else if (action is DropConstraintAction) {
+					var dropConstraint = (DropConstraintAction) action;
+					writer.Write(dropConstraint.ConstraintName);
+				} else if (action is DropDefaultAction) {
+					var dropDefault = (DropDefaultAction) action;
+					writer.Write(dropDefault.ColumnName);
+				} else if (action is DropPrimaryKeyAction) {
+					// Nothing to write here
+				} else if (action is SetDefaultAction) {
+					var setDefault = (SetDefaultAction) action;
+					writer.Write(setDefault.ColumnName);
+					SqlExpression.Serialize(setDefault.DefaultExpression, writer);
+				} else {
+					throw new NotSupportedException();
+				}
 			}
 
 			public override Prepared Deserialize(BinaryReader reader) {
@@ -249,7 +279,43 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private IAlterTableAction DeserializeAction(BinaryReader reader) {
-				throw new NotImplementedException();
+				var actionType = (AlterTableActionType) reader.ReadByte();
+				if (actionType == AlterTableActionType.AddColumn) {
+					var sqlColumn = SqlTableColumn.Deserialize(reader);
+					return new AddColumnAction(sqlColumn);
+				}
+
+				if (actionType == AlterTableActionType.AddConstraint) {
+					var sqlConstraint = SqlTableConstraint.Deserialize(reader);
+					return new AddConstraintAction(sqlConstraint);
+				}
+
+				if (actionType == AlterTableActionType.DropColumn) {
+					var dropColumn = reader.ReadString();
+					return new DropColumnAction(dropColumn);
+				}
+
+				if (actionType == AlterTableActionType.DropConstraint) {
+					var dropConstraint = reader.ReadString();
+					return new DropConstraintAction(dropConstraint);
+				}
+
+				if (actionType == AlterTableActionType.DropDefault) {
+					var columnName = reader.ReadString();
+					return new DropDefaultAction(columnName);
+				}
+
+				if (actionType == AlterTableActionType.DropPrimaryKey) {
+					return new DropPrimaryKeyAction();
+				}
+
+				if (actionType == AlterTableActionType.SetDefault) {
+					var columnName = reader.ReadString();
+					var expression = SqlExpression.Deserialize(reader);
+					return new SetDefaultAction(columnName, expression);
+				}
+
+				throw new NotSupportedException();
 			}
 		}
 

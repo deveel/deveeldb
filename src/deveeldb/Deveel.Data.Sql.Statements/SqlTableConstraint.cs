@@ -15,23 +15,23 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class SqlTableConstraint : IPreparable {
-		public SqlTableConstraint(string name, ConstraintType constraintType, string[] columns) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-			if (columns == null || columns.Length == 0)
-				throw new ArgumentNullException("columns");
+		public SqlTableConstraint(ConstraintType constraintType, string[] columns) 
+			: this(null, constraintType, columns) {
+		}
 
-			Name = name;
+		public SqlTableConstraint(string constraintName, ConstraintType constraintType, string[] columns) {
+			ConstraintName = constraintName;
 			ConstraintType = constraintType;
 			Columns = columns;
 		}
 
-		public string Name { get; private set; }
+		public string ConstraintName { get; private set; }
 
 		public ConstraintType ConstraintType { get; private set; }
 
@@ -43,16 +43,52 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string[] ReferenceColumns { get; set; }
 
+		public ForeignKeyAction OnDelete { get; set; }
+
+		public ForeignKeyAction OnUpdate { get; set; }
+
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			var checkExpression = CheckExpression;
 			if (checkExpression != null)
 				checkExpression = checkExpression.Prepare(preparer);
 
-			return new SqlTableConstraint(Name, ConstraintType, Columns) {
+			return new SqlTableConstraint(ConstraintName, ConstraintType, Columns) {
 				CheckExpression = checkExpression,
 				ReferenceTable = ReferenceTable,
 				ReferenceColumns = ReferenceColumns
 			};
+		}
+
+		public static SqlTableConstraint UniqueKey(string constraintName, string[] columns) {
+			return new SqlTableConstraint(constraintName, ConstraintType.Unique, columns);
+		}
+
+		public static SqlTableConstraint PrimaryKey(string constraintName, string[] columns) {
+			return new SqlTableConstraint(constraintName, ConstraintType.PrimaryKey, columns);
+		}
+
+		public static SqlTableConstraint Check(string constraintName, SqlExpression expression) {
+			return new SqlTableConstraint(constraintName, ConstraintType.Check, null) {
+				CheckExpression = expression
+			};
+		}
+
+		public static SqlTableConstraint ForeignKey(string constraintName, string[] columns, string refTable,
+			string[] refcolumns, ForeignKeyAction onDelete, ForeignKeyAction onUpdate) {
+			return new SqlTableConstraint(constraintName, ConstraintType.ForeignKey, columns) {
+				ReferenceTable = refTable,
+				ReferenceColumns = refcolumns,
+				OnDelete = onDelete,
+				OnUpdate = onUpdate
+			};
+		}
+
+		public static void Serialize(SqlTableConstraint constraint, BinaryWriter writer) {
+			throw new NotImplementedException();
+		}
+
+		public static SqlTableConstraint Deserialize(BinaryReader reader) {
+			throw new NotImplementedException();
 		}
 	}
 }
