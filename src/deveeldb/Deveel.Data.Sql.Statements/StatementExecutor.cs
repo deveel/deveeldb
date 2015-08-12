@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Statements {
 				ITable result;
 
 				try {
-					result = prepared.Evaluate(context);
+					result = prepared.Execute(context);
 				} catch(StatementException ex) {
 					context.RegisterError(ex);
 					throw;

@@ -85,8 +85,15 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is ExitStatementNode)
 				BuildExit((ExitStatementNode) node);
 
+			if (node is RaiseStatementNode)
+				BuildRaise((RaiseStatementNode) node);
+
 			if (node is SequenceOfStatementsNode)
 				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
+		}
+
+		private void BuildRaise(RaiseStatementNode node) {
+			statements.Add(new RaiseStatement(node.ExceptionName));
 		}
 
 		private void BuildExit(ExitStatementNode node) {

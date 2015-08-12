@@ -28,19 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// A SQL Statement encapsulates the properties that are required to form
-	/// a <see cref="SqlPreparedStatement"/> that can be serialized and executed.
-	/// </para>
-	/// <para>
-	/// It is prevented to a <see cref="SqlStatement"/> to be immediately executed
-	/// for enforcing <see cref="SqlPreparedStatement"/> to be cached and executed
-	/// in later moments, optimizing performances and re-usability.
-	/// </para>
-	/// </remarks>
-	/// <seealso cref="SqlPreparedStatement"/>
-	public abstract class SqlStatement {
+	public abstract class SqlStatement : IExecutable {
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.
 		/// </summary>
@@ -79,10 +67,9 @@ namespace Deveel.Data.Sql.Statements {
 		/// <param name="context">The executing context in used to prepare the statement
 		/// properties.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="SqlPreparedStatement"/> that represents the
+		/// Returns an instance of <see cref="SqlStatement"/> that represents the
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
-		/// <seealso cref="SqlPreparedStatement"/>
 		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
 		protected virtual SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
 			throw new NotSupportedException(String.Format("The statement '{0}' is not preparable.", GetType().Name));
@@ -94,7 +81,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// </summary>
 		/// <param name="context">The execution context used to prepare the statement properties.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="SqlPreparedStatement"/> that represents the
+		/// Returns an instance of <see cref="SqlStatement"/> that represents the
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
 		/// <exception cref="StatementPrepareException">
@@ -111,7 +98,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <param name="preparer">An object used to prepare the expressions contained in the statement.</param>
 		/// <param name="context">The execution context used to prepare the statement properties.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="SqlPreparedStatement"/> that represents the
+		/// Returns an instance of <see cref="SqlStatement"/> that represents the
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
 		/// <exception cref="StatementPrepareException">
@@ -148,8 +135,8 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public ITable Evaluate(IQueryContext context) {
-			return Evaluate(null, context);
+		public ITable Execute(IQueryContext context) {
+			return PrepareAndExecute(null, context);
 		}
 
 		/// <summary>
@@ -165,7 +152,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public ITable Evaluate(IExpressionPreparer preparer, IQueryContext context) {
+		public ITable PrepareAndExecute(IExpressionPreparer preparer, IQueryContext context) {
 			SqlStatement prepared = this;
 
 			if (IsPreparable) {

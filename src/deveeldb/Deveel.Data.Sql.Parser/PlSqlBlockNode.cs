@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	class PlSqlBlockNode : SqlNode {
@@ -24,17 +23,18 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<IDeclareNode> Declarations { get; private set; }
 
-		public IEnumerable<IStatementNode> Statements { get; private set; }
+		public PlSqlCodeBlockNode CodeBlock { get; private set; }
 
-		protected override void OnNodeInit() {
-			var label = this.FindNode<LabelNode>();
-			if (label != null)
-				Label = label.Text;
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName.Equals("plsql_label_opt")) {
+				Label = node.FindNode<LabelNode>().Text;
+			} else if (node.NodeName.Equals("declare_statement_opt")) {
+				Declarations = node.FindNodes<IDeclareNode>();
+			} else if (node is PlSqlCodeBlockNode) {
+				CodeBlock = (PlSqlCodeBlockNode) node;
+			}
 
-			Declarations = this.FindNodes<IDeclareNode>();
-			Statements = this.FindNodes<IStatementNode>();
-
-			base.OnNodeInit();
+			return base.OnChildNode(node);
 		}
 	}
 }

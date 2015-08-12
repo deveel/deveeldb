@@ -139,7 +139,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal ExceptionDeclaration() {
 			var declareException = new NonTerminal("exception_declaration", typeof(DeclareExceptionNode));
-			declareException.Rule = Identifier + EXCEPTION;
+			declareException.Rule = Identifier + Key("EXCEPTION");
 			return declareException;
 		}
 
@@ -217,12 +217,12 @@ namespace Deveel.Data.Sql.Parser {
 			var declareSpec = new NonTerminal("declare_spec");
 			var declareCommand = new NonTerminal("declare_command");
 			var declareSpecList = new NonTerminal("declare_spec_list");
-			var plsqlCodeBlock = new NonTerminal("plsql_code_block");
+			var plsqlCodeBlock = new NonTerminal("plsql_code_block", typeof(PlSqlCodeBlockNode));
 			var sqlStatementList = new NonTerminal("sql_statement_list");
 			var declarePragma = new NonTerminal("declare_pragma", typeof(DeclarePragmaNode));
 			var exceptionBlockOpt = new NonTerminal("exception_block_opt");
 			var exceptionBlock = new NonTerminal("exception_block");
-			var exceptionHandler = new NonTerminal("exception_handler");
+			var exceptionHandler = new NonTerminal("exception_handler", typeof(ExceptionHandlerNode));
 			var exceptionHandlerList = new NonTerminal("exception_handler_list");
 			var exceptionNames = new NonTerminal("exception_names");
 			var handledExceptions = new NonTerminal("handled_exceptions");
@@ -318,7 +318,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			#region Raise
 
-			var raiseStatement = new NonTerminal("raise_statement");
+			var raiseStatement = new NonTerminal("raise_statement", typeof(RaiseStatementNode));
 			var exceptionNameOpt = new NonTerminal("exception_name_opt");
 			raiseStatement.Rule = Key("RAISE") + exceptionNameOpt;
 			exceptionNameOpt.Rule = Empty | Identifier;
@@ -335,7 +335,7 @@ namespace Deveel.Data.Sql.Parser {
 			#region GoTo
 
 			var gotoStatement = new NonTerminal("goto_statement", typeof(GotoStatementNode));
-			gotoStatement.Rule = Key("GOTO") + Identifier;
+			gotoStatement.Rule = Key("GOTO") + StringLiteral;
 
 			#endregion
 

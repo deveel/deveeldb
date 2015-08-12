@@ -173,7 +173,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
@@ -192,7 +192,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Evaluate(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 
