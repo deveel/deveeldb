@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -39,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
+		internal class Prepared : SqlStatement {
 			public ObjectName[] ViewNames { get; set; }
 
 			public bool IfExists { get; set; }
@@ -56,6 +58,34 @@ namespace Deveel.Data.Sql.Statements {
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				context.DropViews(ViewNames, IfExists);
 				return FunctionTable.ResultTable(context, 0);
+			}
+		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				var namesLength = obj.ViewNames.Length;
+				writer.Write(namesLength);
+				for (int i = 0; i < namesLength; i++) {
+					ObjectName.Serialize(obj.ViewNames[i], writer);
+				}
+
+				writer.Write(obj.IfExists);
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var namesLength = reader.ReadInt32();
+				var viewNames = new ObjectName[namesLength];
+				for (int i = 0; i < namesLength; i++) {
+					viewNames[i] = ObjectName.Deserialize(reader);
+				}
+
+				var ifExists = reader.ReadBoolean();
+
+				return new Prepared(viewNames, ifExists);
 			}
 		}
 

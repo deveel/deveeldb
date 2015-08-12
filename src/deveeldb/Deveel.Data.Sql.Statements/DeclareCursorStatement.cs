@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
@@ -55,5 +58,46 @@ namespace Deveel.Data.Sql.Statements {
 			context.DeclareCursor(cursorInfo);
 			return FunctionTable.ResultTable(context, 0);
 		}
+
+		#region Serializer
+
+		internal class Serializer : ObjectBinarySerializer<DeclareCursorStatement> {
+			public override void Serialize(DeclareCursorStatement obj, BinaryWriter writer) {
+				writer.Write(obj.CursorName);
+				writer.Write((byte)obj.Flags);
+
+				if (obj.Parameters != null) {
+					var pars = obj.Parameters.ToArray();
+					var parLength = pars.Length;
+					writer.Write(parLength);
+
+					for (int i = 0; i < parLength; i++) {
+						CursorParameter.Serialize(pars[i], writer);
+					}
+				} else {
+					writer.Write(0);
+				}
+
+				SqlExpression.Serialize(obj.QueryExpression, writer);
+			}
+
+			public override DeclareCursorStatement Deserialize(BinaryReader reader) {
+				var cursorName = reader.ReadString();
+				var flags = (CursorFlags) reader.ReadByte();
+
+				var pars = new List<CursorParameter>();
+				var parLength = reader.ReadInt32();
+				for (int i = 0; i < parLength; i++) {
+					var param = CursorParameter.Deserialize(reader);
+					pars.Add(param);
+				}
+
+				var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
+
+				return new DeclareCursorStatement(cursorName, pars.ToArray(), flags, queryExpression);
+			}
+		}
+
+		#endregion
 	}
 }

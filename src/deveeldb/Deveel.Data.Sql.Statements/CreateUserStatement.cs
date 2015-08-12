@@ -15,9 +15,11 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -37,18 +39,61 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlExpression Password { get; private set; }
 
 		protected override bool IsPreparable {
-			get { return false; }
+			get { return true; }
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
-			var passwordText = Password.EvaluateToConstant(context, null).Value.ToString();
+		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+			var preparedPassword = Password.Prepare(preparer);
+			return new Prepared(UserName, preparedPassword);
+		}
 
-			try {
+		#region Prepared
+
+		internal class Prepared : SqlStatement {
+			public Prepared(string userName, SqlExpression password) {
+				UserName = userName;
+				Password = password;
+			}
+
+			public string UserName { get; private set; }
+
+			public SqlExpression Password { get; private set; }
+
+			protected override bool IsPreparable {
+				get { return false; }
+			}
+
+			protected override ITable ExecuteStatement(IQueryContext context) {
+				var evaluated = Password.Evaluate(context, null);
+				if (evaluated.ExpressionType != SqlExpressionType.Constant)
+					throw new StatementException(String.Format("Expression '{0}' does not resolve to a constant.", Password));
+
+				var value = ((SqlConstantExpression) evaluated).Value;
+				var passwordText = value.AsVarChar().Value.ToString();
+
 				context.CreateUser(UserName, passwordText);
 				return FunctionTable.ResultTable(context, 0);
-			} catch (Exception ex) {
-				throw new StatementException(String.Format("Could not create user '{0}' because of an error", UserName), ex);
 			}
 		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				writer.Write(obj.UserName);
+				SqlExpression.Serialize(obj.Password, writer);
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var userName = reader.ReadString();
+				var expression = SqlExpression.Deserialize(reader);
+
+				return new Prepared(userName, expression);
+			}
+		}
+
+		#endregion
 	}
 }

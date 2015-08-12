@@ -16,10 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Security;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
@@ -94,7 +96,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
+		internal class Prepared : SqlStatement {
 			internal Prepared(ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
 				ViewName = viewName;
 				QueryPlan = queryPlan;
@@ -124,6 +126,36 @@ namespace Deveel.Data.Sql.Statements {
 				context.DefineView(viewInfo, ReplaceIfExists);
 
 				return FunctionTable.ResultTable(context, 0);
+			}
+		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				ObjectName.Serialize(obj.ViewName, writer);
+
+				var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
+				writer.Write(queryPlanTypeName);
+
+				QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
+				SqlExpression.Serialize(obj.QueryExpression, writer);
+				writer.Write(obj.ReplaceIfExists);
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var viewName = ObjectName.Deserialize(reader);
+
+				var queryPlanTypeName = reader.ReadString();
+				var queryPlanType = Type.GetType(queryPlanTypeName, true);
+				var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+
+				var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
+				var replaceIfExists = reader.ReadBoolean();
+
+				return new Prepared(viewName, queryExpression, queryPlan, replaceIfExists);
 			}
 		}
 

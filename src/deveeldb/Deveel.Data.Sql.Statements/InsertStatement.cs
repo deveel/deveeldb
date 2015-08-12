@@ -16,9 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -92,15 +94,15 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
-			internal Prepared(ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
+		internal class Prepared : SqlStatement {
+			internal Prepared(ObjectName tableName, IList<SqlAssignExpression[]> assignments) {
 				TableName = tableName;
 				Assignments = assignments;
 			}
 
 			public ObjectName TableName { get; private set; }
 
-			public IEnumerable<SqlAssignExpression[]> Assignments { get; private set; }
+			public IList<SqlAssignExpression[]> Assignments { get; private set; }
 
 			protected override bool IsPreparable {
 				get { return false; }
@@ -109,6 +111,52 @@ namespace Deveel.Data.Sql.Statements {
 			protected override ITable ExecuteStatement(IQueryContext context) {
 				var insertCount = context.InsertIntoTable(TableName, Assignments);
 				return FunctionTable.ResultTable(context, insertCount);
+			}
+		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				ObjectName.Serialize(obj.TableName, writer);
+
+				var setListCount = obj.Assignments.Count;
+				writer.Write(setListCount);
+
+				for (int i = 0; i < setListCount; i++) {
+					var set = obj.Assignments[i];
+					var setCount = set.Length;
+
+					writer.Write(setCount);
+
+					for (int j = 0; j < setCount; j++) {
+						SqlExpression.Serialize(obj.Assignments[i][j], writer);
+					}
+				}
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var tableName = ObjectName.Deserialize(reader);
+
+				var listCount = reader.ReadInt32();
+
+				var setList = new List<SqlAssignExpression[]>(listCount);
+
+				for (int i = 0; i < listCount; i++) {
+					var setCount = reader.ReadInt32();
+
+					var exps = new SqlAssignExpression[setCount];
+
+					for (int j = 0; j < setCount; j++) {
+						exps[j] = (SqlAssignExpression) SqlExpression.Deserialize(reader);
+					}
+
+					setList.Add(exps);
+				}
+
+				return new Prepared(tableName, setList);
 			}
 		}
 

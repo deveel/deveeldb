@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
@@ -49,13 +51,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (IsObjectReference) {
 				var tableRef = ((SqlReferenceExpression) Reference).ReferenceName;
-
-				var table = context.GetMutableTable(tableRef);
-				if (table == null)
-					throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", tableRef));
-
-				return new Prepared(queryPlan, table);
+				return new Prepared(queryPlan, tableRef);
 			}
+
 			if (IsVariableReference) {
 				throw new NotImplementedException();
 			}
@@ -66,8 +64,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
-			internal Prepared(IQueryPlanNode queryPlan, IMutableTable table)
+		internal class Prepared : SqlStatement {
+			internal Prepared(IQueryPlanNode queryPlan, ObjectName table)
 				: this(queryPlan) {
 				IsForTable = true;
 				Table = table;
@@ -87,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			public IMutableTable Table { get; private set; }
+			public ObjectName Table { get; private set; }
 
 			public string VariableName { get; private set; }
 
@@ -99,7 +97,11 @@ namespace Deveel.Data.Sql.Statements {
 				var result = QueryPlan.Evaluate(context);
 
 				if (IsForTable) {
-					SelectIntoTable(Table, result);
+					var table = context.GetMutableTable(Table);
+					if (table == null)
+						throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", Table));
+
+					SelectIntoTable(table, result);
 					return FunctionTable.ResultTable(context, 0);
 				}
 
@@ -137,6 +139,55 @@ namespace Deveel.Data.Sql.Statements {
 				}
 
 				return false;
+			}
+		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				if (obj.IsForTable) {
+					writer.Write((byte)1);
+					ObjectName.Serialize(obj.Table, writer);
+				} else {
+					writer.Write((byte)2);
+					writer.Write(obj.VariableName);
+				}
+
+				var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
+				writer.Write(queryPlanTypeName);
+
+				QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				var intoType = reader.ReadByte();
+
+				ObjectName tableName = null;
+				string variableName = null;
+
+				if (intoType == 1) {
+					tableName = ObjectName.Deserialize(reader);
+				} else if (intoType == 2) {
+					variableName = reader.ReadString();
+				} else {
+					throw new NotSupportedException();
+				}
+
+				var queryPlanTypeName = reader.ReadString();
+				var queryPlanType = Type.GetType(queryPlanTypeName, true);
+
+				var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+
+				if (intoType == 1)
+					return new Prepared(queryPlan, tableName);
+
+				if (intoType == 2)
+					return new Prepared(queryPlan, variableName);
+
+				throw new NotSupportedException();
 			}
 		}
 

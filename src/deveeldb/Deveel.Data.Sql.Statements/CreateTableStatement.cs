@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
+		internal class Prepared : SqlStatement {
 			public TableInfo TableInfo { get; private set; }
 
 			public bool Temporary { get; private set; }
@@ -153,6 +153,27 @@ namespace Deveel.Data.Sql.Statements {
 				}
 
 				return foundColumn;
+			}
+		}
+
+		#endregion
+
+		#region PreparedSerializer
+
+		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+			public override void Serialize(Prepared obj, BinaryWriter writer) {
+				TableInfo.SerializeTo(obj.TableInfo, writer.BaseStream);
+				writer.Write(obj.Temporary);
+				writer.Write(obj.IfNotExists);
+			}
+
+			public override Prepared Deserialize(BinaryReader reader) {
+				// TODO: Type Resolver!!!
+				var tableInfo = TableInfo.Deserialize(reader, null);
+				var temporary = reader.ReadBoolean();
+				var ifNotExists = reader.ReadBoolean();
+
+				return new Prepared(tableInfo, ifNotExists, temporary);
 			}
 		}
 
