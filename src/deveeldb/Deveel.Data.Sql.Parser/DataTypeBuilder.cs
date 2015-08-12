@@ -84,9 +84,6 @@ namespace Deveel.Data.Sql.Parser {
 			if (String.IsNullOrEmpty(typeName))
 				throw new SqlParseException("Could not determine type name.");
 
-			if (resolver == null)
-				throw new SqlParseException(String.Format("The type {0} could not be resolved.", node.TypeName));
-
 			DataTypeMeta[] meta = typeMeta.ToArray();
 			if (!node.IsPrimitive && node.Metadata != null)
 				meta = BuildTypeMeta(node.Metadata);

@@ -25,8 +25,8 @@ namespace Deveel.Data.Sql.Parser {
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node is IdentifierNode) {
 				UserName = ((IdentifierNode) node).Text;
-			} else if (node is IUserIdentificatorNode) {
-				Identificator = (IUserIdentificatorNode) node;
+			} else if (node.NodeName.Equals("identified")) {
+				Identificator = node.FindNode<IUserIdentificatorNode>();
 			}
 
 			return base.OnChildNode(node);
