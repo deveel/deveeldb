@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 
 namespace Deveel.Data.Sql.Statements {
@@ -22,5 +24,20 @@ namespace Deveel.Data.Sql.Statements {
 			context.CloseCursor(CursorName);
 			return FunctionTable.ResultTable(context, 0);
 		}
+
+		#region Serializer
+
+		internal class Serializer : ObjectBinarySerializer<CloseStatement> {
+			public override void Serialize(CloseStatement obj, BinaryWriter writer) {
+				writer.Write(obj.CursorName);
+			}
+
+			public override CloseStatement Deserialize(BinaryReader reader) {
+				var cursorName = reader.ReadString();
+				return new CloseStatement(cursorName);
+			}
+		}
+
+		#endregion
 	}
 }

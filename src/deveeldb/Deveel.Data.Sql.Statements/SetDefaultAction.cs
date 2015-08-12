@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SetDefaultAction : IAlterTableAction {
+	public sealed class SetDefaultAction : IAlterTableAction, IPreparable {
 		public SetDefaultAction(string columnName, SqlExpression defaultExpression) {
 			ColumnName = columnName;
 			DefaultExpression = defaultExpression;

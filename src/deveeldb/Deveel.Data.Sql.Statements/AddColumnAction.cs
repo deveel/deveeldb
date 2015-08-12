@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class AddColumnAction : IAlterTableAction {
+	public sealed class AddColumnAction : IAlterTableAction, IPreparable {
 		public AddColumnAction(SqlTableColumn column) {
 			if (column == null)
 				throw new ArgumentNullException("column");

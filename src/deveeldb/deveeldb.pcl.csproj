@@ -336,7 +336,8 @@
     <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterUserNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AlterUserStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\BreakStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
@@ -344,6 +345,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\CommitStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CompileErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\ContinueStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTriggerNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
@@ -500,10 +502,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserActionType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CloseStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
@@ -518,6 +518,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
@@ -529,7 +531,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetUserGroupsAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserStatusStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableConstraint.cs" />

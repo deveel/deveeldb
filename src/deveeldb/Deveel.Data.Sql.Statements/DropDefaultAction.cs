@@ -26,10 +26,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ColumnName { get; private set; }
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			return new DropDefaultAction(ColumnName);
-		}
-
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropDefault; }
 		}

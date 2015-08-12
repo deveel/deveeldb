@@ -26,15 +26,15 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class StatementBuilder {
-		private readonly IQueryContext context;
+		private readonly ITypeResolver typeResolver;
 		private readonly List<SqlStatement> statements;
 
 		public StatementBuilder() 
 			: this(null) {
 		}
 
-		public StatementBuilder(IQueryContext context) {
-			this.context = context;
+		public StatementBuilder(ITypeResolver typeResolver) {
+			this.typeResolver = typeResolver;
 			statements = new List<SqlStatement>();
 		}
 
@@ -73,8 +73,52 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is CloseCursorStatementNode)
 				BuildCloseCursor((CloseCursorStatementNode) node);
 
+			if (node is CreateUserStatementNode)
+				BuildCreateUser((CreateUserStatementNode) node);
+			if (node is AlterUserStatementNode)
+				BuildAlterUser((AlterUserStatementNode) node);
+
+			if (node is ContinueStatementNode)
+				BuildContinue((ContinueStatementNode) node);
+			if (node is BreakStatementNode)
+				BuildBreak((BreakStatementNode) node);
+			if (node is ExitStatementNode)
+				BuildExit((ExitStatementNode) node);
+
 			if (node is SequenceOfStatementsNode)
 				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
+		}
+
+		private void BuildExit(ExitStatementNode node) {
+			SqlExpression exp = null;
+			if (node.WhenExpression != null)
+				exp = ExpressionBuilder.Build(node.WhenExpression);
+
+			statements.Add(new LoopControlStatement(LoopControlType.Exit, node.Label, exp));
+		}
+
+		private void BuildBreak(BreakStatementNode node) {
+			SqlExpression exp = null;
+			if (node.WhenExpression != null)
+				exp = ExpressionBuilder.Build(node.WhenExpression);
+
+			statements.Add(new LoopControlStatement(LoopControlType.Break, node.Label, exp));
+		}
+
+		private void BuildContinue(ContinueStatementNode node) {
+			SqlExpression exp = null;
+			if (node.WhenExpression != null)
+				exp = ExpressionBuilder.Build(node.WhenExpression);
+
+			statements.Add(new LoopControlStatement(LoopControlType.Continue, node.Label, exp));
+		}
+
+		private void BuildAlterUser(AlterUserStatementNode node) {
+			AlterUser.Build(node, statements);
+		}
+
+		private void BuildCreateUser(CreateUserStatementNode node) {
+			CreateUser.Build(node, statements);
 		}
 
 		private void BuildCloseCursor(CloseCursorStatementNode node) {
@@ -92,7 +136,6 @@ namespace Deveel.Data.Sql.Parser {
 
 		private DataType BuildDataType(DataTypeNode node) {
 			var builder = new DataTypeBuilder();
-			var typeResolver = context.TypeResolver();
 			return builder.Build(typeResolver, node);
 		}
 
@@ -113,7 +156,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(node.QueryExpression);
 
-			statements.Add(new DeclareCursorStatement(node.CursorName, flags, queryExpression));
+			statements.Add(new DeclareCursorStatement(node.CursorName, parameters.ToArray(), flags, queryExpression));
 		}
 
 		private void BuildDropView(DropViewStatementNode node) {
@@ -130,7 +173,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		public void BuildSelect(SelectStatementNode node) {
+		private void BuildSelect(SelectStatementNode node) {
 			var queryExpression = (SqlQueryExpression) Expression(node.QueryExpression);
 			if (node.QueryExpression.IntoClause != null) {
 				var refExp = Expression(node.QueryExpression.IntoClause);
@@ -147,48 +190,48 @@ namespace Deveel.Data.Sql.Parser {
 				return null;
 
 			return nodes.Select(node => new SortColumn(Expression(node.Expression), node.Ascending));
-		} 
-
-		public void BuildCreateTrigger(CreateTriggerNode node) {
-			
 		}
 
-		public void BuildCreateView(CreateViewNode node) {
+		private void BuildCreateTrigger(CreateTriggerNode node) {
+			throw new NotImplementedException();
+		}
+
+		private void BuildCreateView(CreateViewNode node) {
 			var queryExpression = (SqlQueryExpression)Expression(node.QueryExpression);
 			var statement = new CreateViewStatement(node.ViewName.Name, node.ColumnNames, queryExpression);
 			statements.Add(statement);
 		}
 
-		public void BuildCreateTable(CreateTableNode node) {
-			CreateTable.Build(context, node, statements);
+		private void BuildCreateTable(CreateTableNode node) {
+			CreateTable.Build(typeResolver, node, statements);
 		}
 
-		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
+		private IEnumerable<SqlStatement> Build(ISqlNode rootNode, SqlQuery query) {
 			Build(rootNode);
 			return statements.ToArray();
 		}
 
-		public void BuildAlterTable(AlterTableNode node) {
-			AlterTable.Build(context, node, statements);
+		private void BuildAlterTable(AlterTableNode node) {
+			AlterTable.Build(typeResolver, node, statements);
 		}
 
 		public IEnumerable<SqlStatement> Build(ISqlNode rootNode, string query) {
 			return Build(rootNode, new SqlQuery(query));
 		}
 
-		public void BuildInsert(InsertStatementNode node) {
-			InsertIntoTable.Build(context, node, statements);
+		private void BuildInsert(InsertStatementNode node) {
+			InsertIntoTable.Build(node, statements);
 		}
 
 		private void BuildUpdate(UpdateStatementNode node) {
 			if (node.SimpleUpdate != null) {
-				VisitSimpleUpdate(node.SimpleUpdate);
+				BuildSimpleUpdate(node.SimpleUpdate);
 			} else if (node.QueryUpdate != null) {
-				VisitQueryUpdate(node.QueryUpdate);
+				BuildQueryUpdate(node.QueryUpdate);
 			}
 		}
 
-		public void VisitSimpleUpdate(SimpleUpdateNode node) {
+		private void BuildSimpleUpdate(SimpleUpdateNode node) {
 			var whereExpression = Expression(node.WhereExpression);
 			var assignments = UpdateAssignments(node.Columns);
 			statements.Add(new UpdateStatement(node.TableName, whereExpression, assignments));
@@ -201,14 +244,13 @@ namespace Deveel.Data.Sql.Parser {
 			return columns.Select(column => new SqlColumnAssignment(column.ColumnName, Expression(column.Expression)));
 		}
 
-		public void VisitQueryUpdate(QueryUpdateNode node) {
+		private void BuildQueryUpdate(QueryUpdateNode node) {
 			throw new NotImplementedException();
 		}
 
-		private static SqlTableColumn BuildColumnInfo(IQueryContext context, string tableName, TableColumnNode column, IList<SqlTableConstraint> constraints) {
-			var objTableName = ObjectName.Parse(tableName);
+		private static SqlTableColumn BuildColumnInfo(ITypeResolver typeResolver, string tableName, TableColumnNode column, IList<SqlTableConstraint> constraints) {
 			var dataTypeBuilder = new DataTypeBuilder();
-			var dataType = dataTypeBuilder.Build(context.TypeResolver(), column.DataType);
+			var dataType = dataTypeBuilder.Build(typeResolver, column.DataType);
 
 			var columnInfo = new SqlTableColumn(column.ColumnName.Text, dataType);
 
@@ -250,7 +292,7 @@ namespace Deveel.Data.Sql.Parser {
 			return columnInfo;
 		}
 
-		private static SqlTableConstraint BuildConstraint(IQueryContext context, string tableName, TableConstraintNode constraint) {
+		private static SqlTableConstraint BuildConstraint(string tableName, TableConstraintNode constraint) {
 			var objTableName = ObjectName.Parse(tableName);
 			if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 				var exp = ExpressionBuilder.Build(constraint.CheckExpression);
@@ -301,7 +343,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region CreateTable
 
 		static class CreateTable {
-			public static void Build(IQueryContext context, CreateTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(ITypeResolver typeResolver, CreateTableNode node, ICollection<SqlStatement> statements) {
 				string idColumn = null;
 
 				var tableName = node.TableName;
@@ -321,13 +363,13 @@ namespace Deveel.Data.Sql.Parser {
 						idColumn = column.ColumnName.Text;
 					}
 
-					var columnInfo = BuildColumnInfo(context, tableName.Name, column, constraints);
+					var columnInfo = BuildColumnInfo(typeResolver, tableName.Name, column, constraints);
 
 					columns.Add(columnInfo);
 				}
 
 				foreach (var constraint in node.Constraints) {
-					var constraintInfo = BuildConstraint(context, tableName.Name, constraint);
+					var constraintInfo = BuildConstraint(tableName.Name, constraint);
 					statements.Add(new AlterTableStatement(tableName.Name, new AddConstraintAction(constraintInfo)));
 				}
 
@@ -359,25 +401,25 @@ namespace Deveel.Data.Sql.Parser {
 		#region AlterTable
 
 		static class AlterTable {
-			public static void Build(IQueryContext context, AlterTableNode node, ICollection<SqlStatement> statements) {
+			public static void Build(ITypeResolver typeResolver, AlterTableNode node, ICollection<SqlStatement> statements) {
 				if (node.CreateTable != null) {
-					CreateTable.Build(context, node.CreateTable, statements);
+					CreateTable.Build(typeResolver, node.CreateTable, statements);
 					foreach (var statement in statements) {
 						if (statement is CreateTableStatement)
 							((CreateTableStatement) statement).IfNotExists = true;
 					}
 				} else if (node.Actions != null) {
 					foreach (var action in node.Actions) {
-						BuildAction(context, node.TableName, action, statements);
+						BuildAction(typeResolver, node.TableName, action, statements);
 					}
 				}
 			}
 
-			private static void BuildAction(IQueryContext context, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
+			private static void BuildAction(ITypeResolver typeResolver, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
 				if (action is AddColumnNode) {
 					var column = ((AddColumnNode) action).Column;
 					var constraints = new List<SqlTableConstraint>();
-					var columnInfo = BuildColumnInfo(context, tableName, column, constraints);
+					var columnInfo = BuildColumnInfo(typeResolver, tableName, column, constraints);
 
 					statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
 
@@ -387,7 +429,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (action is AddConstraintNode) {
 					var constraint = ((AddConstraintNode) action).Constraint;
 
-					var constraintInfo = BuildConstraint(context, tableName, constraint);
+					var constraintInfo = BuildConstraint(tableName, constraint);
 					statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraintInfo)));
 				} else if (action is DropColumnNode) {
 					var columnName = ((DropColumnNode) action).ColumnName;
@@ -406,7 +448,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (action is AlterColumnNode) {
 					var column = ((AlterColumnNode) action).Column;
 					var constraints = new List<SqlTableConstraint>();
-					var columnInfo = BuildColumnInfo(context, tableName, column, constraints);
+					var columnInfo = BuildColumnInfo(typeResolver, tableName, column, constraints);
 
 					// CHECK: Here we do a drop and add column: is there a better way on the back-end?
 					statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnInfo.ColumnName)));
@@ -425,7 +467,7 @@ namespace Deveel.Data.Sql.Parser {
 		#region InsertIntoTable
 
 		static class InsertIntoTable {
-			public static void Build(IQueryContext context, InsertStatementNode node, ICollection<SqlStatement> statements) {
+			public static void Build(InsertStatementNode node, ICollection<SqlStatement> statements) {
 				if (node.ValuesInsert != null) {
 					var valueInsert = node.ValuesInsert;
 					var values =
@@ -453,6 +495,32 @@ namespace Deveel.Data.Sql.Parser {
 
 					statements.Add(new InsertSelectStatement(node.TableName, node.ColumnNames, queryExpression));
 				}
+			}
+		}
+
+		#endregion
+
+		#region CreateUser
+
+		static class CreateUser {
+			public static void Build(CreateUserStatementNode node, ICollection<SqlStatement> statements) {
+				if (node.Identificator is IdentifiedByPasswordNode) {
+					var passwordNode = (IdentifiedByPasswordNode) node.Identificator;
+					var password = ExpressionBuilder.Build(passwordNode.Password);
+					statements.Add(new CreateUserStatement(node.UserName, password));
+				} else {
+					throw new NotSupportedException();
+				}
+			}
+		}
+
+		#endregion
+
+		#region AlterUser
+
+		static class AlterUser {
+			public static void Build(AlterUserStatementNode node, ICollection<SqlStatement> statements) {
+				throw new NotImplementedException();
 			}
 		}
 

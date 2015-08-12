@@ -40,7 +40,11 @@ namespace Deveel.Data.Sql.Statements {
 				throw new StatementPrepareException("The table name is required.");
 
 			var tableName = context.ResolveTableName(TableName);
-			return new Prepared(tableName, Action);
+			var action = Action;
+			if (action is IPreparable)
+				action = (IAlterTableAction) (action as IPreparable).Prepare(preparer);
+
+			return new Prepared(tableName, action);
 		}
 
 		#region Prepared

@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class AddConstraintAction : IAlterTableAction {
+	public sealed class AddConstraintAction : IAlterTableAction, IPreparable {
 		public AddConstraintAction(SqlTableConstraint constraint) {
 			if (constraint == null)
 				throw new ArgumentNullException("constraint");

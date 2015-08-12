@@ -226,6 +226,9 @@ namespace Deveel.Data.Sql.Parser {
 			var exceptionHandlerList = new NonTerminal("exception_handler_list");
 			var exceptionNames = new NonTerminal("exception_names");
 			var handledExceptions = new NonTerminal("handled_exceptions");
+			var whenOpt = new NonTerminal("when_opt");
+
+			whenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
 
 			#region PL/SQL Statement
 
@@ -264,9 +267,44 @@ namespace Deveel.Data.Sql.Parser {
 			var reverseOpt = new NonTerminal("reverse_opt");
 			var forLoopParam = new NonTerminal("for_loop_param");
 			var cursorLoopParam = new NonTerminal("cursor_loop_param");
+			var loopBodyList = new NonTerminal("loop_body_list");
+			var loopBody = new NonTerminal("loop_body");
+			var loopControlStatement = new NonTerminal("loop_control_statement");
+			var labelOpt = new NonTerminal("label_opt");
 
-			loopStatement.Rule = loopLabelOpt + loopHeadOpt + Key("LOOP") + plsqlStatementList + Key("LOOP") + Key("END");
+			labelOpt.Rule = Empty | Identifier;
+
+			#region Exit
+
+			var exitStatement = new NonTerminal("exit_statement", typeof(ExitStatementNode));
+
+			exitStatement.Rule = Key("EXIT") + labelOpt + whenOpt + StatementEnd();
+
+			#endregion
+
+			#region Break
+
+			var breakStatement = new NonTerminal("break_statement", typeof(BreakStatementNode));
+
+			breakStatement.Rule = Key("BREAK") + labelOpt + whenOpt + StatementEnd();
+
+			#endregion
+
+			#region Continue
+
+			var continueStatement = new NonTerminal("continue_statement", typeof(ContinueStatementNode));
+
+			continueStatement.Rule = Key("CONTINUE") + labelOpt + whenOpt + StatementEnd();
+
+			#endregion
+
+			loopStatement.Rule = loopLabelOpt + loopHeadOpt + Key("LOOP") + loopBodyList + Key("LOOP") + Key("END");
 			loopLabelOpt.Rule = Empty | Identifier;
+			loopBody.Rule = plsqlStatement | loopControlStatement;
+			loopBodyList.Rule = MakePlusRule(loopBodyList, loopBody);
+			loopControlStatement.Rule = exitStatement |
+			                            breakStatement |
+			                            continueStatement;
 			loopHeadOpt.Rule = Empty | loopHead;
 			loopHead.Rule = whileLoop | forLoop;
 			whileLoop.Rule = Key("WHILE") + SqlExpression();
@@ -301,21 +339,8 @@ namespace Deveel.Data.Sql.Parser {
 
 			#endregion
 
-			#region Exit
-
-			var exitStatement = new NonTerminal("exit_statement", typeof(ExitStatementNode));
-			var exitWhenOpt = new NonTerminal("exit_when_opt");
-			var labelOpt = new NonTerminal("label_opt");
-
-			exitStatement.Rule = Key("EXIT") + labelOpt + exitWhenOpt;
-			labelOpt.Rule = Empty | Identifier;
-			exitWhenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
-
-			#endregion
-
 			plsqlStatement.Rule = plsqlCommand + StatementEnd();
 			plsqlCommand.Rule = NestedSqlStatement() |
-								exitStatement |
 								gotoStatement |
 								returnStatement |
 								raiseStatement |
@@ -649,7 +674,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal AlterUser() {
-			var alterUser = new NonTerminal("alter_user", typeof(AlterUserNode));
+			var alterUser = new NonTerminal("alter_user", typeof(AlterUserStatementNode));
 			var actionList = new NonTerminal("action_list");
 			var action = new NonTerminal("action");
 			var setAccountStatus = new NonTerminal("set_account_status", typeof(SetAccountStatusNode));

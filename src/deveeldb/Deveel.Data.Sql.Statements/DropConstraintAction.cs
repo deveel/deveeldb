@@ -32,9 +32,5 @@ namespace Deveel.Data.Sql.Statements {
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropConstraint; }
 		}
-
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			return new DropConstraintAction(ConstraintName);
-		}
 	}
 }

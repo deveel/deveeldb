@@ -15,8 +15,22 @@
 //
 
 using System;
+using System.Collections.Generic;
 
-namespace Deveel.Data.Sql.Statements {
-	public sealed class ContinueStatement {
+namespace Deveel.Data.Sql.Parser {
+	class AlterUserStatementNode : SqlNode, IStatementNode {
+		public string UserName { get; private set; }
+
+		public IEnumerable<IAlterUserActionNode> Actions { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is IdentifierNode) {
+				UserName = ((IdentifierNode) node).Text;
+			} else if (node.NodeName.Equals("action_list")) {
+				Actions = node.FindNodes<IAlterUserActionNode>();
+			}
+
+			return base.OnChildNode(node);
+		}
 	}
 }

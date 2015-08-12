@@ -201,7 +201,9 @@
     <Compile Include="Deveel.Data.Sql.Cursors\CursorStatus.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\FetchDirection.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\BreakStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\ContinueStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CursorParameterNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropViewStatementNode.cs" />
@@ -210,6 +212,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
@@ -375,7 +378,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterUserNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AlterUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CommitStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
@@ -419,10 +422,9 @@
     <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserActionType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterUserStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CodeBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetAccountStatusAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
