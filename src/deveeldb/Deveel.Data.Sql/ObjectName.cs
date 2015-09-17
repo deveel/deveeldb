@@ -19,7 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Describes the name of an object within a database.
 	/// </summary>

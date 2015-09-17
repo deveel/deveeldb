@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	public sealed class ColumnType : SqlType {
 		public ColumnType(ObjectName columnName)

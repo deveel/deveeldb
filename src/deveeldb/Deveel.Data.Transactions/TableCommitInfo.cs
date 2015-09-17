@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
 	public sealed class TableCommitInfo {
 		public TableCommitInfo(long commitId, ObjectName tableName, IEnumerable<int> addedRows, IEnumerable<int> removedRows) {

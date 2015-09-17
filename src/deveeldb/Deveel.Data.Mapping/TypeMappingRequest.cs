@@ -1,9 +1,8 @@
 ﻿using System;
 
-using Deveel.Data.Mapping;
 using Deveel.Data.Types;
 
-namespace deveel.Data.Mapping {
+namespace Deveel.Data.Mapping {
 	public sealed class TypeMappingRequest {
 		public TypeMappingRequest(Type type, ITypeMappingContext mappingContext) 
 			: this(type, mappingContext, null) {

@@ -18,6 +18,8 @@ using System;
 using System.Globalization;
 using System.Text;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Types {
 	/// <summary>
 	/// Provides some helper functions for resolving and creating

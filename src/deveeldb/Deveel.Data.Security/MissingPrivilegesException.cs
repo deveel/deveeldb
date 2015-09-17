@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Security {
 	public class MissingPrivilegesException : SecurityException {
 		public MissingPrivilegesException(string userName, ObjectName objectName)

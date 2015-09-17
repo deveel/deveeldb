@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Security {
 	public class InvalidAccessException : SecurityException {
 		public InvalidAccessException(string userName, ObjectName objectName)

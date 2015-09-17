@@ -2,6 +2,7 @@
 
 using Deveel.Data.DbSystem;
 using Deveel.Data.Routines;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Types;
 

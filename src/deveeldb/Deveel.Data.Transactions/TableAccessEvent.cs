@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// A table was accessed during the transaction.

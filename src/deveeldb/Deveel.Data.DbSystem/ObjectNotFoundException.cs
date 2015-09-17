@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.DbSystem {
 	public class ObjectNotFoundException : DatabaseSystemException {
 		public ObjectNotFoundException(ObjectName objectName)

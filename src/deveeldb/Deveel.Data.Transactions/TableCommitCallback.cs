@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.DbSystem;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	public abstract class TableCommitCallback {

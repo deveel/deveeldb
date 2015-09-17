@@ -604,6 +604,7 @@
     <Compile Include="Deveel.Data.Sql\JoinType.cs" />
     <Compile Include="Deveel.Data.Sql\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\NaturallyJoinedTable.cs" />
+    <Compile Include="Deveel.Data.Sql\ObjectName.cs" />
     <Compile Include="Deveel.Data.Sql\OuterTable.cs" />
     <Compile Include="Deveel.Data.Sql\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
@@ -724,7 +725,6 @@
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data\DataObject.cs" />
-    <Compile Include="Deveel.Data\ObjectName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using deveel.Data.Mapping;
-
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {
