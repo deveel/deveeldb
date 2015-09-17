@@ -45,7 +45,7 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly ConfigKey CellCacheMaxCellSize = new ConfigKey(CellCacheMaxCellSizeKeyName, 1024*64, typeof(int));
 
-		public static void SetTo(DbConfig config) {
+		public static void SetTo(Configuration.Configuration config) {
 			config.SetKey(DatabaseName);
 			config.SetKey(DefaultSchema);
 			config.SetKey(DeleteOnClose);

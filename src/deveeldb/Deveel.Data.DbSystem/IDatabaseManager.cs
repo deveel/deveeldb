@@ -26,9 +26,9 @@ namespace Deveel.Data.DbSystem {
 
 		IEnumerable<string> DatabaseNames { get; }
 			
-		IDatabase CreateDatabase(IDbConfig config);
+		IDatabase CreateDatabase(IConfiguration config);
 
-		IDatabase GetDatabase(IDbConfig config);
+		IDatabase GetDatabase(IConfiguration config);
 
 		bool DatabaseExists(string name);
 

@@ -42,7 +42,7 @@ namespace Deveel.Data.Caching {
 			size -= value;
 		}
 
-		void IConfigurable.Configure(IDbConfig config) {
+		void IConfigurable.Configure(IConfiguration config) {
 			lock (this) {
 				if (!configured) {
 					var hashSize = DefaultHashSize;

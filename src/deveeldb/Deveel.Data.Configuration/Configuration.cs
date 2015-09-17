@@ -21,15 +21,15 @@ using System.Linq;
 using Deveel.Data.DbSystem;
 
 namespace Deveel.Data.Configuration {
-	public class DbConfig : IDbConfig {
+	public class Configuration : IConfiguration {
 		private readonly bool isRoot;
 		private readonly Dictionary<string, ConfigKey> keys;
 		private readonly Dictionary<string, ConfigValue> values;
 
 		/// <summary>
-		/// Constructs the <see cref="DbConfig"/>.
+		/// Constructs the <see cref="Configuration"/>.
 		/// </summary>
-		private DbConfig(bool isRoot) {
+		private Configuration(bool isRoot) {
 			Parent = null;
 			this.isRoot = isRoot;
 			keys = new Dictionary<string, ConfigKey>();
@@ -37,12 +37,12 @@ namespace Deveel.Data.Configuration {
 		}
 
 		/// <summary>
-		/// Constructs the <see cref="DbConfig"/> from the given parent.
+		/// Constructs the <see cref="Configuration"/> from the given parent.
 		/// </summary>
-		/// <param name="parent">The parent <see cref="DbConfig"/> object that
+		/// <param name="parent">The parent <see cref="Configuration"/> object that
 		/// will provide fallback configurations</param>
 		/// <param name="source"></param>
-		public DbConfig(IDbConfig parent, IConfigSource source)
+		public Configuration(IConfiguration parent, IConfigSource source)
 			: this(false) {
 			Parent = parent;
 			Source = source;
@@ -51,21 +51,21 @@ namespace Deveel.Data.Configuration {
 				this.Load(source);
 		}
 
-		public DbConfig(IConfigSource source)
+		public Configuration(IConfigSource source)
 			: this(null, source) {
 		}
 
-		public DbConfig(IDbConfig parent)
+		public Configuration(IConfiguration parent)
 			: this(parent, null) {
 		}
 
-		static DbConfig() {
-			Empty = new DbConfig(true);
+		static Configuration() {
+			Empty = new Configuration(true);
 
-			SystemDefault = new DbConfig(true);
+			SystemDefault = new Configuration(true);
 			SystemConfigKeys.SetTo(SystemDefault);
 
-			DatabaseDefault = new DbConfig(true);
+			DatabaseDefault = new Configuration(true);
 			DatabaseConfigKeys.SetTo(DatabaseDefault);
 		}
 
@@ -73,16 +73,16 @@ namespace Deveel.Data.Configuration {
 		public IConfigSource Source { get; set; }
 
 		/// <inheritdoc/>
-		public IDbConfig Parent { get; set; }
+		public IConfiguration Parent { get; set; }
 
 		/// <summary>
 		/// An empty configuration object, which does not contain any key nor value.
 		/// </summary>
-		public static DbConfig Empty { get; private set; }
+		public static Configuration Empty { get; private set; }
 
-		public static DbConfig SystemDefault { get; private set; }
+		public static Configuration SystemDefault { get; private set; }
 
-		public static DbConfig DatabaseDefault { get; private set; }
+		public static Configuration DatabaseDefault { get; private set; }
 
 		/// <inheritdoc/>
 		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {

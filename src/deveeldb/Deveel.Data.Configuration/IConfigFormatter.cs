@@ -43,7 +43,7 @@ namespace Deveel.Data.Configuration {
 		/// If either <paramref name="config"/> or <paramref name="inputStream"/>
 		/// are <c>null</c>.
 		/// </exception>
-		void LoadInto(IDbConfig config, Stream inputStream);
+		void LoadInto(IConfiguration config, Stream inputStream);
 
 		/// <summary>
 		/// Stores the given level of configurations into the output stream
@@ -62,6 +62,6 @@ namespace Deveel.Data.Configuration {
 		/// If either <paramref name="config"/> or <paramref name="outputStream"/>
 		/// are <c>null</c>.
 		/// </exception>
-		void SaveFrom(IDbConfig config, ConfigurationLevel level, Stream outputStream);
+		void SaveFrom(IConfiguration config, ConfigurationLevel level, Stream outputStream);
 	}
 }

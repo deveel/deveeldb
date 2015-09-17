@@ -33,10 +33,10 @@ namespace Deveel.Data.DbSystem {
 		private IQueryPlanner queryPlanner;
 
 		public SystemContext()
-			: this(DbConfig.SystemDefault) {
+			: this(Data.Configuration.Configuration.SystemDefault) {
 		}
 
-		public SystemContext(IDbConfig configuration) {
+		public SystemContext(IConfiguration configuration) {
 			if (configuration == null)
 				throw new ArgumentNullException("configuration");
 
@@ -50,7 +50,7 @@ namespace Deveel.Data.DbSystem {
 			Dispose(false);
 		}
 
-		public IDbConfig Configuration { get; private set; }
+		public IConfiguration Configuration { get; private set; }
 
 		public IEventRegistry EventRegistry { get; private set; }
 

@@ -22,7 +22,7 @@ namespace Deveel.Data.Configuration {
 	/// </summary>
 	public static class ConfigGroup {
 		/// <summary>
-		/// Gets the seprator character that defines a new configuration group.
+		/// Gets the separator character that defines a new configuration group.
 		/// </summary>
 		public const char Separator = '.';
 	}

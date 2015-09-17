@@ -28,7 +28,7 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		/// <param name="config">The container of settings used to
 		/// configure the object</param>
-		/// <seealso cref="IDbConfig"/>
-		void Configure(IDbConfig config);
+		/// <seealso cref="IConfiguration"/>
+		void Configure(IConfiguration config);
 	}
 }

@@ -24,7 +24,7 @@ using Deveel.Data.Util;
 
 namespace Deveel.Data.Configuration {
 	public sealed class PropertiesConfigFormatter : IConfigFormatter {
-		private void SetValue(IDbConfig config, string propKey, string value) {
+		private void SetValue(IConfiguration config, string propKey, string value) {
 			var configKey = config.GetKey(propKey);
 			if (configKey != null) {
 				var propValue = ConvertValueTo(value, configKey.ValueType);
@@ -40,7 +40,7 @@ namespace Deveel.Data.Configuration {
 			return Convert.ChangeType(value, valueType, CultureInfo.InvariantCulture);
 		}
 
-		public void LoadInto(IDbConfig config, Stream inputStream) {
+		public void LoadInto(IConfiguration config, Stream inputStream) {
 			if (inputStream == null)
 				throw new ArgumentNullException("inputStream");
 
@@ -59,7 +59,7 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public void SaveFrom(IDbConfig config, ConfigurationLevel level, Stream outputStream) {
+		public void SaveFrom(IConfiguration config, ConfigurationLevel level, Stream outputStream) {
 			try {
 				var keys = config.GetKeys(level);
 				var properties = new Properties();

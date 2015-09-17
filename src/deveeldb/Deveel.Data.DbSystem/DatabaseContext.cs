@@ -31,7 +31,7 @@ namespace Deveel.Data.DbSystem {
 			: this(systemContext, CreateSimpleConfig(name)) {
 		}
 
-		public DatabaseContext(ISystemContext systemContext, IDbConfig configuration) {
+		public DatabaseContext(ISystemContext systemContext, IConfiguration configuration) {
 			if (systemContext == null)
 				throw new ArgumentNullException("systemContext");
 			if (configuration == null)
@@ -52,11 +52,11 @@ namespace Deveel.Data.DbSystem {
 			Dispose(false);
 		}
 
-		private static IDbConfig CreateSimpleConfig(string dbName) {
+		private static IConfiguration CreateSimpleConfig(string dbName) {
 			if (String.IsNullOrEmpty(dbName))
 				throw new ArgumentNullException("dbName");
 
-			var config = DbConfig.Empty;
+			var config = Data.Configuration.Configuration.Empty;
 			config.SetKey(DatabaseConfigKeys.DatabaseName);
 			config.SetValue(DatabaseConfigKeys.DatabaseName, dbName);
 			return config;
@@ -80,7 +80,7 @@ namespace Deveel.Data.DbSystem {
 			StoreSystem = null;
 		}
 
-		public IDbConfig Configuration { get; private set; }
+		public IConfiguration Configuration { get; private set; }
 
 		public ActiveSessionList Sessions { get; private set; }
 

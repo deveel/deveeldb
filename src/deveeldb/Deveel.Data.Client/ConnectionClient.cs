@@ -67,7 +67,7 @@ namespace Deveel.Data.Client {
 			if (Connector != null)
 				return Connector;
 
-			IDbConfig dbConfig = null;
+			IConfiguration configuration = null;
 
 			/*
 			TODO:
@@ -80,12 +80,12 @@ namespace Deveel.Data.Client {
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
-				dbConfig = new DbConfig(controlSystem.Config);
-				dbConfig.DatabaseName(databaseName);
+				Configuration = new Configuration(controlSystem.Config);
+				Configuration.DatabaseName(databaseName);
 
 				var defaultSchema = Settings.Schema;
 				if (!String.IsNullOrEmpty(defaultSchema))
-					dbConfig.DefaultSchema(defaultSchema);
+					Configuration.DefaultSchema(defaultSchema);
 
 				controlDatabase = controlSystem.ControlDatabase(databaseName);
 			} else if (IsInFileSystem(Settings) && controlDatabase == null) {
@@ -97,8 +97,8 @@ namespace Deveel.Data.Client {
 				if (String.IsNullOrEmpty(databaseName))
 					throw new InvalidOperationException();
 
-				dbConfig = new DbConfig(controlSystem.Config);
-				dbConfig.StorageSystem(ConfigDefaultValues.FileStorageSystem);
+				Configuration = new Configuration(controlSystem.Config);
+				Configuration.StorageSystem(ConfigDefaultValues.FileStorageSystem);
 
 				var dbPath = settings.DataSource;
 				if (String.Equals(dbPath, "local", StringComparison.OrdinalIgnoreCase))
@@ -106,11 +106,11 @@ namespace Deveel.Data.Client {
 				if (String.IsNullOrEmpty(dbPath))
 					dbPath = databaseName;
 
-				dbConfig.DatabasePath(dbPath);
+				Configuration.DatabasePath(dbPath);
 
 				var defaultSchema = settings.Schema;
 				if (!String.IsNullOrEmpty(defaultSchema))
-					dbConfig.DefaultSchema(defaultSchema);
+					Configuration.DefaultSchema(defaultSchema);
 
 
 				controlDatabase = controlSystem.ControlDatabase(databaseName);
@@ -119,7 +119,7 @@ namespace Deveel.Data.Client {
 			}
 
 			if (controlDatabase != null)
-				return CreateLocalDatabaseConnector(dbConfig);
+				return CreateLocalDatabaseConnector(Configuration);
 
 			throw new InvalidOperationException("Unable to create a connector to the database");
 			*/

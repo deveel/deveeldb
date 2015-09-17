@@ -26,8 +26,8 @@ namespace Deveel.Data.Configuration {
 	/// <para>
 	/// The streams returned from implementations of this interface
 	/// will be passed to <see cref="IConfigFormatter"/>
-	/// instances for constructing a <see cref="IDbConfig"/> object,
-	/// or to store the configurations of a <see cref="IDbConfig"/>
+	/// instances for constructing a <see cref="IConfiguration"/> object,
+	/// or to store the configurations of a <see cref="IConfiguration"/>
 	/// into a given output.
 	/// </para>
 	/// </remarks>
@@ -40,7 +40,7 @@ namespace Deveel.Data.Configuration {
 
 		/// <summary>
 		/// Gets a <see cref="Stream"/> that can be writtern with
-		/// the configurations from a <see cref="IDbConfig"/>.
+		/// the configurations from a <see cref="IConfiguration"/>.
 		/// </summary>
 		Stream OutputStream { get; }
 	}

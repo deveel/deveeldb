@@ -28,7 +28,7 @@ namespace Deveel.Data.DbSystem {
 		/// <summary>
 		/// Gets the system configuration
 		/// </summary>
-		IDbConfig Configuration { get; }
+		IConfiguration Configuration { get; }
 
 		/// <summary>
 		/// Gets an instance of <see cref="IEventRegistry"/> that handles

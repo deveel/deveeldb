@@ -22,7 +22,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.DbSystem {
 	public interface IDatabaseContext : IDisposable {
-		IDbConfig Configuration { get; }
+		IConfiguration Configuration { get; }
 
 		ActiveSessionList Sessions { get; }
 

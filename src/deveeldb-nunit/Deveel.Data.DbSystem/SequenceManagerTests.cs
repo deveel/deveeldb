@@ -31,10 +31,10 @@ namespace Deveel.Data.DbSystem {
 		public void TestSetup() {
 			testSequenceName = ObjectName.Parse("APP.test_sequence");
 
-			var dbConfig = DbConfig.Empty;
+			var dbConfig = Configuration.Configuration.Empty;
 			dbConfig.SetValue(DatabaseConfigKeys.DatabaseName, "testdb");
 
-			var systemContext = new SystemContext(DbConfig.SystemDefault);
+			var systemContext = new SystemContext(Configuration.Configuration.SystemDefault);
 			var dbContext = new DatabaseContext(systemContext, dbConfig);
 			var database = new Database(dbContext);
 			database.Create("SA", "12345");

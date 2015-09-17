@@ -201,7 +201,7 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		public override void Configure(IDbConfig config) {
+		public override void Configure(IConfiguration config) {
 			base.Configure(config);
 
 			// Find a prime hash size depending on the size of the cache.

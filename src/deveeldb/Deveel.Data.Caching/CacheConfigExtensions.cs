@@ -20,11 +20,11 @@ using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Caching {
 	public static class CacheConfigExtensions {
-		public static int DataCacheSize(this IDbConfig config) {
+		public static int DataCacheSize(this IConfiguration config) {
 			return config.GetValue<int>(CacheConfigKeys.DataCacheSize);
 		}
 
-		public static void DataCacheSize(this IDbConfig config, int value) {
+		public static void DataCacheSize(this IConfiguration config, int value) {
 			config.SetValue(CacheConfigKeys.DataCacheSize, value);
 		}
 	}

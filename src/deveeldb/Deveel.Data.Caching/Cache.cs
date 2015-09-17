@@ -253,7 +253,7 @@ namespace Deveel.Data.Caching {
 			OnAllCleared();
 		}
 
-		public virtual void Configure(IDbConfig config) {
+		public virtual void Configure(IConfiguration config) {
 			MaxCacheSize = config.DataCacheSize();
 		}
 

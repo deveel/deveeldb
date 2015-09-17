@@ -16,19 +16,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
 namespace Deveel.Data.Configuration {
-	public static class DbConfigExtensions {
+	public static class ConfigurationExtensions {
 		#region Get Values
 
-		public static IEnumerable<ConfigKey> GetKeys(this IDbConfig config) {
+		public static IEnumerable<ConfigKey> GetKeys(this IConfiguration config) {
 			return config.GetKeys(ConfigurationLevel.Current);
 		}
 
-		public static IEnumerable<ConfigValue> GetValues(this IDbConfig config, ConfigurationLevel level) {
+		public static IEnumerable<ConfigValue> GetValues(this IConfiguration config, ConfigurationLevel level) {
 			var keys = config.GetKeys(level);
 			var values = keys.Select(config.GetValue)
 				.Where(value => value != null)
@@ -37,7 +36,7 @@ namespace Deveel.Data.Configuration {
 			return values.ToArray();
 		}
 
-		public static ConfigValue GetConfigValue(this IDbConfig config, string keyName) {
+		public static ConfigValue GetConfigValue(this IConfiguration config, string keyName) {
 			var key = config.GetKey(keyName);
 			if (key == null)
 				return null;
@@ -47,7 +46,7 @@ namespace Deveel.Data.Configuration {
 
 		#region GetValue(ConfigKey)
 
-		public static T GetValue<T>(this IDbConfig config, ConfigKey key) {
+		public static T GetValue<T>(this IConfiguration config, ConfigKey key) {
 			var value = config.GetValue(key);
 			if (value == null)
 				return default(T);
@@ -55,47 +54,47 @@ namespace Deveel.Data.Configuration {
 			return value.ToType<T>();
 		}
 
-		public static string GetString(this IDbConfig config, ConfigKey key) {
+		public static string GetString(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<string>(key);
 		}
 
-		public static byte GetByte(this IDbConfig config, ConfigKey key) {
+		public static byte GetByte(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<byte>(key);
 		}
 
 		[CLSCompliant(false)]
-		public static sbyte GetSByte(this IDbConfig config, ConfigKey key) {
+		public static sbyte GetSByte(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<sbyte>(key);
 		}
 
-		public static short GetInt16(this IDbConfig config, ConfigKey key) {
+		public static short GetInt16(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<short>(key);
 		}
 
 		[CLSCompliant(false)]
-		public static ushort GetUInt16(this IDbConfig config, ConfigKey key) {
+		public static ushort GetUInt16(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<ushort>(key);
 		}
 
-		public static int GetInt32(this IDbConfig config, ConfigKey key) {
+		public static int GetInt32(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<int>(key);
 		}
 
 		[CLSCompliant(false)]
-		public static uint GetUInt32(this IDbConfig config, ConfigKey key) {
+		public static uint GetUInt32(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<uint>(key);
 		}
 
-		public static long GetInt64(this IDbConfig config, ConfigKey key) {
+		public static long GetInt64(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<long>(key);
 		}
 
 		[CLSCompliant(false)]
-		public static ulong GetUInt64(this IDbConfig config, ConfigKey key) {
+		public static ulong GetUInt64(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<ulong>(key);
 		}
 
-		public static bool GetBoolean(this IDbConfig config, ConfigKey key) {
+		public static bool GetBoolean(this IConfiguration config, ConfigKey key) {
 			var value = config.GetValue(key);
 			if (value == null)
 				return false;
@@ -121,11 +120,11 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public static float GetSingle(this IDbConfig config, ConfigKey key) {
+		public static float GetSingle(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<float>(key);
 		}
 
-		public static double GetDouble(this IDbConfig config, ConfigKey key) {
+		public static double GetDouble(this IConfiguration config, ConfigKey key) {
 			return config.GetValue<double>(key);
 		}
 
@@ -133,11 +132,11 @@ namespace Deveel.Data.Configuration {
 
 		#region GetValue(string)
 
-		public static object GetValue(this IDbConfig config, string keyName) {
+		public static object GetValue(this IConfiguration config, string keyName) {
 			return GetValue(config, keyName, null);
 		}
 
-		public static object GetValue(this IDbConfig config, string keyName, object defaultValue) {
+		public static object GetValue(this IConfiguration config, string keyName, object defaultValue) {
 			var value = config.GetConfigValue(keyName);
 			if (value == null)
 				return defaultValue;
@@ -145,11 +144,11 @@ namespace Deveel.Data.Configuration {
 			return value.Value;
 		}
 
-		public static T GetValue<T>(this IDbConfig config, string keyName) {
+		public static T GetValue<T>(this IConfiguration config, string keyName) {
 			return GetValue<T>(config, keyName, default(T));
 		}
 
-		public static T GetValue<T>(this IDbConfig config, string keyName, T defaultValue) {
+		public static T GetValue<T>(this IConfiguration config, string keyName, T defaultValue) {
 			var value = config.GetConfigValue(keyName);
 			if (value == null)
 				return defaultValue;
@@ -157,102 +156,102 @@ namespace Deveel.Data.Configuration {
 			return value.ToType<T>();
 		}
 
-		public static string GetString(this IDbConfig config, string propertyKey) {
+		public static string GetString(this IConfiguration config, string propertyKey) {
 			return GetString(config, propertyKey, null);
 		}
 
-		public static string GetString(this IDbConfig config, string propertyKey, string defaultValue) {
+		public static string GetString(this IConfiguration config, string propertyKey, string defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static byte GetByte(this IDbConfig config, string propertyKey) {
+		public static byte GetByte(this IConfiguration config, string propertyKey) {
 			return GetByte(config, propertyKey, 0);
 		}
 
-		public static byte GetByte(this IDbConfig config, string propertyKey, byte defaultValue) {
+		public static byte GetByte(this IConfiguration config, string propertyKey, byte defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
-		public static sbyte GetSByte(this IDbConfig config, string propertyKey, sbyte defaultValue) {
+		public static sbyte GetSByte(this IConfiguration config, string propertyKey, sbyte defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static short GetInt16(this IDbConfig config, string propertyKey) {
+		public static short GetInt16(this IConfiguration config, string propertyKey) {
 			return GetInt16(config, propertyKey, 0);
 		}
 
-		public static short GetInt16(this IDbConfig config, string propertyKey, short defaultValue) {
+		public static short GetInt16(this IConfiguration config, string propertyKey, short defaultValue) {
 			return config.GetValue<short>(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
-		public static ushort GetUInt16(this IDbConfig config, string propertyKey) {
+		public static ushort GetUInt16(this IConfiguration config, string propertyKey) {
 			return GetUInt16(config, propertyKey, 0);
 		}
 
 		[CLSCompliant(false)]
-		public static ushort GetUInt16(this IDbConfig config, string propertyKey, ushort defaultValue) {
+		public static ushort GetUInt16(this IConfiguration config, string propertyKey, ushort defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static int GetInt32(this IDbConfig config, string propertyKey) {
+		public static int GetInt32(this IConfiguration config, string propertyKey) {
 			return GetInt32(config, propertyKey, 0);
 		}
 
-		public static int GetInt32(this IDbConfig config, string propertyKey, int defaultValue) {
+		public static int GetInt32(this IConfiguration config, string propertyKey, int defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
-		public static uint GetUInt32(this IDbConfig config, string propertyKey) {
+		public static uint GetUInt32(this IConfiguration config, string propertyKey) {
 			return GetUInt32(config, propertyKey, 0);
 		}
 
 		[CLSCompliant(false)]
-		public static uint GetUInt32(this IDbConfig config, string propertyKey, uint defaultValue) {
+		public static uint GetUInt32(this IConfiguration config, string propertyKey, uint defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static long GetInt64(this IDbConfig config, string propertyKey) {
+		public static long GetInt64(this IConfiguration config, string propertyKey) {
 			return GetInt64(config, propertyKey, 0);
 		}
 
-		public static long GetInt64(this IDbConfig config, string propertyKey, long defaultValue) {
+		public static long GetInt64(this IConfiguration config, string propertyKey, long defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
 		[CLSCompliant(false)]
-		public static ulong GetUInt64(this IDbConfig config, string propertyKey) {
+		public static ulong GetUInt64(this IConfiguration config, string propertyKey) {
 			return GetUInt64(config, propertyKey, 0);
 		}
 
 		[CLSCompliant(false)]
-		public static ulong GetUInt64(this IDbConfig config, string propertyKey, ulong defaultValue) {
+		public static ulong GetUInt64(this IConfiguration config, string propertyKey, ulong defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static bool GetBoolean(this IDbConfig config, string propertyKey) {
+		public static bool GetBoolean(this IConfiguration config, string propertyKey) {
 			return GetBoolean(config, propertyKey, false);
 		}
 
-		public static bool GetBoolean(this IDbConfig config, string propertyKey, bool defaultValue) {
+		public static bool GetBoolean(this IConfiguration config, string propertyKey, bool defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static float GetSingle(this IDbConfig config, string propertyKey) {
+		public static float GetSingle(this IConfiguration config, string propertyKey) {
 			return GetSingle(config, propertyKey, 0);
 		}
 
-		public static float GetSingle(this IDbConfig config, string propertyKey, float defaultValue) {
+		public static float GetSingle(this IConfiguration config, string propertyKey, float defaultValue) {
 			return config.GetValue(propertyKey, defaultValue);
 		}
 
-		public static double GetDouble(this IDbConfig config, string propertyKey) {
+		public static double GetDouble(this IConfiguration config, string propertyKey) {
 			return GetDouble(config, propertyKey, 0);
 		}
 
-		public static double GetDouble(this IDbConfig config, string propertyKey, double defaultValue) {
+		public static double GetDouble(this IConfiguration config, string propertyKey, double defaultValue) {
 			return config.GetValue<double>(propertyKey, defaultValue);
 		}
 
@@ -262,18 +261,18 @@ namespace Deveel.Data.Configuration {
 
 		#region Load / Save
 
-		public static void Load(this IDbConfig config, IConfigSource source) {
+		public static void Load(this IConfiguration config, IConfigSource source) {
 			config.Load(source, new PropertiesConfigFormatter());
 		}
 
-		public static void Load(this IDbConfig config, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, IConfigFormatter formatter) {
 			if (config.Source == null)
 				throw new InvalidOperationException("Source was not configured");
 
 			config.Load(config.Source, formatter);
 		}
 
-		public static void Load(this IDbConfig config, IConfigSource source, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
 			try {
 				if (source != null) {
 					using (var sourceStream = source.InputStream) {
@@ -290,28 +289,28 @@ namespace Deveel.Data.Configuration {
 		}
 
 #if !PCL
-		public static void Load(this IDbConfig config, string fileName, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, string fileName, IConfigFormatter formatter) {
 			config.Load(new FileConfigSource(fileName), formatter);
 		}
 
-		public static void Load(this IDbConfig config, string fileName) {
+		public static void Load(this IConfiguration config, string fileName) {
 			config.Load(fileName, new PropertiesConfigFormatter());
 		}
 #endif
 
-		public static void Load(this IDbConfig config, Stream inputStream, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, Stream inputStream, IConfigFormatter formatter) {
 			config.Load(new StreamConfigSource(inputStream), formatter);
 		}
 
-		public static void Load(this IDbConfig config, Stream inputStream) {
+		public static void Load(this IConfiguration config, Stream inputStream) {
 			config.Load(inputStream, new PropertiesConfigFormatter());
 		}
 
-		public static void Save(this IDbConfig config, IConfigSource source, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
 			Save(config, source, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IDbConfig config, IConfigSource source, ConfigurationLevel level, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigSource source, ConfigurationLevel level, IConfigFormatter formatter) {
 			try {
 				using (var outputStream = source.OutputStream) {
 					if (!outputStream.CanWrite)
@@ -326,61 +325,61 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public static void Save(this IDbConfig config, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IDbConfig config, ConfigurationLevel level, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, IConfigFormatter formatter) {
 			if (config.Source == null)
 				throw new DatabaseConfigurationException("The source was not configured in the configuration.");
 
 			config.Save(config.Source, level, formatter);
 		}
 
-		public static void Save(this IDbConfig config) {
+		public static void Save(this IConfiguration config) {
 			Save(config, ConfigurationLevel.Current);
 		}
 
-		public static void Save(this IDbConfig config, ConfigurationLevel level) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level) {
 			Save(config, level, new PropertiesConfigFormatter());
 		}
 
 #if !PCL
-		public static void Save(this IDbConfig config, string fileName) {
+		public static void Save(this IConfiguration config, string fileName) {
 			Save(config, ConfigurationLevel.Current, fileName);
 		}
 
-		public static void Save(this IDbConfig config, ConfigurationLevel level, string fileName) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName) {
 			Save(config, level, fileName, new PropertiesConfigFormatter());
 		}
 
-		public static void Save(this IDbConfig config, string fileName, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, string fileName, IConfigFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, fileName, formatter);
 		}
-		public static void Save(this IDbConfig config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
 			config.Save(new FileConfigSource(fileName), level, formatter);
 		}
 #endif
 
-		public static void Save(this IDbConfig config, Stream outputStream) {
+		public static void Save(this IConfiguration config, Stream outputStream) {
 			Save(config, ConfigurationLevel.Current, outputStream);
 		}
 
-		public static void Save(this IDbConfig config, ConfigurationLevel level, Stream outputStream) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream) {
 			Save(config, level, outputStream, new PropertiesConfigFormatter());
 		}
 
-		public static void Save(this IDbConfig config, Stream outputStream, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, Stream outputStream, IConfigFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, outputStream, formatter);
 		}
 
-		public static void Save(this IDbConfig config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
 			config.Save(new StreamConfigSource(outputStream), level, formatter);
 		}
 
 		#endregion
 
-		public static void CopyTo(this IDbConfig source, IDbConfig dest) {
+		public static void CopyTo(this IConfiguration source, IConfiguration dest) {
 			var sourceKeys = source.GetKeys(ConfigurationLevel.Current);
 			foreach (var key in sourceKeys) {
 				dest.SetKey(key);

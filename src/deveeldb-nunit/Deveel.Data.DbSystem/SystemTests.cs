@@ -12,7 +12,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void FromDefaultConfig() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 			Assert.IsFalse(context.ReadOnly());
 			Assert.IsTrue(context.IgnoreIdentifiersCase());
@@ -22,7 +22,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void ResolveSingleServiceFromRegister() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 
 			context.ServiceProvider.Register<TestService>();
@@ -39,7 +39,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void ResolveManyServicesForInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 			
 			context.ServiceProvider.Register<TestService>();
@@ -61,7 +61,7 @@ namespace Deveel.Data.DbSystem {
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(DbConfig.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 
 			context.ServiceProvider.Register(new TestService());

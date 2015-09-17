@@ -157,11 +157,11 @@ namespace Deveel.Data.Diagnostics {
 			return String.Format("{0:X}:{1:X}", errorClass, errorCode);
 		}
 
-		void IConfigurable.Configure(IDbConfig config) {
+		void IConfigurable.Configure(IConfiguration config) {
 			OnConfigure(config);
 		}
 
-		protected virtual void OnConfigure(IDbConfig config) {
+		protected virtual void OnConfigure(IConfiguration config) {
 		}
 
 		public void Dispose() {

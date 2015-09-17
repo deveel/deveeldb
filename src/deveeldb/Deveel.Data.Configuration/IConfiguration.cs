@@ -36,7 +36,7 @@ namespace Deveel.Data.Configuration {
 	/// define it by itself.
 	/// </para>
 	/// </remarks>
-	public interface IDbConfig {
+	public interface IConfiguration {
 		/// <summary>
 		/// Gets or sets an optional source of the configuration object
 		/// </summary>
@@ -64,7 +64,7 @@ namespace Deveel.Data.Configuration {
 		/// single database can override a setting or define new settings.
 		/// </para>
 		/// </remarks>
-		IDbConfig Parent { get; set; }
+		IConfiguration Parent { get; set; }
 
 		/// <summary>
 		/// Enumerates the keys that can be obtained by the object, at

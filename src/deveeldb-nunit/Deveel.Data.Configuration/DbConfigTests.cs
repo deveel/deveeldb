@@ -23,8 +23,8 @@ namespace Deveel.Data.Configuration {
 	public class DbConfigTests {
 		[Test]
 		public void DefaultConfig() {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
 			Assert.IsNotNull(config);
 			Assert.IsNull(config.Parent);
 			Assert.IsNull(config.Source);
@@ -32,8 +32,8 @@ namespace Deveel.Data.Configuration {
 
 		[Test]
 		public void GetKeysFromRoot() {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.Empty);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.Empty);
 			Assert.IsNotNull(config);
 			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", 54, typeof(int))));
 			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.twoKeys", typeof(string))));
@@ -55,14 +55,14 @@ namespace Deveel.Data.Configuration {
 
 		[Test]
 		public void GetKeysFromChild() {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
 			Assert.IsNotNull(config);
 
 			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", "one", typeof(string))));
 
-			IDbConfig child = null;
-			Assert.DoesNotThrow(() => child = new DbConfig(config));
+			IConfiguration child = null;
+			Assert.DoesNotThrow(() => child = new Configuration(config));
 			Assert.IsNotNull(child);
 			Assert.IsNotNull(child.Parent);
 
@@ -77,8 +77,8 @@ namespace Deveel.Data.Configuration {
 
 		[Test]
 		public void GetValueAsInt32() {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey key = new ConfigKey("test.oneKey", "one", typeof(string));
@@ -101,8 +101,8 @@ namespace Deveel.Data.Configuration {
 		[TestCase("test", "on", true)]
 		[TestCase("test", "enabled", true)]
 		public void GetBooleanValue(string key, string value, bool expected) {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey configKey = new ConfigKey(key, typeof(string));
@@ -124,8 +124,8 @@ namespace Deveel.Data.Configuration {
 		[TestCase("TWO", TestEnum.Two)]
 		[TestCase(null, TestEnum.Default)]
 		public void GetEnumValue(object value, TestEnum expected) {
-			IDbConfig config = null;
-			Assert.DoesNotThrow(() => config = DbConfig.SystemDefault);
+			IConfiguration config = null;
+			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
 			Assert.IsNotNull(config);
 
 			ConfigKey configKey = new ConfigKey("test", typeof(TestEnum));
@@ -152,15 +152,15 @@ namespace Deveel.Data.Configuration {
 			properties.AppendLine("system.readOnly = false");
 			properties.AppendLine("caching.type = Memory");
 
-			IDbConfig dbConfig = null;
-			Assert.DoesNotThrow(() => dbConfig = new DbConfig(new StringConfigSource(properties.ToString())));
-			Assert.IsNotNull(dbConfig);
-			Assert.DoesNotThrow(() => dbConfig.Load(new PropertiesConfigFormatter()));
+			IConfiguration configuration = null;
+			Assert.DoesNotThrow(() => configuration = new Configuration(new StringConfigSource(properties.ToString())));
+			Assert.IsNotNull(configuration);
+			Assert.DoesNotThrow(() => configuration.Load(new PropertiesConfigFormatter()));
 
-			Assert.DoesNotThrow(() => Assert.IsNotNull(dbConfig.GetKey("system.readOnly")));
+			Assert.DoesNotThrow(() => Assert.IsNotNull(configuration.GetKey("system.readOnly")));
 
 			bool readOnly = true;
-			Assert.DoesNotThrow(() => readOnly = dbConfig.GetBoolean("system.readOnly"));
+			Assert.DoesNotThrow(() => readOnly = configuration.GetBoolean("system.readOnly"));
 			Assert.IsFalse(readOnly);
 		}
 	}
