@@ -862,7 +862,6 @@
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Types\BooleanType.cs" />
     <Compile Include="Deveel.Data.Types\ColumnType.cs" />
-    <Compile Include="Deveel.Data.Types\DataType.cs" />
     <Compile Include="Deveel.Data.Types\DataTypeMeta.cs" />
     <Compile Include="Deveel.Data.Types\DateType.cs" />
     <Compile Include="Deveel.Data.Types\IntervalType.cs" />
@@ -874,6 +873,7 @@
     <Compile Include="Deveel.Data.Types\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\QueryType.cs" />
     <Compile Include="Deveel.Data.Types\RowType.cs" />
+    <Compile Include="Deveel.Data.Types\SqlType.cs" />
     <Compile Include="Deveel.Data.Types\SqlTypeCode.cs" />
     <Compile Include="Deveel.Data.Types\StringType.cs">
       <SubType>Code</SubType>
