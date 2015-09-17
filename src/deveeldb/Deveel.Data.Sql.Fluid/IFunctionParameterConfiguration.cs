@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Fluid {
 	public interface IFunctionParameterConfiguration {
 		IFunctionParameterConfiguration Named(string name);
 
-		IFunctionParameterConfiguration OfType(DataType type);
+		IFunctionParameterConfiguration OfType(SqlType type);
 
 		IFunctionParameterConfiguration Unbounded(bool flag);
 	}

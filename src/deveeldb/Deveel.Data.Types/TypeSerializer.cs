@@ -23,8 +23,8 @@ using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Types {
 	static class TypeSerializer {
-		public static void SerializeTo(BinaryWriter writer, DataType type) {
-			writer.Write((byte) type.SqlType);
+		public static void SerializeTo(BinaryWriter writer, SqlType type) {
+			writer.Write((byte) type.TypeCode);
 
 			if (type.IsPrimitive) {
 				if (type is NumericType) {
@@ -62,12 +62,12 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public static void SerializeTo(Stream stream, DataType type) {
+		public static void SerializeTo(Stream stream, SqlType type) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			SerializeTo(writer, type);
 		}
 
-		public static DataType Deserialize(BinaryReader reader, ITypeResolver resolver) {
+		public static SqlType Deserialize(BinaryReader reader, ITypeResolver resolver) {
 
 			var typeCode = (SqlTypeCode)reader.ReadByte();
 
@@ -111,7 +111,7 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException();			
 		}
 
-		public static DataType Deserialize(Stream stream, ITypeResolver typeResolver) {
+		public static SqlType Deserialize(Stream stream, ITypeResolver typeResolver) {
 			var reader = new BinaryReader(stream, Encoding.Unicode);
 			return Deserialize(reader, typeResolver);
 		}

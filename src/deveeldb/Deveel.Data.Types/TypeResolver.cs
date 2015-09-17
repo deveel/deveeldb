@@ -18,7 +18,7 @@ using System;
 
 namespace Deveel.Data.Types {
 	static class TypeResolver {
-		public static DataType Resolve(SqlTypeCode typeCode, string typeName, DataTypeMeta[] metadata, ITypeResolver resolver) {
+		public static SqlType Resolve(SqlTypeCode typeCode, string typeName, DataTypeMeta[] metadata, ITypeResolver resolver) {
 			if (PrimitiveTypes.IsPrimitive(typeCode))
 				return PrimitiveTypes.Resolve(typeCode, typeName, metadata);
 

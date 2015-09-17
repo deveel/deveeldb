@@ -20,7 +20,7 @@ using System.IO;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class QueryType : DataType {
+	public sealed class QueryType : SqlType {
 		public QueryType()
 			: base("QUERY", SqlTypeCode.QueryPlan) {
 		}

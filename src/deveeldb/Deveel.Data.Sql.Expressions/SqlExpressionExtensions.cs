@@ -96,11 +96,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// of the expression.</param>
 		/// <param name="variableResolver">The object used to resolve variable references in the expression tree.</param>
 		/// <returns>
-		/// Returns the <see cref="DataType"/> that an evaluation of the expression
+		/// Returns the <see cref="SqlType"/> that an evaluation of the expression
 		/// would return, or <c>null</c> if the final result of the evaluation has
 		/// no return type.
 		/// </returns>
-		public static DataType ReturnType(this SqlExpression expression, IQueryContext queryContext, IVariableResolver variableResolver) {
+		public static SqlType ReturnType(this SqlExpression expression, IQueryContext queryContext, IVariableResolver variableResolver) {
 			var visitor = new ReturnTypeVisitor(queryContext, variableResolver);
 			return visitor.GetType(expression);
 		}

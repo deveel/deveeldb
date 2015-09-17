@@ -18,13 +18,13 @@ using System;
 
 namespace Deveel.Data.Types {
 	public sealed class UserTypeMember {
-		public UserTypeMember(string memberName, DataType memberType) {
+		public UserTypeMember(string memberName, SqlType memberType) {
 			MemberName = memberName;
 			MemberType = memberType;
 		}
 
 		public string MemberName { get; private set; }
 
-		public DataType MemberType { get; private set; }
+		public SqlType MemberType { get; private set; }
 	}
 }

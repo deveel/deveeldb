@@ -26,7 +26,7 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void BasicVarChar_Create() {
 			var type = PrimitiveTypes.String(SqlTypeCode.VarChar);
-			Assert.AreEqual(SqlTypeCode.VarChar, type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, type.TypeCode);
 			Assert.AreEqual(Int16.MaxValue, type.MaxSize);
 			Assert.IsTrue(type.IsPrimitive);
 			Assert.IsTrue(type.IsIndexable);
@@ -38,7 +38,7 @@ namespace Deveel.Data.Types {
 			var type1 = PrimitiveTypes.String(SqlTypeCode.VarChar);
 			var type2 = PrimitiveTypes.String(SqlTypeCode.VarChar);
 
-			Assert.AreEqual(type1.SqlType, type2.SqlType);
+			Assert.AreEqual(type1.TypeCode, type2.TypeCode);
 			Assert.IsTrue(type1.IsComparable(type2));
 			Assert.IsTrue(type1.CanCastTo(type2));
 		}
@@ -46,13 +46,13 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void BasicVarChar_Parse() {
 			const string typeString = "VARCHAR";
-			DataType dataType = null;
-			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
-			Assert.IsNotNull(dataType);
-			Assert.IsInstanceOf<StringType>(dataType);
-			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+			SqlType sqlType = null;
+			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			Assert.IsNotNull(sqlType);
+			Assert.IsInstanceOf<StringType>(sqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
 
-			var stringType = (StringType) dataType;
+			var stringType = (StringType) sqlType;
 			Assert.AreEqual(Int16.MaxValue, stringType.MaxSize);
 			Assert.AreEqual(null, stringType.Locale);
 		}
@@ -60,7 +60,7 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void SizedVarChar_Create() {
 			var type = PrimitiveTypes.String(SqlTypeCode.VarChar, 255);
-			Assert.AreEqual(SqlTypeCode.VarChar, type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, type.TypeCode);
 			Assert.AreEqual(255, type.MaxSize);
 		}
 
@@ -69,7 +69,7 @@ namespace Deveel.Data.Types {
 			var type1 = PrimitiveTypes.String(SqlTypeCode.VarChar, 255);
 			var type2 = PrimitiveTypes.String(SqlTypeCode.VarChar, 200);
 
-			Assert.AreEqual(type1.SqlType, type2.SqlType);
+			Assert.AreEqual(type1.TypeCode, type2.TypeCode);
 			Assert.IsFalse(type1.Equals(type2));
 			Assert.IsTrue(type1.IsComparable(type2));
 		}
@@ -77,13 +77,13 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void SizedVarChar_Parse() {
 			const string typeString = "VARCHAR(255)";
-			DataType dataType = null;
-			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
-			Assert.IsNotNull(dataType);
-			Assert.IsInstanceOf<StringType>(dataType);
-			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+			SqlType sqlType = null;
+			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			Assert.IsNotNull(sqlType);
+			Assert.IsInstanceOf<StringType>(sqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
 
-			var stringType = (StringType) dataType;
+			var stringType = (StringType) sqlType;
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.AreEqual(null, stringType.Locale);			
 		}
@@ -91,13 +91,13 @@ namespace Deveel.Data.Types {
 		[Test]
 		public void LocalizedVarChar_Parse() {
 			const string typeString = "VARCHAR(255) LOCALE 'en-Us'";
-			DataType dataType = null;
-			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
-			Assert.IsNotNull(dataType);
-			Assert.IsInstanceOf<StringType>(dataType);
-			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+			SqlType sqlType = null;
+			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			Assert.IsNotNull(sqlType);
+			Assert.IsInstanceOf<StringType>(sqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
 
-			var stringType = (StringType) dataType;
+			var stringType = (StringType) sqlType;
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.AreEqual(CultureInfo.GetCultureInfo("en-US"), stringType.Locale);
 			Assert.IsNotNull(stringType.Encoding);
@@ -108,13 +108,13 @@ namespace Deveel.Data.Types {
 		[Category("Strings"), Category("SQL Parse")]
 		public void LocalizedWithEncodingVarChar_Parse() {
 			const string typeString = "VARCHAR(255) LOCALE 'en-Us' ENCODING 'UTF-16'";
-			DataType dataType = null;
-			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
-			Assert.IsNotNull(dataType);
-			Assert.IsInstanceOf<StringType>(dataType);
-			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+			SqlType sqlType = null;
+			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			Assert.IsNotNull(sqlType);
+			Assert.IsInstanceOf<StringType>(sqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
 
-			var stringType = (StringType)dataType;
+			var stringType = (StringType)sqlType;
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.AreEqual(CultureInfo.GetCultureInfo("en-US"), stringType.Locale);
 			Assert.AreEqual(Encoding.Unicode.WebName, stringType.Encoding.WebName);
@@ -124,13 +124,13 @@ namespace Deveel.Data.Types {
 		[Category("Strings"), Category("SQL Parse")]
 		public void SizedWithEncoding_Parse() {
 			const string typeString = "VARCHAR(255) ENCODING 'UTF-16'";
-			DataType dataType = null;
-			Assert.DoesNotThrow(() => dataType = DataType.Parse(typeString));
-			Assert.IsNotNull(dataType);
-			Assert.IsInstanceOf<StringType>(dataType);
-			Assert.AreEqual(SqlTypeCode.VarChar, dataType.SqlType);
+			SqlType sqlType = null;
+			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			Assert.IsNotNull(sqlType);
+			Assert.IsInstanceOf<StringType>(sqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
 
-			var stringType = (StringType)dataType;
+			var stringType = (StringType)sqlType;
 			Assert.AreEqual(255, stringType.MaxSize);
 			Assert.IsNull(stringType.Locale);
 			Assert.AreEqual(Encoding.Unicode.WebName, stringType.Encoding.WebName);

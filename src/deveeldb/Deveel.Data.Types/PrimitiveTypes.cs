@@ -21,7 +21,7 @@ using System.Text;
 namespace Deveel.Data.Types {
 	/// <summary>
 	/// Provides some helper functions for resolving and creating
-	/// <see cref="DataType"/> instances that are primitive to the
+	/// <see cref="SqlType"/> instances that are primitive to the
 	/// system.
 	/// </summary>
 	public static class PrimitiveTypes {
@@ -240,7 +240,7 @@ namespace Deveel.Data.Types {
 			return false;
 		}
 
-		public static DataType Resolve(string typeName, params DataTypeMeta[] args) {
+		public static SqlType Resolve(string typeName, params DataTypeMeta[] args) {
 			if (!IsPrimitive(typeName))
 				return Null();
 
@@ -280,11 +280,11 @@ namespace Deveel.Data.Types {
 			return typeCode;
 		}
 
-		public static DataType Resolve(SqlTypeCode sqlType, string typeName, params DataTypeMeta[] args) {
+		public static SqlType Resolve(SqlTypeCode sqlType, string typeName, params DataTypeMeta[] args) {
 			return Resolve(new TypeResolveContext(sqlType, typeName, args));
 		}
 
-		public static DataType Resolve(TypeResolveContext context) {
+		public static SqlType Resolve(TypeResolveContext context) {
 			if (!context.IsPrimitive)
 				return null;
 
@@ -395,7 +395,7 @@ namespace Deveel.Data.Types {
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));
 		}
 
-		public static DataType FromType(Type type) {
+		public static SqlType FromType(Type type) {
 			if (type == typeof(bool))
 				return Boolean();
 			if (type == typeof(string))

@@ -5,7 +5,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {
 	public sealed class MemberMapping {
-		public MemberMapping(MemberInfo member, string columnName, DataType columnType) {
+		public MemberMapping(MemberInfo member, string columnName, SqlType columnType) {
 			if (member == null)
 				throw new ArgumentNullException("member");
 
@@ -33,7 +33,7 @@ namespace Deveel.Data.Mapping {
 			}
 		}
 
-		public DataType ColumnType { get; private set; }
+		public SqlType ColumnType { get; private set; }
 
 		public bool IsNotNull { get; set; }
 

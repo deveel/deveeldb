@@ -24,13 +24,13 @@ namespace Deveel.Data.Types {
 	/// A data type that represents the <c>NULL</c> value of a given
 	/// SQL data type.
 	/// </summary>
-	public sealed class NullType : DataType {
+	public sealed class NullType : SqlType {
 		/// <summary>
 		/// Constructs the type with the given <see cref="SqlTypeCode"/>.
 		/// </summary>
-		/// <param name="sqlType"></param>
-		public NullType(SqlTypeCode sqlType) 
-			: base("NULL", sqlType) {
+		/// <param name="typeCode"></param>
+		public NullType(SqlTypeCode typeCode) 
+			: base("NULL", typeCode) {
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

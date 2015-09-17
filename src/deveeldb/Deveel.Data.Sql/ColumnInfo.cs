@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql {
 	/// </summary>
 	/// <remarks>
 	/// Columns have unique names within a table and a given
-	/// <see cref="DataType"/> that is used to define the type
+	/// <see cref="SqlType"/> that is used to define the type
 	/// of data cells in the table will handle.
 	/// </remarks>
 	public sealed class ColumnInfo {
@@ -37,12 +37,12 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="columnName">The name of the column, as case-sensitive and unique 
 		/// within the table.</param>
-		/// <param name="columnType">The <see cref="DataType"/> that this column will handle.</param>
+		/// <param name="columnType">The <see cref="SqlType"/> that this column will handle.</param>
 		/// <exception cref="ArgumentNullException">
 		/// If either one of <paramref name="columnName"/> or <paramref name="columnType"/>
 		/// is <c>null</c>.
 		/// </exception>
-		public ColumnInfo(string columnName, DataType columnType) {
+		public ColumnInfo(string columnName, SqlType columnType) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
 			if (columnType == null) 
@@ -82,11 +82,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="DataType"/> that cells within a table for this
+		/// Gets the <see cref="SqlType"/> that cells within a table for this
 		/// column will handle.
 		/// </summary>
-		/// <seealso cref="DataType"/>
-		public DataType ColumnType { get; private set; }
+		/// <seealso cref="SqlType"/>
+		public SqlType ColumnType { get; private set; }
 
 		/// <summary>
 		/// Gets the zero-based offset of the column within the containing table.
@@ -122,7 +122,7 @@ namespace Deveel.Data.Sql {
 		/// Gets a boolean vale indicating if the value of a column
 		/// can participate to an index.
 		/// </summary>
-		/// <seealso cref="DataType.IsIndexable"/>
+		/// <seealso cref="SqlType.IsIndexable"/>
 		public bool IsIndexable {
 			get { return ColumnType.IsIndexable; }
 		}

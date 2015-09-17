@@ -33,14 +33,14 @@ namespace Deveel.Data.Routines {
 		/// <param name="routineName">The name of the function.</param>
 		/// <param name="functionType">The type of function this</param>
 		public FunctionInfo(ObjectName routineName, FunctionType functionType) 
-			: this(routineName, (DataType)null, functionType) {
+			: this(routineName, (SqlType)null, functionType) {
 		}
 
-		public FunctionInfo(ObjectName routineName, DataType returnType) 
+		public FunctionInfo(ObjectName routineName, SqlType returnType) 
 			: this(routineName, returnType, FunctionType.Static) {
 		}
 
-		public FunctionInfo(ObjectName routineName, DataType returnType, FunctionType functionType) 
+		public FunctionInfo(ObjectName routineName, SqlType returnType, FunctionType functionType) 
 			: base(routineName) {
 			ReturnType = returnType;
 			FunctionType = functionType;
@@ -55,11 +55,11 @@ namespace Deveel.Data.Routines {
 			: this(routineName, parameters, null, functionType) {
 		}
 
-		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, DataType returnType) 
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, SqlType returnType) 
 			: this(routineName, parameters, returnType, FunctionType.Static) {
 		}
 
-		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, DataType returnType, FunctionType functionType) 
+		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType) 
 			: base(routineName, parameters) {
 			ReturnType = returnType;
 			FunctionType = functionType;
@@ -70,7 +70,7 @@ namespace Deveel.Data.Routines {
 			get { return RoutineType.Function; }
 		}
 
-		public DataType ReturnType { get; private set; }
+		public SqlType ReturnType { get; private set; }
 
 		private void AssertUnboundAtEnd() {
 			for (int i = 0; i < Parameters.Length; i++) {

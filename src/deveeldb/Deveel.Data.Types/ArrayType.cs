@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class ArrayType : DataType, ISizeableType {
+	public sealed class ArrayType : SqlType, ISizeableType {
 		public ArrayType(int length) 
 			: base("ARRAY", SqlTypeCode.Array) {
 			Length = length;

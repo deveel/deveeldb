@@ -4,7 +4,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Spatial {
 	public sealed class SpatialTypeResolver : ITypeResolver {
-		public DataType ResolveType(TypeResolveContext context) {
+		public SqlType ResolveType(TypeResolveContext context) {
 			try {
 				var srid = -1;
 				if (context.HasMeta("SRID")) {

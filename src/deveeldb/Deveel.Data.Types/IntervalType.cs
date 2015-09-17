@@ -20,10 +20,10 @@ using System.IO;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class IntervalType : DataType {
-		public IntervalType(SqlTypeCode sqlType) 
-			: base(GetTypeString(sqlType), sqlType) {
-			AssertIsInterval(sqlType);
+	public sealed class IntervalType : SqlType {
+		public IntervalType(SqlTypeCode typeCode) 
+			: base(GetTypeString(typeCode), typeCode) {
+			AssertIsInterval(typeCode);
 		}
 
 		public override bool IsIndexable {
@@ -49,28 +49,28 @@ namespace Deveel.Data.Types {
 		}
 
 		public override Type GetRuntimeType() {
-			if (SqlType == SqlTypeCode.DayToSecond)
+			if (TypeCode == SqlTypeCode.DayToSecond)
 				return typeof (TimeSpan);
 
 			return base.GetRuntimeType();
 		}
 
 		public override Type GetObjectType() {
-			if (SqlType == SqlTypeCode.YearToMonth)
+			if (TypeCode == SqlTypeCode.YearToMonth)
 				return typeof (SqlYearToMonth);
-			if (SqlType == SqlTypeCode.DayToSecond)
+			if (TypeCode == SqlTypeCode.DayToSecond)
 				return typeof (SqlDayToSecond);
 
 			return base.GetObjectType();
 		}
 
 		/// <inheritdoc/>
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			if (!(type is IntervalType))
 				return false;
 
 			// TODO: better check ...
-			return SqlType.Equals(type.SqlType);
+			return TypeCode.Equals(type.TypeCode);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

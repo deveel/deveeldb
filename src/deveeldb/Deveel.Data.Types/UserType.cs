@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Types {
-	public sealed class UserType : DataType, IDbObject {
+	public sealed class UserType : SqlType, IDbObject {
 		public UserType(UserTypeInfo typeInfo) 
 			: base(typeInfo.TypeName.FullName, SqlTypeCode.Type) {
 			if (typeInfo == null)
@@ -42,12 +42,12 @@ namespace Deveel.Data.Types {
 			get { return DbObjectType.Type; }
 		}
 
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			// For the moment not possible to compare
 			return false;
 		}
 
-		public override bool CanCastTo(DataType destType) {
+		public override bool CanCastTo(SqlType destType) {
 			return false;
 		}
 

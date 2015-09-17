@@ -423,7 +423,7 @@ namespace Deveel.Data.Transactions {
 					// Check: If column is an object, then deserialize and check the
 					//        object is an instance of the class constraint,
 					if (!value.IsNull &&
-						columnInfo.ColumnType.SqlType == SqlTypeCode.Object) {
+						columnInfo.ColumnType.TypeCode == SqlTypeCode.Object) {
 						throw new NotImplementedException();	// TODO:
 					}
 				}
@@ -1035,7 +1035,7 @@ namespace Deveel.Data.Transactions {
 				return table.GetValue(rowIndex, colIndex);
 			}
 
-			public DataType ReturnType(ObjectName variable) {
+			public SqlType ReturnType(ObjectName variable) {
 				int colIndex = FindColumnName(variable);
 				return table.TableInfo[colIndex].ColumnType;
 			}

@@ -160,7 +160,7 @@ namespace Deveel.Data.DbSystem {
 			return new SimpleRowEnumerator(this);
 		}
 
-		public static TemporaryTable SingleColumnTable(IDatabaseContext database, string columnName, DataType columnType) {
+		public static TemporaryTable SingleColumnTable(IDatabaseContext database, string columnName, SqlType columnType) {
 			var tableInfo = new TableInfo(new ObjectName("single"));
 			tableInfo.AddColumn(columnName, columnType);
 			tableInfo = tableInfo.AsReadOnly();

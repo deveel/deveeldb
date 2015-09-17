@@ -515,7 +515,7 @@ namespace Deveel.Data.Sql {
 					return groupResolver.Resolve(variable, rowIndex);
 				}
 
-				public DataType ReturnType(ObjectName variable) {
+				public SqlType ReturnType(ObjectName variable) {
 					var columnOffset = groupResolver.Table.FindColumn(variable);
 					if (columnOffset < 0)
 						throw new InvalidOperationException(String.Format("Cannot find column {0} in table {1}", variable,

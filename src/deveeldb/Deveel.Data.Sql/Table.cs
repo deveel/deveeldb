@@ -160,11 +160,11 @@ namespace Deveel.Data.Sql {
 			return FindColumn(columnName);
 		}
 
-		private DataType GetColumnType(int columnOffset) {
+		private SqlType GetColumnType(int columnOffset) {
 			return TableInfo[columnOffset].ColumnType;
 		}
 
-		private DataType GetColumnType(ObjectName columnName) {
+		private SqlType GetColumnType(ObjectName columnName) {
 			return GetColumnType(FindColumn(columnName));
 		}
 
@@ -199,7 +199,7 @@ namespace Deveel.Data.Sql {
 				return table.GetValue(rowIndex, FindColumnName(columnName));
 			}
 
-			public DataType ReturnType(ObjectName columnName) {
+			public SqlType ReturnType(ObjectName columnName) {
 				return table.GetColumnType(columnName);
 			}
 

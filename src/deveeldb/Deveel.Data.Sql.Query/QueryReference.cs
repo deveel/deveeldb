@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public DataObject Value { get; private set; }
 
-		public DataType ReturnType {
+		public SqlType ReturnType {
 			get { return Value == null ? null : Value.Type; }
 		}
 

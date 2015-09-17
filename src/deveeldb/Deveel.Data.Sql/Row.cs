@@ -445,7 +445,7 @@ namespace Deveel.Data.Sql {
 				return value;
 			}
 
-			public DataType ReturnType(ObjectName columnName) {
+			public SqlType ReturnType(ObjectName columnName) {
 				string colName = columnName.Name;
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);

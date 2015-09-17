@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// <summary>
 		/// Gets a boolean value indicating if the data type found is a primitive.
 		/// </summary>
-		/// <seealso cref="DataType.IsPrimitive"/>
+		/// <seealso cref="SqlType.IsPrimitive"/>
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		public bool IsPrimitive { get; private set; }
 

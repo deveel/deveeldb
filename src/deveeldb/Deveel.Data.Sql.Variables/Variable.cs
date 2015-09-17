@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Variables {
 			get { return VariableInfo.VariableName; }
 		}
 
-		public DataType Type {
+		public SqlType Type {
 			get { return VariableInfo.Type; }
 		}
 

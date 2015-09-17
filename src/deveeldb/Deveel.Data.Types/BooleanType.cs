@@ -21,10 +21,10 @@ using System.IO;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class BooleanType : DataType {
-		public BooleanType(SqlTypeCode sqlType) 
-			: base("BOOLEAN", sqlType) {
-			AssertIsBoolean(sqlType);
+	public sealed class BooleanType : SqlType {
+		public BooleanType(SqlTypeCode typeCode) 
+			: base("BOOLEAN", typeCode) {
+			AssertIsBoolean(typeCode);
 		}
 
 		private static void AssertIsBoolean(SqlTypeCode sqlType) {
@@ -71,18 +71,18 @@ namespace Deveel.Data.Types {
 			return a.CompareTo(b);
 		}
 
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			return type is BooleanType || type is NumericType;
 		}
 
-		public override bool CanCastTo(DataType destType) {
+		public override bool CanCastTo(SqlType destType) {
 			return destType is StringType ||
 			       destType is NumericType ||
 			       destType is BinaryType ||
 				   destType is BooleanType;
 		}
 
-		public override DataObject CastTo(DataObject value, DataType destType) {
+		public override DataObject CastTo(DataObject value, SqlType destType) {
 			var bValue = ((SqlBoolean) value.Value);
 			if (destType is StringType) {
 				var s = Convert.ToString(bValue);

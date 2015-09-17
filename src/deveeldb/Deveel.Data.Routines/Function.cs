@@ -30,13 +30,13 @@ namespace Deveel.Data.Routines {
 	/// </remarks>
 	public abstract class Function : IFunction {
 		/// <summary>
-		/// A special <see cref="DataType"/> that is used to mark an argument
+		/// A special <see cref="SqlType"/> that is used to mark an argument
 		/// of a function as <c>dynamic</c>.
 		/// </summary>
 		/// <remarks>
-		/// This <see cref="DataType"/> matches against any passed object.
+		/// This <see cref="SqlType"/> matches against any passed object.
 		/// </remarks>
-		public static readonly DataType DynamicType = new DynamicDataType();
+		public static readonly SqlType DynamicType = new DynamicSqlType();
 
 		protected Function(FunctionInfo functionInfo) {
 			if (functionInfo == null)
@@ -49,11 +49,11 @@ namespace Deveel.Data.Routines {
 			: this(name, parameters, null, functionType) {
 		}
 
-		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
+		protected Function(ObjectName name, RoutineParameter[] parameters, SqlType returnType) 
 			: this(name, parameters, returnType, FunctionType.Static) {
 		}
 
-		protected Function(ObjectName name, RoutineParameter[] parameters, DataType returnType, FunctionType functionType)
+		protected Function(ObjectName name, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType)
 			: this(new FunctionInfo(name, parameters, returnType, functionType)) {
 		}
 
@@ -98,10 +98,10 @@ namespace Deveel.Data.Routines {
 		/// Gets the function static return type
 		/// </summary>
 		/// <returns>
-		/// Returns an instance of <see cref="DataType"/> that defines
+		/// Returns an instance of <see cref="SqlType"/> that defines
 		/// the type of the returned value.
 		/// </returns>
-		public DataType ReturnType() {
+		public SqlType ReturnType() {
 			if (FunctionInfo.ReturnType != null)
 				return FunctionInfo.ReturnType;
 
@@ -114,22 +114,22 @@ namespace Deveel.Data.Routines {
 		/// <param name="context">The execution context used to resolve
 		/// the function return type.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="DataType"/> that defines
+		/// Returns an instance of <see cref="SqlType"/> that defines
 		/// the type of the returned value resolved against the given
 		/// execution context..
 		/// </returns>
-		public virtual DataType ReturnType(ExecuteContext context) {
+		public virtual SqlType ReturnType(ExecuteContext context) {
 			return FunctionInfo.ReturnType;
 		}
 
 		#region DynamicType
 
-		class DynamicDataType : DataType {
-			public DynamicDataType()
+		class DynamicSqlType : SqlType {
+			public DynamicSqlType()
 				: base("DYNAMIC", SqlTypeCode.Object) {
 			}
 
-			public override bool IsComparable(DataType type) {
+			public override bool IsComparable(SqlType type) {
 				return true;
 			}
 

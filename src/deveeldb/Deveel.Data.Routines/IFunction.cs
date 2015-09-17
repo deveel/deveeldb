@@ -35,9 +35,9 @@ namespace Deveel.Data.Routines {
 		/// <param name="context">The query context used to resolve
 		/// the returned type.</param>
 		/// <returns>
-		/// Returns a <see cref="DataType"/> that is the type of the
+		/// Returns a <see cref="SqlType"/> that is the type of the
 		/// value returned by the function.
 		/// </returns>
-		DataType ReturnType(ExecuteContext context);
+		SqlType ReturnType(ExecuteContext context);
 	}
 }

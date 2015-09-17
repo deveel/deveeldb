@@ -23,7 +23,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public abstract class AggregateFunction : Function {
-		protected AggregateFunction(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
+		protected AggregateFunction(ObjectName name, RoutineParameter[] parameters, SqlType returnType) 
 			: base(name, parameters, returnType, FunctionType.Aggregate) {
 		}
 

@@ -116,7 +116,7 @@ namespace Deveel.Data.DbSystem {
 			throw new NotImplementedException();
 		}
 
-		DataType IVariableResolver.ReturnType(ObjectName variableName) {
+		SqlType IVariableResolver.ReturnType(ObjectName variableName) {
 			throw new NotImplementedException();
 		}
 

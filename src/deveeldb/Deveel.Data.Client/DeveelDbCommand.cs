@@ -86,7 +86,7 @@ namespace Deveel.Data.Client {
  				new DataTypeMeta("Locale", parameter.Locale) 
 			};
 
-			var dataType = DataType.Resolve(parameter.SqlType, meta);
+			var dataType = SqlType.Resolve(parameter.SqlType, meta);
 			var value = dataType.CreateFrom(parameter.Value);
 
 			var queryParameter = new QueryParameter(name, dataType, value);

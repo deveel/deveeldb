@@ -514,7 +514,7 @@ namespace Deveel.Data.DbSystem {
 							case 2:  // column
 								return GetColumnValue(columnOffset, new SqlString(colInfo.ColumnName));
 							case 3:  // sql_type
-								return GetColumnValue(columnOffset, new SqlNumber((int)colInfo.ColumnType.SqlType));
+								return GetColumnValue(columnOffset, new SqlNumber((int)colInfo.ColumnType.TypeCode));
 							case 4:  // type_desc
 								return GetColumnValue(columnOffset, new SqlString(colInfo.ColumnType.ToString()));
 							case 5:  // size

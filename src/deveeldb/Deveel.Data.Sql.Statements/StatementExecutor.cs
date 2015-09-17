@@ -114,8 +114,8 @@ namespace Deveel.Data.Sql.Statements {
 				if (parameter == null)
 					return expression;
 
-				var value = parameter.DataType.CreateFrom(parameter.Value);
-				var obj = new DataObject(parameter.DataType, value);
+				var value = parameter.SqlType.CreateFrom(parameter.Value);
+				var obj = new DataObject(parameter.SqlType, value);
 
 				return SqlExpression.Constant(obj);
 			}

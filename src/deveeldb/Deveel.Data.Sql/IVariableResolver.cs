@@ -35,10 +35,10 @@ namespace Deveel.Data.Sql {
 		DataObject Resolve(ObjectName variable);
 
 		/// <summary>
-		/// Returns the <see cref="DataType"/> of object the given variable is.
+		/// Returns the <see cref="SqlType"/> of object the given variable is.
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		DataType ReturnType(ObjectName variable);
+		SqlType ReturnType(ObjectName variable);
 	}
 }

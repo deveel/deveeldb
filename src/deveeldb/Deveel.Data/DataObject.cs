@@ -27,7 +27,7 @@ using SqlString = Deveel.Data.Sql.Objects.SqlString;
 namespace Deveel.Data {
 	/// <summary>
 	/// Represents a dynamic object that encapsulates a defined
-	/// <see cref="DataType"/> and a compatible constant <see cref="ISqlObject"/> value.
+	/// <see cref="SqlType"/> and a compatible constant <see cref="ISqlObject"/> value.
 	/// </summary>
 	public sealed class DataObject : IComparable, IComparable<DataObject>, IEquatable<DataObject> {
 		/// <summary>
@@ -46,16 +46,16 @@ namespace Deveel.Data {
 		public static readonly DataObject BooleanNull = new DataObject(PrimitiveTypes.Boolean(), SqlBoolean.Null);
 
 		/// <summary>
-		/// Constructs a new database data object with a specific <see cref="DataType"/> 
+		/// Constructs a new database data object with a specific <see cref="SqlType"/> 
 		/// and handling the specified <see cref="ISqlObject"/> value.
 		/// </summary>
-		/// <param name="type">The specific <see cref="DataType"/> that is used by this object
+		/// <param name="type">The specific <see cref="SqlType"/> that is used by this object
 		/// to shape the data and compute operations.</param>
 		/// <param name="value">The innermost value of the object to be handled.</param>
 		/// <exception cref="ArgumentNullException">
 		/// If the specified <paramref name="type"/> is <c>null</c>.
 		/// </exception>
-		public DataObject(DataType type, ISqlObject value) {
+		public DataObject(SqlType type, ISqlObject value) {
 			if (type == null)
 				throw new ArgumentNullException("type");
 
@@ -64,10 +64,10 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="DataType"/> that defines the object properties
+		/// Gets the <see cref="SqlType"/> that defines the object properties
 		/// </summary>
-		/// <seealso cref="DataType"/>
-		public DataType Type { get; private set; }
+		/// <seealso cref="SqlType"/>
+		public SqlType Type { get; private set; }
 
 		/// <summary>
 		/// Gets the underlined <see cref="ISqlObject">value</see> that is handled.
@@ -191,7 +191,7 @@ namespace Deveel.Data {
 		/// if the given object is compatible with the current one.
 		/// </returns>
 		/// <seealso cref="IsComparableTo"/>
-		/// <seealso cref="DataType.IsComparable"/>
+		/// <seealso cref="SqlType.IsComparable"/>
 		public DataObject Is(DataObject other) {
 			if (IsNull && other.IsNull)
 				return BooleanTrue;
@@ -234,7 +234,7 @@ namespace Deveel.Data {
 		/// <c>null</c> if it was impossible to determine the types.
 		/// </returns>
 		/// <seealso cref="IsComparableTo"/>
-		/// <seealso cref="DataType.IsComparable"/>
+		/// <seealso cref="SqlType.IsComparable"/>
 		public DataObject IsEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(Type.IsEqualTo(Value, other.Value));
@@ -256,7 +256,7 @@ namespace Deveel.Data {
 		/// <c>null</c> if it was impossible to determine the types.
 		/// </returns>
 		/// <seealso cref="IsComparableTo"/>
-		/// <seealso cref="DataType.IsComparable"/>
+		/// <seealso cref="SqlType.IsComparable"/>
 		public DataObject IsNotEqualTo(DataObject other) {
 			if (IsComparableTo(other) && !IsNull && !other.IsNull)
 				return Boolean(Type.IsNotEqualTo(Value, other.Value));
@@ -334,7 +334,7 @@ namespace Deveel.Data {
 		/// Negates the current underlying value of the object.
 		/// </summary>
 		/// <remarks>
-		/// The value negation is delegated to the underlying <see cref="DataType"/>
+		/// The value negation is delegated to the underlying <see cref="SqlType"/>
 		/// implementation set to this object: this means not all the objects
 		/// will handle negation, but instead they will return a <seealso cref="SqlNull"/> value.
 		/// </remarks>
@@ -342,7 +342,7 @@ namespace Deveel.Data {
 		/// This returns an instance of <see cref="DataObject"/> whose
 		/// <see cref="Value"/> is the negation of the current handled value.
 		/// </returns>
-		/// <seealso cref="DataType.Negate"/>
+		/// <seealso cref="SqlType.Negate"/>
 		public DataObject Negate() {
 			if (IsNull)
 				return this;
@@ -449,16 +449,16 @@ namespace Deveel.Data {
 		#region Conversion
 
 		/// <summary>
-		/// Converts this object to the given <see cref="DataType"/>.
+		/// Converts this object to the given <see cref="SqlType"/>.
 		/// </summary>
-		/// <param name="destType">The destination <see cref="DataType"/> to cast this
+		/// <param name="destType">The destination <see cref="SqlType"/> to cast this
 		/// object to.</param>
 		/// <returns>
 		/// Returns an instance of <see cref="DataObject"/> that has a <see cref="Type"/>
-		/// equals to the given <see cref="DataType"/> and <see cref="Value"/> as a
+		/// equals to the given <see cref="SqlType"/> and <see cref="Value"/> as a
 		/// <see cref="ISqlObject"/> compatible with the given type.
 		/// </returns>
-		public DataObject CastTo(DataType destType) {
+		public DataObject CastTo(SqlType destType) {
 			if (!Type.CanCastTo(destType))
 				throw new InvalidCastException();
 
@@ -600,7 +600,7 @@ namespace Deveel.Data {
 			return new DataObject(PrimitiveTypes.String(SqlTypeCode.VarChar), s);
 		}
 
-		public static DataObject Null(DataType type) {
+		public static DataObject Null(SqlType type) {
 			return new DataObject(type, SqlNull.Value);
 		}
 

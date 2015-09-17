@@ -141,7 +141,7 @@ namespace Deveel.Data.Sql.Parser {
 			statements.Add(new OpenStatement(node.CursorName, args.ToArray()));
 		}
 
-		private DataType BuildDataType(DataTypeNode node) {
+		private SqlType BuildDataType(DataTypeNode node) {
 			var builder = new DataTypeBuilder();
 			return builder.Build(typeResolver, node);
 		}

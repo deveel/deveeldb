@@ -29,9 +29,9 @@ namespace Deveel.Data.Types {
 	/// Defines the properties of a specific SQL Type and handles the
 	/// <see cref="ISqlObject">values compatible</see>.
 	/// </summary>
-	public abstract class DataType : IComparer<ISqlObject>, IEquatable<DataType> {
+	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType> {
 		/// <summary>
-		/// Constructs the <see cref="DataType"/> for the given specific
+		/// Constructs the <see cref="SqlType"/> for the given specific
 		/// <see cref="SqlTypeCode">SQL TYPE</see>.
 		/// </summary>
 		/// <remarks>
@@ -39,18 +39,18 @@ namespace Deveel.Data.Types {
 		/// of the SQL Type specified.
 		/// </remarks>
 		/// <param name="sqlType">The code of the SQL Type this object will represent.</param>
-		protected DataType(SqlTypeCode sqlType)
+		protected SqlType(SqlTypeCode sqlType)
 			: this(sqlType.ToString().ToUpperInvariant(), sqlType) {
 		}
 
 		/// <summary>
-		/// Constructs the <see cref="DataType"/> for the given specific
+		/// Constructs the <see cref="SqlType"/> for the given specific
 		/// <see cref="SqlTypeCode">SQL TYPE</see> and a given name.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="sqlType"></param>
-		protected DataType(string name, SqlTypeCode sqlType) {
-			SqlType = sqlType;
+		/// <param name="typeCode"></param>
+		protected SqlType(string name, SqlTypeCode typeCode) {
+			TypeCode = typeCode;
 			Name = name;
 		}
 
@@ -72,7 +72,7 @@ namespace Deveel.Data.Types {
 		/// Gets the kind of SQL type this data-type handles.
 		/// </summary>
 		/// <remarks>
-		/// The same instance of a <see cref="DataType"/> can handle multiple
+		/// The same instance of a <see cref="SqlType"/> can handle multiple
 		/// kind of <see cref="SqlTypeCode">SQL types</see>, making such instances,
 		/// of the same kind, to be different in attributes.
 		/// <para>
@@ -82,7 +82,7 @@ namespace Deveel.Data.Types {
 		/// </para>
 		/// </remarks>
 		/// <see cref="IsComparable"/>
-		public SqlTypeCode SqlType { get; private set; }
+		public SqlTypeCode TypeCode { get; private set; }
 
 		/// <summary>
 		/// Indicates if the values handled by the type can be part of an index.
@@ -99,11 +99,11 @@ namespace Deveel.Data.Types {
 		/// Gets a value indicating if this data-type is primitive.
 		/// </summary>
 		public bool IsPrimitive {
-			get { return IsPrimitiveType(SqlType); }
+			get { return IsPrimitiveType(TypeCode); }
 		}
 
 		public bool IsNull {
-			get { return SqlType == SqlTypeCode.Null; }
+			get { return TypeCode == SqlTypeCode.Null; }
 		}
 
 		public virtual bool IsStorable {
@@ -111,16 +111,16 @@ namespace Deveel.Data.Types {
 		}
 
 		/// <summary>
-		/// Verifies if a given <see cref="DataType"/> is comparable to
+		/// Verifies if a given <see cref="SqlType"/> is comparable to
 		/// this data-type.
 		/// </summary>
 		/// <param name="type">The other data-type to verify the compatibility.</param>
 		/// <remarks>
-		/// It is not required two <see cref="DataType"/> to be identical to be compared:
+		/// It is not required two <see cref="SqlType"/> to be identical to be compared:
 		/// when overridden by a derived class, this methods verifies the properties of the
 		/// argument type, to see if values handled by the types can be compared.
 		/// <para>
-		/// By default, this method compares the values returned by <see cref="SqlType"/>
+		/// By default, this method compares the values returned by <see cref="TypeCode"/>
 		/// to see if they are identical.
 		/// </para>
 		/// </remarks>
@@ -128,12 +128,12 @@ namespace Deveel.Data.Types {
 		/// Returns <c>true</c> if the values handled by this data-type can be compared to ones handled 
 		/// by the given <paramref name="type"/>, or <c>false</c> otherwise.
 		/// </returns>
-		public virtual bool IsComparable(DataType type) {
-			return SqlType == type.SqlType;
+		public virtual bool IsComparable(SqlType type) {
+			return TypeCode == type.TypeCode;
 		}
 
 		/// <summary>
-		/// Verifies if this type can cast any value to the given <see cref="DataType"/>.
+		/// Verifies if this type can cast any value to the given <see cref="SqlType"/>.
 		/// </summary>
 		/// <param name="destType">The other type, destination of the cast, to verify.</param>
 		/// <remarks>
@@ -144,13 +144,13 @@ namespace Deveel.Data.Types {
 		/// <returns>
 		/// </returns>
 		/// <see cref="CastTo"/>
-		public virtual bool CanCastTo(DataType destType) {
+		public virtual bool CanCastTo(SqlType destType) {
 			return false;
 		}
 
 		/// <summary>
 		/// Converts the given <see cref="DataObject">object value</see> to a
-		/// <see cref="DataType"/> specified.
+		/// <see cref="SqlType"/> specified.
 		/// </summary>
 		/// <param name="value">The value to convert.</param>
 		/// <param name="destType">The destination type of the conversion.</param>
@@ -171,7 +171,7 @@ namespace Deveel.Data.Types {
 		/// Returns an instance of <see cref="DataObject"/> that is the result
 		/// of the conversion from this data-type to the other type given.
 		/// </returns>
-		public virtual DataObject CastTo(DataObject value, DataType destType) {
+		public virtual DataObject CastTo(DataObject value, SqlType destType) {
 			if (Equals(destType))
 				return value;
 
@@ -288,13 +288,13 @@ namespace Deveel.Data.Types {
 		/// Returns this type if it handles a wider range of values or <paramref name="otherType">other 
 		/// type</paramref> given otherwise.
 		/// </returns>
-		public virtual DataType Wider(DataType otherType) {
+		public virtual SqlType Wider(SqlType otherType) {
 			return this;
 		}
 
 		/// <summary>
 		/// Parses a SQL formatted string that defines a data-type into
-		/// a constructed <see cref="DataType"/> object equivalent.
+		/// a constructed <see cref="SqlType"/> object equivalent.
 		/// </summary>
 		/// <param name="s">The SQL formatted data-type string, defining the properties of the type.</param>
 		/// <remarks>
@@ -304,13 +304,13 @@ namespace Deveel.Data.Types {
 		/// </returns>
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
-		public static DataType Parse(string s) {
+		public static SqlType Parse(string s) {
 			return Parse(null, s);
 		}
 
 		/// <summary>
 		/// Parses a SQL formatted string that defines a data-type into
-		/// a constructed <see cref="DataType"/> object equivalent.
+		/// a constructed <see cref="SqlType"/> object equivalent.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="s">The SQL formatted data-type string, defining the properties of the type.</param>
@@ -321,7 +321,7 @@ namespace Deveel.Data.Types {
 		/// </returns>
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
-		public static DataType Parse(IQueryContext context, string s) {
+		public static SqlType Parse(IQueryContext context, string s) {
 			var sqlCompiler = SqlParsers.DataType;
 
 			try {
@@ -358,7 +358,7 @@ namespace Deveel.Data.Types {
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {
-			var dataType = obj as DataType;
+			var dataType = obj as SqlType;
 			if (dataType == null)
 				return false;
 
@@ -367,15 +367,15 @@ namespace Deveel.Data.Types {
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return SqlType.GetHashCode();
+			return TypeCode.GetHashCode();
 		}
 
 		/// <inheritdoc/>
-		public virtual bool Equals(DataType other) {
+		public virtual bool Equals(SqlType other) {
 			if (other == null)
 				return false;
 
-			return SqlType == other.SqlType;
+			return TypeCode == other.TypeCode;
 		}
 
 		/// <inheritdoc/>
@@ -414,7 +414,7 @@ namespace Deveel.Data.Types {
 		}
 
 		public virtual ISqlObject CreateFromLargeObject(ILargeObject objRef) {
-			throw new NotSupportedException(String.Format("SQL Type {0} cannot be created from a large object.", SqlType));
+			throw new NotSupportedException(String.Format("SQL Type {0} cannot be created from a large object.", TypeCode));
 		}
 
 		public static bool IsPrimitiveType(SqlTypeCode typeCode) {
@@ -425,40 +425,40 @@ namespace Deveel.Data.Types {
 			throw new NotSupportedException(String.Format("The type {0} does not support runtime object conversion.", ToString()));
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode) {
+		public static SqlType Resolve(SqlTypeCode typeCode) {
 			return Resolve(typeCode, new DataTypeMeta[0]);
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta) {
+		public static SqlType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta) {
 			return Resolve(typeCode, meta, null);
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta, ITypeResolver resolver) {
+		public static SqlType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta, ITypeResolver resolver) {
 			return Resolve(typeCode, typeCode.ToString().ToUpperInvariant(), meta, resolver);
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode, string name) {
+		public static SqlType Resolve(SqlTypeCode typeCode, string name) {
 			return Resolve(typeCode, name, new DataTypeMeta[0]);
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta) {
+		public static SqlType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta) {
 			return Resolve(typeCode, name, meta, null);
 		}
 
-		public static DataType Resolve(string name) {
+		public static SqlType Resolve(string name) {
 			return Resolve(name, new DataTypeMeta[0]);
 		}
 
-		public static DataType Resolve(string name, DataTypeMeta[] meta) {
+		public static SqlType Resolve(string name, DataTypeMeta[] meta) {
 			return Resolve(name, meta, null);
 		}
 
-		public static DataType Resolve(string name, DataTypeMeta[] meta, ITypeResolver resolver) {
+		public static SqlType Resolve(string name, DataTypeMeta[] meta, ITypeResolver resolver) {
 			var typeCode = ResolveTypeCode(name);
 			return Resolve(typeCode, name, meta, resolver);
 		}
 
-		public static DataType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta, ITypeResolver resolver) {
+		public static SqlType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta, ITypeResolver resolver) {
 			return TypeResolver.Resolve(typeCode, name, meta, resolver);
 		}
 

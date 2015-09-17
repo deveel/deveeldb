@@ -28,11 +28,11 @@ namespace Deveel.Data.Routines {
 			: base(name, parameters, functionType) {
 		}
 
-		public UserFunction(ObjectName name, RoutineParameter[] parameters, DataType returnType) 
+		public UserFunction(ObjectName name, RoutineParameter[] parameters, SqlType returnType) 
 			: base(name, parameters, returnType) {
 		}
 
-		public UserFunction(ObjectName name, RoutineParameter[] parameters, DataType returnType, FunctionType functionType) 
+		public UserFunction(ObjectName name, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType) 
 			: base(name, parameters, returnType, functionType) {
 		}
 

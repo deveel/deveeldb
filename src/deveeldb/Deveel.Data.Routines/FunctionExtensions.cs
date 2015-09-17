@@ -45,7 +45,7 @@ namespace Deveel.Data.Routines {
 			return result.ReturnValue;
 		}
 
-		public static DataType ReturnType(this IFunction function, Invoke request, IQueryContext context, IVariableResolver resolver) {
+		public static SqlType ReturnType(this IFunction function, Invoke request, IQueryContext context, IVariableResolver resolver) {
 			var execContext = new ExecuteContext(request, function, resolver, null, context);
 			return function.ReturnType(execContext);
 		}

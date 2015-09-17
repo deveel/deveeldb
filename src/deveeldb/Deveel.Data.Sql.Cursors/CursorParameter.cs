@@ -21,7 +21,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorParameter {
-		public CursorParameter(string parameterName, DataType parameterType) {
+		public CursorParameter(string parameterName, SqlType parameterType) {
 			if (String.IsNullOrEmpty(parameterName))
 				throw new ArgumentNullException("parameterName");
 			if (parameterType == null)
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public string ParameterName { get; private set; }
 
-		public DataType ParameterType { get; private set; }
+		public SqlType ParameterType { get; private set; }
 
 		public int Offset { get; set; }
 

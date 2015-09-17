@@ -16,7 +16,7 @@ namespace Deveel.Data {
 			var sObj = DataObject.VarChar(s);
 			Assert.IsNotNull(sObj);
 			Assert.IsInstanceOf<DataObject>(sObj);
-			Assert.AreEqual(SqlTypeCode.VarChar, sObj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, sObj.Type.TypeCode);
 			Assert.IsInstanceOf<SqlString>(sObj.Value);
 			Assert.AreEqual(s, sObj.Value);
 		}
@@ -59,13 +59,13 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<StringType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.TypeCode);
 
 			DataObject result = null;
 			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Integer)));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<NumericType>(result.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, result.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, result.Type.TypeCode);
 			Assert.AreEqual(78998, result);
 		}
 
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<StringType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.TypeCode);
 
 			DataObject result = null;
 			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Integer)));
@@ -94,7 +94,7 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<StringType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.VarChar, obj.Type.TypeCode);
 
 			DataObject result = null;
 			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Boolean()));

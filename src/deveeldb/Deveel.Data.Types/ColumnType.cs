@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Types {
-	public sealed class ColumnType : DataType {
+	public sealed class ColumnType : SqlType {
 		public ColumnType(ObjectName columnName)
 			: base(String.Format("{0}%TYPE", columnName), SqlTypeCode.ColumnType) {
 			if (columnName == null)

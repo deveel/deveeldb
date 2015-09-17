@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 			var columns = createTable.Columns;
 
 			Assert.AreEqual("id", columns[0].ColumnName);
-			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.TypeCode);
 
 			Assert.AreEqual("name", columns[1].ColumnName);
 			Assert.IsInstanceOf<StringType>(columns[1].ColumnType);
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Statements {
 			var columns = createTable.Columns;
 
 			Assert.AreEqual("id", columns[0].ColumnName);
-			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.TypeCode);
 
 			Assert.AreEqual("name", columns[1].ColumnName);
 			Assert.IsInstanceOf<StringType>(columns[1].ColumnType);
@@ -145,7 +145,7 @@ namespace Deveel.Data.Sql.Statements {
 			var columns = createTable.Columns;
 
 			Assert.AreEqual("id", columns[0].ColumnName);
-			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.TypeCode);
 			Assert.IsNotNull(columns[0].DefaultExpression);
 			Assert.IsInstanceOf<SqlFunctionCallExpression>(columns[0].DefaultExpression);
 

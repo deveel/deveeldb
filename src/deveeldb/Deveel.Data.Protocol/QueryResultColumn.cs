@@ -28,7 +28,7 @@ namespace Deveel.Data.Protocol {
 		/// <param name="name"></param>
 		/// <param name="type"></param>
 		/// <param name="notNull"></param>
-		private QueryResultColumn(string name, DataType type, bool notNull) {
+		private QueryResultColumn(string name, SqlType type, bool notNull) {
 			Name = name;
 			Type = type;
 			IsNotNull = notNull;
@@ -62,7 +62,7 @@ namespace Deveel.Data.Protocol {
 		/// </remarks>
 		public string Name { get; private set; }
 
-		public DataType Type { get; private set; }
+		public SqlType Type { get; private set; }
 
 		/// <summary>
 		/// Returns true if this column is a numeric type.

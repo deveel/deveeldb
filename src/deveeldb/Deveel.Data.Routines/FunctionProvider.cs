@@ -58,7 +58,7 @@ namespace Deveel.Data.Routines {
 			return name;
 		}
 
-		protected void Register(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> body, Func<ExecuteContext, DataType> returnType) {
+		protected void Register(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> body, Func<ExecuteContext, SqlType> returnType) {
 			Register(new DelegateFunction(functionInfo, body, returnType));
 		}
 
@@ -108,9 +108,9 @@ namespace Deveel.Data.Routines {
 
 		class DelegateFunction : Function {
 			private readonly Func<ExecuteContext, ExecuteResult> functionBody;
-			private readonly Func<ExecuteContext, DataType> returnType; 
+			private readonly Func<ExecuteContext, SqlType> returnType; 
  
-			public DelegateFunction(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> functionBody, Func<ExecuteContext, DataType> returnType)
+			public DelegateFunction(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> functionBody, Func<ExecuteContext, SqlType> returnType)
 				: base(functionInfo) {
 				this.functionBody = functionBody;
 				this.returnType = returnType;
@@ -120,7 +120,7 @@ namespace Deveel.Data.Routines {
 				return functionBody(context);
 			}
 
-			public override DataType ReturnType(ExecuteContext context) {
+			public override SqlType ReturnType(ExecuteContext context) {
 				if (returnType == null)
 					return FunctionInfo.ReturnType;
 
@@ -145,7 +145,7 @@ namespace Deveel.Data.Routines {
 
 			public FunctionType FunctionType { get; private set; }
 
-			public Func<ExecuteContext, DataType> ReturnTypeFunc { get; private set; }
+			public Func<ExecuteContext, SqlType> ReturnTypeFunc { get; private set; }
 
 			public Func<ExecuteContext, ExecuteResult> ExecuteFunc { get; private set; }
 
@@ -228,7 +228,7 @@ namespace Deveel.Data.Routines {
 				return this;
 			}
 
-			public IFunctionConfiguration ReturnsType(Func<ExecuteContext, DataType> returns) {
+			public IFunctionConfiguration ReturnsType(Func<ExecuteContext, SqlType> returns) {
 				ReturnTypeFunc = returns;
 				return this;
 			}
@@ -251,14 +251,14 @@ namespace Deveel.Data.Routines {
 			private readonly FunctionConfiguration configuration;
 
 			private string parameterName;
-			private DataType dataType;
+			private SqlType sqlType;
 			private ParameterAttributes attributes;
 
 			public FunctionParameterConfiguration(FunctionConfiguration configuration) {
 				this.configuration = configuration;
 
 				attributes = new ParameterAttributes();
-				dataType = PrimitiveTypes.Numeric();
+				sqlType = PrimitiveTypes.Numeric();
 			}
 
 			public IFunctionParameterConfiguration Named(string name) {
@@ -273,11 +273,11 @@ namespace Deveel.Data.Routines {
 				return this;
 			}
 
-			public IFunctionParameterConfiguration OfType(DataType type) {
+			public IFunctionParameterConfiguration OfType(SqlType type) {
 				if (type == null)
 					throw new ArgumentNullException("type");
 
-				dataType = type;
+				sqlType = type;
 
 				return this;
 			}
@@ -293,7 +293,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			public RoutineParameter AsParameter() {
-				return new RoutineParameter(parameterName, dataType, attributes);
+				return new RoutineParameter(parameterName, sqlType, attributes);
 			}
 		}
 

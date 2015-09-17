@@ -18,6 +18,6 @@ using System;
 
 namespace Deveel.Data.Types {
 	public interface ITypeResolver {
-		DataType ResolveType(TypeResolveContext context);
+		SqlType ResolveType(TypeResolveContext context);
 	}
 }

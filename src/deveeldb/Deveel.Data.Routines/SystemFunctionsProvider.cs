@@ -181,15 +181,15 @@ namespace Deveel.Data.Routines {
 				var value = context.EvaluatedArguments[0];
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
-				var type = DataType.Parse(context.QueryContext, typeString);
+				var type = SqlType.Parse(context.QueryContext, typeString);
 
 				return context.Result(SystemFunctions.Cast(value, type));
 			}
 
-			public static DataType ReturnType(ExecuteContext context) {
+			public static SqlType ReturnType(ExecuteContext context) {
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
-				return DataType.Parse(context.QueryContext, typeString);
+				return SqlType.Parse(context.QueryContext, typeString);
 			}
 		}
 

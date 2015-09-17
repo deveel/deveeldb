@@ -154,7 +154,7 @@ namespace Deveel.Data.Client {
 				row["Table"] = tableName;
 				row["Name"] = columnName;
 				row["FullName"] = fullColumnName;
-				row["SqlType"] = (int) column.Type.SqlType;
+				row["SqlType"] = (int) column.Type.TypeCode;
 				row["DbType"] =  column.Type.Name;
 				row["Size"] = column.Size;
 				row["Scale"] = column.Scale;

@@ -128,7 +128,7 @@ namespace Deveel.Data.Sql.Expressions {
 			builder.Append("CAST ");
 			Visit(castExpression.Value);
 			builder.Append(" AS ");
-			builder.Append(castExpression.DataType);
+			builder.Append(castExpression.SqlType);
 
 			return base.VisitCast(castExpression);
 		}

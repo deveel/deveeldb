@@ -1545,7 +1545,7 @@ namespace Deveel.Data.DbSystem {
 				this.database = database;
 			}
 
-			public DataType ResolveType(TypeResolveContext resolveContext) {
+			public SqlType ResolveType(TypeResolveContext resolveContext) {
 				using (var session = database.CreateSystemSession()) {
 					using (var context = new SessionQueryContext(session)) {
 						return context.ResolveType(resolveContext.TypeName, resolveContext.GetMeta());

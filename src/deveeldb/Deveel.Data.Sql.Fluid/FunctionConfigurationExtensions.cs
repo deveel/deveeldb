@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Fluid {
 		}
 
 		public static IFunctionConfiguration WithParameter(this IFunctionConfiguration configuration, string name,
-			DataType type) {
+			SqlType type) {
 			return configuration.WithParameter(config => config.Named(name).OfType(type));
 		}
 
@@ -68,11 +68,11 @@ namespace Deveel.Data.Sql.Fluid {
 		}
 
 		public static IFunctionConfiguration WithUnoundedParameter(this IFunctionConfiguration configuration, string name,
-			DataType type) {
+			SqlType type) {
 			return configuration.WithParameter(config => config.Named(name).OfType(type).Unbounded());
 		}
 
-		public static IFunctionConfiguration ReturnsType(this IFunctionConfiguration configuration, DataType type) {
+		public static IFunctionConfiguration ReturnsType(this IFunctionConfiguration configuration, SqlType type) {
 			return configuration.ReturnsType(context => type);
 		}
 

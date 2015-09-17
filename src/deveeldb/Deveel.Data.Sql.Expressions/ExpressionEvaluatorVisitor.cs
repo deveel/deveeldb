@@ -132,7 +132,7 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new ExpressionEvaluateException(String.Format("Cannot CAST an expression of type {0}.", valueExp.ExpressionType));
 
 			var value = ((SqlConstantExpression) valueExp).Value;
-			var casted = value.CastTo(castExpression.DataType);
+			var casted = value.CastTo(castExpression.SqlType);
 			return SqlExpression.Constant(casted);
 		}
 

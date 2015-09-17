@@ -250,7 +250,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlConstantExpression(value);
 		}
 
-		public static SqlCastExpression Cast(SqlExpression value, DataType destType) {
+		public static SqlCastExpression Cast(SqlExpression value, SqlType destType) {
 			return new SqlCastExpression(value, destType);
 		}
 

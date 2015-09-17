@@ -20,7 +20,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	public sealed class VariableInfo : IObjectInfo {
-		public VariableInfo(string variableName, DataType type, bool isConstant) {
+		public VariableInfo(string variableName, SqlType type, bool isConstant) {
 			if (String.IsNullOrEmpty(variableName))
 				throw new ArgumentNullException("variableName");
 			if (type == null)
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql {
 
 		public string VariableName { get; private set; }
 
-		public DataType Type { get; private set; }
+		public SqlType Type { get; private set; }
 
 		public bool IsConstant { get; private set; }
 

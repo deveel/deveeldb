@@ -48,7 +48,7 @@ namespace Deveel.Data.Routines {
 			}
 		}
 
-		private DataObject ConvertValue(object value, DataType sqlType) {
+		private DataObject ConvertValue(object value, SqlType sqlType) {
 			throw new NotImplementedException();
 		}
 
@@ -69,7 +69,7 @@ namespace Deveel.Data.Routines {
 			return values;
 		}
 
-		public override DataType ReturnType(ExecuteContext context) {
+		public override SqlType ReturnType(ExecuteContext context) {
 			if (method == null)
 				method = DiscoverMethod();
 

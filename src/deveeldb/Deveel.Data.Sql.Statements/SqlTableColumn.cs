@@ -22,7 +22,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class SqlTableColumn : IPreparable {
-		public SqlTableColumn(string columnName, DataType columnType) {
+		public SqlTableColumn(string columnName, SqlType columnType) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
 			if (columnType == null)
@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ColumnName { get; private set; }
 
-		public DataType ColumnType { get; private set; }
+		public SqlType ColumnType { get; private set; }
 
 		public bool IsIdentity { get; set; }
 

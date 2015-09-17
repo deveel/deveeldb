@@ -30,10 +30,10 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		/// <param name="value">The expression whose value resulted from its
 		/// evaluation will be casted to the given type.</param>
-		/// <param name="dataType">The destination type this expression
+		/// <param name="sqlType">The destination type this expression
 		/// will convert to.</param>
-		public SqlCastExpression(SqlExpression value, DataType dataType) {
-			DataType = dataType;
+		public SqlCastExpression(SqlExpression value, SqlType sqlType) {
+			SqlType = sqlType;
 			Value = value;
 		}
 
@@ -45,9 +45,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the destination type of the conversion
 		/// </summary>
-		/// <seealso cref="Types.DataType.CastTo"/>
-		/// <seealso cref="Types.DataType.CanCastTo"/>
-		public DataType DataType { get; private set; }
+		/// <seealso cref="SqlType.CastTo"/>
+		/// <seealso cref="SqlType.CanCastTo"/>
+		public SqlType SqlType { get; private set; }
 
 		/// <inheritdoc/>
 		public override SqlExpressionType ExpressionType {

@@ -45,7 +45,7 @@ namespace Deveel.Data.Diagnostics {
 			if (parameters == null)
 				return String.Empty;
 
-			var texts = parameters.Select(x => String.Format("{0} ({1}) => {2}", x.Name, x.DataType, x.Value)).ToArray();
+			var texts = parameters.Select(x => String.Format("{0} ({1}) => {2}", x.Name, x.SqlType, x.Value)).ToArray();
 			return String.Join(", ", texts);
 		}
 	}

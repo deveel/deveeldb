@@ -21,19 +21,19 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
 	public sealed class RoutineParameter {
-		public RoutineParameter(string name, DataType type, ParameterAttributes attributes) 
+		public RoutineParameter(string name, SqlType type, ParameterAttributes attributes) 
 			: this(name, type, ParameterDirection.Input, attributes) {
 		}
 
-		public RoutineParameter(string name, DataType type) 
+		public RoutineParameter(string name, SqlType type) 
 			: this(name, type, ParameterDirection.Input) {
 		}
 
-		public RoutineParameter(string name, DataType type, ParameterDirection direction) 
+		public RoutineParameter(string name, SqlType type, ParameterDirection direction) 
 			: this(name, type, direction, ParameterAttributes.None) {
 		}
 
-		public RoutineParameter(string name, DataType type, ParameterDirection direction, ParameterAttributes attributes) {
+		public RoutineParameter(string name, SqlType type, ParameterDirection direction, ParameterAttributes attributes) {
 			Attributes = attributes;
 			Direction = direction;
 			Type = type;
@@ -44,7 +44,7 @@ namespace Deveel.Data.Routines {
 
 		public ParameterDirection Direction { get; private set; }
 
-		public DataType Type { get; private set; }
+		public SqlType Type { get; private set; }
 
 		public ParameterAttributes Attributes { get; private set; }
 

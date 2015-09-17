@@ -24,17 +24,17 @@ using Deveel.Data.Store;
 using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
-	public sealed class StringType : DataType, ISizeableType {
+	public sealed class StringType : SqlType, ISizeableType {
 		private CompareInfo collator;
 
 		public const int DefaultMaxSize = Int16.MaxValue;
 
-		public StringType(SqlTypeCode sqlType, int maxSize, Encoding encoding, CultureInfo locale) 
-			: base("STRING", sqlType) {
+		public StringType(SqlTypeCode typeCode, int maxSize, Encoding encoding, CultureInfo locale) 
+			: base("STRING", typeCode) {
 			if (encoding == null)
 				throw new ArgumentNullException("encoding");
 
-			AssertIsString(sqlType);
+			AssertIsString(typeCode);
 			MaxSize = maxSize;
 			Locale = locale;
 			Encoding = encoding;
@@ -98,33 +98,33 @@ namespace Deveel.Data.Types {
 		}
 
 		public override Type GetObjectType() {
-			if (SqlType == SqlTypeCode.Char ||
-			    SqlType == SqlTypeCode.VarChar ||
-			    SqlType == SqlTypeCode.String)
+			if (TypeCode == SqlTypeCode.Char ||
+			    TypeCode == SqlTypeCode.VarChar ||
+			    TypeCode == SqlTypeCode.String)
 				return typeof (SqlString);
 
-			if (SqlType == SqlTypeCode.LongVarChar ||
-			    SqlType == SqlTypeCode.Clob)
+			if (TypeCode == SqlTypeCode.LongVarChar ||
+			    TypeCode == SqlTypeCode.Clob)
 				return typeof (SqlLongString);
 
 			return base.GetObjectType();
 		}
 
 		public override Type GetRuntimeType() {
-			if (SqlType == SqlTypeCode.Char ||
-			    SqlType == SqlTypeCode.VarChar ||
-			    SqlType == SqlTypeCode.String)
+			if (TypeCode == SqlTypeCode.Char ||
+			    TypeCode == SqlTypeCode.VarChar ||
+			    TypeCode == SqlTypeCode.String)
 				return typeof (string);
 
-			if (SqlType == SqlTypeCode.LongVarChar ||
-			    SqlType == SqlTypeCode.Clob)
+			if (TypeCode == SqlTypeCode.LongVarChar ||
+			    TypeCode == SqlTypeCode.Clob)
 				return typeof (Stream);
 
 			return base.GetRuntimeType();
 		}
 
 		/// <inheritdoc/>
-		public override bool Equals(DataType other) {
+		public override bool Equals(SqlType other) {
 			if (!base.Equals(other))
 				return false;
 
@@ -147,11 +147,11 @@ namespace Deveel.Data.Types {
 
 		/// <inheritdoc/>
 		public override int GetHashCode() {
-			return SqlType.GetHashCode() ^ MaxSize.GetHashCode();
+			return TypeCode.GetHashCode() ^ MaxSize.GetHashCode();
 		}
 
 		/// <inheritdoc/>
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			// Are we comparing with another string type?
 			if (type is StringType) {
 				var stringType = (StringType) type;
@@ -273,7 +273,7 @@ namespace Deveel.Data.Types {
 		private string DateErrorMessage(string str, SqlTypeCode sqlType, string[] formats) {
 			return String.Format("The input string {0} of type {1} is not compatible with any of the formats for SQL Type {2} ( {3} )",
 				str,
-				SqlType.ToString().ToUpperInvariant(),
+				TypeCode.ToString().ToUpperInvariant(),
 				sqlType.ToString().ToUpperInvariant(),
 				String.Join(", ", formats));
 		}
@@ -288,21 +288,21 @@ namespace Deveel.Data.Types {
 			if (String.Equals(s, "2"))
 				return SqlBoolean.False;
 
-			throw new InvalidCastException(String.Format("Could not convert string '{0}' of type '{1}' to BOOLEAN", s, SqlType.ToString().ToUpperInvariant()));
+			throw new InvalidCastException(String.Format("Could not convert string '{0}' of type '{1}' to BOOLEAN", s, TypeCode.ToString().ToUpperInvariant()));
 		}
 
 		/// <inheritdoc/>
-		public override bool CanCastTo(DataType destType) {
-			return destType.SqlType != SqlTypeCode.Array &&
-			       destType.SqlType != SqlTypeCode.ColumnType &&
-			       destType.SqlType != SqlTypeCode.RowType &&
-			       destType.SqlType != SqlTypeCode.Object;
+		public override bool CanCastTo(SqlType destType) {
+			return destType.TypeCode != SqlTypeCode.Array &&
+			       destType.TypeCode != SqlTypeCode.ColumnType &&
+			       destType.TypeCode != SqlTypeCode.RowType &&
+			       destType.TypeCode != SqlTypeCode.Object;
 		}
 
 		/// <inheritdoc/>
-		public override DataObject CastTo(DataObject value, DataType destType) {
+		public override DataObject CastTo(DataObject value, SqlType destType) {
 			string str = value.Value.ToString();
-			var sqlType = destType.SqlType;
+			var sqlType = destType.TypeCode;
 			ISqlObject castedValue;
 
 			switch (sqlType) {
@@ -458,8 +458,8 @@ namespace Deveel.Data.Types {
 			var writer = new BinaryWriter(stream);
 
 			if (obj.IsNull) {
-				if (SqlType == SqlTypeCode.Clob ||
-				    SqlType == SqlTypeCode.LongVarChar) {
+				if (TypeCode == SqlTypeCode.Clob ||
+				    TypeCode == SqlTypeCode.LongVarChar) {
 					writer.Write((byte)3);
 				} else {
 					writer.Write((byte)1);

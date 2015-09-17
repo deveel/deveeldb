@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
 			var value = constant.Value;
-			if (value.Type.SqlType == SqlTypeCode.Array) {
+			if (value.Type.TypeCode == SqlTypeCode.Array) {
 				var array = value.Value as SqlArray;
 				if (array != null && !array.IsNull) {
 					foreach (var exp in array) {

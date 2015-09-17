@@ -3,7 +3,7 @@
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Spatial {
-	public sealed class SpatialType : DataType {
+	public sealed class SpatialType : SqlType {
 		public SpatialType() 
 			: this(-1) {
 		}
@@ -15,7 +15,7 @@ namespace Deveel.Data.Spatial {
 
 		public int Srid { get; private set; }
 
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			var otherType = type as SpatialType;
 			if (otherType == null)
 				return false;

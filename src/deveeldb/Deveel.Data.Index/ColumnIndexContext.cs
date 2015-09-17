@@ -34,7 +34,7 @@ namespace Deveel.Data.Index {
 			get { return Table.TableInfo[ColumnOffset].ColumnName; }
 		}
 
-		public DataType ColumnType {
+		public SqlType ColumnType {
 			get { return Table.TableInfo[ColumnOffset].ColumnType; }
 		}
 

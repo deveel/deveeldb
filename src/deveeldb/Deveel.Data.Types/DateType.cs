@@ -20,10 +20,10 @@ using System.IO;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class DateType : DataType {
-		public DateType(SqlTypeCode sqlType) 
-			: base("DATE", sqlType) {
-			AssertDateType(sqlType);
+	public sealed class DateType : SqlType {
+		public DateType(SqlTypeCode typeCode) 
+			: base("DATE", typeCode) {
+			AssertDateType(typeCode);
 		}
 
 		public static readonly string[] DateFormatSql = {
@@ -85,18 +85,18 @@ namespace Deveel.Data.Types {
 		}
 
 		public override bool Equals(object obj) {
-			var other = obj as DataType;
+			var other = obj as SqlType;
 			if (other == null)
 				return false;
 
-			return SqlType == other.SqlType;
+			return TypeCode == other.TypeCode;
 		}
 
 		public override int GetHashCode() {
-			return SqlType.GetHashCode();
+			return TypeCode.GetHashCode();
 		}
 
-		public override bool CanCastTo(DataType destType) {
+		public override bool CanCastTo(SqlType destType) {
 			return destType is StringType || destType is DateType;
 		}
 
@@ -104,22 +104,22 @@ namespace Deveel.Data.Types {
 			if (dateTime.IsNull)
 				return SqlString.Null;
 
-			if (SqlType == SqlTypeCode.Date)
+			if (TypeCode == SqlTypeCode.Date)
 				return dateTime.ToDateString();
-			if (SqlType == SqlTypeCode.Time)
+			if (TypeCode == SqlTypeCode.Time)
 				return dateTime.ToTimeString();
-			if (SqlType == SqlTypeCode.TimeStamp)
+			if (TypeCode == SqlTypeCode.TimeStamp)
 				return dateTime.ToTimeStampString();
 
 			return SqlString.Null;
 		}
 
-		public override DataObject CastTo(DataObject value, DataType destType) {
+		public override DataObject CastTo(DataObject value, SqlType destType) {
 			if (destType == null)
 				throw new ArgumentNullException("destType");
 
 			var date = (SqlDateTime) value.Value;
-			var sqlType = destType.SqlType;
+			var sqlType = destType.TypeCode;
 
 			ISqlObject casted;
 
@@ -130,7 +130,7 @@ namespace Deveel.Data.Types {
 					break;
 				default:
 					throw new InvalidCastException(String.Format("Cannot cast type '{0}' to '{1}'.",
-						sqlType.ToString().ToUpperInvariant(), SqlType.ToString().ToUpperInvariant()));
+						sqlType.ToString().ToUpperInvariant(), TypeCode.ToString().ToUpperInvariant()));
 			}
 
 			return new DataObject(destType, casted);

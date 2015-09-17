@@ -426,7 +426,7 @@ namespace Deveel.Data.Transactions {
 			transaction.SetVariable(name, DataObject.String(value));
 		}
 
-		public static Variable DefineVariable(this ITransaction transaction, string name, DataType type) {
+		public static Variable DefineVariable(this ITransaction transaction, string name, SqlType type) {
 			var variableInfo = new VariableInfo(name, type, false);
 			transaction.CreateObject(variableInfo);
 			return transaction.GetVariable(name);

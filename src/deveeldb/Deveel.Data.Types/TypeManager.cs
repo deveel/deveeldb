@@ -67,7 +67,7 @@ namespace Deveel.Data.Types {
 			throw new NotImplementedException();
 		}
 
-		DataType ITypeResolver.ResolveType(TypeResolveContext context) {
+		SqlType ITypeResolver.ResolveType(TypeResolveContext context) {
 			var fullTypeName = Transaction.ResolveObjectName(context.TypeName);
 			if (fullTypeName == null)
 				return null;

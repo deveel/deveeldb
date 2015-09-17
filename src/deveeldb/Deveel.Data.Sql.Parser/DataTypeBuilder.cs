@@ -23,11 +23,11 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class DataTypeBuilder {
-		public DataType Build(ISqlNode sqlNode) {
+		public SqlType Build(ISqlNode sqlNode) {
 			return Build(null, sqlNode);
 		}
 
-		public DataType Build(ITypeResolver resolver, ISqlNode sqlNode) {
+		public SqlType Build(ITypeResolver resolver, ISqlNode sqlNode) {
 			var node = sqlNode as DataTypeNode;
 			if (node == null)
 				throw new ArgumentException();

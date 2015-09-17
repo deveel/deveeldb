@@ -25,13 +25,13 @@ namespace Deveel.Data.Sql.Expressions {
 		private readonly IQueryContext queryContext;
 		private readonly IVariableResolver variableResolver;
 
-		private DataType dataType;
+		private SqlType sqlType;
 
 		public ReturnTypeVisitor(IQueryContext queryContext, IVariableResolver variableResolver) {
 			this.queryContext = queryContext;
 			this.variableResolver = variableResolver;
 
-			dataType = PrimitiveTypes.Null();
+			sqlType = PrimitiveTypes.Null();
 		}
 
 		public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
@@ -41,11 +41,11 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.Multiply:
 				case SqlExpressionType.Modulo:
 				case SqlExpressionType.Divide:
-					dataType = PrimitiveTypes.Numeric();
+					sqlType = PrimitiveTypes.Numeric();
 					break;
 				default:
 					// we assume the expression type is already been check to be binary.
-					dataType = PrimitiveTypes.Boolean();
+					sqlType = PrimitiveTypes.Boolean();
 					break;
 
 			}
@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-			dataType = constant.Value.Type;
+			sqlType = constant.Value.Type;
 
 			return base.VisitConstant(constant);
 		}
@@ -63,14 +63,14 @@ namespace Deveel.Data.Sql.Expressions {
 			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
 			var function = invoke.ResolveRoutine(queryContext) as IFunction;
 			if (function != null)
-				dataType = function.ReturnType(invoke, queryContext, variableResolver);
+				sqlType = function.ReturnType(invoke, queryContext, variableResolver);
 
 			return base.VisitFunctionCall(expression);
 		}
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
 			var name = reference.ReferenceName;
-			dataType = variableResolver.ReturnType(name);
+			sqlType = variableResolver.ReturnType(name);
 
 			return base.VisitReference(reference);
 		}
@@ -83,13 +83,13 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
-			dataType = expression.Reference.ReturnType;
+			sqlType = expression.Reference.ReturnType;
 			return expression;
 		}
 
-		public DataType GetType(SqlExpression expression) {
+		public SqlType GetType(SqlExpression expression) {
 			Visit(expression);
-			return dataType;
+			return sqlType;
 		}
 	}
 }

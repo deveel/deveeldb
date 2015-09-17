@@ -61,12 +61,12 @@ namespace Deveel.Data.Routines {
 			return ToTimeStamp(DataObject.String(value));
 		}
 
-		public static DataObject Cast(DataObject value, DataType destType) {
+		public static DataObject Cast(DataObject value, SqlType destType) {
 			return value.CastTo(destType);
 		}
 
 		public static DataObject Cast(IQueryContext context, DataObject value, SqlString typeString) {
-			var destType = DataType.Parse(context, typeString.ToString());
+			var destType = SqlType.Parse(context, typeString.ToString());
 			return Cast(value, destType);
 		}
 

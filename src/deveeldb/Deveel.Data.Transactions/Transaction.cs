@@ -528,7 +528,7 @@ namespace Deveel.Data.Transactions {
 			throw new NotImplementedException();
 		}
 
-		DataType IVariableResolver.ReturnType(ObjectName variable) {
+		SqlType IVariableResolver.ReturnType(ObjectName variable) {
 			throw new NotImplementedException();
 		}
 

@@ -30,7 +30,7 @@ namespace Deveel.Data {
 			var obj = DataObject.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(33, obj);
 		}
 
@@ -39,7 +39,7 @@ namespace Deveel.Data {
 			var obj = DataObject.BigInt(8399902L);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.BigInt, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.BigInt, obj.Type.TypeCode);
 			Assert.AreEqual(8399902L, obj);			
 		}
 
@@ -54,8 +54,8 @@ namespace Deveel.Data {
 			Assert.IsInstanceOf<NumericType>(obj1.Type);
 			Assert.IsInstanceOf<NumericType>(obj2.Type);
 
-			Assert.AreEqual(SqlTypeCode.Integer, obj1.Type.SqlType);
-			Assert.AreEqual(SqlTypeCode.Integer, obj2.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj1.Type.TypeCode);
+			Assert.AreEqual(SqlTypeCode.Integer, obj2.Type.TypeCode);
 
 			Assert.IsTrue(obj1.IsComparableTo(obj2));
 			Assert.AreEqual(0, obj1.CompareTo(obj2));
@@ -72,8 +72,8 @@ namespace Deveel.Data {
 			Assert.IsInstanceOf<NumericType>(obj1.Type);
 			Assert.IsInstanceOf<NumericType>(obj2.Type);
 
-			Assert.AreEqual(SqlTypeCode.Integer, obj1.Type.SqlType);
-			Assert.AreEqual(SqlTypeCode.Integer, obj2.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj1.Type.TypeCode);
+			Assert.AreEqual(SqlTypeCode.Integer, obj2.Type.TypeCode);
 
 			Assert.IsTrue(obj1.IsComparableTo(obj2));
 			Assert.AreEqual(-1, obj1.CompareTo(obj2));
@@ -84,14 +84,14 @@ namespace Deveel.Data {
 			var obj = DataObject.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(33, obj);
 
 			DataObject result = null;
 			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Double)));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<NumericType>(result.Type);
-			Assert.AreEqual(SqlTypeCode.Double, result.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Double, result.Type.TypeCode);
 		}
 
 		[Test]
@@ -99,7 +99,7 @@ namespace Deveel.Data {
 			var obj = DataObject.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(33, obj);
 
 			DataObject result = null;
@@ -114,7 +114,7 @@ namespace Deveel.Data {
 			var obj = DataObject.Integer(1);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(1, obj);
 
 			DataObject result = null;

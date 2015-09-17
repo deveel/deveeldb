@@ -22,21 +22,21 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
 	public sealed class QueryParameter {
-		public QueryParameter(DataType dataType) 
-			: this(dataType, null) {
+		public QueryParameter(SqlType sqlType) 
+			: this(sqlType, null) {
 		}
 
-		public QueryParameter(DataType dataType, ISqlObject value) 
-			: this(Marker, dataType, value) {
+		public QueryParameter(SqlType sqlType, ISqlObject value) 
+			: this(Marker, sqlType, value) {
 		}
 
-		public QueryParameter(string name, DataType dataType) 
-			: this(name, dataType, null) {
+		public QueryParameter(string name, SqlType sqlType) 
+			: this(name, sqlType, null) {
 		}
 
-		public QueryParameter(string name, DataType dataType, ISqlObject value) {
-			if (dataType == null)
-				throw new ArgumentNullException("dataType");
+		public QueryParameter(string name, SqlType sqlType, ISqlObject value) {
+			if (sqlType == null)
+				throw new ArgumentNullException("sqlType");
 
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentException(String.Format("The parameter name '{0}' is invalid: must be '{1}' or starting with '{2}'", name, Marker, NamePrefix));
 
 			Name = name;
-			DataType = dataType;
+			SqlType = sqlType;
 			Value = value;
 			Direction = QueryParameterDirection.In;
 		}
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql {
 
 		public string Name { get; private set; }
 
-		public DataType DataType { get; private set; }
+		public SqlType SqlType { get; private set; }
 
 		public QueryParameterDirection Direction { get; set; }
 

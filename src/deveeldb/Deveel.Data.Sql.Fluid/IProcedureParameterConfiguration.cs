@@ -25,6 +25,6 @@ namespace Deveel.Data.Sql.Fluid {
 
 		IProcedureParameterConfiguration WithDirection(ParameterDirection direction);
 
-		IProcedureParameterConfiguration OfType(DataType dataType);
+		IProcedureParameterConfiguration OfType(SqlType sqlType);
 	}
 }

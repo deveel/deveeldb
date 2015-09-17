@@ -22,17 +22,17 @@ using System.Text;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
-	public sealed class BinaryType : DataType, ISizeableType {
+	public sealed class BinaryType : SqlType, ISizeableType {
 		public const int DefaultMaxSize = Int16.MaxValue;
 
-		public BinaryType(SqlTypeCode sqlType) 
-			: this(sqlType, DefaultMaxSize) {
+		public BinaryType(SqlTypeCode typeCode) 
+			: this(typeCode, DefaultMaxSize) {
 		}
 
-		public BinaryType(SqlTypeCode sqlType, int maxSize) 
-			: base("BINARY", sqlType) {
+		public BinaryType(SqlTypeCode typeCode, int maxSize) 
+			: base("BINARY", typeCode) {
 			MaxSize = maxSize;
-			AssertIsBinary(sqlType);
+			AssertIsBinary(typeCode);
 		}
 
 		int ISizeableType.Size {
@@ -85,8 +85,8 @@ namespace Deveel.Data.Types {
 			return b == 1;
 		}
 
-		public override DataObject CastTo(DataObject value, DataType destType) {
-			var sqlType = destType.SqlType;
+		public override DataObject CastTo(DataObject value, SqlType destType) {
+			var sqlType = destType.TypeCode;
 			var binary = ((ISqlBinary) value.Value);
 
 			ISqlObject casted;

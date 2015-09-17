@@ -22,20 +22,20 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
 namespace Deveel.Data.Types {
-	public sealed class NumericType : DataType, ISizeableType {
-		public NumericType(SqlTypeCode sqlType, int size, byte scale) 
-			: base("NUMERIC", sqlType) {
-			AssertIsNumeric(sqlType);
+	public sealed class NumericType : SqlType, ISizeableType {
+		public NumericType(SqlTypeCode typeCode, int size, byte scale) 
+			: base("NUMERIC", typeCode) {
+			AssertIsNumeric(typeCode);
 			Size = size;
 			Scale = scale;
 		}
 
-		public NumericType(SqlTypeCode sqlType)
-			: this(sqlType, -1) {
+		public NumericType(SqlTypeCode typeCode)
+			: this(typeCode, -1) {
 		}
 
-		public NumericType(SqlTypeCode sqlType, int size)
-			: this(sqlType, size, 0) {
+		public NumericType(SqlTypeCode typeCode, int size)
+			: this(typeCode, size, 0) {
 		}
 
 		public int Size { get; private set; }
@@ -51,7 +51,7 @@ namespace Deveel.Data.Types {
 			if (other == null)
 				return false;
 
-			return SqlType == other.SqlType &&
+			return TypeCode == other.TypeCode &&
 			       Size == other.Size &&
 			       Scale == other.Scale;
 		}
@@ -61,21 +61,21 @@ namespace Deveel.Data.Types {
 		}
 
 		public override Type GetRuntimeType() {
-			if (SqlType == SqlTypeCode.TinyInt)
+			if (TypeCode == SqlTypeCode.TinyInt)
 				return typeof(byte);
-			if (SqlType == SqlTypeCode.SmallInt)
+			if (TypeCode == SqlTypeCode.SmallInt)
 				return typeof(short);
-			if (SqlType == SqlTypeCode.Integer)
+			if (TypeCode == SqlTypeCode.Integer)
 				return typeof(int);
-			if (SqlType == SqlTypeCode.BigInt)
+			if (TypeCode == SqlTypeCode.BigInt)
 				return typeof(long);
-			if (SqlType == SqlTypeCode.Float ||
-				SqlType == SqlTypeCode.Real)
+			if (TypeCode == SqlTypeCode.Float ||
+				TypeCode == SqlTypeCode.Real)
 				return typeof(float);
-			if (SqlType == SqlTypeCode.Double)
+			if (TypeCode == SqlTypeCode.Double)
 				return typeof(double);
-			if (SqlType == SqlTypeCode.Numeric ||
-				SqlType == SqlTypeCode.Decimal)
+			if (TypeCode == SqlTypeCode.Numeric ||
+				TypeCode == SqlTypeCode.Decimal)
 				return typeof(BigDecimal);
 
 			return base.GetRuntimeType();
@@ -86,7 +86,7 @@ namespace Deveel.Data.Types {
 		}
 
 		public override int GetHashCode() {
-			return (SqlType.GetHashCode() * Scale) + Size.GetHashCode();
+			return (TypeCode.GetHashCode() * Scale) + Size.GetHashCode();
 		}
 
 		private static void AssertIsNumeric(SqlTypeCode typeCode) {
@@ -122,9 +122,9 @@ namespace Deveel.Data.Types {
 			}
 		}
 
-		public override DataType Wider(DataType otherType) {
-			SqlTypeCode t1SqlType = SqlType;
-			SqlTypeCode t2SqlType = otherType.SqlType;
+		public override SqlType Wider(SqlType otherType) {
+			SqlTypeCode t1SqlType = TypeCode;
+			SqlTypeCode t2SqlType = otherType.TypeCode;
 			if (t1SqlType == SqlTypeCode.Decimal) {
 				return this;
 			}
@@ -175,7 +175,7 @@ namespace Deveel.Data.Types {
 			throw new InvalidOperationException("Widest type error.");
 		}
 
-		public override bool IsComparable(DataType type) {
+		public override bool IsComparable(SqlType type) {
 			return type is NumericType || type is BooleanType;
 		}
 
@@ -198,16 +198,16 @@ namespace Deveel.Data.Types {
 			return new SqlDateTime(time);
 		}
 
-		public override bool CanCastTo(DataType destType) {
-			return destType.SqlType != SqlTypeCode.Array &&
-			       destType.SqlType != SqlTypeCode.ColumnType &&
-			       destType.SqlType != SqlTypeCode.RowType &&
-			       destType.SqlType != SqlTypeCode.Object;
+		public override bool CanCastTo(SqlType destType) {
+			return destType.TypeCode != SqlTypeCode.Array &&
+			       destType.TypeCode != SqlTypeCode.ColumnType &&
+			       destType.TypeCode != SqlTypeCode.RowType &&
+			       destType.TypeCode != SqlTypeCode.Object;
 		}
 
-		public override DataObject CastTo(DataObject value, DataType destType) {
+		public override DataObject CastTo(DataObject value, SqlType destType) {
 			var n = (SqlNumber) value.Value;
-			var sqlType = destType.SqlType;
+			var sqlType = destType.TypeCode;
 			ISqlObject casted;
 
 			switch (sqlType) {

@@ -20,7 +20,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression) casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<NumericType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Integer, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Integer, value.Type.TypeCode);
 			Assert.AreEqual(new SqlNumber(1234), value.Value);
 		}
 
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<NumericType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Numeric, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Numeric, value.Type.TypeCode);
 			Assert.AreEqual(SqlNumber.Parse("12.3e4"), value.Value);
 		}
 
@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<DateType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.DateTime, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.DateTime, value.Type.TypeCode);
 			Assert.AreEqual(new SqlDateTime(2015, 09, 01), value.Value);
 		}
 
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<DateType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Date, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Date, value.Type.TypeCode);
 			Assert.AreEqual(new SqlDateTime(2015, 09, 01), value.Value);
 		}
 
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<DateType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Time, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Time, value.Type.TypeCode);
 
 			// we round the expected value to the result offset because of the UTC parsing logic
 			// of the date type: all we care here is the time component
@@ -107,7 +107,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<BooleanType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Boolean, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Boolean, value.Type.TypeCode);
 			Assert.AreEqual(SqlBoolean.True, value.Value);
 		}
 
@@ -123,7 +123,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<BooleanType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.Boolean, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.Boolean, value.Type.TypeCode);
 			Assert.AreEqual(SqlBoolean.False, value.Value);
 		}
 
@@ -139,7 +139,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.String, value.Type.TypeCode);
 			Assert.AreEqual(new SqlString("False"), value.Value);
 		}
 
@@ -155,7 +155,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.String, value.Type.TypeCode);
 			Assert.AreEqual(new SqlString("True"), value.Value);
 		}
 
@@ -172,7 +172,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var value = ((SqlConstantExpression)casted).Value;
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
-			Assert.AreEqual(SqlTypeCode.String, value.Type.SqlType);
+			Assert.AreEqual(SqlTypeCode.String, value.Type.TypeCode);
 			Assert.AreEqual(new SqlString("2015-02-03"), value.Value);
 		}
 
