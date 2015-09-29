@@ -18,6 +18,9 @@ using System;
 using System.IO;
 
 namespace Deveel.Data.Store {
+	/// <summary>
+	/// A data store that is backed by a file located at the path given.
+	/// </summary>
 	public sealed class FileStoreData : IStoreData {
 		private FileStream fileStream;
 		private readonly object objectLock = new object();

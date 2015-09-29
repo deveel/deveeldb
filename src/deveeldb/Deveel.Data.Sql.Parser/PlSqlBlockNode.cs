@@ -27,7 +27,9 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName.Equals("plsql_label_opt")) {
-				Label = node.FindNode<LabelNode>().Text;
+				var labelNode = node.FindNode<LabelNode>();
+				if (labelNode != null)
+					Label = labelNode.Text;
 			} else if (node.NodeName.Equals("declare_statement_opt")) {
 				Declarations = node.FindNodes<IDeclareNode>();
 			} else if (node is PlSqlCodeBlockNode) {
