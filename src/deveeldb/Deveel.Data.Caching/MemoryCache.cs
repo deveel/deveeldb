@@ -345,6 +345,17 @@ namespace Deveel.Data.Caching {
 			base.Clear();
 		}
 
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (nodeHash != null)
+					Array.Clear(nodeHash, 0, nodeHash.Length);
+			}
+
+			nodeHash = null;
+
+			base.Dispose(disposing);
+		}
+
 		/// <summary>
 		/// An element in the linked list structure.
 		/// </summary>

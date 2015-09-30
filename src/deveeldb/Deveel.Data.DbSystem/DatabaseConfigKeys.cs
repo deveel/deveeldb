@@ -41,7 +41,11 @@ namespace Deveel.Data.DbSystem {
 
 		public static readonly ConfigKey CellCacheType = new ConfigKey(CellCacheTypeKeyName, null, typeof(Type));
 
+#if X64
 		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 1024*1024*10, typeof(int));
+#else
+		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 512 * 1024 * 10, typeof(int));
+#endif
 
 		public static readonly ConfigKey CellCacheMaxCellSize = new ConfigKey(CellCacheMaxCellSizeKeyName, 1024*64, typeof(int));
 

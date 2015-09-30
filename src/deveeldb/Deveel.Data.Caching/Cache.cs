@@ -77,6 +77,10 @@ namespace Deveel.Data.Caching {
 			: this(50) {
 		}
 
+		~Cache() {
+			Dispose(false);
+		}
+
 		/// <summary>
 		/// </summary>
 		[Obsolete("Deprecated", false)]
@@ -334,7 +338,14 @@ namespace Deveel.Data.Caching {
 
 
 		public void Dispose() {
-			Clear();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				Clear();
+			}
 		}
 	}
 }
