@@ -18,7 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;

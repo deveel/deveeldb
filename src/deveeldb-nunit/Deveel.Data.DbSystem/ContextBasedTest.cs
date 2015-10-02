@@ -1,9 +1,12 @@
 ﻿using System;
 
+using JetBrains.dotMemoryUnit;
+
 using NUnit.Framework;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	[TestFixture]
+	[DotMemoryUnit(CollectAllocations = true)]
 	public abstract class ContextBasedTest {
 		private IUserSession session;
 

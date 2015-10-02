@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;

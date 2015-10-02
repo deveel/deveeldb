@@ -17,7 +17,7 @@
 using System;
 using System.Data;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Client {
 	public static class DatabaseExtensions {

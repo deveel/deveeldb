@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Sql.Variables {
 	public class VariableManager : IObjectManager {

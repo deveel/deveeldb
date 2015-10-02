@@ -1,11 +1,10 @@
 ﻿using System;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.Store;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DatabaseTests {
 		private ISystemContext systemContext;

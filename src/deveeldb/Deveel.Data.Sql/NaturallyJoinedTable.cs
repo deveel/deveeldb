@@ -20,7 +20,7 @@ using System.Linq;
 
 using Deveel.Data.Sql;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	class NaturallyJoinedTable : JoinedTable {
 		// The row counts of the left and right tables.
 		private readonly int leftRowCount, rightRowCount;

@@ -21,7 +21,7 @@ using System.Linq;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	public static class MutableTableExtensions {
 		public static bool RemoveRow(this IMutableTable table, int rowIndex) {
 			return table.RemoveRow(new RowId(table.TableInfo.Id, rowIndex));

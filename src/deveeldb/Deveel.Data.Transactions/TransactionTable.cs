@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 

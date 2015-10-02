@@ -22,7 +22,7 @@ using Deveel.Data.Transactions;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SequenceManagerTests {
 		private ObjectName testSequenceName;

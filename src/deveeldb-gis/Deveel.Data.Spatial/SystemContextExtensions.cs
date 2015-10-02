@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Spatial {
 	public static class SystemContextExtensions {

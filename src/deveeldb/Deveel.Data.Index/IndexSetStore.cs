@@ -20,7 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Schema;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.Index {

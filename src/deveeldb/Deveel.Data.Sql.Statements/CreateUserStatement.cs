@@ -17,7 +17,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;

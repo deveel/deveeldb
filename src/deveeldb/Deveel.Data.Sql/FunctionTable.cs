@@ -20,7 +20,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Deveel.Data.Caching;
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;

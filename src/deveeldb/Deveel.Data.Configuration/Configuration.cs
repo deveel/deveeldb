@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Configuration {
 	public class Configuration : IConfiguration {

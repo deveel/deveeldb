@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Spatial;
 
 using NUnit.Framework;

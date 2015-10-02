@@ -2,15 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
+
+using JetBrains.dotMemoryUnit;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
+	[DotMemoryUnit(CollectAllocations = true)]
 	public class AlterTableStatementTests : ContextBasedTest {
 		protected override void OnSetUp() {
 			CreateTestTable();

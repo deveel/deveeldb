@@ -17,7 +17,7 @@
 using System;
 using System.Reflection;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Util {
 	class ProductInfo {

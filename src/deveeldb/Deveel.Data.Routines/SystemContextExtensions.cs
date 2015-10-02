@@ -16,7 +16,7 @@
 
 using System;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Routines {
 	public static class SystemContextExtensions {

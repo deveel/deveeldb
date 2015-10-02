@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 
 namespace Deveel.Data.Diagnostics {
 	/// <summary>

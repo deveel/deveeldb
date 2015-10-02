@@ -6,7 +6,7 @@ using Deveel.Data.Configuration;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.DbSystem {
+namespace Deveel.Data {
 	[TestFixture]
 	public class SystemTests {
 		[Test]

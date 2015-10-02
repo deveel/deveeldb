@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-using Deveel.Data.DbSystem;
+using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 
