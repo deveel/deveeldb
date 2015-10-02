@@ -40,7 +40,7 @@ namespace Deveel.Data {
 			database.Create("SA", "12345");
 			database.Open();
 
-			transaction = database.CreateTransaction(IsolationLevel.Serializable);
+			transaction = database.CreateTransaction(TransactionIsolation.Serializable);
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {
 				var seqInfo = new SequenceInfo(testSequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);

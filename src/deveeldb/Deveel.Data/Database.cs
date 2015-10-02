@@ -235,7 +235,7 @@ namespace Deveel.Data {
 
 			public TransactionCollection OpenTransactions { get; private set; }
 
-			public ITransaction CreateTransaction(TransactionIsolation isolation) {
+			public ITransaction CreateTransaction(IsolationLevel isolation) {
 				lock (this) {
 					ITransaction transaction;
 

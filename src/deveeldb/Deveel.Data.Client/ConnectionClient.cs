@@ -24,6 +24,8 @@ using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
+using IsolationLevel = Deveel.Data.Transactions.IsolationLevel;
+
 namespace Deveel.Data.Client {
 	internal class ConnectionClient : IDisposable {
 		public DeveelDbConnectionStringBuilder Settings { get; private set; }
@@ -237,25 +239,25 @@ namespace Deveel.Data.Client {
 				throw new DeveelDbServerException(null, -1, -1);
 		}
 
-		public int BeginTransaction(IsolationLevel isolationLevel) {
+		public int BeginTransaction(System.Data.IsolationLevel isolationLevel) {
 			var isolation = MapIsolationLevel(isolationLevel);
 			return BeginTransaction(isolation);
 		}
 
-		private TransactionIsolation MapIsolationLevel(IsolationLevel isolationLevel) {
-			if (isolationLevel == IsolationLevel.Serializable)
-				return TransactionIsolation.Serializable;
-			if (isolationLevel == IsolationLevel.Snapshot)
-				return TransactionIsolation.Snapshot;
-			if (isolationLevel == IsolationLevel.ReadCommitted)
-				return TransactionIsolation.ReadCommitted;
-			if (isolationLevel == IsolationLevel.ReadUncommitted)
-				return TransactionIsolation.ReadUncommitted;
+		private IsolationLevel MapIsolationLevel(System.Data.IsolationLevel isolationLevel) {
+			if (isolationLevel == System.Data.IsolationLevel.Serializable)
+				return IsolationLevel.Serializable;
+			if (isolationLevel == System.Data.IsolationLevel.Snapshot)
+				return IsolationLevel.Snapshot;
+			if (isolationLevel == System.Data.IsolationLevel.ReadCommitted)
+				return IsolationLevel.ReadCommitted;
+			if (isolationLevel == System.Data.IsolationLevel.ReadUncommitted)
+				return IsolationLevel.ReadUncommitted;
 
 			throw new NotSupportedException(String.Format("Isolation Level '{0}' not supported by DeveelDB", isolationLevel));
 		}
 
-		public int BeginTransaction(TransactionIsolation isolationLevel) {
+		public int BeginTransaction(IsolationLevel isolationLevel) {
 			var response = SendMessage(new BeginRequest(isolationLevel))
 				as BeginResponse;
 

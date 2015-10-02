@@ -345,7 +345,7 @@ namespace Deveel.Data {
 		}
 
 		private void InitSystemSchema() {
-			using (var transaction = Database.CreateSafeTransaction(TransactionIsolation.Serializable)) {
+			using (var transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable)) {
 				try {
 					SystemSchema.Setup(transaction);
 					transaction.Commit();
@@ -394,7 +394,7 @@ namespace Deveel.Data {
 			ITransaction transaction = null;
 
 			try {
-				transaction = Database.CreateSafeTransaction(TransactionIsolation.Serializable);
+				transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable);
 				transaction.CreateSystemSchema();
 
 				// Commit and close the transaction.
@@ -610,7 +610,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		internal ITransaction CreateTransaction(TransactionIsolation isolation) {
+		internal ITransaction CreateTransaction(IsolationLevel isolation) {
 			var thisCommittedTables = new List<TableSource>();
 
 			// Don't let a commit happen while we are looking at this.

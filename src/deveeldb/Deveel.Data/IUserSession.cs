@@ -16,10 +16,7 @@
 
 using System;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {

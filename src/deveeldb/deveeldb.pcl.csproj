@@ -614,6 +614,7 @@
     <Compile Include="Deveel.Data.Transactions\AccessType.cs" />
     <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
+    <Compile Include="Deveel.Data.Transactions\IsolationLevel.cs" />
     <Compile Include="Deveel.Data.Transactions\ITableEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionEvent.cs" />
@@ -639,7 +640,6 @@
     <Compile Include="Deveel.Data.Transactions\TransactionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
-    <Compile Include="Deveel.Data.Transactions\TransactionIsolation.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionObjectState.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionRegistry.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionSettingKeys.cs" />

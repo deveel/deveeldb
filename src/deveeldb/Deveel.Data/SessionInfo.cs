@@ -21,28 +21,74 @@ using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// An object that handles the information about a <see cref="IUserSession"/>.
+	/// </summary>
+	/// <seealso cref="IUserSession.SessionInfo"/>
 	public sealed class SessionInfo {
-		public SessionInfo(User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) 
-			: this(-1, user, isolation, endPoint) {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo" /> class.
+		/// </summary>
+		/// <param name="user">The user that owns the session.</param>
+		/// <param name="isolation">The isolation level of the transaction.</param>
+		/// <param name="endPoint">The source end point of the session.</param>
+		public SessionInfo(User user, IsolationLevel isolation, ConnectionEndPoint endPoint)
+					: this(-1, user, isolation, endPoint) {
 		}
 
-		public SessionInfo(User user) 
-			: this(user, TransactionIsolation.Unspecified) {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo" /> class for the
+		/// given user.
+		/// </summary>
+		/// <param name="user">The user that owns the session.</param>
+		public SessionInfo(User user)
+			: this(user, IsolationLevel.Unspecified) {
 		}
 
-		public SessionInfo(User user, TransactionIsolation isolation) 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo"/> class that has
+		/// no unique commit identification.
+		/// </summary>
+		/// <param name="user">The user that owns the session.</param>
+		/// <param name="isolation">The isolation level of the transaction.</param>
+		public SessionInfo(User user, IsolationLevel isolation)
 			: this(-1, user, isolation) {
 		}
 
-		public SessionInfo(int commitId, User user) 
-			: this(commitId, user, TransactionIsolation.Unspecified) {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo"/> class.
+		/// </summary>
+		/// <param name="commitId">The commit identifier.</param>
+		/// <param name="user">The user.</param>
+		public SessionInfo(int commitId, User user)
+			: this(commitId, user, IsolationLevel.Unspecified) {
 		}
 
-		public SessionInfo(int commitId, User user, TransactionIsolation isolation) 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo"/> class that
+		/// references an established session to the database.
+		/// </summary>
+		/// <param name="commitId">The unique commit identifier.</param>
+		/// <param name="user">The user that owns the session.</param>
+		/// <param name="isolation">The isolation level of the session.</param>
+		/// <remarks>
+		/// This constructor sets the origin connection end point as embedded.
+		/// </remarks>
+		public SessionInfo(int commitId, User user, IsolationLevel isolation)
 			: this(commitId, user, isolation, ConnectionEndPoint.Embedded) {
 		}
 
-		public SessionInfo(int commitId, User user, TransactionIsolation isolation, ConnectionEndPoint endPoint) {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SessionInfo"/> class.
+		/// </summary>
+		/// <param name="commitId">The unique commit identifier.</param>
+		/// <param name="user">The user that owns the session.</param>
+		/// <param name="isolation">The isolation level of the sessions.</param>
+		/// <param name="endPoint">The origin end point of the session.</param>
+		/// <exception cref="System.ArgumentNullException">If either the specified user
+		/// or endPoint are <c>null</c>.
+		/// </exception>
+		public SessionInfo(int commitId, User user, IsolationLevel isolation, ConnectionEndPoint endPoint) {
 			if (user == null)
 				throw new ArgumentNullException("user");
 			if (endPoint == null)
@@ -55,16 +101,53 @@ namespace Deveel.Data {
 			StartedOn = DateTimeOffset.UtcNow;
 		}
 
+		/// <summary>
+		/// Gets the unique commit identifier of the session.
+		/// </summary>
+		/// <value>
+		/// The unique commit identifier.
+		/// </value>
 		public int CommitId { get; private set; }
 
+		/// <summary>
+		/// Gets the source end point of the session.
+		/// </summary>
+		/// <value>
+		/// The source end point.
+		/// </value>
 		public ConnectionEndPoint EndPoint { get; private set; }
 
+		/// <summary>
+		/// Gets the user that owns the session.
+		/// </summary>
+		/// <value>
+		/// The owner user.
+		/// </value>
 		public User User { get; private set; }
 
-		public TransactionIsolation Isolation { get; private set; }
+		/// <summary>
+		/// Gets the isolation level of the session.
+		/// </summary>
+		/// <value>
+		/// The isolation level.
+		/// </value>
+		public IsolationLevel Isolation { get; private set; }
 
+		/// <summary>
+		/// Gets the time-stamp of when the session was started.
+		/// </summary>
+		/// <value>
+		/// The started time of the session.
+		/// </value>
 		public DateTimeOffset StartedOn { get; private set; }
 
+		/// <summary>
+		/// Gets the time of the last command issues by the user 
+		/// during the session.
+		/// </summary>
+		/// <value>
+		/// The time of the last command.
+		/// </value>
 		public DateTimeOffset? LastCommandTime { get; private set; }
 
 		// TODO: keep a list of commands issued by the user during the session?

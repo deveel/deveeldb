@@ -20,6 +20,6 @@ namespace Deveel.Data.Transactions {
 	public interface ITransactionFactory {
 		TransactionCollection OpenTransactions { get; }
 
-		ITransaction CreateTransaction(TransactionIsolation isolation);
+		ITransaction CreateTransaction(IsolationLevel isolation);
 	}
 }

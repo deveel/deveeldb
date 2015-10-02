@@ -21,13 +21,13 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.Protocol {
 	public sealed class BeginRequest : IMessage {
 		public BeginRequest() 
-			: this(TransactionIsolation.Serializable) {
+			: this(Transactions.IsolationLevel.Serializable) {
 		}
 
-		public BeginRequest(TransactionIsolation isolationLevel) {
+		public BeginRequest(IsolationLevel isolationLevel) {
 			IsolationLevel = isolationLevel;
 		}
 
-		public TransactionIsolation IsolationLevel { get; private set; }
+		public IsolationLevel IsolationLevel { get; private set; }
 	}
 }

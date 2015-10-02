@@ -21,15 +21,57 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The context of a single database within a system.
+	/// </summary>
+	/// <remarks>
+	/// A <see cref="IDatabase"/> is wrapped around this
+	/// object to obtain the configurations and systems
+	/// for operations.
+	/// </remarks>
 	public interface IDatabaseContext : IDisposable {
+		/// <summary>
+		/// Gets the configuration of the database.
+		/// </summary>
+		/// <value>
+		/// The configuration of the database.
+		/// </value>
 		IConfiguration Configuration { get; }
 
+		/// <summary>
+		/// Gets a list of all the open sessions
+		/// to the database.
+		/// </summary>
+		/// <value>
+		/// The open sessions to the database.
+		/// </value>
 		ActiveSessionList Sessions { get; }
 
+		/// <summary>
+		/// Gets the context of the database system that handles
+		/// this database.
+		/// </summary>
+		/// <value>
+		/// The parent system context.
+		/// </value>
 		ISystemContext SystemContext { get; }
 
+		/// <summary>
+		/// Gets the system that handles the storage of the data
+		/// of the database.
+		/// </summary>
+		/// <value>
+		/// The database store system.
+		/// </value>
 		IStoreSystem StoreSystem { get; }
 
+		/// <summary>
+		/// Gets the objects that is used to lock database 
+		/// objects between transactions.
+		/// </summary>
+		/// <value>
+		/// The database object locker.
+		/// </value>
 		Locker Locker { get; }
 	}
 }

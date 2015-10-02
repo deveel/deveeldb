@@ -569,7 +569,6 @@
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Security\GrantManager.cs" />
     <Compile Include="Deveel.Data.Security\HashFunctions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -853,7 +852,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionRegistry.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
-    <Compile Include="Deveel.Data.Transactions\TransactionIsolation.cs" />
+    <Compile Include="Deveel.Data.Transactions\IsolationLevel.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionWork.cs" />
     <Compile Include="Deveel.Data.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Types\BinaryType.cs" />

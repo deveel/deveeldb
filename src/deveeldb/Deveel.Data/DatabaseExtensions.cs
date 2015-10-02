@@ -26,7 +26,7 @@ namespace Deveel.Data {
 			return database.DatabaseContext.DatabaseName();
 		}
 
-		public static ITransaction CreateTransaction(this IDatabase database, TransactionIsolation isolation) {
+		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {
 			if (!database.IsOpen)
 				throw new InvalidOperationException(String.Format("Database '{0}' is not open.", database.Name()));
 
@@ -37,7 +37,7 @@ namespace Deveel.Data {
 			return database.TransactionFactory.OpenTransactions.FindById(commidId);
 		}
 
-		internal static ITransaction CreateSafeTransaction(this IDatabase database, TransactionIsolation isolation) {
+		internal static ITransaction CreateSafeTransaction(this IDatabase database, IsolationLevel isolation) {
 			return database.TransactionFactory.CreateTransaction(isolation);
 		}
 
@@ -47,8 +47,8 @@ namespace Deveel.Data {
 
 			// TODO: if the isolation is not specified, use a configured default one
 			var isolation = sessionInfo.Isolation;
-			if (isolation == TransactionIsolation.Unspecified)
-				isolation = TransactionIsolation.Serializable;
+			if (isolation == IsolationLevel.Unspecified)
+				isolation = IsolationLevel.Serializable;
 
 			if (sessionInfo.CommitId >= 0)
 				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
@@ -57,18 +57,18 @@ namespace Deveel.Data {
 			return new UserSession(database, transaction, sessionInfo);
 		}
 
-		public static IUserSession CreateSystemSession(this IDatabase database, TransactionIsolation isolation) {
+		public static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
 			var transaction = database.CreateTransaction(isolation);
 			return new SystemUserSession(database, transaction);
 		}
 
 		internal static IUserSession CreateInitialSystemSession(this IDatabase database) {
-			var transaction = database.CreateSafeTransaction(TransactionIsolation.Serializable);
+			var transaction = database.CreateSafeTransaction(IsolationLevel.Serializable);
 			return new SystemUserSession(database, transaction);
 		}
 
 		public static IUserSession CreateSystemSession(this IDatabase database) {
-			return database.CreateSystemSession(TransactionIsolation.Serializable);
+			return database.CreateSystemSession(IsolationLevel.Serializable);
 		}
 
 		public static IUserSession CreateUserSession(this IDatabase database, User user) {

@@ -385,7 +385,7 @@ namespace Deveel.Data.Protocol {
 		protected int BeginTransaction() {
 			AssertAuthenticated();
 
-			var transaction = Database.CreateTransaction(TransactionIsolation.Serializable);
+			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
 			if (transaction == null)
 				throw new InvalidOperationException();
 

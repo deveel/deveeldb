@@ -49,7 +49,7 @@ namespace Deveel.Data.Transactions {
 		private bool autoCommit;
 		private string parameterStyle;
 
-		internal Transaction(Database database, int commitId, TransactionIsolation isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
+		internal Transaction(Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
 			Database = database;
 			Isolation = isolation;
@@ -73,7 +73,7 @@ namespace Deveel.Data.Transactions {
 			ignoreCase = database.DatabaseContext.IgnoreIdentifiersCase();
 		}
 
-		internal Transaction(Database database, int commitId, TransactionIsolation isolation)
+		internal Transaction(Database database, int commitId, IsolationLevel isolation)
 			: this(database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
 		}
 
@@ -100,7 +100,7 @@ namespace Deveel.Data.Transactions {
 			get { return CommitId; }
 		}
 
-		public TransactionIsolation Isolation { get; private set; }
+		public IsolationLevel Isolation { get; private set; }
 
 		private bool IsClosed { get; set; }
 

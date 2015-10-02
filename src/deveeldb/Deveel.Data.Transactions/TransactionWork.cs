@@ -430,7 +430,7 @@ namespace Deveel.Data.Transactions {
 
 				// Create a new transaction of the database which will represent the
 				// committed view if this commit is successful.
-				checkTransaction = Composite.CreateTransaction(TransactionIsolation.Serializable);
+				checkTransaction = Composite.CreateTransaction(IsolationLevel.Serializable);
 
 				// Overwrite this view with tables from this transaction that have
 				// changed or have been added or dropped.
