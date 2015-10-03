@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-xml", "deveeldb-xm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\deveeldb.pcl.csproj", "{ADD851E0-1314-46C6-9312-7861F46438D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-linq", "deveeldb-linq\deveeldb-linq.csproj", "{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,18 @@ Global
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x64.ActiveCfg = Release|Any CPU
 		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|x64.Build.0 = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Debug|x86.Build.0 = Debug|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|x64.ActiveCfg = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|x64.Build.0 = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|x86.ActiveCfg = Release|Any CPU
+		{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
