@@ -188,8 +188,28 @@ namespace Deveel.Data.Security {
 			table.Delete(t);
 		}
 
-		public static User Authenticate(this IQueryContext queryContext, string username, string password, ConnectionEndPoint endPoint) {
+		/// <summary>
+		/// Authenticates the specified user using the provided credentials.
+		/// </summary>
+		/// <param name="queryContext">The query context.</param>
+		/// <param name="username">The name of the user to authenticate.</param>
+		/// <param name="password">The password used to authenticate the user.</param>
+		/// <returns></returns>
+		/// <exception cref="System.ArgumentNullException">
+		/// If either <paramref name="username"/> or <paramref name="password"/> are
+		/// <c>null</c> or empty.
+		/// </exception>
+		/// <exception cref="SecurityException">
+		/// If the authentication was not successful for the credentials provided.
+		/// </exception>
+		/// <exception cref="System.NotImplementedException">The external authentication mechanism is not implemented yet</exception>
+		public static User Authenticate(this IQueryContext queryContext, string username, string password) {
 			try {
+				if (String.IsNullOrEmpty(username))
+					throw new ArgumentNullException("username");
+				if (String.IsNullOrEmpty(password))
+					throw new ArgumentNullException("password");
+
 				var table = queryContext.GetTable(SystemSchema.PasswordTableName);
 				var unameColumn = table.GetResolvedColumnName(0);
 				var typeColumn = table.GetResolvedColumnName(1);
@@ -199,45 +219,43 @@ namespace Deveel.Data.Security {
 
 				var t = table.SimpleSelect(queryContext, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(username));
 				if (t.RowCount == 0)
-					return null;
+					throw new SecurityException(String.Format("User '{0}' is not registered.", username));
 
 				var type = t.GetValue(0, typeColumn);
 				if (type == 1) {
 					// Clear-text password ...
 					var pass = t.GetValue(0, passwColumn);
 					if (pass.IsNull || !pass.Equals(DataObject.String(password)))
-						return null;
+						throw new SecurityException(String.Format("User '{0}' provided an invalid password", username));
 
 				} else if (type == 2) {
 #if PCL
 					throw new NotSupportedException("Hashed passwords are not currently supported in PCL");
 #else
+
 					// Hashed password ...
 					var pass = t.GetValue(0, passwColumn);
 					var salt = t.GetValue(0, saltColumn);
 					var hash = t.GetValue(0, hashColumn);
 
 					if (pass == null || salt == null || hash == null)
-						return null;
+						throw new SecurityException(String.Format("Invalid user registration: missing cryptographic parameters."));
 
 					var crypto = PasswordCrypto.Parse(hash);
 					if (!crypto.Verify(pass, password, salt))
-						return null;
+						throw new SecurityException(String.Format("User '{0}' provided an invalid password.", username));
 #endif
 				} else if (type == 3) {
 					// External authenticator ...
-					// TODO:
+					throw new NotImplementedException("The external authentication mechanism is not implemented yet");
 				}
-
-				// Now check if this user is permitted to connect from the given
-				// host.
-				if (!UserCanAccessFromHost(queryContext, username, endPoint))
-					return null;
 
 				// Successfully authenticated...
 				return new User(queryContext, username);
+			} catch(SecurityException) {
+				throw;
 			} catch (Exception ex) {
-				throw new DatabaseSystemException("Could not authenticate user.", ex);
+				throw new SecurityException("Could not authenticate user.", ex);
 			}
 		}
 
@@ -304,6 +322,7 @@ namespace Deveel.Data.Security {
 
 			// TODO: Query for all objects of the given type in the schema
 			//       and grant the given privileges..
+			throw new NotImplementedException();
 
 		}
 

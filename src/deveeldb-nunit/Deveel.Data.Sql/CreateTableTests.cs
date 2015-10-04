@@ -19,7 +19,7 @@ namespace Deveel.Data.Sql {
 			if (TestContext.CurrentContext.Test.Name.Equals("CreateSimple_RegularUser")) {
 				var user = queryContext.CreateUser(TestUserName, TestPassword);
 				queryContext.GrantHostAccessToUser(TestUserName, KnownConnectionProtocols.Local, "%");
-				queryContext.GrantToUserOnSchemaTables("APP", user, User.System, Privileges.Create);
+				queryContext.GrantToUserOnSchema("APP", user, User.System, Privileges.Create);
 				queryContext.Session.Commit();
 			}
 
@@ -57,13 +57,11 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			using (var session = Database.CreateUserSession(TestUserName, TestPassword)) {
-				using (var context = new SessionQueryContext(session)) {
-					Assert.DoesNotThrow(() => context.CreateTable(tableInfo));
-				}
+			var context = CreateUserQueryContext(TestUserName, TestPassword);
 
-				Assert.DoesNotThrow(() => session.Commit());
-			}
+			Assert.DoesNotThrow(() => context.CreateTable(tableInfo));
+
+			context.Dispose();
 		}
 	}
 }

@@ -35,6 +35,11 @@ namespace Deveel.Data {
 			return new SessionQueryContext(session);
 		}
 
+		protected IQueryContext CreateUserQueryContext(string userName, string password) {
+			var userSession = Database.CreateUserSession(userName, password);
+			return new SessionQueryContext(userSession);
+		}
+
 		protected virtual void OnSetUp() {
 			
 		}

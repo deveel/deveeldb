@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -77,11 +78,7 @@ namespace Deveel.Data {
 		}
 
 		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
-			return CreateUserSession(database, userName, password, ConnectionEndPoint.Embedded);
-		}
-
-		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password, ConnectionEndPoint endPoint) {
-			var user = database.Authenticate(userName, password, endPoint);
+			var user = database.Authenticate(userName, password);
 			if (user == null)
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
 
@@ -121,7 +118,7 @@ namespace Deveel.Data {
 
 				// TODO: Grant READ on INFORMATION_SCHEMA
 
-				context.GrantToUserOnSchemaTables(SystemSchema.Name, user, User.System, Privileges.TableRead);
+				context.GrantToUserOnSchema(SystemSchema.Name, user, User.System, Privileges.TableRead);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {
@@ -130,17 +127,13 @@ namespace Deveel.Data {
 		}
 
 		public static User Authenticate(this IDatabase database, string username, string password) {
-			return Authenticate(database, username, password, ConnectionEndPoint.Embedded);
-		}
-
-		public static User Authenticate(this IDatabase database, string username, string password, ConnectionEndPoint endPoint) {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
 				session.ExclusiveLock();
 
 				using (var queryContext = new SessionQueryContext(session)) {
-					return queryContext.Authenticate(username, password, endPoint);
+					return queryContext.Authenticate(username, password);
 				}
 			}
 		}

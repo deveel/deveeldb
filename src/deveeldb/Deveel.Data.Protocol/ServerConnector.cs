@@ -181,7 +181,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		protected virtual IQueryContext OnAuthenticate(string defaultSchema, string username, string password) {
-			var user = Database.Authenticate(username, password, RemoteEndPoint);
+			var user = Database.Authenticate(username, password);
 
 			if (user == null)
 				return null;
