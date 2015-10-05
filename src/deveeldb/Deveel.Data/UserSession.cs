@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -28,6 +27,7 @@ namespace Deveel.Data {
 	/// </summary>
 	public sealed class UserSession : IUserSession {
 		private List<LockHandle> lockHandles;
+		private bool disposed;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -83,7 +83,15 @@ namespace Deveel.Data {
 
 		public ITransaction Transaction { get; private set; }
 
+		private void AssertNotDisposed() {
+			if (disposed)
+				throw new ObjectDisposedException("UserSession");
+		}
+
 		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
+			if (Database == null)
+				return;
+
 			lock (Database) {
 				if (lockHandles == null)
 					lockHandles = new List<LockHandle>();
@@ -111,6 +119,8 @@ namespace Deveel.Data {
 		public IDatabase Database { get; private set; }
 
 		public void Commit() {
+			AssertNotDisposed();
+
 			if (Transaction != null) {
 				try {
 					Transaction.Commit();
@@ -122,6 +132,8 @@ namespace Deveel.Data {
 		}
 
 		public void Rollback() {
+			AssertNotDisposed();
+
 			if (Transaction != null) {
 				try {
 					Transaction.Rollback();
@@ -143,15 +155,18 @@ namespace Deveel.Data {
 		}
 
 		private void Dispose(bool disposing) {
-			if (disposing) {
-				try {
-					Rollback();
-				} catch (Exception e) {
-					// TODO: Notify the underlying system
+			if (!disposed) {
+				if (disposing) {
+					try {
+						Rollback();
+					} catch (Exception e) {
+						// TODO: Notify the underlying system
+					}
 				}
-			}
 
-			lockHandles = null;
+				lockHandles = null;
+				disposed = true;
+			}
 		}
 	}
 }

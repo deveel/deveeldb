@@ -810,5 +810,17 @@ namespace Deveel.Data {
 		}
 
 		#endregion
+
+		#region Transaction Complete
+
+		public static void Commit(this IQueryContext queryContext) {
+			queryContext.Session.Commit();
+		}
+
+		public static void Rollback(this IQueryContext queryContext) {
+			queryContext.Session.Rollback();
+		}
+
+		#endregion
 	}
 }

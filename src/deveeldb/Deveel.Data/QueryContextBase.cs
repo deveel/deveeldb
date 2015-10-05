@@ -74,7 +74,14 @@ namespace Deveel.Data {
 			get { return null; }
 		}
 
+		private void AssertNotDisposed() {
+			if (disposed)
+				throw new ObjectDisposedException("QueryContext", "The query context was disposed.");
+		}
+
 		public virtual SqlNumber NextRandom(int bitSize) {
+			AssertNotDisposed();
+
 #if PCL
 			var num = secureRandom.NextDouble();
 #else
@@ -86,12 +93,19 @@ namespace Deveel.Data {
 		}
 
 		public void Dispose() {
-			if (disposed)
-				return;
+			Dispose(true);			
+			GC.SuppressFinalize(this);
+		}
 
-			try {
-				Dispose(true);
-			} finally {
+		protected virtual void Dispose(bool disposing) {
+			if (!disposed) {
+				if (disposing) {
+					if (VariableManager != null)
+						VariableManager.Dispose();
+					if (CursorManager != null)
+						CursorManager.Dispose();
+				}
+
 				tableCache = null;
 				VariableManager = null;
 				CursorManager = null;
@@ -99,24 +113,17 @@ namespace Deveel.Data {
 
 				disposed = true;
 			}
-			
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				if (VariableManager != null)
-					VariableManager.Dispose();
-				if (CursorManager != null)
-					CursorManager.Dispose();
-			}
 		}
 
 		DataObject IVariableResolver.Resolve(ObjectName variable) {
+			AssertNotDisposed();
+
 			throw new NotImplementedException();
 		}
 
 		SqlType IVariableResolver.ReturnType(ObjectName variableName) {
+			AssertNotDisposed();
+
 			throw new NotImplementedException();
 		}
 

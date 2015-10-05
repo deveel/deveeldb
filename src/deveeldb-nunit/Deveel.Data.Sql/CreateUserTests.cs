@@ -15,10 +15,17 @@ namespace Deveel.Data.Sql {
 		 	Assert.DoesNotThrow(() => user = QueryContext.CreateUser("test", "abc1234"));
 			Assert.IsNotNull(user);
 
-			Assert.DoesNotThrow(() => QueryContext.Session.Commit());
+			// Commit the change
+			Assert.DoesNotThrow(() => QueryContext.Commit());
 
+			// at this point the context became invalid (after the commit) and we need a new one
 			bool userExists = false;
-			Assert.DoesNotThrow(() => userExists = QueryContext.UserExists("test"));
+			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
+				using (var context = new SessionQueryContext(session)) {
+					Assert.DoesNotThrow(() => userExists = context.UserExists("test"));
+				}
+			}
+			
 			Assert.IsTrue(userExists);
 		}
 

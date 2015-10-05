@@ -34,6 +34,8 @@ namespace Deveel.Data.Transactions {
 
 		private int lastEntryRICheck;
 
+		private bool disposed;
+
 		public TransactionTable(ITransaction transaction, TableSource tableSource, TableEventRegistry eventRegistry) {
 			Transaction = transaction;
 			TableSource = tableSource;
@@ -53,21 +55,34 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public int ColumnCount {
-			get { return TableInfo.ColumnCount; }
+			get {
+				AssertNotDisposed();
+				return TableInfo.ColumnCount;
+			}
 		}
 
 		public IDatabaseContext DatabaseContext { get; private set; }
 
 		public TableInfo TableInfo {
-			get { return TableSource.TableInfo; }
+			get {
+				AssertNotDisposed();
+				return TableSource.TableInfo;
+			}
 		}
 
 		public int RowCount {
 			get {
+				AssertNotDisposed();
+
 				// Ensure the row list is up to date.
 				EnsureRowIndexListCurrent();
 				return RowIndex.Count;
 			}
+		}
+
+		private void AssertNotDisposed() {
+			if (disposed)
+				throw new ObjectDisposedException("Table", "The table was disposed.");
 		}
 
 		private void EnsureRowIndexListCurrent() {
@@ -132,10 +147,14 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public DataObject GetValue(long rowNumber, int columnOffset) {
+			AssertNotDisposed();
+
 			return TableSource.GetValue((int)rowNumber, columnOffset);
 		}
 
 		public ColumnIndex GetIndex(int columnOffset) {
+			AssertNotDisposed();
+
 			if (columnOffset < 0 || columnOffset >= ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
@@ -192,24 +211,27 @@ namespace Deveel.Data.Transactions {
 		}
 
 		private void Dispose(bool disposing) {
-			if (disposing) {
-				// Dispose and invalidate the indexes
-				// This is really a safety measure to ensure the index can't be
-				// used outside the scope of the lifetime of this object.
-				if (columnIndexes != null) {
-					foreach (var columnIndex in columnIndexes) {
-						if (columnIndex != null)
-							columnIndex.Dispose();
+			if (!disposed) {
+				if (disposing) {
+					// Dispose and invalidate the indexes
+					// This is really a safety measure to ensure the index can't be
+					// used outside the scope of the lifetime of this object.
+					if (columnIndexes != null) {
+						foreach (var columnIndex in columnIndexes) {
+							if (columnIndex != null)
+								columnIndex.Dispose();
+						}
 					}
 				}
-			}
 
-			columnIndexes = null;
-			rowIndex = null;
-			EventRegistry = null;
-			indexRebuilds = null;
-			indexSet = null;
-			Transaction = null;
+				columnIndexes = null;
+				rowIndex = null;
+				EventRegistry = null;
+				indexRebuilds = null;
+				indexSet = null;
+				Transaction = null;
+				disposed = true;
+			}
 		}
 
 		public void Dispose() {
@@ -218,10 +240,13 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public Row NewRow() {
+			AssertNotDisposed();
 			return new Row(this, new RowId(TableId, -1));
 		}
 
 		public RowId AddRow(Row row) {
+			AssertNotDisposed();
+
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read only.");
 
@@ -247,6 +272,8 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void UpdateRow(Row row) {
+			AssertNotDisposed();
+
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read only.");
 
@@ -285,6 +312,8 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public bool RemoveRow(RowId rowId) {
+			AssertNotDisposed();
+
 			if (rowId.IsNull)
 				throw new ArgumentNullException("rowId");
 
@@ -313,6 +342,8 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void FlushIndexes() {
+			AssertNotDisposed();
+
 			EnsureRowIndexListCurrent();
 
 			// This will flush all of the column indexes
@@ -383,6 +414,8 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void AssertConstraints() {
+			AssertNotDisposed();
+
 			try {
 				// Early exit condition
 				if (lastEntryRICheck == EventRegistry.EventCount)
@@ -566,10 +599,14 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public void AddLock() {
+			AssertNotDisposed();
+
 			TableSource.AddLock();
 		}
 
 		public void RemoveLock() {
+			AssertNotDisposed();
+			
 			TableSource.RemoveLock();
 		}
 
