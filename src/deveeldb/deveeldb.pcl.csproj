@@ -161,7 +161,6 @@
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
-    <Compile Include="Deveel.Data.Security\GrantManager.cs" />
     <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunctionProvider.cs" />
