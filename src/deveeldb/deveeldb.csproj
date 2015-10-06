@@ -69,8 +69,8 @@
     <DefineConstants>X64</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.Math, Version=1.5.63.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\dmath.1.5.63\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+    <Reference Include="Deveel.Math, Version=1.5.64.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dmath.1.5.64\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="DryIoc, Version=2.0.0.295, Culture=neutral, processorArchitecture=MSIL">
