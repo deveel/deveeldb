@@ -113,7 +113,7 @@ namespace Deveel.Data.Client {
 					Client.Authenticate();
 
 					serverVersion = Client.ServerVersion;
-				} catch (Exception ex) {
+				} catch (Exception) {
 					ChangeState(ConnectionState.Broken);
 
 					// TODO: throw a specialized exception

@@ -196,7 +196,7 @@ namespace Deveel.Data.Transactions {
 				// Dispose all the table we touched
 				try {
 					tableManager.Dispose();
-				} catch (Exception e) {
+				} catch (Exception) {
 					// TODO: report the error
 				}
 
@@ -289,7 +289,7 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public bool ContainsTable(ObjectName name) {
-				return FindByName(name) > 0;
+				return FindByName(name) >= 0;
 			}
 
 			public ITable GetTable(int offset) {

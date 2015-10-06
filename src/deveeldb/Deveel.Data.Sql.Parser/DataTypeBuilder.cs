@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else {
 					try {
 						sqlTypeCode = (SqlTypeCode) Enum.Parse(typeof (SqlTypeCode), node.TypeName, true);
-					} catch (Exception ex) {
+					} catch (Exception) {
 						sqlTypeCode = SqlTypeCode.Unknown;
 					}
 				}

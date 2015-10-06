@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
-			var reference = expression.Reference;
+			var reference = expression.QueryReference;
 			var value = reference.Evaluate(context.VariableResolver);
 			return SqlExpression.Constant(value);
 		}
@@ -258,7 +258,7 @@ namespace Deveel.Data.Sql.Expressions {
 			if (valueExpression.ExpressionType != SqlExpressionType.Constant)
 				throw new ExpressionEvaluateException("Cannot assign a variable from a non constant value.");
 
-			var reference = assign.Reference;
+			var reference = assign.ReferenceExpression;
 			var value = ((SqlConstantExpression)valueExpression).Value;
 
 			if (reference is SqlVariableReferenceExpression) {

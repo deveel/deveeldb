@@ -24,8 +24,8 @@ namespace Deveel.Data {
 		private readonly TableSource tableSource;
 		private BlockIndex<int> deletedRows;
 
-		private DateTime lastSuccess;
-		private DateTime? lastTry;
+		// private DateTime lastSuccess;
+		// private DateTime? lastTry;
 
 		private bool fullSweep;
 
@@ -33,8 +33,8 @@ namespace Deveel.Data {
 			this.tableSource = tableSource;
 			deletedRows = new BlockIndex<int>();
 
-			lastSuccess = DateTime.UtcNow;
-			lastTry = null;
+			// lastSuccess = DateTime.UtcNow;
+			// lastTry = null;
 		}
 
 		public void DeleteRow(int rowIndex) {
@@ -62,8 +62,8 @@ namespace Deveel.Data {
 						(!tableSource.IsRootLocked &&
 						 !tableSource.HasChangesPending)) {
 
-						lastSuccess = DateTime.Now;
-						lastTry = null;
+						// lastSuccess = DateTime.Now;
+						// lastTry = null;
 
 						// Are we due a full sweep?
 						if (fullSweep) {
@@ -100,7 +100,7 @@ namespace Deveel.Data {
 					} // if not roots locked and not transactions pending
 
 				} // lock
-			} catch (IOException e) {
+			} catch (IOException) {
 				// TODO: Log the error to the system
 			}
 		}

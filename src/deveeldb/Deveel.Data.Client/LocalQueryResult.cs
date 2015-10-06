@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 
 using Deveel.Data.Client;
 using Deveel.Data.Sql.Objects;
@@ -26,11 +25,11 @@ namespace Deveel.Data.Protocol {
 	class LocalQueryResult : IDisposable {
 		private DeveelDbConnection connection;
 
-		private static int uniqueIdKey = 1;
+		// private static int uniqueIdKey = 1;
 
-		private int uniqueId;
+		// private int uniqueId;
 		private QueryResultColumn[] columns;
-		private int queryTimeMs;
+		// private int queryTimeMs;
 		private int resultRowCount;
 
 		private int maxRowCount = Int32.MaxValue;

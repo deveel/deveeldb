@@ -206,7 +206,7 @@ namespace Deveel.Data {
 
 				// Close the conglomerate.
 				TableComposite.Close();
-			} catch (DatabaseSystemException e) {
+			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception e) {
 				throw new DatabaseSystemException("An error occurred while creating the database.", e);
@@ -270,7 +270,7 @@ namespace Deveel.Data {
 					// Otherwise close the conglomerate.
 					TableComposite.Close();
 				}
-			} catch (DatabaseSystemException e) {
+			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception e) {
 				throw new DatabaseSystemException("An error occurred during database shutdown.", e);

@@ -70,7 +70,7 @@ namespace Deveel.Data.Index {
 						foreach (var block in IndexBlocks) {
 							block.RemoveReference();
 						}
-					} catch (Exception e) {
+					} catch (Exception) {
 					}
 				}
 

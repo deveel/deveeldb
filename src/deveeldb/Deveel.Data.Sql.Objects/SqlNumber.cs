@@ -562,6 +562,7 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlNumber(State, null);
 		}
 
+		[CLSCompliant(false)]
 		public SqlNumber SetScale(int scale, RoundingMode mode) {
 			if (State == NumericState.None)
 				return new SqlNumber(innerValue.SetScale(scale, mode));

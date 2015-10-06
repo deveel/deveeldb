@@ -25,10 +25,10 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new ArgumentNullException("valueExpression");
 
 			ValueExpression = valueExpression;
-			Reference = reference;
+			ReferenceExpression = reference;
 		}
 
-		public SqlExpression Reference { get; private set; }
+		public SqlExpression ReferenceExpression { get; private set; }
 
 		public SqlExpression ValueExpression { get; private set; }
 

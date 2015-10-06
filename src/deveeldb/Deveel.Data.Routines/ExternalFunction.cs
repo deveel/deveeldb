@@ -43,7 +43,7 @@ namespace Deveel.Data.Routines {
 				var result = method.Invoke(null, methodArgs);
 
 				return  context.Result(ConvertValue(result, ReturnType()));
-			} catch (Exception ex) {
+			} catch (Exception) {
 				throw;
 			}
 		}

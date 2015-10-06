@@ -482,7 +482,17 @@ namespace Deveel.Data {
 				// All the tables
 				var tableManager = transaction.GetTableManager();
 				var list = tableManager.GetTableNames();
-				return list.Select(tableName => tableManager.GetTableInfo(tableName)).Sum(info => info.ColumnCount);
+
+				int colCount = 0;
+				foreach (var tableName in list) {
+					var info = tableManager.GetTableInfo(tableName);
+					if (info == null)
+						throw new InvalidOperationException(String.Format("Table information not found for '{0}'.", tableName));
+
+					colCount += info.ColumnCount;
+				}
+
+				return colCount;
 			}
 
 			public override DataObject GetValue(long rowNumber, int columnOffset) {

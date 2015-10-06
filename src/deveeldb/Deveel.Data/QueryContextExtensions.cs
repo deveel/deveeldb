@@ -400,7 +400,7 @@ namespace Deveel.Data {
 
 		public static int UpdateTable(this IQueryContext context, ObjectName tableName, IQueryPlanNode queryPlan,
 			IEnumerable<SqlAssignExpression> assignments, int limit) {
-			var columnNames = assignments.Select(x => x.Reference)
+			var columnNames = assignments.Select(x => x.ReferenceExpression)
 				.Cast<SqlReferenceExpression>()
 				.Select(x => x.ReferenceName.Name).ToArray();
 
@@ -420,7 +420,9 @@ namespace Deveel.Data {
 
 		public static void InsertIntoTable(this IQueryContext context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
 			var columnNames =
-				assignments.Select(x => x.Reference).Cast<SqlReferenceExpression>().Select(x => x.ReferenceName.Name).ToArray();
+				assignments.Select(x => x.ReferenceExpression)
+					.Cast<SqlReferenceExpression>()
+					.Select(x => x.ReferenceName.Name).ToArray();
 			if (!context.UserCanInsertIntoTable(tableName, columnNames))
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Insert);
 

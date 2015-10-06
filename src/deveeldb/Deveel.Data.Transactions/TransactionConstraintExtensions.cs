@@ -831,7 +831,7 @@ namespace Deveel.Data.Transactions {
 							// Deserialize the expression
 							// TODO: expression = (SqlExpression)ObjectTranslator.Deserialize(sexp);
 							throw new NotImplementedException();
-						} catch (Exception e) {
+						} catch (Exception) {
 							// We weren't able to deserialize the expression so report the
 							// error to the log
 							// TODO:

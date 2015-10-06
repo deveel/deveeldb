@@ -125,7 +125,7 @@ namespace Deveel.Data.Protocol {
 
 				OnConnectorOpen();
 				ChangeState(ConnectorState.Open);
-			} catch (Exception ex) {
+			} catch (Exception) {
 				// TODO: Log the error...
 				throw;
 			}
@@ -139,7 +139,7 @@ namespace Deveel.Data.Protocol {
 		protected void CloseConnector() {
 			try {
 				OnCloseConnector();
-			} catch (Exception ex) {
+			} catch (Exception) {
 				// TODO: log the exception
 			} finally {
 				ChangeState(ConnectorState.Closed);
@@ -174,7 +174,7 @@ namespace Deveel.Data.Protocol {
 				ChangeState(ConnectorState.Authenticated);
 
 				return true;
-			} catch (Exception e) {
+			} catch (Exception) {
 				// TODO: throw server error
 				throw;
 			}
@@ -209,7 +209,7 @@ namespace Deveel.Data.Protocol {
 			} finally {
 				try {
 					connection.Commit();
-				} catch (TransactionException e) {
+				} catch (TransactionException) {
 					// TODO: Log the warning
 				}
 			}
@@ -268,7 +268,7 @@ namespace Deveel.Data.Protocol {
 						// This is executed no matter what happens.  Very important we
 						// unlock the tables.
 						context.Session.ReleaseLocks();
-					} catch (Exception e) {
+					} catch (Exception) {
 						// TODO: Log errors ...
 					}
 				}
@@ -292,7 +292,7 @@ namespace Deveel.Data.Protocol {
 							try {
 								// Otherwise commit.
 								QueryContext.Session.Commit();
-							} catch (Exception e) {
+							} catch (Exception) {
 								foreach (IQueryResponse queryResponse in response) {
 									// Dispose this response if the commit failed.
 									DisposeResult(queryResponse.ResultId);
@@ -335,7 +335,7 @@ namespace Deveel.Data.Protocol {
 				try {
 					queryResult = new QueryResult(query, result);
 					resultId = AddResult(queryResult);
-				} catch (Exception e) {
+				} catch (Exception) {
 					if (resultId != -1)
 						DisposeResult(resultId);
 
@@ -484,7 +484,7 @@ namespace Deveel.Data.Protocol {
 					block.AddRow(new QueryResultRow(row, sizes));
 				}
 				return block;
-			} catch (Exception e) {
+			} catch (Exception) {
 				// TODO: Log a warning ...
 				throw;
 			}

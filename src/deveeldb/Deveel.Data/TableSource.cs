@@ -211,7 +211,7 @@ namespace Deveel.Data {
 						} finally {
 							Store.UnlockForWrite();
 						}
-					} catch (Exception e) {
+					} catch (Exception) {
 						// TODO: Register the error to the logs 
 					}
 

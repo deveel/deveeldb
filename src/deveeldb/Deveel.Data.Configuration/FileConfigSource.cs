@@ -58,7 +58,7 @@ namespace Deveel.Data.Configuration {
 				try {
 					return new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);
 				} catch (Exception ex) {
-					throw new DatabaseConfigurationException(String.Format("Cannot open a write stream to file '{0}'", FilePath));
+					throw new DatabaseConfigurationException(String.Format("Cannot open a write stream to file '{0}'", FilePath), ex);
 				}
 			}
 		}

@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
-			Visit(assign.Reference);
+			Visit(assign.ReferenceExpression);
 			builder.Append(" = ");
 			Visit(assign.ValueExpression);
 

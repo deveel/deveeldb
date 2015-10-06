@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
-			var reference = assign.Reference;
+			var reference = assign.ReferenceExpression;
 			if (reference != null)
 				reference = reference.Prepare(preparer);
 

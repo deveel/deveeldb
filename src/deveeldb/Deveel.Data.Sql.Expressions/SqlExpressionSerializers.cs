@@ -172,7 +172,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		class SqlAssignExpressionSerializer : SqlExpressionSerializer<SqlAssignExpression> {
 			public override void Serialize(SqlAssignExpression expression, BinaryWriter writer) {
-				SqlExpressionSerializers.Serialize(expression.Reference, writer);
+				SqlExpressionSerializers.Serialize(expression.ReferenceExpression, writer);
 				SqlExpressionSerializers.Serialize(expression.ValueExpression, writer);
 			}
 

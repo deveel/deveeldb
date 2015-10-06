@@ -32,7 +32,7 @@ namespace Deveel.Data.Index {
 
 		private IndexBlock[] indexBlocks;
 
-		private bool disposed;
+		// private bool disposed;
 
 		private const int Magic = 0x0CA90291;
 
@@ -52,7 +52,7 @@ namespace Deveel.Data.Index {
 							Store.DeleteArea(id);
 						}
 
-					} catch (IOException e) {
+					} catch (IOException) {
 						// TODO: Raise the error to the system
 					} finally {
 						Store.UnlockForWrite();

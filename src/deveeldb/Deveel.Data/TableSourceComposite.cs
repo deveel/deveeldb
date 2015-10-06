@@ -656,7 +656,7 @@ namespace Deveel.Data {
 			if (lastTransaction) {
 				try {
 					CleanUp();
-				} catch (IOException e) {
+				} catch (IOException) {
 					// TODO: Register the error ...
 				}
 			}

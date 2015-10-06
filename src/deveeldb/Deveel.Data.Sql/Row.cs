@@ -492,7 +492,7 @@ namespace Deveel.Data.Sql {
 			var value = ((SqlConstantExpression) evalExp).Value;
 
 			// Check the column name is within this row.
-			var variable = ((SqlReferenceExpression) assignExpression.Reference).ReferenceName;
+			var variable = ((SqlReferenceExpression) assignExpression.ReferenceExpression).ReferenceName;
 			int column = Table.FindColumn(variable);
 
 			SetValue(column, value);

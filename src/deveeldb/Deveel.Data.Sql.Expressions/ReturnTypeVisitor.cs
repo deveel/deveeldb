@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
-			sqlType = expression.Reference.ReturnType;
+			sqlType = expression.QueryReference.ReturnType;
 			return expression;
 		}
 

@@ -73,6 +73,11 @@ namespace Deveel.Data {
 			                     "       FROM INFORMATION_SCHEMA.ThisUserGrant " +
 			                     "      WHERE \"object\" = " + ((int)DbObjectType.Schema) +
 			                     "        AND \"description\" = '" + Privileges.List + "' )");
+
+			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserTableColumns AS " +
+			                     "  SELECT * FROM " + SystemSchema.TableColumnsTableName +
+			                     "   WHERE \"schema\" IN ( " +
+			                     "     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )");
 		}
 	}
 }

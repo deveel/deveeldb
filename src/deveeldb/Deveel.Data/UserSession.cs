@@ -159,7 +159,7 @@ namespace Deveel.Data {
 				if (disposing) {
 					try {
 						Rollback();
-					} catch (Exception e) {
+					} catch (Exception) {
 						// TODO: Notify the underlying system
 					}
 				}

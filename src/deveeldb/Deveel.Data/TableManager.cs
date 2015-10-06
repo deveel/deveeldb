@@ -86,7 +86,7 @@ namespace Deveel.Data {
 				foreach (var tableIndex in tableIndices) {
 					tableIndex.Dispose();
 				}
-			} catch (Exception e) {
+			} catch (Exception) {
 				// TODO: Report the error ...
 			}
 
@@ -99,7 +99,7 @@ namespace Deveel.Data {
 						indexSet.Dispose();
 					}
 				}
-			} catch (Exception e) {
+			} catch (Exception) {
 				// TODO: Report the error
 			} finally {
 				cleanupQueue = null;
@@ -113,7 +113,7 @@ namespace Deveel.Data {
 				}
 
 				accessedTables.Clear();
-			} catch (Exception ex) {
+			} catch (Exception) {
 				// TODO: Report the error
 			} finally {
 				accessedTables = null;

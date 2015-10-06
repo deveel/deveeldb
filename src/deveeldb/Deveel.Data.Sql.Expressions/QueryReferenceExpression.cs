@@ -21,10 +21,10 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.Sql.Expressions {
 	class QueryReferenceExpression : SqlExpression {
 		public QueryReferenceExpression(QueryReference reference) {
-			Reference = reference;
+			QueryReference = reference;
 		}
 
-		public QueryReference Reference { get; private set; }
+		public QueryReference QueryReference { get; private set; }
 
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Reference; }

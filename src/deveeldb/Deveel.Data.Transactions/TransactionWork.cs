@@ -530,7 +530,7 @@ namespace Deveel.Data.Transactions {
 						// Always ensure a transaction close, even if we have an exception.
 						// Notify the Composite that this transaction has closed.
 						Composite.CloseTransaction(Transaction);
-					} catch (Exception e) {
+					} catch (Exception) {
 						// TODO: notify the error
 					} finally {
 						Done = true;
