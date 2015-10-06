@@ -50,13 +50,18 @@ namespace Deveel.Data.Types {
 				           type is DateType ||
 				           type is NullType) {
 					// nothing to add to the SQL Type Code
-				} else if (type is UserType) {
-					var userType = (UserType) type;
-					writer.Write((byte)1);		// The code of custom type
-					writer.Write(userType.FullName.FullName);
 				} else {
 					throw new NotSupportedException(String.Format("The data type '{0}' cannot be serialized.", type.GetType().FullName));
 				}
+			} else if (type is UserType) {
+				var userType = (UserType) type;
+				writer.Write((byte) 1); // The code of custom type
+				writer.Write(userType.FullName.FullName);
+			} else if (type is QueryType) {
+				// nothing to do for the Query Type here
+			} else if (type is ArrayType) {
+				var arrayType = (ArrayType) type;
+				writer.Write(arrayType.Length);
 			} else {
 				throw new NotSupportedException();
 			}
@@ -106,6 +111,14 @@ namespace Deveel.Data.Types {
 
 			if (typeCode == SqlTypeCode.Type) {
 				// TODO:
+			}
+
+			if (typeCode == SqlTypeCode.QueryPlan)
+				return new QueryType();
+
+			if (typeCode == SqlTypeCode.Array) {
+				var size = reader.ReadInt32();
+				return new ArrayType(size);
 			}
 
 			throw new NotSupportedException();			

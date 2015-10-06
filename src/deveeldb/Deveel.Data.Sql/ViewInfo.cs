@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
@@ -54,7 +55,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
-			TableInfo.SerializeTo(viewInfo.TableInfo, writer.BaseStream);
+			TableInfo.Serialize(viewInfo.TableInfo, writer);
 			SqlExpression.Serialize(viewInfo.QueryExpression, writer);
 
 			var queryPlanType = viewInfo.QueryPlan.GetType();
@@ -81,6 +82,18 @@ namespace Deveel.Data.Sql {
 			var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
 
 			return new ViewInfo(tableInfo, queryExpression, queryPlan);
+		}
+
+		public SqlBinary AsBinary() {
+			using (var stream = new MemoryStream()) {
+				using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
+					Serialize(this, writer);
+					writer.Flush();
+				}
+
+				var data = stream.ToArray();
+				return new SqlBinary(data);
+			}
 		}
 	}
 }

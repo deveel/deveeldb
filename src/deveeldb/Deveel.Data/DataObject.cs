@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -436,7 +437,21 @@ namespace Deveel.Data {
 
 			var widerType = Type.Wider(other.Type);
 			var result = widerType.XOr(Value, other.Value);
-			return new DataObject(widerType, result);			
+			return new DataObject(widerType, result);
+		}
+
+		public DataObject Any(SqlExpressionType type, DataObject other, EvaluateContext context) {
+			if (IsNull)
+				return this;
+
+			return GroupOperatorHelper.EvaluateAny(type, this, other, context);
+		}
+
+		public DataObject All(SqlExpressionType type, DataObject other, EvaluateContext context) {
+			if (IsNull)
+				return this;
+
+			return GroupOperatorHelper.EvaluateAll(type, this, other, context);
 		}
 
 		public DataObject Reverse() {

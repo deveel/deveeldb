@@ -54,6 +54,18 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.SmallerOrEqualThan:
 				case SqlExpressionType.Is:
 				case SqlExpressionType.IsNot:
+				case SqlExpressionType.AllEqual:
+				case SqlExpressionType.AllNotEqual:
+				case SqlExpressionType.AllGreaterThan:
+				case SqlExpressionType.AllSmallerThan:
+				case SqlExpressionType.AllGreaterOrEqualThan:
+				case SqlExpressionType.AllSmallerOrEqualThan:
+				case SqlExpressionType.AnyEqual:
+				case SqlExpressionType.AnyNotEqual:
+				case SqlExpressionType.AnyGreaterThan:
+				case SqlExpressionType.AnySmallerThan:
+				case SqlExpressionType.AnyGreaterOrEqualThan:
+				case SqlExpressionType.AnySmallerOrEqualThan:
 					return VisitBinary((SqlBinaryExpression) expression);
 				case SqlExpressionType.Negate:
 				case SqlExpressionType.Not:

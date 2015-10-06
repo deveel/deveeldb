@@ -8,8 +8,6 @@ namespace Deveel.Data {
 	[TestFixture]
 	[DotMemoryUnit(CollectAllocations = true)]
 	public abstract class ContextBasedTest {
-		private IUserSession session;
-
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
@@ -31,16 +29,14 @@ namespace Deveel.Data {
 		}
 
 		protected virtual IQueryContext CreateQueryContext(IDatabase database) {
-			session = database.CreateUserSession(AdminUserName, AdminPassword);
-			return new SessionQueryContext(session);
+			return database.CreateQueryContext(AdminUserName, AdminPassword);
 		}
 
 		protected IQueryContext CreateUserQueryContext(string userName, string password) {
-			var userSession = Database.CreateUserSession(userName, password);
-			return new SessionQueryContext(userSession);
+			return Database.CreateQueryContext(userName, password);
 		}
 
-		protected virtual void OnSetUp() {
+		protected virtual void OnSetUp(string testName) {
 			
 		}
 
@@ -63,7 +59,8 @@ namespace Deveel.Data {
 			Database = CreateDatabase(DatabaseContext);
 			QueryContext = CreateQueryContext(Database);
 
-			OnSetUp();
+			var testName = TestContext.CurrentContext.Test.Name;
+			OnSetUp(testName);
 		}
 
 		[TearDown]
@@ -73,9 +70,6 @@ namespace Deveel.Data {
 			if (QueryContext != null)
 				QueryContext.Dispose();
 			
-			if (session != null)
-				session.Dispose();
-
 			if (Database != null)
 				Database.Dispose();
 
@@ -89,7 +83,6 @@ namespace Deveel.Data {
 			DatabaseContext = null;
 			SystemContext = null;
 			QueryContext = null;
-			session = null;
 		}
 	}
 }

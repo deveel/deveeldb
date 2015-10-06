@@ -119,7 +119,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\InsertIntoStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatementTests.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateUserTests.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
     <Compile Include="Deveel.Data.Sql\MutableTableTests.cs" />

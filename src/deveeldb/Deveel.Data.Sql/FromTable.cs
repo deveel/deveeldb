@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -100,6 +101,64 @@ namespace Deveel.Data.Sql {
 				subQuery = (SqlQueryExpression) subQuery.Prepare(preparer);
 
 			return new FromTable(Name, subQuery, Alias);
+		}
+
+		public static void Serialize(FromTable table, BinaryWriter writer) {
+			if (table.IsSubQuery) {
+				writer.Write((byte) 2);
+				SqlExpression.Serialize(table.SubQuery, writer);
+			} else {
+				writer.Write((byte)1);
+				writer.Write(table.Name);
+			}
+
+			bool hasAlias = !String.IsNullOrEmpty(table.Alias);
+			if (hasAlias) {
+				writer.Write((byte) 1);
+				writer.Write(table.Alias);
+			} else {
+				writer.Write((byte)0);
+			}
+
+			bool hasUniqueKey = !String.IsNullOrEmpty(table.UniqueKey);
+			if (hasUniqueKey) {
+				writer.Write((byte) 1);
+				writer.Write(table.UniqueKey);
+			} else {
+				writer.Write((byte)0);
+			}
+		}
+
+		public static FromTable Deserialize(BinaryReader reader) {
+			string name = null;
+			SqlQueryExpression query = null;
+
+			var type = reader.ReadByte();
+			if (type == 1) {
+				name = reader.ReadString();
+			} else if (type == 2) {
+				query = (SqlQueryExpression) SqlExpression.Deserialize(reader);
+			} else {
+				throw new FormatException();
+			}
+
+			string alias = null;
+			var hasAlias = reader.ReadByte() == 1;
+			if (hasAlias)
+				alias = reader.ReadString();
+
+			FromTable table;
+			if (type == 1) {
+				table = new FromTable(name, alias);
+			} else {
+				table = new FromTable(query, alias);
+			}
+
+			var hasUniqueKey = reader.ReadByte() == 1;
+			if (hasUniqueKey)
+				table.UniqueKey = reader.ReadString();
+
+			return table;
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Statements {
 			return StatementExecutor.Execute(context, query);
 		}
 
-		public static ITable[] ExecuteQuery(this IQueryContext context, string sqlSource, IEnumerable<QueryParameter> parameters) {
+		public static ITable[] ExecuteQuery(this IQueryContext context, string sqlSource, params QueryParameter[] parameters) {
 			var query = new SqlQuery(sqlSource);
 			if (parameters != null) {
 				foreach (var parameter in parameters) {
@@ -36,15 +36,6 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			return context.ExecuteQuery(query);
-		}
-
-		public static ITable[] ExecuteQuery(this IQueryContext context, string sqlSource, params QueryParameter[] parameters) {
-			IEnumerable<QueryParameter> paramList = null;
-			if (parameters != null) {
-				paramList = parameters.AsEnumerable();
-			}
-
-			return context.ExecuteQuery(sqlSource, paramList);
 		}
 
 		public static ITable[] ExecuteQuery(this IQueryContext context, string sqlSource) {
@@ -67,8 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 			return context.ExecuteCreateView(viewName, columnNames, (SqlQueryExpression) expression);
 		}
 
-		public static ITable ExecuteCreateView(this IQueryContext context, string viewName,
-			SqlQueryExpression queryExpression) {
+		public static ITable ExecuteCreateView(this IQueryContext context, string viewName, SqlQueryExpression queryExpression) {
 			return ExecuteCreateView(context, viewName, new string[0], queryExpression);
 		}
 

@@ -16,8 +16,10 @@
 
 using System;
 using System.IO;
+using System.Text;
 
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Types {
 	public sealed class QueryType : SqlType {
@@ -34,11 +36,33 @@ namespace Deveel.Data.Types {
 		}
 
 		public override ISqlObject DeserializeObject(Stream stream) {
-			return base.DeserializeObject(stream);
+			var reader = new BinaryReader(stream, Encoding.Unicode);
+			var isNull = reader.ReadByte() == 0;
+			if (isNull)
+				return SqlQueryObject.Null;
+
+			var nodeTypeString = reader.ReadString();
+			var nodeType = Type.GetType(nodeTypeString, true);
+			var queryPlan = QueryPlanSerializers.Deserialize(nodeType, reader);
+
+			return new SqlQueryObject(queryPlan);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
-			base.SerializeObject(stream, obj);
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+
+			var queryPlanObj = (SqlQueryObject) obj;
+			if (queryPlanObj.IsNull) {
+				writer.Write((byte) 0);
+			} else {
+				writer.Write((byte)1);
+				var nodeTypeString = queryPlanObj.QueryPlan.GetType().AssemblyQualifiedName;
+				if (String.IsNullOrEmpty(nodeTypeString))
+					throw new InvalidOperationException();
+
+				writer.Write(nodeTypeString);
+				QueryPlanSerializers.Serialize(queryPlanObj.QueryPlan, writer);
+			}
 		}
 	}
 }

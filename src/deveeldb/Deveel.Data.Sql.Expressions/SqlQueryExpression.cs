@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
 
-		public FromClause FromClause { get; internal set; }
+		public FromClause FromClause { get; set; }
 
 		public SqlExpression WhereExpression { get; set; }
 

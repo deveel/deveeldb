@@ -15,7 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.Serialization;
 
@@ -245,11 +247,90 @@ namespace Deveel.Data.Sql.Expressions {
 
 		class SqlQueryExpressionSerializer : SqlExpressionSerializer<SqlQueryExpression> {
 			public override void Serialize(SqlQueryExpression expression, BinaryWriter writer) {
-				throw new NotImplementedException();
+				SerializeSelectColumns(expression.SelectColumns, writer);
+				
+				writer.Write(expression.Distinct ? (byte)1 : (byte)0);
+
+				if (expression.FromClause != null) {
+					writer.Write((byte) 1);
+					FromClause.Serialize(expression.FromClause, writer);
+				} else {
+					writer.Write((byte)0);
+				}
+
+				if (expression.WhereExpression != null) {
+					writer.Write((byte) 1);
+					SqlExpression.Serialize(expression.WhereExpression, writer);
+				} else {
+					writer.Write((byte)0);
+				}
+
+				if (expression.GroupBy != null) {
+					throw new NotImplementedException();
+				}
+
+				if (expression.GroupMax != null) {
+					writer.Write((byte) 1);
+					ObjectName.Serialize(expression.GroupMax, writer);
+				} else {
+					writer.Write((byte)0);
+				}
+
+				if (expression.HavingExpression != null) {
+					writer.Write((byte) 1);
+					SqlExpression.Serialize(expression.HavingExpression, writer);
+				} else {
+					writer.Write((byte)0);
+				}
+
+				// TODO: Composites!!
+			}
+
+			private void SerializeSelectColumns(IEnumerable<SelectColumn> selectColumns, BinaryWriter writer) {
+				var list = selectColumns == null ? new List<SelectColumn>() : selectColumns.ToList();
+				writer.Write(list.Count);
+				for (int i = 0; i < list.Count; i++) {
+					var column = list[i];
+					SelectColumn.Serialize(column, writer);
+				}
 			}
 
 			public override SqlQueryExpression Deserialize(BinaryReader reader) {
-				throw new NotImplementedException();
+				var selectColumns = DeserializeSelectColumns(reader);
+
+				var queryExp = new SqlQueryExpression(selectColumns);
+
+				var isDistinct = reader.ReadByte() == 1;
+				queryExp.Distinct = isDistinct;
+
+				var hasFrom = reader.ReadByte() == 1;
+				if (hasFrom) {
+					queryExp.FromClause = FromClause.Deserialize(reader);
+				}
+
+				var hasWhere = reader.ReadByte() == 1;
+				if (hasWhere)
+					queryExp.WhereExpression = SqlExpression.Deserialize(reader);
+
+				var hasGroupMax = reader.ReadByte() == 1;
+				if (hasGroupMax)
+					queryExp.GroupMax = ObjectName.Deserialize(reader);
+
+				var hasHaving = reader.ReadByte() == 1;
+				if (hasHaving)
+					queryExp.HavingExpression = SqlExpression.Deserialize(reader);
+
+				return queryExp;
+			}
+
+			private IEnumerable<SelectColumn> DeserializeSelectColumns(BinaryReader reader) {
+				var count = reader.ReadInt32();
+				var columns = new SelectColumn[count];
+				for (int i = 0; i < count; i++) {
+					columns[i] = SelectColumn.Deserialize(reader);
+				}
+
+				return columns;
 			}
 		}
 

@@ -1,19 +1,24 @@
 ﻿using System;
 
-using Deveel.Data;
+using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
-		protected override void OnSetUp() {
-			var currentTest = TestContext.CurrentContext.Test;
-			if (currentTest.Name != "CreateUser") {
-				QueryContext.CreateUser("tester", "123456789");
+		protected override IDatabase CreateDatabase(IDatabaseContext context) {
+			var database = base.CreateDatabase(context);
+
+			var testName = TestContext.CurrentContext.Test.Name;
+			if (testName != "CreateUser") {
+				using (var queryContext = database.CreateQueryContext(AdminUserName, AdminPassword)) {
+					queryContext.CreateUser("tester", "123456789");
+					queryContext.Commit();
+				}
 			}
 
-			base.OnSetUp();
+			return database;
 		}
 
 		[Test]
@@ -27,6 +32,23 @@ namespace Deveel.Data.Security {
 			bool exists = false;
 			Assert.DoesNotThrow(() => exists = QueryContext.UserExists("tester"));
 			Assert.IsTrue(exists);
+		}
+
+		[Test]
+		public void Authenticate_Success() {
+			User user = null;
+
+			Assert.DoesNotThrow(() => user = Database.Authenticate("tester", "123456789"));
+			Assert.IsNotNull(user);
+			Assert.AreEqual("tester", user.Name);
+		}
+
+		[Test]
+		public void Authenticate_Fail() {
+			User user = null;
+
+			Assert.Throws<SecurityException>(() => user = Database.Authenticate("test2", "12545587"));
+			Assert.IsNull(user);
 		}
 
 		[Test]
@@ -66,12 +88,17 @@ namespace Deveel.Data.Security {
 			Assert.IsNotNull(userGroups);
 			Assert.Contains("test_group", userGroups);
 			Assert.Contains(SystemGroupNames.UserManagerGroup, userGroups);
+
+			Assert.IsTrue(QueryContext.UserBelongsToGroup("tester", "test_group"));
 		}
 
 		[Test]
 		public void LockUser() {
 			Assert.DoesNotThrow(() => QueryContext.SetUserStatus("tester", UserStatus.Locked));
 
+			UserStatus status = new UserStatus();
+			Assert.DoesNotThrow(() => status = QueryContext.GetUserStatus("tester"));
+			Assert.AreEqual(UserStatus.Locked, status);
 		}
 	}
 }

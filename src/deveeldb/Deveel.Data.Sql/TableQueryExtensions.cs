@@ -744,6 +744,11 @@ namespace Deveel.Data.Sql {
 
 		#region Sub-Query
 
+		public static bool AllRowsMatchColumnValue(this ITable table, int columnOffset, SqlExpressionType op, DataObject value) {
+			var rows = table.SelectRows(columnOffset, op, value);
+			return rows.Count() == table.RowCount;
+		}
+
 		public static ITable SelectAnyAllNonCorrelated(this ITable table, ObjectName[] leftColumns, SqlExpressionType op, ITable rightTable) {
 			if (rightTable.TableInfo.ColumnCount != leftColumns.Length) {
 				throw new ArgumentException(String.Format("The right table has {0} columns that is different from the specified column names ({1})",

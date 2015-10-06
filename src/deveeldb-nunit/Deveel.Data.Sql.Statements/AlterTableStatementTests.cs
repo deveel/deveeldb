@@ -15,7 +15,7 @@ namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	[DotMemoryUnit(CollectAllocations = true)]
 	public class AlterTableStatementTests : ContextBasedTest {
-		protected override void OnSetUp() {
+		protected override void OnSetUp(string testName) {
 			CreateTestTable();
 		}
 

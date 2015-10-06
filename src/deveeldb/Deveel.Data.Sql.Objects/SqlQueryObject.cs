@@ -20,6 +20,8 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlQueryObject : ISqlObject {
+		public static readonly SqlQueryObject Null = new SqlQueryObject(null);
+
 		public SqlQueryObject(IQueryPlanNode queryPlan) {
 			QueryPlan = queryPlan;
 		}

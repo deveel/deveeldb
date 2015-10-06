@@ -138,6 +138,7 @@
     <Compile Include="Deveel.Data\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
+    <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
     <Compile Include="Deveel.Data\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\InformationSchema.cs" />
@@ -466,7 +467,6 @@
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectItemWithExpressionConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectListConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Query\EquiJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\GroupNode.cs" />
@@ -856,7 +856,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Types\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Types\TypeResolveContext.cs" />
     <Compile Include="Deveel.Data.Types\TypeResolver.cs" />
     <Compile Include="Deveel.Data.Types\TypeSerializer.cs" />

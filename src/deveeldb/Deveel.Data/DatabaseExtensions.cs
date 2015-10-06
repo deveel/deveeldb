@@ -27,6 +27,8 @@ namespace Deveel.Data {
 			return database.DatabaseContext.DatabaseName();
 		}
 
+		#region Transactions
+
 		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {
 			if (!database.IsOpen)
 				throw new InvalidOperationException(String.Format("Database '{0}' is not open.", database.Name()));
@@ -41,6 +43,10 @@ namespace Deveel.Data {
 		internal static ITransaction CreateSafeTransaction(this IDatabase database, IsolationLevel isolation) {
 			return database.TransactionFactory.CreateTransaction(isolation);
 		}
+
+		#endregion
+
+		#region Sessions
 
 		public static IUserSession CreateUserSession(this IDatabase database, SessionInfo sessionInfo) {
 			if (sessionInfo == null)
@@ -77,7 +83,7 @@ namespace Deveel.Data {
 			return database.CreateUserSession(new SessionInfo(user));
 		}
 
-		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
+		private static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
 			var user = database.Authenticate(userName, password);
 			if (user == null)
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
@@ -100,6 +106,17 @@ namespace Deveel.Data {
 
 			return new UserSession(database, transaction, sessionInfo);
 		}
+
+		#endregion
+
+		#region Query Contest
+
+		public static IQueryContext CreateQueryContext(this IDatabase database, string userName, string password) {
+			var session = database.CreateUserSession(userName, password);
+			return new SessionQueryContext(session);
+		}
+
+		#endregion
 
 		#region Security
 

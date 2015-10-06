@@ -162,7 +162,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
 			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				TableInfo.SerializeTo(obj.TableInfo, writer.BaseStream);
+				TableInfo.Serialize(obj.TableInfo, writer);
 				writer.Write(obj.Temporary);
 				writer.Write(obj.IfNotExists);
 			}

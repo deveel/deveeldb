@@ -282,6 +282,11 @@ namespace Deveel.Data.Sql.Parser {
 			if (String.Equals(op, "OR", StringComparison.OrdinalIgnoreCase))
 				return SqlExpressionType.Or;
 
+			if (String.Equals(op, "IN", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.AnyEqual;
+			if (String.Equals(op, "NOT IN", StringComparison.OrdinalIgnoreCase))
+				return SqlExpressionType.AllNotEqual;
+
 			throw new ArgumentException(String.Format("The operator {0} is not a binary one.", op));
 		}
 

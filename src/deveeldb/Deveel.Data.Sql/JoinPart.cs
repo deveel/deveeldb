@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -42,8 +43,46 @@ namespace Deveel.Data.Sql {
 
 		public ObjectName TableName { get; private set; }
 
-		public SqlQueryExpression SubQuery { get; private set; } 
+		public SqlQueryExpression SubQuery { get; private set; }
 
 		public SqlExpression OnExpression { get; private set; }
+
+		public static void Serialize(JoinPart joinPart, BinaryWriter writer) {
+			writer.Write((byte)joinPart.JoinType);
+
+			if (joinPart.SubQuery != null) {
+				writer.Write((byte)2);
+				SqlExpression.Serialize(joinPart.SubQuery, writer);
+			} else {
+				writer.Write((byte)1);
+				ObjectName.Serialize(joinPart.TableName, writer);
+			}
+
+			SqlExpression.Serialize(joinPart.OnExpression, writer);
+		}
+
+		public static JoinPart Deserialize(BinaryReader reader) {
+			var joinType = (JoinType) reader.ReadByte();
+
+			var joinSourceType = reader.ReadByte();
+
+			SqlQueryExpression subQuery = null;
+			ObjectName tableName = null;
+
+			if (joinSourceType == 1) {
+				tableName = ObjectName.Deserialize(reader);
+			} else if (joinSourceType == 2) {
+				subQuery = (SqlQueryExpression) SqlExpression.Deserialize(reader);
+			} else {
+				throw new FormatException();
+			}
+
+			var onExpression = SqlExpression.Deserialize(reader);
+
+			if (joinSourceType == 1)
+				return new JoinPart(joinType, tableName, onExpression);
+
+			return new JoinPart(joinType, subQuery, onExpression);
+		}
 	}
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Deveel.Data;
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Types;
@@ -33,20 +32,15 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
-				using (var context = new SessionQueryContext(session)) {
-					Assert.DoesNotThrow(() => context.CreateTable(tableInfo));
-				}
-
-				Assert.DoesNotThrow(() => session.Commit());
+			using (var context = Database.CreateQueryContext(AdminUserName, AdminPassword)) {
+				Assert.DoesNotThrow(() => context.CreateTable(tableInfo));
+				Assert.DoesNotThrow(() => context.Commit());
 			}
 
-			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
-				using (var context = new SessionQueryContext(session)) {
-					bool exists = false;
-					Assert.DoesNotThrow(() => exists = context.TableExists(tableName));
-					Assert.IsTrue(exists);
-				}
+			using (var context = Database.CreateQueryContext(AdminUserName, AdminPassword)) {
+				bool exists = false;
+				Assert.DoesNotThrow(() => exists = context.TableExists(tableName));
+				Assert.IsTrue(exists);
 			}
 		}
 

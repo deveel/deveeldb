@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql.Parser {
 				}
 			}
 
-			Operator = sb.ToString();
+			Operator = sb.ToString().Trim();
 		}
 
 		private void GetAnyAllOp(ISqlNode node) {

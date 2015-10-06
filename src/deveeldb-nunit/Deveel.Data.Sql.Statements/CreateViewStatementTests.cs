@@ -13,16 +13,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override IQueryContext CreateQueryContext(IDatabase database) {
 			// We first create the table in another context...
-			using (var session = database.CreateUserSession(AdminUserName, AdminPassword)) {
-				using (var context = new SessionQueryContext(session)) {
-					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-					tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
+			using (var context = database.CreateQueryContext(AdminUserName, AdminPassword)) {
+				var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+				tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+				tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-					context.CreateTable(tableInfo, false, false);
-				}
-
-				session.Commit();
+				context.CreateTable(tableInfo, false, false);
+				context.Commit();
 			}
 
 			return base.CreateQueryContext(database);

@@ -74,6 +74,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private DataObject EvaluateBinary(DataObject left, SqlExpressionType binaryType, DataObject right) {
+			if (binaryType.IsAll())
+				return left.Any(binaryType.SubQueryPlainType(), right, context);
+			if (binaryType.IsAny())
+				return left.All(binaryType.SubQueryPlainType(), right, context);
+
 			switch (binaryType) {
 				case SqlExpressionType.Add:
 					return left.Add(right);
@@ -136,34 +141,34 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Constant(casted);
 		}
 
-		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-			var value = constant.Value;
-			if (value.IsNull)
-				return constant;
+		//public override SqlExpression VisitConstant(SqlConstantExpression constant) {
+		//	var value = constant.Value;
+		//	if (value.IsNull)
+		//		return constant;
 
-			var obj = value.Value;
-			if (obj is SqlQueryObject) {
-				return EvaluateQueryPlan((SqlQueryObject) obj);
-			}
+		//	var obj = value.Value;
+		//	if (obj is SqlQueryObject) {
+		//		return EvaluateQueryPlan((SqlQueryObject) obj);
+		//	}
 
-			return base.VisitConstant(constant);
-		}
+		//	return base.VisitConstant(constant);
+		//}
 
-		private SqlConstantExpression EvaluateQueryPlan(SqlQueryObject obj) {
-			if (context.QueryContext == null)
-				throw new ExpressionEvaluateException("A query context is required to evaluate a query.");
+		//private SqlConstantExpression EvaluateQueryPlan(SqlQueryObject obj) {
+		//	if (context.QueryContext == null)
+		//		throw new ExpressionEvaluateException("A query context is required to evaluate a query.");
 
-			try {
-				var plan = obj.QueryPlan;
-				var result = plan.Evaluate(context.QueryContext);
+		//	try {
+		//		var plan = obj.QueryPlan;
+		//		var result = plan.Evaluate(context.QueryContext);
 
-				return SqlExpression.Constant(new DataObject(new TabularType(), SqlTabular.From(result)));
-			} catch (ExpressionEvaluateException) {
-				throw;
-			} catch (Exception ex) {
-				throw new ExpressionEvaluateException("Could not evaluate a query.", ex);
-			}
-		}
+		//		return SqlExpression.Constant(new DataObject(new TabularType(), SqlTabular.From(result)));
+		//	} catch (ExpressionEvaluateException) {
+		//		throw;
+		//	} catch (Exception ex) {
+		//		throw new ExpressionEvaluateException("Could not evaluate a query.", ex);
+		//	}
+		//}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			try {
@@ -278,7 +283,13 @@ namespace Deveel.Data.Sql.Expressions {
 
 			if (list == null)
 				return SqlExpression.Constant(new DataObject(new ArrayType(-1), SqlArray.Null));
-				
+
+			// This is not an array, but a subquery
+			if (list.Length == 1 &&
+				list[0].ExpressionType == SqlExpressionType.Constant &&
+				((SqlConstantExpression)list[0]).Value.Type is QueryType)
+				return list[0];
+
 			return SqlExpression.Constant(new DataObject(new ArrayType(list.Length), new SqlArray(list)));
 		}
 

@@ -509,7 +509,7 @@ namespace Deveel.Data {
 			using (var stream = new MemoryStream()) {
 				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
-				TableInfo.SerializeTo(TableInfo, stream);
+				TableInfo.Serialize(TableInfo, writer);
 
 				tableInfoBuf = stream.ToArray();
 			}

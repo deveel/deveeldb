@@ -25,7 +25,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests : ContextBasedTest {
-		protected override void OnSetUp() {
+		protected override void OnSetUp(string testName) {
 			CreateTestTable();
 			AddTestData();
 		}

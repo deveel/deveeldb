@@ -25,7 +25,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class JoinTableTests : ContextBasedTest {
-		protected override void OnSetUp() {
+		protected override void OnSetUp(string testName) {
 			CreateTestTables();
 			AddTestData();
 		}
@@ -95,13 +95,10 @@ namespace Deveel.Data.Sql {
 			var constantExpression = (SqlConstantExpression) resultExpression;
 			Assert.IsInstanceOf<QueryType>(constantExpression.Value.Type);
 
-			SqlExpression tabularExpression = null;
-			Assert.DoesNotThrow(() => tabularExpression = constantExpression.Evaluate(QueryContext, null));
-			Assert.IsNotNull(tabularExpression);
-			Assert.IsInstanceOf<SqlConstantExpression>(tabularExpression);
+			var queryPlan = ((SqlQueryObject) constantExpression.Value.Value);
+			ITable result = null;
 
-			constantExpression = (SqlConstantExpression) tabularExpression;
-			var result = ((SqlTabular) constantExpression.Value.Value);
+			Assert.DoesNotThrow(() => result = queryPlan.QueryPlan.Evaluate(QueryContext));
 
 			Assert.IsNotNull(result);
 		}

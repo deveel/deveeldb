@@ -37,7 +37,6 @@ namespace Deveel.Data.Sql.Expressions {
 		XOr,
 
 		// Sub-query 
-
 		AnyEqual,
 		AnyNotEqual,
 		AnyGreaterThan,

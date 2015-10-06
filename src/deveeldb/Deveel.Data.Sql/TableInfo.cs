@@ -330,9 +330,13 @@ namespace Deveel.Data.Sql {
 			return columnNames.Select(IndexOfColumn).ToArray();
 		}
 
-		public static void SerializeTo(TableInfo tableInfo, Stream stream) {
+		public static void Serialize(TableInfo tableInfo, Stream stream) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
-			writer.Write(3);	// Version
+			Serialize(tableInfo, writer);
+		}
+
+		public static void Serialize(TableInfo tableInfo, BinaryWriter writer) {
+			writer.Write(3);    // Version
 
 			var catName = tableInfo.CatalogName;
 			if (catName == null)

@@ -22,7 +22,22 @@ using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The default implementation of a database in a system.
+	/// </summary>
+	/// <remarks>
+	/// This class implements the <see cref="IDatabase"/> contract,
+	/// that is backed by a <see cref="IDatabaseContext"/> for configurations
+	/// and services, provides functionalities for the management of data
+	/// in the relational model.
+	/// </remarks>
 	public sealed class Database : IDatabase {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Database"/> class providing
+		/// a given parent <see cref="IDatabaseContext"/>.
+		/// </summary>
+		/// <param name="context">The database context that provides the required
+		/// configurations and services to the database.</param>
 		public Database(IDatabaseContext context) {
 			DatabaseContext = context;
 
@@ -42,6 +57,12 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
+		/// <summary>
+		/// Gets the database name, as configured in the parent context.
+		/// </summary>
+		/// <value>
+		/// The database name.
+		/// </value>
 		public string Name {
 			get { return DatabaseContext.DatabaseName(); }
 		}
@@ -97,15 +118,50 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Gets a boolean value that indicates if the database was open.
+		/// </summary>
+		/// <seealso cref="Open" />
+		/// <seealso cref="Close" />
 		public bool IsOpen { get; private set; }
 
 		internal TableSourceComposite TableComposite { get; private set; }
 
+		/// <summary>
+		/// Gets a special table, unique for every database, that has a single
+		/// row and a single cell.
+		/// </summary>
 		public ITable SingleRowTable { get; private set; }
 
+		/// <summary>
+		/// Creates the database in the context given, granting the administrative
+		/// control to the user identified by the given name and password.
+		/// </summary>
+		/// <param name="adminName">The name of the administrator.</param>
+		/// <param name="adminPassword">The password used to identify the administrator.</param>
+		/// <exception cref="DatabaseSystemException">
+		/// If the database context is configured to be in read-only model, if it was not possible
+		/// to commit the initial information or if another unhanded error occurred while 
+		/// creating the database.
+		/// </exception>
+		/// <exception cref="System.ArgumentNullException">
+		/// If either one of <paramref name="adminName"/> or <paramref name="adminPassword"/>
+		/// are <c>null</c> or empty.
+		/// </exception>
+		/// <remarks>
+		/// <para>
+		/// The properties used to create the database are extracted from
+		/// the underlying context (<see cref="DatabaseContext" />).
+		/// </para>
+		/// <para>
+		/// This method does not automatically open the database: to make it accessible
+		/// a call to <see cref="Open" /> is required.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="IDatabaseContext.Configuration" />
 		public void Create(string adminName, string adminPassword) {
 			if (DatabaseContext.ReadOnly())
-				throw new DatabaseSystemException("Can not create database in Read only mode.");
+				throw new DatabaseSystemException("Cannot create database in read-only mode.");
 
 			if (String.IsNullOrEmpty(adminName))
 				throw new ArgumentNullException("adminName");
@@ -130,7 +186,7 @@ namespace Deveel.Data {
 						SystemSchema.CreateTables(context);
 
 						// Create the system views
-						// TODO: InformationSchema.CreateSystemViews(session);
+						InformationSchema.CreateViews(context);
 
 						this.CreateAdminUser(context, adminName, adminPassword);
 

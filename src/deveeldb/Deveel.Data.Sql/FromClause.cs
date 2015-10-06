@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -28,7 +29,7 @@ namespace Deveel.Data.Sql {
 	/// This handles the different types of joins.
 	/// </remarks>
 	public sealed class FromClause : IPreparable {
-		internal FromClause() {
+		public FromClause() {
 			fromTables = new List<FromTable>();
 			joinParts = new List<JoinPart>();
 			tableNames = new List<string>();
@@ -186,6 +187,48 @@ namespace Deveel.Data.Sql {
 			}
 
 			return clause;
+		}
+
+		public static void Serialize(FromClause clause, BinaryWriter writer) {
+			var tableNamesCount = clause.tableNames.Count;
+			writer.Write(tableNamesCount);
+			for (int i = 0; i < tableNamesCount; i++) {
+				writer.Write(clause.tableNames[0]);
+			}
+
+			var tableCount = clause.fromTables.Count;
+			writer.Write(tableCount);
+			for (int i = 0; i < tableCount; i++) {
+				FromTable.Serialize(clause.fromTables[i], writer);
+			}
+
+			var joinCount = clause.joinParts.Count;
+			writer.Write(joinCount);
+			for (int i = 0; i < joinCount; i++) {
+				JoinPart.Serialize(clause.joinParts[i], writer);
+			}
+		}
+
+		public static FromClause Deserialize(BinaryReader reader) {
+			var fromClause = new FromClause();
+
+			var tableNameCount = reader.ReadInt32();
+
+			for (int i = 0; i < tableNameCount; i++) {
+				fromClause.tableNames.Add(reader.ReadString());
+			}
+
+			var tableCount = reader.ReadInt32();
+			for (int i = 0; i < tableCount; i++) {
+				fromClause.fromTables.Add(FromTable.Deserialize(reader));
+			}
+
+			var joinCount = reader.ReadInt32();
+			for (int i = 0; i < joinCount; i++) {
+				fromClause.joinParts.Add(JoinPart.Deserialize(reader));
+			}
+
+			return fromClause;
 		}
 	}
 }

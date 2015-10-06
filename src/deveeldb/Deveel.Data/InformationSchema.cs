@@ -16,18 +16,63 @@
 
 using System;
 
+using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data {
 	public static class InformationSchema {
 		public const string SchemaName = "INFORMATION_SCHEMA";
 
+		public static readonly ObjectName Name = new ObjectName(SchemaName);
+
+		public static readonly ObjectName Catalogs = new ObjectName(Name, "catalogs");
+
+		public static readonly ObjectName Tables = new ObjectName(Name, "tables");
+
+		public static readonly ObjectName TablePrivileges = new ObjectName(Name, "table_privileges");
+
+		public static readonly ObjectName Schemata = new ObjectName(Name, "schemata");
+
+		public static readonly ObjectName Columns = new ObjectName(Name, "columns");
+
+		public static readonly ObjectName ColumnPrivileges = new ObjectName(Name, "column_privileges");
+
+		public static readonly ObjectName PrimaryKeys = new ObjectName(Name, "primary_keys");
+
+		public static readonly ObjectName ImportedKeys = new ObjectName(Name, "imported_keys");
+
+		public static readonly ObjectName ExportedKeys = new ObjectName(Name, "exported_keys");
+
+		public static readonly ObjectName DataTypes = new ObjectName(Name, "data_types");
+
+		public static readonly ObjectName CrossReference = new ObjectName(Name, "cross_reference");
+
+		public static readonly ObjectName UserPrivileges = new ObjectName(Name, "user_privileges");
+
+
 		public static void CreateViews(IQueryContext context) {
-			context.ExecuteCreateView("INFORMATION_SCHEMA.ThisUserSimpleGrant",
-				"  SELECT \"priv_bit\", \"object\", \"param\", \"grantee\", " +
-				"         \"grant_option\", \"granter\" " +
-				"    FROM " + SystemSchema.UserGrantsTableName +
-				"   WHERE ( grantee = user() OR grantee = '@PUBLIC' )");
+			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserSimpleGrant AS " +
+			                     "  SELECT \"priv_bit\", \"object\", \"name\", \"user\", " +
+			                     "         \"grant_option\", \"granter\" " +
+			                     "    FROM " + SystemSchema.UserGrantsTableName +
+			                     "   WHERE ( user = user() OR user = '@PUBLIC' )");
+
+			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserGrant AS " +
+			                     "  SELECT \"description\", \"object\", \"name\", \"user\", " +
+			                     "         \"grant_option\", \"granter\" " +
+			                     "    FROM " + SystemSchema.UserGrantsTableName + ", " + SystemSchema.PrivilegesTableName +
+			                     "   WHERE ( user = user() OR user = '@PUBLIC' )" +
+			                     "     AND " + SystemSchema.UserGrantsTableName + ".priv_bit = " +
+			                     SystemSchema.PrivilegesTableName + ".priv_bit");
+
+			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserSchemaInfo AS " +
+			                     "  SELECT * FROM  " + SystemSchema.SchemaInfoTableName +
+			                     "   WHERE \"name\" IN ( " +
+			                     "     SELECT \"name\" " +
+			                     "       FROM INFORMATION_SCHEMA.ThisUserGrant " +
+			                     "      WHERE \"object\" = " + ((int)DbObjectType.Schema) +
+			                     "        AND \"description\" = '" + Privileges.List + "' )");
 		}
 	}
 }

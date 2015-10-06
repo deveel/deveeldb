@@ -9,12 +9,10 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class MutableTableTests : ContextBasedTest {
-		protected override void OnSetUp() {
-			var test = TestContext.CurrentContext.Test;
-
+		protected override void OnSetUp(string testName) {
 			var table = CreateTable();
 
-			if (test.Name != "InsertInto") {
+			if (testName != "InsertInto") {
 				InsertIntoTable(table);
 			}
 		}

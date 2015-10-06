@@ -70,6 +70,13 @@ namespace Deveel.Data.Security {
 			}
 		}
 
+		public static UserStatus GetUserStatus(this IQueryContext queryContext, string userName) {
+			if (queryContext.UserBelongsToGroup(userName, SystemGroupNames.LockGroup))
+				return UserStatus.Locked;
+
+			return UserStatus.Unlocked;
+		}
+
 		public static bool UserExists(this IQueryContext context, string userName) {
 			var table = context.GetTable(SystemSchema.UserTableName);
 			var c1 = table.GetResolvedColumnName(0);

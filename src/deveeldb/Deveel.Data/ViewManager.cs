@@ -147,14 +147,14 @@ namespace Deveel.Data {
 
 			var viewName = dataTableInfo.TableName;
 			var query = viewInfo.QueryExpression;
-			var planData = viewInfo.QueryPlan.AsBinary();
+			var viewInfoData = viewInfo.AsBinary();
 
 			// Create the view record
 			var rdat = viewTable.NewRow();
 			rdat.SetValue(0, dataTableInfo.SchemaName.Name);
 			rdat.SetValue(1, dataTableInfo.Name);
 			rdat.SetValue(2, query.ToString());
-			rdat.SetValue(3, DataObject.Binary(planData));
+			rdat.SetValue(3, DataObject.Binary(viewInfoData));
 
 			// Find the entry from the view that equals this name
 			var t = FindViewEntry(viewName);
@@ -197,6 +197,7 @@ namespace Deveel.Data {
 						viewCache[row] = viewInfo;
 
 					}
+
 					return new View(viewInfo);
 				}
 

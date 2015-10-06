@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Index;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
@@ -814,8 +815,18 @@ namespace Deveel.Data {
 		#region PrivilegesTable
 
 		class PrivilegesTable : GeneratedTable {
+			private readonly IList<KeyValuePair<string, int>> privBits;
+
 			public PrivilegesTable(ITransaction transaction) 
 				: base(transaction.Database.DatabaseContext) {
+				privBits = FormPrivilegesValues();
+			}
+
+			private IList<KeyValuePair<string, int>> FormPrivilegesValues() {
+				var names = Enum.GetNames(typeof (Privileges));
+				var values = Enum.GetValues(typeof (Privileges));
+
+				return names.Select((t, i) => new KeyValuePair<string, int>(t, (int) values.GetValue(i))).ToList();
 			}
 
 			public override TableInfo TableInfo {
@@ -823,15 +834,22 @@ namespace Deveel.Data {
 			}
 
 			public override int RowCount {
-				get { throw new NotImplementedException(); }
-			}
-
-			public override ColumnIndex GetIndex(int columnOffset) {
-				return base.GetIndex(columnOffset);
+				get { return privBits.Count; }
 			}
 
 			public override DataObject GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
+				if (rowNumber < 0 || rowNumber >= privBits.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var pair = privBits[(int) rowNumber];
+				switch (columnOffset) {
+					case 0:
+						return DataObject.Integer(pair.Value);
+					case 1:
+						return DataObject.VarChar(pair.Key);
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+				}
 			}
 		}
 

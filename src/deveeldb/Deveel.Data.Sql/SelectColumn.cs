@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.IO;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -51,9 +52,6 @@ namespace Deveel.Data.Sql {
 		/// a column within a <c>SELECT</c> statement.</param>
 		public SelectColumn(SqlExpression expression)
 			: this(expression, null) {
-		}
-
-		private SelectColumn() {
 		}
 
 		/// <summary>
@@ -133,6 +131,55 @@ namespace Deveel.Data.Sql {
 		/// </returns>
 		public static SelectColumn Glob(string glob) {
 			return new SelectColumn(SqlExpression.Reference(ObjectName.Parse(glob)));
+		}
+
+		public static void Serialize(SelectColumn column, BinaryWriter writer) {
+			SqlExpression.Serialize(column.Expression, writer);
+
+			var hasAlias = !String.IsNullOrEmpty(column.Alias);
+			if (!hasAlias) {
+				writer.Write((byte)0);
+			} else {
+				writer.Write((byte)1);
+				writer.Write(column.Alias);
+			}
+			
+			bool hasInternalName = column.InternalName != null;
+			if (hasInternalName) {
+				writer.Write((byte)1);
+				ObjectName.Serialize(column.InternalName, writer);
+			} else {
+				writer.Write((byte)0);
+			}
+
+			bool hasResolvedName = column.ResolvedName != null;
+			if (hasResolvedName) {
+				writer.Write((byte) 1);
+				ObjectName.Serialize(column.ResolvedName, writer);
+			} else {
+				writer.Write((byte)0);
+			}
+		}
+
+		public static SelectColumn Deserialize(BinaryReader reader) {
+			var exp = SqlExpression.Deserialize(reader);
+			string alias = null;
+
+			var hasAlias = reader.ReadByte() == 1;
+			if (hasAlias)
+				alias = reader.ReadString();
+
+			var column = new SelectColumn(exp, alias);
+
+			var hasInternalName = reader.ReadByte() == 1;
+			if (hasInternalName)
+				column.InternalName = ObjectName.Deserialize(reader);
+
+			var hasResolvedName = reader.ReadByte() == 1;
+			if (hasResolvedName)
+				column.ResolvedName = ObjectName.Deserialize(reader);
+
+			return column;
 		}
 	}
 }
