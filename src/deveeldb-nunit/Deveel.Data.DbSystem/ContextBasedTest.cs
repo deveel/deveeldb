@@ -1,12 +1,9 @@
 ﻿using System;
 
-using JetBrains.dotMemoryUnit;
-
 using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
-	[DotMemoryUnit(CollectAllocations = true)]
 	public abstract class ContextBasedTest {
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
