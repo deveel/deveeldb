@@ -133,7 +133,6 @@
   <ItemGroup>
     <None Include="deveeldb-nunit.licenseheader" />
     <None Include="deveeldb-nunit.snk" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\deveeldb-gis\deveeldb-gis.csproj">
