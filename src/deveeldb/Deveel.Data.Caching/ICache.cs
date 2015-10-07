@@ -31,15 +31,17 @@ namespace Deveel.Data.Caching {
 	/// </remarks>
 	public interface ICache : IDisposable, IConfigurable {
 		/// <summary>
-		/// Gets an object for the given key from the underlying cache system.
+		/// Tries to get an object for the given key from the underlying cache system.
 		/// </summary>
 		/// <param name="key">The key of the object to return.</param>
+		/// <param name="value">The value corresponding to the provided key,
+		/// obtained from the underlying cache. This value can also be <c>null</c> if
+		/// it was not possible to find the key given in the cache.</param>
 		/// <returns>
-		/// Returns an <see cref="object"/> for the given <paramref name="key"/>,
-		/// or <b>null</b> if the key was not found or the object stored is
-		/// <b>null</b>.
+		/// Returns <c>true</c> if the corresponding key was found in the
+		/// underlying cache, otherwise <c>false</c>.
 		/// </returns>
-		object Get(object key);
+		bool TryGet(object key, out object value);
 
 		/// <summary>
 		/// Sets an object into the underlying caching system.

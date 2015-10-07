@@ -42,7 +42,7 @@ namespace Deveel.Data {
 #else
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
-			tableCache = new MemoryCache(512, 1024, 30);
+			tableCache = new MemoryCache();
 			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
 		}

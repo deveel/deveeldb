@@ -49,7 +49,7 @@ namespace Deveel.Data.Caching {
 					var maxSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
 					MaxCellSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
 
-					var baseCache = new MemoryCache(maxSize, 30);
+					var baseCache = new SizeLimitedCache(maxSize);
 					cache = new Cache(this, baseCache, hashSize, maxSize);
 
 					configured = true;
@@ -114,8 +114,8 @@ namespace Deveel.Data.Caching {
 			lock (this) {
 				var tableKey = rowId.TableId;
 				var row = rowId.RowNumber;
-				var obj = cache.Get(new CacheKey(tableKey, row, (short)columnIndex));
-				if (obj == null) {
+				object obj;
+				if (!cache.TryGet(new CacheKey(tableKey, row, (short)columnIndex), out obj)) { 
 					value = null;
 					return false;
 				}
@@ -152,8 +152,8 @@ namespace Deveel.Data.Caching {
 			private readonly TableCellCache tableCache;
 			private int hashSize;
 
-			public Cache(TableCellCache tableCache, ICache baseCache, int hashSize, int maxSize)
-				: base(baseCache, maxSize) {
+			public Cache(TableCellCache tableCache, ICache baseCache, int hashSize, int maxSize) 
+				: base(baseCache) {
 				this.tableCache = tableCache;
 				this.hashSize = hashSize;
 			}

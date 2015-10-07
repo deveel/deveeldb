@@ -313,7 +313,11 @@ namespace Deveel.Data {
 			if (context.TableCache == null)
 				return null;
 
-			return context.TableCache.Get(cacheKey) as ITable;
+			object obj;
+			if (!context.TableCache.TryGet(cacheKey, out obj))
+				return null;
+
+			return obj as ITable;
 		}
 
 		public static void CacheTable(this IQueryContext context, string cacheKey, ITable table) {

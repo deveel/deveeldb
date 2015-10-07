@@ -18,8 +18,7 @@ using System;
 
 namespace Deveel.Data.Caching {
 	class CacheAdapter : Cache {
-		public CacheAdapter(ICache baseCache, int maxSize)
-			: base(maxSize) {
+		public CacheAdapter(ICache baseCache) {
 			BaseCache = baseCache;
 		}
 
@@ -29,8 +28,8 @@ namespace Deveel.Data.Caching {
 			return BaseCache.Set(key, value);
 		}
 
-		protected override object GetObject(object key) {
-			return BaseCache.Get(key);
+		protected override bool TryGetObject(object key, out object value) {
+			return BaseCache.TryGet(key, out value);
 		}
 
 		protected override object RemoveObject(object key) {

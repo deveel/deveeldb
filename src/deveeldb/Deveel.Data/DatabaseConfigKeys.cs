@@ -44,7 +44,7 @@ namespace Deveel.Data {
 #if X64
 		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 1024*1024*10, typeof(int));
 #else
-		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 512 * 1024 * 10, typeof(int));
+		public static readonly ConfigKey CellCacheMaxSize = new ConfigKey(CellCacheMaxSizeKeyName, 512 * 512 * 10, typeof(int));
 #endif
 
 		public static readonly ConfigKey CellCacheMaxCellSize = new ConfigKey(CellCacheMaxCellSizeKeyName, 1024*64, typeof(int));

@@ -46,46 +46,12 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		private readonly int wipeTo;
 
-		///<summary>
-		/// Constructs the <see cref="Cache"/> with a maximum size it can grow
-		/// and a percentage of the cache that is wiped when it becomes too full.
-		///</summary>
-		///<param name="maxSize"></param>
-		///<param name="cleanPercentage"></param>
-		///<exception cref="ArgumentException">
-		/// If the given <paramref name="cleanPercentage"/> is greater or equal to 85.
-		/// </exception>
-		protected Cache(int maxSize, int cleanPercentage) {
-			if (cleanPercentage >= 85)
-				throw new ArgumentException("Can't set to wipe more than 85% of the cache during clean.");
-
-			MaxCacheSize = maxSize;
-			currentCacheSize = 0;
-			wipeTo = maxSize - ((cleanPercentage * maxSize) / 100);
+		protected Cache() {
 		}
 
-		///<summary>
-		///</summary>
-		///<param name="maxSize"></param>
-		protected Cache(int maxSize)
-			: this(maxSize, 20) {
-		}
-
-		///<summary>
-		///</summary>
-		protected Cache()
-			: this(50) {
-		}
 
 		~Cache() {
 			Dispose(false);
-		}
-
-		/// <summary>
-		/// </summary>
-		[Obsolete("Deprecated", false)]
-		protected int HashSize {
-			get { return MaxCacheSize*2 + 1; }
 		}
 
 
@@ -121,16 +87,16 @@ namespace Deveel.Data.Caching {
 		/// Notifies that the given object has been wiped from the cache by the
 		/// clean up procedure.
 		/// </summary>
-		/// <param name="ob">The node being wiped.</param>
-		protected virtual void OnWipingNode(Object ob) {
+		/// <param name="value">The node value being wiped.</param>
+		protected virtual void OnWipingNode(object value) {
 		}
 
 		/// <summary>
 		/// Notifies that the given object and key has been added to the cache.
 		/// </summary>
 		/// <param name="key"></param>
-		/// <param name="val"></param>
-		protected virtual void OnObjectAdded(object key, object val) {
+		/// <param name="value"></param>
+		protected virtual void OnObjectAdded(object key, object value) {
 			++currentCacheSize;
 		}
 
@@ -138,8 +104,8 @@ namespace Deveel.Data.Caching {
 		/// Notifies that the given object and key has been removed from the cache.
 		/// </summary>
 		/// <param name="key"></param>
-		/// <param name="val"></param>
-		protected virtual void OnObjectRemoved(Object key, Object val) {
+		/// <param name="value"></param>
+		protected virtual void OnObjectRemoved(object key, Object value) {
 			--currentCacheSize;
 		}
 
@@ -196,7 +162,7 @@ namespace Deveel.Data.Caching {
 		/// </returns>
 		protected abstract bool SetObject(object key, object value);
 
-		protected abstract object GetObject(object key);
+		protected abstract bool TryGetObject(object key, out object value);
 
 		protected abstract object RemoveObject(object key);
 
@@ -204,29 +170,21 @@ namespace Deveel.Data.Caching {
 		/// Puts an object into the cache with the given key.
 		/// </summary>
 		/// <param name="key">The key used to store the object.</param>
-		/// <param name="ob">The object to add to the cache.</param>
-		public bool Set(Object key, Object ob) {
+		/// <param name="value">The object to add to the cache.</param>
+		public bool Set(object key, object value) {
 
 			// Do we need to clean any cache elements out?
 			CheckClean();
 
-			bool newValue = SetObject(key, ob);
-			if (newValue)
-				OnObjectAdded(key, ob);
+			bool newValue = SetObject(key, value);
+			if (newValue) 
+				OnObjectAdded(key, value);
 
 			return newValue;
 		}
 
-		/// <summary>
-		/// Gets the value of the node with the given key within the cache.
-		/// </summary>
-		/// <param name="key">The key of the node to return the value of.</param>
-		/// <returns>
-		/// Returns the value of the node with the given key within the cache,
-		/// or <b>null</b> if none was found.
-		/// </returns>
-		public object Get(object key) {
-			return GetObject(key);
+		public bool TryGet(object key, out object value) {
+			return TryGetObject(key, out value);
 		}
 
 		/// <summary>
@@ -241,7 +199,7 @@ namespace Deveel.Data.Caching {
 		/// Returns the value of the removed node or <b>null</b> if none was
 		/// found for the given key.
 		/// </returns>
-		public Object Remove(Object key) {
+		public object Remove(Object key) {
 			object obj = RemoveObject(key);
 			
 			if (obj != null)

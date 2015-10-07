@@ -23,13 +23,13 @@ namespace Deveel.Data.Caching {
 		[Test]
 		public void CreateWithoutErrors() {
 			MemoryCache cache = null;
-			Assert.DoesNotThrow(() => cache = new MemoryCache(1024, 6000, 20));
+			Assert.DoesNotThrow(() => cache = new MemoryCache());
 			Assert.IsNotNull(cache);
 		}
 
 		[Test]
 		public void SetValue() {
-			var cache = new MemoryCache(1024, 6000, 20);
+			var cache = new MemoryCache();
 
 			bool result = false;
 			Assert.DoesNotThrow(() => result = cache.Set(32, "test"));
@@ -38,12 +38,17 @@ namespace Deveel.Data.Caching {
 
 		[Test]
 		public void SetAndGetValue() {
-			var cache = new MemoryCache(1024, 6000, 20);
+			var cache = new MemoryCache();
+			Assert.IsTrue(cache.Set(32, "test"));
 
+			object value = null;
 			Assert.DoesNotThrow(() => {
-				Assert.IsTrue(cache.Set(32, "test"));
-				Assert.AreEqual("test", cache.Get(32));
+				bool found = cache.TryGet(32, out value);
+				Assert.IsTrue(found);
 			});
+
+			Assert.IsNotNull(value);
+			Assert.AreEqual("test", value);
 		}
 	}
 }

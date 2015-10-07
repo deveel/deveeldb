@@ -39,7 +39,7 @@ namespace Deveel.Data.Client {
 
 		public LocalRowCache(DeveelDbConnection connection) {
 			this.connection = connection;
-			rowCache = new MemoryCache(connection.Settings.RowCacheSize, connection.Settings.MaxCacheSize, 20);
+			rowCache = new SizeLimitedCache(connection.Settings.RowCacheSize);
 		}
 
 		/// <summary>
@@ -72,14 +72,15 @@ namespace Deveel.Data.Client {
 					// Is the row in the cache?
 					var rowRef = new RowRef(resultId, daRow);
 					// Not in cache so mark this as top row not in cache...
-					var row = (CachedRow)rowCache.Get(rowRef);
-					if (row == null) {
+					object rowObj;
+					if (!rowCache.TryGet(rowRef, out rowObj)) {
 						rowIndex = daRow;
 						if (rowIndex + rowCount > totalRowCount) {
 							rowCount = totalRowCount - rowIndex;
 						}
 						foundNotcached = true;
 					} else {
+						var row = (CachedRow) rowObj;
 						cachedRows.Add(row);
 					}
 				}
@@ -95,8 +96,8 @@ namespace Deveel.Data.Client {
 						// Is the row in the cache?
 						var rowRef = new RowRef(resultId, daRow);
 						// Not in cache so mark this as top row not in cache...
-						var row = (CachedRow)rowCache.Get(rowRef);
-						if (row == null) {
+						object rowObj;
+						if (!rowCache.TryGet(rowRef, out rowObj)) {
 							if (rowIndex == origRowIndex) {
 								rowIndex = rowIndex - (rowCount - (r + 1));
 								if (rowIndex < 0) {
@@ -108,6 +109,7 @@ namespace Deveel.Data.Client {
 							}
 							foundNotcached = true;
 						} else {
+							var row = (CachedRow) rowObj;
 							notCachedRows.Insert(0, row);
 						}
 					}
