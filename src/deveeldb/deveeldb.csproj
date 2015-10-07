@@ -877,7 +877,6 @@
   <ItemGroup>
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -45,11 +45,13 @@
                 <PackagesConfig>$(PackagesProjectConfig)</PackagesConfig>
             </PropertyGroup>
         </When>
+      <!--
         <When Condition="Exists('packages.config')">
             <PropertyGroup>
                 <PackagesConfig>packages.config</PackagesConfig>
             </PropertyGroup>
         </When>
+        -->
     </Choose>
     
     <PropertyGroup>
