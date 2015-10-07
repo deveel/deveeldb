@@ -39,10 +39,10 @@ namespace Deveel.Data.Types {
 			if (obj is SqlNull) {
 				writer.Write((byte)1);
 			} else if (obj == null || obj.IsNull) {
-				writer.Write((byte)2);
+				writer.Write((byte) 2);
+			} else {
+				throw new FormatException();
 			}
-
-			throw new FormatException();
 		}
 
 		public override ISqlObject DeserializeObject(Stream stream) {

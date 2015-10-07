@@ -197,8 +197,10 @@ namespace Deveel.Data.Sql.Parser {
 				obj = DataObject.Boolean((SqlBoolean) sqlValue);
 			} else if (sqlValue is SqlNumber) {
 				obj = DataObject.Number((SqlNumber) sqlValue);
+			} else if (sqlValue is SqlNull) { 
+				obj = DataObject.Null();
 			} else {
-				throw new NotSupportedException("Constant value is not supported.");
+				throw new NotSupportedException("Constant value not supported.");
 			}
 
 			return SqlExpression.Constant(obj);

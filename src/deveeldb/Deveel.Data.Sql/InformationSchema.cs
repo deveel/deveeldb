@@ -17,10 +17,9 @@
 using System;
 
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	public static class InformationSchema {
 		public const string SchemaName = "INFORMATION_SCHEMA";
 
@@ -52,12 +51,14 @@ namespace Deveel.Data {
 
 
 		public static void CreateViews(IQueryContext context) {
+			// This view shows the grants that the user has (no join, only priv_bit).
 			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserSimpleGrant AS " +
 			                     "  SELECT \"priv_bit\", \"object\", \"name\", \"user\", " +
 			                     "         \"grant_option\", \"granter\" " +
 			                     "    FROM " + SystemSchema.UserGrantsTableName +
 			                     "   WHERE ( user = user() OR user = '@PUBLIC' )");
 
+			// This view shows the grants that the user is allowed to see
 			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserGrant AS " +
 			                     "  SELECT \"description\", \"object\", \"name\", \"user\", " +
 			                     "         \"grant_option\", \"granter\" " +
@@ -66,6 +67,8 @@ namespace Deveel.Data {
 			                     "     AND " + SystemSchema.UserGrantsTableName + ".priv_bit = " +
 			                     SystemSchema.PrivilegesTableName + ".priv_bit");
 
+			// A view that represents the list of schema this user is allowed to view
+			// the contents of.
 			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserSchemaInfo AS " +
 			                     "  SELECT * FROM  " + SystemSchema.SchemaInfoTableName +
 			                     "   WHERE \"name\" IN ( " +
@@ -74,10 +77,37 @@ namespace Deveel.Data {
 			                     "      WHERE \"object\" = " + ((int)DbObjectType.Schema) +
 			                     "        AND \"description\" = '" + Privileges.List + "' )");
 
+			// A view that exposes the table_columns table but only for the tables
+			// this user has read access to.
 			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserTableColumns AS " +
 			                     "  SELECT * FROM " + SystemSchema.TableColumnsTableName +
 			                     "   WHERE \"schema\" IN ( " +
 			                     "     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )");
+
+			// A view that exposes the 'table_info' table but only for the tables
+			// this user has read access to.
+			context.ExecuteQuery("CREATE VIEW INFORMATION_SCHEMA.ThisUserTableInfo AS " +
+			                     "  SELECT * FROM " + SystemSchema.TableInfoTableName +
+			                     "   WHERE \"schema\" IN ( " +
+			                     "     SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )");
+
+			context.ExecuteQuery("  CREATE VIEW " + Tables + " AS " +
+			                     "  SELECT NULL AS \"TABLE_CATALOG\", \n" +
+			                     "         \"schema\" AS \"TABLE_SCHEMA\", \n" +
+			                     "         \"name\" AS \"TABLE_NAME\", \n" +
+			                     "         \"type\" AS \"TABLE_TYPE\", \n" +
+			                     "         \"other\" AS \"REMARKS\", \n" +
+			                     "         NULL AS \"TYPE_CATALOG\", \n" +
+			                     "         NULL AS \"TYPE_SCHEMA\", \n" +
+			                     "         NULL AS \"TYPE_NAME\", \n" +
+			                     "         NULL AS \"SELF_REFERENCING_COL_NAME\", \n" +
+			                     "         NULL AS \"REF_GENERATION\" \n" +
+			                     "    FROM INFORMATION_SCHEMA.ThisUserTableInfo \n");
+
+			context.ExecuteQuery("  CREATE VIEW " + Schemata + " AS " +
+			                     "  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
+			                     "         NULL AS \"TABLE_CATALOG\" \n" +
+			                     "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo\n");
 		}
 	}
 }

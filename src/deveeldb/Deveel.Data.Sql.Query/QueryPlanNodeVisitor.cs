@@ -74,8 +74,18 @@ namespace Deveel.Data.Sql.Query {
 				return VisitGroup((GroupNode) node);
 			if (node is SortNode)
 				return VisitSort((SortNode) node);
+			if (node is CreateFunctionsNode)
+				return VisitCreateFunctions((CreateFunctionsNode) node);
 
 			throw new NotSupportedException();
+		}
+
+		protected virtual IQueryPlanNode VisitCreateFunctions(CreateFunctionsNode node) {
+			var child = node.Child;
+			if (child != null)
+				child = VisitNode(child);
+
+			return new CreateFunctionsNode(child, node.Functions, node.Names);
 		}
 
 		protected virtual IQueryPlanNode VisitBranch(BranchQueryPlanNode node) {
