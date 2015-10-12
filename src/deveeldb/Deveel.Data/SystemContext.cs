@@ -84,6 +84,14 @@ namespace Deveel.Data {
 		/// <seealso cref="ISystemServiceProvider" />
 		public ISystemServiceProvider ServiceProvider { get; set; }
 
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get { return new KeyValuePair<string, object>[0]; }
+		}
+
+		IEventSource IEventSource.ParentSource {
+			get { return null; }
+		}
+
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
 		/// </summary>

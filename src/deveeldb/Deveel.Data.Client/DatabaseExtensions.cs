@@ -18,11 +18,28 @@ using System;
 using System.Data;
 
 using Deveel.Data;
+using Deveel.Data.Protocol;
 
 namespace Deveel.Data.Client {
 	public static class DatabaseExtensions {
 		public static IDbConnection CreateDbConnection(this IDatabase database, string userName, string password) {
-			throw new NotImplementedException();
+			if (database == null)
+				throw new ArgumentNullException("database");
+
+			var dbHandler = database.DatabaseContext.SystemContext as IDatabaseHandler;
+			if (dbHandler == null)
+				dbHandler = new SingleDatabaseHandler(database);
+
+			var serverConnector = new EmbeddedServerConnector(dbHandler);
+			var clientConnector = new EmbeddedClientConnector(serverConnector);
+
+			var settings = new DeveelDbConnectionStringBuilder {
+				UserName = userName,
+				Password = password,
+				Database = database.Name()
+			};
+
+			return new DeveelDbConnection(clientConnector, settings);
 		}
 	}
 }

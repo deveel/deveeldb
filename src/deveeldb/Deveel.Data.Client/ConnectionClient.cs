@@ -44,10 +44,11 @@ namespace Deveel.Data.Client {
 			Settings = settings;
 		}
 
-		public ConnectionClient(IClientConnector connector) {
+		public ConnectionClient(IClientConnector connector, DeveelDbConnectionStringBuilder settings) {
 			if (connector == null)
 				throw new ArgumentNullException("connector");
 
+			Settings = settings;
 			Connector = connector;
 			Processor = connector.CreateProcessor();
 			OwnsConnector = false;

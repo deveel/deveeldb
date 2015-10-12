@@ -15,7 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
@@ -53,6 +55,9 @@ namespace Deveel.Data {
 			TransactionFactory = new DatabaseTransactionFactory(this);
 		}
 
+		/// <summary>
+		/// Finalizes an instance of the <see cref="Database"/> class.
+		/// </summary>
 		~Database() {
 			Dispose(false);
 		}
@@ -67,12 +72,11 @@ namespace Deveel.Data {
 			get { return DatabaseContext.DatabaseName(); }
 		}
 
+		/// <summary>
+		/// Gets an object that is used to create new transactions to this database
+		/// </summary>
+		/// <seealso cref="ITransactionFactory" />
 		public ITransactionFactory TransactionFactory { get; private set; }
-
-		void IEventSource.AppendEventData(IEvent @event) {
-			// TODO: Is there anything else to add?
-			@event.Database(Name);
-		}
 
 		private void DiscoverDataVersion() {
 			var dataVerion = Attribute.GetCustomAttribute(typeof (Database).Assembly, typeof (DataVersionAttribute))
@@ -100,10 +104,27 @@ namespace Deveel.Data {
 			DatabaseContext = null;
 		}
 
+		/// <summary>
+		/// Gets the context that contains this database.
+		/// </summary>
+		/// <seealso cref="IDatabaseContext" />
 		public IDatabaseContext DatabaseContext { get; private set; }
 
+		/// <summary>
+		/// Gets the version number of this database.
+		/// </summary>
+		/// <remarks>
+		/// This value is useful for data compatibility between versions
+		/// of the system.
+		/// </remarks>
 		public Version Version { get; private set; }
 
+		/// <summary>
+		/// Gets a boolean value indicating if the database exists within the
+		/// context given.
+		/// </summary>
+		/// <exception cref="System.Exception">An error occurred while testing database existence.</exception>
+		/// <seealso cref="Create" />
 		public bool Exists {
 			get {
 				if (IsOpen)
@@ -228,6 +249,25 @@ namespace Deveel.Data {
 			}
 		}
 
+		/// <summary>
+		/// Opens the database making it ready to be accessed.
+		/// </summary>
+		/// <exception cref="DatabaseSystemException">
+		/// The database was already initialized.
+		/// or
+		/// or
+		/// An error occurred when initializing the database.
+		/// </exception>
+		/// <remarks>
+		/// <para>
+		/// This method ensures the system components and the data are
+		/// ready to allow any connection to be established.
+		/// </para>
+		/// <para>
+		/// After this method successfully exists, the state of <see cref="IsOpen" />
+		/// is changed to <c>true</c>.
+		/// </para>
+		/// </remarks>
 		public void Open() {
 			if (IsOpen)
 				throw new DatabaseSystemException("The database was already initialized.");
@@ -257,6 +297,18 @@ namespace Deveel.Data {
 			// TODO:
 		}
 
+		/// <summary>
+		/// Closes the database making it not accessible to connections.
+		/// </summary>
+		/// <exception cref="DatabaseSystemException">
+		/// The database is not initialized.
+		/// or
+		/// An error occurred during database shutdown.
+		/// </exception>
+		/// <remarks>
+		/// Typical implementations of this interface will automatically
+		/// invoke the closure of the database on disposal (<see cref="IDisposable.Dispose" />.
+		/// </remarks>
 		public void Close() {
 			if (!IsOpen)
 				throw new DatabaseSystemException("The database is not initialized.");

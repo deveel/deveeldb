@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -29,7 +30,7 @@ namespace Deveel.Data {
 	/// object to obtain the configurations and systems
 	/// for operations.
 	/// </remarks>
-	public interface IDatabaseContext : IDisposable {
+	public interface IDatabaseContext : IEventSource, IDisposable {
 		/// <summary>
 		/// Gets the configuration of the database.
 		/// </summary>

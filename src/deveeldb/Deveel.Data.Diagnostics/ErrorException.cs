@@ -79,14 +79,11 @@ namespace Deveel.Data.Diagnostics {
 		/// about this exception, that can be routed to the diagnostics.
 		/// </returns>
 		public ErrorEvent AsEvent(IEventSource source) {
-			var e = new ErrorEvent(EventClass, ErrorCode, Message);
+			var e = new ErrorEvent(source, EventClass, ErrorCode, Message);
 
 			foreach (DictionaryEntry entry in Data) {
 				e.SetData(entry.Key.ToString(), entry.Value);
 			}
-
-			if (source != null)
-				source.AppendEventData(e);
 
 			e.ErrorLevel(ErrorLevel);
 			e.StackTrace(StackTrace);

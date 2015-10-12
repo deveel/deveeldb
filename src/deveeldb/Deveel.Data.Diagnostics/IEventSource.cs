@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	/// <summary>
@@ -36,10 +37,19 @@ namespace Deveel.Data.Diagnostics {
 	/// </remarks>
 	public interface IEventSource {
 		/// <summary>
-		/// Appends the source metadata to the event specified.
+		/// Gets an optional parent source.
 		/// </summary>
-		/// <param name="event">The event object to which to append
-		/// the source metadata.</param>
-		void AppendEventData(IEvent @event);
+		/// <value>
+		/// The optional parent source.
+		/// </value>
+		IEventSource ParentSource { get; }
+
+		/// <summary>
+		/// Gets the list of metadata associated to the source.
+		/// </summary>
+		/// <value>
+		/// The list of the source metadata.
+		/// </value>
+		IEnumerable<KeyValuePair<string, object>> Metadata { get; } 
 	}
 }

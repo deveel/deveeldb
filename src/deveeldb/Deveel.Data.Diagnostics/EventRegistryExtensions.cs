@@ -23,15 +23,12 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void Error(this IEventRegistry registry, IEventSource source, Exception ex) {
-			var errorEvent = new ErrorEvent(EventClasses.Runtime, -1, ex.Message);
+			var errorEvent = new ErrorEvent(source, EventClasses.Runtime, -1, ex.Message);
 			errorEvent.ErrorLevel(ErrorLevel.Error);
 			errorEvent.StackTrace(ex.StackTrace);
 #if !PCL
 			errorEvent.ErrorSource(ex.Source);
 #endif
-
-			if (source != null)
-				source.AppendEventData(errorEvent);
 
 			registry.RegisterEvent(errorEvent);
 		}
@@ -49,14 +46,10 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void Error(this IEventRegistry registry, IEventSource source, int errorClass, int errorCode, ErrorLevel level, string message, string stackTrace, string errorSource) {
-			var errorEvent = new ErrorEvent(errorClass, errorCode, message);
+			var errorEvent = new ErrorEvent(source, errorClass, errorCode, message);
 			errorEvent.ErrorLevel(level);
 			errorEvent.StackTrace(stackTrace);
 			errorEvent.ErrorSource(errorSource);
-			
-			if (source != null)
-				source.AppendEventData(errorEvent);
-
 			registry.RegisterEvent(errorEvent);
 		}
 	}

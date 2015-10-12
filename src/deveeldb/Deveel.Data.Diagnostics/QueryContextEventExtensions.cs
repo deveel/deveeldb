@@ -19,16 +19,11 @@ using System;
 using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Diagnostics {
 	public static class QueryContextEventExtensions {
-		private static void FillEventData(this IQueryContext context, IEvent @event) {
-			context.Database().AppendEventData(@event);
-			context.Session.AppendEventData(@event);
-		}
-
-		public static void RegisterEvent(this IQueryContext context, IEvent @event) {
-			context.FillEventData(@event);
+		private static void RegisterEvent(this IQueryContext context, IEvent @event) {
 			context.SystemContext().EventRegistry.RegisterEvent(@event);
 		}
 
@@ -52,7 +47,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlQuery query, string statementText) {
-			context.RegisterEvent(new QueryEvent(query, statementText));
+			context.RegisterEvent(new QueryEvent(context.Session, query, statementText));
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlStatement statement) {
@@ -60,6 +55,11 @@ namespace Deveel.Data.Diagnostics {
 				throw new ArgumentNullException("statement");
 
 			context.RegisterQuery(statement.SourceQuery, statement.ToString());
+		}
+
+		public static void FireTrigger(this IQueryContext context, ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId rowId, Row row) {
+			var triggerEvent = new TriggerEvent(context.Session, triggerName, sourceName, eventType, rowId, row);
+			context.RegisterEvent(triggerEvent);
 		}
 	}
 }

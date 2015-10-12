@@ -17,9 +17,28 @@
 using System;
 
 namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// Defines the required features to factory transactions within
+	/// a relational system.
+	/// </summary>
 	public interface ITransactionFactory {
+		/// <summary>
+		/// Gets the collection of currently open transactions.
+		/// </summary>
+		/// <value>
+		/// The open transactions within the underlying system.
+		/// </value>
 		TransactionCollection OpenTransactions { get; }
 
+		/// <summary>
+		/// Creates a new the transaction with the isolation specified.
+		/// </summary>
+		/// <param name="isolation">The transaction isolation level.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="ITransaction"/> that holds the
+		/// the access to the underlying data system according to the isolation
+		/// level provided. 
+		/// </returns>
 		ITransaction CreateTransaction(IsolationLevel isolation);
 	}
 }

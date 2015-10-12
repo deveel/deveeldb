@@ -23,6 +23,14 @@ namespace Deveel.Data.Diagnostics {
 	/// </summary>
 	public interface IEvent {
 		/// <summary>
+		/// Gets the event source.
+		/// </summary>
+		/// <value>
+		/// The event source.
+		/// </value>
+		IEventSource EventSource { get; }
+
+		/// <summary>
 		/// Gets a value that identifies the type of event
 		/// </summary>
 		/// <seealso cref="EventType"/>

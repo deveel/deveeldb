@@ -75,10 +75,19 @@ namespace Deveel.Data {
 
 		public SessionInfo SessionInfo { get; private set; }
 
-		void IEventSource.AppendEventData(IEvent @event) {
-			@event.Database(Database.Name());
-			@event.UserName(SessionInfo.User.Name);
-			@event.RemoteAddress(SessionInfo.EndPoint.ToString());
+		IEventSource IEventSource.ParentSource {
+			get { return null; }
+		}
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get { return GetMetadata(); }
+		}
+
+		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
+			return new Dictionary<string, object> {
+				{ EventMetadataKeys.UserName, SessionInfo.User.Name },
+				{ EventMetadataKeys.Protocol, SessionInfo.EndPoint.Protocol }
+			};
 		}
 
 		public ITransaction Transaction { get; private set; }

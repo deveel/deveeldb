@@ -21,6 +21,12 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerCallbackEvent : IEvent {
+		IEventSource IEvent.EventSource {
+			get {
+				// TODO:
+				return null;
+			}
+		}
 
 		byte IEvent.EventType {
 			get { return (byte) EventType.Trigger; }

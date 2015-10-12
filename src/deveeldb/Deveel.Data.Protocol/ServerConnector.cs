@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
@@ -89,15 +88,15 @@ namespace Deveel.Data.Protocol {
 		}
 
 		protected void SetAutoCommit(bool value) {
-			QueryContext.AutoCommit(value);
+			autoCommit = value;
 		}
 
 		protected void SetParameterStyle(QueryParameterStyle parameterStyle) {
-			QueryContext.ParameterStyle(parameterStyle);
+			this.parameterStyle = parameterStyle;
 		}
 
 		protected void SetIgnoreIdentifiersCase(bool value) {
-			QueryContext.IgnoreIdentifiersCase(value);
+			ignoreIdentifiersCase = value;
 		}
 
 		private void ClearResults() {
@@ -158,6 +157,10 @@ namespace Deveel.Data.Protocol {
 				QueryContext != null)
 				throw new InvalidOperationException("Already authenticated.");
 
+			// TODO: get the default schema from server configuration
+			if (String.IsNullOrEmpty(defaultSchema))
+				defaultSchema = "SA";
+
 			// TODO: Log a debug information
 
 			// TODO: Log an information about the logging user...
@@ -186,16 +189,16 @@ namespace Deveel.Data.Protocol {
 			if (user == null)
 				return null;
 
-			var connection = Database.CreateUserSession(user);
+			var session = Database.CreateUserSession(user);
 
 			// Put the connection in exclusive mode
-			connection.ExclusiveLock();
+			session.ExclusiveLock();
 
-			var context = new SessionQueryContext(connection);
+			var context = new SessionQueryContext(session);
 
 			try {
 				// By default, connections are auto-commit
-				connection.AutoCommit(true);
+				session.AutoCommit(true);
 
 				// Set the default schema for this connection if it exists
 				if (context.SchemaExists(defaultSchema)) {
@@ -204,11 +207,11 @@ namespace Deveel.Data.Protocol {
 					// TODO: Log the warning..
 
 					// If we can't change to the schema then change to the APP schema
-					connection.CurrentSchema(Database.DatabaseContext.DefaultSchema());
+					session.CurrentSchema(Database.DatabaseContext.DefaultSchema());
 				}
 			} finally {
 				try {
-					connection.Commit();
+					session.Commit();
 				} catch (TransactionException) {
 					// TODO: Log the warning
 				}

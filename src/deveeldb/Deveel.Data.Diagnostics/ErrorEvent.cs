@@ -19,12 +19,15 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public sealed class ErrorEvent : IEvent {
-		internal ErrorEvent(int eventClass, int errorCode, string message) {
+		internal ErrorEvent(IEventSource source, int eventClass, int errorCode, string message) {
+			EventSource = source;
 			EventClass = eventClass;
 			ErrorCode = errorCode;
 			Message = message;
 			Data = new Dictionary<string, object>();
 		}
+
+		public IEventSource EventSource { get; private set; }
 
 		public int ErrorCode { get; private set; }
 

@@ -133,6 +133,10 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
+    <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
+    <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />
@@ -144,6 +148,7 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
+    <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />
@@ -234,7 +239,6 @@
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventMetadataKeys.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventRegistryExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\FileEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICommandEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventRegistry.cs" />

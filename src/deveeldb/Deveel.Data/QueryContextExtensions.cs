@@ -687,9 +687,7 @@ namespace Deveel.Data {
 					var oldRowId = tableEvent.OldRowId;
 					var newRow = tableEvent.NewRow;
 
-					var triggerEvent = new TriggerEvent(trigger.TriggerName, eventSource, eventType, oldRowId, newRow);
-
-					context.RegisterEvent(triggerEvent);
+					context.FireTrigger(trigger.TriggerName, eventSource,eventType, oldRowId, newRow);
 				} catch (Exception) {
 					// TODO: throw a specialized exception
 					throw;

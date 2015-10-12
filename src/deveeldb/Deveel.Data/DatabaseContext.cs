@@ -16,9 +16,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -114,6 +117,18 @@ namespace Deveel.Data {
 
 		private IStoreSystem CreateExternalStoreSystem(Type type) {
 			return SystemContext.ServiceProvider.Resolve(type) as IStoreSystem;
+		}
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get {
+				return new Dictionary<string, object> {
+					{"Database", this.DatabaseName()}
+				}.AsEnumerable();
+			}
+		}
+
+		IEventSource IEventSource.ParentSource {
+			get { return SystemContext; }
 		}
 
 		object IServiceResolveContext.OnResolve(Type type, string name) {

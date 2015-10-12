@@ -37,8 +37,9 @@ namespace Deveel.Data.Client {
 
 		private Dictionary<string, DeveelDbDataReader> openReaders; 
 
-		internal DeveelDbConnection(IClientConnector connector) {
-			Client = new ConnectionClient(connector);
+		internal DeveelDbConnection(IClientConnector connector, DeveelDbConnectionStringBuilder settings) {
+			Client = new ConnectionClient(connector,settings);
+			connectionString = settings;
 			RowCache = new LocalRowCache(this);
 		}
 

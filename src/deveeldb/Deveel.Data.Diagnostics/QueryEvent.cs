@@ -22,8 +22,8 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Diagnostics {
 	public class QueryEvent : NotificationEvent {
-		public QueryEvent(SqlQuery sourceQuery, string statementText) 
-			: base(NotificationLevel.Verbose, EventClasses.Runtime, 1000, null) {
+		public QueryEvent(IEventSource source, SqlQuery sourceQuery, string statementText) 
+			: base(source, NotificationLevel.Verbose, EventClasses.Runtime, 1000, null) {
 			if (sourceQuery == null)
 				throw new ArgumentNullException("sourceQuery");
 

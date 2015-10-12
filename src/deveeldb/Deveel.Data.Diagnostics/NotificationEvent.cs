@@ -19,7 +19,11 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public class NotificationEvent : IEvent {
-		public NotificationEvent(NotificationLevel level, int eventClass, int eventCode, string eventMessage) {
+		public NotificationEvent(IEventSource source, NotificationLevel level, int eventClass, int eventCode, string eventMessage) {
+			if (source == null)
+				throw new ArgumentNullException("source");
+
+			EventSource = source;
 			Level = level;
 			EventClass = eventClass;
 			EventCode = eventCode;
@@ -29,6 +33,8 @@ namespace Deveel.Data.Diagnostics {
 		byte IEvent.EventType {
 			get { return (byte) EventType.Notification; }
 		}
+
+		public IEventSource EventSource { get; private set; }
 
 		public int EventClass { get; private set; }
 

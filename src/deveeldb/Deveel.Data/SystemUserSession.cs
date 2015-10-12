@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
@@ -47,6 +48,20 @@ namespace Deveel.Data {
 		public SessionInfo SessionInfo { get; private set; }
 
 		public ITransaction Transaction { get; private set; }
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get { return GetMetaData(); }
+		}
+
+		IEventSource IEventSource.ParentSource {
+			get { return null; }
+		}
+
+		private IEnumerable<KeyValuePair<string, object>> GetMetaData() {
+			return new Dictionary<string, object> {
+				{EventMetadataKeys.UserName, User.SystemName }
+			};
+		} 
 
 		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
 		}

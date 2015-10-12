@@ -15,8 +15,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ClientConnector : IClientConnector {
@@ -49,11 +51,11 @@ namespace Deveel.Data.Protocol {
 
 		protected abstract IMessageEnvelope CreateEnvelope(IDictionary<string, object> metadata, IMessage message);
 
-		IStreamableObjectChannel IConnector.CreateObjectChannel(long objectId) {
+		ILargeObjectChannel IConnector.CreateObjectChannel(long objectId) {
 			return CreateObjectChannel(objectId);
 		}
 
-		protected abstract IStreamableObjectChannel CreateObjectChannel(long objectId);
+		protected abstract ILargeObjectChannel CreateObjectChannel(long objectId);
 
 		ITriggerChannel IConnector.CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
 			return CreateTriggerChannel(triggerName, objectName, eventType);
