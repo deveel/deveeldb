@@ -148,6 +148,8 @@ namespace Deveel.Data {
 
 		public static readonly ObjectName RoutineTableName = new ObjectName(SchemaName, "routine");
 
+		public static readonly ObjectName TriggerTableName = new ObjectName(SchemaName, "trigger");
+
 		public static readonly ObjectName RoutineParameterTableName = new ObjectName(SchemaName, "routine_params");
 
 		public static readonly ObjectName VariablesTableName = new ObjectName(SchemaName, "vars");

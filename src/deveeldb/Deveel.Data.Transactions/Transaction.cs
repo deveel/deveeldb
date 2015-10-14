@@ -21,6 +21,7 @@ using System.Linq;
 using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
@@ -36,6 +37,7 @@ namespace Deveel.Data.Transactions {
 		private ViewManager viewManager;
 		private VariableManager variableManager;
 		private SchemaManager schemaManager;
+		private TriggerManager triggerManager;
 		private List<TableCommitCallback> callbacks;
 
 		private Action<TableCommitInfo> commitActions; 
@@ -130,6 +132,7 @@ namespace Deveel.Data.Transactions {
 			sequenceManager = new SequenceManager(this);
 			viewManager = new ViewManager(this);
 			variableManager = new VariableManager(this);
+			triggerManager = new TriggerManager(this);
 
 			Managers = new ObjectManagersResolver(this);
 		}
@@ -502,7 +505,8 @@ namespace Deveel.Data.Transactions {
 					transaction.tableManager,
 					transaction.sequenceManager,
 					transaction.variableManager,
-					transaction.viewManager
+					transaction.viewManager,
+					transaction.triggerManager
 				};
 			}
 
@@ -517,6 +521,8 @@ namespace Deveel.Data.Transactions {
 					return transaction.variableManager;
 				if (objType == DbObjectType.View)
 					return transaction.viewManager;
+				if (objType == DbObjectType.Trigger)
+					return transaction.triggerManager;
 
 				return null;
 			}

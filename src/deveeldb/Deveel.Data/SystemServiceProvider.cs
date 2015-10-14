@@ -102,7 +102,7 @@ namespace Deveel.Data {
 					if (resolved != null)
 						return resolved;
 
-				resolved = container.Resolve(serviceType, name);
+				resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
 
 				OnResolved(serviceType, name, resolved);
 
@@ -135,7 +135,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public void Register(string name, Type serviceType) {
+		public void Register(string name, Type serviceType, object service) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -146,29 +146,15 @@ namespace Deveel.Data {
 				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
 					var ifaces = serviceType.GetInterfaces();
 					foreach (var iface in ifaces) {
-						container.Register(iface, serviceType, serviceKey:name);
+						container.Register(iface, serviceType, serviceKey: name);
 					}
 				}
 
-				container.Register(serviceType, serviceKey:name);
-			}
-		}
-
-		public void Register(string name, object service) {
-			if (service == null)
-				return;
-
-			if (container == null)
-				throw new InvalidOperationException("The container was not initialized.");
-
-			lock (this) {
-				var serviceType = service.GetType();
-				var ifaces = serviceType.GetInterfaces();
-				foreach (var iface in ifaces) {
-					container.Register(iface, serviceType, serviceKey: name);
+				if (service == null) {
+					container.Register(serviceType, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+				} else {
+					container.RegisterInstance(serviceType, service, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace);
 				}
-
-				container.RegisterInstance(service, serviceKey:name);
 			}
 		}
 

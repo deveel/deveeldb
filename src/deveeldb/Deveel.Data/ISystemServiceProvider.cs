@@ -74,14 +74,14 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="name">The optional name identifier of the service.</param>
 		/// <param name="serviceType">The type of the service to register.</param>
-		void Register(string name, Type serviceType);
-
-		/// <summary>
-		/// Registers the instance of a service, optionally identified by
-		/// the given name.
-		/// </summary>
-		/// <param name="name">The optional name to identify the service.</param>
-		/// <param name="service">The instance of the service to register.</param>
-		void Register(string name, object service);
+		/// <param name="service">An optional instance of the service</param>
+		/// <exception cref="ArgumentNullException">
+		/// If the provided <paramref name="serviceType"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// If the provided <paramref name="service"/> is <c>not null</c>
+		/// and it is not an instance of <paramref name="serviceType"/>.
+		/// </exception>
+		void Register(string name, Type serviceType, object service);
 	}
 }

@@ -79,7 +79,7 @@ namespace Deveel.Data {
 		}
 
 		public static void RegisterService(this ISystemContext context, Type serviceType, string name) {
-			context.ServiceProvider.Register(name, serviceType);
+			context.ServiceProvider.Register(name, serviceType, null);
 		}
 
 		public static void RegisterService(this ISystemContext context, object service) {

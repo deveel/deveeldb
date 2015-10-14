@@ -37,11 +37,11 @@ namespace Deveel.Data {
 		}
 
 		public static void Register(this ISystemServiceProvider provider, Type type) {
-			provider.Register(null, type);
+			provider.Register(null, type, null);
 		}
 
 		public static void Register<T>(this ISystemServiceProvider provider, string name) {
-			provider.Register(name, typeof(T));
+			provider.Register(name, typeof(T), null);
 		}
 
 		public static void Register<T>(this ISystemServiceProvider provider) {
@@ -49,7 +49,15 @@ namespace Deveel.Data {
 		}
 
 		public static void Register(this ISystemServiceProvider provider, object service) {
-			provider.Register(null, service);
+			if (service == null)
+				throw new ArgumentNullException("service");
+
+			var serviceType = service.GetType();
+			provider.Register(null, serviceType, service);
+		}
+
+		public static void Register<T>(this ISystemServiceProvider provider, T service) {
+			provider.Register(null, typeof(T), service);
 		}
 	}
 }

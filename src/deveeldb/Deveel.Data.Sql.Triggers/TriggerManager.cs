@@ -16,9 +16,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerManager : IObjectManager {
@@ -36,7 +40,70 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public void Create() {
-			// TODO: Create the tables
+			var tableInfo = new TableInfo(SystemSchema.TriggerTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
+			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("misc", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("username", PrimitiveTypes.String());
+			transaction.CreateTable(tableInfo);
+		}
+
+		private ITable FindTrigger(ITable table, string schema, string name) {
+			// Find all the trigger entries with this name
+			var schemaColumn = table.GetResolvedColumnName(0);
+			var nameColumn = table.GetResolvedColumnName(1);
+
+			using (var context = new SystemQueryContext(transaction, SystemSchema.Name)) {
+				var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
+					SqlExpression.Constant(DataObject.String(name)));
+				return t.ExhaustiveSelect(context,
+					SqlExpression.Equal(SqlExpression.Reference(schemaColumn), SqlExpression.Constant(DataObject.String(schema))));
+			}
+		}
+
+		private IEnumerable<TriggerInfo> FindTriggers(ObjectName tableName, TriggerEventType eventType) {
+			var fullTableName = tableName.FullName;
+			var eventTypeCode = (int)eventType;
+
+			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			if (table == null)
+				return new TriggerInfo[0];
+
+			var tableColumn = table.GetResolvedColumnName(3);
+			var eventTypeColumn = table.GetResolvedColumnName(4);
+
+			ITable result;
+			using (var context = new SystemQueryContext(transaction, SystemSchema.Name)) {
+				var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
+					SqlExpression.Constant(DataObject.String(fullTableName)));
+
+				result = t.ExhaustiveSelect(context,
+					SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
+			}
+
+			if (result.RowCount == 0)
+				return new TriggerInfo[0];
+
+			var list = new List<TriggerInfo>();
+
+			foreach (var row in result) {
+				var schema = row.GetValue(0).Value.ToString();
+				var name = row.GetValue(1).Value.ToString();
+				var triggerName = new ObjectName(new ObjectName(schema), name);
+
+				var triggerType = (TriggerType) ((SqlNumber) row.GetValue(2).Value).ToInt32();
+				var triggerInfo = new TriggerInfo(triggerName, triggerType, eventType, tableName);
+
+				//TODO: get the other information such has the body, the external method or the procedure
+				//      if this is a non-callback
+
+				list.Add(triggerInfo);
+			}
+
+			return list.AsEnumerable();
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -96,7 +163,8 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public IEnumerable<Trigger> FindTriggers(TriggerEventInfo eventInfo) {
-			throw new NotImplementedException();
+			var triggers = FindTriggers(eventInfo.TableName, eventInfo.EventType);
+			return triggers.Select(x => new Trigger(x));
 		}
 	}
 }

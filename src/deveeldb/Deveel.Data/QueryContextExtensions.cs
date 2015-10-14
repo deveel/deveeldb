@@ -672,31 +672,6 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Triggers
-
-		public static void FireTrigger(this IQueryContext context, TableEventContext tableEvent) {
-			var eventSource = tableEvent.Table.FullName;
-			var eventType = tableEvent.EventType;
-
-			var triggers = context.Session.FindTriggers(eventSource, eventType);
-
-			foreach (var trigger in triggers) {
-				try {
-					trigger.Fire(tableEvent);
-
-					var oldRowId = tableEvent.OldRowId;
-					var newRow = tableEvent.NewRow;
-
-					context.FireTrigger(trigger.TriggerName, eventSource,eventType, oldRowId, newRow);
-				} catch (Exception) {
-					// TODO: throw a specialized exception
-					throw;
-				}
-			}
-		}
-
-		#endregion
-
 		#region Sequences
 
 		public static ISequence GetSequence(this IQueryContext context, ObjectName sequenceName) {
