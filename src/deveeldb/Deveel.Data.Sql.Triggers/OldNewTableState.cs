@@ -16,9 +16,7 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Sql.Triggers {
 	public sealed class OldNewTableState {
 		internal OldNewTableState(ObjectName tableSource, int oldRowIndex, Row newDataRow, bool newMutable) {
 			TableSource = tableSource;

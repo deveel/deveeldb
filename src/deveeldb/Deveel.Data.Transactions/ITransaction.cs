@@ -46,11 +46,6 @@ namespace Deveel.Data.Transactions {
 		IDatabase Database { get; }
 
 		/// <summary>
-		/// Gets an object that olds the state before and after a table event.
-		/// </summary>
-		OldNewTableState OldNewTableState { get; }
-
-		/// <summary>
 		/// Gets an object used to resolve database object managers.
 		/// </summary>
 		/// <seealso cref="IObjectManager"/>

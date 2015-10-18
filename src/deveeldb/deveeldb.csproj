@@ -138,6 +138,7 @@
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEventException.cs" />
@@ -206,7 +207,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
-    <Compile Include="Deveel.Data\OldNewTableState.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />

@@ -27,16 +27,69 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerManager : IObjectManager {
 		private ITransaction transaction;
+		private bool tableModified;
+		private bool cacheValid;
+		private List<Trigger> triggerCache; 
 
 		public TriggerManager(ITransaction transaction) {
 			this.transaction = transaction;
+			triggerCache = new List<Trigger>(24);
+			this.transaction.RegisterOnCommit(OnCommit);
+		}
+
+		~TriggerManager() {
+			Dispose(false);
 		}
 
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (triggerCache != null)
+					triggerCache.Clear();
+			}
+
+			triggerCache = null;
+			transaction = null;
+			cacheValid = false;
 		}
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Trigger; }
+		}
+
+		private void OnCommit(TableCommitInfo commitInfo) {
+			if (tableModified) {
+				InvalidateTriggerCache();
+				tableModified = false;
+			} else if ((commitInfo.AddedRows != null &&
+			     commitInfo.AddedRows.Any()) ||
+			    (commitInfo.RemovedRows != null &&
+			     commitInfo.RemovedRows.Any())) {
+				InvalidateTriggerCache();
+			}
+		}
+
+		private void BuildTriggerCache() {
+			if (!cacheValid) {
+				var table = transaction.GetTable(SystemSchema.TriggerTableName);
+
+				var list =  new List<Trigger>();
+				foreach (var row in table) {
+					var triggerInfo = FormTrigger(row);
+					list.Add(new Trigger(triggerInfo));
+				}
+
+				triggerCache = new List<Trigger>(list);
+				cacheValid = true;
+			}
+		}
+
+		private void InvalidateTriggerCache() {
+			cacheValid = false;
 		}
 
 		public void Create() {
@@ -46,7 +99,8 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
 			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("misc", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("pars", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("routine", PrimitiveTypes.String());
 			tableInfo.AddColumn("username", PrimitiveTypes.String());
 			transaction.CreateTable(tableInfo);
 		}
@@ -90,12 +144,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var list = new List<TriggerInfo>();
 
 			foreach (var row in result) {
-				var schema = row.GetValue(0).Value.ToString();
-				var name = row.GetValue(1).Value.ToString();
-				var triggerName = new ObjectName(new ObjectName(schema), name);
-
-				var triggerType = (TriggerType) ((SqlNumber) row.GetValue(2).Value).ToInt32();
-				var triggerInfo = new TriggerInfo(triggerName, triggerType, eventType, tableName);
+				var triggerInfo = FormTrigger(row);
 
 				//TODO: get the other information such has the body, the external method or the procedure
 				//      if this is a non-callback
@@ -151,11 +200,44 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public bool TriggerExists(ObjectName triggerName) {
-			throw new NotImplementedException();
+			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			var result = FindTrigger(table, triggerName.ParentName, triggerName.Name);
+			if (result.RowCount == 0)
+				return false;
+
+			if (result.RowCount > 1)
+				throw new InvalidOperationException(String.Format("More than one trigger found with name '{0}'.", triggerName));
+
+			return true;
 		}
 
 		public Trigger GetTrigger(ObjectName triggerName) {
-			throw new NotImplementedException();
+			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			var result = FindTrigger(table, triggerName.ParentName, triggerName.Name);
+			if (result.RowCount == 0)
+				return null;
+
+			if (result.RowCount > 1)
+				throw new InvalidOperationException(String.Format("More than one trigger found with name '{0}'.", triggerName));
+
+			var triggerInfo = FormTrigger(result.First());
+			return new Trigger(triggerInfo);
+		}
+
+		private TriggerInfo FormTrigger(Row row) {
+			var schema = row.GetValue(0).Value.ToString();
+			var name = row.GetValue(1).Value.ToString();
+			var triggerName = new ObjectName(new ObjectName(schema), name);
+
+			var triggerType = (TriggerType)((SqlNumber)row.GetValue(2).Value).ToInt32();
+
+			// TODO: In case it's  a procedural trigger, take the reference to the procedure
+			if (triggerType == TriggerType.Procedure)
+				throw new NotImplementedException();
+
+			var tableName = ObjectName.Parse(((SqlString) row.GetValue(3).Value).ToString());
+			var eventType = (TriggerEventType) ((SqlNumber) row.GetValue(4).Value).ToInt32();
+			return  new TriggerInfo(triggerName, triggerType, eventType, tableName);
 		}
 
 		public bool AlterTrigger(TriggerInfo triggerInfo) {
@@ -166,5 +248,142 @@ namespace Deveel.Data.Sql.Triggers {
 			var triggers = FindTriggers(eventInfo.TableName, eventInfo.EventType);
 			return triggers.Select(x => new Trigger(x));
 		}
+
+		public void FireTriggers(IQueryContext context, TableEventContext tableEvent) {
+			if (!transaction.TableExists(SystemSchema.TriggerTableName))
+				return;
+
+			BuildTriggerCache();
+
+			foreach (var trigger in triggerCache) {
+				if (trigger.CanFire(tableEvent))
+					trigger.Fire(context, tableEvent);
+			}
+		}
+
+		public ITableContainer CreateTriggersTableContainer() {
+			return new TriggersTableContainer(transaction);
+		}
+
+		#region TriggersTableContainer
+
+		class TriggersTableContainer : SystemTableContainer {
+			public TriggersTableContainer(ITransaction transaction) 
+				: base(transaction, SystemSchema.TriggerTableName) {
+			}
+
+			public override TableInfo GetTableInfo(int offset) {
+				var triggerName = GetTableName(offset);
+				return CreateTableInfo(triggerName.ParentName, triggerName.Name);
+			}
+
+			public override string GetTableType(int offset) {
+				return TableTypes.Trigger;
+			}
+
+			private static TableInfo CreateTableInfo(string schema, string name) {
+				var tableInfo = new TableInfo(new ObjectName(new ObjectName(schema), name));
+
+				tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
+				tableInfo.AddColumn("on_object", PrimitiveTypes.String());
+				tableInfo.AddColumn("routine_name", PrimitiveTypes.String());
+				tableInfo.AddColumn("param_args", PrimitiveTypes.String());
+				tableInfo.AddColumn("owner", PrimitiveTypes.String());
+
+				return tableInfo.AsReadOnly();
+			}
+
+
+			public override ITable GetTable(int offset) {
+				var table = Transaction.GetTable(SystemSchema.TriggerTableName);
+				var enumerator = table.GetEnumerator();
+				int p = 0;
+				int i;
+				int rowIndex = -1;
+				while (enumerator.MoveNext()) {
+					i = enumerator.Current.RowId.RowNumber;
+					if (p == offset) {
+						rowIndex = i;
+					} else {
+						++p;
+					}
+				}
+
+				if (p != offset)
+					throw new ArgumentOutOfRangeException("offset");
+
+				var schema = table.GetValue(rowIndex, 0).Value.ToString();
+				var name = table.GetValue(rowIndex, 1).Value.ToString();
+
+				var tableInfo = CreateTableInfo(schema, name);
+
+				var type = table.GetValue(rowIndex, 2);
+				var tableName = table.GetValue(rowIndex, 3);
+				var routine = table.GetValue(rowIndex, 4);
+				var args = table.GetValue(rowIndex, 5);
+				var owner = table.GetValue(rowIndex, 6);
+
+				return new TriggerTable(Transaction, tableInfo) {
+					Type = type,
+					TableName = tableName,
+					Routine = routine,
+					Arguments = args,
+					Owner = owner
+				};
+			}
+
+			#region TriggerTable
+
+			class TriggerTable : GeneratedTable {
+				private TableInfo tableInfo;
+
+				public TriggerTable(ITransaction transaction, TableInfo tableInfo) 
+					: base(transaction.Database.DatabaseContext) {
+					this.tableInfo = tableInfo;
+				}
+
+				public override TableInfo TableInfo {
+					get { return tableInfo; }
+				}
+
+				public DataObject Type { get; set; }
+
+				public DataObject TableName { get; set; }
+
+				public DataObject Routine { get; set; }
+
+				public DataObject Arguments { get; set; }
+
+				public DataObject Owner { get; set; }
+
+				public override int RowCount {
+					get { return 1; }
+				}
+
+				public override DataObject GetValue(long rowNumber, int columnOffset) {
+					if (rowNumber > 0)
+						throw new ArgumentOutOfRangeException("rowNumber");
+
+					switch (columnOffset) {
+						case 0:
+							return Type;
+						case 1:
+							return TableName;
+						case 2:
+							return Routine;
+						case 3:
+							return Arguments;
+						case 4:
+							return Owner;
+						default:
+							throw new ArgumentOutOfRangeException("columnOffset");
+					}
+				}
+			}
+
+			#endregion
+		}
+
+		#endregion
 	}
 }

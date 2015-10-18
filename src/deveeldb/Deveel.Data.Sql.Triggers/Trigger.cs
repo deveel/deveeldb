@@ -80,7 +80,11 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		private bool ShouldFire(TableEventContext context) {
+		private void FireTrigger() {
+			
+		}
+
+		public bool CanFire(TableEventContext context) {
 			if ((TriggerInfo.EventType & context.EventType) == 0)
 				return false;
 
@@ -89,12 +93,25 @@ namespace Deveel.Data.Sql.Triggers {
 			       TriggerInfo.TableName.Equals(tableName, true);
 		}
 
-		public void Fire(TableEventContext context) {
-			if (context == null)
-				throw new ArgumentNullException("context");
+		public void Fire(IQueryContext context, TableEventContext tableEvent) {
+			var isBefore = (tableEvent.EventType & TriggerEventType.Before) != 0;
 
-			if (ShouldFire(context)) {
-				
+			var transaction = context.Session.Transaction;
+			if (transaction is ITableStateHandler) {
+				var stateHandler = (ITableStateHandler) transaction;
+				var oldState = stateHandler.TableState;
+				var newState = new OldNewTableState(tableEvent.Table.FullName, tableEvent.OldRowId.RowNumber, tableEvent.NewRow,
+					isBefore);
+
+				stateHandler.SetTableState(newState);
+
+				try {
+					FireTrigger();
+				} finally {
+					stateHandler.SetTableState(oldState);
+				}
+			} else {
+				FireTrigger();
 			}
 		}
 	}

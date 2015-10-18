@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private void OnTableEvent(TriggerEventType eventType, RowId rowId, Row row) {
-			Context.FireTrigger(new TableEventContext(this, eventType, rowId, row));
+			Context.FireTriggers(new TableEventContext(this, eventType, rowId, row));
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {

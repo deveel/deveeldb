@@ -31,7 +31,7 @@ namespace Deveel.Data.Transactions {
 	/// isolated operations within a database context.
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
-	public sealed class Transaction : ITransaction, ICallbackHandler {
+	public sealed class Transaction : ITransaction, ICallbackHandler, ITableStateHandler {
 		private TableManager tableManager;
 		private SequenceManager sequenceManager;
 		private ViewManager viewManager;
@@ -63,7 +63,7 @@ namespace Deveel.Data.Transactions {
 
 			AddInternalTables();
 
-			OldNewTableState = new OldNewTableState();
+			TableState = new OldNewTableState();
 
 			IsClosed = false;
 
@@ -106,7 +106,11 @@ namespace Deveel.Data.Transactions {
 
 		private bool IsClosed { get; set; }
 
-		public OldNewTableState OldNewTableState { get; private set; }
+		public OldNewTableState TableState { get; private set; }
+
+		public void SetTableState(OldNewTableState tableState) {
+			TableState = tableState;
+		}
 
 		IDatabase ITransaction.Database {
 			get { return Database; }
@@ -153,7 +157,7 @@ namespace Deveel.Data.Transactions {
 			tableManager.AddInternalTables(sequenceManager.TableContainer);
 
 			// Model triggers as tables
-			//tableManager.AddInternalTables(triggerManager.CreateInternalTableInfo());
+			tableManager.AddInternalTables(triggerManager.CreateTriggersTableContainer());
 		}
 
 		private void AssertNotReadOnly() {
@@ -334,11 +338,11 @@ namespace Deveel.Data.Transactions {
 			}
 
 			private bool HasOldTable {
-				get { return transaction.OldNewTableState.OldRowIndex != -1; }
+				get { return transaction.TableState.OldRowIndex != -1; }
 			}
 
 			private bool HasNewTable {
-				get { return transaction.OldNewTableState.NewDataRow != null; }
+				get { return transaction.TableState.NewDataRow != null; }
 			}
 
 
@@ -371,7 +375,7 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public TableInfo GetTableInfo(int offset) {
-				var tableInfo = transaction.GetTableInfo(transaction.OldNewTableState.TableSource);
+				var tableInfo = transaction.GetTableInfo(transaction.TableState.TableSource);
 				return tableInfo.Alias(GetTableName(offset));
 			}
 
@@ -391,9 +395,9 @@ namespace Deveel.Data.Transactions {
 				if (HasOldTable) {
 					if (offset == 0) {
 						// Copy data from the table to the new table
-						var dtable = transaction.GetTable(transaction.OldNewTableState.TableSource);
+						var dtable = transaction.GetTable(transaction.TableState.TableSource);
 						var oldRow = new Row(table);
-						int rowIndex = transaction.OldNewTableState.OldRowIndex;
+						int rowIndex = transaction.TableState.OldRowIndex;
 						for (int i = 0; i < tableInfo.ColumnCount; ++i) {
 							oldRow.SetValue(i, dtable.GetValue(rowIndex, i));
 						}
@@ -406,8 +410,8 @@ namespace Deveel.Data.Transactions {
 					}
 				}
 
-				table.SetReadOnly(!transaction.OldNewTableState.IsNewMutable);
-				table.SetData(transaction.OldNewTableState.NewDataRow);
+				table.SetReadOnly(!transaction.TableState.IsNewMutable);
+				table.SetData(transaction.TableState.NewDataRow);
 
 				return table;
 			}

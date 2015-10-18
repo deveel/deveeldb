@@ -262,10 +262,13 @@ namespace Deveel.Data.Transactions {
 		public static ITable GetTable(this ITransaction transaction, ObjectName tableName) {
 			tableName = ResolveReservedTableName(tableName);
 
-			if (tableName.Equals(SystemSchema.OldTriggerTableName, transaction.IgnoreIdentifiersCase()))
-				return transaction.OldNewTableState.OldDataTable;
-			if (tableName.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
-				return transaction.OldNewTableState.NewDataTable;
+			var tableStateHandler = transaction as ITableStateHandler;
+			if (tableStateHandler != null) {
+				if (tableName.Equals(SystemSchema.OldTriggerTableName, transaction.IgnoreIdentifiersCase()))
+					return tableStateHandler.TableState.OldDataTable;
+				if (tableName.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
+					return tableStateHandler.TableState.NewDataTable;
+			}
 
 			return (ITable) transaction.GetObject(DbObjectType.Table, tableName);
 		}

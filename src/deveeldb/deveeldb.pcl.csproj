@@ -581,7 +581,9 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEventContext.cs" />
@@ -789,7 +791,6 @@
     <Compile Include="Deveel.Data\IUserSession.cs" />
     <Compile Include="Deveel.Data\IVariableAccessContext.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
-    <Compile Include="Deveel.Data\OldNewTableState.cs" />
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
