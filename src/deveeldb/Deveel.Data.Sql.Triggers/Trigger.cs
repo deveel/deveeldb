@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
 	/// Represents an event fired at a given modification event
@@ -80,8 +82,25 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		private void FireTrigger() {
-			
+		private void FireTrigger(IQueryContext context, TableEventContext tableEvent) {
+			if (TriggerType == TriggerType.Callback) {
+				NotifyTriggerEvent(context, tableEvent);
+			} else {
+				ExecuteProcedure(context);
+			}
+		}
+
+		private void ExecuteProcedure(IQueryContext context) {
+			throw new NotImplementedException();
+		}
+
+		private void NotifyTriggerEvent(IQueryContext context, TableEventContext tableEvent) {
+			var tableName = tableEvent.Table.FullName;
+			var eventType = tableEvent.EventType;
+
+			var triggerEvent = new TriggerEvent(context.Session, TriggerName, tableName, eventType, tableEvent.OldRowId,
+				tableEvent.NewRow);
+			context.RegisterEvent(triggerEvent);
 		}
 
 		public bool CanFire(TableEventContext context) {
@@ -106,12 +125,12 @@ namespace Deveel.Data.Sql.Triggers {
 				stateHandler.SetTableState(newState);
 
 				try {
-					FireTrigger();
+					FireTrigger(context, tableEvent);
 				} finally {
 					stateHandler.SetTableState(oldState);
 				}
 			} else {
-				FireTrigger();
+				FireTrigger(context, tableEvent);
 			}
 		}
 	}

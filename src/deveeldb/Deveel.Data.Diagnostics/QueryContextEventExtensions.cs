@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Diagnostics {
 	public static class QueryContextEventExtensions {
-		private static void RegisterEvent(this IQueryContext context, IEvent @event) {
+		public static void RegisterEvent(this IQueryContext context, IEvent @event) {
 			context.SystemContext().EventRegistry.RegisterEvent(@event);
 		}
 
@@ -55,11 +55,6 @@ namespace Deveel.Data.Diagnostics {
 				throw new ArgumentNullException("statement");
 
 			context.RegisterQuery(statement.SourceQuery, statement.ToString());
-		}
-
-		public static void FireTrigger(this IQueryContext context, ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId rowId, Row row) {
-			var triggerEvent = new TriggerEvent(context.Session, triggerName, sourceName, eventType, rowId, row);
-			context.RegisterEvent(triggerEvent);
 		}
 	}
 }
