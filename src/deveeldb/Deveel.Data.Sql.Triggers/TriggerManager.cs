@@ -99,9 +99,8 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
 			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("pars", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("routine", PrimitiveTypes.String());
-			tableInfo.AddColumn("username", PrimitiveTypes.String());
+			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
 			transaction.CreateTable(tableInfo);
 		}
 
@@ -192,7 +191,44 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public void CreateTrigger(TriggerInfo triggerInfo) {
-			throw new NotImplementedException();
+			if (!transaction.TableExists(SystemSchema.TriggerTableName))
+				return;
+
+			try {
+				var args = triggerInfo.Arguments.ToArray();
+				var binArgs = SqlExpression.Serialize(args);
+
+				var schema = triggerInfo.TriggerName.ParentName;
+				var name = triggerInfo.TriggerName.Name;
+				var type = (int) triggerInfo.TriggerType;
+				var onTable = triggerInfo.TableName == null ? null : triggerInfo.TableName.FullName;
+				var procedureName = triggerInfo.ProcedureName != null ? triggerInfo.ProcedureName.FullName : null;
+
+				var action = (int) triggerInfo.EventType;
+				
+				// TODO: if the trigger has a body, create a special procedure and set the name
+
+				// Insert the entry into the trigger table,
+				var table = transaction.GetMutableTable(SystemSchema.TriggerTableName);
+				var row = table.NewRow();
+				row.SetValue(0, DataObject.String(schema));
+				row.SetValue(1, DataObject.String(name));
+				row.SetValue(2, DataObject.Integer(type));
+				row.SetValue(3, DataObject.String(onTable));
+				row.SetValue(4, DataObject.Integer(action));
+				row.SetValue(5, DataObject.String(procedureName));
+				row.SetValue(6, DataObject.Binary(binArgs));
+				table.AddRow(row);
+
+				InvalidateTriggerCache();
+
+				transaction.Registry.RegisterEvent(new ObjectCreatedEvent(triggerInfo.TriggerName, DbObjectType.Trigger));
+
+				tableModified = true;
+			} catch (Exception) {
+				// TODO: use a specialized exception
+				throw;
+			}
 		}
 
 		public bool DropTrigger(ObjectName triggerName) {
@@ -256,8 +292,8 @@ namespace Deveel.Data.Sql.Triggers {
 			BuildTriggerCache();
 
 			foreach (var trigger in triggerCache) {
-				if (trigger.CanFire(tableEvent))
-					trigger.Fire(context, tableEvent);
+				if (trigger.CanInvoke(tableEvent))
+					trigger.Invoke(context, tableEvent);
 			}
 		}
 

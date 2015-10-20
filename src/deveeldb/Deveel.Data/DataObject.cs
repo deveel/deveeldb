@@ -627,6 +627,10 @@ namespace Deveel.Data {
 			return new DataObject(new BinaryType(SqlTypeCode.Binary), binary);
 		}
 
+		public static DataObject Binary(byte[] binary) {
+			return Binary(new SqlBinary(binary));
+		}
+
 		public static DataObject Create(object value) {
 			// Numeric values ...
 			if (value is bool)

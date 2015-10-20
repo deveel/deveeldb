@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		//		foreach (var trigger in triggers) {
 		//			try {
-		//				trigger.Fire(tableEvent);
+		//				trigger.Invoke(tableEvent);
 
 		//				var oldRowId = tableEvent.OldRowId;
 		//				var newRow = tableEvent.NewRow;
@@ -48,5 +48,17 @@ namespace Deveel.Data.Sql.Triggers {
 		//private static void RegisterTableEventError(this IQueryContext context, TableEventContext @event, Exception error) {
 		//	context.RegisterError(new TableEventException(@event, error));
 		//}
+
+		public static void CreateTrigger(this IQueryContext context, TriggerInfo triggerInfo) {
+			context.Session.CreateTrigger(triggerInfo);
+		}
+
+		public static void CreateCallbackTrigger(this IQueryContext context, ObjectName triggerName, TriggerEventType eventType) {
+			context.CreateTrigger(new TriggerInfo(triggerName, eventType));
+		}
+
+		public static bool TriggerExists(this IQueryContext context, ObjectName triggerName) {
+			return context.Session.TriggerExists(triggerName);
+		}
     }
 }

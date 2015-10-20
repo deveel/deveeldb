@@ -86,6 +86,7 @@
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerTests.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />

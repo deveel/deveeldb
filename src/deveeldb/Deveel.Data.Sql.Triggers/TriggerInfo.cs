@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
@@ -65,6 +67,8 @@ namespace Deveel.Data.Sql.Triggers {
 			TableName = tableName;
 			TriggerType = triggerType;
 
+			Arguments = new List<SqlExpression>();
+
 			Body = new TriggerBody(this);
 		}
 
@@ -106,6 +110,8 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public string ExternalMethod { get; set; }
 
+		public ICollection<SqlExpression> Arguments { get; private set; }
+			
 		ObjectName IObjectInfo.FullName {
 			get { return TriggerName; }
 		}

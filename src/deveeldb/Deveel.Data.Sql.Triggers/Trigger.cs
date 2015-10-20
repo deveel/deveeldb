@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Triggers {
 			context.RegisterEvent(triggerEvent);
 		}
 
-		public bool CanFire(TableEventContext context) {
+		public bool CanInvoke(TableEventContext context) {
 			if ((TriggerInfo.EventType & context.EventType) == 0)
 				return false;
 
@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Triggers {
 			       TriggerInfo.TableName.Equals(tableName, true);
 		}
 
-		public void Fire(IQueryContext context, TableEventContext tableEvent) {
+		public void Invoke(IQueryContext context, TableEventContext tableEvent) {
 			var isBefore = (tableEvent.EventType & TriggerEventType.Before) != 0;
 
 			var transaction = context.Session.Transaction;

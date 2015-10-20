@@ -158,6 +158,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.Visit(this);
 		}
 
+
 		/// <summary>
 		/// Statically evaluates the expression, outside any context.
 		/// </summary>
@@ -577,6 +578,28 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public static SqlExpression Deserialize(BinaryReader reader) {
 			return SqlExpressionSerializers.Deserialize(reader);
+		}
+
+		public static byte[] Serialize(SqlExpression[] expressions) {
+			using (var stream = new MemoryStream()) {
+				Serialize(expressions, stream);
+				return stream.ToArray();
+			}
+		}
+
+		public static void Serialize(SqlExpression[] expressions, Stream stream) {
+			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
+				Serialize(expressions, writer);
+			}
+		}
+
+		public static void Serialize(SqlExpression[] expressions, BinaryWriter writer) {
+			int argc = expressions == null ? 0 : expressions.Length;
+			if (expressions != null) {
+				for (int i = 0; i < argc; i++) {
+					Serialize(expressions[i], writer);
+				}
+			}
 		}
 	}
 }

@@ -205,18 +205,5 @@ namespace Deveel.Data {
 		}
 
 		#endregion
-
-		#region Triggers
-
-		public static IEnumerable<Trigger> FindTriggers(this IUserSession session, ObjectName tableName, TriggerEventType eventType) {
-			var manager = session.Transaction.GetTriggerManager();
-			if (manager == null)
-				return new Trigger[0];
-
-			var eventInfo = new TriggerEventInfo(tableName, eventType);
-			return manager.FindTriggers(eventInfo);
-		} 
-
-		#endregion
 	}
 }
