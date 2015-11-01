@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
@@ -50,8 +51,6 @@ namespace Deveel.Data.Protocol {
 
 		protected IDatabase Database { get; private set; }
 
-		protected IQueryContext QueryContext { get; private set; }
-
 		public void Dispose() {
 			GC.SuppressFinalize(this);
 			Dispose(true);
@@ -60,12 +59,9 @@ namespace Deveel.Data.Protocol {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				ClearResults();
-
-				if (QueryContext != null)
-					QueryContext.Dispose();
 			}
 
-			QueryContext = null;
+			Database = null;
 			DatabaseHandler = null;
 
 			ChangeState(ConnectorState.Disposed);
@@ -74,6 +70,10 @@ namespace Deveel.Data.Protocol {
 		public abstract ConnectionEndPoint LocalEndPoint { get; }
 
 		public ConnectionEndPoint RemoteEndPoint { get; private set; }
+
+		protected User User { get; private set; }
+
+		protected IDictionary<string, object> Metadata { get; private set; } 
 
 		public ConnectorState CurrentState { get; private set; }
 
@@ -153,8 +153,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		protected virtual bool Authenticate(string defaultSchema, string username, string password) {
-			if (CurrentState == ConnectorState.Authenticated &&
-				QueryContext != null)
+			if (CurrentState == ConnectorState.Authenticated)
 				throw new InvalidOperationException("Already authenticated.");
 
 			// TODO: get the default schema from server configuration
@@ -166,13 +165,19 @@ namespace Deveel.Data.Protocol {
 			// TODO: Log an information about the logging user...
 
 			try {
-				QueryContext = OnAuthenticate(defaultSchema, username, password);
-				if (QueryContext == null)
+				var user = Database.Authenticate(username, password);
+				if (user == null)
 					return false;
 
-				QueryContext.AutoCommit(autoCommit);
-				QueryContext.IgnoreIdentifiersCase(ignoreIdentifiersCase);
-				QueryContext.ParameterStyle(parameterStyle);
+				if (!OnAuthenticated(user))
+					return false;
+
+				// TODO: Accept more connection settings and store them here...
+				Metadata = new Dictionary<string, object> {
+					{ "IgnoreIdentifiersCase", ignoreIdentifiersCase },
+					{ "ParameterStyle", parameterStyle },
+					{ "DefaultSchema", defaultSchema }
+				};
 
 				ChangeState(ConnectorState.Authenticated);
 
@@ -183,59 +188,76 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected virtual IQueryContext OnAuthenticate(string defaultSchema, string username, string password) {
-			var user = Database.Authenticate(username, password);
-
-			if (user == null)
-				return null;
-
-			var session = Database.CreateUserSession(user);
-
-			// Put the connection in exclusive mode
-			session.ExclusiveLock();
-
-			var context = new SessionQueryContext(session);
-
-			try {
-				// By default, connections are auto-commit
-				session.AutoCommit(true);
-
-				// Set the default schema for this connection if it exists
-				if (context.SchemaExists(defaultSchema)) {
-					context.CurrentSchema(defaultSchema);
-				} else {
-					// TODO: Log the warning..
-
-					// If we can't change to the schema then change to the APP schema
-					session.CurrentSchema(Database.DatabaseContext.DefaultSchema());
-				}
-			} finally {
-				try {
-					session.Commit();
-				} catch (TransactionException) {
-					// TODO: Log the warning
-				}
-			}
-
-			return context;
+		protected virtual bool OnAuthenticated(User user) {
+			return true;
 		}
 
+		//private IQueryContext OnAuthenticate(string defaultSchema, string username, string password) {
+		//	var user = Database.Authenticate(username, password);
+
+		//	if (user == null)
+		//		return null;
+
+		//	var session = Database.CreateUserSession(user);
+
+		//	// Put the connection in exclusive mode
+		//	session.ExclusiveLock();
+
+		//	var context = new SessionQueryContext(session);
+
+		//	try {
+		//		// By default, connections are auto-commit
+		//		session.AutoCommit(true);
+
+		//		// Set the default schema for this connection if it exists
+		//		if (context.SchemaExists(defaultSchema)) {
+		//			context.CurrentSchema(defaultSchema);
+		//		} else {
+		//			// TODO: Log the warning..
+
+		//			// If we can't change to the schema then change to the APP schema
+		//			session.CurrentSchema(Database.DatabaseContext.DefaultSchema());
+		//		}
+		//	} finally {
+		//		try {
+		//			session.Commit();
+		//		} catch (TransactionException) {
+		//			// TODO: Log the warning
+		//		}
+		//	}
+
+		//	return context;
+		//}
+
 		private IQueryContext OpenQueryContext(long commitId) {
-			var sessionInfo = QueryContext.Session.SessionInfo;
 			var transaction = Database.TransactionFactory.OpenTransactions.FindById((int)commitId);
 			if (transaction == null)
 				throw new InvalidOperationException();
 
+			var sessionInfo = new SessionInfo((int)commitId, User);
 			var session = new UserSession(Database, transaction, sessionInfo);
 			return new SessionQueryContext(session);
+		}
+
+		private IQueryContext CreateQueryContext() {
+			// TODO: make the isolation level configurable...
+			var sessionInfo = new SessionInfo(User);
+			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
+			var session = new UserSession(Database, transaction, sessionInfo);
+			var context = new SessionQueryContext(session);
+			context.AutoCommit(true);
+
+			return context;
 		}
 
 		protected IQueryResponse[] ExecuteQuery(long commitId, string text, IEnumerable<QueryParameter> parameters) {
 			AssertAuthenticated();
 
-			IQueryContext queryContext = QueryContext;
-			if (commitId > 0 && commitId != QueryContext.Session.Transaction.CommitId) {
+			IQueryContext queryContext;
+			if (commitId > 0) {
 				queryContext = OpenQueryContext(commitId);
+			} else {
+				queryContext = CreateQueryContext();
 			}
 
 			return ExecuteQuery(queryContext, text, parameters);
@@ -294,7 +316,7 @@ namespace Deveel.Data.Protocol {
 						} else {
 							try {
 								// Otherwise commit.
-								QueryContext.Session.Commit();
+								context.Session.Commit();
 							} catch (Exception) {
 								foreach (IQueryResponse queryResponse in response) {
 									// Dispose this response if the commit failed.
@@ -345,10 +367,10 @@ namespace Deveel.Data.Protocol {
 					throw;
 				}
 
-				var taken = stopwatch.Elapsed;
+				var taken = stopwatch.ElapsedMilliseconds;
 
 				// Return the Query response
-				responses[j] = new QueryResponse(resultId, queryResult, (int)taken.TotalMilliseconds, "");
+				responses[j] = new QueryResponse(resultId, queryResult, (int)taken, "");
 
 				j++;
 			}
@@ -430,7 +452,7 @@ namespace Deveel.Data.Protocol {
 			if (transaction == null)
 				throw new InvalidOperationException();
 
-			var sessionInfo = QueryContext.Session.SessionInfo;
+			var sessionInfo = new SessionInfo(commitId, User);
 			using (var session = new UserSession(Database, transaction, sessionInfo)) {
 				session.Commit();
 			}
@@ -443,7 +465,7 @@ namespace Deveel.Data.Protocol {
 			if (transaction == null)
 				throw new InvalidOperationException();
 
-			var sessionInfo = QueryContext.Session.SessionInfo;
+			var sessionInfo = new SessionInfo(commitId, User);
 			using (var session = new UserSession(Database, transaction, sessionInfo)) {
 				session.Rollback();
 			}

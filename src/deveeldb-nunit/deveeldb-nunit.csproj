@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data.DbSystem\DatabaseTests.cs" />
@@ -146,9 +147,7 @@
       <Name>deveeldb</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Client\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
