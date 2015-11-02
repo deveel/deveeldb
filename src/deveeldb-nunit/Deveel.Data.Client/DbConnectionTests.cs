@@ -18,5 +18,26 @@ namespace Deveel.Data.Client {
 			Assert.DoesNotThrow(() => connection.Close());
 			Assert.AreEqual(ConnectionState.Closed, connection.State);
 		}
+
+		[Test]
+		public void QueryForAdmin() {
+			IDbConnection connection = null;
+			Assert.DoesNotThrow(() => connection = Database.CreateDbConnection(AdminUserName, AdminPassword));
+			Assert.IsNotNull(connection);
+
+			IDbCommand command = null;
+			Assert.DoesNotThrow(() => command = connection.CreateCommand());
+			Assert.IsNotNull(command);
+
+			command.CommandText = "SELECT user()";
+
+			object value = null;
+			Assert.DoesNotThrow(() => value = command.ExecuteScalar());
+			Assert.IsNotNull(value);
+			Assert.IsInstanceOf<string>(value);
+			Assert.AreEqual(AdminUserName, value);
+
+			Assert.DoesNotThrow(() => connection.Dispose());
+		}
 	}
 }

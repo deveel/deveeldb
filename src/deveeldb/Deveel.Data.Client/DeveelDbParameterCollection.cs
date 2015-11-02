@@ -16,17 +16,23 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameterCollection : DbParameterCollection {
+		private readonly List<DeveelDbParameter> parameters;
+
 		internal DeveelDbParameterCollection(DeveelDbCommand command) {
 			if (command == null)
 				throw new ArgumentNullException("command");
 
 			Command = command;
+			parameters = new List<DeveelDbParameter>();
 		}
 
 		private DeveelDbCommand Command { get; set; }
@@ -45,15 +51,41 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int Add(object value) {
+			if (value is DeveelDbParameter)
+				return AddParameter((DeveelDbParameter) value);
+			if (value is IDbDataParameter)
+				return AddDbDataParameter((IDbDataParameter) value);
+
+			return AddValue(value);
+		}
+
+		private int AddValue(object value) {
+			if (ParameterStyle != QueryParameterStyle.Marker)
+				throw new ArgumentException("Cannot add an unnamed parameter in this context.");
+
+			throw new NotImplementedException();
+		}
+
+		private int AddDbDataParameter(IDbDataParameter parameter) {
+			// TODO:
+			throw new NotImplementedException();
+		}
+
+		private int AddParameter(DeveelDbParameter parameter) {
 			throw new NotImplementedException();
 		}
 
 		public override bool Contains(object value) {
-			throw new NotImplementedException();
+			if (value is string)
+				return Contains((string) value);
+			if (value is IDbDataParameter)
+				return Contains(((IDbDataParameter) value).ParameterName);
+
+			return false;
 		}
 
 		public override void Clear() {
-			throw new NotImplementedException();
+			parameters.Clear();
 		}
 
 		public override int IndexOf(object value) {
@@ -85,23 +117,23 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int Count {
-			get { throw new NotImplementedException(); }
+			get { return parameters.Count; }
 		}
 
 		public override object SyncRoot {
-			get { throw new NotImplementedException(); }
+			get { return null; }
 		}
 
 		public override bool IsFixedSize {
-			get { throw new NotImplementedException(); }
+			get { return false; }
 		}
 
 		public override bool IsReadOnly {
-			get { throw new NotImplementedException(); }
+			get { return false; }
 		}
 
 		public override bool IsSynchronized {
-			get { throw new NotImplementedException(); }
+			get { return false; }
 		}
 
 		public override int IndexOf(string parameterName) {

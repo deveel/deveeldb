@@ -85,6 +85,9 @@ namespace Deveel.Data.Protocol {
 		private void AssertAuthenticated() {
 			if (CurrentState != ConnectorState.Authenticated)
 				throw new InvalidOperationException("The connector is not authenticated.");
+
+			if (User == null)
+				throw new InvalidOperationException("The connector is authenticated but no user is set.");
 		}
 
 		protected void SetAutoCommit(bool value) {
@@ -171,6 +174,8 @@ namespace Deveel.Data.Protocol {
 
 				if (!OnAuthenticated(user))
 					return false;
+
+				User = user;
 
 				// TODO: Accept more connection settings and store them here...
 				Metadata = new Dictionary<string, object> {
@@ -521,7 +526,7 @@ namespace Deveel.Data.Protocol {
 				if (!resultMap.TryGetValue(resultId, out result))
 					return null;
 
-				return null;
+				return result;
 			}
 		}
 

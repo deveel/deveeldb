@@ -36,7 +36,7 @@ namespace Deveel.Data.Client {
 		private bool prepared;
 		private List<QueryParameter> preparedParameters;
 
-		private readonly DeveelDbParameterCollection parameters;
+		private DeveelDbParameterCollection parameters;
 
 		private int resultIndex;
 		private LocalQueryResult[] results;
@@ -291,12 +291,29 @@ namespace Deveel.Data.Client {
 			return new DeveelDbParameter();
 		}
 
+		private void AssertConnectionOpen() {
+			if (Connection == null)
+				throw new DeveelDbException("The command is not associated to any connection.");
+
+			if (Connection.State == ConnectionState.Closed) {
+				try {
+					Connection.Open();
+				} catch (DeveelDbException) {
+					throw;
+				} catch (Exception ex) {
+					throw new DeveelDbException("Failed to open the underlying connection", ex);
+				}
+			}
+		}
+
 		protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) {
 			return ExecuteReader(behavior);
 		}
 
 		public new DeveelDbDataReader ExecuteReader(CommandBehavior behavior) {
 			try {
+				AssertConnectionOpen();
+
 				if (connection.State == ConnectionState.Fetching)
 					throw new InvalidOperationException("Another reader is already open for the connection.");
 
@@ -317,6 +334,8 @@ namespace Deveel.Data.Client {
 
 		public override int ExecuteNonQuery() {
 			try {
+				AssertConnectionOpen();
+
 				connection.ChangeState(ConnectionState.Executing);
 
 				ExecuteQuery();
@@ -338,6 +357,8 @@ namespace Deveel.Data.Client {
 
 		public override object ExecuteScalar() {
 			try {
+				AssertConnectionOpen();
+
 				connection.ChangeState(ConnectionState.Executing);
 
 				ExecuteQuery();
@@ -367,8 +388,34 @@ namespace Deveel.Data.Client {
 						result.Dispose();
 					}
 				}
+
+				if (parameters != null) {
+					foreach (IDbDataParameter parameter in parameters) {
+						if (parameter.Value is IDisposable) {
+							try {
+								((IDisposable)parameter.Value).Dispose();
+							} catch (Exception) {								
+							}
+						}
+					}
+
+					parameters.Clear();
+				}
+
+				if (preparedParameters != null) {
+					foreach (var parameter in preparedParameters) {
+						if (parameter.Value is IDisposable) {
+							try {
+								((IDisposable)parameter.Value).Dispose();
+							} catch (Exception) {
+							}
+						}
+					}
+				}
 			}
 
+			preparedParameters = null;
+			parameters = null;
 			results = null;
 
 			base.Dispose(disposing);
