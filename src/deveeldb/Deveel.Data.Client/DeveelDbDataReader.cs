@@ -48,7 +48,7 @@ namespace Deveel.Data.Client {
 		}
 
 		private T GetFinalValue<T>(int ordinal) where T : IConvertible {
-			var value = command.CurrentResult.GetRuntimeValue(ordinal);
+			var value = GetRuntimeValue(ordinal);
 			if (value == null || value == DBNull.Value)
 				return default(T);
 
@@ -62,12 +62,22 @@ namespace Deveel.Data.Client {
 			return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
 		}
 
-		private ISqlObject GetRawValue(int ordinal) {
-			var value = command.CurrentResult.GetRawColumn(ordinal);
+		private object GetRuntimeValue(int ordinal) {
 			if ((behavior & CommandBehavior.SchemaOnly) != 0)
 				return null;
 
+			var value = command.CurrentResult.GetRuntimeValue(ordinal);
+			if (value == null || value == DBNull.Value)
+				return DBNull.Value;
+
 			return value;
+		}
+
+		private ISqlObject GetRawValue(int ordinal) {
+			if ((behavior & CommandBehavior.SchemaOnly) != 0)
+				return null;
+
+			return command.CurrentResult.GetRawColumn(ordinal);
 		}
 
 
@@ -205,11 +215,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override bool GetBoolean(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<bool>(ordinal);
 		}
 
 		public override byte GetByte(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<byte>(ordinal);
 		}
 
 		public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) {
@@ -217,7 +227,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public override char GetChar(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<char>(ordinal);
 		}
 
 		public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) {
@@ -229,15 +239,15 @@ namespace Deveel.Data.Client {
 		}
 
 		public override short GetInt16(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<short>(ordinal);
 		}
 
 		public override int GetInt32(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<int>(ordinal);
 		}
 
 		public override long GetInt64(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<long>(ordinal);
 		}
 
 		public override DateTime GetDateTime(int ordinal) {
@@ -245,35 +255,40 @@ namespace Deveel.Data.Client {
 		}
 
 		public override string GetString(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<string>(ordinal);
 		}
 
 		public override object GetValue(int ordinal) {
-			throw new NotImplementedException();
+			return GetRuntimeValue(ordinal);
 		}
 
 		public override int GetValues(object[] values) {
-			throw new NotImplementedException();
+			var colCount = System.Math.Min(FieldCount, values.Length);
+			for (int i = 0; i < colCount; i++) {
+				values[i] = GetValue(i);
+			}
+
+			return colCount;
 		}
 
 		public override bool IsDBNull(int ordinal) {
-			throw new NotImplementedException();
+			return GetRuntimeValue(ordinal) == DBNull.Value;
 		}
 
 		public override int FieldCount {
-			get { throw new NotImplementedException(); }
+			get { return command.CurrentResult.ColumnCount; }
 		}
 
 		public override object this[int ordinal] {
-			get { throw new NotImplementedException(); }
+			get { return GetValue(ordinal); }
 		}
 
 		public override object this[string name] {
-			get { throw new NotImplementedException(); }
+			get { return GetValue(GetOrdinal(name)); }
 		}
 
 		public override bool HasRows {
-			get { throw new NotImplementedException(); }
+			get { return command.CurrentResult.RowCount > 0; }
 		}
 
 		public override decimal GetDecimal(int ordinal) {
@@ -281,11 +296,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override double GetDouble(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<double>(ordinal);
 		}
 
 		public override float GetFloat(int ordinal) {
-			throw new NotImplementedException();
+			return GetFinalValue<float>(ordinal);
 		}
 
 		public override string GetName(int ordinal) {
@@ -306,11 +321,15 @@ namespace Deveel.Data.Client {
 		}
 
 		public override int GetOrdinal(string name) {
-			throw new NotImplementedException();
+			return FindColumnIndex(name);
 		}
 
 		public override string GetDataTypeName(int ordinal) {
-			throw new NotImplementedException();
+			var column = command.CurrentResult.GetColumn(ordinal);
+			if (column == null)
+				return null;
+
+			return column.Type.ToString().ToUpperInvariant();
 		}
 
 		public override Type GetFieldType(int ordinal) {

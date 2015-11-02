@@ -20,7 +20,7 @@ namespace Deveel.Data.Client {
 		}
 
 		[Test]
-		public void QueryForAdmin() {
+		public void QueryScalarForAdmin() {
 			IDbConnection connection = null;
 			Assert.DoesNotThrow(() => connection = Database.CreateDbConnection(AdminUserName, AdminPassword));
 			Assert.IsNotNull(connection);
@@ -38,6 +38,29 @@ namespace Deveel.Data.Client {
 			Assert.AreEqual(AdminUserName, value);
 
 			Assert.DoesNotThrow(() => connection.Dispose());
+		}
+
+		[Test]
+		public void QueryForAdmin() {
+			IDbConnection connection = null;
+			Assert.DoesNotThrow(() => connection = Database.CreateDbConnection(AdminUserName, AdminPassword));
+			Assert.IsNotNull(connection);
+
+			IDbCommand command = null;
+			Assert.DoesNotThrow(() => command = connection.CreateCommand());
+			Assert.IsNotNull(command);
+
+			command.CommandText = "SELECT user()";
+
+			IDataReader reader = null;
+			Assert.DoesNotThrow(() => reader = command.ExecuteReader());
+			Assert.IsNotNull(reader);
+			Assert.AreEqual(1, reader.FieldCount);
+			Assert.IsTrue(reader.Read());
+
+			object value = null;
+			Assert.DoesNotThrow(() => value = reader.GetValue(0));
+			Assert.IsInstanceOf<string>(value);
 		}
 	}
 }
