@@ -73,6 +73,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Sql.Objects\SqlXmlNode.cs" />
+    <Compile Include="Deveel.Data.Xml\FluentConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data.Xml\SystemContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Xml\XmlFunctionProvider.cs" />
+    <Compile Include="Deveel.Data.Xml\XmlFunctions.cs" />
     <Compile Include="Deveel.Data.Xml\XmlNodeType.cs" />
     <Compile Include="Deveel.Data.Xml\XmlTypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
