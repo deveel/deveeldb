@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Deveel.Data;
-using Deveel.Data.Objects;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -112,6 +110,25 @@ namespace Deveel.Data.Spatial {
 			var g2 = (SqlGeometry) other.Value;
 			var result = Contains(g1, g2);
 			return DataObject.Boolean(result);
+		}
+
+		public static DataObject Area(DataObject geometry) {
+			var input = (SqlGeometry) geometry.Value;
+			var result = Area(input);
+			return DataObject.Number(result);
+		}
+
+		public static SqlNumber Area(SqlGeometry geometry) {
+			if (geometry == null || geometry.IsNull)
+				return SqlNumber.Null;
+
+			return geometry.Area;
+		}
+
+		public static DataObject Boundary(DataObject geometry) {
+			var input = (SqlGeometry) geometry.Value;
+			var result = input.Boundary;
+			return new DataObject(SpatialType.Geometry(), result);
 		}
 	}
 }

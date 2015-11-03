@@ -3,6 +3,8 @@
 using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 using NUnit.Framework;
 
@@ -30,11 +32,33 @@ namespace Deveel.Data.Spatial {
 		public void PointFromWkt() {
 			const string text = "FROM_WKT('POINT(50.100299 12.3399)')";
 
-			DataObject result = null;
-			Assert.DoesNotThrow(() => result = ParseAndInvoke(text));
+			var result = ParseAndInvoke(text);
+
 			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
 
 			Assert.IsInstanceOf<SpatialType>(result.Type);
+
+			var geometry = (SqlGeometry) result.Value;
+
+			// TODO: Vrify strings equal to SqlString
+			// Assert.AreEqual("POINT", geometry.GeometryType.ToString());
+		}
+
+		[Test]
+		public void DistanceCalculate() {
+			const string text = "DISTANCE(FROM_WKT('POINT(59.9308785 10.7893356)'), FROM_WKT('POINT(59.9284945 10.7786121)'))";
+
+			var result = ParseAndInvoke(text);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			Assert.IsInstanceOf<NumericType>(result.Type);
+
+			var number = (SqlNumber) result.Value;
+
+			// TODO: Assess the distance is right
 		}
 	}
 }

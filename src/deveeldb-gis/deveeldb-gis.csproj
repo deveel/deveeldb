@@ -85,7 +85,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Objects\SqlGeometry.cs" />
+    <Compile Include="Deveel.Data.Spatial\FluentConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data.Spatial\SqlGeometry.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialSystemFunctions.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialType.cs" />

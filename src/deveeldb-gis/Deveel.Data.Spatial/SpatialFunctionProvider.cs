@@ -58,10 +58,21 @@ namespace Deveel.Data.Spatial {
 				.ReturnsNumeric());
 
 			Register(config => config.Named("contains")
-				.WithParameter(p => p.Named("g1").OfType(SpatialType.Geometry()))
-				.WithParameter(p => p.Named("g2").OfType(SpatialType.Geometry()))
+				.WithSpatialParameter("g1")
+				.WithSpatialParameter("g2")
 				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Contains(args[0], args[1])))
 				.ReturnsBoolean());
+
+			Register(config => config.Named("area")
+				.WithSpatialParameter("g")
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Area(args[0])))
+				.ReturnsSpatialType());
+
+			Register(config => config.Named("boundary")
+				.WithSpatialParameter("g")
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.Boundary(args[0])))
+				.ReturnsSpatialType());
+
 
 			// TODO: Implement the functions
 		}

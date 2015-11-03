@@ -10,7 +10,7 @@ using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 
-namespace Deveel.Data.Objects {
+namespace Deveel.Data.Spatial {
 	public class SqlGeometry : ISqlObject {
 		public static SqlGeometry Null = new SqlGeometry(null, true);
 
@@ -51,6 +51,15 @@ namespace Deveel.Data.Objects {
 		}
 
 		public bool IsNull { get; private set; }
+
+		public SqlString GeometryType {
+			get {
+				if (IsNull)
+					return SqlString.Null;
+
+				return new SqlString(Geometry.GeometryType);
+			}
+		}
 
 		public SqlNumber Area {
 			get {
