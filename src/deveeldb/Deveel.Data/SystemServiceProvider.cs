@@ -146,14 +146,14 @@ namespace Deveel.Data {
 				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
 					var ifaces = serviceType.GetInterfaces();
 					foreach (var iface in ifaces) {
-						container.Register(iface, serviceType, serviceKey: name);
+						container.Register(iface, serviceType, serviceKey: name, reuse:Reuse.Singleton);
 					}
 				}
 
 				if (service == null) {
-					container.Register(serviceType, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+					container.Register(serviceType, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace, reuse:Reuse.Singleton);
 				} else {
-					container.RegisterInstance(serviceType, service, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+					container.RegisterInstance(serviceType, service, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace, reuse:Reuse.Singleton);
 				}
 			}
 		}

@@ -73,8 +73,8 @@
       <HintPath>..\packages\dmath.1.5.64\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DryIoc, Version=2.0.0.295, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DryIoc.dll.2.0.0-rc2build295\lib\net35\DryIoc.dll</HintPath>
+    <Reference Include="DryIoc, Version=2.0.0.342, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0-rc4build342\lib\net35\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
@@ -889,6 +889,7 @@
   <ItemGroup>
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
+    <None Include="packages.deveeldb.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -2,6 +2,7 @@
 
 using Deveel.Data.Deveel.Data.Xml;
 using Deveel.Data.Routines;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Fluid;
 
 
@@ -11,6 +12,13 @@ namespace Deveel.Data.Xml {
 			get { return SystemSchema.Name; }
 		}
 
+		protected override ObjectName NormalizeName(ObjectName functionName) {
+			if (functionName.Parent == null)
+				functionName = new ObjectName(new ObjectName(SchemaName), functionName.Name);
+
+			return base.NormalizeName(functionName);
+		}
+
 		private static ExecuteResult Simple(ExecuteContext context, Func<DataObject[], DataObject> func) {
 			var args = context.EvaluatedArguments;
 			var funcResult = func(args);
@@ -18,7 +26,7 @@ namespace Deveel.Data.Xml {
 		}
 
 		protected override void OnInit() {
-			Register(config => config.Named("xmltype")
+			Register(config => config.Named("to_xml")
 				.WithStringParameter("s")
 				.WhenExecute(context => Simple(context, args => XmlFunctions.XmlType(args[0])))
 				.ReturnsType(XmlNodeType.XmlType));
@@ -40,7 +48,7 @@ namespace Deveel.Data.Xml {
 				.WithXmlParameter("node")
 				.WithStringParameter("xpath")
 				.WhenExecute(context => Simple(context, args => XmlFunctions.ExtractValue(args[0], args[1])))
-				.ReturnsXmlType());
+				.ReturnsType(Function.DynamicType));
 
 			Register(config => config.Named("existsxml")
 				.WithXmlParameter("node")
@@ -61,6 +69,13 @@ namespace Deveel.Data.Xml {
 				.WithXmlParameter("child")
 				.WithXmlParameter("value")
 				.WhenExecute(context => Simple(context, args => XmlFunctions.InsertChild(args[0], args[1], args[2], args[3])))
+				.ReturnsXmlType());
+
+			Register(config => config.Named("updatexml")
+				.WithXmlParameter("node")
+				.WithStringParameter("xpath")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => XmlFunctions.Update(args[0], args[1], args[2])))
 				.ReturnsXmlType());
 		}
 	}

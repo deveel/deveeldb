@@ -7,12 +7,15 @@ using System.Xml.XPath;
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlXmlNode : ISqlObject, IDisposable {
 		private byte[] content;
+		private XPathNavigator navigator;
 
 		public static readonly SqlXmlNode Null = new SqlXmlNode(null, true);
 
 		private SqlXmlNode(byte[] content, bool isNull) {
 			this.content = content;
 			IsNull = isNull;
+
+			navigator = CreateNavigator();
 		}
 
 		public SqlXmlNode(byte[] content)
@@ -33,7 +36,20 @@ namespace Deveel.Data.Sql.Objects {
 			return false;
 		}
 
-		private string SelectSingle(string xpath, string xmlNs) {
+		private XPathNavigator CreateNavigator() {
+			if (IsNull)
+				return null;
+
+			using (var stream = new MemoryStream(content)) {
+				using (var xmlReader = new StreamReader(stream, Encoding.Unicode)) {
+					var xmlDocument = new XmlDocument();
+					xmlDocument.Load(xmlReader);
+					return xmlDocument.CreateNavigator();
+				}
+			}
+		}
+
+		private XmlNamespaceManager NamespaceManager(string xmlNs) {
 			XmlNamespaceManager nsManager = null;
 			if (!String.IsNullOrEmpty(xmlNs)) {
 				var nameTable = new NameTable();
@@ -41,17 +57,63 @@ namespace Deveel.Data.Sql.Objects {
 				nsManager = new XmlNamespaceManager(nameTable);
 			}
 
-			using (var stream = new MemoryStream(content)) {
-				using (var reader = new StreamReader(stream)) {
-					var xpathDoc = new XPathDocument(reader);
-					var navigator = xpathDoc.CreateNavigator();
-					var singleNodeNavigator = navigator.SelectSingleNode(xpath, nsManager);
-					if (singleNodeNavigator == null)
-						return null;
+			return nsManager;
+		}
 
-					return singleNodeNavigator.Value;
+		private void AsserCanEdit() {
+			if (!navigator.CanEdit)
+				throw new NotSupportedException("The current node cannot be edited.");
+		}
+
+		private byte[] SelectSingle(string xpath, string xmlNs) {
+			var nodeNavigator = navigator.SelectSingleNode(xpath, NamespaceManager(xmlNs));
+			if (nodeNavigator == null)
+				return null;
+
+			return AsBinary(nodeNavigator);
+		}
+
+		private static byte[] AsBinary(XPathNavigator navigator) {
+			using (var stream = new MemoryStream()) {
+				using (var xmlWriter = new XmlTextWriter(stream, Encoding.Unicode)) {
+					xmlWriter.Formatting = Formatting.None;
+
+					navigator.WriteSubtree(xmlWriter);
+
+					xmlWriter.Flush();
+
+					return stream.ToArray();
 				}
 			}
+		}
+
+		private bool SelectSingleValue(string xpath, string xmlNs, out object value, out Type valueType) {
+			value = null;
+			valueType = null;
+
+			var nodeNavigator = navigator.SelectSingleNode(xpath, NamespaceManager(xmlNs));
+			if (nodeNavigator == null)
+				return false;
+
+			valueType = nodeNavigator.ValueType;
+			value = nodeNavigator.TypedValue;
+			return true;
+		}
+
+		private bool Update(string xpath, object value, string xmlNs, out byte[] updated) {
+			AsserCanEdit();
+
+			updated = null;
+
+			var rootNavigator = navigator.Clone();
+			var nodeNavigator = rootNavigator.SelectSingleNode(xpath, NamespaceManager(xmlNs));
+			if (nodeNavigator == null)
+				return false;
+
+			nodeNavigator.SetValue(value.ToString());
+
+			updated = AsBinary(rootNavigator);
+			return true;
 		}
 
 		public SqlXmlNode Extract(string xpath) {
@@ -62,13 +124,33 @@ namespace Deveel.Data.Sql.Objects {
 			if (IsNull)
 				return Null;
 
-			var value = SelectSingle(xpath, xmlNs);
-			if (String.IsNullOrEmpty(value))
+			var bytes = SelectSingle(xpath, xmlNs);
+			if (bytes == null)
 				return Null;
 
 			// TODO: Control the encoding on properties of the type...
-			var bytes = Encoding.UTF8.GetBytes(value);
 			return new SqlXmlNode(bytes);
+		}
+
+		public ISqlObject ExtractValue(string xpath) {
+			return ExtractValue(xpath, null);
+		}
+
+		public ISqlObject ExtractValue(string xpath, string xmlNs) {
+			if (IsNull)
+				return Null;
+
+			object value;
+			Type valueType;
+			if (!SelectSingleValue(xpath, xmlNs, out value, out valueType))
+				return SqlNull.Value;
+
+			if (valueType == typeof(string))
+				return new SqlString((string)value);
+
+			// TODO: support other types
+
+			throw new NotSupportedException();
 		}
 
 		public SqlXmlNode Update(string xpath, ISqlObject value) {
@@ -76,23 +158,18 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlXmlNode Update(string xpath, ISqlObject value, string xmlNs) {
-			throw new NotImplementedException();
-		}
+			byte[] updated;
+			if (!Update(xpath, value, xmlNs, out updated))
+				return Null;
 
-		public override string ToString() {
-			if (IsNull)
-				return String.Empty;
-
-			// TODO: Control the encoding on properties of the type...
-			return Encoding.UTF8.GetString(content);
+			return new SqlXmlNode(updated);
 		}
 
 		public SqlString ToSqlString() {
 			if (IsNull)
 				return SqlString.Null;
 
-			// TODO: Control the encoding on properties of the type...
-			var chars = Encoding.UTF8.GetChars(content);
+			var chars = Encoding.Unicode.GetChars(content);
 			return new SqlString(chars);
 		}
 
@@ -104,14 +181,11 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public void Dispose() {
+			navigator = null;
 			content = null;
 		}
 
 		public SqlXmlNode AppendChild(string xpath, SqlXmlNode value) {
-			throw new NotImplementedException();
-		}
-
-		public SqlXmlNode ExtractValue(SqlXmlNode node, string xpath) {
 			throw new NotImplementedException();
 		}
 

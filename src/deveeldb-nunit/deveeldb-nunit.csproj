@@ -126,6 +126,7 @@
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data.Xml\XmlFunctionsTest.cs" />
     <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NullObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />
@@ -141,6 +142,10 @@
     <ProjectReference Include="..\deveeldb-gis\deveeldb-gis.csproj">
       <Project>{4609733f-0316-4137-ace5-1be52ce9ce73}</Project>
       <Name>deveeldb-gis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\deveeldb-xml\deveeldb-xml.csproj">
+      <Project>{512419ce-4521-4c5b-b52e-89f054b36996}</Project>
+      <Name>deveeldb-xml</Name>
     </ProjectReference>
     <ProjectReference Include="..\deveeldb\deveeldb.csproj">
       <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>

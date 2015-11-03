@@ -8,11 +8,9 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Spatial {
 	public static class SpatialSystemFunctions {
-		static SpatialSystemFunctions() {
-			Resolver = new SpatialFunctionProvider();
+		public static IRoutineResolver Resolver {
+			get { return new SpatialFunctionProvider(); }
 		}
-
-		public static IRoutineResolver Resolver { get; private set; }
 
 		public static SqlGeometry FromWkb(SqlBinary source) {
 			if (source.IsNull)

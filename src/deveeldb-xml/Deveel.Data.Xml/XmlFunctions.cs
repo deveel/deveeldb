@@ -1,17 +1,16 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Store;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Xml {
 	public static class XmlFunctions {
-		static XmlFunctions() {
-			Resolver = new XmlFunctionProvider();
+		public static IRoutineResolver Resolver {
+			get { return new XmlFunctionProvider(); }
 		}
-
-		public static IRoutineResolver Resolver { get; private set; }
 
 		private static string GetXPath(DataObject xpath) {
 			if (!(xpath.Type is StringType))
@@ -28,7 +27,72 @@ namespace Deveel.Data.Xml {
 		}
 
 		public static DataObject XmlType(DataObject obj) {
-			return obj.CastTo(XmlNodeType.XmlType);
+			if (obj.IsNull)
+				return new DataObject(XmlNodeType.XmlType, SqlNull.Value);
+
+			var value = obj.Value;
+			SqlXmlNode xmlNode;
+
+			if (value is ISqlBinary) {
+				xmlNode = XmlType((ISqlBinary) value);
+			} else if (value is ISqlString) {
+				xmlNode = XmlType((ISqlString) value);
+			} else {
+				throw new NotSupportedException();
+			}
+
+			return new DataObject(XmlNodeType.XmlType, xmlNode);
+		}
+
+		public static SqlXmlNode XmlType(ISqlBinary binary) {
+			var len = binary.Length;
+			var content = new byte[len];
+			var offset = 0;
+
+			const int bufferSize = 1024 * 10;
+
+			using (var stream = binary.GetInput()) {
+				using (var reader = new BinaryReader(stream)) {
+					while (true) {
+						var buffer = new byte[bufferSize];
+						var readCount = reader.Read(buffer, 0, bufferSize);
+
+						Array.Copy(buffer, 0, content, offset, readCount);
+
+						if (readCount == 0)
+							break;
+
+						offset += readCount;
+					}
+				}
+			}
+
+			return new SqlXmlNode(content);
+		}
+
+		public static SqlXmlNode XmlType(ISqlString s) {
+			var len = s.Length;
+			var content = new char[len];
+			var offset = 0;
+
+			const int bufferSize = 1024*10;
+
+			using (var reader = s.GetInput()) {
+				while (true) {
+					var buffer = new char[bufferSize];
+					var readCount = reader.Read(buffer, 0, bufferSize);
+
+					if (readCount == 0)
+						break;
+
+					Array.Copy(buffer, 0, content, offset, readCount);
+
+					offset += readCount;
+				}
+			}
+
+			var bytes = Encoding.Unicode.GetBytes(content);
+			return new SqlXmlNode(bytes);
 		}
 
 		public static DataObject AppendChild(DataObject obj, DataObject xpath, DataObject value) {
@@ -52,11 +116,20 @@ namespace Deveel.Data.Xml {
 
 		public static DataObject ExtractValue(DataObject obj, DataObject xpath) {
 			var result = ExtractValue(GetXmlNode(obj), GetXPath(xpath));
-			return new DataObject(XmlNodeType.XmlType, result);
+
+			SqlType resultType = PrimitiveTypes.String();
+			if (result is ISqlBinary)
+				resultType = PrimitiveTypes.Binary();
+			else if (result is SqlNumber)
+				resultType = PrimitiveTypes.Numeric();
+
+			// TODO: Support more types
+
+			return new DataObject(resultType, result);
 		}
 
-		public static SqlXmlNode ExtractValue(SqlXmlNode node, string xpath) {
-			return node.ExtractValue(node, xpath);
+		public static ISqlObject ExtractValue(SqlXmlNode node, string xpath) {
+			return node.ExtractValue(xpath);
 		}
 
 		public static DataObject Delete(DataObject obj, DataObject xpath) {
@@ -92,12 +165,13 @@ namespace Deveel.Data.Xml {
 			throw new NotImplementedException();
 		}
 
-		public static DataObject Update(DataObject obj, string xpath, DataObject value) {
-			throw new NotImplementedException();
+		public static SqlXmlNode Update(SqlXmlNode node, string xpath, DataObject value) {
+			return node.Update(xpath, value.Value);
 		}
 
 		public static DataObject Update(DataObject obj, DataObject xpath, DataObject value) {
-			return Update(obj, GetXPath(xpath), value);
+			var result = Update(GetXmlNode(obj), GetXPath(xpath), value);
+			return new DataObject(XmlNodeType.XmlType, result);
 		}
 	}
 }
