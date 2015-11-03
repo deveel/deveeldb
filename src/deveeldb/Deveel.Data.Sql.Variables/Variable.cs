@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Variables {
 			VariableInfo = variableInfo;
 		}
 
-		public VariableInfo VariableInfo { get; set; }
+		public VariableInfo VariableInfo { get; private set; }
 
 		public string Name {
 			get { return VariableInfo.VariableName; }

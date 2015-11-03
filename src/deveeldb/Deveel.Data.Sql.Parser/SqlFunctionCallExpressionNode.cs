@@ -22,9 +22,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// A node in a SQL command tree that is used to request a function.
 	/// </summary>
 	class SqlFunctionCallExpressionNode : SqlNode, IExpressionNode {
-		internal SqlFunctionCallExpressionNode() {
-		}
-
 		/// <summary>
 		/// Gets the name of the function to be invoked.
 		/// </summary>

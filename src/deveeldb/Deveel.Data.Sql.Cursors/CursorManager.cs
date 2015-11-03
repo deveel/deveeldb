@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		bool IObjectManager.DropObject(ObjectName objName) {
-			throw new NotSupportedException();
+			return DropCursor(objName);
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
@@ -136,6 +136,19 @@ namespace Deveel.Data.Sql.Cursors {
 				if (cursorName.Equals(name, StringComparison.OrdinalIgnoreCase))
 					cursors.RemoveAt(i);
 			}
+		}
+
+		public bool DropCursor(ObjectName cursorName) {
+			for (int i = cursors.Count - 1; i >= 0; i--) {
+				var cursor = cursors[i];
+				if (cursor.CursorInfo.CursorName.Equals(cursorName.Name, StringComparison.OrdinalIgnoreCase)) {
+					cursors.RemoveAt(i);
+					cursor.Dispose();
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }

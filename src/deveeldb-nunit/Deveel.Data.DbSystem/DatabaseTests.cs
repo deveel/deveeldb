@@ -56,7 +56,7 @@ namespace Deveel.Data {
 		[Test]
 		public void CreateNew() {
 			database = new Database(databaseContext);
-			Assert.DoesNotThrow(() => database.Create(TestAdminUser, TestAdminPass));
+			database.Create(TestAdminUser, TestAdminPass);
 		}
 
 		[Test]

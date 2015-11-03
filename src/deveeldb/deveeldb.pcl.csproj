@@ -602,6 +602,7 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />

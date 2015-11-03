@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Cursors {
@@ -31,6 +32,26 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 
 			context.CursorManager.DeclareCursor(cursorInfo);
+		}
+
+		public static void DeclareCursor(this IQueryContext context, string cursorName, SqlQueryExpression query) {
+			DeclareCursor(context, cursorName, (CursorFlags)0, query);
+		}
+
+		public static void DeclareCursor(this IQueryContext context, string cursorName, CursorFlags flags, SqlQueryExpression query) {
+			context.DeclareCursor(new CursorInfo(cursorName, flags, query));
+		}
+
+		public static void DeclareInsensitiveCursor(this IQueryContext context, string cursorName, SqlQueryExpression query) {
+			DeclareInsensitiveCursor(context, cursorName, query, false);
+		}
+
+		public static void DeclareInsensitiveCursor(this IQueryContext context, string cursorName, SqlQueryExpression query, bool withScroll) {
+			var flags = CursorFlags.Insensitive;
+			if (withScroll)
+				flags |= CursorFlags.Scroll;
+
+			context.DeclareCursor(cursorName, flags, query);
 		}
 
 		public static void CloseCursor(this IQueryContext context, string cursorName) {

@@ -16,6 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Index;
 
 namespace Deveel.Data.Sql.Parser {
 	class OpenCursorStatementNode : SqlNode, IStatementNode {
@@ -23,10 +26,29 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<IExpressionNode> Arguments { get; private set; }
 
-		protected override void OnNodeInit() {
-			CursorName = this.FindNode<IdentifierNode>().Text;
-			Arguments = this.FindNodes<IExpressionNode>();
-			base.OnNodeInit();
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is IdentifierNode) {
+				CursorName = ((IdentifierNode) node).Text;
+			} else if (node.NodeName.Equals("args_opt")) {
+				GetArguments(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetArguments(ISqlNode node) {
+			var listNode = node.FindByName("arg_list");
+			if (listNode == null)
+				return;
+
+			var args = new List<IExpressionNode>();
+
+			foreach (var childNode in listNode.ChildNodes) {
+				if (childNode is IExpressionNode)
+					args.Add((IExpressionNode)childNode);
+			}
+
+			Arguments = args.AsEnumerable();
 		}
 	}
 }

@@ -9,6 +9,10 @@ namespace Deveel.Data {
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
 
+		protected virtual bool SingleContext {
+			get { return false; }
+		}
+
 		protected IQueryContext QueryContext { get; private set; }
 
 		protected ISystemContext SystemContext { get; private set; }
@@ -51,22 +55,30 @@ namespace Deveel.Data {
 		
 		[SetUp]
 		public void TestSetUp() {
-			SystemContext = CreateSystemContext();
-			DatabaseContext = CreateDatabaseContext(SystemContext);
-			Database = CreateDatabase(DatabaseContext);
-			QueryContext = CreateQueryContext(Database);
+			if (!SingleContext)
+				CreateContext();
 
 			var testName = TestContext.CurrentContext.Test.Name;
 			OnSetUp(testName);
 		}
 
-		[TearDown]
-		public void TestTearDown() {
-			OnTearDown();
+		[TestFixtureSetUp]
+		public void TestFixtureSetUp() {
+			if (SingleContext)
+				CreateContext();
+		}
 
+		private void CreateContext() {
+			SystemContext = CreateSystemContext();
+			DatabaseContext = CreateDatabaseContext(SystemContext);
+			Database = CreateDatabase(DatabaseContext);
+			QueryContext = CreateQueryContext(Database);
+		}
+
+		private void DisposeContext() {
 			if (QueryContext != null)
 				QueryContext.Dispose();
-			
+
 			if (Database != null)
 				Database.Dispose();
 
@@ -80,6 +92,20 @@ namespace Deveel.Data {
 			DatabaseContext = null;
 			SystemContext = null;
 			QueryContext = null;
+		}
+
+		[TearDown]
+		public void TestTearDown() {
+			OnTearDown();
+
+			if (!SingleContext)
+				DisposeContext();
+		}
+
+		[TestFixtureTearDown]
+		public void TestFixtureTearDown() {
+			if (SingleContext)
+				DisposeContext();
 		}
 	}
 }

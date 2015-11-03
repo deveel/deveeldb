@@ -145,6 +145,8 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventEventTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />

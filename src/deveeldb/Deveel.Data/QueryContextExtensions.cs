@@ -97,14 +97,63 @@ namespace Deveel.Data {
 		#region Objects
 
 		public static bool ObjectExists(this IQueryContext context, ObjectName objectName) {
+			// Special types for these database objects that can be 
+			// declared in a limited context
+			if (context.CursorManager.CursorExists(objectName))
+				return true;
+			if (context.VariableManager.VariableExists(objectName.Name))
+				return true;
+
+			if (context.ParentContext != null &&
+			    context.ParentContext.ObjectExists(objectName))
+				return true;
+
+			// We haven't found it neither in this context nor in the parent: 
+			//   fallback to the transaction scope
 			return context.Session.ObjectExists(objectName);
 		}
 
 		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			// Special types for these database objects that can be 
+			// declared in a limited context
+			if (objectType == DbObjectType.Cursor &&
+			    context.CursorManager.CursorExists(objectName))
+				return true;
+
+			if (objectType == DbObjectType.Variable &&
+			    context.VariableManager.VariableExists(objectName.Name))
+				return true;
+
+			if (context.ParentContext != null &&
+			    context.ParentContext.ObjectExists(objectType, objectName))
+				return true;
+
+			// We haven't found it neither in this context nor in the parent: 
+			//   fallback to the transaction scope
 			return context.Session.ObjectExists(objectType, objectName);
 		}
 
 		private static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
+			// First handle the special cases of cursors and variable, that can be declared
+			//  in a query context
+			// If they are declared in the context, the user owns them and we don't need
+			//  to verify the ownership
+			if (objType == DbObjectType.Cursor) {
+				var obj = context.CursorManager.GetCursor(objName.Name);
+				if (obj != null)
+					return obj;
+			} else if (objType == DbObjectType.Variable) {
+				var obj = context.VariableManager.GetVariable(objName.Name);
+				if (obj != null)
+					return obj;
+			}
+
+			if (context.ParentContext != null) {
+				var obj = context.ParentContext.GetObject(objType, objName);
+				if (obj != null)
+					return obj;
+			}
+
 			// TODO: throw a specialized exception
 			if (!context.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
@@ -120,11 +169,25 @@ namespace Deveel.Data {
 			context.Session.CreateObject(objectInfo);
 		}
 
-		private static void DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+		private static bool DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			if (objectType == DbObjectType.Variable &&
+				context.VariableManager.DropVariable(objectName.Name)) {
+				return true;
+			}
+			if (objectType == DbObjectType.Cursor &&
+				context.CursorManager.DropCursor(objectName)) {
+				return true;
+			}
+
+			if (context.ParentContext != null &&
+			    context.ParentContext.DropObject(objectType, objectName))
+				return true;
+
 			if (!context.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(context.UserName(), objectName, Privileges.Drop);
 
 			context.Session.DropObject(objectType, objectName);
+			return true;
 		}
 
 		private static void AlterObject(this IQueryContext context, IObjectInfo objectInfo) {
@@ -138,10 +201,31 @@ namespace Deveel.Data {
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
+			if (context.VariableManager.VariableExists(name) ||
+				context.CursorManager.CursorExists(new ObjectName(name)))
+				return new ObjectName(name);
+
+			ObjectName resolved;
+			if (context.ParentContext != null &&
+			    (resolved = context.ParentContext.ResolveObjectName(name)) != null)
+				return resolved;
+
 			return context.Session.ResolveObjectName(name);
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
+			if (objectType == DbObjectType.Variable &&
+				context.VariableManager.VariableExists(objectName.Name))
+				return new ObjectName(objectName.Name);
+			if (objectType == DbObjectType.Cursor &&
+				context.CursorManager.CursorExists(objectName))
+				return new ObjectName(objectName.Name);
+
+			ObjectName resolved;
+			if (context.ParentContext != null &&
+			    (resolved = context.ParentContext.ResolveObjectName(objectType, objectName)) != null)
+				return resolved;
+
 			return context.Session.ResolveObjectName(objectType, objectName);
 		}
 
@@ -744,48 +828,6 @@ namespace Deveel.Data {
 
 		public static UserType GetUserType(this IQueryContext context, ObjectName typeName) {
 			return context.GetObject(DbObjectType.Type, typeName) as UserType;
-		}
-
-		#endregion
-
-		#region Variables
-
-		public static Variable GetVariable(this IQueryContext context, string variableName) {
-			IQueryContext opContext = context;
-			while (true) {
-				if (opContext == null ||
-					opContext.VariableManager == null)
-					break;
-
-				var variable = opContext.VariableManager.GetVariable(variableName);
-
-				if (variable != null)
-					return variable;
-			}
-
-			return null;
-		}
-
-		public static void SetVariable(this IQueryContext context, string variableName, DataObject value) {
-			IQueryContext opContext = context;
-			while (true) {
-				if (opContext == null ||
-					opContext.VariableManager == null)
-					break;
-
-				var variable = opContext.VariableManager.GetVariable(variableName);
-
-				if (variable != null) {
-					variable.SetValue(value);
-					return;
-				}
-			}
-
-			throw new InvalidOperationException(String.Format("Cannot find variable {0} in the context.", variableName));
-		}
-
-		public static void SetVariable(this IQueryContext context, ObjectName variableName, DataObject value) {
-			context.SetVariable(variableName.Name, value);
 		}
 
 		#endregion

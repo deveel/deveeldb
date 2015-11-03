@@ -35,7 +35,7 @@ namespace Deveel.Data.Transactions {
 		private TableManager tableManager;
 		private SequenceManager sequenceManager;
 		private ViewManager viewManager;
-		private VariableManager variableManager;
+		private PersistentVariableManager variableManager;
 		private SchemaManager schemaManager;
 		private TriggerManager triggerManager;
 		private List<TableCommitCallback> callbacks;
@@ -135,7 +135,7 @@ namespace Deveel.Data.Transactions {
 			tableManager = new TableManager(this, TableComposite);
 			sequenceManager = new SequenceManager(this);
 			viewManager = new ViewManager(this);
-			variableManager = new VariableManager(this);
+			variableManager = new PersistentVariableManager(this);
 			triggerManager = new TriggerManager(this);
 
 			Managers = new ObjectManagersResolver(this);
@@ -534,6 +534,8 @@ namespace Deveel.Data.Transactions {
 
 		#endregion
 
+		#region Variables
+
 		DataObject IVariableResolver.Resolve(ObjectName variable) {
 			throw new NotImplementedException();
 		}
@@ -550,14 +552,55 @@ namespace Deveel.Data.Transactions {
 					throw new InvalidOperationException("The database is read-only: cannot change access of the transaction.");
 
 				// TODO: handle special cases like "ON", "OFF", "ENABLE" and "DISABLE"
-				readOnly = variable.Value;
+				readOnly = ParseBoolean(variable.Value);
 			} else if (variable.Name.Equals(TransactionSettingKeys.IgnoreIdentifiersCase, StringComparison.OrdinalIgnoreCase)) {
-				ignoreCase = variable.Value;
+				ignoreCase = ParseBoolean(variable.Value);
 			} else if (variable.Name.Equals(TransactionSettingKeys.AutoCommit, StringComparison.OrdinalIgnoreCase)) {
-				autoCommit = variable.Value;
+				autoCommit = ParseBoolean(variable.Value);
 			} else if (variable.Name.Equals(TransactionSettingKeys.ParameterStyle, StringComparison.OrdinalIgnoreCase)) {
 				parameterStyle = variable.Value;
+			} else if (variable.Name.Equals(TransactionSettingKeys.IsolationLevel, StringComparison.OrdinalIgnoreCase)) {
+				var isolation = ParseIsolationLevel(variable.Value);
+				//TODO: support multiple isolations!
+				if (isolation != IsolationLevel.Serializable)
+					throw new NotSupportedException();
 			}
+		}
+
+		private static IsolationLevel ParseIsolationLevel(DataObject value) {
+			var s = value.Value.ToString();
+			if (String.Equals(s, "serializable", StringComparison.OrdinalIgnoreCase))
+				return IsolationLevel.Serializable;
+			if (String.Equals(s, "read committed", StringComparison.OrdinalIgnoreCase))
+				return IsolationLevel.ReadCommitted;
+			if (String.Equals(s, "read uncommitted", StringComparison.OrdinalIgnoreCase))
+				return IsolationLevel.ReadUncommitted;
+			if (String.Equals(s, "snapshot", StringComparison.OrdinalIgnoreCase))
+				return IsolationLevel.Snapshot;
+
+			return IsolationLevel.Unspecified;
+		}
+
+		private static bool ParseBoolean(DataObject value) {
+			if (value.Type is BooleanType)
+				return value;
+			if (value.Type is StringType) {
+				var s = value.Value.ToString();
+				if (String.Equals(s, "true", StringComparison.OrdinalIgnoreCase) ||
+				    String.Equals(s, "on", StringComparison.OrdinalIgnoreCase))
+					return true;
+				if (String.Equals(s, "false", StringComparison.OrdinalIgnoreCase) ||
+				    String.Equals(s, "off", StringComparison.OrdinalIgnoreCase))
+					return false;
+			} else if (value.Type is NumericType) {
+				int i = value;
+				if (i == 0)
+					return false;
+				if (i == 1)
+					return true;
+			}
+
+			throw new NotSupportedException();
 		}
 
 		void IVariableScope.OnVariableDropped(Variable variable) {
@@ -601,6 +644,8 @@ namespace Deveel.Data.Transactions {
 
 			return null;
 		}
+
+		#endregion
 
 		void ICallbackHandler.OnCallbackAttached(TableCommitCallback callback) {
 			if (callbacks == null)

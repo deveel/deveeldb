@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
@@ -38,6 +39,8 @@ namespace Deveel.Data.Sql {
 		public bool IsConstant { get; private set; }
 
 		public bool IsNotNull { get; set; }
+
+		public SqlExpression DefaultExpression { get; set; }
 
 		DbObjectType IObjectInfo.ObjectType {
 			get { return DbObjectType.Variable; }

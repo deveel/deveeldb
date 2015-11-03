@@ -21,6 +21,7 @@ using System.Linq;
 using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -261,16 +262,26 @@ namespace Deveel.Data.Sql.Expressions {
 			var reference = assign.ReferenceExpression;
 			var value = ((SqlConstantExpression)valueExpression).Value;
 
+			string variableName;
+
 			if (reference is SqlVariableReferenceExpression) {
-				try {
-					var variable = ((SqlVariableReferenceExpression) reference).VariableName;
-					context.QueryContext.SetVariable(variable, value);
-				} catch (Exception ex) {
-					throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
-				}
+				variableName = ((SqlVariableReferenceExpression) reference).VariableName;
+			} else if (reference is SqlReferenceExpression) {
+				var refName = ((SqlReferenceExpression) reference).ReferenceName;
+				if (refName.Parent != null)  // This might be the assignment to a complex type attribute
+					throw new NotSupportedException(string.Format("Reference to '{0}' is not supported.", refName));
+
+                variableName = refName.Name;
 			} else {
-				throw new NotImplementedException();
+				throw new NotSupportedException();
 			}
+
+			try {
+				context.QueryContext.SetVariable(variableName, valueExpression);
+			} catch (Exception ex) {
+				throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
+			}
+
 
 			return SqlExpression.Constant(value);
 		}
@@ -302,11 +313,11 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new ExpressionEvaluateException("The query context does not handle variables.");
 
 			
-			var variable = context.QueryContext.GetVariable(refName);
+			var variable = context.QueryContext.FindVariable(refName);
 			if (variable == null)
 				return SqlExpression.Constant(DataObject.Null());
 
-			return base.VisitVariableReference(reference);
+			return SqlExpression.Constant(variable.Value);
 		}
 
 		public override SqlExpression VisitConditional(SqlConditionalExpression conditional) {

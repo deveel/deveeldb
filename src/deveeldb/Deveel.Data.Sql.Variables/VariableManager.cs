@@ -17,10 +17,8 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
-
 namespace Deveel.Data.Sql.Variables {
-	public class VariableManager : IObjectManager {
+	public class VariableManager {
 		private Dictionary<string, Variable> variables;
  
 		public VariableManager(IVariableScope scope) {
@@ -36,7 +34,7 @@ namespace Deveel.Data.Sql.Variables {
 			GC.SuppressFinalize(this);
 		}
 
-		private void Dispose(bool disposing) {
+		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				variables.Clear();
 			}
@@ -44,23 +42,7 @@ namespace Deveel.Data.Sql.Variables {
 			variables = null;
 		}
 
-		DbObjectType IObjectManager.ObjectType {
-			get { return DbObjectType.Variable; }
-		}
-
-		public void Create() {
-			// TODO:
-		}
-
-		void IObjectManager.CreateObject(IObjectInfo objInfo) {
-			var variableInfo = objInfo as VariableInfo;
-			if (variableInfo == null)
-				throw new ArgumentException();
-
-			DefineVariable(variableInfo);
-		}
-
-		public void DefineVariable(VariableInfo variableInfo) {
+		public Variable DefineVariable(VariableInfo variableInfo) {
 			if (variableInfo == null)
 				throw new ArgumentNullException("variableInfo");
 
@@ -68,27 +50,47 @@ namespace Deveel.Data.Sql.Variables {
 				throw new ArgumentException();
 
 			var variable = new Variable(variableInfo);
-			variables[variableInfo.VariableName] = variable;
+			OnDefineVariable(variable);
 			Scope.OnVariableDefined(variable);
+
+			return variable;
 		}
 
-		public bool VariableExists(string name) {
+		protected virtual void OnDefineVariable(Variable variable) {
+			variables[variable.Name] = variable;
+		}
+
+		public virtual bool VariableExists(string name) {
 			return variables.ContainsKey(name);
 		}
 
 		public Variable GetVariable(string name) {
 			Variable variable = Scope.OnVariableGet(name);
 			if (variable == null) {
-				if (!variables.TryGetValue(name, out variable))
-					return null;
+				variable = OnGetVariable(name);
 			}
 
 			return variable;
 		}
 
-		public bool DropVariable(string name) {
+		protected virtual Variable OnGetVariable(string name) {
 			Variable variable;
 			if (!variables.TryGetValue(name, out variable))
+				return null;
+
+			return variable;
+		}
+
+		protected virtual bool OnDropVariable(string name, out Variable variable) {
+			if (!variables.TryGetValue(name, out variable))
+				return false;
+
+			return variables.Remove(name);
+		}
+
+		public bool DropVariable(string name) {
+			Variable variable;
+			if (!OnDropVariable(name, out variable))
 				return false;
 
 			try {
@@ -98,30 +100,6 @@ namespace Deveel.Data.Sql.Variables {
 			}
 
 			return true;
-		}
-
-		bool IObjectManager.RealObjectExists(ObjectName objName) {
-			return VariableExists(objName.Name);
-		}
-
-		bool IObjectManager.ObjectExists(ObjectName objName) {
-			return VariableExists(objName.Name);
-		}
-
-		IDbObject IObjectManager.GetObject(ObjectName objName) {
-			return GetVariable(objName.Name);
-		}
-
-		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
-			throw new NotSupportedException();
-		}
-
-		bool IObjectManager.DropObject(ObjectName objName) {
-			return DropVariable(objName.Name);
-		}
-
-		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
 		}
 	}
 }

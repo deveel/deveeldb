@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void DeclareCursorWithArguments() {
-			const string sql = "DECLARE CURSOR c1 (arg1 INT, arg2 VARCHAR) IS SELECT * FROM test_table WHERE a = 1";
+			const string sql = "DECLARE CURSOR c1 (arg1 INT, arg2 VARCHAR) IS SELECT * FROM test_table WHERE a = arg1";
 
 			var statements = SqlStatement.Parse(sql);
 			Assert.IsNotNull(statements);
