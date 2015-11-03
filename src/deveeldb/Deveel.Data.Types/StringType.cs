@@ -421,10 +421,12 @@ namespace Deveel.Data.Types {
 				return String.Compare(str1.ToString(), str2.ToString(), StringComparison.Ordinal);
 			}
 
+			// TODO: pick one of the two encodings?
+
 			// The minimum size
 			long size = System.Math.Min(str1Size, str2Size);
-			TextReader r1 = str1.GetInput();
-			TextReader r2 = str2.GetInput();
+			TextReader r1 = str1.GetInput(str1.Encoding);
+			TextReader r2 = str2.GetInput(str2.Encoding);
 			try {
 				try {
 					while (size > 0) {

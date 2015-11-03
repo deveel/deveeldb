@@ -29,8 +29,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void ParseSimpleCreateView() {
 			const string sql = "CREATE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			var statements = SqlStatement.Parse(sql);
 			Assert.IsNotNull(statements);
 
 			var statementList = statements.ToList();

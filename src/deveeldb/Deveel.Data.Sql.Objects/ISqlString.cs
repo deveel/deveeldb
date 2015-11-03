@@ -21,10 +21,12 @@ using System.Text;
 
 namespace Deveel.Data.Sql.Objects {
 	public interface ISqlString : ISqlObject, IComparable<ISqlString>, IEnumerable<char> {
+		Encoding Encoding { get; }
+
 		long Length { get; }
 
 		char this[long offset] { get; }
 
-		TextReader GetInput();
+		TextReader GetInput(Encoding encoding);
 	}
 }

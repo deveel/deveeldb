@@ -20,33 +20,86 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql.Objects {
+	/// <summary>
+	/// The most simple implementation of a SQL string with a small size
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Instances of this object handle strings that are not backed by large
+	/// objects and can handle a fixed length of characters.
+	/// </para>
+	/// <para>
+	/// The encoding of the string is dependent from the <see cref="StringType"/> that
+	/// defines an object, but the default is <see cref="UnicodeEncoding"/>.
+	/// </para>
+	/// </remarks>
+	/// <seealso cref="ISqlString"/>
 	public struct SqlString : ISqlString, IEquatable<SqlString>, IConvertible {
+		/// <summary>
+		/// The maximum length of characters a <see cref="SqlString"/> can handle.
+		/// </summary>
 		public const int MaxLength = Int16.MaxValue;
 
-		public static readonly SqlString Null = new SqlString((char[])null);
+		/// <summary>
+		/// The <c>null</c> instance of a string.
+		/// </summary>
+		public static readonly SqlString Null = new SqlString(null, 0, true);
 
-		private readonly char[] source;
+		private readonly byte[] source;
 
-		public SqlString(char[] chars)
-			: this(chars, chars == null ? 0 : chars.Length) {
-		}
-
-		public SqlString(char[] chars, int length)
-			: this() {
+		private SqlString(char[] chars, int length, bool isNull) : this() {
 			if (chars == null) {
 				source = null;
 			} else {
 				if (length > MaxLength)
 					throw new ArgumentOutOfRangeException("length");
 
-				source = new char[length];
-				Array.Copy(chars, 0, source, 0, length);
-			}			
+				source = Encoding.Unicode.GetBytes(chars);
+				Length = Encoding.Unicode.GetCharCount(source);
+			}
+
+			IsNull = isNull || source == null;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SqlString"/> structure with
+		/// the given set of characters.
+		/// </summary>
+		/// <param name="chars">The chars.</param>
+		public SqlString(char[] chars)
+			: this(chars, chars == null ? 0 : chars.Length) {
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SqlString"/> structure.
+		/// </summary>
+		/// <param name="chars">The chars.</param>
+		/// <param name="length">The length.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">length</exception>
+		public SqlString(char[] chars, int length)
+			: this(chars, length, false) {
 		}
 
 		public SqlString(string source)
 			: this(source == null ? (char[]) null : source.ToCharArray()) {
+		}
+
+		public SqlString(byte[] bytes, int offset, int length)
+			: this(GetChars(bytes, offset, length)) {
+		}
+
+		public SqlString(byte[] bytes)
+			: this(bytes, 0, bytes == null ? 0 : bytes.Length) {
+		}
+
+		private static char[] GetChars(byte[] bytes, int offset, int length) {
+			if (bytes == null)
+				return null;
+
+			return Encoding.Unicode.GetChars(bytes, offset, length);
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -57,12 +110,14 @@ namespace Deveel.Data.Sql.Objects {
 			return CompareTo((ISqlString) other);
 		}
 
-		public bool IsNull {
-			get { return source == null; }
+		public bool IsNull { get; private set; }
+
+		Encoding ISqlString.Encoding {
+			get { return Encoding.Unicode; }
 		}
 
 		public string Value {
-			get { return source == null ? null : new string(source); }
+			get { return source == null ? null : Encoding.Unicode.GetString(source, 0, source.Length); }
 		}
 
 		public char this[long index] {
@@ -75,7 +130,8 @@ namespace Deveel.Data.Sql.Objects {
 				if (index >= Length)
 					throw new ArgumentOutOfRangeException("index");
 
-				return source[index];
+				var chars = Encoding.Unicode.GetChars(source);
+				return chars[index];
 			}
 		}
 
@@ -99,7 +155,7 @@ namespace Deveel.Data.Sql.Objects {
 				return String.Compare(Value, otherString.Value, StringComparison.Ordinal);
 			}
 
-			throw new NotImplementedException("Comparison with long strng not implemented yet.");
+			throw new NotImplementedException("Comparison with long strong not implemented yet.");
 		}
 
 		public IEnumerator<char> GetEnumerator() {
@@ -110,16 +166,33 @@ namespace Deveel.Data.Sql.Objects {
 			return GetEnumerator();
 		}
 
-		public long Length {
-			get { return source == null ? 0 : source.Length; }
+		public long Length { get; private set; }
+
+		public string ToString(Encoding encoding) {
+			if (IsNull)
+				return null;
+
+			var bytes = source;
+
+			if (!encoding.Equals(Encoding.Unicode))
+				bytes = Encoding.Convert(Encoding.Unicode, encoding, bytes);
+
+			return encoding.GetString(bytes, 0, bytes.Length);
 		}
 
-		public TextReader GetInput() {
-			string s = String.Empty;
-			if (!IsNull)
-				s = new string(source);
+		public TextReader GetInput(Encoding encoding) {
+			if (IsNull)
+				return TextReader.Null;
 
-			return new StringReader(s);
+			if (encoding == null)
+				encoding = Encoding.Unicode;
+
+			var bytes = source;
+			if (!encoding.Equals(Encoding.Unicode))
+				bytes = Encoding.Convert(Encoding.Unicode, encoding, bytes);
+
+			var stream = new MemoryStream(bytes);
+			return new StreamReader(stream, encoding);
 		}
 
 		public bool Equals(SqlString other) {
@@ -172,7 +245,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (source == null)
 				return new byte[0];
 
-			return encoding.GetBytes(source);
+			return (byte[]) source.Clone();
 		}
 
 		public SqlString Concat(ISqlString other) {
@@ -185,16 +258,19 @@ namespace Deveel.Data.Sql.Objects {
 				if (length >= MaxLength)
 					throw new ArgumentException("The final string will be over the maximum length");
 
+				var sourceChars = ToCharArray();
+				var otherChars = otheString.ToCharArray();
 				var destChars = new char[length];
-				Array.Copy(source, 0, destChars, 0, (int)Length);
-				Array.Copy(otheString.source, 0, destChars, (int)Length, (int)otheString.Length);
+
+				Array.Copy(sourceChars, 0, destChars, 0, (int)Length);
+				Array.Copy(otherChars, 0, destChars, (int)Length, (int)otheString.Length);
 				return new SqlString(destChars, length);
 			}
 
 			var sb = new StringBuilder(Int16.MaxValue);
 			using (var output = new StringWriter(sb)) {
 				// First read the current stream
-				using (var reader = GetInput()) {
+				using (var reader = GetInput(Encoding.Unicode)) {
 					var buffer = new char[2048];
 					int count;
 					while ((count = reader.Read(buffer, 0, buffer.Length)) != 0) {
@@ -203,7 +279,7 @@ namespace Deveel.Data.Sql.Objects {
 				}
 
 				// Then read the second stream
-				using (var reader = other.GetInput()) {
+				using (var reader = other.GetInput(Encoding.Unicode)) {
 					var buffer = new char[2048];
 					int count;
 					while ((count = reader.Read(buffer, 0, buffer.Length)) != 0) {
@@ -229,7 +305,8 @@ namespace Deveel.Data.Sql.Objects {
 			if (IsNull)
 				return 0;
 
-			return encoding.GetByteCount(source);
+			var bytes = Encoding.Convert(Encoding.Unicode, encoding, source);
+			return bytes.Length;
 		}
 
 		#region StringEnumerator
@@ -415,9 +492,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (source == null)
 				return new char[0];
 
-			var chars = new char[Length];
-			Array.Copy(source, 0, chars, 0, (int)Length);
-			return chars;
+			return Encoding.Unicode.GetChars(source);
 		}
 	}
 }

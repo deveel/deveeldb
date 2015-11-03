@@ -25,7 +25,6 @@ using Deveel.Data.Store;
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlLongString : ISqlString, IObjectRef, IDisposable {
 		private ILargeObject largeObject;
-		private Encoding encoding;
 
 		public static readonly SqlLongString Null = new SqlLongString(null, null, true);
 
@@ -34,7 +33,8 @@ namespace Deveel.Data.Sql.Objects {
 				throw new ArgumentNullException("largeObject");
 
 			this.largeObject = largeObject;
-			this.encoding = encoding;
+			Encoding = encoding;
+			IsNull = isNull;
 
 			if (!isNull) {
 				Length = largeObject.RawSize;
@@ -49,6 +49,8 @@ namespace Deveel.Data.Sql.Objects {
 			Dispose(false);
 		}
 
+		public Encoding Encoding { get; private set; }
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -60,6 +62,7 @@ namespace Deveel.Data.Sql.Objects {
 					largeObject.Dispose();
 			}
 
+			Encoding = null;
 			largeObject = null;
 		}
 
@@ -75,9 +78,7 @@ namespace Deveel.Data.Sql.Objects {
 			get { return largeObject.Id; }
 		}
 
-		public bool IsNull {
-			get { return largeObject == null; }
-		}
+		public bool IsNull { get; private set; }
 
 		bool ISqlObject.IsComparableTo(ISqlObject other) {
 			return false;
@@ -108,11 +109,11 @@ namespace Deveel.Data.Sql.Objects {
 
 		public long Length { get; private set; }
 
-		public TextReader GetInput() {
+		public TextReader GetInput(Encoding encoding) {
 			if (largeObject == null)
 				return TextReader.Null;
 
-			return new StreamReader(new ObjectStream(largeObject));
+			return new StreamReader(new ObjectStream(largeObject), encoding);
 		}
 
 		public static SqlLongString Unicode(ILargeObject largeObject) {
@@ -134,7 +135,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			public Enumerator(SqlLongString longString) {
 				this.longString = longString;
-				reader = longString.GetInput();
+				reader = longString.GetInput(longString.Encoding);
 			}
 
 			public void Dispose() {
@@ -150,7 +151,7 @@ namespace Deveel.Data.Sql.Objects {
 			}
 
 			public void Reset() {
-				reader = longString.GetInput();
+				reader = longString.GetInput(longString.Encoding);
 			}
 
 			public char Current {

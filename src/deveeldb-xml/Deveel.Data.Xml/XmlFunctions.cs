@@ -77,7 +77,7 @@ namespace Deveel.Data.Xml {
 
 			const int bufferSize = 1024*10;
 
-			using (var reader = s.GetInput()) {
+			using (var reader = s.GetInput(s.Encoding)) {
 				while (true) {
 					var buffer = new char[bufferSize];
 					var readCount = reader.Read(buffer, 0, bufferSize);
@@ -91,7 +91,10 @@ namespace Deveel.Data.Xml {
 				}
 			}
 
-			var bytes = Encoding.Unicode.GetBytes(content);
+			var bytes = s.Encoding.GetBytes(content);
+			if (!s.Encoding.Equals(Encoding.UTF8))
+				bytes = Encoding.Convert(s.Encoding, Encoding.UTF8, bytes);
+
 			return new SqlXmlNode(bytes);
 		}
 

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
-	class DeclareCursorNode : SqlNode, IDeclareNode {
+	class DeclareCursorNode : SqlNode, IDeclareNode, IStatementNode {
 		public string CursorName { get; private set; }
 
 		public IExpressionNode QueryExpression { get; private set; }

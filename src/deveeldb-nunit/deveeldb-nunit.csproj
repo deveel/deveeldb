@@ -86,6 +86,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerTests.cs" />
     <Compile Include="Deveel.Data.Sql\CreateTableTests.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\InsertIntoStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql\CursorTests.cs" />
     <Compile Include="Deveel.Data.Sql\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
     <Compile Include="Deveel.Data.Sql\MutableTableTests.cs" />

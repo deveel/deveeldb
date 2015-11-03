@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			var sqlString3 = new SqlString();
 			Assert.DoesNotThrow(() => sqlString3 = sqlString1.Concat(sqlString2));
-			Assert.AreEqual("First string comes before the Second string that comes after", sqlString3.Value);
+			Assert.AreEqual("First string comes before the Second string that comes after", sqlString3.ToString(Encoding.UTF8));
 		}
 
 		[Test]

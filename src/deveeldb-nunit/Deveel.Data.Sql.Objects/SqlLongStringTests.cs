@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(obj.IsCompressed);
 
 			stringObj = SqlLongString.Unicode(obj);
-			var reader = stringObj.GetInput();
+			var reader = stringObj.GetInput(Encoding.Unicode);
 			Assert.IsNotNull(reader);
 
 			string line = null;

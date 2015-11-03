@@ -18,7 +18,6 @@ using System;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
@@ -43,8 +42,10 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
-			var args = Arguments;
-			if (args != null) {
+			SqlExpression[] args = null;
+			if (Arguments != null) {
+				args = (SqlExpression[]) Arguments.Clone();
+
 				for (int i = 0; i < args.Length; i++) {
 					args[i] = args[i].Prepare(preparer);
 				}

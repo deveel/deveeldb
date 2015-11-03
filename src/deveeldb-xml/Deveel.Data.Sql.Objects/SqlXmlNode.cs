@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Objects {
 				return null;
 
 			using (var stream = new MemoryStream(content)) {
-				using (var xmlReader = new StreamReader(stream, Encoding.Unicode)) {
+				using (var xmlReader = new StreamReader(stream, Encoding.UTF8)) {
 					var xmlDocument = new XmlDocument();
 					xmlDocument.Load(xmlReader);
 					return xmlDocument.CreateNavigator();
@@ -75,14 +75,16 @@ namespace Deveel.Data.Sql.Objects {
 
 		private static byte[] AsBinary(XPathNavigator navigator) {
 			using (var stream = new MemoryStream()) {
-				using (var xmlWriter = new XmlTextWriter(stream, Encoding.Unicode)) {
-					xmlWriter.Formatting = Formatting.None;
+				using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
+					using (var xmlWriter = new XmlTextWriter(writer)) {
+						xmlWriter.Formatting = Formatting.None;
 
-					navigator.WriteSubtree(xmlWriter);
+						navigator.WriteSubtree(xmlWriter);
 
-					xmlWriter.Flush();
+						xmlWriter.Flush();
 
-					return stream.ToArray();
+						return stream.ToArray();
+					}
 				}
 			}
 		}
@@ -169,8 +171,8 @@ namespace Deveel.Data.Sql.Objects {
 			if (IsNull)
 				return SqlString.Null;
 
-			var chars = Encoding.Unicode.GetChars(content);
-			return new SqlString(chars);
+			var bytes = Encoding.Convert(Encoding.UTF8, Encoding.Unicode, content);
+			return new SqlString(bytes);
 		}
 
 		public SqlBinary ToSqlBinary() {
