@@ -72,11 +72,11 @@ namespace Deveel.Data.Sql {
 		public abstract void Release();
 
 		protected virtual void OnLockAcquired(Lock @lock) {
-			
+			Lock();
 		}
 
 		protected virtual void OnLockReleased(Lock @lock) {
-			
+			Release();
 		}
 
 		void ILockable.Acquired(Lock @lock) {

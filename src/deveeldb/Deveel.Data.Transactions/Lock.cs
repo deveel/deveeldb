@@ -17,8 +17,6 @@
 using System;
 using System.Threading;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Transactions {
 	public sealed class Lock {
 		private bool exclusiveMode;

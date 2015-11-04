@@ -19,7 +19,7 @@ using Irony.Parsing;
 namespace Deveel.Data.Sql.Parser {
 	partial class SqlGrammar : SqlGrammarBase {
 		public override string Dialect {
-			get { return "SQL-92"; }
+			get { return "SQL-99"; }
 		}
 
 		protected override NonTerminal MakeRoot() {

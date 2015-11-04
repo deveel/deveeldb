@@ -45,7 +45,13 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+			IsConstant = false;
 			return base.VisitReference(reference);
+		}
+
+		public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
+			IsConstant = false;
+			return base.VisitVariableReference(reference);
 		}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {

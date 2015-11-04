@@ -1191,8 +1191,10 @@ namespace Deveel.Data.Sql {
 			while (e.MoveNext()) {
 				int rowIndex = e.Current.RowId.RowNumber;
 
+				var rowResolver = resolver.ForRow(rowIndex);
+
 				// Select all the rows in this table that match the joining condition.
-				var selectedSet = thisTable.SelectRows(resolver, context, binary);
+				var selectedSet = thisTable.SelectRows(rowResolver, context, binary);
 
 				var selectList = selectedSet.ToList();
 

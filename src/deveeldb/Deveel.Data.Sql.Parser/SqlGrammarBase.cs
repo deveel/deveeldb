@@ -75,7 +75,7 @@ namespace Deveel.Data.Sql.Parser {
 			RegisterOperators(10, "*", "/", "%");
 			RegisterOperators(9, "+", "-");
 			RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=");
-			RegisterOperators(8, Key("LIKE"), Key("IN"));
+			RegisterOperators(8, Key("LIKE"), Key("IN"), Key("IS"), Key("IS") + Key("NOT"));
 			RegisterOperators(7, "^", "&", "|");
 			RegisterOperators(6, Key("NOT"));
 			RegisterOperators(5, Key("AND"));
@@ -325,12 +325,12 @@ namespace Deveel.Data.Sql.Parser {
 								  sqlCaseExpression |
 								  SqlQueryExpression();
 			sqlConstantExpression.Rule = StringLiteral | NumberLiteral | Key("TRUE") | Key("FALSE") | Key("NULL");
-			sqlSimpleExpression.Rule = term | sqlUnaryExpression | sqlBinaryExpression;
+			sqlSimpleExpression.Rule = term  | sqlBinaryExpression | sqlUnaryExpression;
 			term.Rule = sqlReferenceExpression |
-						sqlVarefExpression |
-						sqlConstantExpression |
-						functionCallExpression |
-						tuple;
+			            sqlVarefExpression |
+			            sqlConstantExpression |
+			            functionCallExpression |
+			            tuple;
 			sqlReferenceExpression.Rule = ObjectName();
 			tuple.Rule = "(" + SqlExpressionList() + ")";
 			sqlUnaryExpression.Rule = unaryOp + term;
@@ -338,7 +338,7 @@ namespace Deveel.Data.Sql.Parser {
 			sqlBinaryExpression.Rule = sqlSimpleExpression + binaryOp + sqlSimpleExpression;
 			binaryOpSimple.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | ">" | "<" | "=" | "<>";
 			binaryOp.Rule = binaryOpSimple | allOp | anyOp | logicalOp | subqueryOp;
-			logicalOp.Rule = Key("AND") | Key("OR") | "&" | "|";
+			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") | Key("IS") + Key("NOT") + "&" | "|";
 			subqueryOp.Rule = Key("IN") | Key("NOT") + Key("IN");
 			anyOp.Rule = Key("ANY") + binaryOpSimple;
 			allOp.Rule = Key("ALL") + binaryOpSimple;
@@ -359,6 +359,12 @@ namespace Deveel.Data.Sql.Parser {
 			notOpt.Rule = Empty | Key("NOT");
 
 			MarkTransient(sqlExpression, term, sqlSimpleExpression, functionCallArgsOpt);
+
+			binaryOp.SetFlag(TermFlags.InheritPrecedence);
+			binaryOpSimple.SetFlag(TermFlags.InheritPrecedence);
+			logicalOp.SetFlag(TermFlags.InheritPrecedence);
+			subqueryOp.SetFlag(TermFlags.InheritPrecedence);
+			unaryOp.SetFlag(TermFlags.InheritPrecedence);
 
 			return sqlExpression;
 		}

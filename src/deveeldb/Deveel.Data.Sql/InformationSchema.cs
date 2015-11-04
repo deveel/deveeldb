@@ -108,6 +108,77 @@ namespace Deveel.Data.Sql {
 			                     "  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
 			                     "         NULL AS \"TABLE_CATALOG\" \n" +
 			                     "    FROM INFORMATION_SCHEMA.ThisUserSchemaInfo\n");
+
+			context.ExecuteQuery("  CREATE VIEW " + Catalogs + " AS " +
+			                     "  SELECT NULL AS \"TABLE_CATALOG\" \n" +
+			                     "    FROM " + SystemSchema.SchemaInfoTableName + "\n" + // Hacky, this will generate a 0 row
+			                     "   WHERE FALSE\n");
+
+			context.ExecuteQuery("  CREATE VIEW " + Columns + " AS " +
+			                     "  SELECT NULL AS \"TABLE_CATALOG\",\n" +
+			                     "         \"schema\" AS \"TABLE_SCHEMA\",\n" +
+			                     "         \"table\" AS \"TABLE_NAME\",\n" +
+			                     "         \"column\" AS \"COLUMN_NAME\",\n" +
+			                     "         \"sql_type\" AS \"DATA_TYPE\",\n" +
+			                     "         \"type_desc\" AS \"TYPE_NAME\",\n" +
+			                     "         IIF(\"size\" = -1, 1024, \"size\") AS \"COLUMN_SIZE\",\n" +
+			                     "         NULL AS \"BUFFER_LENGTH\",\n" +
+			                     "         \"scale\" AS \"DECIMAL_DIGITS\",\n" +
+			                     "         IIF(\"sql_type\" = -7, 2, 10) AS \"NUM_PREC_RADIX\",\n" +
+			                     "         IIF(\"not_null\", 0, 1) AS \"NULLABLE\",\n" +
+			                     "         '' AS \"REMARKS\",\n" +
+			                     "         \"default\" AS \"COLUMN_DEFAULT\",\n" +
+			                     "         NULL AS \"SQL_DATA_TYPE\",\n" +
+			                     "         NULL AS \"SQL_DATETIME_SUB\",\n" +
+			                     "         IIF(\"size\" = -1, 1024, \"size\") AS \"CHAR_OCTET_LENGTH\",\n" +
+			                     "         \"seq_no\" + 1 AS \"ORDINAL_POSITION\",\n" +
+			                     "         IIF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
+			                     "    FROM INFORMATION_SCHEMA.ThisUserTableColumns\n");
+
+			context.ExecuteQuery("  CREATE VIEW " + ColumnPrivileges + " AS " +
+			                     "  SELECT \"TABLE_CATALOG\",\n" +
+			                     "         \"TABLE_SCHEMA\",\n" +
+			                     "         \"TABLE_NAME\",\n" +
+			                     "         \"COLUMN_NAME\",\n" +
+			                     "         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+			                     "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
+			                     "         IIF(\"ThisUserGrant.user\" = '@PUBLIC', \n" +
+			                     "                    'public', \"ThisUserGrant.user\") AS \"GRANTEE\",\n" +
+			                     "         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
+			                     "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
+			                     "    FROM " + Columns + ", INFORMATION_SCHEMA.ThisUserGrant \n" +
+			                     "   WHERE CONCAT(columns.TABLE_SCHEMA, '.', columns.TABLE_NAME) = \n" +
+			                     "         ThisUserGrant.name \n" +
+			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
+			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
+
+			context.ExecuteQuery("  CREATE VIEW " + TablePrivileges + " AS " +
+			                     "  SELECT \"TABLE_CATALOG\",\n" +
+			                     "         \"TABLE_SCHEMA\",\n" +
+			                     "         \"TABLE_NAME\",\n" +
+			                     "         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+			                     "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
+			                     "         IIF(\"ThisUserGrant.user\" = '@PUBLIC', \n" +
+			                     "                    'public', \"ThisUserGrant.user\") AS \"GRANTEE\",\n" +
+			                     "         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
+			                     "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
+			                     "    FROM " + Tables + ", INFORMATION_SCHEMA.ThisUserGrant \n" +
+			                     "   WHERE CONCAT(tables.TABLE_SCHEMA, '.', tables.TABLE_NAME) = \n" +
+			                     "         ThisUserGrant.name \n" +
+			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
+			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
+
+			context.ExecuteQuery("  CREATE VIEW " + PrimaryKeys + " AS " +
+			                     "  SELECT NULL \"TABLE_CATALOG\",\n" +
+			                     "         \"schema\" \"TABLE_SCHEMA\",\n" +
+			                     "         \"table\" \"TABLE_NAME\",\n" +
+			                     "         \"column\" \"COLUMN_NAME\",\n" +
+			                     "         \"SYSTEM.pkey_cols.seq_no\" \"KEY_SEQ\",\n" +
+			                     "         \"name\" \"PK_NAME\"\n" +
+			                     "    FROM " + SystemSchema.PrimaryKeyInfoTableName + ", " + SystemSchema.PrimaryKeyColumnsTableName + "\n" +
+			                     "   WHERE pkey_info.id = pkey_cols.pk_id\n" +
+			                     "     AND \"schema\" IN\n" +
+			                     "            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
 		}
 	}
 }

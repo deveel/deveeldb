@@ -25,9 +25,6 @@ namespace Deveel.Data.Sql.Parser {
 	class SqlBinaryExpressionNode : SqlNode, IExpressionNode {
 		private bool leftSeen;
 
-		internal SqlBinaryExpressionNode() {
-		}
-
 		/// <summary>
 		/// Gets the left side argument of the expression.
 		/// </summary>
@@ -75,10 +72,11 @@ namespace Deveel.Data.Sql.Parser {
 
 		private void GetOperator(ISqlNode node) {
 			var childNode = node.ChildNodes.First();
-			if (childNode.NodeName == "binary_op_simple" ||
-				childNode.NodeName == "logical_op") {
+			if (childNode.NodeName == "binary_op_simple") {
 				var op = childNode.ChildNodes.First();
 				Operator = ((SqlKeyNode) op).Text;
+			} else if (childNode.NodeName == "logical_op") {
+				GetLogicalOp(childNode); 
 			} else if (node.NodeName == "any_op" ||
 			           node.NodeName == "all_op") {
 				GetAnyAllOp(childNode);

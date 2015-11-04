@@ -151,9 +151,9 @@ namespace Deveel.Data {
 				}
 
 				if (service == null) {
-					container.Register(serviceType, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace, reuse:Reuse.Singleton);
+					container.Register(serviceType, serviceKey: name, reuse:Reuse.Singleton);
 				} else {
-					container.RegisterInstance(serviceType, service, serviceKey: name, ifAlreadyRegistered: IfAlreadyRegistered.Replace, reuse:Reuse.Singleton);
+					container.RegisterInstance(serviceType, service, serviceKey: name, reuse:Reuse.Singleton);
 				}
 			}
 		}

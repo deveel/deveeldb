@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -104,6 +105,23 @@ namespace Deveel.Data.Routines {
 			var tableNameString = tableName.ToString();
 			var resolvedName = context.ResolveTableName(tableNameString);
 			return context.GetCurrentValue(resolvedName);
+		}
+
+		internal static ExecuteResult Iif(ExecuteContext context) {
+			var result = DataObject.Null();
+
+			var evalContext = new EvaluateContext(context.QueryContext, context.VariableResolver, context.GroupResolver);
+
+			var condition = context.Arguments[0].EvaluateToConstant(evalContext);
+			if (condition.Type is BooleanType) {
+				if (condition.Equals(DataObject.BooleanTrue)) {
+					result = context.Arguments[1].EvaluateToConstant(evalContext);
+				} else if (condition.Equals(DataObject.BooleanFalse)) {
+					result = context.Arguments[2].EvaluateToConstant(evalContext);
+				}
+			}
+
+			return context.Result(result);
 		}
 	}
 }

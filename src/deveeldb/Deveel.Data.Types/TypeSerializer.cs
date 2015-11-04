@@ -121,6 +121,9 @@ namespace Deveel.Data.Types {
 				return new ArrayType(size);
 			}
 
+			if (typeCode == SqlTypeCode.Null)
+				return PrimitiveTypes.Null();
+
 			throw new NotSupportedException();			
 		}
 

@@ -94,8 +94,7 @@ namespace Deveel.Data.Sql.Expressions {
 		public void ParseSelectWithFromClause() {
 			const string sql = "SELECT col1 AS a FROM table";
 
-			SqlExpression expression = null;
-			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));
+			var expression = SqlExpression.Parse(sql);
 			Assert.IsNotNull(expression);
 			Assert.IsInstanceOf<SqlQueryExpression>(expression);
 

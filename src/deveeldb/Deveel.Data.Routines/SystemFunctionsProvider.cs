@@ -121,12 +121,23 @@ namespace Deveel.Data.Routines {
 				.ReturnsNumeric());
 		}
 
+		private void AddMiscFunctions() {
+			Register(config => config.Named("iif")
+				.WithBooleanParameter("condition")
+				.WithDynamicParameter("ifTrue")
+				.WithDynamicParameter("ifFalse")
+				.WhenExecute(context => SystemFunctions.Iif(context))
+				.ReturnsType(Function.DynamicType));
+		}
+
 		protected override void OnInit() {
 			AddAggregateFunctions();
 
 			AddConversionFunctions();
 			AddSecurityFunctions();
 			AddSequenceFunctions();
+
+			AddMiscFunctions();
 		}
 
 		#region Count
