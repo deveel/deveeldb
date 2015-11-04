@@ -82,12 +82,12 @@ namespace Deveel.Data.Sql {
 			return Table.GetValue(rowNumber, columnOffset);
 		}
 
-		public override void LockRoot(int lockKey) {
+		public override void Lock() {
 			if (IsMutable)
 				MutableTable.AddLock();
 		}
 
-		public override void UnlockRoot(int lockKey) {
+		public override void Release() {
 			if (IsMutable)
 				MutableTable.RemoveLock();
 		}

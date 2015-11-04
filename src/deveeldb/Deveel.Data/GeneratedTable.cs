@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	abstract class GeneratedTable : ITable {

@@ -24,7 +24,7 @@ using Deveel.Data.Index;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	internal class TransactionTable : IMutableTable {
+	internal class TransactionTable : IMutableTable, ILockable {
 		private int rowListRebuild;
 		private IIndex rowIndex;
 
@@ -237,11 +237,6 @@ namespace Deveel.Data.Transactions {
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
-		}
-
-		public Row NewRow() {
-			AssertNotDisposed();
-			return new Row(this, new RowId(TableId, -1));
 		}
 
 		public RowId AddRow(Row row) {
@@ -643,5 +638,17 @@ namespace Deveel.Data.Transactions {
 		}
 
 		#endregion
+
+		object ILockable.RefId {
+			get { return TableId; }
+		}
+
+		void ILockable.Released(Lock @lock) {
+			// TODO: decrement a count ref to disposal?
+		}
+
+		void ILockable.Acquired(Lock @lock) {
+			// TODO: increment a count ref to prevent disposal?
+		}
 	}
 }

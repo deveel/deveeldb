@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
@@ -27,7 +26,7 @@ namespace Deveel.Data.Transactions {
 	/// This contract allows implementors to define simple transactions
 	/// that can be eventually forbid any data write operation.
 	/// </remarks>
-	public interface ITransaction : IVariableScope, ILockable, IDisposable {
+	public interface ITransaction : IVariableScope, IDisposable {
 		/// <summary>
 		/// Gets a number uniquely identifying a transaction within a database context.
 		/// </summary>
@@ -57,7 +56,7 @@ namespace Deveel.Data.Transactions {
 		/// Commits all write operation done during the lifetime of 
 		/// this transaction and invalidates it.
 		/// </summary>
-		/// <seealso cref="TransactionExtensions.ReadOnly(Deveel.Data.Transactions.ITransaction)"/>
+		/// <seealso cref="TransactionExtensions.ReadOnly(ITransaction)"/>
 		/// <seealso cref="Rollback"/>
 		/// <remarks>
 		/// When a transaction is disposed without explicitly calling

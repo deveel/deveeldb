@@ -67,9 +67,9 @@ namespace Deveel.Data.Sql {
 
 		public abstract int RowCount { get; }
 
-		public abstract void LockRoot(int lockKey);
+		public abstract void Lock();
 
-		public abstract void UnlockRoot(int lockKey);
+		public abstract void Release();
 
 		protected virtual void OnLockAcquired(Lock @lock) {
 			

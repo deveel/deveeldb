@@ -17,8 +17,8 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql {
 	/// <summary>

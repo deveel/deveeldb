@@ -73,19 +73,19 @@ namespace Deveel.Data.Sql {
 			get { return mainTable.TableInfo.ColumnCount; }
 		}
 
-		public override void LockRoot(int lockKey) {
+		public override void Lock() {
 			// For each table, recurse.
 			rootsLocked++;
 			for (int i = 0; i < composites.Length; ++i) {
-				composites[i].LockRoot(lockKey);
+				composites[i].Lock();
 			}
 		}
 
-		public override void UnlockRoot(int lockKey) {
+		public override void Release() {
 			// For each table, recurse.
 			rootsLocked--;
 			for (int i = 0; i < composites.Length; ++i) {
-				composites[i].UnlockRoot(lockKey);
+				composites[i].Release();
 			}
 		}
 

@@ -46,12 +46,12 @@ namespace Deveel.Data.Sql {
 			get { return Parent.RowCount; }
 		}
 
-		public override void LockRoot(int lockKey) {
-			Parent.LockRoot(lockKey);
+		public override void Lock() {
+			Parent.Lock();
 		}
 
-		public override void UnlockRoot(int lockKey) {
-			Parent.UnlockRoot(lockKey);
+		public override void Release() {
+			Parent.Release();
 		}
 
 		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {

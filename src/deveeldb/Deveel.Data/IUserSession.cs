@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -49,29 +51,6 @@ namespace Deveel.Data {
 		ITransaction Transaction { get; }
 
 
-		/// <summary>
-		/// Acquires a set of locks on the given lockable resources.
-		/// </summary>
-		/// <param name="toWrite">An array of lockable objects to which a <c>WRITE</c> lock
-		/// handle will be applied during this session.</param>
-		/// <param name="toRead">An array of lockable objects to which a <c>READ</c> lock
-		/// handle will be applied during this session.</param>
-		/// <param name="mode">The mode of locking to be applied to the resources</param>
-		void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode);
-
-		/// <summary>
-		/// Explicitly releases all the locks acquired during the session.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// By default the disposal of a session will release all the locks acquired
-		/// during the session's life-time: this method is used to force the release
-		/// of the locks before.
-		/// </para>
-		/// </remarks>
-		void ReleaseLocks();
-
-
 		///// <summary>
 		///// Allocates a given amount of memory on the underlying storage system
 		///// for the handling of a large-object.
@@ -94,6 +73,13 @@ namespace Deveel.Data {
 		///// <returns></returns>
 		///// <seealso cref="ObjectId"/>
 		//ILargeObject GetLargeObject(ObjectId objId);
+
+		void Access(IEnumerable<IDbObject> objects, AccessType accessType);
+
+		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
+
+		void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode);
+
 
 		/// <summary>
 		/// Commits the latest changes made by the user in the session.

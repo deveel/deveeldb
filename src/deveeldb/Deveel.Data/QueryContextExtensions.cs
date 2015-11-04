@@ -26,6 +26,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
+using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
@@ -133,7 +134,11 @@ namespace Deveel.Data {
 			return context.Session.ObjectExists(objectType, objectName);
 		}
 
-		private static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
+		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
+			return GetObject(context, objType, objName, AccessType.ReadWrite);
+		}
+
+		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName, AccessType accessType) {
 			// First handle the special cases of cursors and variable, that can be declared
 			//  in a query context
 			// If they are declared in the context, the user owns them and we don't need
@@ -149,7 +154,7 @@ namespace Deveel.Data {
 			}
 
 			if (context.ParentContext != null) {
-				var obj = context.ParentContext.GetObject(objType, objName);
+				var obj = context.ParentContext.GetObject(objType, objName, accessType);
 				if (obj != null)
 					return obj;
 			}
@@ -158,7 +163,7 @@ namespace Deveel.Data {
 			if (!context.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
 
-			return context.Session.GetObject(objType, objName);
+			return context.Session.GetObject(objType, objName, accessType);
 		}
 
 		private static void CreateObject(this IQueryContext context, IObjectInfo objectInfo) {
@@ -746,7 +751,7 @@ namespace Deveel.Data {
 		}
 
 		public static View GetView(this IQueryContext context, ObjectName viewName) {
-			return context.GetObject(DbObjectType.View, viewName) as View;
+			return context.GetObject(DbObjectType.View, viewName, AccessType.Read) as View;
 		}
 
 		public static IQueryPlanNode GetViewQueryPlan(this IQueryContext context, ObjectName viewName) {
@@ -759,7 +764,7 @@ namespace Deveel.Data {
 		#region Sequences
 
 		public static ISequence GetSequence(this IQueryContext context, ObjectName sequenceName) {
-			return context.GetObject(DbObjectType.Sequence, sequenceName) as ISequence;
+			return context.GetObject(DbObjectType.Sequence, sequenceName, AccessType.Read) as ISequence;
 		}
 
 		/// <summary>

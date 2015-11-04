@@ -23,10 +23,6 @@ namespace Deveel.Data.Sql {
 	interface IQueryTable : ITable {
 		int ColumnCount { get; }
 
-		void LockRoot(int lockKey);
-
-		void UnlockRoot(int lockKey);
-
 		int FindColumn(ObjectName columnName);
 
 		IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor);
@@ -38,5 +34,9 @@ namespace Deveel.Data.Sql {
 		ITableVariableResolver GetVariableResolver();
 
 		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+
+		void Lock();
+
+		void Release();
 	}
 }

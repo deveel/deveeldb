@@ -123,19 +123,19 @@ namespace Deveel.Data.Sql {
 
 		public int SortColumn { get; set; }
 
-		public override void LockRoot(int lockKey) {
+		public override void Lock() {
 			// For each table, recurse.
 			rootsLocked++;
 			for (int i = 0; i < referenceList.Length; ++i) {
-				referenceList[i].LockRoot(lockKey);
+				referenceList[i].Lock();
 			}
 		}
 
-		public override void UnlockRoot(int lockKey) {
+		public override void Release() {
 			// For each table, recurse.
 			rootsLocked--;
 			for (int i = 0; i < referenceList.Length; ++i) {
-				referenceList[i].UnlockRoot(lockKey);
+				referenceList[i].Release();
 			}
 		}
 

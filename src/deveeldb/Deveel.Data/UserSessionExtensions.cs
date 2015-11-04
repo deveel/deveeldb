@@ -63,7 +63,15 @@ namespace Deveel.Data {
 		#region Objects
 
 		public static IDbObject GetObject(this IUserSession session, DbObjectType objectType, ObjectName objectName) {
-			return session.Transaction.GetObject(objectType, objectName);
+			return GetObject(session, objectType, objectName, AccessType.ReadWrite);
+		}
+
+		public static IDbObject GetObject(this IUserSession session, DbObjectType objectType, ObjectName objectName, AccessType accessType) {
+			var obj = session.Transaction.GetObject(objectType, objectName);
+			if (obj != null)
+				session.Access(obj, accessType);
+
+			return obj;
 		}
 
 		public static void CreateObject(this IUserSession session, IObjectInfo objectInfo) {
@@ -113,7 +121,7 @@ namespace Deveel.Data {
 
 		public static ITable GetTable(this IUserSession session, ObjectName tableName) {
 			tableName = session.ResolveTableName(tableName);
-			return session.Transaction.GetTable(tableName);
+			return session.GetObject(DbObjectType.Table, tableName) as ITable;
 		}
 
 		public static TableInfo GetTableInfo(this IUserSession session, ObjectName tableName) {
@@ -195,13 +203,8 @@ namespace Deveel.Data {
 
 		#region Locks
 
-		public static void ExclusiveLock(this IUserSession session) {
-			session.Lock(LockingMode.Exclusive);
-		}
-
-		public static void Lock(this IUserSession session, LockingMode mode) {
-			var lockable = new ILockable[] { session.Transaction };
-			session.Lock(lockable, lockable, LockingMode.Exclusive);
+		public static void Access(this IUserSession session, IDbObject obj, AccessType accessType) {
+			session.Access(new [] {obj}, accessType);
 		}
 
 		#endregion

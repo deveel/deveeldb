@@ -84,16 +84,6 @@ namespace Deveel.Data.Sql {
 			return new ObjectName(table.TableInfo.TableName, columnName);
 		}
 
-		internal static void LockRoot(this ITable table, int lockKey) {
-			if (table is IQueryTable)
-				((IQueryTable)table).LockRoot(lockKey);
-		}
-
-		internal static void UnlockRoot(this ITable table, int lockKey) {
-			if (table is IQueryTable)
-				((IQueryTable)table).UnlockRoot(lockKey);
-		}
-
 		internal static RawTableInfo GetRawTableInfo(this ITable table) {
 			return GetRawTableInfo(table, new RawTableInfo());
 		}
@@ -103,6 +93,16 @@ namespace Deveel.Data.Sql {
 				return ((IQueryTable)table).GetRawTableInfo(info);
 
 			throw new NotSupportedException();
+		}
+
+		internal static void Lock(this ITable table) {
+			if (table is IQueryTable)
+				((IQueryTable)table).Lock();
+		}
+
+		internal static void Release(this ITable table) {
+			if (table is IQueryTable)
+				((IQueryTable)table).Release();
 		}
 	}
 }

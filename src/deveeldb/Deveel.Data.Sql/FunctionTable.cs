@@ -121,22 +121,22 @@ namespace Deveel.Data.Sql {
 			get { return rowCount; }
 		}
 
-		public override void LockRoot(int lockKey) {
+		public override void Lock() {
 			// We Lock the reference table.
 			// NOTE: This cause the reference table to Lock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.LockRoot(lockKey);
+			ReferenceTable.Lock();
 		}
 
-		public override void UnlockRoot(int lockKey) {
+		public override void Release() {
 			// We unlock the reference table.
 			// NOTE: This cause the reference table to unlock twice when we use the
 			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
-			ReferenceTable.UnlockRoot(lockKey);
+			ReferenceTable.Release();
 		}
 
 		public override DataObject GetValue(long rowNumber, int columnOffset) {

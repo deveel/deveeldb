@@ -105,19 +105,19 @@ namespace Deveel.Data.Protocol {
 			return columns[columnOffset];
 		}
 
-		public void LockRoot(int lockKey) {
-			Result.LockRoot(lockKey);
+		public void LockRoot() {
+			Result.Lock();
 			locked++;
 		}
 
-		public void UnlockRoot(int lockKey) {
-			Result.UnlockRoot(lockKey);
+		public void Release() {
+			Result.Release();
 			--locked;
 		}
 
 		public void Dispose() {
 			if (locked > 0) {
-				UnlockRoot(-1);
+				Release();
 			}
 
 			Result = null;

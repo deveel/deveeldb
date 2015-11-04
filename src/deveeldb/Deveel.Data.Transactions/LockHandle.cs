@@ -45,16 +45,25 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void CheckAccess(ITable table, AccessType accessType) {
+		public void CheckAccess(ILockable lockable, AccessType accessType) {
 			for (int i = locks.Length - 1; i >= 0; --i) {
 				var tableLock = locks[i];
-				if (tableLock.Lockable == table) {
+				if (tableLock.Lockable == lockable) {
 					tableLock.CheckAccess(accessType);
 					return;
 				}
 			}
 
-			throw new Exception("The given table was not found in the lock list for this handle");
+			throw new Exception("The given object was not found in the lock list for this handle");
+		}
+
+		public bool IsHandled(ILockable lockable) {
+			for (int i = locks.Length - 1; i >= 0; i--) {
+				if (locks[i].Lockable == lockable)
+					return true;
+			}
+
+			return false;
 		}
 
 		public void Dispose() {

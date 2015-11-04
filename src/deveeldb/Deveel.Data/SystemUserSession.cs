@@ -19,6 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -63,12 +64,6 @@ namespace Deveel.Data {
 			};
 		} 
 
-		public void Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
-		}
-
-		public void ReleaseLocks() {
-		}
-
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
 			throw new NotSupportedException();
 		}
@@ -77,17 +72,24 @@ namespace Deveel.Data {
 			throw new NotSupportedException();
 		}
 
+		public void Access(IEnumerable<IDbObject> objects, AccessType accessType) {
+			// A system session bypasses any lock
+		}
+
+		public void Exit(IEnumerable<IDbObject> objects, AccessType accessType) {
+			// A system session does not hold any lock
+		}
+
+		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
+			// A system session does not hold any lock
+		}
+
 		public void Commit() {
 			Transaction.Commit();
 		}
 
 		public void Rollback() {
 			Transaction.Rollback();
-		}
-
-		public void AppendEventData(IEvent @event) {
-			@event.Database(Database.Name());
-			@event.UserName(SessionInfo.User.Name);
 		}
 	}
 }

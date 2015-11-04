@@ -29,45 +29,76 @@ namespace Deveel.Data.Transactions {
 
 		public IDatabaseContext DatabaseContext { get; private set; }
 
-		public LockHandle Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
-			// Set up the local constants.
+		private void AddToHandle(LockHandle handle, ILockable[] lockables, AccessType accessType, LockingMode mode) {
+			if (lockables == null)
+				return;
 
-			int lockCount = toRead.Length + toWrite.Length;
-			LockHandle handle = new LockHandle(lockCount);
+			for (int i = lockables.Length - 1; i >= 0; --i) {
+				var lockable = lockables[i];
+				var queue = GetQueueFor(lockable);
 
-			lock (this) {
-				Lock @lock;
-				LockingQueue queue;
-
-				// Add Read and Write locks to cache and to the handle.
-				for (int i = toWrite.Length - 1; i >= 0; --i) {
-					var toWriteLock = toWrite[i];
-					queue = GetQueueFor(toWriteLock);
-
-					// slightly confusing: this will add Lock to given table queue
-					@lock = new Lock(queue, mode, AccessType.Write);
-					@lock.Acquire();
-					handle.AddLock(@lock);
-				}
-
-				for (int i = toRead.Length - 1; i >= 0; --i) {
-					var toReadLock = toRead[i];
-					queue = GetQueueFor(toReadLock);
-
-					// slightly confusing: this will add Lock to given table queue
-					@lock = new Lock(queue, mode, AccessType.Read);
-					@lock.Acquire();
-					handle.AddLock(@lock);
-				}
+				// slightly confusing: this will add Lock to given table queue
+				var @lock = new Lock(queue, mode, accessType);
+				@lock.Acquire();
+				handle.AddLock(@lock);
 			}
+		}
 
-			return handle;
+		public LockHandle Lock(ILockable[] lockables, AccessType accessType, LockingMode mode) {
+			lock (this) {
+				int count = 0;
+				if ((accessType & AccessType.Read) != 0)
+					count += lockables.Length;
+				if ((accessType & AccessType.Write) != 0)
+					count += lockables.Length;
+
+				var handle = new LockHandle(count);
+				
+				if ((accessType & AccessType.Read) != 0)
+					AddToHandle(handle, lockables, AccessType.Read, mode);
+
+				if ((accessType & AccessType.Write) != 0)
+					AddToHandle(handle, lockables, AccessType.Write, mode);
+
+				return handle;
+			}
+		}
+
+		public LockHandle Lock(ILockable lockable, AccessType accessType, LockingMode mode) {
+			return Lock(new[] {lockable}, accessType, mode);
+		}
+
+		public LockHandle LockRead(ILockable lockable, LockingMode mode) {
+			return Lock(lockable, AccessType.Read, mode);
+		}
+
+		public LockHandle LockRead(ILockable[] lockables, LockingMode mode) {
+			return Lock(lockables, AccessType.Read, mode);
+		}
+
+		public LockHandle LockWrite(ILockable lockable, LockingMode mode) {
+			return Lock(lockable, AccessType.Write, mode);
+		}
+
+		public LockHandle LockWrite(ILockable[] lockables, LockingMode mode) {
+			return Lock(lockables, AccessType.Write, mode);
+		}
+
+		public LockHandle Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
+			lock (this) {
+				int lockCount = toRead.Length + toWrite.Length;
+				LockHandle handle = new LockHandle(lockCount);
+
+				AddToHandle(handle, toWrite, AccessType.Write, mode);
+				AddToHandle(handle, toRead, AccessType.Read, mode);
+
+				return handle;
+			}
 		}
 
 		private LockingQueue GetQueueFor(ILockable lockable) {
 			LockingQueue queue;
 
-			// If queue not in hashtable then create a new one and write it into mapping
 			if (!queuesMap.TryGetValue(lockable.RefId, out queue)) {
 				queue = new LockingQueue(lockable);
 				queuesMap[lockable.RefId] = queue;

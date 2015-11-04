@@ -274,34 +274,11 @@ namespace Deveel.Data.Protocol {
 			IQueryResponse[] response = null;
 
 			try {
-				try {
-					// For simplicity - all database locking is now exclusive inside
-					// a transaction.  This means it is not possible to execute
-					// queries concurrently inside a transaction.  However, we are
-					// still able to execute queries concurrently from different
-					// connections.
-					//
-					// It's debatable whether we even need to perform this Lock anymore
-					// because we could change the contract of this method so that
-					// it is not thread safe.  This would require that the callee ensures
-					// more than one thread can not execute queries on the connection.
-					context.Session.ExclusiveLock();
+				// Execute the Query (behaviour for this comes from super).
+				response = CoreExecuteQuery(context, text, parameters);
 
-					// Execute the Query (behaviour for this comes from super).
-					response = CoreExecuteQuery(context, text, parameters);
-
-					// Return the result.
-					return response;
-
-				} finally {
-					try {
-						// This is executed no matter what happens.  Very important we
-						// unlock the tables.
-						context.Session.ReleaseLocks();
-					} catch (Exception) {
-						// TODO: Log errors ...
-					}
-				}
+				// Return the result.
+				return response;
 			} finally {
 				// This always happens after tables are unlocked.
 				// Also guarenteed to happen even if something fails.
@@ -309,31 +286,23 @@ namespace Deveel.Data.Protocol {
 				// If we are in auto-commit mode then commit the Query here.
 				// Do we auto-commit?
 				if (context.AutoCommit()) {
-					// Yes, so grab an exclusive Lock and auto-commit.
-					try {
-						// Lock into exclusive mode.
-						context.Session.ExclusiveLock();
-
-						// If an error occured then roll-back
-						if (response == null) {
-							// Rollback.
-							context.Session.Rollback();
-						} else {
-							try {
-								// Otherwise commit.
-								context.Session.Commit();
-							} catch (Exception) {
-								foreach (IQueryResponse queryResponse in response) {
-									// Dispose this response if the commit failed.
-									DisposeResult(queryResponse.ResultId);
-								}
-
-								// And throw the SQL Exception
-								throw;
+					// If an error occured then roll-back
+					if (response == null) {
+						// Rollback.
+						context.Session.Rollback();
+					} else {
+						try {
+							// Otherwise commit.
+							context.Session.Commit();
+						} catch (Exception) {
+							foreach (IQueryResponse queryResponse in response) {
+								// Dispose this response if the commit failed.
+								DisposeResult(queryResponse.ResultId);
 							}
+
+							// And throw the SQL Exception
+							throw;
 						}
-					} finally {
-						context.Session.ReleaseLocks();
 					}
 				}
 			}
@@ -400,7 +369,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		private int AddResult(QueryResult result) {
-			result.LockRoot(-1); // -1 because lock_key not implemented
+			result.LockRoot();
 
 			int resultId;
 

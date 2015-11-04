@@ -27,6 +27,10 @@ namespace Deveel.Data {
 			return database.DatabaseContext.DatabaseName();
 		}
 
+		public static Locker Locker(this IDatabase database) {
+			return database.DatabaseContext.Locker;
+		}
+
 		#region Transactions
 
 		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {
@@ -147,7 +151,6 @@ namespace Deveel.Data {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
-				session.ExclusiveLock();
 
 				using (var queryContext = new SessionQueryContext(session)) {
 					return queryContext.Authenticate(username, password);

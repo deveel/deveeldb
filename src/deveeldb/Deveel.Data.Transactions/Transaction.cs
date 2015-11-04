@@ -98,10 +98,6 @@ namespace Deveel.Data.Transactions {
 
 		public int CommitId { get; private set; }
 
-		object ILockable.RefId {
-			get { return CommitId; }
-		}
-
 		public IsolationLevel Isolation { get; private set; }
 
 		private bool IsClosed { get; set; }
@@ -163,12 +159,6 @@ namespace Deveel.Data.Transactions {
 		private void AssertNotReadOnly() {
 			if (this.ReadOnly())
 				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
-		}
-
-		void ILockable.Acquired(Lock @lock) {
-		}
-
-		void ILockable.Released(Lock @lock) {
 		}
 
 		public void Commit() {

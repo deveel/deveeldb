@@ -197,7 +197,6 @@ namespace Deveel.Data {
 					session.AutoCommit(false);
 
 					using (var context = new SessionQueryContext(session)) {
-						session.ExclusiveLock();
 						session.CurrentSchema(SystemSchema.Name);
 
 						// Create the schema information tables

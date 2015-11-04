@@ -57,10 +57,10 @@ namespace Deveel.Data {
 			get { return rowCount; }
 		}
 
-		public override void LockRoot(int lockKey) {
+		public override void Lock() {
 		}
 
-		public override void UnlockRoot(int lockKey) {
+		public override void Release() {
 		}
 
 		private static TableInfo MakeTableInfo(string tableName, IEnumerable<ColumnInfo> columns) {
