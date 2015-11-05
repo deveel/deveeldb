@@ -18,13 +18,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Routines {
-	public sealed class RoutineBody {
+	public sealed class RoutineBody : PlSqlBlock {
 		private readonly ICollection<SqlStatement> declarations;
-		private readonly ICollection<SqlStatement> statements;
  
 		internal RoutineBody(RoutineInfo routineInfo) {
 			if (routineInfo == null)
@@ -32,7 +33,6 @@ namespace Deveel.Data.Routines {
 
 			RoutineInfo = routineInfo;
 			declarations = new List<SqlStatement>();
-			statements = new List<SqlStatement>();
 		}
 
 		public RoutineInfo RoutineInfo { get; private set; }
@@ -41,8 +41,16 @@ namespace Deveel.Data.Routines {
 			get { return declarations.AsEnumerable(); }
 		}
 
-		public IEnumerable<SqlStatement> Statements {
-			get { return statements.AsEnumerable(); }
+		protected override BlockExecuteContext CreateExecuteContext() {
+			var statements = new List<SqlStatement>();
+			statements.AddRange(declarations);
+			statements.AddRange(Statements);
+
+			var context = new RoutineExecuteContext(this, statements);
+			
+			// TODO: inject the parameters into the context
+
+			return context;
 		}
 
 		public void AddDeclaration(SqlStatement statement) {
@@ -54,33 +62,15 @@ namespace Deveel.Data.Routines {
 		}
 
 		private void AssertIsUserDefined() {
-			if (RoutineInfo is FunctionInfo && ((FunctionInfo) RoutineInfo).FunctionType != FunctionType.UserDefined) {
+			if (RoutineInfo is FunctionInfo && 
+				((FunctionInfo) RoutineInfo).FunctionType != FunctionType.UserDefined) {
 				throw new InvalidOperationException(String.Format(
 					"Function '{0}' is not user-defined and cannot declare any body.", RoutineInfo.RoutineName));
 			}
-			if (RoutineInfo is ProcedureInfo && ((ProcedureInfo)RoutineInfo).ProcedureType != ProcedureType.UserDefined)
+			if (RoutineInfo is ProcedureInfo && 
+				((ProcedureInfo)RoutineInfo).ProcedureType != ProcedureType.UserDefined)
 				throw new InvalidOperationException(String.Format("The procedure '{0}' is not user-defined and cannot declare any body.", RoutineInfo.RoutineName));
 
-			throw new NotImplementedException();
-		}
-
-		public void AddStatement(SqlStatement statement) {
-			if (statement == null)
-				throw new ArgumentNullException("statement");
-
-			AssertIsUserDefined();
-			statements.Add(statement);
-		}
-
-		internal ExecuteResult Execute(ExecuteContext context) {
-			throw new NotImplementedException();
-		}
-
-		internal SqlBinary AsBinary() {
-			throw new NotImplementedException();
-		}
-
-		internal void FromBinary(SqlBinary binary) {
 			throw new NotImplementedException();
 		}
 	}

@@ -19,11 +19,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Transactions;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	abstract class GeneratedTable : ITable {
 		protected GeneratedTable(IDatabaseContext dbContext) {
 			DatabaseContext = dbContext;

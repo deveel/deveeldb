@@ -223,9 +223,9 @@
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionProvider.cs" />
-    <Compile Include="Deveel.Data.Routines\FunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
+    <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
     <Compile Include="Deveel.Data.Routines\Invoke.cs" />
     <Compile Include="Deveel.Data.Routines\IProcedure.cs" />
@@ -239,6 +239,7 @@
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
     <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
@@ -607,6 +608,8 @@
     <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
+    <Compile Include="Deveel.Data.Sql\BlockExecuteContext.cs" />
+    <Compile Include="Deveel.Data.Sql\BlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />
     <Compile Include="Deveel.Data.Sql\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
@@ -624,6 +627,7 @@
     <Compile Include="Deveel.Data.Sql\FromTable.cs" />
     <Compile Include="Deveel.Data.Sql\FunctionTable.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
+    <Compile Include="Deveel.Data.Sql\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\IDbObject.cs" />
     <Compile Include="Deveel.Data.Sql\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IMutableTable.cs" />
@@ -774,11 +778,11 @@
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data\DataObject.cs" />
     <Compile Include="Deveel.Data\DataVersionAttribute.cs" />
-    <Compile Include="Deveel.Data\GeneratedTable.cs" />
+    <Compile Include="Deveel.Data.Sql\GeneratedTable.cs" />
     <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
-    <Compile Include="Deveel.Data\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data\IDatabase.cs" />
     <Compile Include="Deveel.Data\IDatabaseContext.cs" />
+    <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseManager.cs" />
     <Compile Include="Deveel.Data\IObjectManager.cs" />

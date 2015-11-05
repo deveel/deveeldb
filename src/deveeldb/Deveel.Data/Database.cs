@@ -15,9 +15,7 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
@@ -154,6 +152,20 @@ namespace Deveel.Data {
 		/// </summary>
 		public ITable SingleRowTable { get; private set; }
 
+		private void OnDatabaseCreate(IQueryContext context) {
+			var callbacks = DatabaseContext.SystemContext.ServiceProvider.ResolveAll<IDatabaseCreateCallback>();
+			if (callbacks != null) {
+				foreach (var callback in callbacks) {
+					try {
+						if (callback != null)
+							callback.OnDatabaseCreate(context);
+					} catch (Exception) {
+						//TODO: Route an error event to the listeners
+					}
+				}
+			}
+		}
+
 		/// <summary>
 		/// Creates the database in the context given, granting the administrative
 		/// control to the user identified by the given name and password.
@@ -194,8 +206,6 @@ namespace Deveel.Data {
 				TableComposite.Create();
 
 				using (var session = this.CreateInitialSystemSession()) {
-					session.AutoCommit(false);
-
 					using (var context = new SessionQueryContext(session)) {
 						session.CurrentSchema(SystemSchema.Name);
 
@@ -214,6 +224,8 @@ namespace Deveel.Data {
 
 						// Set all default system procedures.
 						// TODO: SystemSchema.SetupSystemFunctions(session, username);
+
+						OnDatabaseCreate(context);
 
 						try {
 							// Close and commit this transaction.

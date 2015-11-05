@@ -16,8 +16,6 @@
 
 using System;
 
-using Deveel.Data;
-
 namespace Deveel.Data.Sql.Statements {
 	interface IExecutable {
 		ITable Execute(IQueryContext context);

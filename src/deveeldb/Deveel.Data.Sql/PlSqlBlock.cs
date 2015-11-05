@@ -1,113 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql {
-	public sealed class PlSqlBlock : IExecutable {
+	public class PlSqlBlock : IPreparable, IDisposable {
+		private ICollection<SqlStatement> statements;
+		private ICollection<ExceptionHandler> exceptionHandlers; 
+		 
 		public PlSqlBlock() {
-			Declarations = new List<SqlStatement>();
-			Statements = new List<SqlStatement>();
-			ExceptionHandlers = new List<ExceptionHandler>();
+			statements = new List<SqlStatement>();
+			exceptionHandlers = new List<ExceptionHandler>();
+		}
+
+		~PlSqlBlock() {
+			Dispose(false);
 		}
 
 		public string Label { get; set; }
 
-		public bool IsPrepared { get; private set; }
-
-		public SqlExpression ReturnExpression { get; private set; }
-
-		public bool HasReturn { get; private set; }
-
-		public ICollection<SqlStatement> Statements { get; private set; }
-
-		public ICollection<SqlStatement> Declarations { get; private set; }
-
-		public ICollection<ExceptionHandler> ExceptionHandlers { get; private set; }
-
-		private ExecutePlanNode RootNode { get; set; }
-
-		private bool RootNodeChanged { get; set; }
-
-		public IBlockQueryContext CreateContext(IQueryContext parentContext) {
-			return new PlSqlBlockQueryContext(parentContext, this);
+		public IEnumerable<SqlStatement> Statements {
+			get { return statements.AsEnumerable(); }
 		}
 
-		private void SetReturn(SqlExpression expression) {
-			ReturnExpression = expression;
-			HasReturn = true;
+		public IEnumerable<ExceptionHandler> ExceptionHandlers {
+			get { return exceptionHandlers.AsEnumerable(); }
 		}
 
-		private void SetNextNodeTo(string label) {
-			var node = RootNode.FindLabeled(label);
-			if (node == null)
-				throw new InvalidOperationException();
-
-			RootNode = node;
-			RootNodeChanged = true;
+		public void AddStatement(SqlStatement statement) {
+			// TODO: make further checks, such as if a labeled statement with
+			//       the same label already exists
+			statements.Add(statement);
 		}
 
-		private void Raise(string exceptionName) {
+		public void AddExceptionHandler(ExceptionHandler handler) {
+			// TODO: make further checks here ...
+			exceptionHandlers.Add(handler);
+		}
+
+		protected virtual BlockExecuteContext CreateExecuteContext() {
 			throw new NotImplementedException();
 		}
 
-		public PlSqlBlock Prepare(IExpressionPreparer preparer, IQueryContext context) {
+		protected virtual PlSqlBlock Prepare(IExpressionPreparer preparer) {
 			throw new NotImplementedException();
 		}
 
-		public ITable Execute(IQueryContext context) {
-			var blockContext = new PlSqlBlockQueryContext(context, this);
-
-			foreach (var declaration in Declarations) {
-				declaration.Execute(blockContext);
-			}
-
-			var blockNode = new ExecutePlanNode(this);
-			RootNode = ExecutePlanNode.Build(blockNode, Statements);
-
-			var node = RootNode;
-			while (node != null) {
-				node.Execute(context);
-
-				if (RootNodeChanged) {
-					node = RootNode;
-				} else {
-					node = node.Next;
-				}
-			}
-
-			return FunctionTable.ResultTable(context, 0);
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			return Prepare(preparer);
 		}
 
-		#region PlSqlBlockQueryContext
-
-		class PlSqlBlockQueryContext : ChildQueryContext, IBlockQueryContext {
-			public PlSqlBlockQueryContext(IQueryContext parentContext, PlSqlBlock block) 
-				: base(parentContext) {
-				Block = block;
-			}
-
-			public PlSqlBlock Block { get; private set; }
-
-			public void SetReturn(SqlExpression expression) {
-				Block.SetReturn(expression);
-			}
-
-			public void Raise(string exceptionName) {
-				Block.Raise(exceptionName);
-			}
-
-			public void ControlLoop(LoopControlType controlType, string label) {
-				throw new NotImplementedException();
-			}
-
-			public void GoTo(string label) {
-				Block.SetNextNodeTo(label);
-			}
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
-		#endregion
+		protected virtual void Dispose(bool disposing) {
+			if (disposing) {
+				if (statements != null)
+					statements.Clear();
+				if (exceptionHandlers != null)
+					exceptionHandlers.Clear();
+			}
+
+			statements = null;
+			exceptionHandlers = null;
+		}
 	}
 }
