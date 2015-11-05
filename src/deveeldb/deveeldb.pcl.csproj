@@ -553,6 +553,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\ExecutePlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ILabeledExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
@@ -627,7 +628,6 @@
     <Compile Include="Deveel.Data.Sql\FromTable.cs" />
     <Compile Include="Deveel.Data.Sql\FunctionTable.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
-    <Compile Include="Deveel.Data.Sql\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\IDbObject.cs" />
     <Compile Include="Deveel.Data.Sql\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IMutableTable.cs" />
@@ -650,7 +650,7 @@
     <Compile Include="Deveel.Data.Sql\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectName.cs" />
     <Compile Include="Deveel.Data.Sql\OuterTable.cs" />
-    <Compile Include="Deveel.Data.Sql\PlSqlBlock.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterDirection.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterStyle.cs" />

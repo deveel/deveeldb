@@ -1,9 +1,6 @@
 ﻿using System;
 
-using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Statements;
-
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Statements {
 	interface IBlockQueryContext {
 		void Raise(string exceptionName);
 

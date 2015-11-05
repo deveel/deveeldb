@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Statements;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Statements {
 	public class PlSqlBlock : IPreparable, IDisposable {
 		private ICollection<SqlStatement> statements;
 		private ICollection<ExceptionHandler> exceptionHandlers; 

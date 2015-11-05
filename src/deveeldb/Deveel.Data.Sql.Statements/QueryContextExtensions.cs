@@ -16,9 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -66,6 +64,62 @@ namespace Deveel.Data.Sql.Statements {
 			SqlQueryExpression queryExpression) {
 			var statement = new CreateViewStatement(viewName, columnNames, queryExpression);
 			return statement.Execute(context);
+		}
+
+		#endregion
+
+		#region Code Block Calls
+
+		public static void GoTo(this IQueryContext context, string label) {
+			var blockContext = context as IBlockQueryContext;
+			if (blockContext == null)
+				throw new InvalidOperationException("Not in a code block context");
+
+			blockContext.GoTo(label);
+		}
+
+		public static void ControlLoop(this IQueryContext context, LoopControlType controlType) {
+			ControlLoop(context, controlType, null);
+		}
+
+		public static void ControlLoop(this IQueryContext context, LoopControlType controlType, string label) {
+			var blockContext = context as IBlockQueryContext;
+			if (blockContext == null)
+				throw new InvalidOperationException("Not in a code block context");
+
+			blockContext.ControlLoop(controlType, label);
+		}
+
+		public static void Exit(this IQueryContext context) {
+			Exit(context, null);
+		}
+
+		public static void Exit(this IQueryContext context, string label) {
+			context.ControlLoop(LoopControlType.Exit, label);
+		}
+
+		public static void Continue(this IQueryContext context) {
+			Continue(context, null);
+		}
+
+		public static void Continue(this IQueryContext context, string label) {
+			context.ControlLoop(LoopControlType.Continue, label);
+		}
+
+		public static void Break(this IQueryContext context) {
+			Break(context, null);
+		}
+
+		public static void Break(this IQueryContext context, string label) {
+			context.ControlLoop(LoopControlType.Break, label);
+		}
+
+		public static void Raise(this IQueryContext context, string exceptionName) {
+			var blockContext = context as IBlockQueryContext;
+			if (blockContext == null)
+				throw new InvalidOperationException("Not in a code block context");
+
+			blockContext.Raise(exceptionName);
 		}
 
 		#endregion

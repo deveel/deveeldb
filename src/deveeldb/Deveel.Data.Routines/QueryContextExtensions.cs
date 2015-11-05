@@ -95,5 +95,13 @@ namespace Deveel.Data.Routines {
 			params SqlExpression[] args) {
 			return context.InvokeFunction(new Invoke(functionName, args));
 		}
+
+		public static void SetReturn(this IQueryContext context, SqlExpression expression) {
+			var functionContext = context as IFunctionQueryContext;
+			if (functionContext == null)
+				throw new InvalidOperationException("Not in a FUNCTION scope.");
+
+			functionContext.SetReturn(expression);
+		}
 	}
 }
