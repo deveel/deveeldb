@@ -76,23 +76,21 @@ namespace Deveel.Data.Linq {
 		}
 
 		protected override void OnSetUp(string testName) {
-			var settings = new QueryContextSettings {
-				UserName = AdminUserName,
-				Password = AdminPassword
-			};
-
-			Context = new TestQueryContext(Database, settings);
+			Context = new TestQueryContext(QueryContext);
 		}
 
 		[Test]
 		public void QueryById() {
 			Person entity = null;
-			Assert.Throws<QueryException>(() => entity = Context.Table<Person>().FindById(0), 
-				"There is still an error when disposing a remote result from ADO.NET interface.");
+			Assert.DoesNotThrow(() => entity = Context.Table<Person>().FindById(1));
+			Assert.IsNotNull(entity);
+			Assert.AreEqual(1, entity.Id);
+			Assert.AreEqual("John", entity.FirstName);
 		}
 
 		class TestQueryContext : QueryContext {
-			public TestQueryContext(IDatabase database, QueryContextSettings settings) : base(database, settings) {
+			public TestQueryContext(IQueryContext context) 
+				: base(context) {
 			}
 
 			protected override void OnBuildMap(MappingContext mappingContext) {

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
     <AssemblyName>deveeldb-linq</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -74,19 +74,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="IQToolkit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IQToolkit.1.0.0.0\lib\net40\IQToolkit.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.dll</HintPath>
     </Reference>
     <Reference Include="IQToolkit.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IQToolkit.Data.1.0.0.0\lib\net40\IQToolkit.Data.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Linq\DatabaseExtensions.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbExecutor.cs" />
     <Compile Include="Deveel.Data.Linq\DeveelDbFormatter.cs" />
     <Compile Include="Deveel.Data.Linq\DeveelDbLanguage.cs" />
     <Compile Include="Deveel.Data.Linq\DeveelDbMapping.cs" />
@@ -94,6 +94,7 @@
     <Compile Include="Deveel.Data.Linq\DeveelDbTypeSystem.cs" />
     <Compile Include="Deveel.Data.Linq\ProviderSettings.cs" />
     <Compile Include="Deveel.Data.Linq\QueryContext.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Linq\QueryContextSettings.cs" />
     <Compile Include="Deveel.Data.Linq\QueryException.cs" />
     <Compile Include="Deveel.Data.Linq\QueryTable.cs" />

@@ -9,35 +9,20 @@ namespace Deveel.Data.Linq {
 	public class ContextQueryTests : ContextBasedTest {
 		[Test]
 		public void CreateContext() {
-			var settings = new QueryContextSettings {
-				UserName = AdminUserName,
-				Password = AdminPassword
-			};
-
 			QueryContext context = null;
-			Assert.DoesNotThrow(() => context =  new EmptyTestQueryContext(Database, settings));
+			Assert.DoesNotThrow(() => context =  new EmptyTestQueryContext(QueryContext));
 			Assert.IsNotNull(context);
 		}
 
 		[Test]
 		public void RequestTableNotConfigured() {
-			var settings = new QueryContextSettings {
-				UserName = AdminUserName,
-				Password = AdminPassword
-			};
-
-			var context = new EmptyTestQueryContext(Database, settings);
+			var context = new EmptyTestQueryContext(QueryContext);
 			Assert.DoesNotThrow(() => context.Table<EmptyTestType>());
 		}
 
 		[Test]
 		public void RequestEntryNotConfigured() {
-			var settings = new QueryContextSettings {
-				UserName = AdminUserName,
-				Password = AdminPassword
-			};
-
-			var context = new EmptyTestQueryContext(Database, settings);
+			var context = new EmptyTestQueryContext(QueryContext);
 			Assert.Throws<QueryException>(() => context.Table<EmptyTestType>().FindById(1));
 		}
 
@@ -45,8 +30,8 @@ namespace Deveel.Data.Linq {
 		}
 
 		class EmptyTestQueryContext : QueryContext {
-			public EmptyTestQueryContext(IDatabase database, QueryContextSettings settings)
-				: base(database, settings) {
+			public EmptyTestQueryContext(IQueryContext context)
+				: base(context) {
 			}
 
 			protected override void OnBuildMap(MappingContext mappingContext) {
