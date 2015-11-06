@@ -114,6 +114,14 @@ namespace Deveel.Data.Types {
 			return SqlString.Null;
 		}
 
+		private static SqlDateTime ToTime(SqlDateTime dateTime) {
+			return new SqlDateTime(0, 0, 0, dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond, dateTime.Offset);
+		}
+
+		private static SqlDateTime ToDate(SqlDateTime dateTime) {
+			return new SqlDateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, 0, dateTime.Offset);
+		}
+
 		public override DataObject CastTo(DataObject value, SqlType destType) {
 			if (destType == null)
 				throw new ArgumentNullException("destType");
@@ -127,6 +135,17 @@ namespace Deveel.Data.Types {
 				case SqlTypeCode.String:
 				case SqlTypeCode.VarChar:
 					casted = ToString(date);
+					break;
+				case SqlTypeCode.Date:
+					casted = ToDate(date);
+					break;
+				case SqlTypeCode.Time:
+					casted = ToTime(date);
+					break;
+				case SqlTypeCode.TimeStamp:
+				case SqlTypeCode.DateTime:
+					// if it is not a TimeStamp already, there's not much we can do
+					casted = date;
 					break;
 				default:
 					throw new InvalidCastException(String.Format("Cannot cast type '{0}' to '{1}'.",

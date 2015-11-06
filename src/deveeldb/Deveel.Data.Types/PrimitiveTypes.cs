@@ -115,6 +115,14 @@ namespace Deveel.Data.Types {
 			return Numeric(SqlTypeCode.Integer, size);
 		}
 
+		public static SqlType BigInt() {
+			return BigInt(-1);
+		}
+
+		public static SqlType BigInt(int size) {
+			return Numeric(SqlTypeCode.BigInt);
+		}
+
 		public static NullType Null() {
 			return Null(SqlTypeCode.Null);
 		}

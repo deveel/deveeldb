@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Mapping {
 	interface IMemberMappingConfiguration {
+		MemberInfo Member { get; }
+
 		string ColumnName { get; }
 
 		SqlTypeCode? ColumnType { get; }

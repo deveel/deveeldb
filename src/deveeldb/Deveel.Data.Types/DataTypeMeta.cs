@@ -18,7 +18,7 @@ using System;
 
 namespace Deveel.Data.Types {
 	public sealed class DataTypeMeta {
-		internal DataTypeMeta(string name, string value) {
+		public DataTypeMeta(string name, string value) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 

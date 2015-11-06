@@ -17,6 +17,10 @@ namespace Deveel.Data.Mapping {
 
 		private string UniqueKeyMember { get; set; }
 
+		Type ITypeMappingConfiguration.ElementType {
+			get { return typeof (T); }
+		}
+
 		string ITypeMappingConfiguration.TableName {
 			get { return TableName; }
 		}
@@ -32,7 +36,7 @@ namespace Deveel.Data.Mapping {
 		private Dictionary<string, IMemberMappingConfiguration> DiscoverMembers() {
 			var dictionary = new Dictionary<string, IMemberMappingConfiguration>();
 
-			var members = typeof (T).GetMembers(BindingFlags.Instance | BindingFlags.Public);
+			var members = typeof (T).FindMembers(MemberTypes.Field | MemberTypes.Property,  BindingFlags.Instance | BindingFlags.Public, null, null);
 			foreach (var memberInfo in members) {
 				if (!Attribute.IsDefined(memberInfo, typeof (IgnoreAttribute), false)) {
 					dictionary[memberInfo.Name] = new MemberMappingConfiguration<T>(this, memberInfo);

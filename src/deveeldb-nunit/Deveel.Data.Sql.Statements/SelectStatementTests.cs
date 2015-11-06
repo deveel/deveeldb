@@ -27,18 +27,24 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class SelectStatementTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
-			CreateTestTable(context);
-			AddTestData(context);
-			return context;
+		protected override IDatabase CreateDatabase(IDatabaseContext context) {
+			var database = base.CreateDatabase(context);
+
+			using (var queryContext = database.CreateQueryContext(AdminUserName, AdminPassword)) {
+				CreateTestTable(queryContext);
+				AddTestData(queryContext);
+
+				queryContext.Commit();
+			}
+
+			return database;
 		}
 
 		private void CreateTestTable(IQueryContext context) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUE_KEY",
-				new SqlExpression[] { SqlExpression.Reference(tableInfo.TableName) });
+			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
+				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
@@ -51,7 +57,9 @@ namespace Deveel.Data.Sql.Statements {
 		private void AddTestData(IQueryContext context) {
 			var table = context.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(0));
+
+			// row.SetValue("id", DataObject.Integer(0));
+			row.SetDefault(0, context);
 			row.SetValue("first_name", DataObject.String("John"));
 			row.SetValue("last_name", DataObject.String("Doe"));
 			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1977, 01, 01)));
@@ -59,7 +67,9 @@ namespace Deveel.Data.Sql.Statements {
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(1));
+
+			// row.SetValue("id", DataObject.Integer(1));
+			row.SetDefault(0, context);
 			row.SetValue("first_name", DataObject.String("Jane"));
 			row.SetValue("last_name", DataObject.String("Doe"));
 			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1978, 11, 01)));
@@ -67,12 +77,16 @@ namespace Deveel.Data.Sql.Statements {
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(2));
+
+			// row.SetValue("id", DataObject.Integer(2));
+			row.SetDefault(0, context);
 			row.SetValue("first_name", DataObject.String("Roger"));
 			row.SetValue("last_name", DataObject.String("Rabbit"));
 			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", DataObject.Boolean(true));
 			table.AddRow(row);
+
+			context.Commit();
 		}
 
 		[Test]
@@ -199,6 +213,44 @@ namespace Deveel.Data.Sql.Statements {
 			var firstName = result.GetValue(0, 1);
 
 			Assert.AreEqual("Roger", firstName.Value.ToString());
+		}
+
+		[Test]
+		public void SelectAliasedWithGroupedExpression() {
+			const string sql = "SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)";
+
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var statement = statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+		}
+
+		[Test]
+		public void SelectFromAliased() {
+			const string sql = "SELECT * FROM test_table t0 WHERE t0.id = 1";
+
+			IEnumerable<SqlStatement> statements = null;
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
+			Assert.IsNotNull(statements);
+
+			var statement = statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			ITable result = null;
+			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
 		}
 	}
 }

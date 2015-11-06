@@ -64,7 +64,7 @@ namespace Deveel.Data.Mapping {
 
 				sb.Append(c);
 
-				if (upperSeen && ((Rules & DefaultNamingRules.UnderscoreSeparator) != 0))
+				if (upperSeen && i > 0 && ((Rules & DefaultNamingRules.UnderscoreSeparator) != 0))
 					sb.Append('_');
 			}
 

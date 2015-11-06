@@ -27,6 +27,10 @@ namespace Deveel.Data.Mapping {
 
 		private ColumnConstraints ColumnConstraints { get; set; }
 
+		MemberInfo IMemberMappingConfiguration.Member {
+			get { return memberInfo; }
+		}
+
 		private void DiscoverAttributes() {
 			string columnName = null;
 			ColumnConstraints constraints = new ColumnConstraints();
@@ -93,7 +97,7 @@ namespace Deveel.Data.Mapping {
 			return this;
 		}
 
-		public MemberMappingConfiguration<T> IsUnique(bool flag = false) {
+		public MemberMappingConfiguration<T> IsUnique(bool flag = true) {
 			if (flag) {
 				ColumnConstraints |= ColumnConstraints.Unique;
 			} else {
@@ -103,7 +107,7 @@ namespace Deveel.Data.Mapping {
 			return this;
 		}
 
-		public MemberMappingConfiguration<T> IsNotNull(bool flag = false) {
+		public MemberMappingConfiguration<T> IsNotNull(bool flag = true) {
 			if (flag) {
 				ColumnConstraints |= ColumnConstraints.NotNull;
 			} else {
@@ -113,7 +117,7 @@ namespace Deveel.Data.Mapping {
 			return this;
 		}
 
-		public MemberMappingConfiguration<T> IsPrimaryKey(bool flag = false) {
+		public MemberMappingConfiguration<T> IsPrimaryKey(bool flag = true) {
 			if (flag) {
 				ColumnConstraints |= ColumnConstraints.PrimaryKey;
 			} else {

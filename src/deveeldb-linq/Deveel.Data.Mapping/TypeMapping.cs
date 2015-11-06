@@ -48,5 +48,26 @@ namespace Deveel.Data.Mapping {
 
 			return memberMappings.ContainsKey(memberName);
 		}
+
+		public bool IsColumn(string memberName) {
+			// TODO: handle also relationships in the TypeMapping
+			return IsMemberMapped(memberName);
+		}
+
+		public bool IsPrimaryKey(string memberName) {
+			var member = GetMember(memberName);
+			if (member == null)
+				return false;
+
+			return member.PrimaryKey;
+		}
+
+		public bool IsUniqueKey(string memberName) {
+			var member = GetMember(memberName);
+			if (member == null)
+				return false;
+
+			return member.UniqueKey;
+		}
 	}
 }

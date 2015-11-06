@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Linq;
+
+using IQToolkit.Data.Common;
+using IQToolkit.Data.Mapping;
+
 namespace Deveel.Data.Mapping {
 	public sealed class MappingModel {
 		private readonly Dictionary<Type, TypeMapping> typeMappings;
@@ -63,6 +68,10 @@ namespace Deveel.Data.Mapping {
 		public Relationship GetRelationship(Type sourceType, string sourceMember) {
 			return relationships.FirstOrDefault(x => x.SourceType == sourceType &&
 			                                         x.SourceMember == sourceMember);
+		}
+
+		internal QueryMapping CreateQueryMapping() {
+			return new DeveelDbMapping(this);
 		}
 	}
 }

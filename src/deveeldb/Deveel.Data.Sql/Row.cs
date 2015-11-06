@@ -254,6 +254,18 @@ namespace Deveel.Data.Sql {
 			if (values == null)
 				values = new Dictionary<int, DataObject>(colCount);
 
+			var column = Table.TableInfo[columnOffset];
+			var columnType = column.ColumnType;
+
+			if (!value.Type.Equals(columnType)) {
+				if (!value.Type.CanCastTo(columnType))
+					throw new ArgumentException(
+						String.Format("The specified value of type '{0}' cannot be casted to the type '{1}' defined by column '{2}'.",
+							value.Type, columnType, column.FullColumnName));
+
+				value = value.CastTo(columnType);
+			}
+
 			values[columnOffset] = value;
 		}
 
@@ -482,18 +494,17 @@ namespace Deveel.Data.Sql {
 		}
 
 		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQueryContext context) {
-			// Get the variable resolver and evaluate over this data.
-			var vresolver = VariableResolver;
-			var evalExp = assignExpression.Evaluate(context, vresolver);
-
-			if (evalExp.ExpressionType != SqlExpressionType.Constant)
-				throw new InvalidOperationException();
-
-			var value = ((SqlConstantExpression) evalExp).Value;
+			var colRef = (SqlReferenceExpression) assignExpression.ReferenceExpression;
+			var valueExp = assignExpression.ValueExpression;
+			var value = valueExp.EvaluateToConstant(context, VariableResolver);
 
 			// Check the column name is within this row.
-			var variable = ((SqlReferenceExpression) assignExpression.ReferenceExpression).ReferenceName;
-			int column = Table.FindColumn(variable);
+			var columnName = colRef.ReferenceName;
+			int column = Table.FindColumn(columnName);
+
+			if (column == -1)
+				throw new ObjectNotFoundException(columnName,
+					String.Format("Table '{0}' has none column named '{1}': cannot assign.", Table.TableInfo.TableName, columnName));
 
 			SetValue(column, value);
 		}

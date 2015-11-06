@@ -320,7 +320,33 @@ namespace Deveel.Data.Sql {
 		}
 
 		internal SqlExpression ResolveColumns(bool ignoreCase, SqlExpression expression) {
-			throw new NotImplementedException();
+			var visitor = new ColumnsResolver(this, ignoreCase);
+			return visitor.Visit(expression);
+		}
+
+		class ColumnsResolver : SqlExpressionVisitor {
+			private readonly TableInfo tableInfo;
+			private readonly bool ignoreCase;
+
+			public ColumnsResolver(TableInfo tableInfo, bool ignoreCase) {
+				this.tableInfo = tableInfo;
+				this.ignoreCase = ignoreCase;
+			}
+
+			public override SqlExpression VisitReference(SqlReferenceExpression reference) {
+				var exp = reference;
+
+				var colName = exp.ReferenceName.Name;
+				var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+				foreach (var columnInfo in tableInfo) {
+					if (String.Equals(colName, columnInfo.ColumnName, comparison)) {
+						exp = SqlExpression.Reference(new ObjectName(tableInfo.TableName, columnInfo.ColumnName));
+					}
+				}
+
+				return exp;
+			}
 		}
 
 		public IEnumerable<int> IndexOfColumns(IEnumerable<string> columnNames) {

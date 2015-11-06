@@ -214,7 +214,7 @@ namespace Deveel.Data.Index {
 				if (op.IsSubQuery())
 					op = op.SubQueryPlainType();
 
-				if (op == SqlExpressionType.Equal ||
+				if (op == SqlExpressionType.NotEqual ||
 				    op == SqlExpressionType.IsNot) {
 					bool nullCheck = op == SqlExpressionType.NotEqual;
 					int j = 0;
