@@ -99,8 +99,8 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
 			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
 			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
 			transaction.CreateTable(tableInfo);
 		}
 

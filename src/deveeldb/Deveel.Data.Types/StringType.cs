@@ -305,6 +305,9 @@ namespace Deveel.Data.Types {
 			var sqlType = destType.TypeCode;
 			ISqlObject castedValue;
 
+			if (value.IsNull)
+				return DataObject.Null(destType);
+
 			switch (sqlType) {
 				case (SqlTypeCode.Bit):
 				case (SqlTypeCode.Boolean):

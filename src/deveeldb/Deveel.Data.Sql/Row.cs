@@ -257,13 +257,10 @@ namespace Deveel.Data.Sql {
 			var column = Table.TableInfo[columnOffset];
 			var columnType = column.ColumnType;
 
-			if (!value.Type.Equals(columnType)) {
-				if (!value.Type.CanCastTo(columnType))
-					throw new ArgumentException(
-						String.Format("The specified value of type '{0}' cannot be casted to the type '{1}' defined by column '{2}'.",
-							value.Type, columnType, column.FullColumnName));
-
-				value = value.CastTo(columnType);
+			if (!value.Type.IsComparable(columnType)) {
+				throw new ArgumentException(
+					String.Format("The specified value of type '{0}' is not comparable to '{1}' defined by '{2}'.",
+						value.Type, columnType, column.FullColumnName));
 			}
 
 			values[columnOffset] = value;
