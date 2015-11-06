@@ -501,13 +501,10 @@ namespace Deveel.Data {
 				// All the tables
 				var tableManager = transaction.GetTableManager();
 				var list = tableManager.GetTableNames();
-				var visibleTables = list.Select(name => transaction.GetTableInfo(name)).ToList();
+				var visibleTables = list.Select(name => transaction.GetTableInfo(name));
 
-				int sz = visibleTables.Count;
 				int rs = 0;
-				for (int n = 0; n < sz; ++n) {
-					var info = visibleTables[n];
-
+				foreach (var info in visibleTables) {
 					var schemaName = info.SchemaName == null ? null : info.SchemaName.FullName;
 
 					int b = rs;
