@@ -151,8 +151,8 @@ namespace Deveel.Data.Security {
 			table = queryContext.GetMutableTable(SystemSchema.PasswordTableName);
 			var row = table.NewRow();
 			row.SetValue(0, username);
-			row.SetValue(2, 1);
-			row.SetValue(1, password);
+			row.SetValue(1, 1);
+			row.SetValue(2, password);
 			row.SetValue(3, String.Empty);		// TODO: SALT
 			row.SetValue(4, String.Empty);		// TODO: Hash Algorithm
 			table.AddRow(row);

@@ -96,6 +96,10 @@ namespace Deveel.Data.Types {
 			return TypeCode.GetHashCode();
 		}
 
+		public override bool IsComparable(SqlType type) {
+			return type is DateType;
+		}
+
 		public override bool CanCastTo(SqlType destType) {
 			return destType is StringType || destType is DateType;
 		}
