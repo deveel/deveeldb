@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Mapping;
 using Deveel.Data.Sql;
@@ -80,9 +81,18 @@ namespace Deveel.Data.Linq {
 		}
 
 		[Test]
-		public void QueryById() {
+		public void FindById() {
 			Person entity = null;
 			Assert.DoesNotThrow(() => entity = Context.Table<Person>().FindById(1));
+			Assert.IsNotNull(entity);
+			Assert.AreEqual(1, entity.Id);
+			Assert.AreEqual("John", entity.FirstName);
+		}
+
+		[Test]
+		public void QueryById() {
+			Person entity = null;
+			Assert.DoesNotThrow(() => entity = Context.Table<Person>().FirstOrDefault(x => x.Id == 1));
 			Assert.IsNotNull(entity);
 			Assert.AreEqual(1, entity.Id);
 			Assert.AreEqual("John", entity.FirstName);

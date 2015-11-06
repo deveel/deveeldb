@@ -97,12 +97,12 @@ namespace Deveel.Data.Linq {
 		class DbMappingEntity : MappingEntity {
 			public DbMappingEntity(string tableId, TypeMapping typeMapping) {
 				this.tableId = tableId;
-				this.TypeMapping = typeMapping;
+				TypeMapping = typeMapping;
 			}
 
 			private readonly string tableId;
 
-			public TypeMapping TypeMapping { get; }
+			public TypeMapping TypeMapping { get; private set; }
 
 			public override string TableId {
 				get { return tableId; }
