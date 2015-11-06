@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using IQToolkit.Data.Common;
@@ -96,8 +97,98 @@ namespace Deveel.Data.Linq {
 			return select;
 		}
 
+		protected override string GetOperator(BinaryExpression b) {
+			if (b.NodeType == ExpressionType.Add && b.Type == typeof (string))
+				return "||";
+
+			return base.GetOperator(b);
+		}
+
+		protected override Expression VisitMethodCall(MethodCallExpression m) {
+			var declaringType = m.Method.DeclaringType;
+
+			if (declaringType == typeof (string)) {
+				switch (m.Method.Name) {
+					case "StartsWith": {
+						Visit(m.Object);
+						Write(" LIKE '");
+						Visit(m.Arguments[0]);
+						Write("%'");
+						return m;
+					}
+					case "EndsWith": {
+						Visit(m.Object);
+						Write(" LIKE '%");
+						Visit(m.Arguments[0]);
+						Write("'");
+						return m;
+					}
+					case "Contains": {
+						Visit(m.Object);
+						Write(" LIKE '%");
+						Visit(m.Arguments[0]);
+						Write("%'");
+						return m;
+					}
+					case "Concat": {
+						IList<Expression> args = m.Arguments;
+						if (args.Count == 1 && args[0].NodeType == ExpressionType.NewArrayInit) {
+							args = ((NewArrayExpression) args[0]).Expressions;
+						}
+						for (int i = 0, n = args.Count; i < n; i++) {
+							if (i > 0)
+								Write(" || ");
+
+							Visit(args[i]);
+						}
+
+						return m;
+					}
+					case "IsNullOrEmpty": {
+						Visit(m.Arguments[0]);
+						Write(" IS NULL OR ");
+						Visit(m.Arguments[0]);
+						Write(" = ''");
+						return m;
+					}
+				}
+			}
+
+			return base.VisitMethodCall(m);
+		}
+
 		protected override Expression VisitMemberAccess(MemberExpression m) {
-			// TODO: Convert this to functions...
+			var declaringType = m.Member.DeclaringType;
+			if (declaringType == typeof (string)) {
+				switch (m.Member.Name) {
+					case "Length": {
+						Write("LENGTH(");
+						Visit(m.Expression);
+						Write(")");
+						return m;
+					}
+				}
+			} else if (declaringType == typeof (DateTime) ||
+			           declaringType == typeof (DateTimeOffset)) {
+				switch (m.Member.Name) {
+					case "Day": {
+						Write("DAY(");
+						Visit(m.Expression);
+						Write(")");
+						return m;
+					}
+					case "Year": {
+						Write("YEAR(");
+						Visit(m.Expression);
+						Write(")");
+						return m;
+					}
+					// TODO: Continue with date function
+				}
+			} else if (declaringType == typeof (TimeSpan)) {
+				
+			}
+
 			return base.VisitMemberAccess(m);
 		}
 	}

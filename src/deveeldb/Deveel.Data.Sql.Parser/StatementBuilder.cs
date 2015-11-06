@@ -188,6 +188,7 @@ namespace Deveel.Data.Sql.Parser {
 			} else {
 				var orderBy = OrderBy(node.OrderBy);
 				var statement = new SelectStatement(queryExpression, orderBy);
+				statement.Limit = Limit(node.Limit);
 				statements.Add(statement);
 			}
 		}
@@ -197,6 +198,13 @@ namespace Deveel.Data.Sql.Parser {
 				return null;
 
 			return nodes.Select(node => new SortColumn(Expression(node.Expression), node.Ascending));
+		}
+
+		private QueryLimit Limit(LimitNode node) {
+			if (node == null)
+				return null;
+
+			return new QueryLimit(node.Offset, node.Count);
 		}
 
 		private void BuildCreateTrigger(CreateTriggerNode node) {

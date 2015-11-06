@@ -19,9 +19,10 @@ using System.Collections.Generic;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns);
+		IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit);
 	}
 }

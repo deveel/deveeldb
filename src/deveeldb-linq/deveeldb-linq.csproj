@@ -95,7 +95,6 @@
     <Compile Include="Deveel.Data.Linq\ProviderSettings.cs" />
     <Compile Include="Deveel.Data.Linq\QueryContext.cs" />
     <Compile Include="Deveel.Data.Linq\QueryContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Linq\QueryContextSettings.cs" />
     <Compile Include="Deveel.Data.Linq\QueryException.cs" />
     <Compile Include="Deveel.Data.Linq\QueryTable.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
@@ -134,6 +133,14 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
+$(SolutionDir)..\util\ilrepack\ILRepack.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\IQToolkit.dll" "$(TargetDir)\IQToolkit.Data.dll"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

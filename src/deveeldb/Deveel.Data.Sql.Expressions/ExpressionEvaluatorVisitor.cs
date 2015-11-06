@@ -204,7 +204,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			try {
 				var planner = context.DatabaseContext.QueryPlanner();
-				var plan = planner.PlanQuery(context.QueryContext, query, null);
+				var plan = planner.PlanQuery(context.QueryContext, query, null, null);
 				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
 			} catch (ExpressionEvaluateException) {
 				throw;

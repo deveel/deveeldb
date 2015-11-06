@@ -170,7 +170,7 @@ namespace Deveel.Data.Sql.Query {
 					var subQueryExpr = subQuerySource.QueryExpression;
 					var subQueryFrom = subQuerySource.QueryFrom;
 
-					plan = PlanQuery(context, subQueryExpr, subQueryFrom, null);
+					plan = PlanQuery(context, subQueryExpr, subQueryFrom, null, null);
 
 					if (!(plan is SubsetNode))
 						throw new InvalidOperationException("The root node of a sub-query plan must be a subset.");
@@ -356,17 +356,17 @@ namespace Deveel.Data.Sql.Query {
 			return resolvedColumns.ToArray();
 		}
 
-		public IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns) {
+		public IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit) {
 			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 			var orderBy = new List<SortColumn>();
 			if (sortColumns != null)
 				orderBy.AddRange(sortColumns);
 
-			return PlanQuery(context, queryExpression, queryFrom, orderBy);
+			return PlanQuery(context, queryExpression, queryFrom, orderBy, limit);
 		}
 
 		private IQueryPlanNode PlanQuery(IQueryContext context, SqlQueryExpression queryExpression,
-			QueryExpressionFrom queryFrom, IList<SortColumn> sortColumns) {
+			QueryExpressionFrom queryFrom, IList<SortColumn> sortColumns, QueryLimit limit) {
 
 			// ----- Resolve the SELECT list
 			// If there are 0 columns selected, then we assume the result should
@@ -472,7 +472,7 @@ namespace Deveel.Data.Sql.Query {
 				var compositeFrom = QueryExpressionFrom.Create(context, compositeExpr);
 
 				// Form the right plan
-				rightComposite = PlanQuery(context, compositeExpr, compositeFrom, null);
+				rightComposite = PlanQuery(context, compositeExpr, compositeFrom, null, null);
 			}
 
 			// Do we do a final subset column?
@@ -520,6 +520,9 @@ namespace Deveel.Data.Sql.Query {
 					node = new SubsetNode(node, aliases, aliases);
 				}
 			}
+
+			if (limit != null)
+				node = new LimitNode(node, limit.Offset, limit.Total);
 
 			return node;
 		}
@@ -642,7 +645,7 @@ namespace Deveel.Data.Sql.Query {
 				var queryExpression = (SqlQueryExpression) expression;
 				var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 				queryFrom.Parent = parent;
-				var plan = planner.PlanQuery(context, queryExpression, queryFrom, null);
+				var plan = planner.PlanQuery(context, queryExpression, queryFrom, null, null);
 				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(new CachePointNode(plan))));
 			}
 		}

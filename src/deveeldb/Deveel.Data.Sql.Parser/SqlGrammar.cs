@@ -794,13 +794,19 @@ namespace Deveel.Data.Sql.Parser {
 			var sortedDef = new NonTerminal("sorted_def", typeof(OrderByNode));
 			var sortedDefList = new NonTerminal("sorted_def_list");
 			var sortOrder = new NonTerminal("sort_order");
+			var limitOpt = new NonTerminal("limit_opt");
+			var limit = new NonTerminal("limit", typeof(LimitNode));
 
-			selectCommand.Rule = SqlQueryExpression() + orderOpt;
+			selectCommand.Rule = SqlQueryExpression() + orderOpt + limitOpt;
 
 			orderOpt.Rule = Empty | Key("ORDER") + Key("BY") + sortedDefList;
 			sortedDef.Rule = SqlExpression() + sortOrder;
 			sortOrder.Rule = Key("ASC") | Key("DESC");
 			sortedDefList.Rule = MakePlusRule(sortedDefList, Comma, sortedDef);
+
+			limitOpt.Rule = Empty | limit;
+			limit.Rule = Key("LIMIT") + PositiveLiteral + "," + PositiveLiteral |
+			             Key("LIMIT") + PositiveLiteral;
 
 			return selectCommand;
 		}

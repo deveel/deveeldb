@@ -427,6 +427,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\IUserIdentificatorNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\JoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\LabelNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NumerLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ObjectNameNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\OpenCursorStatementNode.cs" />
@@ -505,6 +506,7 @@
     <Compile Include="Deveel.Data.Sql.Query\IVisitableQueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\JoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LeftOuterJoinNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LogicalUnionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\MarkerNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\NaturalJoinNode.cs" />
@@ -646,11 +648,13 @@
     <Compile Include="Deveel.Data.Sql\JoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql\JoinPart.cs" />
     <Compile Include="Deveel.Data.Sql\JoinType.cs" />
+    <Compile Include="Deveel.Data.Sql\LimitedTable.cs" />
     <Compile Include="Deveel.Data.Sql\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectName.cs" />
     <Compile Include="Deveel.Data.Sql\OuterTable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
+    <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterDirection.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterStyle.cs" />

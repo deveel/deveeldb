@@ -20,9 +20,6 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	class SelectStatementNode : SqlNode, IStatementNode {
-		internal SelectStatementNode() {	
-		}
-
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
 		/// <summary>
@@ -32,11 +29,15 @@ namespace Deveel.Data.Sql.Parser {
 		/// <seealso cref="OrderByNode"/>
 		public IEnumerable<OrderByNode> OrderBy { get; private set; }
 
+		public LimitNode Limit { get; private set; }
+
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "sql_query_expression") {
 				QueryExpression = node as SqlQueryExpressionNode;
 			} else if (node.NodeName == "order_opt") {
 				GetOrderBy(node);
+			} else if (node.NodeName == "limit_opt") {
+				GetLimit(node);
 			}
 
 			return base.OnChildNode(node);
@@ -47,6 +48,12 @@ namespace Deveel.Data.Sql.Parser {
 			if (listNode != null) {
 				OrderBy = listNode.ChildNodes.Cast<OrderByNode>();
 			}
+		}
+
+		private void GetLimit(ISqlNode node) {
+			var child = node.ChildNodes.FirstOrDefault();
+			if (child != null)
+				Limit = (LimitNode) child;
 		}
 	}
 }
