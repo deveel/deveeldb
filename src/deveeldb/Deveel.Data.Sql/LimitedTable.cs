@@ -8,27 +8,22 @@ namespace Deveel.Data.Sql {
 
 		public long Total { get; private set; }
 
-		public bool HasOffset {
-			get { return Offset > 0; }
-		}
-
 		public LimitedTable(ITable parent, long offset, long total) 
 			: base(parent) {
+			if (offset < 0)
+				offset = 0;
+
 			Offset = offset;
 			Total = total;
 		}
 
 		private long NormalizeRow(long rowNumber) {
-			if (HasOffset)
-				rowNumber += Offset;
-
+			rowNumber += Offset;
 			return rowNumber;
 		}
 
 		private int NormalizeCount(long count) {
-			if (HasOffset)
-				count -= Offset;
-
+			count -= Offset;
 			return (int) System.Math.Min(count, Total);
 		}
 

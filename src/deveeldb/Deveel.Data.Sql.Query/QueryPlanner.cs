@@ -522,7 +522,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			if (limit != null)
-				node = new LimitNode(node, limit.Offset, limit.Total);
+				node = new LimitNode(node, limit.Offset, limit.Count);
 
 			return node;
 		}

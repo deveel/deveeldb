@@ -78,8 +78,6 @@ namespace Deveel.Data.Linq {
 				}
 			}
 
-			/*
-			TODO: Implement LIMIT clause in the system...
 			if (select.Take != null) {
 				WriteLine(Indentation.Same);
 				Write("LIMIT ");
@@ -92,7 +90,6 @@ namespace Deveel.Data.Linq {
 				Write(", ");
 				Visit(select.Take);
 			}
-			*/
 
 			return select;
 		}
