@@ -142,6 +142,7 @@
   <ItemGroup>
     <None Include="deveeldb-nunit.licenseheader" />
     <None Include="deveeldb-nunit.snk" />
+    <None Include="packages.deveeldb-nunit.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\deveeldb-gis\deveeldb-gis.csproj">
@@ -168,6 +169,10 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
