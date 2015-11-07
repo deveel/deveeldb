@@ -161,6 +161,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\LimitedTable.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
+    <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
+    <Compile Include="Deveel.Data.Util\IBigList.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />

@@ -769,7 +769,10 @@
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Types\UserTypeMember.cs" />
+    <Compile Include="Deveel.Data.Util\BigArray.cs" />
+    <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
+    <Compile Include="Deveel.Data.Util\IBigList.cs" />
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
