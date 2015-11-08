@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Spatial\SpatialFunctionsTest.cs" />
+    <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
