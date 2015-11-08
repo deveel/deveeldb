@@ -513,7 +513,6 @@
     <Compile Include="Deveel.Data.Sql.Query\NaturalJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\NonCorrelatedAnyAllNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\PreparedQuerySelectColumns.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryException.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionFrom.cs" />
@@ -533,6 +532,7 @@
     <Compile Include="Deveel.Data.Sql.Query\SingleRowTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SortNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SubsetNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
