@@ -19,11 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
-
-using DryIoc;
 
 namespace Deveel.Data.Sql.Query {
 	public static class QueryPlanSerializers {
@@ -159,6 +156,7 @@ namespace Deveel.Data.Sql.Query {
 				Register<SingleRowTableNode, SingleRowTableNodeSerializer>();
 				Register<SortNode, SortNodeSerializer>();
 				Register<SubsetNode, SubsetNodeSerializer>();
+				Register<LimitNode, LimitNodeSerializer>();
 			}
 		}
 
@@ -603,6 +601,26 @@ namespace Deveel.Data.Sql.Query {
 				var aliasNames = ReadObjectNames(reader);
 
 				return new SubsetNode(child, columnNames, aliasNames);
+			}
+		}
+
+		#endregion
+
+		#region LimitNodeSerializer
+
+		class LimitNodeSerializer : QueryPlanNodeSerializer<LimitNode> {
+			public override void Serialize(LimitNode obj, BinaryWriter writer) {
+				WriteChildNode(writer, obj.Child);
+				writer.Write(obj.Offset);
+				writer.Write(obj.Count);
+			}
+
+			public override LimitNode Deserialize(BinaryReader reader) {
+				var child = ReadChildNode(reader);
+				var offset = reader.ReadInt64();
+				var count = reader.ReadInt64();
+
+				return new LimitNode(child, offset, count);
 			}
 		}
 
