@@ -98,7 +98,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var tableName = tableEvent.Table.FullName;
 			var eventType = tableEvent.EventType;
 
-			var triggerEvent = new TriggerEvent(context.Session, TriggerName, tableName, eventType, tableEvent.OldRowId,
+			var triggerEvent = new TriggerEvent(context.Session(), TriggerName, tableName, eventType, tableEvent.OldRowId,
 				tableEvent.NewRow);
 			context.RegisterEvent(triggerEvent);
 		}
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql.Triggers {
 		public void Invoke(IQueryContext context, TableEventContext tableEvent) {
 			var isBefore = (tableEvent.EventType & TriggerEventType.Before) != 0;
 
-			var transaction = context.Session.Transaction;
+			var transaction = context.Session().Transaction;
 			if (transaction is ITableStateHandler) {
 				var stateHandler = (ITableStateHandler) transaction;
 				var oldState = stateHandler.TableState;

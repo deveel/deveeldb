@@ -32,7 +32,7 @@ namespace Deveel.Data {
 		}
 
 		public override IUserSession Session {
-			get { return ParentContext.Session; }
+			get { return ParentContext.Session(); }
 		}
 
 		protected override void Dispose(bool disposing) {

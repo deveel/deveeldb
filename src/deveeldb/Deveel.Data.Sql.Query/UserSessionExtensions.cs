@@ -19,7 +19,7 @@ using System;
 using Deveel.Data;
 
 namespace Deveel.Data.Sql.Query {
-	public static class UserSessionExtensions {
+	static class UserSessionExtensions {
 		public static ITableQueryInfo GetTableQueryInfo(this IUserSession session, ObjectName tableName, ObjectName alias) {
 			var tableInfo = session.GetTableInfo(tableName);
 			if (alias != null) {

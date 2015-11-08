@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data {
-	public class SessionQueryContext : QueryContextBase {
+	class SessionQueryContext : QueryContextBase {
 		private IUserSession session;
 
 		public SessionQueryContext(IUserSession session) {

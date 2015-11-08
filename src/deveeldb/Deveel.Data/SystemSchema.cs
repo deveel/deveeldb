@@ -363,8 +363,8 @@ namespace Deveel.Data {
 			return new PrivilegesTable(transaction);
 		}
 
-		public static ITable GetSessionInfoTable(IUserSession session) {
-			return new SessionInfoTable(session);
+		public static ITable GetSessionInfoTable(IQueryContext context) {
+			return new SessionInfoTable(context.Session());
 		}
 
 		public static ITable GetStatisticsTable(ITransaction transaction) {

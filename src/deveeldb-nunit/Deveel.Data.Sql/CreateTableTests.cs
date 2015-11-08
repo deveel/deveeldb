@@ -19,7 +19,7 @@ namespace Deveel.Data.Sql {
 				var user = queryContext.CreateUser(TestUserName, TestPassword);
 				queryContext.GrantHostAccessToUser(TestUserName, KnownConnectionProtocols.Local, "%");
 				queryContext.GrantToUserOnSchema("APP", user, User.System, Privileges.Create);
-				queryContext.Session.Commit();
+				queryContext.Commit();
 			}
 
 			return queryContext;

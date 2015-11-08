@@ -19,11 +19,10 @@ using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public static class UserSessionExtensions {
+	static class UserSessionExtensions {
 		#region Variables
 
 		public static bool AutoCommit(this IUserSession session) {

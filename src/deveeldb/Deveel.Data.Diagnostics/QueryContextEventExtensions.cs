@@ -33,12 +33,12 @@ namespace Deveel.Data.Diagnostics {
 
 		public static void RegisterError(this IQueryContext context, string message, Exception error) {
 			var errorEx = new ErrorException(EventClasses.Runtime, Int32.MinValue, message, error);
-			var errorEvent = errorEx.AsEvent(context.Session);
+			var errorEvent = errorEx.AsEvent(context.Session());
 			context.RegisterEvent(errorEvent);
 		}
 
 		public static void RegisterError(this IQueryContext context, ErrorException error) {
-			var errorEvent = error.AsEvent(context.Session);
+			var errorEvent = error.AsEvent(context.Session());
 			context.RegisterEvent(errorEvent);
 		}
 
@@ -47,7 +47,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlQuery query, string statementText) {
-			context.RegisterEvent(new QueryEvent(context.Session, query, statementText));
+			context.RegisterEvent(new QueryEvent(context.Session(), query, statementText));
 		}
 
 		public static void RegisterQuery(this IQueryContext context, SqlStatement statement) {

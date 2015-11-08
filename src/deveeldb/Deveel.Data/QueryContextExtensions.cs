@@ -18,21 +18,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Triggers;
-using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	public static class QueryContextExtensions {
+		internal static IUserSession Session(this IQueryContext context) {
+			if ((context is IQueryContextHasUserSession))
+				return ((IQueryContextHasUserSession) context).Session;
+
+			return null;
+		}
+
 		public static User User(this IQueryContext context) {
-			return context.Session.SessionInfo.User;
+			return context.Session().SessionInfo.User;
 		}
 
 		public static string UserName(this IQueryContext context) {
@@ -40,7 +44,7 @@ namespace Deveel.Data {
 		}
 
 		internal static IQueryContext ForSystemUser(this IQueryContext queryContext) {
-			return new SystemQueryContext(queryContext.Session.Transaction, queryContext.CurrentSchema);
+			return new SystemQueryContext(queryContext.Session().Transaction, queryContext.CurrentSchema);
 		}
 
 		public static IQueryContext CreateChild(this IQueryContext context) {
@@ -50,43 +54,43 @@ namespace Deveel.Data {
 		#region Properties
 
 		public static IDatabase Database(this IQueryContext context) {
-			return context.Session.Database;
+			return context.Session().Database;
 		}
 
 		public static bool IgnoreIdentifiersCase(this IQueryContext context) {
-			return context.Session.IgnoreIdentifiersCase();
+			return context.Session().IgnoreIdentifiersCase();
 		}
 
 		public static void IgnoreIdentifiersCase(this IQueryContext context, bool value) {
-			context.Session.IgnoreIdentifiersCase(value);
+			context.Session().IgnoreIdentifiersCase(value);
 		}
 
 		public static void AutoCommit(this IQueryContext context, bool value) {
-			context.Session.AutoCommit(value);
+			context.Session().AutoCommit(value);
 		}
 
 		public static bool AutoCommit(this IQueryContext context) {
-			return context.Session.AutoCommit();
+			return context.Session().AutoCommit();
 		}
 
 		public static string CurrentSchema(this IQueryContext context) {
-			return context.Session.CurrentSchema;
+			return context.Session().CurrentSchema;
 		}
 
 		public static void CurrentSchema(this IQueryContext context, string value) {
-			context.Session.CurrentSchema(value);
+			context.Session().CurrentSchema(value);
 		}
 
 		public static void ParameterStyle(this IQueryContext context, QueryParameterStyle value) {
-			context.Session.ParameterStyle(value);
+			context.Session().ParameterStyle(value);
 		}
 
 		public static QueryParameterStyle ParameterStyle(this IQueryContext context) {
-			return context.Session.ParameterStyle();
+			return context.Session().ParameterStyle();
 		}
 
 		public static IDatabaseContext DatabaseContext(this IQueryContext context) {
-			return context.Session.Database.DatabaseContext;
+			return context.Session().Database.DatabaseContext;
 		}
 
 		public static ISystemContext SystemContext(this IQueryContext context) {
@@ -111,7 +115,7 @@ namespace Deveel.Data {
 
 			// We haven't found it neither in this context nor in the parent: 
 			//   fallback to the transaction scope
-			return context.Session.ObjectExists(objectName);
+			return context.Session().ObjectExists(objectName);
 		}
 
 		public static bool ObjectExists(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
@@ -131,7 +135,7 @@ namespace Deveel.Data {
 
 			// We haven't found it neither in this context nor in the parent: 
 			//   fallback to the transaction scope
-			return context.Session.ObjectExists(objectType, objectName);
+			return context.Session().ObjectExists(objectType, objectName);
 		}
 
 		public static IDbObject GetObject(this IQueryContext context, DbObjectType objType, ObjectName objName) {
@@ -163,7 +167,7 @@ namespace Deveel.Data {
 			if (!context.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
 
-			return context.Session.GetObject(objType, objName, accessType);
+			return context.Session().GetObject(objType, objName, accessType);
 		}
 
 		private static void CreateObject(this IQueryContext context, IObjectInfo objectInfo) {
@@ -171,7 +175,7 @@ namespace Deveel.Data {
 			if (!context.UserCanCreateObject(objectInfo.ObjectType, objectInfo.FullName))
 				throw new InvalidOperationException();
 
-			context.Session.CreateObject(objectInfo);
+			context.Session().CreateObject(objectInfo);
 		}
 
 		private static bool DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
@@ -191,7 +195,7 @@ namespace Deveel.Data {
 			if (!context.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(context.UserName(), objectName, Privileges.Drop);
 
-			context.Session.DropObject(objectType, objectName);
+			context.Session().DropObject(objectType, objectName);
 			return true;
 		}
 
@@ -202,7 +206,7 @@ namespace Deveel.Data {
 			if (!context.UserCanAlterObject(objectInfo.ObjectType, objectInfo.FullName))
 				throw new MissingPrivilegesException(context.UserName(), objectInfo.FullName, Privileges.Alter);
 
-			context.Session.AlterObject(objectInfo);
+			context.Session().AlterObject(objectInfo);
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
@@ -215,7 +219,7 @@ namespace Deveel.Data {
 			    (resolved = context.ParentContext.ResolveObjectName(name)) != null)
 				return resolved;
 
-			return context.Session.ResolveObjectName(name);
+			return context.Session().ResolveObjectName(name);
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
@@ -231,7 +235,7 @@ namespace Deveel.Data {
 			    (resolved = context.ParentContext.ResolveObjectName(objectType, objectName)) != null)
 				return resolved;
 
-			return context.Session.ResolveObjectName(objectType, objectName);
+			return context.Session().ResolveObjectName(objectType, objectName);
 		}
 
 		#endregion
@@ -261,7 +265,7 @@ namespace Deveel.Data {
 		#region Tables
 
 		public static ObjectName ResolveTableName(this IQueryContext context, ObjectName tableName) {
-			return context.Session.ResolveTableName(tableName);
+			return context.Session().ResolveTableName(tableName);
 		}
 
 		public static ObjectName ResolveTableName(this IQueryContext context, string name) {
@@ -309,9 +313,9 @@ namespace Deveel.Data {
 				return;
 			}
 
-			context.Session.CreateTable(tableInfo, temporary);
+			context.Session().CreateTable(tableInfo, temporary);
 
-			using (var systemContext = new SystemQueryContext(context.Session.Transaction, context.CurrentSchema)) {
+			using (var systemContext = new SystemQueryContext(context.Session().Transaction, context.CurrentSchema)) {
 				systemContext.GrantToUserOnTable(tableInfo.TableName, context.User(), Privileges.TableAll);
 			}
 		}
@@ -384,7 +388,7 @@ namespace Deveel.Data {
 		public static ITable GetTable(this IQueryContext context, ObjectName tableName) {
 			var table = context.GetCachedTable(tableName.FullName) as ITable;
 			if (table == null) {
-				table = context.Session.GetTable(tableName);
+				table = context.Session().GetTable(tableName);
 				if (table != null) {
 					table = new UserContextTable(context, table);
 					context.CacheTable(tableName.FullName, table);
@@ -424,7 +428,7 @@ namespace Deveel.Data {
 		}
 
 		public static ITableQueryInfo GetTableQueryInfo(this IQueryContext context, ObjectName tableName, ObjectName alias) {
-			return context.Session.GetTableQueryInfo(tableName, alias);
+			return context.Session().GetTableQueryInfo(tableName, alias);
 		}
 
 		#region Operations
@@ -553,7 +557,7 @@ namespace Deveel.Data {
 			if (!context.UserCanAlterTable(tableName))
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Alter);
 
-			context.Session.AddPrimaryKey(tableName, columnNames, ConstraintDeferrability.InitiallyImmediate, constraintName);
+			context.Session().AddPrimaryKey(tableName, columnNames, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
 		public static void AddPrimaryKey(this IQueryContext context, ObjectName tableName, string columnName) {
@@ -578,7 +582,7 @@ namespace Deveel.Data {
 			if (!context.UserCanReferenceTable(refTable))
 				throw new MissingPrivilegesException(context.UserName(), refTable, Privileges.References);
 
-			context.Session.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+			context.Session().AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
 		}
 
 		public static void AddUniqueKey(this IQueryContext context, ObjectName tableName, string[] columns) {
@@ -599,7 +603,7 @@ namespace Deveel.Data {
 			if (!context.UserCanAlterTable(tableName))
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Alter);
 
-			context.Session.AddUniqueKey(tableName, columns, deferrability, constraintName);
+			context.Session().AddUniqueKey(tableName, columns, deferrability, constraintName);
 		}
 
 		public static void AddCheck(this IQueryContext context, ObjectName tableName, SqlExpression expression, string constraintName) {
@@ -607,15 +611,15 @@ namespace Deveel.Data {
 		}
 
 		public static void AddCheck(this IQueryContext context, ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferred, string constraintName) {
-			context.Session.AddCheck(tableName, expression, deferred, constraintName);
+			context.Session().AddCheck(tableName, expression, deferred, constraintName);
 		}
 
 		public static void DropAllTableConstraints(this IQueryContext context, ObjectName tableName) {
-			context.Session.DropAllTableConstraints(tableName);
+			context.Session().DropAllTableConstraints(tableName);
 		}
 
 		public static int DropConstraint(this IQueryContext context, ObjectName tableName, string constraintName) {
-			return context.Session.DropTableConstraint(tableName, constraintName);
+			return context.Session().DropTableConstraint(tableName, constraintName);
 		}
 
 		public static void AddConstraint(this IQueryContext context, ObjectName tableName, ConstraintInfo constraintInfo) {
@@ -636,31 +640,31 @@ namespace Deveel.Data {
 		}
 
 		public static bool DropPrimaryKey(this IQueryContext context, ObjectName tableName, string constraintName) {
-			return context.Session.DropTablePrimaryKey(tableName, constraintName);
+			return context.Session().DropTablePrimaryKey(tableName, constraintName);
 		}
 
 		public static void CheckConstraints(this IQueryContext context, ObjectName tableName) {
-			context.Session.CheckConstraintViolations(tableName);
+			context.Session().CheckConstraintViolations(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableCheckExpressions(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableCheckExpressions(tableName);
+			return context.Session().QueryTableCheckExpressions(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableImportedForeignKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableImportedForeignKeys(tableName);
+			return context.Session().QueryTableImportedForeignKeys(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableForeignKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableForeignKeys(tableName);
+			return context.Session().QueryTableForeignKeys(tableName);
 		}
 
 		public static ConstraintInfo GetTablePrimaryKey(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTablePrimaryKey(tableName);
+			return context.Session().QueryTablePrimaryKey(tableName);
 		}
 
 		public static ConstraintInfo[] GetTableUniqueKeys(this IQueryContext context, ObjectName tableName) {
-			return context.Session.QueryTableUniqueKeys(tableName);
+			return context.Session().QueryTableUniqueKeys(tableName);
 		}
 
 		#endregion
@@ -840,11 +844,11 @@ namespace Deveel.Data {
 		#region Transaction Complete
 
 		public static void Commit(this IQueryContext queryContext) {
-			queryContext.Session.Commit();
+			queryContext.Session().Commit();
 		}
 
 		public static void Rollback(this IQueryContext queryContext) {
-			queryContext.Session.Rollback();
+			queryContext.Session().Rollback();
 		}
 
 		#endregion

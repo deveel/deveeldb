@@ -27,7 +27,7 @@ namespace Deveel.Data {
 	/// system resources and evaluation context.
 	/// </summary>
 	public interface IQueryContext : IDisposable {
-		IUserSession Session { get; }
+		//IUserSession Session { get; }
 
 		string CurrentSchema { get; }
 

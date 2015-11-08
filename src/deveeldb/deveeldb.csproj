@@ -175,6 +175,7 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
+    <Compile Include="Deveel.Data\IQueryContextHasUserSession.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
@@ -236,6 +237,7 @@
     <Compile Include="Deveel.Data\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SequenceManagerExtensions.cs" />
     <Compile Include="Deveel.Data\SessionQueryContext.cs" />
+    <Compile Include="Deveel.Data\SystemManager.cs" />
     <Compile Include="Deveel.Data\SystemServiceProvider.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />

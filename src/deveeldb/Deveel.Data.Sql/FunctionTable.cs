@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql {
 		private static int uniqueKeySeq = 0;
 
 		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: this(queryContext.Session.Database.SingleRowTable, functionList, columnNames, queryContext) {
+			: this(queryContext.Session().Database.SingleRowTable, functionList, columnNames, queryContext) {
 		}
 
 		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)

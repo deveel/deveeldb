@@ -50,7 +50,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static IRoutine ResolveUserRoutine(this IQueryContext context, Invoke invoke) {
-			var routine = context.Session.ResolveRoutine(invoke);
+			var routine = context.Session().ResolveRoutine(invoke);
 			if (routine != null &&
 				!context.UserCanExecute(routine.Type, invoke))
 				throw new InvalidOperationException();

@@ -22,7 +22,7 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.Sql.Triggers {
 	public static class QueryContextExtensions {
 		public static void FireTriggers(this IQueryContext context, TableEventContext tableEvent) {
-			var manager = context.Session.Transaction.GetTriggerManager();
+			var manager = context.Session().Transaction.GetTriggerManager();
 			if (manager == null)
 				return;
 
@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql.Triggers {
 		//}
 
 		public static void CreateTrigger(this IQueryContext context, TriggerInfo triggerInfo) {
-			context.Session.CreateTrigger(triggerInfo);
+			context.Session().CreateTrigger(triggerInfo);
 		}
 
 		public static void CreateCallbackTrigger(this IQueryContext context, ObjectName triggerName, TriggerEventType eventType) {
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public static bool TriggerExists(this IQueryContext context, ObjectName triggerName) {
-			return context.Session.TriggerExists(triggerName);
+			return context.Session().TriggerExists(triggerName);
 		}
     }
 }

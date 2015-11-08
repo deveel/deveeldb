@@ -27,7 +27,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	public abstract class QueryContextBase : IQueryContext, IVariableScope {
+	abstract class QueryContextBase : IQueryContextHasUserSession, IVariableScope {
 #if PCL
 		private Random secureRandom;
 #else

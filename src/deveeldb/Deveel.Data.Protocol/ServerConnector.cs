@@ -289,11 +289,11 @@ namespace Deveel.Data.Protocol {
 					// If an error occured then roll-back
 					if (response == null) {
 						// Rollback.
-						context.Session.Rollback();
+						context.Rollback();
 					} else {
 						try {
 							// Otherwise commit.
-							context.Session.Commit();
+							context.Commit();
 						} catch (Exception) {
 							foreach (IQueryResponse queryResponse in response) {
 								// Dispose this response if the commit failed.

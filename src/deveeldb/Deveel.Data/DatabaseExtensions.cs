@@ -52,7 +52,7 @@ namespace Deveel.Data {
 
 		#region Sessions
 
-		public static IUserSession CreateUserSession(this IDatabase database, SessionInfo sessionInfo) {
+		static IUserSession CreateUserSession(this IDatabase database, SessionInfo sessionInfo) {
 			if (sessionInfo == null)
 				throw new ArgumentNullException("sessionInfo");
 
@@ -68,7 +68,7 @@ namespace Deveel.Data {
 			return new UserSession(database, transaction, sessionInfo);
 		}
 
-		public static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
+		static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
 			var transaction = database.CreateTransaction(isolation);
 			return new SystemUserSession(database, transaction);
 		}
@@ -78,11 +78,11 @@ namespace Deveel.Data {
 			return new SystemUserSession(database, transaction);
 		}
 
-		public static IUserSession CreateSystemSession(this IDatabase database) {
+		internal static IUserSession CreateSystemSession(this IDatabase database) {
 			return database.CreateSystemSession(IsolationLevel.Serializable);
 		}
 
-		public static IUserSession CreateUserSession(this IDatabase database, User user) {
+		internal static IUserSession CreateUserSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
 			return database.CreateUserSession(new SessionInfo(user));
 		}
@@ -95,7 +95,7 @@ namespace Deveel.Data {
 			return database.CreateUserSession(user);
 		}
 
-		public static IUserSession OpenUserSession(this IDatabase database, SessionInfo sessionInfo) {
+		static IUserSession OpenUserSession(this IDatabase database, SessionInfo sessionInfo) {
 			if (sessionInfo == null)
 				throw new ArgumentNullException("sessionInfo");
 
