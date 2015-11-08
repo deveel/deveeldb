@@ -501,6 +501,7 @@
     <Compile Include="Deveel.Data.Sql.Query\IFromTableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ITableQueryInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IVisitableQueryPlanNode.cs" />
@@ -512,6 +513,7 @@
     <Compile Include="Deveel.Data.Sql.Query\NaturalJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\NonCorrelatedAnyAllNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\PreparedQuerySelectColumns.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryException.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryExpressionFrom.cs" />

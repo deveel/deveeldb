@@ -36,9 +36,9 @@ namespace Deveel.Data.Sql.Query {
 			return references;
 		}
 
-		public static SqlBinary AsBinary(this IQueryPlanNode planNode) {
+		public static SqlBinary AsBinary(this IQueryPlanNode planNode, ISystemContext context) {
 			using (var memoryStream = new MemoryStream()) {
-				QueryPlanSerializers.Serialize(planNode, memoryStream);
+				context.SerializeQueryPlan(planNode, memoryStream);
 				memoryStream.Flush();
 				return new SqlBinary(memoryStream.ToArray());
 			}

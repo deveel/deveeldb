@@ -26,10 +26,30 @@ namespace Deveel.Data.Sql.Query {
 	public static class QueryPlanSerializers {
 		public static readonly IObjectSerializerResolver Resolver = new QueryPlanNodeSerializerResolver();
 
-		public static void Serialize(IQueryPlanNode queryPlan, Stream outputStream) {
-			using (var writer = new BinaryWriter(outputStream, Encoding.Unicode)) {
-				Serialize(queryPlan, writer);
-			}
+		internal static void RegisterSerializers(ISystemContext context) {
+			context.RegisterService<CacheNodePointSerializer>();
+			context.RegisterService<CompositeNodeSerializer>();
+			context.RegisterService<ConstantSelectNodeSerializer>();
+			context.RegisterService<CreateFunctionNodeSerializer>();
+			context.RegisterService<DistinctNodeSerializer>();
+			context.RegisterService<EquiJoinNodeSerializer>();
+			context.RegisterService<ExhaustiveSelectNodeSerializer>();
+			context.RegisterService<FetchTableNodeSerializer>();
+			context.RegisterService<FetchViewNodeSerializer>();
+			context.RegisterService<GroupNodeSerializer>();
+			context.RegisterService<JoinNodeSerializer>();
+			context.RegisterService<LeftOuterJoinNodeSerializer>();
+			context.RegisterService<LogicalUnionNodeSerializer>();
+			context.RegisterService<MarkerNodeSerializer>();
+			context.RegisterService<NaturalJoinNodeSerializer>();
+			context.RegisterService<NonCorrelatedAnyAllNodeSerializer>();
+			context.RegisterService<RageSelectNodeSerializer>();
+			context.RegisterService<SimplePatternSelectNodeSerializer>();
+			context.RegisterService<SimpleSelectNodeSerializer>();
+			context.RegisterService<SingleRowTableNodeSerializer>();
+			context.RegisterService<SortNodeSerializer>();
+			context.RegisterService<SubsetNodeSerializer>();
+			context.RegisterService<LimitNodeSerializer>();
 		}
 
 		public static void Serialize(IQueryPlanNode queryPlan, BinaryWriter writer) {
@@ -164,7 +184,10 @@ namespace Deveel.Data.Sql.Query {
 
 		#region QueryPlanNodeSerializer
 
-		abstract class QueryPlanNodeSerializer<TNode> : ObjectBinarySerializer<TNode> where TNode : class, IQueryPlanNode {
+		abstract class QueryPlanNodeSerializer<TNode> : ObjectBinarySerializer<TNode>, IQueryPlanNodeSerializer where TNode : class, IQueryPlanNode {
+			public bool CanSerialize(Type nodeType) {
+				return nodeType == typeof (TNode);
+			}
 		}
 
 		#endregion
