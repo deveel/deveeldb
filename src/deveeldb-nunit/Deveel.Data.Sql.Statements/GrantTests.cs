@@ -26,5 +26,16 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(statements.ElementAt(1));
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(statements.ElementAt(2));
 		}
+
+		[Test]
+		public void ParseGrantRolesToOneUser() {
+			const string sql = "GRANT admin, data_reader TO test_user";
+
+			var statements = SqlStatement.Parse(sql);
+			Assert.IsNotNull(statements);
+			Assert.IsNotEmpty(statements);
+			Assert.AreEqual(2, statements.Count());
+			Assert.IsInstanceOf<GrantRoleStatement>(statements.ElementAt(0));
+		}
 	}
 }

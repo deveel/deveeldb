@@ -80,6 +80,8 @@ namespace Deveel.Data.Sql.Parser {
 				BuildAlterUser((AlterUserStatementNode) node);
 			if (node is GrantStatementNode)
 				BuildGrant((GrantStatementNode) node);
+			if (node is GrantRoleStatementNode)
+				BuildGrant((GrantRoleStatementNode) node);
 
 			if (node is ContinueStatementNode)
 				BuildContinue((ContinueStatementNode) node);
@@ -93,6 +95,14 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (node is SequenceOfStatementsNode)
 				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
+		}
+
+		private void BuildGrant(GrantRoleStatementNode node) {
+			foreach (var grantee in node.Grantees) {
+				foreach (var role in node.Roles) {
+					statements.Add(new GrantRoleStatement(grantee, role, node.WithAdmin));
+				}
+			}
 		}
 
 		private void BuildGrant(GrantStatementNode node) {

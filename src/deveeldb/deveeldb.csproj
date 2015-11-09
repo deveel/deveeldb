@@ -148,6 +148,7 @@
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GrantRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
