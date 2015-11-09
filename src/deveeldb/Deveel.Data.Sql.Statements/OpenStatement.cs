@@ -41,15 +41,21 @@ namespace Deveel.Data.Sql.Statements {
 			get { return true; }
 		}
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			SqlExpression[] args = null;
 			if (Arguments != null) {
-				args = (SqlExpression[]) Arguments.Clone();
+				args = (SqlExpression[])Arguments.Clone();
 
 				for (int i = 0; i < args.Length; i++) {
 					args[i] = args[i].Prepare(preparer);
 				}
 			}
+
+			return new OpenStatement(CursorName, args);
+		}
+
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
+			SqlExpression[] args = Arguments;
 
 			var cursor = context.FindCursor(CursorName);
 			if (cursor == null)
@@ -65,41 +71,22 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 
-			return new Prepared(CursorName, args);
+			return new OpenStatement(CursorName, args);
 		}
 
-		#region Prepared
+		protected override ITable ExecuteStatement(IQueryContext context) {
+			var cursor = context.FindCursor(CursorName);
+			if (cursor == null)
+				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
-		internal class Prepared : SqlStatement {
-			public Prepared(string cursorName, SqlExpression[] arguments) {
-				CursorName = cursorName;
-				Arguments = arguments;
-			}
-
-			public string CursorName { get; private set; }
-
-			public SqlExpression[] Arguments { get; private set; }
-
-			protected override bool IsPreparable {
-				get { return false; }
-			}
-
-			protected override ITable ExecuteStatement(IQueryContext context) {
-				var cursor = context.FindCursor(CursorName);
-				if (cursor == null)
-					throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
-
-				cursor.Open(context, Arguments);
-				return FunctionTable.ResultTable(context, 0);
-			}
+			cursor.Open(context, Arguments);
+			return FunctionTable.ResultTable(context, 0);
 		}
-		
-		#endregion
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
+		internal class PreparedSerializer : ObjectBinarySerializer<OpenStatement> {
+			public override void Serialize(OpenStatement obj, BinaryWriter writer) {
 				writer.Write(obj.CursorName);
 
 				var argc = obj.Arguments == null ? 0 : obj.Arguments.Length;
@@ -112,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			public override Prepared Deserialize(BinaryReader reader) {
+			public override OpenStatement Deserialize(BinaryReader reader) {
 				var cursorName = reader.ReadString();
 
 				var argc = reader.ReadInt32();
@@ -122,7 +109,7 @@ namespace Deveel.Data.Sql.Statements {
 					args[i] = SqlExpression.Deserialize(reader);
 				}
 
-				return new Prepared(cursorName, args);
+				return new OpenStatement(cursorName, args);
 			}
 		}
 

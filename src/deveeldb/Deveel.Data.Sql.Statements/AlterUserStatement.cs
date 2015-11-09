@@ -18,7 +18,6 @@ using System;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -39,63 +38,42 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterUserAction AlterAction { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var action = AlterAction;
 			if (action is IPreparable)
-				action = ((IPreparable) action).Prepare(preparer) as IAlterUserAction;
-			if (action == null)
-				throw new StatementPrepareException("Could not prepare the action");
+				action = ((IPreparable)action).Prepare(preparer) as IAlterUserAction;
 
-			return new Prepared(UserName, action);
+			return new AlterUserStatement(UserName, action);
 		}
 
-		#region Prepared
+		protected override ITable ExecuteStatement(IQueryContext context) {
+			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
+				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
+				context.AlterUserPassword(UserName, password);
+			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
+				context.RemoveUserFromAllGroups(UserName);
 
-		internal class Prepared : SqlStatement {
-			public Prepared(string userName, IAlterUserAction action) {
-				Action = action;
-				UserName = userName;
-			}
-
-			public string UserName { get; private set; }
-
-			public IAlterUserAction Action { get; set; }
-
-			protected override bool IsPreparable {
-				get { return false; }
-			}
-
-			protected override ITable ExecuteStatement(IQueryContext context) {
-				if (Action.ActionType == AlterUserActionType.SetPassword) {
-					var password = ((SqlConstantExpression) ((SetPasswordAction) Action).PasswordExpression).Value.ToString();
-					context.AlterUserPassword(UserName, password);
-				} else if (Action.ActionType == AlterUserActionType.SetGroups) {
-					context.RemoveUserFromAllGroups(UserName);
-
-					var groupNames = ((SetUserGroupsAction) Action).Groups
-						.Cast<SqlConstantExpression>()
-						.Select(x => x.Value.Value.ToString())
-						.ToArray();
-					foreach (string group in groupNames) {
-						context.AddUserToGroup(UserName, group);
-					}
-				} else if (Action.ActionType == AlterUserActionType.SetAccountStatus) {
-					context.SetUserStatus(UserName, ((SetAccountStatusAction)Action).Status);
+				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
+					.Cast<SqlConstantExpression>()
+					.Select(x => x.Value.Value.ToString())
+					.ToArray();
+				foreach (string group in groupNames) {
+					context.AddUserToGroup(UserName, group);
 				}
-
-				return FunctionTable.ResultTable(context, 0);
+			} else if (AlterAction.ActionType == AlterUserActionType.SetAccountStatus) {
+				context.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}
-		}
 
-		#endregion
+			return FunctionTable.ResultTable(context, 0);
+		}
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
+		internal class PreparedSerializer : ObjectBinarySerializer<AlterUserStatement> {
+			public override void Serialize(AlterUserStatement obj, BinaryWriter writer) {
 				writer.Write(obj.UserName);
 
-				var action = obj.Action;
+				var action = obj.AlterAction;
 
 				writer.Write((byte)action.ActionType);
 
@@ -117,7 +95,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			public override Prepared Deserialize(BinaryReader reader) {
+			public override AlterUserStatement Deserialize(BinaryReader reader) {
 				var userName = reader.ReadString();
 
 				var actionType = (AlterUserActionType) reader.ReadByte();
@@ -141,7 +119,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new NotSupportedException();
 				}
 
-				return new Prepared(userName, action);
+				return new AlterUserStatement(userName, action);
 			}
 		}
 

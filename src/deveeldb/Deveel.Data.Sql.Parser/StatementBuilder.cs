@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
@@ -77,6 +78,8 @@ namespace Deveel.Data.Sql.Parser {
 				BuildCreateUser((CreateUserStatementNode) node);
 			if (node is AlterUserStatementNode)
 				BuildAlterUser((AlterUserStatementNode) node);
+			if (node is GrantStatementNode)
+				BuildGrant((GrantStatementNode) node);
 
 			if (node is ContinueStatementNode)
 				BuildContinue((ContinueStatementNode) node);
@@ -91,6 +94,25 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is SequenceOfStatementsNode)
 				BuildSequenceOfStatements((SequenceOfStatementsNode) node);
 		}
+
+		private void BuildGrant(GrantStatementNode node) {
+			var objName = ObjectName.Parse(node.ObjectName);
+			foreach (var grantee in node.Grantees) {
+				foreach (var privilegeNode in node.Privileges) {
+					var privilege = ParsePrivilege(privilegeNode.Privilege);
+					statements.Add(new GrantPrivilegesStatement(grantee, privilege, node.WithGrant, objName, privilegeNode.Columns));
+				}
+			}
+		}
+
+		private static Privileges ParsePrivilege(string privName) {
+			try {
+				return (Privileges) Enum.Parse(typeof (Privileges), privName, true);
+			} catch (Exception) {
+				throw new InvalidOperationException(String.Format("Invalid privilege name '{0}' specified.", privName));
+			}
+		}
+		
 
 		private void BuildRaise(RaiseStatementNode node) {
 			statements.Add(new RaiseStatement(node.ExceptionName));
@@ -307,8 +329,7 @@ namespace Deveel.Data.Sql.Parser {
 			return columnInfo;
 		}
 
-		private static SqlTableConstraint BuildConstraint(string tableName, TableConstraintNode constraint) {
-			var objTableName = ObjectName.Parse(tableName);
+		private static SqlTableConstraint BuildConstraint(TableConstraintNode constraint) {
 			if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 				var exp = ExpressionBuilder.Build(constraint.CheckExpression);
 				return new SqlTableConstraint(constraint.ConstraintName, ConstraintType.Check, constraint.Columns.ToArray()) {
@@ -355,7 +376,7 @@ namespace Deveel.Data.Sql.Parser {
 			throw new NotSupportedException();
 		}
 
-		#region CreateTable
+#region CreateTable
 
 		static class CreateTable {
 			public static void Build(ITypeResolver typeResolver, CreateTableNode node, ICollection<SqlStatement> statements) {
@@ -384,8 +405,8 @@ namespace Deveel.Data.Sql.Parser {
 				}
 
 				foreach (var constraint in node.Constraints) {
-					var constraintInfo = BuildConstraint(tableName.Name, constraint);
-					statements.Add(new AlterTableStatement(tableName.Name, new AddConstraintAction(constraintInfo)));
+					var constraintInfo = BuildConstraint(constraint);
+					statements.Add(new AlterTableStatement(ObjectName.Parse(tableName.Name), new AddConstraintAction(constraintInfo)));
 				}
 
 				//TODO: Optimization: merge same constraints
@@ -400,7 +421,7 @@ namespace Deveel.Data.Sql.Parser {
 			private static SqlStatement MakeAlterTableAddConstraint(string tableName, SqlTableConstraint constraint) {
 				var action = new AddConstraintAction(constraint);
 
-				return new AlterTableStatement(tableName, action);
+				return new AlterTableStatement(ObjectName.Parse(tableName), action);
 			}
 
 			private static SqlStatement MakeCreateTable(string tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists, bool temporary) {
@@ -411,9 +432,9 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region AlterTable
+#region AlterTable
 
 		static class AlterTable {
 			public static void Build(ITypeResolver typeResolver, AlterTableNode node, ICollection<SqlStatement> statements) {
@@ -425,16 +446,16 @@ namespace Deveel.Data.Sql.Parser {
 					}
 				} else if (node.Actions != null) {
 					foreach (var action in node.Actions) {
-						BuildAction(typeResolver, node.TableName, action, statements);
+						BuildAction(typeResolver, ObjectName.Parse(node.TableName), action, statements);
 					}
 				}
 			}
 
-			private static void BuildAction(ITypeResolver typeResolver, string tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
+			private static void BuildAction(ITypeResolver typeResolver, ObjectName tableName, IAlterActionNode action, ICollection<SqlStatement> statements) {
 				if (action is AddColumnNode) {
 					var column = ((AddColumnNode) action).Column;
 					var constraints = new List<SqlTableConstraint>();
-					var columnInfo = BuildColumnInfo(typeResolver, tableName, column, constraints);
+					var columnInfo = BuildColumnInfo(typeResolver, tableName.FullName, column, constraints);
 
 					statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
 
@@ -444,7 +465,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (action is AddConstraintNode) {
 					var constraint = ((AddConstraintNode) action).Constraint;
 
-					var constraintInfo = BuildConstraint(tableName, constraint);
+					var constraintInfo = BuildConstraint(constraint);
 					statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraintInfo)));
 				} else if (action is DropColumnNode) {
 					var columnName = ((DropColumnNode) action).ColumnName;
@@ -463,7 +484,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (action is AlterColumnNode) {
 					var column = ((AlterColumnNode) action).Column;
 					var constraints = new List<SqlTableConstraint>();
-					var columnInfo = BuildColumnInfo(typeResolver, tableName, column, constraints);
+					var columnInfo = BuildColumnInfo(typeResolver, tableName.FullName, column, constraints);
 
 					// CHECK: Here we do a drop and add column: is there a better way on the back-end?
 					statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnInfo.ColumnName)));
@@ -477,9 +498,9 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region InsertIntoTable
+#region InsertIntoTable
 
 		static class InsertIntoTable {
 			public static void Build(InsertStatementNode node, ICollection<SqlStatement> statements) {
@@ -513,9 +534,9 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region CreateUser
+#region CreateUser
 
 		static class CreateUser {
 			public static void Build(CreateUserStatementNode node, ICollection<SqlStatement> statements) {
@@ -529,9 +550,9 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region AlterUser
+#region AlterUser
 
 		static class AlterUser {
 			public static void Build(AlterUserStatementNode node, ICollection<SqlStatement> statements) {
@@ -539,6 +560,6 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

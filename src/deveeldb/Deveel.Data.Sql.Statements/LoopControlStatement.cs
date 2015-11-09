@@ -17,7 +17,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
@@ -51,45 +50,19 @@ namespace Deveel.Data.Sql.Statements {
 			get { return true; }
 		}
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var label = Label;
 			var whenExp = WhenExpression;
 			if (whenExp != null)
 				whenExp = whenExp.Prepare(preparer);
 
-			return new Prepared(ControlType, label, whenExp);
+			return new LoopControlStatement(ControlType, label, whenExp);
 		}
-
-		#region Prepared
-
-		internal class Prepared : SqlStatement {
-			public Prepared(LoopControlType controlType, string label, SqlExpression whenExpression) {
-				ControlType = controlType;
-				Label = label;
-				WhenExpression = whenExpression;
-			}
-
-			public LoopControlType ControlType { get; private set; }
-
-			public string Label { get; private set; }
-
-			public SqlExpression WhenExpression { get; private set; }
-
-			protected override bool IsPreparable {
-				get { return false; }
-			}
-
-			protected override ITable ExecuteStatement(IQueryContext context) {
-				throw new NotImplementedException();
-			}
-		}
-
-		#endregion
 
 		#region Serializer
 
-		internal class Serializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
+		internal class Serializer : ObjectBinarySerializer<LoopControlStatement> {
+			public override void Serialize(LoopControlStatement obj, BinaryWriter writer) {
 				writer.Write((byte)obj.ControlType);
 				writer.Write(obj.Label);
 
@@ -101,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			public override Prepared Deserialize(BinaryReader reader) {
+			public override LoopControlStatement Deserialize(BinaryReader reader) {
 				var controlType = (LoopControlType) reader.ReadByte();
 				var label = reader.ReadString();
 				SqlExpression whenExp = null;
@@ -109,7 +82,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (hasExp)
 					whenExp = SqlExpression.Deserialize(reader);
 
-				return new Prepared(controlType, label, whenExp);
+				return new LoopControlStatement(controlType, label, whenExp);
 			}
 		}
 

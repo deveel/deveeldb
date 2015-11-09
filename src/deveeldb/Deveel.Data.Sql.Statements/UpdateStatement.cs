@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			var tableName = context.ResolveTableName(TableName);
 			if (!context.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);

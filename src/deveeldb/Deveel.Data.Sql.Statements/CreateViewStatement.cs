@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			var viewName = context.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);

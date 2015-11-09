@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			
 			throw new NotImplementedException();
 		}

@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, OrderBy, Limit);
 			return new Prepared(queryPlan);
 		}

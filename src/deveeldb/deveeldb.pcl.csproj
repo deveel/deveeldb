@@ -405,6 +405,8 @@
     <Compile Include="Deveel.Data.Sql.Parser\FromQuerySourceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FromTableSourceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GotoStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GroupByNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterUserActionNode.cs" />
@@ -434,6 +436,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\OrderByNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PlSqlCodeBlockNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryCompositeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryInsertNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\QueryUpdateNode.cs" />
@@ -555,6 +558,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ExecutePlanNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
@@ -563,6 +567,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IParentExecutable.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />

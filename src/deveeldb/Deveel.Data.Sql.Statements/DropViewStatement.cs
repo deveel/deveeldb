@@ -19,9 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DropViewStatement : SqlStatement {
@@ -38,7 +36,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			var viewNameList = ViewNames.ToList();
 			var dropViews = new List<string>();
 

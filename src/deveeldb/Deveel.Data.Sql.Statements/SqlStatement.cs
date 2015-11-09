@@ -16,10 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
@@ -28,7 +25,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
-	public abstract class SqlStatement : IExecutable {
+	public abstract class SqlStatement : IStatement {
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.
 		/// </summary>
@@ -62,8 +59,6 @@ namespace Deveel.Data.Sql.Statements {
 		/// When overridden by an implementing class, this method generates a prepared
 		/// version of this statement that can be executed.
 		/// </summary>
-		/// <param name="preparer">An object used to prepare the SQL expressions contained
-		/// into the statement.</param>
 		/// <param name="context">The executing context in used to prepare the statement
 		/// properties.</param>
 		/// <returns>
@@ -71,24 +66,12 @@ namespace Deveel.Data.Sql.Statements {
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
 		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
-		protected virtual SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
-			throw new NotSupportedException(String.Format("The statement '{0}' is not preparable.", GetType().Name));
+		protected virtual SqlStatement PrepareStatement(IQueryContext context) {
+			return this;
 		}
 
-		/// <summary>
-		/// Prepares this statement and returns an object that can be executed
-		/// within a given context.
-		/// </summary>
-		/// <param name="context">The execution context used to prepare the statement properties.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="SqlStatement"/> that represents the
-		/// prepared version of this statement and that will be executed in a later moment.
-		/// </returns>
-		/// <exception cref="StatementPrepareException">
-		/// Thrown if an error occurred while preparing the statement.
-		/// </exception>
-		public SqlStatement Prepare(IQueryContext context) {
-			return Prepare(null, context);
+		protected virtual SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			return this;
 		}
 
 		/// <summary>
@@ -105,16 +88,17 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
 		public SqlStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
-			if (!IsPreparable)
-				return this;
-
-			SqlStatement prepared;
+			SqlStatement prepared = this;
 
 			try {
-				prepared = PrepareStatement(preparer, context);
+				if (preparer != null)
+					prepared = PrepareExpressions(preparer);
+
+				if (context != null)
+					prepared = PrepareStatement(context);
 
 				if (prepared == null)
-					throw new InvalidOperationException("Preparation was invalid.");
+					throw new InvalidOperationException("Unable to prepare the statement.");
 			} catch(StatementPrepareException) {
 				throw;
 			} catch (Exception ex) {
@@ -122,6 +106,14 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			return prepared;
+		}
+
+		IStatement IStatement.Prepare(IQueryContext context) {
+			return PrepareStatement(context);
+		}
+
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			return PrepareExpressions(preparer);
 		}
 
 		/// <summary>
@@ -139,34 +131,25 @@ namespace Deveel.Data.Sql.Statements {
 			return PrepareAndExecute(null, context);
 		}
 
-		/// <summary>
-		/// Prepares and evaluates this statement into a tabular result.
-		/// </summary>
-		/// <param name="preparer">An object used to prepare the SQL expressions contained
-		/// in the statement before the execution.</param>
-		/// <param name="context">The context used to prepare and evaluate the statement.</param>
-		/// <returns>
-		/// Returns a <see cref="ITable"/> object that contains the values resulting from the
-		/// evaluation of the statement.
-		/// </returns>
-		/// <exception cref="StatementPrepareException">
-		/// Thrown if an error occurred while preparing the statement.
-		/// </exception>
-		public ITable PrepareAndExecute(IExpressionPreparer preparer, IQueryContext context) {
-			SqlStatement prepared = this;
+		ITable IExecutable.Execute(IQueryContext context) {
+			return ExecuteStatement(context);
+		}
 
-			if (IsPreparable) {
-				try {
-					prepared = Prepare(preparer, context);
-				} catch (Exception ex) {
-					throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
-				}
+		private ITable PrepareAndExecute(IExpressionPreparer preparer, IQueryContext context) {
+			SqlStatement prepared;
+
+			try {
+				prepared = Prepare(preparer, context);
+			} catch (Exception ex) {
+				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}
 
 			return prepared.ExecuteStatement(context);
 		}
 
 		protected virtual ITable ExecuteStatement(IQueryContext context) {
+			// This method is not abstract because a statement can be different after
+			// preparation, that means a statement can be a builder for another 
 			throw new PreparationRequiredException(GetType().FullName);
 		}
 
@@ -201,10 +184,6 @@ namespace Deveel.Data.Sql.Statements {
 		/// </exception>
 		public static IEnumerable<SqlStatement> Parse(IQueryContext context, string sqlSource) {
 			return Parse(context, new SqlQuery(sqlSource));
-		}
-
-		public static IEnumerable<SqlStatement> Parse(SqlQuery query) {
-			return Parse(null, query);
 		}
 
 		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();

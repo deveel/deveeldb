@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IExpressionPreparer preparer, IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQueryContext context) {
 			var tableNameList = TableNames.ToList();
 			var dropTables = new List<string>();
 

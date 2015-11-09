@@ -813,17 +813,19 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal Grant() {
 			var grant = new NonTerminal("grant");
-			var grantObject = new NonTerminal("grant_object");
-			var grantPriv = new NonTerminal("grant_priv");
+			var grantObject = new NonTerminal("grant_object", typeof(GrantStatementNode));
+			var grantPriv = new NonTerminal("grant_priv", typeof(GrantRoleStatementNode));
 			var roleList = new NonTerminal("role_list");
-			var priv = new NonTerminal("priv");
+			var priv = new NonTerminal("priv", typeof(PrivilegeNode));
 			var privList = new NonTerminal("priv_list");
 			var objPriv = new NonTerminal("object_priv");
 			var privilegeOpt = new NonTerminal("privilege_opt");
 			var privilegesOpt = new NonTerminal("privileges_opt");
 			var distributionList = new NonTerminal("distribution_list");
 			var withAdminOpt = new NonTerminal("with_admin_opt");
+			var withAdmin = new NonTerminal("with_admin");
 			var withGrantOpt = new NonTerminal("with_grant_opt");
+			var withGrant = new NonTerminal("with_grant");
 			var optionOpt = new NonTerminal("option_opt");
 			var columnList = new NonTerminal("column_list");
 			var columnListOpt = new NonTerminal("column_list_opt");
@@ -834,8 +836,9 @@ namespace Deveel.Data.Sql.Parser {
 			grant.Rule = grantObject | grantPriv;
 			grantPriv.Rule = Key("GRANT") + roleList + Key("TO") + distributionList + withAdminOpt;
 			roleList.Rule = MakePlusRule(roleList, Comma, Identifier);
-			withAdminOpt.Rule = Empty | Key("WITH") + Key("ADMIN") + optionOpt;
-			optionOpt.Rule = Empty | Key("OPTION");
+			withAdminOpt.Rule = Empty | withAdmin;
+			withAdmin.Rule = Key("WITH") + Key("ADMIN") + optionOpt;
+            optionOpt.Rule = Empty | Key("OPTION");
 
 			grantObject.Rule = Key("GRANT") + objPriv + Key("ON") + ObjectName() + Key("TO") + distributionList + withGrantOpt;
 			objPriv.Rule = Key("ALL") + privilegesOpt | privList;
@@ -856,7 +859,8 @@ namespace Deveel.Data.Sql.Parser {
 			selectPriv.Rule = Key("SELECT") + columnListOpt;
 			columnListOpt.Rule = Empty | "(" + columnList + ")";
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
-			withGrantOpt.Rule = Key("WITH") + Key("GRANT") + optionOpt;
+			withGrantOpt.Rule = Empty | withGrant;
+			withGrant.Rule = Key("WITH") + Key("GRANT") + optionOpt;
 			distributionList.Rule = MakePlusRule(distributionList, Comma, Identifier);
 
 			return grant;

@@ -140,10 +140,15 @@
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExecuteContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
