@@ -25,6 +25,11 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(statements.ElementAt(0));
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(statements.ElementAt(1));
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(statements.ElementAt(2));
+
+			var first = (GrantPrivilegesStatement) statements.ElementAt(0);
+			Assert.AreEqual(Privileges.Select, first.Privilege);
+			Assert.AreEqual("test_user", first.Grantee);
+			Assert.AreEqual("test_table", first.ObjectName.ToString());
 		}
 
 		[Test]
@@ -36,6 +41,11 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsNotEmpty(statements);
 			Assert.AreEqual(2, statements.Count());
 			Assert.IsInstanceOf<GrantRoleStatement>(statements.ElementAt(0));
+			Assert.IsInstanceOf<GrantRoleStatement>(statements.ElementAt(1));
+
+			var first = (GrantRoleStatement) statements.ElementAt(0);
+			Assert.AreEqual("admin", first.Role);
+			Assert.AreEqual("test_user", first.UserName);
 		}
 	}
 }

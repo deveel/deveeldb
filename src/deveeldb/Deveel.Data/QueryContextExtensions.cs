@@ -238,6 +238,10 @@ namespace Deveel.Data {
 			return context.Session().ResolveObjectName(objectType, objectName);
 		}
 
+		public static IDbObject FindObject(this IQueryContext context, ObjectName objectName) {
+			return context.Session().FindObject(objectName);
+		}
+
 		#endregion
 
 		#region Schemata
@@ -315,9 +319,21 @@ namespace Deveel.Data {
 
 			context.Session().CreateTable(tableInfo, temporary);
 
-			using (var systemContext = new SystemQueryContext(context.Session().Transaction, context.CurrentSchema)) {
-				systemContext.GrantToUserOnTable(tableInfo.TableName, context.User(), Privileges.TableAll);
+			using (var systemContext = context.ForSystemUser()) {
+				systemContext.GrantToUserOnTable(tableInfo.TableName, context.User().Name, Privileges.TableAll);
 			}
+		}
+
+		internal static void CreateSystemTable(this IQueryContext context, TableInfo tableInfo) {
+			if (tableInfo == null)
+				throw new ArgumentNullException("tableInfo");
+
+			var tableName = tableInfo.TableName;
+
+			if (!context.UserCanCreateTable(tableName))
+				throw new MissingPrivilegesException(context.User().Name, tableName, Privileges.Create);
+
+			context.Session().CreateTable(tableInfo, false);
 		}
 
 		public static void DropTables(this IQueryContext context, IEnumerable<ObjectName> tableNames) {
@@ -697,7 +713,7 @@ namespace Deveel.Data {
 			// The initial grants for a view is to give the user who created it
 			// full access.
 			using (var systemContext = context.ForSystemUser()) {
-				systemContext.GrantToUserOnTable(viewInfo.ViewName, Privileges.TableAll);
+				systemContext.GrantToUserOnTable(viewInfo.ViewName, context.UserName(), Privileges.TableAll);
 			}
 		}
 

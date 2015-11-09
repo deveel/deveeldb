@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
@@ -40,7 +42,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override ITable ExecuteStatement(IQueryContext context) {
-			return base.ExecuteStatement(context);
+			context.GrantToUserOn(ObjectName, Grantee, Privilege, WithGrant);
+			return FunctionTable.ResultTable(context, 0);
 		}
 	}
 }

@@ -207,16 +207,34 @@ namespace Deveel.Data {
 
 				using (var session = this.CreateInitialSystemSession()) {
 					using (var context = new SessionQueryContext(session)) {
-						session.CurrentSchema(SystemSchema.Name);
+						try {
+							session.CurrentSchema(SystemSchema.Name);
 
-						// Create the schema information tables
-						CreateSchemata(context);
+							// Create the schema information tables
+							CreateSchemata(context);
 
-						// The system tables that are present in every conglomerate.
-						SystemSchema.CreateTables(context);
+							// The system tables that are present in every conglomerate.
+							SystemSchema.CreateTables(context);
 
+							try {
+								// Close and commit this transaction.
+								session.Commit();
+							} catch (TransactionException e) {
+								throw new DatabaseSystemException("Could not commit the initial information", e);
+							}
+						} catch (DatabaseSystemException) {
+							throw;
+						} catch (Exception ex) {
+							throw new DatabaseSystemException("An error occurred while creating the database.", ex);
+						}
+					}
+				}
+
+				using (var session = this.CreateInitialSystemSession()) {
+					using (var context = new SessionQueryContext(session)) {
 						// Create the system views
 						InformationSchema.CreateViews(context);
+
 
 						this.CreateAdminUser(context, adminName, adminPassword);
 

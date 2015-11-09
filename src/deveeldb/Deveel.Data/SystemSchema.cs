@@ -236,7 +236,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			// TODO: User table must be completed ...
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
+			context.CreateSystemTable(tableInfo);
 
 			context.AddPrimaryKey(UserTableName, new []{"name"}, "SYSTEM_USER_PK");
 
@@ -247,13 +247,13 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("salt", PrimitiveTypes.String());
 			tableInfo.AddColumn("hash_algorithm", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
+			context.CreateSystemTable(tableInfo);
 
 			tableInfo = new TableInfo(UserPrivilegesTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("group", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
+			context.CreateSystemTable(tableInfo);
 
 			tableInfo = new TableInfo(UserConnectPrivilegesTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
@@ -261,7 +261,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("host", PrimitiveTypes.String());
 			tableInfo.AddColumn("access", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
+			context.CreateSystemTable(tableInfo);
 
 			tableInfo = new TableInfo(UserGrantsTableName);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
@@ -271,7 +271,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
 			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
+			context.CreateSystemTable(tableInfo);
 
 			var fkCol = new[] {"user"};
 			var refCol = new[] {"name"};

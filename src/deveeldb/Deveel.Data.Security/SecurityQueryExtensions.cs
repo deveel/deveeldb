@@ -288,72 +288,70 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public static void GrantHostAccessToUser(this IQueryContext queryContext, string user, string protocol, string host) {
-			// The user connect priv table
-			var table = queryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
-			// Add the protocol and host to the table
-			var rdat = new Row(table);
-			rdat.SetValue(0, user);
-			rdat.SetValue(1, protocol);
-			rdat.SetValue(2, host);
-			rdat.SetValue(3, true);
-			table.AddRow(rdat);
+		//public static void GrantHostAccessToUser(this IQueryContext queryContext, string user, string protocol, string host) {
+		//	// The user connect priv table
+		//	var table = queryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
+		//	// Add the protocol and host to the table
+		//	var rdat = new Row(table);
+		//	rdat.SetValue(0, user);
+		//	rdat.SetValue(1, protocol);
+		//	rdat.SetValue(2, host);
+		//	rdat.SetValue(3, true);
+		//	table.AddRow(rdat);
+		//}
+
+		public static void GrantToUserOn(this IQueryContext context, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+			var obj = context.FindObject(objectName);
+			if (obj == null)
+				throw new ObjectNotFoundException(objectName);
+
+			context.GrantToUserOn(obj.ObjectType, obj.FullName, grantee, privileges, withOption);
 		}
 
-		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, Privileges privileges, bool withOption = false) {
-			GrantToUserOn(context, objectType, objectName, user, context.User(), privileges, withOption);
-		}
-
-		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, User granter, Privileges privileges, bool withOption = false) {
-			if (user.IsSystem)
-				return;			// SYSTEM user has already all grants
+		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+			if (String.Equals(grantee, User.SystemName))       // The @SYSTEM user does not need any other
+				return;
 
 			if (!context.ObjectExists(objectType, objectName))
 				throw new ObjectNotFoundException(objectName);
 
-			Privileges oldPrivs = context.GetUserGrants(user, objectType, objectName);
+			Privileges oldPrivs = context.GetUserGrants(grantee, objectType, objectName);
 			privileges |= oldPrivs;
 
 			if (!oldPrivs.Equals(privileges))
-				context.UpdateUserGrants(objectType, objectName, user, granter, privileges, withOption);
+				context.UpdateUserGrants(objectType, objectName, grantee, privileges, withOption);
 		}
 
-		public static void GrantToUserOnSchemaTables(this IQueryContext context, string schemaName, User user, User granter,
-			Privileges privileges) {
-			context.GrantToUserOnSchemaObjects(schemaName, DbObjectType.Table, user, granter, privileges);
+		public static void GrantToUserOnSchema(this IQueryContext context, string schemaName, string grantee, Privileges privileges, bool withOption = false) {
+			context.GrantToUserOn(DbObjectType.Schema, new ObjectName(schemaName), grantee, privileges, withOption);
 		}
 
-		public static void GrantToUserOnSchemaObjects(this IQueryContext context, string schemaName, DbObjectType objectType, User user,
-			User granter, Privileges privileges) {
 
-			// TODO: Query for all objects of the given type in the schema
-			//       and grant the given privileges..
-			throw new NotImplementedException();
+		private static void UpdateUserGrants(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, Privileges privileges, bool withOption) {
+			if (String.Equals(user, User.SystemName))		// The @SYSTEM user does not need any other
+				return;
 
-		}
+			var granter = context.UserName();
 
-		private static void UpdateUserGrants(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, User granter, Privileges privileges, bool withOption) {
+			if (!context.UserHasGrantOption(objectType, objectName, privileges))
+				throw new InvalidOperationException(String.Format("User '{0}' has not enough grants on '{1}' to grant.", granter, objectName));
+			
 			// Revoke existing privs on this object for this grantee
-			context.RevokeAllFromUserOn(objectType, objectName, user, granter, withOption);
+			context.RevokeAllFromUserOn(objectType, objectName, user, withOption);
 
 			if (privileges != Privileges.None) {
 				// The system grants table.
 				var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
 
 				// Add the grant to the grants table.
-				var rdat = grantTable.NewRow();
-				rdat.SetValue(0, (int)privileges);
-				rdat.SetValue(1, (int)objectType);
-				rdat.SetValue(2, objectName.FullName);
-				rdat.SetValue(3, user.Name);
-				rdat.SetValue(4, withOption);
-				rdat.SetValue(5, granter.Name);
-				grantTable.AddRow(rdat);
-
-				user.CacheObjectGrant(objectName, privileges);
+				var row = grantTable.NewRow();
+				row.SetValue(0, (int)privileges);
+				row.SetValue(1, (int)objectType);
+				row.SetValue(2, objectName.FullName);
+				row.SetValue(3, user);
+				row.SetValue(4, withOption);
+				row.SetValue(5, granter);
+				grantTable.AddRow(row);
 			}
 		}
 
@@ -381,13 +379,12 @@ namespace Deveel.Data.Security {
 			grantTable.Delete(t1);
 		}
 
-		public static void RevokeAllFromUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, User revoker, bool withOption = false) {
-			context.RevokeAllGrantsFromUser(objectType, objectName, user, revoker, withOption);
+		public static void RevokeAllFromUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, bool withOption = false) {
+			context.RevokeAllGrantsFromUser(objectType, objectName, user, withOption);
 		}
 
-		private static void RevokeAllGrantsFromUser(this IQueryContext context, DbObjectType objectType, ObjectName objectName,
-			User user, User revoker, bool withOption = false) {
+		private static void RevokeAllGrantsFromUser(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, bool withOption = false) {
+			var revoker = context.User();
 			var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
 
 			var objectCol = grantTable.GetResolvedColumnName(1);
@@ -410,7 +407,7 @@ namespace Deveel.Data.Security {
 
 			// Expression: ("grantee_col" = username)
 			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(DataObject.String(user.Name)));
+				SqlExpression.Constant(DataObject.String(user)));
 
 			// Expression: ("object_col" = object AND
 			//              "grantee_col" = username)
@@ -434,32 +431,9 @@ namespace Deveel.Data.Security {
 
 			// Remove these rows from the table
 			grantTable.Delete(t1);
-
-			user.ClearGrantCache(objectName);
 		}
 
-		public static void GrantToUserOnSchema(this IQueryContext context, string schemaName, User user, Privileges privileges, bool withOption = false) {
-			GrantToUserOnSchema(context, schemaName, user, context.User(), privileges, withOption);
-		}
-
-		public static void GrantToUserOnSchema(this IQueryContext context, string schemaName, User user, User granter, Privileges privileges, bool withOption = false) {
-			context.GrantToUserOn(DbObjectType.Schema, new ObjectName(schemaName), user, granter, privileges, withOption);
-		}
-
-		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			using (var systemContext = context.ForSystemUser()) {
-				systemContext.GrantToUserOn(objectType, objectName, context.User(), privileges);
-			}
-		}
-
-		public static void GrantToUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges) {
-		}
-
-		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, Privileges privileges) {
-			context.GrantToUserOn(DbObjectType.Table, tableName, privileges);
-		}
-
-		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, User grantee, Privileges privileges) {
+		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, string grantee, Privileges privileges) {
 			context.GrantToUserOn(DbObjectType.Table, tableName, grantee, privileges);
 		}
 
@@ -469,18 +443,7 @@ namespace Deveel.Data.Security {
 
 		#region User Grants Query
 
-		public static Privileges GetUserGrants(this IQueryContext context, User user, DbObjectType objectType,
-			ObjectName objectName, bool includePublic = false, bool onlyOption = false) {
-			Privileges privileges;
-			if (!user.TryGetObjectGrant(objectName, out privileges)) {
-				privileges = context.GetUserGrants(user.Name, objectType, objectName);
-				user.CacheObjectGrant(objectName, privileges);
-			}
-
-			return privileges;
-		}
-
-		public static Privileges GetUserGrants(this IQueryContext context, string userName, DbObjectType objType, ObjectName objName, bool includePublicPrivs = false, bool onlyGrantOptions = false) {
+		private static Privileges GetUserGrants(this IQueryContext context, string userName, DbObjectType objType, ObjectName objName, bool includePublicPrivs = false, bool onlyGrantOptions = false) {
 			// The system grants table.
 			var grantTable = context.GetTable(SystemSchema.UserGrantsTableName);
 
@@ -636,10 +599,22 @@ namespace Deveel.Data.Security {
 			return context.UserBelongsToGroup(userName, SystemGroupNames.SecureGroup);
 		}
 
-		public static Privileges GetUserGrant(this IQueryContext context, string userName, DbObjectType objectType, ObjectName objectName) {
+		private static Privileges GetUserGrant(this IQueryContext context, string userName, DbObjectType objectType, ObjectName objectName) {
 			using (var systemContext = context.ForSystemUser()) {
 				return systemContext.GetUserGrants(userName, objectType, objectName);
 			}
+		}
+
+		public static bool UserHasGrantOption(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			var user = context.User();
+			if (user.IsSystem)
+				return true;
+
+			if (context.UserBelongsToSecureGroup(user))
+				return true;
+
+			var grant = context.GetUserGrants(user.Name, objectType, objectName, false, true);
+			return (grant & privileges) != 0;
 		}
 
 		public static bool UserHasPrivilege(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {

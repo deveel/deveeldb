@@ -17,8 +17,8 @@ namespace Deveel.Data.Sql {
 
 			if (TestContext.CurrentContext.Test.Name.Equals("CreateSimple_RegularUser")) {
 				var user = queryContext.CreateUser(TestUserName, TestPassword);
-				queryContext.GrantHostAccessToUser(TestUserName, KnownConnectionProtocols.Local, "%");
-				queryContext.GrantToUserOnSchema("APP", user, User.System, Privileges.Create);
+				//queryContext.GrantHostAccessToUser(TestUserName, KnownConnectionProtocols.Local, "%");
+				queryContext.GrantToUserOnSchema("APP", user.Name, Privileges.Create);
 				queryContext.Commit();
 			}
 
