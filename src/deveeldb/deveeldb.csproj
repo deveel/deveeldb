@@ -94,6 +94,7 @@
     <Compile Include="Deveel.Data.Caching\CacheConfigExtensions.cs" />
     <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
     <Compile Include="Deveel.Data.Caching\CachedCell.cs" />
+    <Compile Include="Deveel.Data.Caching\CellKey.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
     <Compile Include="Deveel.Data.Caching\ITableCellCache.cs" />
     <Compile Include="Deveel.Data.Caching\MemoryCache.cs" />

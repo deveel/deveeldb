@@ -20,18 +20,16 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
 	public sealed class CachedCell {
-		internal CachedCell(RowId rowId, int columnOffset, DataObject value) {
-			if (rowId.IsNull)
-				throw new ArgumentNullException("rowId");
-			if (columnOffset < 0)
-				throw new ArgumentOutOfRangeException("columnOffset");
-
-			RowId = rowId;
-			ColumnOffset = columnOffset;
+		internal CachedCell(CellKey key, DataObject value) {
+			Key = key;
 			Value = value;
 		}
 
-		public RowId RowId { get; private set; }
+		public CellKey Key { get; private set; }
+
+		public RowId RowId {
+			get { return Key.RowId; }
+		}
 
 		public int TableId {
 			get { return RowId.TableId; }
@@ -41,8 +39,14 @@ namespace Deveel.Data.Caching {
 			get { return RowId.RowNumber; }
 		}
 
-		public int ColumnOffset { get; private set; }
+		public int ColumnOffset {
+			get { return Key.ColumnOffset; }
+		}
 
 		public DataObject Value { get; private set; }
+
+		public string Database {
+			get { return Key.Database; }
+		}
 	}
 }

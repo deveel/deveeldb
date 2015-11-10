@@ -20,15 +20,22 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
 	public static class TableCacheExtensions {
-		public static bool TryGetValue(this ITableCellCache cache, int tableId, int rowNumber, int columnOffset,
-			out DataObject value) {
+		public static bool TryGetValue(this ITableCellCache cache, string database, int tableId, int rowNumber, int columnOffset, out DataObject value) {
 			var rowId = new RowId(tableId, rowNumber);
-			return cache.TryGetValue(rowId, columnOffset, out value);
+			var key = new CellKey(database, new CellId(rowId, columnOffset));
+			return cache.TryGetValue(key, out value);
 		}
 
-		public static void Set(this ITableCellCache cache, int tableId, int rowNumber, int columnOffset, DataObject value) {
+		public static void Set(this ITableCellCache cache, string database, int tableId, int rowNumber, int columnOffset, DataObject value) {
 			var rowId = new RowId(tableId, rowNumber);
-			cache.Set(new CachedCell(rowId, columnOffset, value));
+			var key = new CellKey(database, new CellId(rowId, columnOffset));
+			cache.Set(new CachedCell(key, value));
+		}
+
+		public static void Remove(this ITableCellCache cache, string database, int tableId, int rowNumber, int columnOffset) {
+			var rowId = new RowId(tableId, rowNumber);
+			var key = new CellKey(database, new CellId(rowId, columnOffset));
+			cache.Remove(key);
 		}
 	}
 }

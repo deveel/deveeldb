@@ -147,7 +147,7 @@ namespace Deveel.Data.Sql {
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
 				DataObject cell;
-				if (cache.TryGetValue(uniqueId, (int)rowNumber, columnOffset, out cell))
+				if (cache.TryGetValue(DatabaseContext.DatabaseName(), uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -174,7 +174,7 @@ namespace Deveel.Data.Sql {
 
 			var value = ((SqlConstantExpression) exp).Value;
 			if (cache != null)
-				cache.Set(uniqueId, row, column, value);
+				cache.Set(DatabaseContext.DatabaseName(), uniqueId, row, column, value);
 
 			return value;
 		}

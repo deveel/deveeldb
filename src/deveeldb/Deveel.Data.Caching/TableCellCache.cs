@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
@@ -70,7 +69,7 @@ namespace Deveel.Data.Caching {
 				int memoryUse = AmountMemory(value);
 				if (memoryUse <= MaxCellSize) {
 					// Generate the key
-					var key = new CacheKey(cell.TableId, (int)cell.RowNumber, (short)cell.ColumnOffset);
+					var key = new CacheKey(cell.Database, cell.TableId, (int)cell.RowNumber, (short)cell.ColumnOffset);
 
 					// If there is an existing object here, remove it from the cache and
 					// update the current_cache_size.
@@ -85,17 +84,17 @@ namespace Deveel.Data.Caching {
 				} else {
 					// If the object is larger than the minimum object size that can be
 					// cached, remove any existing entry (possibly smaller) from the cache.
-					Remove(cell.TableId, cell.RowNumber, cell.ColumnOffset);
+					Remove(cell.Database, cell.TableId, cell.RowNumber, cell.ColumnOffset);
 				}
 			}
 		}
 
-		private void Remove(int tableId, long rowNumber, int columnOffset) {
+		private void Remove(string database, int tableId, long rowNumber, int columnOffset) {
 			if (!configured)
 				return;
 
 			lock (this) {
-				var cell = cache.Remove(new CacheKey(tableId, (int)rowNumber, (short)columnOffset));
+				var cell = cache.Remove(new CacheKey(database, tableId, (int)rowNumber, (short)columnOffset));
 				if (cell != null)
 					size -= AmountMemory((DataObject) cell);
 			}
@@ -105,17 +104,20 @@ namespace Deveel.Data.Caching {
 			return 16 + value.CacheUsage;
 		}
 
-		public bool TryGetValue(RowId rowId, int columnIndex, out DataObject value) {
+		public bool TryGetValue(CellKey key, out DataObject value) {
 			if (!configured) {
 				value = null;
 				return false;
 			}
 
 			lock (this) {
-				var tableKey = rowId.TableId;
-				var row = rowId.RowNumber;
+				var database = key.Database;
+				var tableKey = key.RowId.TableId;
+				var row = key.RowId.RowNumber;
+				var columnIndex = key.ColumnOffset;
+
 				object obj;
-				if (!cache.TryGet(new CacheKey(tableKey, row, (short)columnIndex), out obj)) { 
+				if (!cache.TryGet(new CacheKey(database, tableKey, row, (short)columnIndex), out obj)) { 
 					value = null;
 					return false;
 				}
@@ -125,8 +127,8 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		public void Remove(RowId rowId, int columnIndex) {
-			Remove(rowId.TableId, rowId.RowNumber, columnIndex);
+		public void Remove(CellKey key) {
+			Remove(key.Database, key.RowId.TableId, key.RowId.RowNumber, key.ColumnOffset);
 		}
 
 		public void Clear() {
@@ -196,11 +198,13 @@ namespace Deveel.Data.Caching {
 		#region CacheKey
 
 		class CacheKey : IEquatable<CacheKey> {
+			private readonly string database;
 			private readonly short column;
 			private readonly int row;
 			private readonly int tableId;
 
-			public CacheKey(int tableId, int row, short column) {
+			public CacheKey(string database, int tableId, int row, short column) {
+				this.database = database;
 				this.tableId = tableId;
 				this.row = row;
 				this.column = column;
@@ -212,13 +216,14 @@ namespace Deveel.Data.Caching {
 
 			public override int GetHashCode() {
 				// Yicks - this one is the best by far!
-				return (((int)column + tableId + (row * 189977)) * 50021) << 4;
+				return (database.GetHashCode() + (((int)column + tableId + (row * 189977)) * 50021) << 4);
 			}
 
 			public bool Equals(CacheKey other) {
-				return row == other.row &&
-					   column == other.column &&
-					   tableId == other.tableId;
+				return database.Equals(other.database) &&
+				       row == other.row &&
+				       column == other.column &&
+				       tableId == other.tableId;
 			}
 		}
 

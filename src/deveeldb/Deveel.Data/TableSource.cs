@@ -886,7 +886,17 @@ namespace Deveel.Data {
 					// Free the record from the store
 					Store.DeleteArea(recordPointer);
 				} finally {
+					RemoveRowFromCache(rowIndex);
 					Store.UnlockForWrite();
+				}
+			}
+		}
+
+		private void RemoveRowFromCache(int rowIndex) {
+			if (CellCaching) {
+				var colCount = TableInfo.ColumnCount;
+				for (int i = 0; i < colCount; i++) {
+					CellCache.Remove(DatabaseContext.DatabaseName(), TableId, rowIndex, i);
 				}
 			}
 		}
@@ -1038,7 +1048,7 @@ namespace Deveel.Data {
 				int rowCells = row.ColumnCount;
 				for (int i = 0; i < rowCells; ++i) {
 					// Put the row/column/TObject into the cache.
-					CellCache.Set(TableId, intRowNumber, i, row.GetValue(i));
+					CellCache.Set(Database.Name(), TableId, intRowNumber, i, row.GetValue(i));
 				}
 			}
 
@@ -1299,7 +1309,7 @@ namespace Deveel.Data {
 			// First check if this is within the cache before we continue.
 			DataObject cell;
 			if (CellCaching) {
-				if (CellCache.TryGetValue(TableId, rowIndex, columnOffset, out cell))
+				if (CellCache.TryGetValue(Database.Name(), TableId, rowIndex, columnOffset, out cell))
 					return cell;
 			}
 
@@ -1389,7 +1399,7 @@ namespace Deveel.Data {
 
 			// And WriteByte input the cache and return it.
 			if (CellCaching) {
-				CellCache.Set(TableId, rowIndex, columnOffset, cell);
+				CellCache.Set(Database.Name(), TableId, rowIndex, columnOffset, cell);
 			}
 
 			return cell;
