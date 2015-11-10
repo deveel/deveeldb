@@ -17,8 +17,6 @@
 using System;
 using System.Linq;
 
-using Deveel.Data;
-using Deveel.Data.Protocol;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -26,6 +24,13 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Security {
 	public static class SecurityQueryExtensions {
+		private static IUserManager UserManager(this IQueryContext context) {
+			if (context is QueryContextBase)
+				return ((QueryContextBase) context).UserManager;
+
+			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IUserManager>();
+		}
+
 		#region User Management
 
 		public static User GetUser(this IQueryContext context, string userName) {
@@ -36,6 +41,9 @@ namespace Deveel.Data.Security {
 				throw new MissingPrivilegesException(context.UserName(), new ObjectName(userName), Privileges.Select,
 					String.Format("The user '{0}' has not enough rights to access other users information.", context.UserName()));
 
+			if (!context.ForSystemUser().UserManager().UserExists(userName))
+				return null;
+
 			return new User(context, userName);
 		}
 
@@ -44,46 +52,20 @@ namespace Deveel.Data.Security {
 				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(username), Privileges.Alter,
 					String.Format("User '{0}' cannot change the status of user '{1}'", queryContext.UserName(), username));
 
-			// Internally we implement this by adding the user to the #locked group.
-			var table = queryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var c2 = table.GetResolvedColumnName(1);
-			// All 'user_priv' where UserName = %username%
-			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(username));
-			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(queryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroupNames.LockGroup));
-
-			bool userBelongsToLockGroup = t.RowCount > 0;
-			if (status == UserStatus.Locked && 
-				!userBelongsToLockGroup) {
-				// Lock the user by adding the user to the Lock group
-				// Add this user to the locked group.
-				var rdat = new Row(table);
-				rdat.SetValue(0, username);
-				rdat.SetValue(1, SystemGroupNames.LockGroup);
-				table.AddRow(rdat);
-			} else if (status == UserStatus.Unlocked && 
-				userBelongsToLockGroup) {
-				// Unlock the user by removing the user from the Lock group
-				// Remove this user from the locked group.
-				table.Delete(t);
-			}
+			queryContext.ForSystemUser().UserManager().SetUserStatus(username, status);
 		}
 
 		public static UserStatus GetUserStatus(this IQueryContext queryContext, string userName) {
-			if (queryContext.UserBelongsToGroup(userName, SystemGroupNames.LockGroup))
-				return UserStatus.Locked;
+			if (!queryContext.UserName().Equals(userName) &&
+			    !queryContext.UserCanAccessUsers())
+				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(userName), Privileges.Select,
+					String.Format("The user '{0}' has not enough rights to access other users information.", queryContext.UserName()));
 
-			return UserStatus.Unlocked;
+			return queryContext.ForSystemUser().UserManager().GetUserStatus(userName);
 		}
 
 		public static bool UserExists(this IQueryContext context, string userName) {
-			var table = context.GetTable(SystemSchema.UserTableName);
-			var c1 = table.GetResolvedColumnName(0);
-
-			// All password where UserName = %username%
-			var t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-			return t.RowCount > 0;
+			return context.ForSystemUser().UserManager().UserExists(userName);
 		}
 
 		public static User CreateUser(this IQueryContext context, string userName, string password) {
@@ -96,36 +78,11 @@ namespace Deveel.Data.Security {
 				throw new MissingPrivilegesException(userName, new ObjectName(userName), Privileges.Create,
 					String.Format("User '{0}' cannot create users.", context.UserName()));
 
-			// TODO: make these rules configurable?
 
-			if (userName.Length <= 1)
-				throw new ArgumentException("User name must be at least one character.", "userName");
-			if (password.Length <= 1)
-				throw new ArgumentException("The password must be at least one character.", "password");
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(userName, userId);
 
-			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
-				throw new ArgumentException(String.Format("User name '{0}' is reserved and cannot be registered.", User.PublicName), "userName");
-
-			var c = userName[0];
-			if (c == '#' || c == '@' || c == '$' || c == '&')
-				throw new ArgumentException(String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
-			if (context.UserExists(userName))
-				throw new SecurityException(String.Format("User '{0}' is already registered.", userName));
-
-			// Add to the key 'user' table
-			var table = context.GetMutableTable(SystemSchema.UserTableName);
-			var row = table.NewRow();
-			row[0] = DataObject.String(userName);
-			table.AddRow(row);
-
-			// TODO: get the hash algorithm and hash ...
-
-			table = context.GetMutableTable(SystemSchema.PasswordTableName);
-			row = table.NewRow();
-			row.SetValue(0, userName);
-			row.SetValue(1, 1);
-			row.SetValue(2, password);
-			table.AddRow(row);
+			context.ForSystemUser().UserManager().CreateUser(userInfo, password);
 
 			return new User(context, userName);
 		}
@@ -134,28 +91,10 @@ namespace Deveel.Data.Security {
 			if (!queryContext.UserCanAlterUser(username))
 				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(username), Privileges.Alter);
 
-			var userExpr = SqlExpression.Constant(DataObject.String(username));
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(username, userId);
 
-			// Delete the current username from the 'password' table
-			var table = queryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, userExpr);
-			if (t.RowCount != 1)
-				throw new SecurityException(String.Format("Username '{0}' was not found.", username));
-
-			table.Delete(t);
-
-			// TODO: get the hash algorithm and hash ...
-
-			// Add the new username
-			table = queryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			var row = table.NewRow();
-			row.SetValue(0, username);
-			row.SetValue(1, 1);
-			row.SetValue(2, password);
-			row.SetValue(3, String.Empty);		// TODO: SALT
-			row.SetValue(4, String.Empty);		// TODO: Hash Algorithm
-			table.AddRow(row);
+			queryContext.ForSystemUser().UserManager().AlterUser(userInfo, password);
 		}
 
 		public static bool DeleteUser(this IQueryContext context, string userName) {
@@ -165,26 +104,7 @@ namespace Deveel.Data.Security {
 			if (!context.UserCanDropUser(userName))
 				throw new MissingPrivilegesException(context.UserName(), new ObjectName(userName), Privileges.Drop);
 
-			var userExpr = SqlExpression.Constant(DataObject.String(userName));
-
-			context.RemoveUserFromAllGroups(userName);
-
-			// TODO: Remove all object-level privileges from the user...
-
-			var table = context.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, userExpr);
-			table.Delete(t);
-
-			table = context.GetMutableTable(SystemSchema.PasswordTableName);
-			c1 = table.GetResolvedColumnName(0);
-			t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, userExpr);
-			table.Delete(t);
-
-			table = context.GetMutableTable(SystemSchema.UserTableName);
-			c1 = table.GetResolvedColumnName(0);
-			t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, userExpr);
-			return table.Delete(t) > 0;
+			return context.ForSystemUser().UserManager().DropUser(userName);
 		}
 
 		public static void RemoveUserFromAllGroups(this IQueryContext context, string username) {
@@ -218,45 +138,18 @@ namespace Deveel.Data.Security {
 				if (String.IsNullOrEmpty(password))
 					throw new ArgumentNullException("password");
 
-				var table = queryContext.GetTable(SystemSchema.PasswordTableName);
-				var unameColumn = table.GetResolvedColumnName(0);
-				var typeColumn = table.GetResolvedColumnName(1);
-				var passwColumn = table.GetResolvedColumnName(2);
-				var saltColumn = table.GetResolvedColumnName(3);
-				var hashColumn = table.GetResolvedColumnName(4);
+				var userInfo = queryContext.ForSystemUser().UserManager().GetUser(username);
 
-				var t = table.SimpleSelect(queryContext, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(username));
-				if (t.RowCount == 0)
-					throw new SecurityException(String.Format("User '{0}' is not registered.", username));
+				if (userInfo == null)
+					return null;
 
-				var type = t.GetValue(0, typeColumn);
-				if (type == 1) {
-					// Clear-text password ...
-					var pass = t.GetValue(0, passwColumn);
-					if (pass.IsNull || !pass.Equals(DataObject.String(password)))
-						throw new SecurityException(String.Format("User '{0}' provided an invalid password", username));
+				var userId = userInfo.Identification;
 
-				} else if (type == 2) {
-#if PCL
-					throw new NotSupportedException("Hashed passwords are not currently supported in PCL");
-#else
+				if (userId.Method != "plain")
+					throw new NotImplementedException();
 
-					// Hashed password ...
-					var pass = t.GetValue(0, passwColumn);
-					var salt = t.GetValue(0, saltColumn);
-					var hash = t.GetValue(0, hashColumn);
-
-					if (pass == null || salt == null || hash == null)
-						throw new SecurityException(String.Format("Invalid user registration: missing cryptographic parameters."));
-
-					var crypto = PasswordCrypto.Parse(hash);
-					if (!crypto.Verify(pass, password, salt))
-						throw new SecurityException(String.Format("User '{0}' provided an invalid password.", username));
-#endif
-				} else if (type == 3) {
-					// External authenticator ...
-					throw new NotImplementedException("The external authentication mechanism is not implemented yet");
-				}
+				if (!queryContext.ForSystemUser().UserManager().CheckIdentifier(username, password))
+					return null;
 
 				// Successfully authenticated...
 				return new User(queryContext, username);
@@ -275,30 +168,8 @@ namespace Deveel.Data.Security {
 			if (String.IsNullOrEmpty(username))
 				throw new ArgumentNullException("username");
 
-			char c = @group[0];
-			if (c == '@' || c == '&' || c == '#' || c == '$')
-				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", @group, c), "group");
-
-			if (!queryContext.UserBelongsToGroup(username, @group)) {
-				var table = queryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
-				var row = table.NewRow();
-				row.SetValue(0, username);
-				row.SetValue(1, @group);
-				table.AddRow(row);
-			}
+			queryContext.ForSystemUser().UserManager().AddUserToGroup(username, group);
 		}
-
-		//public static void GrantHostAccessToUser(this IQueryContext queryContext, string user, string protocol, string host) {
-		//	// The user connect priv table
-		//	var table = queryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
-		//	// Add the protocol and host to the table
-		//	var rdat = new Row(table);
-		//	rdat.SetValue(0, user);
-		//	rdat.SetValue(1, protocol);
-		//	rdat.SetValue(2, host);
-		//	rdat.SetValue(3, true);
-		//	table.AddRow(rdat);
-		//}
 
 		public static void GrantToUserOn(this IQueryContext context, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
 			var obj = context.FindObject(objectName);
@@ -315,44 +186,13 @@ namespace Deveel.Data.Security {
 			if (!context.ObjectExists(objectType, objectName))
 				throw new ObjectNotFoundException(objectName);
 
-			Privileges oldPrivs = context.GetUserGrants(grantee, objectType, objectName);
-			privileges |= oldPrivs;
-
-			if (!oldPrivs.Equals(privileges))
-				context.UpdateUserGrants(objectType, objectName, grantee, privileges, withOption);
+			var granter = context.UserName();
+			var grant = new UserGrant(privileges, objectName, objectType, granter, withOption);
+			context.ForSystemUser().UserManager().GrantToUser(grantee, grant);
 		}
 
 		public static void GrantToUserOnSchema(this IQueryContext context, string schemaName, string grantee, Privileges privileges, bool withOption = false) {
 			context.GrantToUserOn(DbObjectType.Schema, new ObjectName(schemaName), grantee, privileges, withOption);
-		}
-
-
-		private static void UpdateUserGrants(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, Privileges privileges, bool withOption) {
-			if (String.Equals(user, User.SystemName))		// The @SYSTEM user does not need any other
-				return;
-
-			var granter = context.UserName();
-
-			if (!context.UserHasGrantOption(objectType, objectName, privileges))
-				throw new InvalidOperationException(String.Format("User '{0}' has not enough grants on '{1}' to grant.", granter, objectName));
-			
-			// Revoke existing privs on this object for this grantee
-			context.RevokeAllFromUserOn(objectType, objectName, user, withOption);
-
-			if (privileges != Privileges.None) {
-				// The system grants table.
-				var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
-
-				// Add the grant to the grants table.
-				var row = grantTable.NewRow();
-				row.SetValue(0, (int)privileges);
-				row.SetValue(1, (int)objectType);
-				row.SetValue(2, objectName.FullName);
-				row.SetValue(3, user);
-				row.SetValue(4, withOption);
-				row.SetValue(5, granter);
-				grantTable.AddRow(row);
-			}
 		}
 
 		public static void RevokeAllGrantsOnTable(this IQueryContext context, ObjectName objectName) {
@@ -379,60 +219,6 @@ namespace Deveel.Data.Security {
 			grantTable.Delete(t1);
 		}
 
-		public static void RevokeAllFromUserOn(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, bool withOption = false) {
-			context.RevokeAllGrantsFromUser(objectType, objectName, user, withOption);
-		}
-
-		private static void RevokeAllGrantsFromUser(this IQueryContext context, DbObjectType objectType, ObjectName objectName, string user, bool withOption = false) {
-			var revoker = context.User();
-			var grantTable = context.GetMutableTable(SystemSchema.UserGrantsTableName);
-
-			var objectCol = grantTable.GetResolvedColumnName(1);
-			var paramCol = grantTable.GetResolvedColumnName(2);
-			var granteeCol = grantTable.GetResolvedColumnName(3);
-			var grantOptionCol = grantTable.GetResolvedColumnName(4);
-			var granterCol = grantTable.GetResolvedColumnName(5);
-
-			ITable t1 = grantTable;
-
-			// All that match the given object parameter
-			// It's most likely this will reduce the search by the most so we do
-			// it first.
-			t1 = t1.SimpleSelect(context, paramCol, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.String(objectName.FullName)));
-
-			// The next is a single exhaustive select through the remaining records.
-			// It finds all grants that match either public or the grantee is the
-			// username, and that match the object type.
-
-			// Expression: ("grantee_col" = username)
-			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(DataObject.String(user)));
-
-			// Expression: ("object_col" = object AND
-			//              "grantee_col" = username)
-			// All that match the given username or public and given object
-			var expr =
-				SqlExpression.And(
-					SqlExpression.Equal(SqlExpression.Reference(objectCol),
-						SqlExpression.Constant(DataObject.BigInt((int) objectType))), userCheck);
-
-			// Are we only searching for grant options?
-			var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-				SqlExpression.Constant(DataObject.Boolean(withOption)));
-			expr = SqlExpression.And(expr, grantOptionCheck);
-
-			// Make sure the granter matches up also
-			var granterCheck = SqlExpression.Equal(SqlExpression.Reference(granterCol),
-				SqlExpression.Constant(DataObject.String(revoker.Name)));
-			expr = SqlExpression.And(expr, granterCheck);
-
-			t1 = t1.ExhaustiveSelect(context, expr);
-
-			// Remove these rows from the table
-			grantTable.Delete(t1);
-		}
-
 		public static void GrantToUserOnTable(this IQueryContext context, ObjectName tableName, string grantee, Privileges privileges) {
 			context.GrantToUserOn(DbObjectType.Table, tableName, grantee, privileges);
 		}
@@ -443,113 +229,8 @@ namespace Deveel.Data.Security {
 
 		#region User Grants Query
 
-		private static Privileges GetUserGrants(this IQueryContext context, string userName, DbObjectType objType, ObjectName objName, bool includePublicPrivs = false, bool onlyGrantOptions = false) {
-			// The system grants table.
-			var grantTable = context.GetTable(SystemSchema.UserGrantsTableName);
-
-			var objectCol = grantTable.GetResolvedColumnName(1);
-			var paramCol = grantTable.GetResolvedColumnName(2);
-			var granteeCol = grantTable.GetResolvedColumnName(3);
-			var grantOptionCol = grantTable.GetResolvedColumnName(4);
-
-			ITable t1 = grantTable;
-
-			// All that match the given object parameter
-			// It's most likely this will reduce the search by the most so we do
-			// it first.
-			t1 = t1.SimpleSelect(context, paramCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(objName.FullName)));
-
-			// The next is a single exhaustive select through the remaining records.
-			// It finds all grants that match either public or the grantee is the
-			// username, and that match the object type.
-
-			// Expression: ("grantee_col" = username OR "grantee_col" = 'public')
-			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol), SqlExpression.Constant(DataObject.String(userName)));
-			if (includePublicPrivs) {
-				userCheck = SqlExpression.Or(userCheck, SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-					SqlExpression.Constant(DataObject.String(User.PublicName))));
-			}
-
-			// Expression: ("object_col" = object AND
-			//              ("grantee_col" = username OR "grantee_col" = 'public'))
-			// All that match the given username or public and given object
-			var expr = SqlExpression.And(SqlExpression.Equal(SqlExpression.Reference(objectCol),
-				SqlExpression.Constant(DataObject.BigInt((int)objType))), userCheck);
-
-			// Are we only searching for grant options?
-			if (onlyGrantOptions) {
-				var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-					SqlExpression.Constant(DataObject.BooleanTrue));
-				expr = SqlExpression.And(expr, grantOptionCheck);
-			}
-
-			t1 = t1.ExhaustiveSelect(context, expr);
-
-			// For each grant, merge with the resultant priv object
-			Privileges privs = Privileges.None;
-
-			foreach (var row in t1) {
-				var priv = (int)row.GetValue(0).AsBigInt();
-				privs |= (Privileges)priv;
-			}
-
-			return privs;
-		}
-
-		private static bool UserCanAccessFromHost(this IQueryContext queryContext, string username, ConnectionEndPoint endPoint) {
-			// The system user is not allowed to login
-			if (String.Equals(username, User.SystemName, StringComparison.OrdinalIgnoreCase))
-				return false;
-
-			// What's the protocol?
-			string protocol = endPoint.Protocol;
-			string host = endPoint.Address;
-
-			// The table to check
-			var connectPriv = queryContext.GetTable(SystemSchema.UserConnectPrivilegesTableName);
-			var unCol = connectPriv.GetResolvedColumnName(0);
-			var protoCol = connectPriv.GetResolvedColumnName(1);
-			var hostCol = connectPriv.GetResolvedColumnName(2);
-			var accessCol = connectPriv.GetResolvedColumnName(3);
-
-			// Query: where UserName = %username%
-			var t = connectPriv.SimpleSelect(queryContext, unCol, SqlExpressionType.Equal, SqlExpression.Constant(username));
-			// Query: where %protocol% like Protocol
-			var exp = SqlExpression.Binary(SqlExpression.Constant(protocol), SqlExpressionType.Like, SqlExpression.Reference(protoCol));
-			t = t.ExhaustiveSelect(queryContext, exp);
-			// Query: where %host% like Host
-			exp = SqlExpression.Binary(SqlExpression.Constant(host), SqlExpressionType.Like, SqlExpression.Reference(hostCol));
-			t = t.ExhaustiveSelect(queryContext, exp);
-
-			// Those that are DENY
-			var t2 = t.SimpleSelect(queryContext, accessCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.BooleanFalse));
-			if (t2.RowCount > 0)
-				return false;
-
-			// Those that are ALLOW
-			var t3 = t.SimpleSelect(queryContext, accessCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.BooleanTrue));
-			if (t3.RowCount > 0)
-				return true;
-
-			// No DENY or ALLOW entries for this host so deny access.
-			return false;
-		}
-
 		public static string[] GetGroupsUserBelongsTo(this IQueryContext queryContext, string username) {
-			var table = queryContext.GetTable(SystemSchema.UserPrivilegesTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			// All 'user_priv' where UserName = %username%
-			var t = table.SimpleSelect(queryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(username)));
-			int sz = t.RowCount;
-			var groups = new string[sz];
-			var rowEnum = t.GetEnumerator();
-			int i = 0;
-			while (rowEnum.MoveNext()) {
-				groups[i] = t.GetValue(rowEnum.Current.RowId.RowNumber, 1).Value.ToString();
-				++i;
-			}
-
-			return groups;
+			return queryContext.ForSystemUser().UserManager().GetUserGroups(username);
 		}
 
 		public static bool UserBelongsToGroup(this IQueryContext queryContext, string group) {
@@ -557,20 +238,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserBelongsToGroup(this IQueryContext context, string username, string groupName) {
-			using (var systemContext = context.ForSystemUser()) {
-				// This is a special query that needs to access the lowest level of ITable, skipping
-				// other security controls
-				var table = systemContext.GetTable(SystemSchema.UserPrivilegesTableName);
-				var c1 = table.GetResolvedColumnName(0);
-				var c2 = table.GetResolvedColumnName(1);
-
-				// All 'user_priv' where UserName = %username%
-				var t = table.SimpleSelect(systemContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(username));
-
-				// All from this set where PrivGroupName = %group%
-				t = t.SimpleSelect(systemContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-				return t.RowCount > 0;
-			}
+			return context.ForSystemUser().UserManager().IsUserInGroup(username, groupName);
 		}
 
 		public static bool UserHasSecureAccess(this IQueryContext context) {
@@ -599,12 +267,6 @@ namespace Deveel.Data.Security {
 			return context.UserBelongsToGroup(userName, SystemGroupNames.SecureGroup);
 		}
 
-		private static Privileges GetUserGrant(this IQueryContext context, string userName, DbObjectType objectType, ObjectName objectName) {
-			using (var systemContext = context.ForSystemUser()) {
-				return systemContext.GetUserGrants(userName, objectType, objectName);
-			}
-		}
-
 		public static bool UserHasGrantOption(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			var user = context.User();
 			if (user.IsSystem)
@@ -613,7 +275,7 @@ namespace Deveel.Data.Security {
 			if (context.UserBelongsToSecureGroup(user))
 				return true;
 
-			var grant = context.GetUserGrants(user.Name, objectType, objectName, false, true);
+			var grant = context.ForSystemUser().UserManager().GetUserPrivileges(user.Name, objectType, objectName, true);
 			return (grant & privileges) != 0;
 		}
 
@@ -625,12 +287,8 @@ namespace Deveel.Data.Security {
 			if (context.UserBelongsToSecureGroup(user))
 				return true;
 
-			Privileges grant;
-			if (!user.TryGetObjectGrant(objectName, out grant)) {
-				grant = context.GetUserGrant(user.Name, objectType, objectName);
-				user.CacheObjectGrant(objectName, grant);
-			}
-
+			var userName = user.Name;
+			var grant = context.ForSystemUser().UserManager().GetUserPrivileges(userName, objectType, objectName, false);
 			return (grant & privileges) != 0;
 		}
 

@@ -29,8 +29,8 @@ using Deveel.Data.Types;
 namespace Deveel.Data {
 	public static class QueryContextExtensions {
 		internal static IUserSession Session(this IQueryContext context) {
-			if ((context is IQueryContextHasUserSession))
-				return ((IQueryContextHasUserSession) context).Session;
+			if ((context is QueryContextBase))
+				return ((QueryContextBase) context).Session;
 
 			return null;
 		}
@@ -45,10 +45,6 @@ namespace Deveel.Data {
 
 		internal static IQueryContext ForSystemUser(this IQueryContext queryContext) {
 			return new SystemQueryContext(queryContext.Session().Transaction, queryContext.CurrentSchema);
-		}
-
-		public static IQueryContext CreateChild(this IQueryContext context) {
-			return new ChildQueryContext(context);
 		}
 
 		#region Properties

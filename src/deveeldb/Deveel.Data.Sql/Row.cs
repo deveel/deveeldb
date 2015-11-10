@@ -337,6 +337,14 @@ namespace Deveel.Data.Sql {
 			SetValue(columnIndex, DataObject.Boolean(value));
 		}
 
+		public void SetValue(int columnIndex, byte[] bytes) {
+			SetValue(columnIndex, DataObject.Binary(bytes));
+		}
+
+		public void SetValue(int columnIndex, SqlBinary binary) {
+			SetValue(columnIndex, DataObject.Binary(binary));
+		}
+
 		/// <summary>
 		/// Sets the value of a cell of the row at the given offset to <c>NULL</c>.
 		/// </summary>

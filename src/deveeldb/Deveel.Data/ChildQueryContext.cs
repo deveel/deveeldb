@@ -20,7 +20,8 @@ namespace Deveel.Data {
 	class ChildQueryContext : QueryContextBase {
 		private IQueryContext parentContext;
 
-		public ChildQueryContext(IQueryContext parentContext) {
+		public ChildQueryContext(IQueryContext parentContext)
+			: base(parentContext.Session()) {
 			if (parentContext == null)
 				throw new ArgumentNullException("parentContext");
 
@@ -29,10 +30,6 @@ namespace Deveel.Data {
 
 		public override IQueryContext ParentContext {
 			get { return parentContext; }
-		}
-
-		public override IUserSession Session {
-			get { return ParentContext.Session(); }
 		}
 
 		protected override void Dispose(bool disposing) {

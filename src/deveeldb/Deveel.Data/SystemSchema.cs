@@ -242,10 +242,9 @@ namespace Deveel.Data {
 
 			tableInfo = new TableInfo(PasswordTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("hash", PrimitiveTypes.String());
-			tableInfo.AddColumn("salt", PrimitiveTypes.String());
-			tableInfo.AddColumn("hash_algorithm", PrimitiveTypes.String());
+			tableInfo.AddColumn("method", PrimitiveTypes.String());
+			tableInfo.AddColumn("method_args", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("identifier", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
 

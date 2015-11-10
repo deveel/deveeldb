@@ -16,32 +16,16 @@
 
 using System;
 
-using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	sealed class SystemQueryContext : QueryContextBase {
-		private IUserSession session;
-
-		public SystemQueryContext(ITransaction transaction, string currentSchema) {
-			session = new SystemUserSession(transaction.Database, transaction, currentSchema);
+		public SystemQueryContext(ITransaction transaction, string currentSchema)
+			: base(new SystemUserSession(transaction.Database, transaction, currentSchema)) {
 		}
 
 		public override string CurrentSchema {
 			get { return Session.CurrentSchema; }
-		}
-
-		public override IUserSession Session {
-			get { return session; }
-		}
-
-		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				session.Dispose();
-			}
-
-			session = null;
-			base.Dispose(disposing);
 		}
 	}
 }

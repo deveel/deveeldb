@@ -20,6 +20,7 @@ using System.Security.Cryptography;
 #endif
 
 using Deveel.Data.Caching;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
@@ -27,7 +28,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : IQueryContextHasUserSession, IVariableScope {
+	abstract class QueryContextBase : IQueryContext, IVariableScope {
 #if PCL
 		private Random secureRandom;
 #else
@@ -36,15 +37,21 @@ namespace Deveel.Data {
 		private ICache tableCache;
 		private bool disposed;
 
-		protected QueryContextBase() {
+		protected QueryContextBase(IUserSession session) {
+			if (session == null)
+				throw new ArgumentNullException("session");
+
 #if PCL
 			secureRandom = new Random();
 #else
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
+			Session = session;
 			tableCache = new MemoryCache();
 			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
+
+			InitUserManager();
 		}
 
 		~QueryContextBase() {
@@ -60,7 +67,11 @@ namespace Deveel.Data {
 
 		public CursorManager CursorManager { get; private set; }
 
-		public abstract IUserSession Session { get; }
+		private bool OwnsUserManager { get; set; }
+
+		public IUserManager UserManager { get; private set; }
+
+		public IUserSession Session {get; private set; }
 
 		public virtual string CurrentSchema {
 			get { return Session.CurrentSchema; }
@@ -77,6 +88,16 @@ namespace Deveel.Data {
 		private void AssertNotDisposed() {
 			if (disposed)
 				throw new ObjectDisposedException("QueryContext", "The query context was disposed.");
+		}
+
+		private void InitUserManager() {
+			var userManager = DatabaseContext.SystemContext.ResolveService<IUserManager>();
+			if (userManager == null) {
+				userManager = new UserManager(this);
+				OwnsUserManager = true;
+			}
+
+			UserManager = userManager;
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {
@@ -104,12 +125,17 @@ namespace Deveel.Data {
 						VariableManager.Dispose();
 					if (CursorManager != null)
 						CursorManager.Dispose();
+
+					if (OwnsUserManager &&
+						UserManager != null)
+						UserManager.Dispose();
 				}
 
 				tableCache = null;
 				VariableManager = null;
 				CursorManager = null;
 				secureRandom = null;
+				Session = null;
 
 				disposed = true;
 			}

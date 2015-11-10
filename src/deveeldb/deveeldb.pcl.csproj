@@ -261,6 +261,7 @@
     <Compile Include="Deveel.Data.Security\IHashFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
+    <Compile Include="Deveel.Data.Security\IUserManager.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
@@ -270,6 +271,9 @@
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
+    <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
+    <Compile Include="Deveel.Data.Security\UserInfo.cs" />
+    <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
     <Compile Include="Deveel.Data.Security\UserStatus.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />

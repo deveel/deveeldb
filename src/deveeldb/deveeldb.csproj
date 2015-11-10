@@ -140,6 +140,11 @@
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExecuteContext.cs" />
+    <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
+    <Compile Include="Deveel.Data.Security\IUserManager.cs" />
+    <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
+    <Compile Include="Deveel.Data.Security\UserInfo.cs" />
+    <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
@@ -181,7 +186,6 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
-    <Compile Include="Deveel.Data\IQueryContextHasUserSession.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
