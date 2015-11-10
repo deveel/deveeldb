@@ -38,6 +38,17 @@ namespace Deveel.Data.Security {
 			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
 		}
 
+		#region Group Management
+
+		public static void CreateUserGroup(this IQueryContext context, string groupName) {
+			if (!context.UserCanManageGroups())
+				throw new InvalidOperationException(String.Format("User '{0}' has not enough privileges to create a group.", context.UserName()));
+
+			context.ForSystemUser().UserManager().CreateUserGroup(groupName);
+		}
+
+		#endregion
+
 		#region User Management
 
 		public static User GetUser(this IQueryContext context, string userName) {
@@ -69,6 +80,23 @@ namespace Deveel.Data.Security {
 					String.Format("The user '{0}' has not enough rights to access other users information.", queryContext.UserName()));
 
 			return queryContext.ForSystemUser().UserManager().GetUserStatus(userName);
+		}
+
+		public static void SetUserGroups(this IQueryContext context, string userName, string[] groups) {
+			if (!context.UserCanManageUsers())
+				throw new MissingPrivilegesException(context.UserName(), new ObjectName(userName), Privileges.Alter,
+					String.Format("The user '{0}' has not enough rights to modify other users information.", context.UserName()));
+
+			// TODO: Check if the user exists?
+
+			var userGroups = context.ForSystemUser().UserManager().GetUserGroups(userName);
+			foreach (var userGroup in userGroups) {
+				context.ForSystemUser().UserManager().RemoveUserFromGroup(userName, userGroup);
+			}
+
+			foreach (var userGroup in groups) {
+				context.ForSystemUser().UserManager().AddUserToGroup(userName, userGroup);
+			}
 		}
 
 		public static bool UserExists(this IQueryContext context, string userName) {
@@ -117,7 +145,7 @@ namespace Deveel.Data.Security {
 		public static void RemoveUserFromAllGroups(this IQueryContext context, string username) {
 			var userExpr = SqlExpression.Constant(DataObject.String(username));
 
-			var table = context.GetMutableTable(SystemSchema.UserPrivilegesTableName);
+			var table = context.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(context, c1, SqlExpressionType.Equal, userExpr);
 			table.Delete(t);
@@ -193,6 +221,9 @@ namespace Deveel.Data.Security {
 			if (!context.ObjectExists(objectType, objectName))
 				throw new ObjectNotFoundException(objectName);
 
+			if (!context.UserHasGrantOption(objectType, objectName, privileges))
+				throw new MissingPrivilegesException(context.UserName(), objectName, privileges);
+
 			var granter = context.UserName();
 			var grant = new UserGrant(privileges, objectName, objectType, granter, withOption);
 			context.ForSystemUser().PrivilegeManager().GrantToUser(grantee, grant);
@@ -248,6 +279,10 @@ namespace Deveel.Data.Security {
 			return context.ForSystemUser().UserManager().IsUserInGroup(username, groupName);
 		}
 
+		public static bool UserCanManageGroups(this IQueryContext context) {
+			return context.User().IsSystem || context.UserHasSecureAccess();
+		}
+
 		public static bool UserHasSecureAccess(this IQueryContext context) {
 			return UserHasSecureAccess(context, context.UserName());
 		}
@@ -259,19 +294,12 @@ namespace Deveel.Data.Security {
 			return context.UserBelongsToSecureGroup(userName);
 		}
 
-		public static bool UserBelongsToGroup(this IQueryContext context, User user, string groupName) {
-			if (user == null)
-				throw new ArgumentNullException("user");
-
-			return context.UserBelongsToGroup(user.Name, groupName);
-		}
-
 		public static bool UserBelongsToSecureGroup(this IQueryContext context, User user) {
 			return context.UserBelongsToSecureGroup(user.Name);
 		}
 
 		public static bool UserBelongsToSecureGroup(this IQueryContext context, string userName) {
-			return context.UserBelongsToGroup(userName, SystemGroupNames.SecureGroup);
+			return context.UserBelongsToGroup(userName, SystemGroups.SecureGroup);
 		}
 
 		public static bool UserHasGrantOption(this IQueryContext context, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
@@ -305,7 +333,7 @@ namespace Deveel.Data.Security {
 
 		public static bool UserCanCreateUsers(this IQueryContext context, string userName) {
 			return context.UserHasSecureAccess(userName) || 
-				context.UserBelongsToGroup(userName, SystemGroupNames.UserManagerGroup);
+				context.UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
 		}
 
 		public static bool UserCanDropUser(this IQueryContext context, string userToDrop) {
@@ -314,7 +342,7 @@ namespace Deveel.Data.Security {
 
 		public static bool UserCanDropUser(this IQueryContext context, string userName, string userToDrop) {
 			return context.UserHasSecureAccess(userName) ||
-			       context.UserBelongsToGroup(userName, SystemGroupNames.UserManagerGroup) ||
+			       context.UserBelongsToGroup(userName, SystemGroups.UserManagerGroup) ||
 			       userName.Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
 		}
 
@@ -329,11 +357,11 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserCanManageUsers(this IQueryContext context) {
-			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroupNames.UserManagerGroup);
+			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroups.UserManagerGroup);
 		}
 
 		public static bool UserCanAccessUsers(this IQueryContext context) {
-			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroupNames.UserManagerGroup);
+			return context.UserHasSecureAccess() || context.UserBelongsToGroup(SystemGroups.UserManagerGroup);
 		}
 
 		public static bool UserHasTablePrivilege(this IQueryContext context, ObjectName tableName, Privileges privileges) {

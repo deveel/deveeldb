@@ -51,15 +51,12 @@ namespace Deveel.Data.Sql.Statements {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
 				context.AlterUserPassword(UserName, password);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
-				context.RemoveUserFromAllGroups(UserName);
-
 				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
 					.Cast<SqlConstantExpression>()
 					.Select(x => x.Value.Value.ToString())
 					.ToArray();
-				foreach (string group in groupNames) {
-					context.AddUserToGroup(UserName, group);
-				}
+
+				context.SetUserGroups(UserName, groupNames);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetAccountStatus) {
 				context.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}

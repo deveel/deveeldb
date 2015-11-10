@@ -487,7 +487,7 @@
     <Compile Include="Deveel.Data.Index\SnapshotIndexSet.cs" />
     <Compile Include="Deveel.Data.Protocol\ConnectionEndPoint.cs" />
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
-    <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
+    <Compile Include="Deveel.Data.Security\SystemGroups.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />

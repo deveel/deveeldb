@@ -201,11 +201,15 @@ namespace Deveel.Data {
 
 		public static readonly ObjectName PasswordTableName = new ObjectName(SchemaName, "password");
 
-		public static readonly ObjectName UserConnectPrivilegesTableName = new ObjectName(SchemaName, "user_connect_priv");
+		//public static readonly ObjectName UserConnectPrivilegesTableName = new ObjectName(SchemaName, "user_connect_priv");
 
-		public static readonly ObjectName UserPrivilegesTableName = new ObjectName(SchemaName, "user_priv");
+		public static readonly ObjectName GroupsTableName = new ObjectName(SchemaName, "group");
+
+		public static readonly ObjectName UserGroupTableName = new ObjectName(SchemaName, "user_group");
 
 		public static readonly ObjectName UserGrantsTableName = new ObjectName(SchemaName, "grants");
+
+		public static readonly ObjectName GroupGrantsTable = new ObjectName(SchemaName, "group_grants");
 
 		#endregion
 
@@ -248,19 +252,26 @@ namespace Deveel.Data {
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
 
-			tableInfo = new TableInfo(UserPrivilegesTableName);
+			tableInfo = new TableInfo(UserGroupTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("group", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
 
-			tableInfo = new TableInfo(UserConnectPrivilegesTableName);
-			tableInfo.AddColumn("user", PrimitiveTypes.String());
-			tableInfo.AddColumn("protocol", PrimitiveTypes.String());
-			tableInfo.AddColumn("host", PrimitiveTypes.String());
-			tableInfo.AddColumn("access", PrimitiveTypes.Boolean());
+			//tableInfo = new TableInfo(UserConnectPrivilegesTableName);
+			//tableInfo.AddColumn("user", PrimitiveTypes.String());
+			//tableInfo.AddColumn("protocol", PrimitiveTypes.String());
+			//tableInfo.AddColumn("host", PrimitiveTypes.String());
+			//tableInfo.AddColumn("access", PrimitiveTypes.Boolean());
+			//tableInfo = tableInfo.AsReadOnly();
+			//context.CreateSystemTable(tableInfo);
+
+			tableInfo = new TableInfo(GroupsTableName);
+			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
+
+			context.AddPrimaryKey(GroupsTableName, new[] { "name" }, "SYSTEM_GROUP_PK");
 
 			tableInfo = new TableInfo(UserGrantsTableName);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
@@ -272,14 +283,22 @@ namespace Deveel.Data {
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
 
+			tableInfo = new TableInfo(GroupGrantsTable);
+			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("group", PrimitiveTypes.String());
+
 			var fkCol = new[] {"user"};
+			var gfkCol = new[] {"group"};
 			var refCol = new[] {"name"};
 			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
 			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
 			context.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
-			context.AddForeignKey(UserPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
-			context.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");
+			context.AddForeignKey(UserGroupTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
+			context.AddForeignKey(UserGroupTableName, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "USER_GROUP_FK");
+			//context.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");
 			context.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
+			context.AddForeignKey(GroupGrantsTable, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "GROUP_GRANTS_FK");
 		}
 
 		public static void CreateTables(IQueryContext context) {

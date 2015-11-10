@@ -77,7 +77,7 @@ namespace Deveel.Data.Security {
 		[Test]
 		public void SetUserGroups() {
 			Assert.DoesNotThrow(() => QueryContext.AddUserToGroup("tester", "test_group"));
-			Assert.DoesNotThrow(() => QueryContext.AddUserToGroup("tester", SystemGroupNames.UserManagerGroup));
+			Assert.DoesNotThrow(() => QueryContext.AddUserToGroup("tester", SystemGroups.UserManagerGroup));
 
 			User user = null;
 			Assert.DoesNotThrow(() => user = QueryContext.GetUser("tester"));
@@ -87,7 +87,7 @@ namespace Deveel.Data.Security {
 			Assert.DoesNotThrow(() => userGroups = user.Groups);
 			Assert.IsNotNull(userGroups);
 			Assert.Contains("test_group", userGroups);
-			Assert.Contains(SystemGroupNames.UserManagerGroup, userGroups);
+			Assert.Contains(SystemGroups.UserManagerGroup, userGroups);
 
 			Assert.IsTrue(QueryContext.UserBelongsToGroup("tester", "test_group"));
 		}

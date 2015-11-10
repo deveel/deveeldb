@@ -129,7 +129,7 @@ namespace Deveel.Data {
 				var user = context.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
-				context.AddUserToGroup(adminName, SystemGroupNames.SecureGroup);
+				context.AddUserToGroup(adminName, SystemGroups.SecureGroup);
 
 				//context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, "%");
 				//context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, "%");

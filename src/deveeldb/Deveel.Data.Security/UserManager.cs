@@ -141,9 +141,9 @@ namespace Deveel.Data.Security {
 		}
 
 		private string[] QueryUserGroups(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.UserPrivilegesTableName);
+			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
-			// All 'user_priv' where UserName = %username%
+			// All 'user_group' where UserName = %username%
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(userName)));
 			int sz = t.RowCount;
 			var groups = new string[sz];
@@ -166,6 +166,20 @@ namespace Deveel.Data.Security {
 			return userGroupsCache.TryGetValue(userName, out groups);
 		}
 
+		private void ClearUserGroupsCache(string userName) {
+			if (userGroupsCache == null)
+				return;
+
+			userGroupsCache.Remove(userName);
+		}
+
+		private void ClearUserGroupsCache() {
+			if (userGroupsCache == null)
+				return;
+
+			userGroupsCache.Clear();
+		}
+
 		private void SetUserGroupsInCache(string userName, string[] groups) {
 			if (userGroupsCache == null)
 				userGroupsCache = new Dictionary<string, string[]>();
@@ -173,21 +187,21 @@ namespace Deveel.Data.Security {
 			userGroupsCache[userName] = groups;
 		}
 
-		public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
-			var grantTable = QueryContext.GetMutableTable(SystemSchema.UserGrantsTableName);
+		//public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
+		//	var grantTable = QueryContext.GetMutableTable(SystemSchema.UserGrantsTableName);
 
-			var objectTypeColumn = grantTable.GetResolvedColumnName(1);
-			var objectNameColumn = grantTable.GetResolvedColumnName(2);
-			// All that match the given object
-			var t1 = grantTable.SimpleSelect(QueryContext, objectTypeColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.Integer((int)objectType)));
-			// All that match the given parameter
-			t1 = t1.SimpleSelect(QueryContext, objectNameColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.String(objectName.FullName)));
+		//	var objectTypeColumn = grantTable.GetResolvedColumnName(1);
+		//	var objectNameColumn = grantTable.GetResolvedColumnName(2);
+		//	// All that match the given object
+		//	var t1 = grantTable.SimpleSelect(QueryContext, objectTypeColumn, SqlExpressionType.Equal,
+		//		SqlExpression.Constant(DataObject.Integer((int)objectType)));
+		//	// All that match the given parameter
+		//	t1 = t1.SimpleSelect(QueryContext, objectNameColumn, SqlExpressionType.Equal,
+		//		SqlExpression.Constant(DataObject.String(objectName.FullName)));
 
-			// Remove these rows from the table
-			grantTable.Delete(t1);
-		}
+		//	// Remove these rows from the table
+		//	grantTable.Delete(t1);
+		//}
 
 
 		public bool DropUser(string userName) {
@@ -197,14 +211,14 @@ namespace Deveel.Data.Security {
 
 			// TODO: Remove all object-level privileges from the user...
 
-			var table = QueryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
+			//var table = QueryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
+			//var c1 = table.GetResolvedColumnName(0);
+			//var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
+			//table.Delete(t);
+
+			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			table.Delete(t);
-
-			table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			c1 = table.GetResolvedColumnName(0);
-			t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 			table.Delete(t);
 
 			table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
@@ -216,10 +230,15 @@ namespace Deveel.Data.Security {
 		private void RemoveUserFromAllGroups(string username) {
 			var userExpr = SqlExpression.Constant(DataObject.String(username));
 
-			var table = QueryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
+			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			table.Delete(t);
+
+			if (t.RowCount > 0) {
+				table.Delete(t);
+
+				ClearUserGroupsCache(username);
+			}
 		}
 
 		public void AlterUser(UserInfo userInfo, string identifier) {
@@ -257,13 +276,13 @@ namespace Deveel.Data.Security {
 
 		public void SetUserStatus(string userName, UserStatus status) {
 			// Internally we implement this by adding the user to the #locked group.
-			var table = QueryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
+			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
-			// All 'user_priv' where UserName = %username%
+			// All 'user_group' where UserName = %username%
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroupNames.LockGroup));
+			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroups.LockGroup));
 
 			bool userBelongsToLockGroup = t.RowCount > 0;
 			if (status == UserStatus.Locked &&
@@ -272,7 +291,7 @@ namespace Deveel.Data.Security {
 				// Add this user to the locked group.
 				var rdat = new Row(table);
 				rdat.SetValue(0, userName);
-				rdat.SetValue(1, SystemGroupNames.LockGroup);
+				rdat.SetValue(1, SystemGroups.LockGroup);
 				table.AddRow(rdat);
 			} else if (status == UserStatus.Unlocked &&
 				userBelongsToLockGroup) {
@@ -283,7 +302,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			if (IsUserInGroup(userName, SystemGroupNames.LockGroup))
+			if (IsUserInGroup(userName, SystemGroups.LockGroup))
 				return UserStatus.Locked;
 
 			return UserStatus.Unlocked;
@@ -327,11 +346,44 @@ namespace Deveel.Data.Security {
 
 
 		public void CreateUserGroup(string groupName) {
-			throw new NotImplementedException();
+			if (String.IsNullOrEmpty(groupName))
+				throw new ArgumentNullException("groupName");
+
+			var c = groupName[0];
+			if (c == '$' || c == '%' || c == '@')
+				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", groupName));
+
+			var table = QueryContext.GetMutableTable(SystemSchema.GroupsTableName);
+
+			var row = table.NewRow();
+			row.SetValue(0, groupName);
+
+			table.AddRow(row);
 		}
 
 		public bool DropUserGroup(string groupName) {
-			throw new NotImplementedException();
+			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var c1 = table.GetResolvedColumnName(0);
+
+			// All password where name = %groupName%
+			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+
+			if (t.RowCount > 0) {
+				table.Delete(t);
+				ClearUserGroupsCache();
+				return true;
+			}
+
+			return false;
+		}
+
+		public bool UserGroupExists(string groupName) {
+			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var c1 = table.GetResolvedColumnName(0);
+
+			// All password where name = %groupName%
+			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+			return t.RowCount > 0;
 		}
 
 		public void AddUserToGroup(string userName, string groupName) {
@@ -345,12 +397,36 @@ namespace Deveel.Data.Security {
 				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", groupName, c), "groupName");
 
 			if (!IsUserInGroup(userName, groupName)) {
-				var table = QueryContext.GetMutableTable(SystemSchema.UserPrivilegesTableName);
+				var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
 				var row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, groupName);
 				table.AddRow(row);
 			}
+		}
+
+		public bool RemoveUserFromGroup(string userName, string groupName) {
+			// This is a special query that needs to access the lowest level of ITable, skipping
+			// other security controls
+			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var c1 = table.GetResolvedColumnName(0);
+			var c2 = table.GetResolvedColumnName(1);
+
+			// All 'user_group' where UserName = %username%
+			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+			// All from this set where PrivGroupName = %group%
+			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+
+			if (t.RowCount > 0) {
+				table.Delete(t);
+
+				ClearUserGroupsCache(userName);
+
+				return true;
+			}
+
+			return false;
 		}
 
 		public bool IsUserInGroup(string userName, string groupName) {
@@ -361,11 +437,11 @@ namespace Deveel.Data.Security {
 
 			// This is a special query that needs to access the lowest level of ITable, skipping
 			// other security controls
-			var table = QueryContext.GetTable(SystemSchema.UserPrivilegesTableName);
+			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 
-			// All 'user_priv' where UserName = %username%
+			// All 'user_group' where UserName = %username%
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 
 			// All from this set where PrivGroupName = %group%

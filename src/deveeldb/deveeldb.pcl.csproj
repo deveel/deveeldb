@@ -271,7 +271,7 @@
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
     <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
-    <Compile Include="Deveel.Data.Security\SystemGroupNames.cs" />
+    <Compile Include="Deveel.Data.Security\SystemGroups.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />

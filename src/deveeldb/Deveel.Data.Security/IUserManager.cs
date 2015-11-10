@@ -24,11 +24,14 @@ namespace Deveel.Data.Security {
 
 		bool DropUserGroup(string groupName);
 
+		bool UserGroupExists(string groupName);
+
 		void AddUserToGroup(string userName, string groupName);
+
+		bool RemoveUserFromGroup(string userName, string groupName);
 
 		string[] GetUserGroups(string userName);
 
 		bool IsUserInGroup(string userName, string groupName);
-
 	}
 }

@@ -13,5 +13,7 @@ namespace Deveel.Data.Security {
 		void GrantToGroup(string groupName, Privileges privileges);
 
 		void RevokeFromGroup(string groupName, Privileges privileges);
+
+		Privileges GetGroupPrivileges(string groupName);
 	}
 }

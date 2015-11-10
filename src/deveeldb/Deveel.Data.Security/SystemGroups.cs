@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Security {
-	public static class SystemGroupNames {
+	public static class SystemGroups {
 		/// <summary>
 		/// The name of the lock group.
 		/// </summary>
@@ -33,17 +35,17 @@ namespace Deveel.Data.Security {
 		/// <remarks>
 		/// Users that belong in this group can create and drop schema from the system.
 		/// </remarks>
-		public const String SchemaManagerGroup = "schema manager";
+		public const String SchemaManagerGroup = "schema_manager";
 
 		/// <summary>
 		/// THe name of the secure access group.
 		/// </summary>
 		/// <remarks>
 		/// If a user belongs to this group they are permitted to perform a number of 
-		/// priviledged operations such as shutting down the database, and adding and 
+		/// privileged operations such as shutting down the database, and adding and 
 		/// removing users.
 		/// </remarks>
-		public const string SecureGroup = "secure access";
+		public const string SecureGroup = "secure_access";
 
 		/// <summary>
 		/// The name of the user manager group.
@@ -52,6 +54,13 @@ namespace Deveel.Data.Security {
 		/// Users that belong in this group can create, alter and drop users from the 
 		/// system.
 		/// </remarks>
-		public const String UserManagerGroup = "user manager";
+		public const string UserManagerGroup = "user_manager";
+
+		public static void Create(IQueryContext context) {
+			context.CreateUserGroup(SecureGroup);
+			context.CreateUserGroup(UserManagerGroup);
+			context.CreateUserGroup(SchemaManagerGroup);
+			context.CreateUserGroup(LockGroup);
+		}
 	}
 }

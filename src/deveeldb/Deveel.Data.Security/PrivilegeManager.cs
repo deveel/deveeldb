@@ -29,9 +29,9 @@ namespace Deveel.Data.Security {
 			QueryContext = null;
 		}
 
-		private void UpdateUserGrants(DbObjectType objectType, ObjectName objectName, string granter, string user, Privileges privileges, bool withOption) {
+		private void UpdateGrants(DbObjectType objectType, ObjectName objectName, string granter, string grantee, Privileges privileges, bool withOption) {
 			// Revoke existing privs on this object for this grantee
-			RevokeAllGrantsFromUser(objectType, objectName, granter, user, withOption);
+			RevokeAllGrantsFromUser(objectType, objectName, granter, grantee, withOption);
 
 			if (privileges != Privileges.None) {
 				// The system grants table.
@@ -42,12 +42,12 @@ namespace Deveel.Data.Security {
 				row.SetValue(0, (int)privileges);
 				row.SetValue(1, (int)objectType);
 				row.SetValue(2, objectName.FullName);
-				row.SetValue(3, user);
+				row.SetValue(3, grantee);
 				row.SetValue(4, withOption);
 				row.SetValue(5, granter);
 				grantTable.AddRow(row);
 
-				ClearUserGrantsCache(user, objectType, objectName, withOption, true);
+				ClearUserGrantsCache(grantee, objectType, objectName, withOption, true);
 			}
 		}
 
@@ -84,7 +84,7 @@ namespace Deveel.Data.Security {
 			privileges |= oldPrivs;
 
 			if (!oldPrivs.Equals(privileges))
-				UpdateUserGrants(objectType, objectName, grant.GranterName, userName, privileges, grant.WithOption);
+				((PrivilegeManager) this).UpdateGrants(objectType, objectName, grant.GranterName, userName, privileges, grant.WithOption);
 		}
 
 		private bool TryGetPrivilegesFromCache(string userName, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
@@ -238,6 +238,10 @@ namespace Deveel.Data.Security {
 		}
 
 		public void RevokeFromGroup(string groupName, Privileges privileges) {
+			throw new NotImplementedException();
+		}
+
+		public Privileges GetGroupPrivileges(string groupName) {
 			throw new NotImplementedException();
 		}
 

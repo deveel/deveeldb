@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
@@ -215,6 +216,7 @@ namespace Deveel.Data {
 
 							// The system tables that are present in every conglomerate.
 							SystemSchema.CreateTables(context);
+							SystemGroups.Create(context);
 
 							try {
 								// Close and commit this transaction.
