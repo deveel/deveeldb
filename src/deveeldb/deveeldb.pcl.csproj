@@ -256,13 +256,16 @@
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
+    <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
     <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
+    <Compile Include="Deveel.Data.Security\IPrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\IUserManager.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />
+    <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
@@ -807,7 +810,6 @@
     <Compile Include="Deveel.Data\IObjectManager.cs" />
     <Compile Include="Deveel.Data\IObjectManagerResolver.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
-    <Compile Include="Deveel.Data\IQueryContextHasUserSession.cs" />
     <Compile Include="Deveel.Data\IServiceResolveContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />

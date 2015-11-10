@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 
@@ -21,19 +20,9 @@ namespace Deveel.Data.Security {
 
 		UserInfo GetUser(string userName);
 
-		void GrantToUser(string userName, UserGrant grant);
-
-		Privileges GetUserPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption);
-
-		void RevokeFromUser(string userName, UserGrant grant);
-
 		void CreateUserGroup(string groupName);
 
 		bool DropUserGroup(string groupName);
-
-		void GrantToGroup(string groupName, Privileges privileges);
-
-		void RevokeFromGroup(string groupName, Privileges privileges);
 
 		void AddUserToGroup(string userName, string groupName);
 

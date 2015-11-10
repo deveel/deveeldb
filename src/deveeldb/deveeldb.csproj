@@ -141,7 +141,9 @@
     <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExecuteContext.cs" />
     <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
+    <Compile Include="Deveel.Data.Security\IPrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\IUserManager.cs" />
+    <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />

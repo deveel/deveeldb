@@ -31,6 +31,13 @@ namespace Deveel.Data.Security {
 			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IUserManager>();
 		}
 
+		private static IPrivilegeManager PrivilegeManager(this IQueryContext context) {
+			if (context is QueryContextBase)
+				return ((QueryContextBase) context).PrivilegeManager;
+
+			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
+		}
+
 		#region User Management
 
 		public static User GetUser(this IQueryContext context, string userName) {
@@ -188,7 +195,7 @@ namespace Deveel.Data.Security {
 
 			var granter = context.UserName();
 			var grant = new UserGrant(privileges, objectName, objectType, granter, withOption);
-			context.ForSystemUser().UserManager().GrantToUser(grantee, grant);
+			context.ForSystemUser().PrivilegeManager().GrantToUser(grantee, grant);
 		}
 
 		public static void GrantToUserOnSchema(this IQueryContext context, string schemaName, string grantee, Privileges privileges, bool withOption = false) {
@@ -275,7 +282,7 @@ namespace Deveel.Data.Security {
 			if (context.UserBelongsToSecureGroup(user))
 				return true;
 
-			var grant = context.ForSystemUser().UserManager().GetUserPrivileges(user.Name, objectType, objectName, true);
+			var grant = context.ForSystemUser().PrivilegeManager().GetUserPrivileges(user.Name, objectType, objectName, true);
 			return (grant & privileges) != 0;
 		}
 
@@ -288,7 +295,7 @@ namespace Deveel.Data.Security {
 				return true;
 
 			var userName = user.Name;
-			var grant = context.ForSystemUser().UserManager().GetUserPrivileges(userName, objectType, objectName, false);
+			var grant = context.ForSystemUser().PrivilegeManager().GetUserPrivileges(userName, objectType, objectName, false);
 			return (grant & privileges) != 0;
 		}
 

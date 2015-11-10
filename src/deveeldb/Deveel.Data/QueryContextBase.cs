@@ -52,6 +52,7 @@ namespace Deveel.Data {
 			CursorManager = new CursorManager(this);
 
 			InitUserManager();
+			InitPrivilegeManager();
 		}
 
 		~QueryContextBase() {
@@ -70,6 +71,10 @@ namespace Deveel.Data {
 		private bool OwnsUserManager { get; set; }
 
 		public IUserManager UserManager { get; private set; }
+
+		public IPrivilegeManager PrivilegeManager { get; private set; }
+
+		private bool OwnsPrivilegeManager { get; set; }
 
 		public IUserSession Session {get; private set; }
 
@@ -98,6 +103,16 @@ namespace Deveel.Data {
 			}
 
 			UserManager = userManager;
+		}
+
+		private void InitPrivilegeManager() {
+			var privManager = DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
+			if (privManager == null) {
+				privManager = new PrivilegeManager(this);
+				OwnsPrivilegeManager = true;
+			}
+
+			PrivilegeManager = privManager;
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {

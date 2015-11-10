@@ -22,12 +22,10 @@ namespace Deveel.Data.Security {
 		public static UserIdentification PlainText { get; private set; }
 
 		public static UserIdentification Pkcs12(string salt) {
-			return new UserIdentification("hash") {
-				Arguments = {
-					["salt"] = salt,
-					["mechanism"] = "pkcs12"
-				}
-			};
+			var id = new UserIdentification("hash");
+			id.Arguments["salt"] = salt;
+			id.Arguments["mechanism"] = "pkcs12";
+			return id;
 		}
 	}
 }
