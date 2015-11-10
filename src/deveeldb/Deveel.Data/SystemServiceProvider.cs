@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	public sealed class SystemServiceProvider : ISystemServiceProvider {
 		// private TinyIoCContainer container;
 		private DryIoc.Container container;
-		private List<IServiceResolveContext> resolveContexts;
+		// private List<IServiceResolveContext> resolveContexts;
 
 		/// <summary>
 		/// Constructs the service provider around the given context.
@@ -46,7 +46,7 @@ namespace Deveel.Data {
 			container = new DryIoc.Container();
 			container.RegisterInstance<ISystemContext>(context);
 
-			resolveContexts = new List<IServiceResolveContext>();
+			// resolveContexts = new List<IServiceResolveContext>();
 		}
 
 		~SystemServiceProvider() {
@@ -59,10 +59,11 @@ namespace Deveel.Data {
 		/// <seealso cref="ISystemContext.ServiceProvider"/>
 		public ISystemContext SystemContext { get; private set; }
 
+		/*
 		private bool HasAnyContext {
 			get { return resolveContexts.Count > 0; }
 		}
-
+		
 		private object OnResolve(Type serviceType, string name) {
 			return resolveContexts.Select(context => context.OnResolve(serviceType, name))
 				.FirstOrDefault(resolved => resolved != null);
@@ -89,6 +90,7 @@ namespace Deveel.Data {
 			if (!resolveContexts.Contains(resolveContext))
 				resolveContexts.Add(resolveContext);
 		}
+		*/
 
 		public object Resolve(Type serviceType, string name) {
 			if (serviceType == null)
@@ -98,13 +100,14 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				var resolved = OnResolve(serviceType, name);
+				/* var resolved = OnResolve(serviceType, name);
 					if (resolved != null)
 						return resolved;
+				*/
 
-				resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
+				var resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
 
-				OnResolved(serviceType, name, resolved);
+				// OnResolved(serviceType, name, resolved);
 
 				return resolved;				
 			}
@@ -122,14 +125,16 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
+				/*
 				IEnumerable list = OnResolveAll(serviceType);
 					if (list != null)
 						return list;
+				*/
 
 				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
-				list = container.Resolve(resolveType) as IEnumerable;
+				var list = container.Resolve(resolveType) as IEnumerable;
 
-				OnResolvedAll(serviceType, list);
+				// OnResolvedAll(serviceType, list);
 
 				return list;				
 			}

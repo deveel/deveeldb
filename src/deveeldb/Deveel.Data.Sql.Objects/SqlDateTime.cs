@@ -368,8 +368,8 @@ namespace Deveel.Data.Sql.Objects {
             bytes[10]= (byte)(Millisecond & 0xff);
 			if (timeZone) {
 				var tsOffset = Offset;
-				bytes[11] = (byte) tsOffset.Hours;
-				bytes[12] = (byte) tsOffset.Minutes;
+				bytes[11] = (byte)(tsOffset.Hours + 20);
+				bytes[12] = (byte)(tsOffset.Minutes + 60);
 			}
 			return bytes;
 		}

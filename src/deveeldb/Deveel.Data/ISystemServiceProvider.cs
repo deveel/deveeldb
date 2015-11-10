@@ -38,7 +38,7 @@ namespace Deveel.Data {
 	/// </remarks>
 	/// <seealso cref="IServiceProvider"/>
 	public interface ISystemServiceProvider : IServiceProvider, IDisposable {
-		void AttachContext(IServiceResolveContext context);
+		// void AttachContext(IServiceResolveContext context);
 
 		/// <summary>
 		/// Resolves a service by its type and instance name.

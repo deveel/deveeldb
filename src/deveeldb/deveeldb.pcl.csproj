@@ -810,7 +810,6 @@
     <Compile Include="Deveel.Data\IObjectManager.cs" />
     <Compile Include="Deveel.Data\IObjectManagerResolver.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
-    <Compile Include="Deveel.Data\IServiceResolveContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\ISystemServiceProvider.cs" />

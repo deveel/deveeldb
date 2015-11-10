@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// This is the context of a database system, that handles the configurations
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
-	public sealed class SystemContext : ISystemContext, IServiceResolveContext {
+	public sealed class SystemContext : ISystemContext /*, IServiceResolveContext */ {
 		// We preserve an instance of some singletons...
 		private ISqlCompiler sqlCompiler;
 		private IEnumerable<IEventRouter> eventRouters;
@@ -116,9 +116,10 @@ namespace Deveel.Data {
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
 
-			ServiceProvider.AttachContext(this);
+			// ServiceProvider.AttachContext(this);
 		}
 
+		/*
 		object IServiceResolveContext.OnResolve(Type type, string name) {
 			if (typeof (ISqlCompiler).IsAssignableFrom(type))
 				return sqlCompiler;
@@ -156,5 +157,6 @@ namespace Deveel.Data {
 				}
 			}
 		}
+		*/
 	}
 }

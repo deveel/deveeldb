@@ -27,7 +27,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class DatabaseContext : IDatabaseContext, IServiceResolveContext {
+	public sealed class DatabaseContext : IDatabaseContext /*, IServiceResolveContext */ {
 		private ITableCellCache cellCache;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("configuration");
 
 			SystemContext = systemContext;
-			SystemContext.ServiceProvider.AttachContext(this);
+			// SystemContext.ServiceProvider.AttachContext(this);
 
 			Configuration = configuration;
 			Locker = new Locker(this);
@@ -131,6 +131,7 @@ namespace Deveel.Data {
 			get { return SystemContext; }
 		}
 
+		/*
 		object IServiceResolveContext.OnResolve(Type type, string name) {
 			if (typeof (ITableCellCache).IsAssignableFrom(type))
 				return cellCache;
@@ -152,5 +153,6 @@ namespace Deveel.Data {
 
 		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
 		}
+		*/
 	}
 }
