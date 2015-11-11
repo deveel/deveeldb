@@ -50,17 +50,6 @@ namespace Deveel.Data.Security {
 
 			var userName = userInfo.Name;
 
-			if (userName.Length <= 1)
-				throw new ArgumentException("User name must be at least one character.");
-			if (identifier.Length <= 1)
-				throw new ArgumentException("The password must be at least one character.");
-
-			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
-				throw new ArgumentException(String.Format("User name '{0}' is reserved and cannot be registered.", User.PublicName), "userName");
-
-			var c = userName[0];
-			if (c == '#' || c == '@' || c == '$' || c == '&')
-				throw new ArgumentException(String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
 			if (UserExists(userName))
 				throw new SecurityException(String.Format("User '{0}' is already registered.", userName));
 

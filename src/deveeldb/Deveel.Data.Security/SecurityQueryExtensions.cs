@@ -103,6 +103,17 @@ namespace Deveel.Data.Security {
 			return context.ForSystemUser().UserManager().UserExists(userName);
 		}
 
+		public static void CreatePublicUser(this IQueryContext context) {
+			if (!context.User().IsSystem)
+				throw new InvalidOperationException("The @PUBLIC user can be created only by the SYSTEM");
+
+			var userName = User.PublicName;
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(userName, userId);
+
+			context.ForSystemUser().UserManager().CreateUser(userInfo, "####");
+		}
+
 		public static User CreateUser(this IQueryContext context, string userName, string password) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
@@ -113,6 +124,19 @@ namespace Deveel.Data.Security {
 				throw new MissingPrivilegesException(userName, new ObjectName(userName), Privileges.Create,
 					String.Format("User '{0}' cannot create users.", context.UserName()));
 
+			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
+				throw new ArgumentException(
+					String.Format("User name '{0}' is reserved and cannot be registered.", User.PublicName), "userName");
+
+			if (userName.Length <= 1)
+				throw new ArgumentException("User name must be at least one character.");
+			if (password.Length <= 1)
+				throw new ArgumentException("The password must be at least one character.");
+
+			var c = userName[0];
+			if (c == '#' || c == '@' || c == '$' || c == '&')
+				throw new ArgumentException(
+					String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
 
 			var userId = UserIdentification.PlainText;
 			var userInfo = new UserInfo(userName, userId);

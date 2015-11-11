@@ -53,7 +53,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 			string s = null;
 			Assert.DoesNotThrow(() => s = addExp.ToString());
-			Assert.IsNotNullOrEmpty(s);
+			Assert.IsNotNull(s);
+			Assert.IsNotEmpty(s);
 			Assert.AreEqual("4566 + 8991.670000", s);
 		}
 

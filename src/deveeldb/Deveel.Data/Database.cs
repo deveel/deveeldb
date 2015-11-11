@@ -218,6 +218,21 @@ namespace Deveel.Data {
 							SystemSchema.CreateTables(context);
 							SystemGroups.Create(context);
 
+							context.CreatePublicUser();
+
+							// Create the system views
+							InformationSchema.CreateViews(context);
+							InformationSchema.GrantToPublic(context);
+
+							this.CreateAdminUser(context, adminName, adminPassword);
+
+							SetCurrentDataVersion(context);
+
+							// Set all default system procedures.
+							// TODO: SystemSchema.SetupSystemFunctions(session, username);
+
+							OnDatabaseCreate(context);
+
 							try {
 								// Close and commit this transaction.
 								session.Commit();
@@ -228,30 +243,6 @@ namespace Deveel.Data {
 							throw;
 						} catch (Exception ex) {
 							throw new DatabaseSystemException("An error occurred while creating the database.", ex);
-						}
-					}
-				}
-
-				using (var session = this.CreateInitialSystemSession()) {
-					using (var context = new SessionQueryContext(session)) {
-						// Create the system views
-						InformationSchema.CreateViews(context);
-
-
-						this.CreateAdminUser(context, adminName, adminPassword);
-
-						SetCurrentDataVersion(context);
-
-						// Set all default system procedures.
-						// TODO: SystemSchema.SetupSystemFunctions(session, username);
-
-						OnDatabaseCreate(context);
-
-						try {
-							// Close and commit this transaction.
-							session.Commit();
-						} catch (TransactionException e) {
-							throw new DatabaseSystemException("Could not commit the initial information", e);
 						}
 					}
 				}

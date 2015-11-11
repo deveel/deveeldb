@@ -296,13 +296,52 @@ namespace Deveel.Data {
 			context.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
 			context.AddForeignKey(UserGroupTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
 			context.AddForeignKey(UserGroupTableName, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "USER_GROUP_FK");
-			//context.AddForeignKey(UserConnectPrivilegesTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_CONNPRIV_FK");
 			context.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
 			context.AddForeignKey(GroupGrantsTable, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "GROUP_GRANTS_FK");
 		}
 
+		private static void CreateRoutineTables(IQueryContext context) {
+			var tableInfo = new TableInfo(RoutineTableName);
+			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
+			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
+			tableInfo = tableInfo.AsReadOnly();
+			context.CreateTable(tableInfo);
+
+			tableInfo = new TableInfo(RoutineParameterTableName);
+			tableInfo.AddColumn("routine_schema", PrimitiveTypes.String());
+			tableInfo.AddColumn("routine_name", PrimitiveTypes.String());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
+			tableInfo.AddColumn("type", PrimitiveTypes.String());
+			tableInfo.AddColumn("flags", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("default", PrimitiveTypes.String());
+			tableInfo = tableInfo.AsReadOnly();
+			context.CreateTable(tableInfo);
+
+			var fkCol = new[] { "routine_schema", "routine_name" };
+			var refCol = new[] { "schema", "name" };
+			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
+			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
+
+			context.AddForeignKey(RoutineParameterTableName, fkCol, RoutineTableName, refCol, onDelete, onUpdate, "ROUTINE_PARAMS_FK");
+		}
+
 		public static void CreateTables(IQueryContext context) {
 			CreateSecurityTables(context);
+			CreateRoutineTables(context);
+		}
+
+		public static void GrantToPublic(IQueryContext context) {
+			context.GrantToUserOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(StatisticsTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(VariablesTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(RoutineTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+			context.GrantToUserOnTable(SessionInfoTableName, User.PublicName, Privileges.TableRead);
 		}
 
 		public static void Setup(ITransaction transaction) {

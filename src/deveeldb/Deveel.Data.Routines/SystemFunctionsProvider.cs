@@ -128,6 +128,17 @@ namespace Deveel.Data.Routines {
 				.WithDynamicParameter("ifFalse")
 				.WhenExecute(context => SystemFunctions.Iif(context))
 				.ReturnsType(Function.DynamicType));
+
+			Register(config => config.Named("i_frule_convert")
+			.WithDynamicParameter("rule")
+			.ReturnsType(context => {
+				var argType = ReturnType(context.Arguments[0], context);
+				return argType is StringType ? (SqlType)PrimitiveTypes.Numeric() : (SqlType)PrimitiveTypes.String();
+			}));
+		}
+
+		private static SqlType ReturnType(SqlExpression exp, ExecuteContext context) {
+			return exp.ReturnType(context.QueryContext, context.VariableResolver);
 		}
 
 		protected override void OnInit() {

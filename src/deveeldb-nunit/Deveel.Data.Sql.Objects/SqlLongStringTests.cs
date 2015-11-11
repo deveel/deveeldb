@@ -101,7 +101,8 @@ namespace Deveel.Data.Sql.Objects {
 
 			string line = null;
 			Assert.DoesNotThrow(() => line = reader.ReadLine());
-			Assert.IsNotNullOrEmpty(line);
+			Assert.IsNotNull(line);
+			Assert.IsNotEmpty(line);
 
 			Assert.AreEqual(testLine, line);
 		}

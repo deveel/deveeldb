@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -122,6 +123,51 @@ namespace Deveel.Data.Routines {
 			}
 
 			return context.Result(result);
+		}
+
+		internal static DataObject FRuleConvert(DataObject obj) {
+			if (obj.Type is StringType) {
+				String str = null;
+				if (!obj.IsNull) {
+					str = obj.Value.ToString();
+				}
+				int v;
+				if (str == null || str.Equals("") || str.Equals("NO ACTION")) {
+					v = ImportedKey.NoAction;
+				} else if (str.Equals("CASCADE")) {
+					v = ImportedKey.Cascade;
+				} else if (str.Equals("SET NULL")) {
+					v = ImportedKey.SetNull;
+				} else if (str.Equals("SET DEFAULT")) {
+					v = ImportedKey.SetDefault;
+				} else if (str.Equals("RESTRICT")) {
+					v = ImportedKey.Restrict;
+				} else {
+					throw new InvalidOperationException("Unrecognised foreign key rule: " + str);
+				}
+
+				// Return the correct enumeration
+				return DataObject.Integer(v);
+			}
+			if (obj.Type is NumericType) {
+				var code = ((SqlNumber)obj.AsBigInt().Value).ToInt32();
+				string v;
+				if (code == (int)ForeignKeyAction.Cascade) {
+					v = "CASCADE";
+				} else if (code == (int)ForeignKeyAction.NoAction) {
+					v = "NO ACTION";
+				} else if (code == (int)ForeignKeyAction.SetDefault) {
+					v = "SET DEFAULT";
+				} else if (code == (int)ForeignKeyAction.SetNull) {
+					v = "SET NULL";
+				} else {
+					throw new InvalidOperationException("Unrecognised foreign key rule: " + code);
+				}
+
+				return DataObject.String(v);
+			}
+
+			throw new InvalidOperationException("Unsupported type in function argument");
 		}
 	}
 }

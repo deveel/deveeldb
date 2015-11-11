@@ -131,12 +131,11 @@ namespace Deveel.Data {
 				// This is the admin user so add to the 'secure access' table.
 				context.AddUserToGroup(adminName, SystemGroups.SecureGroup);
 
-				//context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.TcpIp, "%");
-				//context.GrantHostAccessToUser(adminName, KnownConnectionProtocols.Local, "%");
-
 				context.GrantToUserOnSchema(database.DatabaseContext.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
 				context.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
 				context.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
+
+				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {
