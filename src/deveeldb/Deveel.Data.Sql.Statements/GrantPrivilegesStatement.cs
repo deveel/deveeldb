@@ -42,7 +42,11 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override ITable ExecuteStatement(IQueryContext context) {
-			context.GrantToUserOn(ObjectName, Grantee, Privilege, WithGrant);
+			var obj = context.FindObject(ObjectName);
+			if (obj == null)
+				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
+
+			context.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

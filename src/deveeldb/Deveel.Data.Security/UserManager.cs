@@ -375,7 +375,7 @@ namespace Deveel.Data.Security {
 			return t.RowCount > 0;
 		}
 
-		public void AddUserToGroup(string userName, string groupName) {
+		public void AddUserToGroup(string userName, string groupName, bool asAdmin) {
 			if (String.IsNullOrEmpty(groupName))
 				throw new ArgumentNullException("group");
 			if (String.IsNullOrEmpty(userName))
@@ -390,8 +390,27 @@ namespace Deveel.Data.Security {
 				var row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, groupName);
+				row.SetValue(2, asAdmin);
 				table.AddRow(row);
 			}
+		}
+
+		public bool IsUserGroupAdmin(string userName, string groupName) {
+			// This is a special query that needs to access the lowest level of ITable, skipping
+			// other security controls
+			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var c1 = table.GetResolvedColumnName(0);
+			var c2 = table.GetResolvedColumnName(1);
+
+			// All 'user_group' where UserName = %username%
+			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+			// All from this set where PrivGroupName = %group%
+			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+			if (t.RowCount == 0)
+				return false;
+
+			return t.GetValue(0, 2).AsBoolean();
 		}
 
 		public bool RemoveUserFromGroup(string userName, string groupName) {

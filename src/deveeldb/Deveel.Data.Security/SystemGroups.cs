@@ -16,8 +16,6 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Security {
 	public static class SystemGroups {
 		/// <summary>
@@ -61,6 +59,13 @@ namespace Deveel.Data.Security {
 			context.CreateUserGroup(UserManagerGroup);
 			context.CreateUserGroup(SchemaManagerGroup);
 			context.CreateUserGroup(LockGroup);
+		}
+
+		public static bool IsSystemGroup(string groupName) {
+			return String.Equals(groupName, SecureGroup) ||
+			       String.Equals(groupName, UserManagerGroup) ||
+			       String.Equals(groupName, SchemaManagerGroup) ||
+			       String.Equals(groupName, LockGroup);
 		}
 	}
 }

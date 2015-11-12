@@ -21,9 +21,9 @@ using Deveel.Data.Sql;
 namespace Deveel.Data.Security {
 	/// <summary>
 	/// The entity that holds the access control granted to an
-	/// user to a specific object in a database.
+	/// user or a group to a specific object in a database.
 	/// </summary>
-	public sealed class UserGrant {
+	public sealed class Grant {
 		/// <summary>
 		/// Constructs a new grant for an user on the given
 		/// object, including the privileges of the grant.
@@ -34,7 +34,7 @@ namespace Deveel.Data.Security {
 		/// to grant the given access privileges to the user.</param>
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
 		/// <param name="granterName">The name of the user that granted.</param>
-		public UserGrant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName) 
+		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName) 
 			: this(privileges, objectName, objectType, granterName, false) {
 		}
 
@@ -49,7 +49,7 @@ namespace Deveel.Data.Security {
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
 		/// <param name="granterName">The name of the user that granted.</param>
 		/// <param name="withOption"></param>
-		public UserGrant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName, bool withOption) {
+		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName, bool withOption) {
 			if (String.IsNullOrEmpty(granterName))
 				throw new ArgumentNullException("granterName");
 			if (objectName == null)

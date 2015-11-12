@@ -123,7 +123,7 @@ namespace Deveel.Data.Security {
 				if (!IsAuthenticated)
 					return false;
 
-				return Context.UserHasSecureAccess(Name);
+				return Context.UserHasSecureAccess();
 			}
 		}
 

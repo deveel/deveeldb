@@ -257,6 +257,7 @@
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
+    <Compile Include="Deveel.Data.Security\Grant.cs" />
     <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
     <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
@@ -273,7 +274,6 @@
     <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Security\SystemGroups.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
-    <Compile Include="Deveel.Data.Security\UserGrant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />

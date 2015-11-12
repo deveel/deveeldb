@@ -255,16 +255,9 @@ namespace Deveel.Data {
 			tableInfo = new TableInfo(UserGroupTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("group", PrimitiveTypes.String());
+			tableInfo.AddColumn("admin", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
 			context.CreateSystemTable(tableInfo);
-
-			//tableInfo = new TableInfo(UserConnectPrivilegesTableName);
-			//tableInfo.AddColumn("user", PrimitiveTypes.String());
-			//tableInfo.AddColumn("protocol", PrimitiveTypes.String());
-			//tableInfo.AddColumn("host", PrimitiveTypes.String());
-			//tableInfo.AddColumn("access", PrimitiveTypes.Boolean());
-			//tableInfo = tableInfo.AsReadOnly();
-			//context.CreateSystemTable(tableInfo);
 
 			tableInfo = new TableInfo(GroupsTableName);
 			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
@@ -286,7 +279,10 @@ namespace Deveel.Data {
 			tableInfo = new TableInfo(GroupGrantsTable);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("group", PrimitiveTypes.String());
+			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
+			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 
 			var fkCol = new[] {"user"};
 			var gfkCol = new[] {"group"};

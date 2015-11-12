@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class GrantRoleStatement : SqlStatement {
@@ -8,6 +7,11 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public GrantRoleStatement(string userName, string role, bool withAdmin) {
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
+			if (String.IsNullOrEmpty(role))
+				throw new ArgumentNullException("role");
+
 			UserName = userName;
 			Role = role;
 			WithAdmin = withAdmin;

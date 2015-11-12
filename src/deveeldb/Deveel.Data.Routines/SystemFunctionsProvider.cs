@@ -131,6 +131,7 @@ namespace Deveel.Data.Routines {
 
 			Register(config => config.Named("i_frule_convert")
 			.WithDynamicParameter("rule")
+			.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
 			.ReturnsType(context => {
 				var argType = ReturnType(context.Arguments[0], context);
 				return argType is StringType ? (SqlType)PrimitiveTypes.Numeric() : (SqlType)PrimitiveTypes.String();
