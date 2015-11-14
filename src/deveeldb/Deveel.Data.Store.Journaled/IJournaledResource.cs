@@ -84,6 +84,7 @@ namespace Deveel.Data.Store.Journaled {
 		/// <seealso cref="Size"/>
 		void SetSize(long size);
 
+
 		/// <summary>
 		/// Opens the resource for usage with a given read-only mode.
 		/// </summary>

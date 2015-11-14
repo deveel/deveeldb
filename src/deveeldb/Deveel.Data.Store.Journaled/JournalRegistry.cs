@@ -22,7 +22,7 @@ using System.Text;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Store.Journaled {
-	class JournalRegistry {
+	class JournalRegistry : IDisposable {
 		private BinaryWriter writer;
 		private int refCount;
 
@@ -43,13 +43,17 @@ namespace Deveel.Data.Store.Journaled {
 			curSeqId = 0;
 		}
 
+		~JournalRegistry() {
+			Dispose(false);
+		}
+
 		public JournalingSystem System { get; private set; }
 
 		public string FileName { get; private set; }
 
 		public bool IsReadOnly { get; private set; }
 
-		public File File { get; private set; }
+		public JournalFile File { get; private set; }
 
 		public bool IsOpen { get; private set; }
 
@@ -92,11 +96,11 @@ namespace Deveel.Data.Store.Journaled {
 			if (IsOpen)
 				throw new IOException(String.Format("Journal file '{0}' is already open.", FileName));
 
-			if (System.FileHandleFactory.FileExists(FileName))
+			if (System.FileSystem.FileExists(FileName))
 				throw new IOException(String.Format("Journal file '{0}' already exists.", FileName));
 
 			JournalNumber = journalNumber;
-			File = new File(System, FileName, IsReadOnly);
+			File = new JournalFile(System, FileName, IsReadOnly);
 
 			writer = new BinaryWriter(File.FileStream, Encoding.Unicode);
 			writer.Write(JournalNumber);
@@ -136,6 +140,88 @@ namespace Deveel.Data.Store.Journaled {
 
 		public void Unreference() {
 			Close(true);
+		}
+
+		public void Persist(long start, long end) {
+			long position = start;
+			bool finished = false;
+
+			var idNameMap = new Dictionary<long, string>();
+			var updated = new List<ISystemJournaledResource>();
+
+			var reader = new BinaryReader(File.FileStream, Encoding.Unicode);
+			File.FileStream.Seek(start, SeekOrigin.Begin);
+
+			while (!finished) {
+				var type = reader.ReadInt64();
+				var size = reader.ReadInt32();
+				position = position + size + 12;
+
+				if (type == 2) {
+					PersistIdTag(reader, idNameMap, updated);
+				} else if (type == 6) {
+					PersistDelete(reader, idNameMap);
+				} else if (type == 3) {
+					PersistSizeChange(reader, idNameMap);
+				} else if (type == 1) {
+					PersistPageModify(reader, idNameMap);
+				} else if (type == 100) {
+					if (position == end)
+						finished = true;
+				} else {
+					throw new InvalidOperationException();
+				}
+			}
+
+			foreach (var resource in updated) {
+				resource.Synch();
+			}
+
+			reader.Close();
+		}
+
+		private void PersistIdTag(BinaryReader reader, IDictionary<long, string> idNameMap, IList<ISystemJournaledResource> resources) {
+			long id = reader.ReadInt64();
+			int len = reader.ReadInt32();
+			StringBuilder buf = new StringBuilder(len);
+			for (int i = 0; i < len; ++i) {
+				buf.Append(reader.ReadChar());
+			}
+
+			var name = buf.ToString();
+
+			idNameMap[id] = name;
+
+			resources.Add(System.GetResource(name));
+		}
+
+		private void PersistDelete(BinaryReader reader, IDictionary<long, string> idNameMap) {
+			var id = reader.ReadInt64();
+			var name = idNameMap[id];
+			var resource = System.GetResource(name);
+
+			resource.PersistDelete();
+		}
+
+		private void PersistSizeChange(BinaryReader reader, IDictionary<long, string> idNameMap) {
+			var id = reader.ReadInt64();
+			var newSize = reader.ReadInt64();
+			var name = idNameMap[id];
+			var resource = System.GetResource(name);
+
+			resource.PersistSetSize(newSize);
+		}
+
+		private void PersistPageModify(BinaryReader reader, IDictionary<long, string> idNameMap) {
+			long id = reader.ReadInt64();
+			long page = reader.ReadInt64();
+			int off = reader.ReadInt32();
+			int len = reader.ReadInt32();
+
+			var resourceName = idNameMap[id];
+			var resource = System.GetResource(resourceName);
+
+			resource.PersistPageChange(page, off, len, reader);
 		}
 
 		public void Checkpoint() {
@@ -222,7 +308,104 @@ namespace Deveel.Data.Store.Journaled {
 				// Read the content.
 				File.Read(position + 36, buffer, offset + pageOffset, pageLength);
 			}
+		}
 
+		public JournalRegistryInfo Open() {
+			if (IsOpen)
+				throw new IOException("The registry is already open.");
+
+			if (!System.FileSystem.FileExists(FileName))
+				throw new IOException(string.Format("The file '{0}' does not exist.", FileName));
+
+			var file = System.FileSystem.OpenFile(FileName, IsReadOnly);
+			File = new JournalFile(file);
+
+			IsOpen = true;
+
+			var info = new JournalRegistryInfo(this);
+
+			var endOffset = File.Length;
+
+			// if we can't even read the journal number return an empty info
+			if (endOffset < 8)
+				return info;
+
+			var reader = new BinaryReader(File.FileStream, Encoding.Unicode);
+
+			try {
+				var journalNumber = reader.ReadInt64();
+
+				var resources = new List<string>();
+
+				// the start offset is after the journal number
+				long offset = 8;
+
+				while (true) {
+					// If we can't read 12 bytes ahead, return the summary
+					if (offset + 12 > endOffset)
+						return info;
+
+					long type = reader.ReadInt64();
+					int size = reader.ReadInt32();
+
+					offset = offset + size + 12;
+
+					bool skipBody = true;
+
+					// If checkpoint reached then we are recoverable
+					if (type == 100) {
+						info.LastCheckPoint = offset;
+						info.Recoverable = true;
+
+						// Add the resources input this check point
+						info.AddResources(resources);
+
+						// And clear the temporary list.
+						resources.Clear();
+					} else if (offset >= endOffset || type < 1 || type > 7) {
+						// If end reached, or type is not understood then return
+						return info;
+					}
+
+					if (type == 2) {
+						// We don't skip body for this type, we Read the content
+						skipBody = false;
+
+						var id = reader.ReadInt64();
+						var strLength = reader.ReadInt32();
+						StringBuilder str = new StringBuilder(strLength);
+						for (int i = 0; i < strLength; ++i) {
+							str.Append(reader.ReadChar());
+						}
+
+						var resourceName = str.ToString();
+						resources.Add(resourceName);
+					}
+
+					if (skipBody)
+						reader.ReadBytes(size);
+				}
+			} finally {
+				reader.Close();
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (File != null)
+					File.Dispose();
+
+				if (writer != null)
+					writer.Close();
+			}
+
+			File = null;
+			writer = null;
 		}
 	}
 }

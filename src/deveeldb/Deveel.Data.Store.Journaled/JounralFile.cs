@@ -18,38 +18,38 @@ using System;
 using System.IO;
 
 namespace Deveel.Data.Store.Journaled {
-	public sealed class File : IDisposable {
-		private readonly bool createdHandle;
+	public sealed class JournalFile : IDisposable {
+		private readonly bool ownsFile;
 		private long endPosition;
 
-		public File(IFileHandle fileHandle) {
-			if (fileHandle == null)
-				throw new ArgumentNullException("fileHandle");
+		public JournalFile(IFile file) {
+			if (file == null)
+				throw new ArgumentNullException("file");
 
-			FileHandle = fileHandle;
+			File = file;
 
-			endPosition = FileHandle.Length;
+			endPosition = File.Length;
 			FileStream = new AccessStream(this);
 		}
 
-		public File(JournalingSystem system, string fileName, bool readOnly)
+		public JournalFile(JournalingSystem system, string fileName, bool readOnly)
 			: this(CreateHandle(system, fileName, readOnly)) {
-			createdHandle = true;
+			ownsFile = true;
 		}
 
-		~File() {
+		~JournalFile() {
 			Dispose(false);
 		}
 
-		public IFileHandle FileHandle { get; private set; }
+		public IFile File { get; private set; }
 
 		public string FileName {
-			get { return FileHandle.FileName; }
+			get { return File.FileName; }
 		}
 
 		public long Length {
 			get {
-				lock (FileHandle) {
+				lock (File) {
 					return endPosition;
 				}
 			}
@@ -57,8 +57,8 @@ namespace Deveel.Data.Store.Journaled {
 
 		public Stream FileStream { get; private set; }
 
-		private static IFileHandle CreateHandle(JournalingSystem system, string fileName, bool readOnly) {
-			return system.FileHandleFactory.CreateHandle(fileName, readOnly);
+		private static IFile CreateHandle(JournalingSystem system, string fileName, bool readOnly) {
+			return system.FileSystem.OpenFile(fileName, readOnly);
 		}
 
 		public void Dispose() {
@@ -74,44 +74,44 @@ namespace Deveel.Data.Store.Journaled {
 					if (FileStream != null)
 						FileStream.Dispose();
 
-					if (createdHandle && FileHandle != null)
-						FileHandle.Dispose();
+					if (ownsFile && File != null)
+						File.Dispose();
 				} catch (Exception) {
 				}
 			}
 
-			FileHandle = null;
+			File = null;
 			FileStream = null;
 		}
 
 		public void Close() {
-			lock (FileHandle) {
-				FileHandle.Close();
+			lock (File) {
+				File.Close();
 			}
 		}
 
 		public void Sync() {
-			lock (FileHandle) {
+			lock (File) {
 				try {
-					FileHandle.Flush(true);
+					File.Flush(true);
 				} catch (Exception) {
 				}
 			}
 		}
 
 		public void Delete() {
-			lock (FileHandle) {
-				FileHandle.Delete();
+			lock (File) {
+				File.Delete();
 			}
 		}
 
 		public void Read(long position, byte[] buffer, int offset, int length) {
-			lock (FileHandle) {
-				FileHandle.Seek(position, SeekOrigin.Begin);
+			lock (File) {
+				File.Seek(position, SeekOrigin.Begin);
 				
 				int toRead = length;
 				while (toRead > 0) {
-					int read = FileHandle.Read(buffer, offset, toRead);
+					int read = File.Read(buffer, offset, toRead);
 					toRead -= read;
 					offset += read;
 				}
@@ -121,21 +121,21 @@ namespace Deveel.Data.Store.Journaled {
 		#region AccessStream
 
 		class AccessStream : Stream {
-			private File file;
+			private JournalFile file;
 			private long fp;
 
-			public AccessStream(File file) {
+			public AccessStream(JournalFile file) {
 				this.file = file;
 			}
 
 			public override void Flush() {
-				lock (file.FileHandle) {
-					file.FileHandle.Flush(false);
+				lock (file.File) {
+					file.File.Flush(false);
 				}
 			}
 
 			public override long Seek(long offset, SeekOrigin origin) {
-				lock (file.FileHandle) {
+				lock (file.File) {
 					long fileLen = file.endPosition;
 					if (origin == SeekOrigin.Begin && offset > fileLen)
 						return fp;
@@ -143,26 +143,26 @@ namespace Deveel.Data.Store.Journaled {
 					if (origin == SeekOrigin.Current && fp + offset > fileLen)
 						return fp;
 
-					fp = file.FileHandle.Seek(offset, origin);
+					fp = file.File.Seek(offset, origin);
 					return fp;
 				}
 			}
 
 			public override void SetLength(long value) {
-				lock (file.FileHandle) {
-					file.FileHandle.SetLength(value);
+				lock (file.File) {
+					file.File.SetLength(value);
 					file.endPosition = value;
 				}
 			}
 
 			public override int Read(byte[] buffer, int offset, int count) {
-				lock (file.FileHandle) {
+				lock (file.File) {
 					count = (int)System.Math.Min(count, file.endPosition - fp);
 					if (count <= 0)
 						return 0;
 
-					fp = file.FileHandle.Seek(fp, SeekOrigin.Begin);
-					int readCount = file.FileHandle.Read(buffer, offset, count);
+					fp = file.File.Seek(fp, SeekOrigin.Begin);
+					int readCount = file.File.Read(buffer, offset, count);
 					fp += readCount;
 					return readCount;
 				}
@@ -170,9 +170,9 @@ namespace Deveel.Data.Store.Journaled {
 
 			public override void Write(byte[] buffer, int offset, int count) {
 				if (count > 0) {
-					lock (file.FileHandle) {
-						file.FileHandle.Seek(file.endPosition, SeekOrigin.Begin);
-						file.FileHandle.Write(buffer, offset, count);
+					lock (file.File) {
+						file.File.Seek(file.endPosition, SeekOrigin.Begin);
+						file.File.Write(buffer, offset, count);
 						file.endPosition += count;
 						fp += count;
 					}
@@ -188,7 +188,7 @@ namespace Deveel.Data.Store.Journaled {
 			}
 
 			public override bool CanWrite {
-				get { return !file.FileHandle.IsReadOnly; }
+				get { return !file.File.IsReadOnly; }
 			}
 
 			public override long Length {

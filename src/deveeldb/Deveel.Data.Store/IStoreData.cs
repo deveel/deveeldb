@@ -109,7 +109,7 @@ namespace Deveel.Data.Store {
 		/// <remarks>
 		/// If the <paramref name="value"/> is less than <see cref="Length"/> this
 		/// method will shrink the data block and trim the exceeding contents. If the
-		/// <see cref="value"/> is more than <see cref="Length"/> then it is responsibility
+		/// <paramref name="value"/> is more than <see cref="Length"/> then it is responsibility
 		/// of the implementation of this contract to increase the contents.
 		/// </remarks>
 		void SetLength(long value);

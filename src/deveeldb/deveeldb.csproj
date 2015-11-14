@@ -176,6 +176,13 @@
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\LimitedTable.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\ISystemJournaledResource.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\JournalRegistryInfo.cs" />
+    <Compile Include="Deveel.Data.Store\IFile.cs" />
+    <Compile Include="Deveel.Data.Store\IFileSystem.cs" />
+    <Compile Include="Deveel.Data.Store\LocalFile.cs" />
+    <Compile Include="Deveel.Data.Store\LocalFileSystem.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
     <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
     <Compile Include="Deveel.Data.Util\IBigList.cs" />
@@ -797,10 +804,8 @@
     <Compile Include="Deveel.Data.Sql\TableQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\View.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\BufferManager.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\File.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\JounralFile.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\IBufferManager.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\IFileHandle.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\IFileHandleFactory.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\IJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournalEntry.cs" />
