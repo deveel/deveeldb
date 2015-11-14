@@ -94,7 +94,7 @@ namespace Deveel.Data.Security {
 
 		[Test]
 		public void LockUser() {
-			Assert.DoesNotThrow(() => QueryContext.SetUserStatus("tester", UserStatus.Locked));
+			QueryContext.SetUserStatus("tester", UserStatus.Locked);
 
 			UserStatus status = new UserStatus();
 			Assert.DoesNotThrow(() => status = QueryContext.GetUserStatus("tester"));

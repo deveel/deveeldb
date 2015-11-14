@@ -117,18 +117,22 @@ namespace Deveel.Data.Types {
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
-			if (!(obj is SqlBoolean))
-				throw new ArgumentException("Cannot serialize an object that is not a BOOLEAN using a boolean type.");
-
-			var b = (SqlBoolean) obj;
 			var writer = new BinaryWriter(stream);
 
-			if (b.IsNull) {
+			if (obj is SqlNull) {
 				writer.Write((byte)0);
+			} else if (obj is SqlBoolean) {
+				var b = (SqlBoolean)obj;
+
+				if (b.IsNull) {
+					writer.Write((byte)0);
+				} else {
+					var value = (bool)b;
+					writer.Write((byte)1);
+					writer.Write((byte)(value ? 1 : 0));
+				}
 			} else {
-				var value = (bool) b;
-				writer.Write((byte)1);
-				writer.Write((byte)(value ? 1 : 0));
+				throw new ArgumentException("Cannot serialize an object that is not a BOOLEAN using a boolean type.");
 			}
 		}
 
