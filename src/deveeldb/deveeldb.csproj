@@ -130,6 +130,7 @@
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurable.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfiguration.cs" />
+    <Compile Include="Deveel.Data.Configuration\IConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
@@ -179,13 +180,19 @@
     <Compile Include="Deveel.Data.Store.Journaled\ISystemJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournalRegistryInfo.cs" />
+    <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
+    <Compile Include="Deveel.Data.Store\FileStream.cs" />
     <Compile Include="Deveel.Data.Store\IFile.cs" />
     <Compile Include="Deveel.Data.Store\IFileSystem.cs" />
+    <Compile Include="Deveel.Data.Store\IStoreData.cs" />
     <Compile Include="Deveel.Data.Store\LocalFile.cs" />
     <Compile Include="Deveel.Data.Store\LocalFileSystem.cs" />
+    <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
+    <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
     <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
     <Compile Include="Deveel.Data.Util\IBigList.cs" />
+    <Compile Include="Deveel.Data.Util\StreamExtensions.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />
@@ -817,7 +824,6 @@
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
     <Compile Include="Deveel.Data.Store\DefaultStorageSystemNames.cs" />
-    <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStorageSystem.cs" />
@@ -829,7 +835,6 @@
     <Compile Include="Deveel.Data.Sql.Objects\ISqlString.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\NumericState.cs" />
     <Compile Include="Deveel.Data.Store\IObjectStore.cs" />
-    <Compile Include="Deveel.Data.Store\IStoreData.cs" />
     <Compile Include="Deveel.Data.Store\IStoreDataFactory.cs" />
     <Compile Include="Deveel.Data.Store\IStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\ObjectId.cs" />

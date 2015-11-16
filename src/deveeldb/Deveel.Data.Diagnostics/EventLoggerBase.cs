@@ -158,7 +158,17 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		void IConfigurable.Configure(IConfiguration config) {
-			OnConfigure(config);
+			try {
+				OnConfigure(config);
+			} finally {
+				configured = true;
+			}
+		}
+
+		private bool configured;
+
+		bool IConfigurable.IsConfigured {
+			get { return configured; }
 		}
 
 		protected virtual void OnConfigure(IConfiguration config) {

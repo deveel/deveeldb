@@ -195,7 +195,7 @@ namespace Deveel.Data {
 
 					try {
 						try {
-							Store.LockForWrite();
+							Store.Lock();
 
 							// Force a garbage collection event.
 							if (!IsReadOnly)
@@ -209,7 +209,7 @@ namespace Deveel.Data {
 								ReleaseObjects();
 							}
 						} finally {
-							Store.UnlockForWrite();
+							Store.Unlock();
 						}
 					} catch (Exception) {
 						// TODO: Register the error to the logs 
@@ -491,12 +491,12 @@ namespace Deveel.Data {
 			Store = StoreSystem.CreateStore(StoreIdentity);
 
 			try {
-				Store.LockForWrite();
+				Store.Lock();
 
 				// Setup the list structure
 				recordList = new FixedRecordList(Store, 12);
 			} finally {
-				Store.UnlockForWrite();
+				Store.Unlock();
 			}
 
 			// Initialize the store to an empty state,
@@ -525,7 +525,7 @@ namespace Deveel.Data {
 			}
 
 			try {
-				Store.LockForWrite();
+				Store.Lock();
 
 				// Allocate an 80 byte header
 				var headerWriter = Store.CreateArea(80);
@@ -572,7 +572,7 @@ namespace Deveel.Data {
 				// Set the header area
 				headerArea = Store.GetArea(headerPointer);
 			} finally {
-				Store.UnlockForWrite();
+				Store.Unlock();
 			}
 		}
 
@@ -648,12 +648,12 @@ namespace Deveel.Data {
 
 				try {
 					try {
-						Store.LockForWrite();
+						Store.Lock();
 						headerArea.Position = 4 + 4;
 						headerArea.WriteInt8(sequenceId);
 						headerArea.Flush();
 					} finally {
-						Store.UnlockForWrite();
+						Store.Unlock();
 					}
 				} catch (IOException e) {
 					throw new InvalidOperationException("IO Error: " + e.Message);
@@ -671,12 +671,12 @@ namespace Deveel.Data {
 
 				try {
 					try {
-						Store.LockForWrite();
+						Store.Lock();
 						headerArea.Position = 4 + 4;
 						headerArea.WriteInt8(sequenceId);
 						headerArea.Flush();
 					} finally {
-						Store.UnlockForWrite();
+						Store.Unlock();
 					}
 				} catch (IOException e) {
 					throw new InvalidOperationException("IO Error: " + e.Message, e);
@@ -777,13 +777,13 @@ namespace Deveel.Data {
 
 				// Write the new status
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					blockArea.Position = pos;
 					blockArea.WriteInt4((int)state);
 					blockArea.Flush();
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 
 				return oldStatus;
@@ -868,7 +868,7 @@ namespace Deveel.Data {
 
 				// Update the status record.
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					blockArea.Position = p;
 					blockArea.WriteInt4((int)RecordState.Deleted);
@@ -887,7 +887,7 @@ namespace Deveel.Data {
 					Store.DeleteArea(recordPointer);
 				} finally {
 					RemoveRowFromCache(rowIndex);
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 			}
 		}
@@ -976,7 +976,7 @@ namespace Deveel.Data {
 				firstDeleteChainRecord = nextChain;
 
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					// Update the first_delete_chain_record field input the header
 					recordList.WriteDeleteHead(firstDeleteChainRecord);
@@ -987,7 +987,7 @@ namespace Deveel.Data {
 					block.WriteInt8(recordPointer);
 					block.Flush();
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 
 				return recycledRecord;
@@ -996,7 +996,7 @@ namespace Deveel.Data {
 
 		private void GrowRecordList() {
 			try {
-				Store.LockForWrite();
+				Store.Lock();
 
 				// Increase the size of the list structure.
 				recordList.IncreaseSize();
@@ -1026,7 +1026,7 @@ namespace Deveel.Data {
 				// Set the reserved area
 				recordList.WriteDeleteHead(firstDeleteChainRecord);
 			} finally {
-				Store.UnlockForWrite();
+				Store.Unlock();
 			}
 		}
 
@@ -1066,7 +1066,7 @@ namespace Deveel.Data {
 			int[] cellTypes = new int[rowCells];
 
 			try {
-				Store.LockForWrite();
+				Store.Lock();
 
 				// Establish a reference to any blobs input the record
 				int allRecordsSize = 0;
@@ -1148,7 +1148,7 @@ namespace Deveel.Data {
 				// Return the record
 				return recordPointer;
 			} finally {
-				Store.UnlockForWrite();
+				Store.Unlock();
 			}
 		}
 

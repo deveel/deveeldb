@@ -778,11 +778,11 @@ namespace Deveel.Data.Store {
 			return new StoreArea(this, id, id, readOnly);
 		}
 
-		public abstract void LockForWrite();
+		public abstract void Lock();
 
-		public abstract void UnlockForWrite();
+		public abstract void Unlock();
 
-		public abstract void CheckPoint();
+		//public abstract void CheckPoint();
 
 		public bool ClosedClean { get; private set; }
 

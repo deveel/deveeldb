@@ -159,7 +159,7 @@ namespace Deveel.Data {
 				++currentTableId;
 
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					// Update the state in the file
 					headerArea.Position = 8;
@@ -168,7 +168,7 @@ namespace Deveel.Data {
 					// Check out the change
 					headerArea.Flush();
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 
 				return curCounter;
@@ -244,7 +244,7 @@ namespace Deveel.Data {
 				long newDelP = delAreaPointer;
 
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					// If the lists changed, then Write new state areas to the store.
 					if (visListChange) {
@@ -276,7 +276,7 @@ namespace Deveel.Data {
 						}
 					}
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 			}
 		}

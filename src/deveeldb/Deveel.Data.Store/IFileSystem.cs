@@ -9,5 +9,7 @@ namespace Deveel.Data.Store {
 		IFile CreateFile(string path);
 
 		bool DeleteFile(string path);
+
+		string CombinePath(string path1, string path2);
 	}
 }

@@ -56,6 +56,10 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
+		bool IConfigurable.IsConfigured {
+			get { return configured; }
+		}
+
 		public void Set(CachedCell cell) {
 			if (!configured)
 				return;

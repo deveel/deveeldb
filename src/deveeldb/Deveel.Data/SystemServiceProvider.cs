@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Deveel.Data.Configuration;
+
 using DryIoc;
 
 namespace Deveel.Data {
@@ -92,7 +94,27 @@ namespace Deveel.Data {
 		}
 		*/
 
-		public object Resolve(Type serviceType, string name) {
+		private void Configure(object resolved, IConfigurationProvider provider) {
+			if (provider == null)
+				provider = SystemContext;
+
+			var configurable = resolved as IConfigurable;
+			if (configurable != null &&
+				!configurable.IsConfigured)
+				configurable.Configure(provider.Configuration);
+		}
+
+		private void Configure(IEnumerable list, IConfigurationProvider provider) {
+			if (list == null)
+				return;
+
+			var configurables = list.OfType<IConfigurable>();
+			foreach (var configurable in configurables) {
+				Configure(configurable, provider);
+			}
+		}
+
+		public object Resolve(Type serviceType, string name, IConfigurationProvider provider) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -100,24 +122,17 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				/* var resolved = OnResolve(serviceType, name);
-					if (resolved != null)
-						return resolved;
-				*/
-
 				var resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
-
-				// OnResolved(serviceType, name, resolved);
-
+				Configure(resolved, provider);
 				return resolved;				
 			}
 		}
 
 		object IServiceProvider.GetService(Type serviceType) {
-			return Resolve(serviceType, null);
+			return Resolve(serviceType, null, SystemContext);
 		}
 
-		public IEnumerable ResolveAll(Type serviceType) {
+		public IEnumerable ResolveAll(Type serviceType, IConfigurationProvider provider) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -125,16 +140,10 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				/*
-				IEnumerable list = OnResolveAll(serviceType);
-					if (list != null)
-						return list;
-				*/
-
 				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
 				var list = container.Resolve(resolveType) as IEnumerable;
 
-				// OnResolvedAll(serviceType, list);
+				Configure(list, provider);
 
 				return list;				
 			}

@@ -18,22 +18,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Configuration;
+
 namespace Deveel.Data {
 	public static class SystemServiceProviderExtensions {
 		public static object Resolve(this ISystemServiceProvider provider, Type type) {
-			return provider.Resolve(type, null);
+			return Resolve(provider, type, null);
+		}
+
+		public static object Resolve(this ISystemServiceProvider provider, Type type, IConfigurationProvider configurationProvider) {
+			return provider.Resolve(type, null, configurationProvider);
 		}
 
 		public static T Resolve<T>(this ISystemServiceProvider provider) {
-			return Resolve<T>(provider, null);
+			return Resolve<T>(provider, null,  null);
+		}
+
+		public static T Resolve<T>(this ISystemServiceProvider provider, IConfigurationProvider configurationProvider) {
+			return Resolve<T>(provider, null, configurationProvider);
 		}
 
 		public static T Resolve<T>(this ISystemServiceProvider provider, string name) {
-			return (T) provider.Resolve(typeof (T), name);
+			return Resolve<T>(provider, name, null);
+		}
+
+		public static T Resolve<T>(this ISystemServiceProvider provider, string name, IConfigurationProvider configurationProvider) {
+			return (T) provider.Resolve(typeof (T), name, configurationProvider);
 		}
 
 		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider) {
-			return provider.ResolveAll(typeof (T)).Cast<T>();
+			return ResolveAll<T>(provider, null);
+		}
+
+		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider, IConfigurationProvider configurationProvider) {
+			return provider.ResolveAll(typeof (T), configurationProvider).Cast<T>();
 		}
 
 		public static void Register(this ISystemServiceProvider provider, Type type) {

@@ -19,7 +19,6 @@ using System.Collections.Generic;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Routines;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
 
@@ -77,5 +76,25 @@ namespace Deveel.Data {
 		public static ITableCellCache TableCellCache(this IDatabaseContext context) {
 			return context.SystemContext.TableCellCache();
 		}
+
+		#region Services
+
+		public static object ResolveService(this IDatabaseContext context, Type serviceType) {
+			return ResolveService(context, serviceType, null);
+		}
+
+		public static object ResolveService(this IDatabaseContext context, Type serviceType, string name) {
+			return context.SystemContext.ResolveService(serviceType, name, context);
+		}
+
+		public static TService ResolveService<TService>(this IDatabaseContext context) {
+			return ResolveService<TService>(context, null);
+		}
+
+		public static TService ResolveService<TService>(this IDatabaseContext context, string name) {
+			return context.SystemContext.ResolveService<TService>(name, context);
+		}
+
+		#endregion
 	}
 }

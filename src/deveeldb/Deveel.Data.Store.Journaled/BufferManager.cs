@@ -21,7 +21,7 @@ using System.Threading;
 using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Store.Journaled {
-	public sealed class BufferManager : IBufferManager, IConfigurable {
+	public sealed class BufferManager : IBufferManager {
 		private IComparer<Page> pageComparer;
 		private List<Page> pages;
 		private Page[] pageMap;
@@ -305,10 +305,6 @@ namespace Deveel.Data.Store.Journaled {
 					Monitor.PulseAll(writeLock);
 				}
 			}
-		}
-
-		void IConfigurable.Configure(IConfiguration config) {
-			// TODO:
 		}
 
 		#region Page

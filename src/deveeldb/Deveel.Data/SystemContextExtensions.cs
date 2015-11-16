@@ -47,23 +47,43 @@ namespace Deveel.Data {
 		#region Services
 
 		public static object ResolveService(this ISystemContext context, Type serviceType) {
-			return ResolveService(context, serviceType, null);
+			return ResolveService(context, serviceType, context);
+		}
+
+		public static object ResolveService(this ISystemContext context, Type serviceType, IConfigurationProvider provider) {
+			return ResolveService(context, serviceType, null, provider);
 		}
 
 		public static object ResolveService(this ISystemContext context, Type serviceType, string name) {
-			return context.ServiceProvider.Resolve(serviceType, name);
+			return ResolveService(context, serviceType, name, context);
+		}
+
+		public static object ResolveService(this ISystemContext context, Type serviceType, string name, IConfigurationProvider provider) {
+			return context.ServiceProvider.Resolve(serviceType, name, provider);
 		}
 
 		public static TService ResolveService<TService>(this ISystemContext context) {
-			return ResolveService<TService>(context, null);
+			return ResolveService<TService>(context, context);
+		}
+
+		public static TService ResolveService<TService>(this ISystemContext context, IConfigurationProvider provider) {
+			return ResolveService<TService>(context, null, provider);
 		}
 
 		public static TService ResolveService<TService>(this ISystemContext context, string name) {
-			return context.ServiceProvider.Resolve<TService>(name);
+			return ResolveService<TService>(context, name, context);
+		}
+
+		public static TService ResolveService<TService>(this ISystemContext context, string name, IConfigurationProvider provider) {
+			return context.ServiceProvider.Resolve<TService>(name, provider);
 		}
 
 		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context) {
-			return context.ServiceProvider.ResolveAll<TService>();
+			return ResolveServices<TService>(context, context);
+		}
+
+		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context, IConfigurationProvider provider) {
+			return context.ServiceProvider.ResolveAll<TService>(provider);
 		}
 
 		public static void RegisterService<TService>(this ISystemContext context) {

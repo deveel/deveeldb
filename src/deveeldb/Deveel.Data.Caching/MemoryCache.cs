@@ -83,8 +83,9 @@ namespace Deveel.Data.Caching {
 			return null;
 		}
 
-		public override void Configure(IConfiguration config) {
-			base.Configure(config);
+		protected override void ConfigureCache(IConfiguration config) {
+			// TODO:
+			base.ConfigureCache(config);
 		}
 
 		protected override bool SetObject(object key, object value) {

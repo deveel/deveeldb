@@ -118,6 +118,8 @@
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurable.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfiguration.cs" />
+    <Compile Include="Deveel.Data.Configuration\IConfigurationProvider.cs" />
+    <Compile Include="Deveel.Data.Configuration\IPostConfigureCallback.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
@@ -703,8 +705,11 @@
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
     <Compile Include="Deveel.Data.Store\DefaultStorageSystemNames.cs" />
+    <Compile Include="Deveel.Data.Store\FileStream.cs" />
     <Compile Include="Deveel.Data.Store\FixedRecordList.cs" />
     <Compile Include="Deveel.Data.Store\IArea.cs" />
+    <Compile Include="Deveel.Data.Store\IFile.cs" />
+    <Compile Include="Deveel.Data.Store\IFileSystem.cs" />
     <Compile Include="Deveel.Data.Store\ILargeObject.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStorageSystem.cs" />
     <Compile Include="Deveel.Data.Store\InMemoryStore.cs" />
@@ -719,6 +724,8 @@
     <Compile Include="Deveel.Data.Store\ObjectStoreExtensions.cs" />
     <Compile Include="Deveel.Data.Store\ObjectStream.cs" />
     <Compile Include="Deveel.Data.Store\RecordType.cs" />
+    <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
+    <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
     <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />

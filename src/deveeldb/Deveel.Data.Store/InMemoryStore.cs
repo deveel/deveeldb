@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace Deveel.Data.Store {
 	/// <summary>
@@ -159,11 +160,11 @@ namespace Deveel.Data.Store {
 		}
 
 		/// <inheritdoc/>
-		public void LockForWrite() {
+		public void Lock() {
 		}
 
 		/// <inheritdoc/>
-		public void UnlockForWrite() {
+		public void Unlock() {
 		}
 
 		/// <inheritdoc/>

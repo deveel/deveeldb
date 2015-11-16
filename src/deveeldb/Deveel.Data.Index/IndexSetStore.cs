@@ -46,7 +46,7 @@ namespace Deveel.Data.Index {
 			lock (this) {
 				if (Store != null) {
 					try {
-						Store.LockForWrite();
+						Store.Lock();
 
 						foreach (var id in deletedAreas) {
 							Store.DeleteArea(id);
@@ -55,7 +55,7 @@ namespace Deveel.Data.Index {
 					} catch (IOException) {
 						// TODO: Raise the error to the system
 					} finally {
-						Store.UnlockForWrite();
+						Store.Unlock();
 					}
 				}
 			}
@@ -173,7 +173,7 @@ namespace Deveel.Data.Index {
 		public void PrepareIndexLists(int count, int type, int blockSize) {
 			lock (this) {
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					// Allocate a new area for the list
 					int newSize = 16 + ((indexBlocks.Length + count) * 16);
@@ -234,7 +234,7 @@ namespace Deveel.Data.Index {
 					// Free the old header
 					Store.DeleteArea(oldIndexHeaderP);
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 			}
 		}
@@ -299,7 +299,7 @@ namespace Deveel.Data.Index {
 
 				try {
 					try {
-						Store.LockForWrite();
+						Store.Lock();
 
 						// For each Index in the index set,
 						foreach (var index in indices) {
@@ -380,7 +380,7 @@ namespace Deveel.Data.Index {
 						// Commit the new index header (index_blocks)
 						CommitIndexHeader();
 					} finally {
-						Store.UnlockForWrite();
+						Store.Unlock();
 					}
 
 					// Commit finished.
@@ -404,7 +404,7 @@ namespace Deveel.Data.Index {
 				int blockSize = curIndexBlock.BlockSize;
 
 				try {
-					Store.LockForWrite();
+					Store.Lock();
 
 					// Add all the elements to the deleted areas in the block
 					var allBlockPointers = curIndexBlock.GetBlockPointers();
@@ -431,7 +431,7 @@ namespace Deveel.Data.Index {
 					// Commit the new index header (index_blocks)
 					CommitIndexHeader();
 				} finally {
-					Store.UnlockForWrite();
+					Store.Unlock();
 				}
 			}
 		}

@@ -22,10 +22,8 @@ namespace Deveel.Data.Store {
 	/// A data store that is backed by a file located at the path given.
 	/// </summary>
 	public sealed class FileStoreData : IStoreData {
-		private FileStream fileStream;
+		private LocalFile file;
 		private readonly object objectLock = new object();
-
-		public const int BufferSize = 1024*2;
 
 		public FileStoreData(string filePath) {
 			if (String.IsNullOrEmpty(filePath))
@@ -53,8 +51,8 @@ namespace Deveel.Data.Store {
 				if (IsOpen)
 					Close();
 
-				if (fileStream != null)
-					fileStream.Dispose();
+				if (file != null)
+					file.Dispose();
 			}
 		}
 
@@ -67,7 +65,7 @@ namespace Deveel.Data.Store {
 		}
 
 		public long Length {
-			get { return IsOpen ? fileStream.Length : new FileInfo(FilePath).Length; }
+			get { return IsOpen ? file.Length : new FileInfo(FilePath).Length; }
 		}
 
 		public bool IsReadOnly { get; private set; }
@@ -86,10 +84,7 @@ namespace Deveel.Data.Store {
 
 		public void Open(bool readOnly) {
 			lock (objectLock) {
-				var options = FileOptions.WriteThrough | FileOptions.Encrypted;
-
-				fileStream = new FileStream(FilePath, readOnly ? FileMode.Open : FileMode.OpenOrCreate,
-					readOnly ? FileAccess.Read : FileAccess.ReadWrite, FileShare.None, BufferSize, options);
+				file = new LocalFile(FilePath, readOnly);
 				IsOpen = true;
 				IsReadOnly = readOnly;
 			}
@@ -98,7 +93,7 @@ namespace Deveel.Data.Store {
 		public void Close() {
 			lock (objectLock) {
 				try {
-					fileStream.Close();
+					file.Close();
 				} finally {
 					IsOpen = false;
 				}
@@ -111,9 +106,10 @@ namespace Deveel.Data.Store {
 				length = System.Math.Max(0, System.Math.Min(length, (int)(Length - position)));
 				int count = 0;
 				if (position < Length) {
-					fileStream.Seek(position, SeekOrigin.Begin);
-					count = fileStream.Read(buffer, offset, length);
+					file.Seek(position, SeekOrigin.Begin);
+					count = file.Read(buffer, offset, length);
 				}
+
 				return count;
 			}
 		}
@@ -126,15 +122,15 @@ namespace Deveel.Data.Store {
 			lock (objectLock) {
 				length = System.Math.Max(0, System.Math.Min(length, (int)(Length - position)));
 				if (position < Length) {
-					fileStream.Seek(position, SeekOrigin.Begin);
-					fileStream.Write(buffer, offset, length);
+					file.Seek(position, SeekOrigin.Begin);
+					file.Write(buffer, offset, length);
 				}
 			}
 		}
 
 		public void Flush() {
 			try {
-				fileStream.Flush();
+				file.Flush(true);
 			} catch (IOException) {
 				// There isn't much we can do about this exception.  By itself it
 				// doesn't indicate a terminating error so it's a good idea to ignore
@@ -144,7 +140,7 @@ namespace Deveel.Data.Store {
 
 		public void SetLength(long value) {
 			lock (objectLock) {
-				fileStream.SetLength(value);
+				file.SetLength(value);
 			}
 		}
 	}

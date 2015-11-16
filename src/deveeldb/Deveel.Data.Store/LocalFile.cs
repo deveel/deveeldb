@@ -2,49 +2,83 @@
 using System.IO;
 
 namespace Deveel.Data.Store {
-	public class LocalFile : IFile {
-		private FileStream fileStream;
+	public sealed class LocalFile : IFile {
+		private System.IO.FileStream fileStream;
 
-		public void Dispose() {
-			
+		public const int BufferSize = 1024 * 2;
+
+		public LocalFile(string fileName, bool readOnly) {
+			if (String.IsNullOrEmpty(fileName))
+				throw new ArgumentNullException("fileName");
+
+			var fileMode = readOnly ? FileMode.Open : FileMode.OpenOrCreate;
+			var fileAccess = readOnly ? FileAccess.Read : FileAccess.ReadWrite;
+			// TODO: using the enrypted option uses the user's encryption: should we use a different system?
+			var options = FileOptions.WriteThrough | FileOptions.Encrypted;
+			fileStream = new System.IO.FileStream(fileName, fileMode, fileAccess, FileShare.None, BufferSize, options);
 		}
 
-		public string FileName { get; }
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
-		public bool IsReadOnly { get; }
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (fileStream != null)
+					fileStream.Dispose();
+			}
 
-		public long Position { get; }
+			fileStream = null;
+		}
 
-		public long Length { get; }
+		public string FileName {get; private set; }
 
-		public bool Exists { get; }
+		public bool IsReadOnly { get; private set; }
+
+		public long Position {
+			get { return fileStream.Position; }
+		}
+
+		public long Length {
+			get { return fileStream.Length; }
+		}
+
+		public bool Exists {
+			get { return File.Exists(FileName); }
+		}
 
 		public long Seek(long offset, SeekOrigin origin) {
-			throw new NotImplementedException();
+			return fileStream.Seek(offset, origin);
 		}
 
 		public void SetLength(long value) {
-			throw new NotImplementedException();
+			fileStream.SetLength(value);
 		}
 
 		public int Read(byte[] buffer, int offset, int length) {
-			throw new NotImplementedException();
+			return fileStream.Read(buffer, offset, length);
 		}
 
 		public void Write(byte[] buffer, int offset, int length) {
-			throw new NotImplementedException();
+			fileStream.Write(buffer, offset, length);
 		}
 
 		public void Flush(bool writeThrough) {
-			throw new NotImplementedException();
+			fileStream.Flush();
 		}
 
 		public void Close() {
-			throw new NotImplementedException();
+			fileStream.Close();
 		}
 
 		public void Delete() {
-			throw new NotImplementedException();
+			try {
+				File.Delete(FileName);
+			} finally {
+				fileStream = null;
+			}
+			
 		}
 	}
 }

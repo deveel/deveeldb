@@ -180,7 +180,7 @@ namespace Deveel.Data.Store {
 				throw new IOException("Negative object size not allowed.");
 
 			try {
-				store.LockForWrite();
+				store.Lock();
 
 				// Allocate the area (plus header area) for storing the blob pages
 				long pageCount = ((maxSize - 1) / (PageSize * 1024)) + 1;
@@ -210,7 +210,7 @@ namespace Deveel.Data.Store {
 				long refId = AddToRecordList(objAreaId);
 				return new LargeObject(this, refId, maxSize, 0, compressed, false);
 			} finally {
-				store.UnlockForWrite();
+				store.Unlock();
 			}
 		}
 
@@ -290,7 +290,7 @@ namespace Deveel.Data.Store {
 				long pageCount = block.ReadInt8();
 
 				try {
-					store.LockForWrite();
+					store.Lock();
 
 					block.Position = recordPos;
 					block.WriteInt4(1);				// Status
@@ -300,7 +300,7 @@ namespace Deveel.Data.Store {
 					block.WriteInt8(pageCount);		// Page Count
 					block.Flush();
 				} finally {
-					store.UnlockForWrite();
+					store.Unlock();
 				}
 			}
 
@@ -379,7 +379,7 @@ namespace Deveel.Data.Store {
 			}
 
 			try {
-				store.LockForWrite();
+				store.Lock();
 
 				// Allocate and Write the page.
 				IArea pageArea = store.CreateArea(writeLength + 8);
@@ -397,7 +397,7 @@ namespace Deveel.Data.Store {
 				// Check out this change.
 				area.Flush();
 			} finally {
-				store.UnlockForWrite();
+				store.Unlock();
 			}
 		}
 

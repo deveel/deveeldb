@@ -211,7 +211,7 @@ namespace Deveel.Data {
 			}
 
 			try {
-				lobStore.LockForWrite();
+				lobStore.Lock();
 
 				// TODO: have multiple BLOB stores
 				LargeObjectStore = new ObjectStore(0, lobStore);
@@ -229,7 +229,7 @@ namespace Deveel.Data {
 					LargeObjectStore.Open(headerP);
 				}
 			} finally {
-				lobStore.UnlockForWrite();
+				lobStore.Unlock();
 			}
 		}
 
@@ -368,7 +368,7 @@ namespace Deveel.Data {
 			// Create/Open the state store
 			stateStore = StoreSystem.CreateStore(StateStoreName);
 			try {
-				stateStore.LockForWrite();
+				stateStore.Lock();
 
 				StateStore = new TableStateStore(stateStore);
 				long headP = StateStore.Create();
@@ -377,7 +377,7 @@ namespace Deveel.Data {
 				fixedArea.WriteInt8(headP);
 				fixedArea.Flush();
 			} finally {
-				stateStore.UnlockForWrite();
+				stateStore.Unlock();
 			}
 
 			Setup();

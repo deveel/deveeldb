@@ -132,43 +132,43 @@ namespace Deveel.Data.Store {
 		/// This method does not prevent concurrent writes to the store.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="UnlockForWrite"/>
-		void LockForWrite();
+		/// <seealso cref="Unlock"/>
+		void Lock();
 
 		/// <summary>
 		/// This method is called after the end of a sequence of Write commands 
 		/// between consistant states of some data structure represented by the store.
 		/// </summary>
 		/// <remarks>
-		/// See the <see cref="LockForWrite"/> method for a further description of the 
+		/// See the <see cref="Lock"/> method for a further description of the 
 		/// operation of this locking mechanism.
 		/// </remarks>
-		/// <seealso cref="LockForWrite"/>
-		void UnlockForWrite();
+		/// <seealso cref="Lock"/>
+		void Unlock();
 
-		/// <summary>
-		/// Check point all the updates on this store up to the current time.
-		/// </summary>
-		/// <remarks>
-		/// When this method returns, there is an implied guarantee that when the store 
-		/// is next invocated that at least the data written to the store up to this
-		/// point is available from the store.
-		/// <para>
-		/// This method will block if there is a Write Lock on the store (see <see cref="LockForWrite"/>).
-		/// </para>
-		/// <para>
-		/// If the implented store is not interested in maintaining the consistancy of
-		/// the information between invocations then it is not necessary for this
-		/// method to do anything.
-		/// </para>
-		/// </remarks>
-		/// <exception cref="System.Threading.ThreadInterruptedException">
-		/// If check point interrupted (should only happen under exceptional circumstances).
-		/// </exception>
-		/// <exception cref="IOException">
-		/// If check point failed because of an IO error.
-		/// </exception>
-		void CheckPoint();
+		///// <summary>
+		///// Check point all the updates on this store up to the current time.
+		///// </summary>
+		///// <remarks>
+		///// When this method returns, there is an implied guarantee that when the store 
+		///// is next invocated that at least the data written to the store up to this
+		///// point is available from the store.
+		///// <para>
+		///// This method will block if there is a Write Lock on the store (see <see cref="LockForWrite"/>).
+		///// </para>
+		///// <para>
+		///// If the implented store is not interested in maintaining the consistancy of
+		///// the information between invocations then it is not necessary for this
+		///// method to do anything.
+		///// </para>
+		///// </remarks>
+		///// <exception cref="System.Threading.ThreadInterruptedException">
+		///// If check point interrupted (should only happen under exceptional circumstances).
+		///// </exception>
+		///// <exception cref="IOException">
+		///// If check point failed because of an IO error.
+		///// </exception>
+		//void CheckPoint();
 
 		// ---------- Diagnostic ----------
 

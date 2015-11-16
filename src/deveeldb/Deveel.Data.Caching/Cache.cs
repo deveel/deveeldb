@@ -46,12 +46,18 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		private readonly int wipeTo;
 
+		private bool configured;
+
 		protected Cache() {
 		}
 
 
 		~Cache() {
 			Dispose(false);
+		}
+
+		bool IConfigurable.IsConfigured {
+			get { return configured; }
 		}
 
 
@@ -215,8 +221,16 @@ namespace Deveel.Data.Caching {
 			OnAllCleared();
 		}
 
-		public virtual void Configure(IConfiguration config) {
-			MaxCacheSize = config.DataCacheSize();
+		public void Configure(IConfiguration config) {
+			try {
+				ConfigureCache(config);
+			} finally {
+				configured = true;
+			}
+		}
+
+		protected virtual void ConfigureCache(IConfiguration configuration) {
+			MaxCacheSize = configuration.DataCacheSize();
 		}
 
 		/// <summary>
