@@ -33,13 +33,22 @@ namespace Deveel.Data.Store {
 		}
 
 		public long DataLength {
-			get { return dataStream == null ? 0 : dataStream.Length; }
+			get {
+				return dataStream == null ? 0 : dataStream.Length;
+			}
 		}
 
 		protected override void SetDataAreaSize(long length) {
 			lock (CheckPointLock) {
 				if (dataStream != null)
 					dataStream.SetLength(length);
+			}
+		}
+
+		internal void Create(int bufferSize) {
+			lock (CheckPointLock) {
+				dataStream = new MemoryStream(bufferSize);
+				IsOpen = true;
 			}
 		}
 
@@ -57,9 +66,10 @@ namespace Deveel.Data.Store {
 
 		protected override void OpenStore(bool readOnly) {
 			lock (CheckPointLock) {
+				dataStream = new MemoryStream();
+
 				var inputStream = system.LoadStoreData(Id);
 				if (inputStream != null) {
-					dataStream = new MemoryStream();
 					inputStream.CopyTo(dataStream);
 				}
 
@@ -82,9 +92,7 @@ namespace Deveel.Data.Store {
 				if (dataStream == null || !IsOpen)
 					return 0;
 
-				if (offset != dataStream.Position)
-					dataStream.Seek(offset, SeekOrigin.Begin);
-
+				dataStream.Seek(offset, SeekOrigin.Begin);
 				return dataStream.Read(buffer, index, length);
 			}
 		}
@@ -92,9 +100,7 @@ namespace Deveel.Data.Store {
 		protected override void Write(long offset, byte[] buffer, int index, int length) {
 			lock (CheckPointLock) {
 				if (dataStream != null && IsOpen) {
-					if (offset != dataStream.Position)
-						dataStream.Seek(offset, SeekOrigin.Begin);
-
+					dataStream.Seek(offset, SeekOrigin.Begin);
 					dataStream.Write(buffer, index, length);
 				}
 			}
@@ -110,6 +116,7 @@ namespace Deveel.Data.Store {
 
 			dataStream = null;
 			system = null;
+			IsOpen = false;
 			base.Dispose(disposing);
 		}
 

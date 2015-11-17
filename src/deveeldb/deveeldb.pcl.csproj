@@ -287,6 +287,10 @@
     <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
+    <Compile Include="Deveel.Data.Services\IResolveScope.cs" />
+    <Compile Include="Deveel.Data.Services\ISystemServiceProvider.cs" />
+    <Compile Include="Deveel.Data.Services\SystemServiceProvider.cs" />
+    <Compile Include="Deveel.Data.Services\SystemServiceProviderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />
@@ -820,7 +824,6 @@
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
-    <Compile Include="Deveel.Data\ISystemServiceProvider.cs" />
     <Compile Include="Deveel.Data\ITableContainer.cs" />
     <Compile Include="Deveel.Data\IUserSession.cs" />
     <Compile Include="Deveel.Data\IVariableAccessContext.cs" />
@@ -842,8 +845,6 @@
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data\SystemQueryContext.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
-    <Compile Include="Deveel.Data\SystemServiceProvider.cs" />
-    <Compile Include="Deveel.Data\SystemServiceProviderExtensions.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemUserSession.cs" />
     <Compile Include="Deveel.Data\TableEventRegistry.cs" />

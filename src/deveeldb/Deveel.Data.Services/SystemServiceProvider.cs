@@ -24,7 +24,7 @@ using Deveel.Data.Configuration;
 
 using DryIoc;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Services {
 	/// <summary>
 	/// The default implementation of a <see cref="ISystemServiceProvider"/> that
 	/// encapsulates an IoC engine to resolve database services.
@@ -45,10 +45,8 @@ namespace Deveel.Data {
 
 			SystemContext = context;
 
-			container = new DryIoc.Container();
+			container = new Container();
 			container.RegisterInstance<ISystemContext>(context);
-
-			// resolveContexts = new List<IServiceResolveContext>();
 		}
 
 		~SystemServiceProvider() {
@@ -61,39 +59,6 @@ namespace Deveel.Data {
 		/// <seealso cref="ISystemContext.ServiceProvider"/>
 		public ISystemContext SystemContext { get; private set; }
 
-		/*
-		private bool HasAnyContext {
-			get { return resolveContexts.Count > 0; }
-		}
-		
-		private object OnResolve(Type serviceType, string name) {
-			return resolveContexts.Select(context => context.OnResolve(serviceType, name))
-				.FirstOrDefault(resolved => resolved != null);
-		}
-
-		private void OnResolved(Type serviceType, string name, object instance) {
-			foreach (var context in resolveContexts) {
-				context.OnResolved(serviceType, name, instance);
-			}
-		}
-
-		private IEnumerable OnResolveAll(Type serviceType) {
-			return resolveContexts.Select(context => context.OnResolveAll(serviceType))
-				.FirstOrDefault(resolved => resolved != null);
-		}
-
-		private void OnResolvedAll(Type serviceType, IEnumerable instances) {
-			foreach (var context in resolveContexts) {
-				context.OnResolvedAll(serviceType, instances);
-			}
-		}
-
-		public void AttachContext(IServiceResolveContext resolveContext) {
-			if (!resolveContexts.Contains(resolveContext))
-				resolveContexts.Add(resolveContext);
-		}
-		*/
-
 		private void Configure(object resolved, IConfigurationProvider provider) {
 			if (provider == null)
 				provider = SystemContext;
@@ -105,7 +70,7 @@ namespace Deveel.Data {
 		}
 
 		private void Configure(IEnumerable list, IConfigurationProvider provider) {
-			if (list == null)
+			if (list == null || provider == null)
 				return;
 
 			var configurables = list.OfType<IConfigurable>();
@@ -114,7 +79,17 @@ namespace Deveel.Data {
 			}
 		}
 
-		public object Resolve(Type serviceType, string name, IConfigurationProvider provider) {
+		private void OnResolved(object resolved, IResolveScope scope) {
+			var provider = scope as IConfigurationProvider;
+			Configure(resolved, provider);
+		}
+
+		private void OnResolved(IEnumerable list, IResolveScope scope) {
+			var provider = scope as IConfigurationProvider;
+			Configure(list, provider);
+		}
+
+		public object Resolve(Type serviceType, string name, IResolveScope scope) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -122,17 +97,27 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				var resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
-				Configure(resolved, provider);
+				object resolved = null;
+				if (scope != null)
+					resolved = scope.OnBeforeResolve(serviceType, name);
+
+				if (resolved == null)
+					resolved = container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
+
+				if (resolved != null && scope != null)
+					scope.OnAfterResolve(serviceType, name, resolved);
+
+				OnResolved(resolved, scope);
+
 				return resolved;				
 			}
 		}
 
 		object IServiceProvider.GetService(Type serviceType) {
-			return Resolve(serviceType, null, SystemContext);
+			return Resolve(serviceType, null, SystemContext as IResolveScope);
 		}
 
-		public IEnumerable ResolveAll(Type serviceType, IConfigurationProvider provider) {
+		public IEnumerable ResolveAll(Type serviceType, IResolveScope scope) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -140,10 +125,20 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
-				var list = container.Resolve(resolveType) as IEnumerable;
+				IEnumerable list = null;
 
-				Configure(list, provider);
+				if (scope != null)
+					list = scope.OnBeforeResolveAll(serviceType);
+
+				if (list == null) {
+					var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
+					list = container.Resolve(resolveType, IfUnresolved.ReturnDefault) as IEnumerable;
+				}
+
+				if (list != null && scope != null)
+					scope.OnAfterResolveAll(serviceType, list);
+
+				OnResolved(list, scope);
 
 				return list;				
 			}
@@ -160,14 +155,14 @@ namespace Deveel.Data {
 				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
 					var ifaces = serviceType.GetInterfaces();
 					foreach (var iface in ifaces) {
-						container.Register(iface, serviceType, serviceKey: name, reuse:Reuse.Singleton);
+						container.Register(iface, serviceType, serviceKey: name, setup:Setup.With(allowDisposableTransient:true));
 					}
 				}
 
 				if (service == null) {
-					container.Register(serviceType, serviceKey: name, reuse:Reuse.Singleton);
+					container.Register(serviceType, serviceKey: name, setup:Setup.With(allowDisposableTransient:true));
 				} else {
-					container.RegisterInstance(serviceType, service, serviceKey: name, reuse:Reuse.Singleton);
+					container.RegisterInstance(serviceType, service, serviceKey: name);
 				}
 			}
 		}

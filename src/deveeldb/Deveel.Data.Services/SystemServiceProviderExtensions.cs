@@ -20,38 +20,38 @@ using System.Linq;
 
 using Deveel.Data.Configuration;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Services {
 	public static class SystemServiceProviderExtensions {
 		public static object Resolve(this ISystemServiceProvider provider, Type type) {
 			return Resolve(provider, type, null);
 		}
 
-		public static object Resolve(this ISystemServiceProvider provider, Type type, IConfigurationProvider configurationProvider) {
-			return provider.Resolve(type, null, configurationProvider);
+		public static object Resolve(this ISystemServiceProvider provider, Type type, IResolveScope scope) {
+			return provider.Resolve(type, null, scope);
 		}
 
 		public static T Resolve<T>(this ISystemServiceProvider provider) {
 			return Resolve<T>(provider, null,  null);
 		}
 
-		public static T Resolve<T>(this ISystemServiceProvider provider, IConfigurationProvider configurationProvider) {
-			return Resolve<T>(provider, null, configurationProvider);
+		public static T Resolve<T>(this ISystemServiceProvider provider, IResolveScope scope) {
+			return Resolve<T>(provider, null, scope);
 		}
 
 		public static T Resolve<T>(this ISystemServiceProvider provider, string name) {
 			return Resolve<T>(provider, name, null);
 		}
 
-		public static T Resolve<T>(this ISystemServiceProvider provider, string name, IConfigurationProvider configurationProvider) {
-			return (T) provider.Resolve(typeof (T), name, configurationProvider);
+		public static T Resolve<T>(this ISystemServiceProvider provider, string name, IResolveScope scope) {
+			return (T) provider.Resolve(typeof (T), name, scope);
 		}
 
 		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider) {
 			return ResolveAll<T>(provider, null);
 		}
 
-		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider, IConfigurationProvider configurationProvider) {
-			return provider.ResolveAll(typeof (T), configurationProvider).Cast<T>();
+		public static IEnumerable<T> ResolveAll<T>(this ISystemServiceProvider provider, IResolveScope scope) {
+			return provider.ResolveAll(typeof (T), scope).Cast<T>();
 		}
 
 		public static void Register(this ISystemServiceProvider provider, Type type) {

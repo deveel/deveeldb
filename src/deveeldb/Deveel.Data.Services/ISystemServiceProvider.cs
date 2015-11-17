@@ -17,9 +17,7 @@
 using System;
 using System.Collections;
 
-using Deveel.Data.Configuration;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Services {
 	/// <summary>
 	/// A special <see cref="IServiceProvider"/> that provides IoC (Inversion
 	/// of Control) features to resolve services for database components.
@@ -40,15 +38,12 @@ namespace Deveel.Data {
 	/// </remarks>
 	/// <seealso cref="IServiceProvider"/>
 	public interface ISystemServiceProvider : IServiceProvider, IDisposable {
-		// void AttachContext(IServiceResolveContext context);
-
 		/// <summary>
 		/// Resolves a service by its type and instance name.
 		/// </summary>
 		/// <param name="serviceType">The type of the service to resolve.</param>
 		/// <param name="name">The name of the instance of the service to resolve.</param>
-		/// <param name="provider">An object that provides configurations to setup an
-		/// <see cref="IConfigurable"/> resolved instance before returning it.</param>
+		/// <param name="scope"></param>
 		/// <remarks>
 		/// This methods first attempts to resolve an instance for the given
 		/// <see cref="Type"/>, and then if multiple instances are configured for that
@@ -59,20 +54,19 @@ namespace Deveel.Data {
 		/// Returns an object that is the instance of the given <paramref name="serviceType"/>
 		/// and for the given name, or <c>null</c> if 
 		/// </returns>
-		object Resolve(Type serviceType, string name, IConfigurationProvider provider);
+		object Resolve(Type serviceType, string name, IResolveScope scope);
 
 		/// <summary>
 		/// Resolves all instances of services of the given type.
 		/// </summary>
 		/// <param name="serviceType">The <see cref="Type"/> of the services to
 		/// resolve within the provider context.</param>
-		/// <param name="provider">An object that provides configurations to setup the
-		/// <see cref="IConfigurable"/> resolved instances before returning them.</param>
+		/// <param name="scope"></param>
 		/// <returns>
 		/// Returns an enumerable object of all the instances found in the context
 		/// that implement the given type.
 		/// </returns>
-		IEnumerable ResolveAll(Type serviceType, IConfigurationProvider provider);
+		IEnumerable ResolveAll(Type serviceType, IResolveScope scope);
 
 		/// <summary>
 		/// Registers a service with the given type, optionally identified by

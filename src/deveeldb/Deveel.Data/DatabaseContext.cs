@@ -22,12 +22,12 @@ using System.Linq;
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Routines;
+using Deveel.Data.Services;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class DatabaseContext : IDatabaseContext /*, IServiceResolveContext */ {
+	public sealed class DatabaseContext : IDatabaseContext, IResolveScope {
 		private ITableCellCache cellCache;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
@@ -41,7 +41,6 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("configuration");
 
 			SystemContext = systemContext;
-			// SystemContext.ServiceProvider.AttachContext(this);
 
 			Configuration = configuration;
 			Locker = new Locker(this);
@@ -105,6 +104,8 @@ namespace Deveel.Data {
 			try {
 				if (storeSystemType == typeof (InMemoryStorageSystem)) {
 					StoreSystem = new InMemoryStorageSystem();
+				} else if (storeSystemType == typeof(SingleFileStoreSystem)) { 
+					StoreSystem = new SingleFileStoreSystem(this);
 				} else {
 					StoreSystem = CreateExternalStoreSystem(storeSystemType);
 				}
@@ -131,15 +132,14 @@ namespace Deveel.Data {
 			get { return SystemContext; }
 		}
 
-		/*
-		object IServiceResolveContext.OnResolve(Type type, string name) {
+		object IResolveScope.OnBeforeResolve(Type type, string name) {
 			if (typeof (ITableCellCache).IsAssignableFrom(type))
 				return cellCache;
 
 			return null;
 		}
 
-		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
+		void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
 			if (obj is ITableCellCache)
 				cellCache = (ITableCellCache) obj;
 
@@ -147,12 +147,11 @@ namespace Deveel.Data {
 				((IConfigurable)obj).Configure(Configuration);
 		}
 
-		IEnumerable IServiceResolveContext.OnResolveAll(Type type) {
+		IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
 			return null;
 		}
 
-		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
+		void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
 		}
-		*/
 	}
 }

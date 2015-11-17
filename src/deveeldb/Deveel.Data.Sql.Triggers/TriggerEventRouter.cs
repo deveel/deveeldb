@@ -16,8 +16,8 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Triggers {
 	public class TriggerEventRouter : IEventRouter {

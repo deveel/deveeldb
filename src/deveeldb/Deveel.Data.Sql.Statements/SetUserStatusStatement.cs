@@ -36,9 +36,5 @@ namespace Deveel.Data.Sql.Statements {
 		protected override bool IsPreparable {
 			get { return false; }
 		}
-
-		public ITable Execute(IQueryContext context) {
-			throw new NotImplementedException();
-		}
 	}
 }

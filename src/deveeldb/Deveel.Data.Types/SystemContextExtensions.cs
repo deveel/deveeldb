@@ -16,8 +16,7 @@
 
 using System;
 
-using Deveel.Data;
-using Deveel.Data.Types;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Types {
 	public static class SystemContextExtensions {

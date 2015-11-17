@@ -19,6 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Query;
 
@@ -47,43 +48,48 @@ namespace Deveel.Data {
 		#region Services
 
 		public static object ResolveService(this ISystemContext context, Type serviceType) {
-			return ResolveService(context, serviceType, context);
+			var scope = context as IResolveScope;
+			return ResolveService(context, serviceType, scope);
 		}
 
-		public static object ResolveService(this ISystemContext context, Type serviceType, IConfigurationProvider provider) {
-			return ResolveService(context, serviceType, null, provider);
+		public static object ResolveService(this ISystemContext context, Type serviceType,IResolveScope scope) {
+			return ResolveService(context, serviceType, null, scope);
 		}
 
 		public static object ResolveService(this ISystemContext context, Type serviceType, string name) {
-			return ResolveService(context, serviceType, name, context);
+			var scope = context as IResolveScope;
+			return ResolveService(context, serviceType, name, scope);
 		}
 
-		public static object ResolveService(this ISystemContext context, Type serviceType, string name, IConfigurationProvider provider) {
-			return context.ServiceProvider.Resolve(serviceType, name, provider);
+		public static object ResolveService(this ISystemContext context, Type serviceType, string name, IResolveScope scope) {
+			return context.ServiceProvider.Resolve(serviceType, name, scope);
 		}
 
 		public static TService ResolveService<TService>(this ISystemContext context) {
-			return ResolveService<TService>(context, context);
+			var scope = context as IResolveScope;
+			return ResolveService<TService>(context, scope);
 		}
 
-		public static TService ResolveService<TService>(this ISystemContext context, IConfigurationProvider provider) {
-			return ResolveService<TService>(context, null, provider);
+		public static TService ResolveService<TService>(this ISystemContext context, IResolveScope scope) {
+			return ResolveService<TService>(context, null, scope);
 		}
 
 		public static TService ResolveService<TService>(this ISystemContext context, string name) {
-			return ResolveService<TService>(context, name, context);
+			var scope = context as IResolveScope;
+			return ResolveService<TService>(context, name, scope);
 		}
 
-		public static TService ResolveService<TService>(this ISystemContext context, string name, IConfigurationProvider provider) {
-			return context.ServiceProvider.Resolve<TService>(name, provider);
+		public static TService ResolveService<TService>(this ISystemContext context, string name, IResolveScope scope) {
+			return context.ServiceProvider.Resolve<TService>(name, scope);
 		}
 
 		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context) {
-			return ResolveServices<TService>(context, context);
+			var scope = context as IResolveScope;
+			return ResolveServices<TService>(context, scope);
 		}
 
-		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context, IConfigurationProvider provider) {
-			return context.ServiceProvider.ResolveAll<TService>(provider);
+		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context, IResolveScope scope) {
+			return context.ServiceProvider.ResolveAll<TService>(scope);
 		}
 
 		public static void RegisterService<TService>(this ISystemContext context) {

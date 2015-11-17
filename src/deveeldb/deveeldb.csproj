@@ -26,7 +26,8 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>0162,0168</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\deveeldb.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -149,6 +150,7 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Services\IResolveCallback.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
@@ -203,6 +205,7 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Services\IResolveScope.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
@@ -212,8 +215,7 @@
     <Compile Include="Deveel.Data\IDatabase.cs" />
     <Compile Include="Deveel.Data\IDatabaseContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseManager.cs" />
-    <Compile Include="Deveel.Data\IServiceResolveContext.cs" />
-    <Compile Include="Deveel.Data\ISystemServiceProvider.cs" />
+    <Compile Include="Deveel.Data.Services\ISystemServiceProvider.cs" />
     <Compile Include="Deveel.Data\IObjectManager.cs" />
     <Compile Include="Deveel.Data\IObjectManagerResolver.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
@@ -265,7 +267,7 @@
     <Compile Include="Deveel.Data\SequenceManagerExtensions.cs" />
     <Compile Include="Deveel.Data\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data\SystemManager.cs" />
-    <Compile Include="Deveel.Data\SystemServiceProvider.cs" />
+    <Compile Include="Deveel.Data.Services\SystemServiceProvider.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data\SystemConfigKeys.cs" />
@@ -274,7 +276,7 @@
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data\SystemQueryContext.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
-    <Compile Include="Deveel.Data\SystemServiceProviderExtensions.cs" />
+    <Compile Include="Deveel.Data.Services\SystemServiceProviderExtensions.cs" />
     <Compile Include="Deveel.Data\SystemUserSession.cs" />
     <Compile Include="Deveel.Data\TableEventRegistry.cs" />
     <Compile Include="Deveel.Data\TableManager.cs" />

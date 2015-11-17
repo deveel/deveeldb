@@ -8,7 +8,7 @@ using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Store {
 	public sealed class SingleFileStoreSystem : IStoreSystem, IConfigurable {
-		private ISystemContext systemContext;
+		private IDatabaseContext context;
 
 		private IFile lockFile;
 		private IFile dataFile;
@@ -28,11 +28,11 @@ namespace Deveel.Data.Store {
 
 		private const int Magic = 0xf09a671;
 
-		public SingleFileStoreSystem(ISystemContext systemContext) {
-			if (systemContext == null)
-				throw new ArgumentNullException("systemContext");
+		public SingleFileStoreSystem(IDatabaseContext context) {
+			if (context == null)
+				throw new ArgumentNullException("context");
 
-			this.systemContext = systemContext;
+			this.context = context;
 		}
 
 		~SingleFileStoreSystem() {
@@ -116,7 +116,7 @@ namespace Deveel.Data.Store {
 		public bool IsReadOnly { get; set; }
 
 		private IFileSystem FileSystem {
-			get { return systemContext.ResolveService<IFileSystem>(); }
+			get { return context.ResolveService<IFileSystem>(); }
 		}
 
 		public object CheckPointLock {
@@ -186,7 +186,7 @@ namespace Deveel.Data.Store {
 			StoreInfo info;
 			if (storeInfo == null ||
 				!storeInfo.TryGetValue(id, out info))
-				throw new IOException("Cannot load data for store.");
+				return null;
 
 			var size = info.Size;
 			var offset = info.Offset;
@@ -231,10 +231,13 @@ namespace Deveel.Data.Store {
 
 				if (nameIdMap == null)
 					nameIdMap = new Dictionary<string, int>();
-					
+				
+				if (stores == null)
+					stores = new Dictionary<int, SingleFileStore>();	
 
 				var id = ++storeId;
 				store = new SingleFileStore(this, name, id);
+				store.Open();
 				stores[id] = store;
 				nameIdMap[name] = id;
 				return store;
@@ -251,6 +254,7 @@ namespace Deveel.Data.Store {
 				if (!TryFindStore(name, out store))
 					throw new IOException(string.Format("The store '{0}' does not exist in this database.", name));
 
+				store.Open();
 				return store;
 			}
 		}

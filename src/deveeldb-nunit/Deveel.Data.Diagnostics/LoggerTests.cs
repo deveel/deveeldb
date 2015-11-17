@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-using Deveel.Data;
+using Deveel.Data.Services;
 
 using NUnit.Framework;
 

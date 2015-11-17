@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Deveel.Data.Xml;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Xml {
 	public static class SystemContextExtensions {

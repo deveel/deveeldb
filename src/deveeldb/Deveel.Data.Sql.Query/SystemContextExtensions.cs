@@ -2,6 +2,8 @@
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data.Sql.Query {
 	public static class SystemContextExtensions {
 		public static void UseDefaultQueryPlanner(this ISystemContext context) {

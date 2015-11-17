@@ -26,6 +26,8 @@ namespace Deveel.Data.Store {
 		private long[] freeBinList;
 		private long totalAllocatedSpace;
 
+		private readonly byte[] binArea = new byte[128 * 8];
+
 		private static readonly int[] BinSizes =
 			{
 				32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480,
@@ -93,7 +95,6 @@ namespace Deveel.Data.Store {
 		}
 
 		private void ReadBins() {
-			var binArea = new byte[128*8];
 			Read(BinAreaOffset, binArea, 0, 128 * 8);
 			using (var bin = new MemoryStream(binArea)) {
 				using (BinaryReader input = new BinaryReader(bin)) {
@@ -105,24 +106,20 @@ namespace Deveel.Data.Store {
 		}
 
 		private void WriteAllBins() {
-			var buffer = new byte[128*8];
-
 			int p = 0;
 			for (int i = 0; i < 128; ++i, p += 8) {
 				long val = freeBinList[i];
-				ByteBuffer.WriteInt8(val, buffer, p);
+				ByteBuffer.WriteInt8(val, binArea, p);
 			}
 
-			Write(BinAreaOffset, buffer, 0, 128 * 8);
+			Write(BinAreaOffset, binArea, 0, 128 * 8);
 		}
 
 		private void WriteBinIndex(int index) {
-			var buffer = new byte[8];
-
 			int p = index * 8;
 			long val = freeBinList[index];
-			ByteBuffer.WriteInt8(val, buffer, p);
-			Write(BinAreaOffset + p, buffer, p, 8);
+			ByteBuffer.WriteInt8(val, binArea, p);
+			Write(BinAreaOffset + p, binArea, p, 8);
 		}
 
 		private void AddToBinChain(long pointer, long size) {
@@ -316,20 +313,18 @@ namespace Deveel.Data.Store {
 				return -1;
 			}
 
-			var buffer = new byte[8];
-			Read(offset - 8, buffer, 0, 8);
-			long sz = ByteBuffer.ReadInt8(buffer, 0);
+			Read(offset - 8, headerBuf, 0, 8);
+			long sz = ByteBuffer.ReadInt8(headerBuf, 0);
 			sz = sz & ActiveFlag;
 			long previousPointer = offset - sz;
-			Read(previousPointer, buffer, 0, 8);
-			header[0] = ByteBuffer.ReadInt8(buffer, 0);
+			Read(previousPointer, headerBuf, 0, 8);
+			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
 			return previousPointer;
 		}
 
 		private long GetNextAreaHeader(long offset, long[] header) {
-			var buffer = new byte[8];
-			Read(offset, buffer, 0, 8);
-			long sz = ByteBuffer.ReadInt8(buffer, 0);
+			Read(offset, headerBuf, 0, 8);
+			long sz = ByteBuffer.ReadInt8(headerBuf, 0);
 			sz = sz & ActiveFlag;
 			long nextOffset = offset + sz;
 
@@ -339,42 +334,39 @@ namespace Deveel.Data.Store {
 				return -1;
 			}
 
-			Read(nextOffset, buffer, 0, 8);
-			header[0] = ByteBuffer.ReadInt8(buffer, 0);
+			Read(nextOffset, headerBuf, 0, 8);
+			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
 			return nextOffset;
 		}
 
 		protected void ReadAreaHeader(long offset, long[] header) {
-			var headerBuf = new byte[16];
 			Read(offset, headerBuf, 0, 16);
 			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
 			header[1] = ByteBuffer.ReadInt8(headerBuf, 8);
 		}
 
+		private readonly byte[] headerBuf = new byte[16];
 
 		private void ReboundArea(long offset, long[] header, bool writeHeaders) {
 			if (writeHeaders) {
-				var buffer = new byte[16];
-				ByteBuffer.WriteInt8(header[0], buffer, 0);
-				ByteBuffer.WriteInt8(header[1], buffer, 8);
-				Write(offset, buffer, 0, 16);
+				ByteBuffer.WriteInt8(header[0], headerBuf, 0);
+				ByteBuffer.WriteInt8(header[1], headerBuf, 8);
+				Write(offset, headerBuf, 0, 16);
 			} else {
-				var headerBuffer = new byte[8];
-				ByteBuffer.WriteInt8(header[1], headerBuffer, 8);
-				Write(offset + 8, headerBuffer, 8, 8);
+				ByteBuffer.WriteInt8(header[1], headerBuf, 8);
+				Write(offset + 8, headerBuf, 8, 8);
 			}
 		}
 
 		private void CoalesceArea(long offset, long size) {
-			var buffer = new byte[8];
-			ByteBuffer.WriteInt8(size, buffer, 0);
+			ByteBuffer.WriteInt8(size, headerBuf, 0);
 
 			// ISSUE: Boundary alteration is a moment when corruption could occur.
 			//   There are two seeks and writes here and when we are setting the
 			//   end points, there is a risk of failure.
 
-			Write(offset, buffer, 0, 8);
-			Write((offset + size) - 8, buffer, 0, 8);
+			Write(offset, headerBuf, 0, 8);
+			Write((offset + size) - 8, headerBuf, 0, 8);
 		}
 
 		private void CropArea(long offset, long allocatedSize) {
@@ -592,28 +584,26 @@ namespace Deveel.Data.Store {
 
 		protected void SplitArea(long offset, long newBoundary) {
 			// Split the area pointed to by the offset.
-			var buffer = new byte[16];
-
-			Read(offset, buffer, 0, 8);
-			long curSize = ByteBuffer.ReadInt8(buffer, 0) & ActiveFlag;
+			Read(offset, headerBuf, 0, 8);
+			long curSize = ByteBuffer.ReadInt8(headerBuf, 0) & ActiveFlag;
 			long leftSize = newBoundary;
 			long rightSize = curSize - newBoundary;
 
 			if (rightSize < 0)
 				throw new IOException("Could not split the area.");
 
-			ByteBuffer.WriteInt8(leftSize, buffer, 0);
-			ByteBuffer.WriteInt8(rightSize, buffer, 8);
+			ByteBuffer.WriteInt8(leftSize, headerBuf, 0);
+			ByteBuffer.WriteInt8(rightSize, headerBuf, 8);
 
 			// ISSUE: Boundary alteration is a moment when corruption could occur.
 			//   There are three seeks and writes here and when we are setting the
 			//   end points, there is a risk of failure.
 
 			// First set the boundary
-			Write((offset + newBoundary) - 8, buffer, 0, 16);
+			Write((offset + newBoundary) - 8, headerBuf, 0, 16);
 			// Now set the end points
-			Write(offset, buffer, 0, 8);
-			Write((offset + curSize) - 8, buffer, 8, 8);
+			Write(offset, headerBuf, 0, 8);
+			Write((offset + curSize) - 8, headerBuf, 8, 8);
 		}
 
 		private static bool IsValidBoundarySize(long size) {
@@ -759,7 +749,7 @@ namespace Deveel.Data.Store {
 		public IArea CreateArea(long size) {
 			lock (this) {
 				long pointer = Alloc(size);
-				return new StoreArea(this, pointer, size, false);
+				return new StoreArea(this, pointer, pointer + 8, false, size);
 			}
 		}
 
@@ -953,11 +943,11 @@ namespace Deveel.Data.Store {
 			}
 
 			protected long CheckAreaOffset(int diff) {
-				long newPos = Position + diff;
+				long newPos = position + diff;
 				if (newPos > EndOffset)
 					throw new IOException("Trying to access a position out of area bounds.");
 				
-				long oldPos = Position;
+				long oldPos = position;
 				position = newPos;
 				return oldPos;
 			}

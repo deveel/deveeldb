@@ -19,8 +19,12 @@ using System.Collections.Generic;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Store;
+#if !PCL
+using Deveel.Data.Store.Journaled;
+#endif
 
 namespace Deveel.Data {
 	public static class DatabaseContextExtensions {
@@ -29,11 +33,13 @@ namespace Deveel.Data {
 			if (String.IsNullOrEmpty(value))
 				return null;
 
-			if (String.Equals(value, DefaultStorageSystemNames.File))
-				throw new NotImplementedException();
+#if !PCL
+			if (String.Equals(value, DefaultStorageSystemNames.Journaled))
+				return typeof(JournaledStoreSystem);
+#endif
 
 			if (String.Equals(value, DefaultStorageSystemNames.SingleFile))
-				throw new NotSupportedException();
+				return typeof (SingleFileStoreSystem);
 
 			if (string.Equals(value, DefaultStorageSystemNames.Heap))
 				return typeof (InMemoryStorageSystem);
@@ -77,14 +83,15 @@ namespace Deveel.Data {
 			return context.SystemContext.TableCellCache();
 		}
 
-		#region Services
+#region Services
 
 		public static object ResolveService(this IDatabaseContext context, Type serviceType) {
 			return ResolveService(context, serviceType, null);
 		}
 
 		public static object ResolveService(this IDatabaseContext context, Type serviceType, string name) {
-			return context.SystemContext.ResolveService(serviceType, name, context);
+			var scope = context as IResolveScope;
+			return context.SystemContext.ResolveService(serviceType, name, scope);
 		}
 
 		public static TService ResolveService<TService>(this IDatabaseContext context) {
@@ -92,9 +99,10 @@ namespace Deveel.Data {
 		}
 
 		public static TService ResolveService<TService>(this IDatabaseContext context, string name) {
-			return context.SystemContext.ResolveService<TService>(name, context);
+			var scope = context as IResolveScope;
+			return context.SystemContext.ResolveService<TService>(name, scope);
 		}
 
-		#endregion
+#endregion
 	}
 }

@@ -17,8 +17,8 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 

@@ -2,6 +2,7 @@
 
 using Deveel.Data;
 using Deveel.Data.Routines;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Spatial {
 	public static class SystemContextExtensions {

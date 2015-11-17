@@ -19,9 +19,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Query;
 
@@ -30,11 +32,12 @@ namespace Deveel.Data {
 	/// This is the context of a database system, that handles the configurations
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
-	public sealed class SystemContext : ISystemContext /*, IServiceResolveContext */ {
+	public sealed class SystemContext : ISystemContext, IResolveScope {
 		// We preserve an instance of some singletons...
 		private ISqlCompiler sqlCompiler;
 		private IEnumerable<IEventRouter> eventRouters;
 		private IQueryPlanner queryPlanner;
+		private ITableCellCache tableCellCache;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SystemContext"/> class,
@@ -57,7 +60,7 @@ namespace Deveel.Data {
 			Configuration = configuration;
 			EventRegistry = new SystemEventRegistry(this);
 
-			Init();
+			UseDefaults();
 		}
 
 		/// <summary>
@@ -109,54 +112,45 @@ namespace Deveel.Data {
 			ServiceProvider = null;
 		}
 
-		private void Init() {
+		private void UseDefaults() {
 			ServiceProvider = new SystemServiceProvider(this);
 			this.UseDefaultSqlCompiler();
 			this.UseDefaultQueryPlanner();
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
-
-			// ServiceProvider.AttachContext(this);
 		}
 
-		/*
-		object IServiceResolveContext.OnResolve(Type type, string name) {
+		object IResolveScope.OnBeforeResolve(Type type, string name) {
 			if (typeof (ISqlCompiler).IsAssignableFrom(type))
 				return sqlCompiler;
 			if (typeof (IQueryPlanner).IsAssignableFrom(type))
 				return queryPlanner;
+			if (typeof (ITableCellCache).IsAssignableFrom(type))
+				return tableCellCache;
 
 			return null;
 		}
 
-		void IServiceResolveContext.OnResolved(Type type, string name, object obj) {
+		void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
 			if (obj is ISqlCompiler) {
 				sqlCompiler = (ISqlCompiler) obj;
 			} else if (obj is IQueryPlanner) {
 				queryPlanner = (IQueryPlanner) obj;
+			} else if (typeof (ITableCellCache).IsAssignableFrom(type)) {
+				tableCellCache = (ITableCellCache) obj;
 			}
-
-			if (obj != null && obj is IConfigurable)
-				((IConfigurable)obj).Configure(Configuration);
 		}
 
-		IEnumerable IServiceResolveContext.OnResolveAll(Type type) {
+		IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
 			if (type == typeof (IEventRouter))
 				return eventRouters;
 
 			return null;
 		}
 
-		void IServiceResolveContext.OnResolvedAll(Type type, IEnumerable list) {
+		void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
 			if (type == typeof (IEventRouter))
 				eventRouters = list.Cast<IEventRouter>().ToList();
-
-			if (list != null) {
-				foreach (var service in list.OfType<IConfigurable>()) {
-					service.Configure(Configuration);
-				}
-			}
 		}
-		*/
 	}
 }
