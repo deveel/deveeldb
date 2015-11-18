@@ -25,17 +25,17 @@ namespace Deveel.Data {
 	/// The execution context of a database system, that is defining
 	/// the configurations and the components used to manage databases.
 	/// </summary>
-	public interface ISystemContext : IEventSource, IConfigurationProvider, IDisposable {
+	public interface ISystemContext : IEventSource, IConfigurationProvider, IServiceContext, IDisposable {
 		/// <summary>
 		/// Gets an instance of <see cref="IEventRegistry"/> that handles
 		/// events happening within the context of the database system.
 		/// </summary>
 		IEventRegistry EventRegistry { get; }
 
-		/// <summary>
-		/// Gets an object used to dynamically resolve database services.
-		/// </summary>
-		/// <seealso cref="ISystemServiceProvider"/>
-		ISystemServiceProvider ServiceProvider { get; }
+		///// <summary>
+		///// Gets an object used to dynamically resolve database services.
+		///// </summary>
+		///// <seealso cref="ISystemServiceProvider"/>
+		//ISystemServiceProvider ServiceProvider { get; }
 	}
 }

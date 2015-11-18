@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 			var triggerEvent = (TriggerEvent) e;
 
-			var listeners = SystemContext.ServiceProvider.ResolveAll<ITriggerListener>();
+			var listeners = SystemContext.ResolveAllServices<ITriggerListener>();
 			foreach (var listener in listeners) {
 				listener.OnTriggerEvent(triggerEvent);
 			}

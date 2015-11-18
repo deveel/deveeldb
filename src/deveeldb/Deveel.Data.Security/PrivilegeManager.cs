@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Security {
-	public class PrivilegeManager : IPrivilegeManager {
+	public class PrivilegeManager : IPrivilegeManager/*, IResolveCallback*/ {
 		private Dictionary<GrantCacheKey, Privileges> grantsCache;
 		private Dictionary<string, Privileges> groupsPrivilegesCache;
 
@@ -24,6 +25,14 @@ namespace Deveel.Data.Security {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
+
+		//void IResolveCallback.OnResolved(IResolveScope scope) {
+		//	var context = scope as IQueryContext;
+		//	if (context == null)
+		//		throw new InvalidOperationException("Privilege manager resolved outside the scope of the query context.");
+
+		//	QueryContext = context;
+		//}
 
 		protected virtual void Dispose(bool disposing) {
 			QueryContext = null;

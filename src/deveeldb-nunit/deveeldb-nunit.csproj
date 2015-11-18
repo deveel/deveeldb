@@ -92,6 +92,7 @@
     <Compile Include="Deveel.Data.DbSystem\DatabaseTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SystemTests.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatementTests.cs" />

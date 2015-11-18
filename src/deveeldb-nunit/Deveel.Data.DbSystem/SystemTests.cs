@@ -25,10 +25,10 @@ namespace Deveel.Data {
 			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 
-			context.ServiceProvider.Register<TestService>();
+			context.RegisterService<TestService>();
 
 			object serviceObj = null;
-			Assert.DoesNotThrow(() => serviceObj = context.ServiceProvider.Resolve(typeof(TestService)));
+			Assert.DoesNotThrow(() => serviceObj = context.ResolveService(typeof(TestService)));
 			Assert.IsNotNull(serviceObj);
 			Assert.IsInstanceOf<TestService>(serviceObj);
 
@@ -42,12 +42,12 @@ namespace Deveel.Data {
 			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 			
-			context.ServiceProvider.Register<TestService>();
-			context.ServiceProvider.Register<TestService2>();
-			context.ServiceProvider.Register<TestService3>();
+			context.RegisterService<TestService>();
+			context.RegisterService<TestService2>();
+			context.RegisterService<TestService3>();
 
 			IEnumerable<ITestService> services = null;
-			Assert.DoesNotThrow(() => services = context.ServiceProvider.ResolveAll<ITestService>());
+			Assert.DoesNotThrow(() => services = context.ResolveAllServices<ITestService>());
 			Assert.IsNotNull(services);
 
 			var serviceList = services.ToList();
@@ -64,12 +64,12 @@ namespace Deveel.Data {
 			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
 			Assert.IsNotNull(context);
 
-			context.ServiceProvider.Register(new TestService());
-			context.ServiceProvider.Register(new TestService2());
-			context.ServiceProvider.Register<TestService3>();
+			context.RegisterService(new TestService());
+			context.RegisterService(new TestService2());
+			context.RegisterService<TestService3>();
 
 			IEnumerable<ITestService> services = null;
-			Assert.DoesNotThrow(() => services = context.ServiceProvider.ResolveAll<ITestService>());
+			Assert.DoesNotThrow(() => services = context.ResolveAllServices<ITestService>());
 			Assert.IsNotNull(services);
 
 			var serviceList = services.ToList();

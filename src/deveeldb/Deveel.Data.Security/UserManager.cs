@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Security {
-	public class UserManager : IUserManager {
+	public class UserManager : IUserManager/*, IResolveCallback*/ {
 		private Dictionary<string, string[]> userGroupsCache;
 		 
 		public UserManager(IQueryContext queryContext) {
@@ -30,6 +31,14 @@ namespace Deveel.Data.Security {
 			userGroupsCache = null;
 			QueryContext = null;
 		}
+
+		//void IResolveCallback.OnResolved(IResolveScope scope) {
+		//	var context = scope as IQueryContext;
+		//	if (context == null)
+		//		throw new InvalidOperationException("The user manager was resolved outside the query context scope.");
+
+		//	QueryContext = context;
+		//}
 
 		public bool UserExists(string userName) {
 			var table = QueryContext.GetTable(SystemSchema.UserTableName);

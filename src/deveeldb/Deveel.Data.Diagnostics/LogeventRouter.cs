@@ -53,7 +53,7 @@ namespace Deveel.Data.Diagnostics {
 				e.EventType != (byte)EventType.Notification)
 				return;
 
-			var loggers = Context.ServiceProvider.ResolveAll<IEventLogger>();
+			var loggers = Context.ResolveAllServices<IEventLogger>();
 
 			EventLog entry = null;
 

@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Triggers {
 			if (router == null)
 				context.RegisterService<TriggerEventRouter>();
 
-			context.ServiceProvider.Register(listener);
+			context.RegisterService(listener);
 		}
 
 		public static void ListenTriggers(this ISystemContext context, Action<TriggerEvent> listener) {

@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;

@@ -45,74 +45,74 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Services
+		//#region Services
 
-		public static object ResolveService(this ISystemContext context, Type serviceType) {
-			var scope = context as IResolveScope;
-			return ResolveService(context, serviceType, scope);
-		}
+		//public static object ResolveService(this ISystemContext context, Type serviceType) {
+		//	var scope = context as IResolveScope;
+		//	return ResolveService(context, serviceType, scope);
+		//}
 
-		public static object ResolveService(this ISystemContext context, Type serviceType,IResolveScope scope) {
-			return ResolveService(context, serviceType, null, scope);
-		}
+		//public static object ResolveService(this ISystemContext context, Type serviceType,IResolveScope scope) {
+		//	return ResolveService(context, serviceType, null, scope);
+		//}
 
-		public static object ResolveService(this ISystemContext context, Type serviceType, string name) {
-			var scope = context as IResolveScope;
-			return ResolveService(context, serviceType, name, scope);
-		}
+		//public static object ResolveService(this ISystemContext context, Type serviceType, string name) {
+		//	var scope = context as IResolveScope;
+		//	return ResolveService(context, serviceType, name, scope);
+		//}
 
-		public static object ResolveService(this ISystemContext context, Type serviceType, string name, IResolveScope scope) {
-			return context.ServiceProvider.Resolve(serviceType, name, scope);
-		}
+		//public static object ResolveService(this ISystemContext context, Type serviceType, string name, IResolveScope scope) {
+		//	return context.ServiceProvider.Resolve(serviceType, name, scope);
+		//}
 
-		public static TService ResolveService<TService>(this ISystemContext context) {
-			var scope = context as IResolveScope;
-			return ResolveService<TService>(context, scope);
-		}
+		//public static TService ResolveService<TService>(this ISystemContext context) {
+		//	var scope = context as IResolveScope;
+		//	return ResolveService<TService>(context, scope);
+		//}
 
-		public static TService ResolveService<TService>(this ISystemContext context, IResolveScope scope) {
-			return ResolveService<TService>(context, null, scope);
-		}
+		//public static TService ResolveService<TService>(this ISystemContext context, IResolveScope scope) {
+		//	return ResolveService<TService>(context, null, scope);
+		//}
 
-		public static TService ResolveService<TService>(this ISystemContext context, string name) {
-			var scope = context as IResolveScope;
-			return ResolveService<TService>(context, name, scope);
-		}
+		//public static TService ResolveService<TService>(this ISystemContext context, string name) {
+		//	var scope = context as IResolveScope;
+		//	return ResolveService<TService>(context, name, scope);
+		//}
 
-		public static TService ResolveService<TService>(this ISystemContext context, string name, IResolveScope scope) {
-			return context.ServiceProvider.Resolve<TService>(name, scope);
-		}
+		//public static TService ResolveService<TService>(this ISystemContext context, string name, IResolveScope scope) {
+		//	return context.ServiceProvider.Resolve<TService>(name, scope);
+		//}
 
-		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context) {
-			var scope = context as IResolveScope;
-			return ResolveServices<TService>(context, scope);
-		}
+		//public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context) {
+		//	var scope = context as IResolveScope;
+		//	return ResolveServices<TService>(context, scope);
+		//}
 
-		public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context, IResolveScope scope) {
-			return context.ServiceProvider.ResolveAll<TService>(scope);
-		}
+		//public static IEnumerable<TService> ResolveServices<TService>(this ISystemContext context, IResolveScope scope) {
+		//	return context.ServiceProvider.ResolveAll<TService>(scope);
+		//}
 
-		public static void RegisterService<TService>(this ISystemContext context) {
-			RegisterService<TService>(context, null);
-		}
+		//public static void RegisterService<TService>(this ISystemContext context) {
+		//	RegisterService<TService>(context, null);
+		//}
 
-		public static void RegisterService<TService>(this ISystemContext context, string name) {
-			context.ServiceProvider.Register<TService>(name);
-		}
+		//public static void RegisterService<TService>(this ISystemContext context, string name) {
+		//	context.ServiceProvider.Register<TService>(name);
+		//}
 
-		public static void RegisterService(this ISystemContext context, Type serviceType) {
-			RegisterService(context, serviceType, null);
-		}
+		//public static void RegisterService(this ISystemContext context, Type serviceType) {
+		//	RegisterService(context, serviceType, null);
+		//}
 
-		public static void RegisterService(this ISystemContext context, Type serviceType, string name) {
-			context.ServiceProvider.Register(name, serviceType, null);
-		}
+		//public static void RegisterService(this ISystemContext context, Type serviceType, string name) {
+		//	context.ServiceProvider.Register(name, serviceType, null);
+		//}
 
-		public static void RegisterService(this ISystemContext context, object service) {
-			context.ServiceProvider.Register(service);
-		}
+		//public static void RegisterService(this ISystemContext context, object service) {
+		//	context.ServiceProvider.Register(service);
+		//}
 
-		#endregion
+		//#endregion
 
 		#region Features
 
@@ -131,7 +131,7 @@ namespace Deveel.Data {
 			if (!typeof(ISqlCompiler).IsAssignableFrom(compilerType))
 				throw new ArgumentException(String.Format("The type '{0}' is not a SQL Compiler.", compilerType));
 
-			context.ServiceProvider.Register(compilerType);
+			context.RegisterService(compilerType);
 		}
 
 		public static void UseSqlCompiler(this ISystemContext context, ISqlCompiler compiler) {

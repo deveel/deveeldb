@@ -154,7 +154,7 @@ namespace Deveel.Data {
 		public ITable SingleRowTable { get; private set; }
 
 		private void OnDatabaseCreate(IQueryContext context) {
-			var callbacks = DatabaseContext.SystemContext.ServiceProvider.ResolveAll<IDatabaseCreateCallback>();
+			var callbacks = DatabaseContext.ResolveAllServices<IDatabaseCreateCallback>();
 			if (callbacks != null) {
 				foreach (var callback in callbacks) {
 					try {

@@ -17,11 +17,12 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Routines {
 	public static class SystemContextExtensions {
 		public static IRoutine ResolveRoutine(this ISystemContext context, Invoke invoke, IQueryContext queryContext) {
-			var resolvers = context.ResolveServices<IRoutineResolver>();
+			var resolvers = context.ResolveAllServices<IRoutineResolver>();
 			foreach (var resolver in resolvers) {
 				var routine = resolver.ResolveRoutine(invoke, queryContext);
 				if (routine != null)
@@ -31,12 +32,12 @@ namespace Deveel.Data.Routines {
 			return null;
 		}
 
-		public static void UseRoutineResolver<TResolver>(this ISystemContext context) where TResolver : IRoutineResolver {
+		public static void UseRoutineResolver<TResolver>(this ISystemContext context) where TResolver : class, IRoutineResolver {
 			context.RegisterService<TResolver>();
 		}
 
 		public static void UseRoutineResolver<TResolver>(this ISystemContext context, TResolver resolver)
-			where TResolver : IRoutineResolver {
+			where TResolver : class, IRoutineResolver {
 			context.RegisterService(resolver);
 		}
 

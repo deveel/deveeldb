@@ -27,8 +27,9 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class DatabaseContext : IDatabaseContext, IResolveScope {
+	public sealed class DatabaseContext : IDatabaseContext/*, IResolveScope*/ {
 		private ITableCellCache cellCache;
+		private ServiceContainer container;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
 			: this(systemContext, CreateSimpleConfig(name)) {
@@ -39,6 +40,8 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("systemContext");
 			if (configuration == null)
 				throw new ArgumentNullException("configuration");
+
+			container = new ServiceContainer(this, (ServiceContainer) systemContext.Container);
 
 			SystemContext = systemContext;
 
@@ -76,10 +79,14 @@ namespace Deveel.Data {
 
 				if (Locker != null)
 					Locker.Reset();
+
+				if (container !=null)
+					container.Dispose();
 			}
 
 			Locker = null;
 			StoreSystem = null;
+			container = null;
 		}
 
 		public IConfiguration Configuration { get; private set; }
@@ -91,6 +98,10 @@ namespace Deveel.Data {
 		public IStoreSystem StoreSystem { get; private set; }
 
 		public Locker Locker { get; private set; }
+
+		IServiceContainer IServiceContext.Container {
+			get { return container; }
+		}
 
 		private void Init() {
 			InitStorageSystem();
@@ -117,7 +128,7 @@ namespace Deveel.Data {
 		}
 
 		private IStoreSystem CreateExternalStoreSystem(Type type) {
-			return SystemContext.ServiceProvider.Resolve(type) as IStoreSystem;
+			return SystemContext.ResolveService(type) as IStoreSystem;
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
@@ -132,26 +143,26 @@ namespace Deveel.Data {
 			get { return SystemContext; }
 		}
 
-		object IResolveScope.OnBeforeResolve(Type type, string name) {
-			if (typeof (ITableCellCache).IsAssignableFrom(type))
-				return cellCache;
+		//object IResolveScope.OnBeforeResolve(Type type, string name) {
+		//	if (typeof (ITableCellCache).IsAssignableFrom(type))
+		//		return cellCache;
 
-			return null;
-		}
+		//	return null;
+		//}
 
-		void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
-			if (obj is ITableCellCache)
-				cellCache = (ITableCellCache) obj;
+		//void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
+		//	if (obj is ITableCellCache)
+		//		cellCache = (ITableCellCache) obj;
 
-			if (obj != null && obj is IConfigurable)
-				((IConfigurable)obj).Configure(Configuration);
-		}
+		//	if (obj != null && obj is IConfigurable)
+		//		((IConfigurable)obj).Configure(Configuration);
+		//}
 
-		IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
-			return null;
-		}
+		//IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
+		//	return null;
+		//}
 
-		void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
-		}
+		//void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
+		//}
 	}
 }

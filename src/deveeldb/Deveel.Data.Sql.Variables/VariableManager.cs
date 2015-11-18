@@ -17,8 +17,10 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data.Sql.Variables {
-	public class VariableManager {
+	public class VariableManager /*: IResolveCallback*/ {
 		private Dictionary<string, Variable> variables;
  
 		public VariableManager(IVariableScope scope) {
@@ -33,6 +35,10 @@ namespace Deveel.Data.Sql.Variables {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
+
+		//void IResolveCallback.OnResolved(IResolveScope scope) {
+		//	Scope = scope as IVariableScope;
+		//}
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {

@@ -36,8 +36,8 @@ namespace Deveel.Data.Store.Journaled {
 		private int writeLockCount;
 		private bool checkpointInProgress;
 
-		public BufferManager(ISystemContext systemContext) {
-			SystemContext = systemContext;
+		public BufferManager(IDatabaseContext databaseContext) {
+			DatabaseContext = databaseContext;
 
 			currentTime = 0;
 			pageComparer = new PageComparer(this);
@@ -50,7 +50,7 @@ namespace Deveel.Data.Store.Journaled {
 
 		public int PageSize { get; set; }
 
-		public ISystemContext SystemContext { get; private set; }
+		public IDatabaseContext DatabaseContext { get; private set; }
 
 		public string JournalPath { get; set; }
 
@@ -63,7 +63,7 @@ namespace Deveel.Data.Store.Journaled {
 		}
 
 		public void Start() {
-			journalingSystem = new JournalingSystem(SystemContext);
+			journalingSystem = new JournalingSystem(DatabaseContext);
 			journalingSystem.JournalPath = JournalPath;
 			journalingSystem.PageSize = PageSize;
 			journalingSystem.ReadOnly = ReadOnly;

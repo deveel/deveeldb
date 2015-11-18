@@ -30,9 +30,7 @@ namespace Deveel.Data.Services {
 	/// encapsulates an IoC engine to resolve database services.
 	/// </summary>
 	public sealed class SystemServiceProvider : ISystemServiceProvider {
-		// private TinyIoCContainer container;
-		private DryIoc.Container container;
-		// private List<IServiceResolveContext> resolveContexts;
+		private Container container;
 
 		/// <summary>
 		/// Constructs the service provider around the given context.

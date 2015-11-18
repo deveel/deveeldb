@@ -287,10 +287,11 @@
     <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
-    <Compile Include="Deveel.Data.Services\IResolveScope.cs" />
-    <Compile Include="Deveel.Data.Services\ISystemServiceProvider.cs" />
-    <Compile Include="Deveel.Data.Services\SystemServiceProvider.cs" />
-    <Compile Include="Deveel.Data.Services\SystemServiceProviderExtensions.cs" />
+    <Compile Include="Deveel.Data.Services\IServiceContainer.cs" />
+    <Compile Include="Deveel.Data.Services\IServiceContext.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceContainerExtensions.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />

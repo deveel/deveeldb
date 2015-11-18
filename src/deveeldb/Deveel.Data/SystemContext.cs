@@ -32,12 +32,14 @@ namespace Deveel.Data {
 	/// This is the context of a database system, that handles the configurations
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
-	public sealed class SystemContext : ISystemContext, IResolveScope {
+	public sealed class SystemContext : ISystemContext /*, IResolveScope*/ {
 		// We preserve an instance of some singletons...
 		private ISqlCompiler sqlCompiler;
 		private IEnumerable<IEventRouter> eventRouters;
 		private IQueryPlanner queryPlanner;
 		private ITableCellCache tableCellCache;
+
+		private ServiceContainer container;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SystemContext"/> class,
@@ -60,6 +62,8 @@ namespace Deveel.Data {
 			Configuration = configuration;
 			EventRegistry = new SystemEventRegistry(this);
 
+			container = new ServiceContainer(this);
+
 			UseDefaults();
 		}
 
@@ -81,11 +85,15 @@ namespace Deveel.Data {
 		/// </summary>
 		public IEventRegistry EventRegistry { get; private set; }
 
-		/// <summary>
-		/// Gets an object used to dynamically resolve system services.
-		/// </summary>
-		/// <seealso cref="ISystemServiceProvider" />
-		public ISystemServiceProvider ServiceProvider { get; set; }
+		///// <summary>
+		///// Gets an object used to dynamically resolve system services.
+		///// </summary>
+		///// <seealso cref="ISystemServiceProvider" />
+		//public ISystemServiceProvider ServiceProvider { get; set; }
+
+		IServiceContainer IServiceContext.Container {
+			get { return container; }
+		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return new KeyValuePair<string, object>[0]; }
@@ -105,52 +113,56 @@ namespace Deveel.Data {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (ServiceProvider != null)
-					ServiceProvider.Dispose();
+				//if (ServiceProvider != null)
+				//	ServiceProvider.Dispose();
+				if (container != null)
+					container.Dispose();
 			}
 
-			ServiceProvider = null;
+			container = null;
+
+			//ServiceProvider = null;
 		}
 
 		private void UseDefaults() {
-			ServiceProvider = new SystemServiceProvider(this);
+			//ServiceProvider = new SystemServiceProvider(this);
 			this.UseDefaultSqlCompiler();
 			this.UseDefaultQueryPlanner();
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
 		}
 
-		object IResolveScope.OnBeforeResolve(Type type, string name) {
-			if (typeof (ISqlCompiler).IsAssignableFrom(type))
-				return sqlCompiler;
-			if (typeof (IQueryPlanner).IsAssignableFrom(type))
-				return queryPlanner;
-			if (typeof (ITableCellCache).IsAssignableFrom(type))
-				return tableCellCache;
+		//object IResolveScope.OnBeforeResolve(Type type, string name) {
+		//	if (typeof (ISqlCompiler).IsAssignableFrom(type))
+		//		return sqlCompiler;
+		//	if (typeof (IQueryPlanner).IsAssignableFrom(type))
+		//		return queryPlanner;
+		//	if (typeof (ITableCellCache).IsAssignableFrom(type))
+		//		return tableCellCache;
 
-			return null;
-		}
+		//	return null;
+		//}
 
-		void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
-			if (obj is ISqlCompiler) {
-				sqlCompiler = (ISqlCompiler) obj;
-			} else if (obj is IQueryPlanner) {
-				queryPlanner = (IQueryPlanner) obj;
-			} else if (typeof (ITableCellCache).IsAssignableFrom(type)) {
-				tableCellCache = (ITableCellCache) obj;
-			}
-		}
+		//void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
+		//	if (obj is ISqlCompiler) {
+		//		sqlCompiler = (ISqlCompiler) obj;
+		//	} else if (obj is IQueryPlanner) {
+		//		queryPlanner = (IQueryPlanner) obj;
+		//	} else if (typeof (ITableCellCache).IsAssignableFrom(type)) {
+		//		tableCellCache = (ITableCellCache) obj;
+		//	}
+		//}
 
-		IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
-			if (type == typeof (IEventRouter))
-				return eventRouters;
+		//IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
+		//	if (type == typeof (IEventRouter))
+		//		return eventRouters;
 
-			return null;
-		}
+		//	return null;
+		//}
 
-		void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
-			if (type == typeof (IEventRouter))
-				eventRouters = list.Cast<IEventRouter>().ToList();
-		}
+		//void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
+		//	if (type == typeof (IEventRouter))
+		//		eventRouters = list.Cast<IEventRouter>().ToList();
+		//}
 	}
 }

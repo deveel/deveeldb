@@ -7,8 +7,8 @@ using Deveel.Data.Services;
 namespace Deveel.Data.Sql.Query {
 	public static class SystemContextExtensions {
 		public static void UseDefaultQueryPlanner(this ISystemContext context) {
-			context.ServiceProvider.ResolveAll<IQueryPlanner>();
-			context.ServiceProvider.Register<QueryPlanner>();
+			context.UnregisterService<IQueryPlanner>();
+			context.RegisterService<QueryPlanner>();
 			
 			QueryPlanSerializers.RegisterSerializers(context);			
 		}
@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Query {
 		public static void SerializeQueryPlan(this ISystemContext context, IQueryPlanNode node, BinaryWriter writer) {
 			var nodeType = node.GetType();
 
-			var serializers = context.ResolveServices<IQueryPlanNodeSerializer>();
+			var serializers = context.ResolveAllServices<IQueryPlanNodeSerializer>();
 			foreach (var serializer in serializers) {
 				if (serializer.CanSerialize(nodeType)) {
 					serializer.Serialize(node, writer);
@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public static IQueryPlanNode DeserializeQueryPlan(this ISystemContext context, Type nodeType, BinaryReader reader) {
-			var serializers = context.ResolveServices<IQueryPlanNodeSerializer>();
+			var serializers = context.ResolveAllServices<IQueryPlanNodeSerializer>();
 			foreach (var serializer in serializers) {
 				if (serializer.CanSerialize(nodeType)) {
 					return (IQueryPlanNode)serializer.Deserialize(reader);

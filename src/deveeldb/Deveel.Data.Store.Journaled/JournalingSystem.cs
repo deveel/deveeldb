@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data.Store.Journaled {
 	public sealed class JournalingSystem : IDisposable {
 		private readonly object initLock = new object();
@@ -33,8 +35,8 @@ namespace Deveel.Data.Store.Journaled {
 
 		private JournalingThread journalingThread;
 
-		public JournalingSystem(ISystemContext systemContext) {
-			SystemContext = systemContext;
+		public JournalingSystem(IDatabaseContext databaseContext) {
+			DatabaseContext = databaseContext;
 			registries = new List<JournalRegistry>();
 			EnableLogging = true;
 
@@ -45,14 +47,14 @@ namespace Deveel.Data.Store.Journaled {
 			Dispose(false);
 		}
 
-		public ISystemContext SystemContext { get; private set; }
+		public IDatabaseContext DatabaseContext { get; private set; }
 
 		public IFileSystem FileSystem {
-			get { return SystemContext.ResolveService<IFileSystem>(); }
+			get { return DatabaseContext.ResolveService<IFileSystem>(); }
 		}
 
 		public IStoreDataFactory DataFactory {
-			get { return SystemContext.ResolveService<IStoreDataFactory>(); }
+			get { return DatabaseContext.ResolveService<IStoreDataFactory>(); }
 		}
 
 		public bool IsStarted {

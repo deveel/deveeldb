@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Store {
 	public sealed class SingleFileStoreSystem : IStoreSystem, IConfigurable {

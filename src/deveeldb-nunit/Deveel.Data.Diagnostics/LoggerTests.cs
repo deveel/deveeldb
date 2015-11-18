@@ -16,12 +16,12 @@ namespace Deveel.Data.Diagnostics {
 
 		[Test]
 		public void LogErrorToConsole() {
-			var routers = SystemContext.ServiceProvider.ResolveAll<IEventRouter>().ToList();
+			var routers = SystemContext.ResolveAllServices<IEventRouter>().ToList();
 			Assert.IsNotEmpty(routers);
 			Assert.AreEqual(1, routers.Count);
 			Assert.IsInstanceOf<LogEventRouter>(routers[0]);
 
-			var loggers = SystemContext.ServiceProvider.ResolveAll<IEventLogger>().ToList();
+			var loggers = SystemContext.ResolveAllServices<IEventLogger>().ToList();
 			Assert.IsNotEmpty(loggers);
 			Assert.AreEqual(1, loggers.Count);
 			Assert.IsInstanceOf<ConsoleEventLogger>(loggers[0]);

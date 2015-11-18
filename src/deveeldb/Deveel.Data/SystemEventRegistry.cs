@@ -35,7 +35,7 @@ namespace Deveel.Data {
 		public ISystemContext Context { get; private set; }
 
 		private IEnumerable<IEventRouter> ResolveRouters() {
-			return Context.ServiceProvider.ResolveAll<IEventRouter>();
+			return Context.ResolveAllServices<IEventRouter>();
 		}
 
 		public void RegisterEvent(IEvent e) {

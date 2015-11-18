@@ -18,9 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
-using Deveel.Data.Transactions;
-
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorManager : IObjectManager {
 		private List<Cursor> cursors;
@@ -36,6 +33,14 @@ namespace Deveel.Data.Sql.Cursors {
 		~CursorManager() {
 			Dispose(false);
 		}
+
+		//void IResolveCallback.OnResolved(IResolveScope scope) {
+		//	var context = scope as IQueryContext;
+		//	if (context == null)
+		//		throw new InvalidOperationException("The cursor manager is not resolved within a query context scope");
+
+		//	Context = context;
+		//}
 
 		public IQueryContext Context { get; private set; }
 

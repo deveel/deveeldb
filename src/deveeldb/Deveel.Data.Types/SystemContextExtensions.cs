@@ -21,7 +21,7 @@ using Deveel.Data.Services;
 namespace Deveel.Data.Types {
 	public static class SystemContextExtensions {
 		public static SqlType ResolveType(this ISystemContext context, string typeName, params DataTypeMeta[] meta) {
-			var resolvers = context.ServiceProvider.ResolveAll<ITypeResolver>();
+			var resolvers = context.ResolveAllServices<ITypeResolver>();
 			var resolveContext = new TypeResolveContext(SqlTypeCode.Type, typeName, meta);
 			foreach (var typeResolver in resolvers) {
 				var type = typeResolver.ResolveType(resolveContext);

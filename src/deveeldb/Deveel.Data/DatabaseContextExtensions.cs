@@ -85,23 +85,23 @@ namespace Deveel.Data {
 
 #region Services
 
-		public static object ResolveService(this IDatabaseContext context, Type serviceType) {
-			return ResolveService(context, serviceType, null);
-		}
+		//public static object ResolveService(this IDatabaseContext context, Type serviceType) {
+		//	return ResolveService(context, serviceType, null);
+		//}
 
-		public static object ResolveService(this IDatabaseContext context, Type serviceType, string name) {
-			var scope = context as IResolveScope;
-			return context.SystemContext.ResolveService(serviceType, name, scope);
-		}
+		//public static object ResolveService(this IDatabaseContext context, Type serviceType, string name) {
+		//	var scope = context as IResolveScope;
+		//	return context.SystemContext.ResolveService(serviceType, name, scope);
+		//}
 
-		public static TService ResolveService<TService>(this IDatabaseContext context) {
-			return ResolveService<TService>(context, null);
-		}
+		//public static TService ResolveService<TService>(this IDatabaseContext context) {
+		//	return ResolveService<TService>(context, null);
+		//}
 
-		public static TService ResolveService<TService>(this IDatabaseContext context, string name) {
-			var scope = context as IResolveScope;
-			return context.SystemContext.ResolveService<TService>(name, scope);
-		}
+		//public static TService ResolveService<TService>(this IDatabaseContext context, string name) {
+		//	var scope = context as IResolveScope;
+		//	return context.SystemContext.ResolveService<TService>(name, scope);
+		//}
 
 #endregion
 	}

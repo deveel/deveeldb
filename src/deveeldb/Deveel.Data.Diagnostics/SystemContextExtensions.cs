@@ -26,8 +26,8 @@ namespace Deveel.Data.Diagnostics {
 			if (!typeof(IEventLogger).IsAssignableFrom(loggerType))
 				throw new ArgumentException(String.Format("Type '{0}' is not assignable from '{1}'", loggerType.AssemblyQualifiedName, typeof(IEventLogger)));
 
-			context.ServiceProvider.Register<LogEventRouter>();
-			context.ServiceProvider.Register(loggerType);
+			context.RegisterService<LogEventRouter>();
+			context.RegisterService(loggerType);
 		}
 
 		public static void UseLogger<TLogger>(this ISystemContext context) where TLogger : IEventLogger {
@@ -38,8 +38,8 @@ namespace Deveel.Data.Diagnostics {
 			if (logger == null)
 				throw new ArgumentNullException("logger");
 
-			context.ServiceProvider.Register(new LogEventRouter(context));
-			context.ServiceProvider.Register(logger);
+			context.RegisterService(new LogEventRouter(context));
+			context.RegisterService(logger);
 		}
 
 #if !PCL

@@ -23,7 +23,7 @@ using Deveel.Data.Sql;
 namespace Deveel.Data.Index {
 	public static class SystemContextExtensions {
 		public static IIndexFactory ResolveIndexFactory(this ISystemContext context, string indexType) {
-			return context.ServiceProvider.Resolve<IIndexFactory>(indexType);
+			return context.ResolveService<IIndexFactory>(indexType);
 		}
 
 		public static ColumnIndex CreateColumnIndex(this ISystemContext context, string indexType,

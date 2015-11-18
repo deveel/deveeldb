@@ -15,12 +15,14 @@
 //
 
 using System;
+using System.Collections;
 #if !PCL
 using System.Security.Cryptography;
 #endif
 
 using Deveel.Data.Caching;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
@@ -28,13 +30,14 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : IQueryContext, IVariableScope {
+	abstract class QueryContextBase : IQueryContext, IVariableScope/*, IResolveScope*/ {
 #if PCL
 		private Random secureRandom;
 #else
 		private RNGCryptoServiceProvider secureRandom;
 #endif
 		private ICache tableCache;
+		private ServiceContainer container;
 		private bool disposed;
 
 		protected QueryContextBase(IUserSession session) {
@@ -46,6 +49,7 @@ namespace Deveel.Data {
 #else
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
+			container = new ServiceContainer(this, (ServiceContainer) session.Database.DatabaseContext.Container);
 			Session = session;
 			tableCache = new MemoryCache();
 			VariableManager = new VariableManager(this);
@@ -189,5 +193,21 @@ namespace Deveel.Data {
 
 		protected virtual void OnVariableDefined(Variable variable) {
 		}
+
+		//object IResolveScope.OnBeforeResolve(Type serviceType, string name) {
+		//	throw new NotImplementedException();
+		//}
+
+		//void IResolveScope.OnAfterResolve(Type serviceType, string name, object obj) {
+		//	throw new NotImplementedException();
+		//}
+
+		//IEnumerable IResolveScope.OnBeforeResolveAll(Type serviceType) {
+		//	throw new NotImplementedException();
+		//}
+
+		//void IResolveScope.OnAfterResolveAll(Type serviceType, IEnumerable list) {
+		//	throw new NotImplementedException();
+		//}
 	}
 }
