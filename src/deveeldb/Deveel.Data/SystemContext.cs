@@ -39,7 +39,7 @@ namespace Deveel.Data {
 		/// using the default set of configurations
 		/// </summary>
 		public SystemContext()
-			: this(Data.Configuration.Configuration.SystemDefault) {
+			: this(new Configuration.Configuration()) {
 		}
 
 		/// <summary>

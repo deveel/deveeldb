@@ -30,7 +30,7 @@ namespace Deveel.Data {
 		private ServiceContainer container;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
-			: this(systemContext, CreateSimpleConfig(name)) {
+			: this(systemContext, CreateSimpleConfig(systemContext, name)) {
 		}
 
 		public DatabaseContext(ISystemContext systemContext, IConfiguration configuration) {
@@ -57,13 +57,12 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
-		private static IConfiguration CreateSimpleConfig(string dbName) {
+		private static IConfiguration CreateSimpleConfig(ISystemContext systemContext, string dbName) {
 			if (String.IsNullOrEmpty(dbName))
 				throw new ArgumentNullException("dbName");
 
-			var config = Data.Configuration.Configuration.Empty;
-			config.SetKey(DatabaseConfigKeys.DatabaseName);
-			config.SetValue(DatabaseConfigKeys.DatabaseName, dbName);
+			var config = new Configuration.Configuration(systemContext.Configuration);
+			config.SetValue("database.name", dbName);
 			return config;
 		}
 
@@ -103,17 +102,9 @@ namespace Deveel.Data {
 			get { return container; }
 		}
 
-		//private void Init() {
-		//	InitStorageSystem();
-		//}
-
 		private void InitStorageSystem() {
-			var storeSystemType = this.StorageSystemType();
-			if (storeSystemType == null)
-				throw new DatabaseConfigurationException("Storage system type is required.");
-
 			try {
-				var storageTypeName = Configuration.GetString(DatabaseConfigKeys.StorageSystem);
+				var storageTypeName = Configuration.GetString("database.storageSystem", DefaultStorageSystemNames.Heap);
 				StoreSystem = this.ResolveService<IStoreSystem>(storageTypeName);
 
 				if (StoreSystem == null)
@@ -123,10 +114,6 @@ namespace Deveel.Data {
 			} catch (Exception ex) {
 				throw new DatabaseConfigurationException("Could not initialize the storage system", ex);
 			}
-		}
-
-		private IStoreSystem CreateExternalStoreSystem(Type type) {
-			return SystemContext.ResolveService(type) as IStoreSystem;
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
@@ -140,27 +127,5 @@ namespace Deveel.Data {
 		IEventSource IEventSource.ParentSource {
 			get { return SystemContext; }
 		}
-
-		//object IResolveScope.OnBeforeResolve(Type type, string name) {
-		//	if (typeof (ITableCellCache).IsAssignableFrom(type))
-		//		return cellCache;
-
-		//	return null;
-		//}
-
-		//void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
-		//	if (obj is ITableCellCache)
-		//		cellCache = (ITableCellCache) obj;
-
-		//	if (obj != null && obj is IConfigurable)
-		//		((IConfigurable)obj).Configure(Configuration);
-		//}
-
-		//IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
-		//	return null;
-		//}
-
-		//void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
-		//}
 	}
 }

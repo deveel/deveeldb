@@ -9,7 +9,7 @@ namespace Deveel.Data {
 		private IList<IQueryContext> queryContexts; 
 		
 		public SystemManager() 
-			: this(Configuration.Configuration.SystemDefault) {
+			: this(new Configuration.Configuration()) {
 		}
 
 		public SystemManager(IConfiguration config) 

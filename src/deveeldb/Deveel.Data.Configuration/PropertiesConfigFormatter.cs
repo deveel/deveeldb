@@ -25,15 +25,7 @@ using Deveel.Data.Util;
 namespace Deveel.Data.Configuration {
 	public sealed class PropertiesConfigFormatter : IConfigFormatter {
 		private void SetValue(IConfiguration config, string propKey, string value) {
-			var configKey = config.GetKey(propKey);
-			if (configKey != null) {
-				var propValue = ConvertValueTo(value, configKey.ValueType);
-				config.SetValue(configKey, propValue);
-			} else {
-				configKey = new ConfigKey(propKey, typeof (string));
-				config.SetKey(configKey);
-				config.SetValue(configKey, value);
-			}
+			config.SetValue(propKey, value);
 		}
 
 		private object ConvertValueTo(string value, Type valueType) {
@@ -66,15 +58,10 @@ namespace Deveel.Data.Configuration {
 
 				foreach (var configKey in keys) {
 					var configValue = config.GetValue(configKey);
-					object value;
-					if (configValue == null || configValue.Value == null) {
-						value = configKey.DefaultValue;
-					} else {
-						value = configValue.Value;
+					if (configValue != null) {
+						var stringValue = Convert.ToString(configValue, CultureInfo.InvariantCulture);
+						properties.SetProperty(configKey, stringValue);
 					}
-
-					var stringValue = Convert.ToString(value, CultureInfo.InvariantCulture);
-					properties.SetProperty(configKey.Name, stringValue);
 				}
 
 				properties.Store(outputStream, String.Empty);

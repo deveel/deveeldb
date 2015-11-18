@@ -24,75 +24,72 @@ namespace Deveel.Data.Configuration {
 		[Test]
 		public void DefaultConfig() {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
 			Assert.IsNull(config.Parent);
 			Assert.IsNull(config.Source);
 		}
 
 		[Test]
-		public void GetKeysFromRoot() {
+		public void GetValuesFromRoot() {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.Empty);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
-			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", 54, typeof(int))));
-			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.twoKeys", typeof(string))));
+			Assert.DoesNotThrow(() => config.SetValue("test.oneKey", 54));
+			Assert.DoesNotThrow(() => config.SetValue("test.twoKeys", null));
 
-			ConfigKey key1 = null;
-			ConfigKey key2 = null;
+			object value1 = null;
+			object value2 = null;
 
-			Assert.DoesNotThrow(() => key1 = config.GetKey("test.oneKey"));
-			Assert.IsNotNull(key1);
-			Assert.IsNotNull(key1.DefaultValue);
-			Assert.AreEqual(typeof(int), key1.ValueType);
-			Assert.AreEqual(54, key1.DefaultValue);
+			Assert.DoesNotThrow(() => value1 = config.GetValue("test.oneKey"));
+			Assert.IsNotNull(value1);
+			Assert.IsInstanceOf<int>(value1);
+			Assert.AreEqual(54, value1);
 
-			Assert.DoesNotThrow(() => key2 = config.GetKey("test.twoKeys"));
-			Assert.IsNotNull(key2);
-			Assert.AreEqual(typeof(string), key2.ValueType);
-			Assert.IsNull(key2.DefaultValue);
+			Assert.DoesNotThrow(() => value2 = config.GetValue("test.twoKeys"));
+			Assert.IsNull(value2);
 		}
 
 		[Test]
-		public void GetKeysFromChild() {
+		public void GetValuesFromChild() {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
 
-			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", "one", typeof(string))));
+			Assert.DoesNotThrow(() => config.SetValue("test.oneKey", "one"));
 
 			IConfiguration child = null;
 			Assert.DoesNotThrow(() => child = new Configuration(config));
 			Assert.IsNotNull(child);
 			Assert.IsNotNull(child.Parent);
 
-			Assert.DoesNotThrow(() => config.SetKey(new ConfigKey("test.oneKey", 45, typeof(int))));
+			Assert.DoesNotThrow(() => child.SetValue("test.oneKey", 45));
 
-			ConfigKey key = null;
-			Assert.DoesNotThrow(() => key = config.GetKey("test.oneKey"));
-			Assert.IsNotNull(key);
-			Assert.AreEqual(typeof(int), key.ValueType);
-			Assert.AreEqual(45, key.DefaultValue);
+			object value = null;
+			Assert.DoesNotThrow(() => value = child.GetValue("test.oneKey"));
+			Assert.IsNotNull(value);
+			Assert.IsInstanceOf<int>(value);
+			Assert.AreEqual(45, value);
+
+			Assert.DoesNotThrow(() => value = config.GetValue("test.oneKey"));
+			Assert.IsNotNull(value);
+			Assert.IsInstanceOf<string>(value);
+			Assert.AreEqual("one", value);
 		}
 
 		[Test]
 		public void GetValueAsInt32() {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
 
-			ConfigKey key = new ConfigKey("test.oneKey", "one", typeof(string));
-			Assert.DoesNotThrow(() => config.SetKey(key));
-			Assert.DoesNotThrow(() => config.SetValue(key, "22"));
+			Assert.DoesNotThrow(() => config.SetValue("test.oneKey", "22"));
 
-			ConfigValue value = null;
-			Assert.DoesNotThrow(() => value = config.GetValue(key));
+			object value = null;
+			Assert.DoesNotThrow(() => value = config.GetInt32("test.oneKey"));
 			Assert.IsNotNull(value);
-			Assert.IsNotNull(value.Value);
-
-			int iValue = -1;
-			Assert.DoesNotThrow(() => iValue = value.ToType<int>());
-			Assert.AreEqual(22, iValue);
+			Assert.IsInstanceOf<int>(value);
+			Assert.AreEqual(22, value);
 		}
 
 		[TestCase("test","true", true)]
@@ -102,21 +99,16 @@ namespace Deveel.Data.Configuration {
 		[TestCase("test", "enabled", true)]
 		public void GetBooleanValue(string key, string value, bool expected) {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
 
-			ConfigKey configKey = new ConfigKey(key, typeof(string));
-			Assert.DoesNotThrow(() => config.SetKey(configKey));
-			Assert.DoesNotThrow(() => config.SetValue(configKey, value));
+			Assert.DoesNotThrow(() => config.SetValue(key, value));
 
-			ConfigValue configValue = null;
-			Assert.DoesNotThrow(() => configValue = config.GetValue(configKey));
-			Assert.IsNotNull(value);
-			Assert.IsNotNull(configValue.Value);
-
-			bool bValue = false;
-			Assert.DoesNotThrow(() => bValue = configValue.ToType<bool>());
-			Assert.AreEqual(expected, bValue);
+			object configValue = null;
+			Assert.DoesNotThrow(() => configValue = config.GetBoolean(key));
+			Assert.IsNotNull(configValue);
+			Assert.IsInstanceOf<bool>(configValue);
+			Assert.AreEqual(expected, configValue);
 		}
 
 		[TestCase(1, TestEnum.One)]
@@ -125,19 +117,15 @@ namespace Deveel.Data.Configuration {
 		[TestCase(null, TestEnum.Default)]
 		public void GetEnumValue(object value, TestEnum expected) {
 			IConfiguration config = null;
-			Assert.DoesNotThrow(() => config = Configuration.SystemDefault);
+			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
+			
+			Assert.DoesNotThrow(() => config.SetValue("test", value));
 
-			ConfigKey configKey = new ConfigKey("test", typeof(TestEnum));
-			Assert.DoesNotThrow(() => config.SetKey(configKey));
-			Assert.DoesNotThrow(() => config.SetValue(configKey, value));
-
-			ConfigValue configValue = null;
-			Assert.DoesNotThrow(() => configValue = config.GetValue(configKey));
-
-			TestEnum enumValue = new TestEnum();
-			Assert.DoesNotThrow(() => enumValue = configValue.ToType<TestEnum>());
-			Assert.AreEqual(expected, enumValue);
+			object configValue = null;
+			Assert.DoesNotThrow(() => configValue = config.GetValue<TestEnum>("test"));
+			Assert.IsInstanceOf<TestEnum>(configValue);
+			Assert.AreEqual(expected, configValue);
 		}
 
 		public enum TestEnum {
@@ -157,7 +145,7 @@ namespace Deveel.Data.Configuration {
 			Assert.IsNotNull(configuration);
 			Assert.DoesNotThrow(() => configuration.Load(new PropertiesConfigFormatter()));
 
-			Assert.DoesNotThrow(() => Assert.IsNotNull(configuration.GetKey("system.readOnly")));
+			Assert.DoesNotThrow(() => Assert.IsNotNull(configuration.GetValue("system.readOnly")));
 
 			bool readOnly = true;
 			Assert.DoesNotThrow(() => readOnly = configuration.GetBoolean("system.readOnly"));

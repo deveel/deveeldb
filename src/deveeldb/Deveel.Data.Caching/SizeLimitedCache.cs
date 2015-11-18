@@ -24,6 +24,14 @@ namespace Deveel.Data.Caching {
 
 		public int MaxSize { get; private set; }
 
+		protected override void CheckClean() {
+			// If we have reached maximum cache size, remove some elements from the
+			// end of the list
+			if (NodeCount >= MaxSize) {
+				Clean();
+			}
+		}
+
 		protected override void UpdateElementAccess(object key, CacheValue cacheValue) {
 			base.UpdateElementAccess(key, cacheValue);
 

@@ -23,8 +23,7 @@ using Deveel.Data;
 namespace Deveel.Data.Configuration {
 	public class Configuration : IConfiguration {
 		private readonly bool isRoot;
-		private readonly Dictionary<string, ConfigKey> keys;
-		private readonly Dictionary<string, ConfigValue> values;
+		private readonly Dictionary<string, object> values;
 
 		/// <summary>
 		/// Constructs the <see cref="Configuration"/>.
@@ -32,8 +31,7 @@ namespace Deveel.Data.Configuration {
 		private Configuration(bool isRoot) {
 			Parent = null;
 			this.isRoot = isRoot;
-			keys = new Dictionary<string, ConfigKey>();
-			values = new Dictionary<string, ConfigValue>();
+			values = new Dictionary<string, object>();
 		}
 
 		/// <summary>
@@ -43,7 +41,7 @@ namespace Deveel.Data.Configuration {
 		/// will provide fallback configurations</param>
 		/// <param name="source"></param>
 		public Configuration(IConfiguration parent, IConfigSource source)
-			: this(false) {
+			: this(parent == null) {
 			Parent = parent;
 			Source = source;
 
@@ -55,18 +53,12 @@ namespace Deveel.Data.Configuration {
 			: this(null, source) {
 		}
 
-		public Configuration(IConfiguration parent)
-			: this(parent, null) {
+		public Configuration()
+			: this(true) {
 		}
 
-		static Configuration() {
-			Empty = new Configuration(true);
-
-			SystemDefault = new Configuration(true);
-			SystemConfigKeys.SetTo(SystemDefault);
-
-			DatabaseDefault = new Configuration(true);
-			DatabaseConfigKeys.SetTo(DatabaseDefault);
+		public Configuration(IConfiguration parent)
+			: this(parent, null) {
 		}
 
 		/// <inheritdoc/>
@@ -75,77 +67,50 @@ namespace Deveel.Data.Configuration {
 		/// <inheritdoc/>
 		public IConfiguration Parent { get; set; }
 
-		/// <summary>
-		/// An empty configuration object, which does not contain any key nor value.
-		/// </summary>
-		public static Configuration Empty { get; private set; }
-
-		public static Configuration SystemDefault { get; private set; }
-
-		public static Configuration DatabaseDefault { get; private set; }
-
 		/// <inheritdoc/>
-		public IEnumerable<ConfigKey> GetKeys(ConfigurationLevel level) {
-			var returnKeys = new Dictionary<string, ConfigKey>();
+		public IEnumerable<string> GetKeys(ConfigurationLevel level) {
+			var returnKeys = new Dictionary<string, string>();
 			if (!isRoot && Parent != null && level == ConfigurationLevel.Deep) {
 				var configKeys = Parent.GetKeys(level);
 				foreach (var pair in configKeys) {
-					returnKeys[pair.Name] = pair;
+					returnKeys[pair] = pair;
 				}
 			}
 
-			foreach (var configKey in keys) {
-				returnKeys[configKey.Key] = configKey.Value;
+			foreach (var configKey in values.Keys) {
+				returnKeys[configKey] = configKey;
 			}
 
 			return returnKeys.Values.AsEnumerable();
 		}
 
+
 		/// <inheritdoc/>
-		public ConfigKey GetKey(string name) {
-			ConfigKey key;
-			if (keys.TryGetValue(name, out key))
-				return key;
+		public void SetValue(string key, object value) {
+			if (String.IsNullOrEmpty(key))
+				throw new ArgumentNullException("key");
 
-			if (!isRoot && Parent != null && (key = Parent.GetKey(name)) != null)
-				return key;
-
-			return null;
+			if (value == null) {
+				values.Remove(key);
+			} else {
+				values[key] = value;
+			}
 		}
 
 		/// <inheritdoc/>
-		public void SetKey(ConfigKey key) {
-			if (key == null)
+		public object GetValue(string key) {
+			if (String.IsNullOrEmpty(key))
 				throw new ArgumentNullException("key");
 
-			keys[key.Name] = key;
-		}
-
-		/// <inheritdoc/>
-		public void SetValue(ConfigKey key, object value) {
-			if (key == null)
-				throw new ArgumentNullException("key");
-
-			if (!keys.ContainsKey(key.Name))
-				keys[key.Name] = key;
-
-			values[key.Name] = new ConfigValue(key, value);
-		}
-
-		/// <inheritdoc/>
-		public ConfigValue GetValue(ConfigKey key) {
-			if (key == null)
-				throw new ArgumentNullException("key");
-
-			ConfigValue value;
-			if (values.TryGetValue(key.Name, out value))
+			object value;
+			if (values.TryGetValue(key, out value))
 				return value;
 
 			if (!isRoot && Parent != null && 
 				((value = Parent.GetValue(key)) != null))
 				return value;
 
-			return new ConfigValue(key, key.DefaultValue);
+			return null;
 		}
 	}
 }

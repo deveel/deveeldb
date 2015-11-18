@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -23,112 +24,18 @@ namespace Deveel.Data.Configuration {
 	public static class ConfigurationExtensions {
 		#region Get Values
 
-		public static IEnumerable<ConfigKey> GetKeys(this IConfiguration config) {
+		public static IEnumerable<string> GetKeys(this IConfiguration config) {
 			return config.GetKeys(ConfigurationLevel.Current);
 		}
 
-		public static IEnumerable<ConfigValue> GetValues(this IConfiguration config, ConfigurationLevel level) {
+		public static IEnumerable<object> GetValues(this IConfiguration config, ConfigurationLevel level) {
 			var keys = config.GetKeys(level);
-			var values = keys.Select(config.GetValue)
+			var values = keys.Select(x => config.GetValue(x))
 				.Where(value => value != null)
 				.ToList();
 
 			return values.ToArray();
 		}
-
-		public static ConfigValue GetConfigValue(this IConfiguration config, string keyName) {
-			var key = config.GetKey(keyName);
-			if (key == null)
-				return null;
-
-			return config.GetValue(key);
-		}
-
-		#region GetValue(ConfigKey)
-
-		public static T GetValue<T>(this IConfiguration config, ConfigKey key) {
-			var value = config.GetValue(key);
-			if (value == null)
-				return default(T);
-
-			return value.ToType<T>();
-		}
-
-		public static string GetString(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<string>(key);
-		}
-
-		public static byte GetByte(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<byte>(key);
-		}
-
-		[CLSCompliant(false)]
-		public static sbyte GetSByte(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<sbyte>(key);
-		}
-
-		public static short GetInt16(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<short>(key);
-		}
-
-		[CLSCompliant(false)]
-		public static ushort GetUInt16(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<ushort>(key);
-		}
-
-		public static int GetInt32(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<int>(key);
-		}
-
-		[CLSCompliant(false)]
-		public static uint GetUInt32(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<uint>(key);
-		}
-
-		public static long GetInt64(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<long>(key);
-		}
-
-		[CLSCompliant(false)]
-		public static ulong GetUInt64(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<ulong>(key);
-		}
-
-		public static bool GetBoolean(this IConfiguration config, ConfigKey key) {
-			var value = config.GetValue(key);
-			if (value == null)
-				return false;
-
-			if (value.Value is bool)
-				return (bool)value.Value;
-
-			try {
-				if (value.Value is string) {
-					if (String.Equals((string)value.Value, "true", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value.Value, "enabled", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value.Value, "1"))
-						return true;
-					if (String.Equals((string)value.Value, "false", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value.Value, "disabled", StringComparison.OrdinalIgnoreCase) ||
-						String.Equals((string)value.Value, "0"))
-						return false;
-				}
-
-				return value.ToType<bool>();
-			} catch (Exception e) {
-				throw new DatabaseConfigurationException(String.Format("Cannot convert {0} to a valid boolean", value), e);
-			}
-		}
-
-		public static float GetSingle(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<float>(key);
-		}
-
-		public static double GetDouble(this IConfiguration config, ConfigKey key) {
-			return config.GetValue<double>(key);
-		}
-
-		#endregion
 
 		#region GetValue(string)
 
@@ -137,23 +44,72 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static object GetValue(this IConfiguration config, string keyName, object defaultValue) {
-			var value = config.GetConfigValue(keyName);
+			var value = config.GetValue(keyName);
 			if (value == null)
 				return defaultValue;
 
-			return value.Value;
+			return value;
 		}
 
 		public static T GetValue<T>(this IConfiguration config, string keyName) {
 			return GetValue<T>(config, keyName, default(T));
 		}
 
+		private static T ToType<T>(object value) {
+			if (value == null)
+				return default(T);
+
+			if (value is T)
+				return (T)value;
+
+			if (typeof(T) == typeof(bool) &&
+				value is string)
+				return (T)ConvertToBoolean((string)value);
+
+			if (typeof(T).IsEnum)
+				return ConvertToEnum<T>(value);
+
+			if (!(value is IConvertible))
+				throw new InvalidCastException();
+
+			return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+		}
+
+		private static T ConvertToEnum<T>(object value) {
+			if (value is int ||
+				value is short ||
+				value is long ||
+				value is byte)
+				return (T)value;
+
+			if (value == null)
+				return default(T);
+
+			var s = value.ToString();
+			return (T)Enum.Parse(typeof(T), s, true);
+		}
+
+		private static object ConvertToBoolean(string value) {
+			if (String.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(value, "enabled", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(value, "1") ||
+				String.Equals(value, "on", StringComparison.OrdinalIgnoreCase))
+				return true;
+			if (String.Equals(value, "false", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(value, "disabled", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(value, "0") ||
+				String.Equals(value, "off"))
+				return false;
+
+			throw new InvalidCastException();
+		}
+
 		public static T GetValue<T>(this IConfiguration config, string keyName, T defaultValue) {
-			var value = config.GetConfigValue(keyName);
+			var value = config.GetValue(keyName);
 			if (value == null)
 				return defaultValue;
 
-			return value.ToType<T>();
+			return ToType<T>(value);
 		}
 
 		public static string GetString(this IConfiguration config, string propertyKey) {
@@ -378,16 +334,5 @@ namespace Deveel.Data.Configuration {
 		}
 
 		#endregion
-
-		public static void CopyTo(this IConfiguration source, IConfiguration dest) {
-			var sourceKeys = source.GetKeys(ConfigurationLevel.Current);
-			foreach (var key in sourceKeys) {
-				dest.SetKey(key);
-
-				var value = source.GetValue(key);
-				if (value != null)
-					dest.SetValue(key, value.Value);
-			}
-		}
 	}
 }

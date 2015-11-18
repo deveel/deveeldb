@@ -92,7 +92,6 @@
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
     <Compile Include="Deveel.Data.Caching\CacheAdapter.cs" />
-    <Compile Include="Deveel.Data.Caching\CacheConfigExtensions.cs" />
     <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
     <Compile Include="Deveel.Data.Caching\CachedCell.cs" />
     <Compile Include="Deveel.Data.Caching\CellKey.cs" />
@@ -123,13 +122,11 @@
     <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\Configuration.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigValue.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
-    <Compile Include="Deveel.Data.Configuration\IConfigurable.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfiguration.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
@@ -202,7 +199,6 @@
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />
-    <Compile Include="Deveel.Data\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
@@ -271,7 +267,6 @@
     <Compile Include="Deveel.Data\SystemManager.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
-    <Compile Include="Deveel.Data\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />

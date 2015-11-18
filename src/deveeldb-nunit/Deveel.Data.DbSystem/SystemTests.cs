@@ -12,7 +12,7 @@ namespace Deveel.Data {
 		[Test]
 		public void FromDefaultConfig() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext());
 			Assert.IsNotNull(context);
 			Assert.IsFalse(context.ReadOnly());
 			Assert.IsTrue(context.IgnoreIdentifiersCase());
@@ -22,7 +22,7 @@ namespace Deveel.Data {
 		[Test]
 		public void ResolveSingleServiceFromRegister() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext());
 			Assert.IsNotNull(context);
 
 			context.RegisterService<TestService>();
@@ -39,7 +39,7 @@ namespace Deveel.Data {
 		[Test]
 		public void ResolveManyServicesForInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext());
 			Assert.IsNotNull(context);
 			
 			context.RegisterService<TestService>();
@@ -61,7 +61,7 @@ namespace Deveel.Data {
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext(Configuration.Configuration.SystemDefault));
+			Assert.DoesNotThrow(() => context = new SystemContext());
 			Assert.IsNotNull(context);
 
 			context.RegisterService(new TestService());

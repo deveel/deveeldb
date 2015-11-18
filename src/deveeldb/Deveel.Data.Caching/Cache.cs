@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections;
 
 using Deveel.Data.Configuration;
 
@@ -23,17 +22,6 @@ namespace Deveel.Data.Caching {
 	///<summary>
 	/// Represents a cache of Objects.
 	///</summary>
-	/// <remarks>
-	/// A <see cref="Cache"/> is similar to a <see cref="Hashtable"/>, in that you can 
-	/// <see cref="Hashtable.Add">add</see> and <see cref="Hashtable.this">get</see> 
-	/// objects from the container given some key. However a cache may remove objects 
-	/// from the container when it becomes too full.
-	/// <para>
-	/// The cache scheme uses a doubly linked-list hashtable.  The most recently
-	/// accessed objects are moved to the start of the list.  The end elements in
-	/// the list are wiped if the cache becomes too full.
-	/// </para>
-	/// </remarks>
 	public abstract class Cache : ICache {
 		/// <summary>
 		/// The current cache size.
@@ -46,8 +34,6 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		private readonly int wipeTo;
 
-		private bool configured;
-
 		protected Cache() {
 		}
 
@@ -55,11 +41,6 @@ namespace Deveel.Data.Caching {
 		~Cache() {
 			Dispose(false);
 		}
-
-		bool IConfigurable.IsConfigured {
-			get { return configured; }
-		}
-
 
 		/// <summary>
 		/// This is called whenever at object is put into the cache.
@@ -69,11 +50,6 @@ namespace Deveel.Data.Caching {
 		/// call the clean method if appropriate.
 		/// </remarks>
 		protected virtual void CheckClean() {
-			// If we have reached maximum cache size, remove some elements from the
-			// end of the list
-			if (currentCacheSize >= MaxCacheSize) {
-				Clean();
-			}
 		}
 
 		/// <summary>
@@ -151,12 +127,6 @@ namespace Deveel.Data.Caching {
 		}
 
 		/// <summary>
-		/// The maximum number of DataCell objects that can be stored in 
-		/// the cache at any one time.
-		/// </summary>
-		protected int MaxCacheSize { get; private set; }
-
-		/// <summary>
 		/// When overridden in a derived class, it sets the value for the key given.
 		/// </summary>
 		/// <param name="key">The key corresponding to the value to set.</param>
@@ -219,18 +189,6 @@ namespace Deveel.Data.Caching {
 		/// </summary>
 		public virtual void Clear() {
 			OnAllCleared();
-		}
-
-		public void Configure(IConfiguration config) {
-			try {
-				ConfigureCache(config);
-			} finally {
-				configured = true;
-			}
-		}
-
-		protected virtual void ConfigureCache(IConfiguration configuration) {
-			MaxCacheSize = configuration.DataCacheSize();
 		}
 
 		/// <summary>

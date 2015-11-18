@@ -19,11 +19,9 @@ namespace Deveel.Data.Store {
 		private static IDatabaseContext CreateDatabaseContext(ISystemContext context) {
 			var config = context.Configuration;
 			var dbConfig = new Configuration.Configuration(config);
-			dbConfig.SetKey(DatabaseConfigKeys.DatabaseName);
-			dbConfig.SetValue(DatabaseConfigKeys.DatabaseName, DatabaseName);
-			dbConfig.SetKey(DatabaseConfigKeys.StorageSystem);
-			dbConfig.SetValue(DatabaseConfigKeys.StorageSystem, DefaultStorageSystemNames.SingleFile);
-			dbConfig.SetKey(new ConfigKey("database.basePath", Environment.CurrentDirectory, typeof(string)));
+			dbConfig.SetValue("database.name", DatabaseName);
+			dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.SingleFile);
+			dbConfig.SetValue("database.basePath", Environment.CurrentDirectory);
 			return new DatabaseContext(context, dbConfig);
 		}
 

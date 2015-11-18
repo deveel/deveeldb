@@ -24,6 +24,13 @@ namespace Deveel.Data.Caching {
 		private long size;
 
 		public const int DefaultHashSize = 88547;
+#if X64
+		public const int DefaultMaxSize = 1024*1024*10;
+#else
+		public const int DefaultMaxSize = 512*512*8;
+#endif
+
+		public const int DefaultMaxCellSize = 1024*64;
 
 		public TableCellCache(IConfiguration configuration) {
 			Configure(configuration);
@@ -45,8 +52,8 @@ namespace Deveel.Data.Caching {
 
 		private void Configure(IConfiguration config) {
 			var hashSize = DefaultHashSize;
-			var maxSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
-			MaxCellSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
+			var maxSize = config.GetInt32("system.tableCellCache.maxSize", DefaultMaxSize);
+			MaxCellSize = config.GetInt32("system.tableCellCache.maxCellSize", DefaultMaxCellSize);
 
 			var baseCache = new SizeLimitedCache(maxSize);
 			cache = new Cache(this, baseCache, hashSize, maxSize);
@@ -130,7 +137,7 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		#region Cache
+#region Cache
 
 		class Cache : CacheAdapter {
 			private readonly TableCellCache tableCache;
@@ -175,9 +182,9 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region CacheKey
+#region CacheKey
 
 		class CacheKey : IEquatable<CacheKey> {
 			private readonly string database;
@@ -209,6 +216,6 @@ namespace Deveel.Data.Caching {
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

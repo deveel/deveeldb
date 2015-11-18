@@ -28,19 +28,20 @@ namespace Deveel.Data {
 		#region Configurations
 
 		public static bool ReadOnly(this ISystemContext context) {
-			return context.Configuration.GetBoolean(SystemConfigKeys.ReadOnly);
+			return context.Configuration.GetBoolean("system.readOnly", false);
 		}
 
 		public static bool IgnoreIdentifiersCase(this ISystemContext context) {
-			return context.Configuration.GetBoolean(SystemConfigKeys.IgnoreIdentifiersCase);
+			return context.Configuration.GetBoolean("system.ignoreIdCase", true);
 		}
 
+		// TODO: remove this from here...
 		public static string DefaultSchema(this ISystemContext context) {
-			return context.Configuration.GetString(SystemConfigKeys.DefaultSchema);
+			return context.Configuration.GetString("database.defaultSchema","APP");
 		}
 
 		public static bool AutoCommit(this ISystemContext context) {
-			return context.Configuration.GetBoolean(SystemConfigKeys.AutoCommit);
+			return context.Configuration.GetBoolean("system.autoCommit");
 		}
 
 		#endregion

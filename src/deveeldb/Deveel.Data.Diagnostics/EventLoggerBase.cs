@@ -36,7 +36,7 @@ namespace Deveel.Data.Diagnostics {
 	/// middle-wares.
 	/// </para>
 	/// </remarks>
-	public abstract class EventLoggerBase : IEventLogger, IConfigurable, IDisposable {
+	public abstract class EventLoggerBase : IEventLogger, IDisposable {
 #if PCL
 		private Task writeThread;
 #else
@@ -155,23 +155,6 @@ namespace Deveel.Data.Diagnostics {
 
 		private static string FormatErrorCode(int errorClass, int errorCode) {
 			return String.Format("{0:X}:{1:X}", errorClass, errorCode);
-		}
-
-		void IConfigurable.Configure(IConfiguration config) {
-			try {
-				OnConfigure(config);
-			} finally {
-				configured = true;
-			}
-		}
-
-		private bool configured;
-
-		bool IConfigurable.IsConfigured {
-			get { return configured; }
-		}
-
-		protected virtual void OnConfigure(IConfiguration config) {
 		}
 
 		public void Dispose() {

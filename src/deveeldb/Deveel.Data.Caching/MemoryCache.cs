@@ -17,8 +17,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Configuration;
-
 namespace Deveel.Data.Caching {
 	public class MemoryCache : Cache {
 		protected LinkedList<KeyValuePair<object, CacheValue>> IndexList { get; private set; }
@@ -81,11 +79,6 @@ namespace Deveel.Data.Caching {
 			}
 
 			return null;
-		}
-
-		protected override void ConfigureCache(IConfiguration config) {
-			// TODO:
-			base.ConfigureCache(config);
 		}
 
 		protected override bool SetObject(object key, object value) {

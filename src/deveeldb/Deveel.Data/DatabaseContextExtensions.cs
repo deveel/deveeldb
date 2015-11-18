@@ -28,43 +28,20 @@ using Deveel.Data.Store.Journaled;
 
 namespace Deveel.Data {
 	public static class DatabaseContextExtensions {
-		public static Type StorageSystemType(this IDatabaseContext context) {
-			var value = context.Configuration.GetString(DatabaseConfigKeys.StorageSystem);
-			if (String.IsNullOrEmpty(value))
-				return null;
-
-#if !PCL
-			if (String.Equals(value, DefaultStorageSystemNames.Journaled))
-				return typeof(JournaledStoreSystem);
-#endif
-
-			if (String.Equals(value, DefaultStorageSystemNames.SingleFile))
-				return typeof (SingleFileStoreSystem);
-
-			if (string.Equals(value, DefaultStorageSystemNames.Heap))
-				return typeof (InMemoryStorageSystem);
-
-#if !PCL
-			return Type.GetType(value, false, true);
-#else
-			return Type.GetType(value, false);
-#endif
-		}
-
 		public static bool ReadOnly(this IDatabaseContext context) {
-			return context.Configuration.GetBoolean(SystemConfigKeys.ReadOnly);
+			return context.Configuration.GetBoolean("system.readOnly", false);
 		}
 
 		public static bool DeleteOnClose(this IDatabaseContext context) {
-			return context.Configuration.GetBoolean(DatabaseConfigKeys.DeleteOnClose);
+			return context.Configuration.GetBoolean("system.deleteOnClose", false);
 		}
 
 		public static string DatabaseName(this IDatabaseContext context) {
-			return context.Configuration.GetString(DatabaseConfigKeys.DatabaseName);
+			return context.Configuration.GetString("database.name");
 		}
 
 		public static string DefaultSchema(this IDatabaseContext context) {
-			return context.Configuration.GetString(DatabaseConfigKeys.DefaultSchema);
+			return context.Configuration.GetString("database.defaultSchema", "APP");
 		}
 
 		public static bool AutoCommit(this IDatabaseContext context) {

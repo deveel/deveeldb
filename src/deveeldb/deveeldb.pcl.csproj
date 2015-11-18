@@ -76,7 +76,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Deveel.Math, Version=1.5.64.0, Culture=neutral, processorArchitecture=MSIL">
@@ -98,7 +97,6 @@
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
     <Compile Include="Deveel.Data.Caching\CacheAdapter.cs" />
     <Compile Include="Deveel.Data.Caching\CacheConfigExtensions.cs" />
-    <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
     <Compile Include="Deveel.Data.Caching\CachedCell.cs" />
     <Compile Include="Deveel.Data.Caching\CellKey.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
@@ -108,18 +106,15 @@
     <Compile Include="Deveel.Data.Caching\TableCacheExtensions.cs" />
     <Compile Include="Deveel.Data.Caching\TableCellCache.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\Configuration.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigValue.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurable.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfiguration.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurationProvider.cs" />
-    <Compile Include="Deveel.Data.Configuration\IPostConfigureCallback.cs" />
     <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
@@ -806,7 +801,6 @@
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\ChildQueryContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />
-    <Compile Include="Deveel.Data\DatabaseConfigKeys.cs" />
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
@@ -839,7 +833,6 @@
     <Compile Include="Deveel.Data\SessionInfo.cs" />
     <Compile Include="Deveel.Data\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
-    <Compile Include="Deveel.Data\SystemConfigKeys.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
@@ -860,6 +853,7 @@
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data\ViewManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
