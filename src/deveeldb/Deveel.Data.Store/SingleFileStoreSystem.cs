@@ -8,14 +8,10 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Services;
 
 namespace Deveel.Data.Store {
-	public sealed class SingleFileStoreSystem : IStoreSystem, IConfigurable {
+	public sealed class SingleFileStoreSystem : IStoreSystem {
 		private IDatabaseContext context;
 
-		private IFile lockFile;
-		private IFile dataFile;
-
 		private bool disposed;
-		private bool configured;
 
 		private readonly object checkPointLock = new object();
 
@@ -29,21 +25,25 @@ namespace Deveel.Data.Store {
 
 		private const int Magic = 0xf09a671;
 
-		public SingleFileStoreSystem(IDatabaseContext context) {
+		public SingleFileStoreSystem(IDatabaseContext context, IConfiguration configuration) {
 			if (context == null)
 				throw new ArgumentNullException("context");
 
 			this.context = context;
+
+			Configure(configuration);
+
+			OpenOrCreateFile();
 		}
 
 		~SingleFileStoreSystem() {
 			Dispose(false);
 		}
 
-		void IConfigurable.Configure(IConfiguration config) {
-			var basePath = config.GetString("basePath");
-			var fileName = config.GetString("fileName");
-			var fullPath = config.GetString("fullPath");
+		private void Configure(IConfiguration config) {
+			var basePath = config.GetString("database.basePath");
+			var fileName = config.GetString("database.fileName");
+			var fullPath = config.GetString("database.fullPath");
 
 			if (String.IsNullOrEmpty(basePath)) {
 				if (String.IsNullOrEmpty(fullPath)) {
@@ -52,20 +52,25 @@ namespace Deveel.Data.Store {
 					FileName = fullPath;
 				}
 			} else if (String.IsNullOrEmpty(fileName)) {
-				
+				if (!String.IsNullOrEmpty(basePath)) {
+					fileName = String.Format("{0}.{1}", context.DatabaseName(), DefaultFileExtension);
+					FileName = FileSystem.CombinePath(basePath, fileName);
+				} else if (!String.IsNullOrEmpty(fullPath)) {
+					FileName = fullPath;
+				}
 			} else if (String.IsNullOrEmpty(fullPath)) {
 				FileName = FileSystem.CombinePath(basePath, fileName);
 			}
 
-			// TODO: configure
-			configured = true;
-		}
-
-		bool IConfigurable.IsConfigured {
-			get { return configured; }
+			if (String.IsNullOrEmpty(FileName))
+				throw new DatabaseConfigurationException("Could not configure the file name of the database.");
 		}
 
 		public string FileName { get; set; }
+
+		private string TempFileName {
+			get { return String.Format("{0}.tmp", FileName); }
+		}
 
 		private string LockFileName {
 			get { return String.Format("{0}.lock", FileName); }
@@ -80,18 +85,6 @@ namespace Deveel.Data.Store {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (!disposed) {
-					if (lockFile != null) {
-						lockFile.Delete();
-						lockFile.Dispose();
-					}
-
-					if (dataFile != null) {
-						dataFile.Close();
-						dataFile.Dispose();
-					}
-				}
-
 				if (stores != null) {
 					foreach (var store in stores.Values) {
 						if (store != null)
@@ -103,9 +96,6 @@ namespace Deveel.Data.Store {
 			}
 
 			disposed = true;
-			dataFile = null;
-			lockFile = null;
-
 			storeInfo = null;
 			stores = null;
 		}
@@ -127,6 +117,8 @@ namespace Deveel.Data.Store {
 		private void OpenOrCreateFile() {
 			bool created = false;
 
+			IFile dataFile;
+
 			if (FileSystem.FileExists(FileName)) {
 				dataFile = FileSystem.OpenFile(FileName, ReadOnly);
 			} else if (ReadOnly) {
@@ -137,12 +129,21 @@ namespace Deveel.Data.Store {
 				created = true;
 			}
 
-			if (!created) {
-				LoadStores();
+			try {
+				if (!created) {
+					LoadStores(dataFile);
+				} else {
+					using (var stream = new FileStream(dataFile)) {
+						WriteHeaders(stream);
+					}
+				}
+			} finally {
+				if (dataFile != null)
+					dataFile.Dispose();
 			}
 		}
 
-		private void LoadStores() {
+		private void LoadStores(IFile dataFile) {
 			using (var fileStream = new FileStream(dataFile)) {
 				using (var reader = new BinaryReader(fileStream)) {
 					LoadHeaders(reader);
@@ -191,6 +192,8 @@ namespace Deveel.Data.Store {
 
 			var size = info.Size;
 			var offset = info.Offset;
+
+			var dataFile = FileSystem.OpenFile(FileName, true);
 
 			var stream = new FileStream(dataFile);
 			stream.Seek(offset, SeekOrigin.Begin);
@@ -302,33 +305,26 @@ namespace Deveel.Data.Store {
 		public void SetCheckPoint() {
 			lock (checkPointLock) {
 				try {
-					if (lockFile != null && lockFile.Exists)
-						throw new IOException("A check-point operation is already happening.");
+					if (FileSystem.FileExists(TempFileName))
+						FileSystem.DeleteFile(TempFileName);
 
-					lockFile = FileSystem.CreateFile(LockFileName);
+					using (var dataFile = FileSystem.CreateFile(TempFileName)) {
+						using (var stream = new FileStream(dataFile)) {
+							WriteHeaders(stream);
+							WriteStores(stream);
 
-					if (dataFile != null &&
-						dataFile.Exists)
-						dataFile.Delete();
-
-					dataFile = FileSystem.CreateFile(FileName);
-
-					using (var stream = new FileStream(dataFile)) {
-						WriteHeaders(stream);
-						WriteStores(stream);
-
-						stream.Flush();
+							stream.Flush();
+						}
 					}
+
+					if (FileSystem.FileExists(FileName))
+						FileSystem.DeleteFile(FileName);
+
+					FileSystem.RenameFile(TempFileName, FileName);
 				} catch (IOException) {
 					throw;
 				} catch (Exception ex) {
 					throw new IOException("An error occurred while saving data to database file.", ex);
-				} finally {
-					if (lockFile != null &&
-						lockFile.Exists)
-						lockFile.Delete();
-
-					lockFile = null;
 				}
 			}
 		}
@@ -364,25 +360,24 @@ namespace Deveel.Data.Store {
 		}
 
 		private void WriteHeaders(Stream stream) {
-			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-				writer.Write(Magic);
-				writer.Write(1);
-				writer.Write(DateTime.UtcNow.Ticks);
+			var writer = new BinaryWriter(stream, Encoding.Unicode);
+			writer.Write(Magic);
+			writer.Write(1);
+			writer.Write(DateTime.UtcNow.Ticks);
 
-				var storeCount = stores == null ? 0 : stores.Count;
-				var topId = FindMaxStoreId();
+			var storeCount = stores == null ? 0 : stores.Count;
+			var topId = FindMaxStoreId();
 
-				writer.Write(storeCount);
-				writer.Write(topId);
+			writer.Write(storeCount);
+			writer.Write(topId);
 
-				long offset = 24;
+			long offset = 24;
 
-				if (stores != null) {
-					storeInfo = new Dictionary<int, StoreInfo>(stores.Count);
+			if (stores != null) {
+				storeInfo = new Dictionary<int, StoreInfo>(stores.Count);
 
-					foreach (var store in stores.Values) {
-						offset = WriteStoreInfo(writer, offset, store);
-					}
+				foreach (var store in stores.Values) {
+					offset = WriteStoreInfo(writer, offset, store);
 				}
 			}
 		}

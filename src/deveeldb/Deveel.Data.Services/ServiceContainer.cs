@@ -17,10 +17,12 @@ namespace Deveel.Data.Services {
 				throw new ArgumentNullException("context");
 
 			if (parent != null) {
-				container = parent.container.CreateFacade();
+				var scopeName = String.Format("{0}.Scope", context.GetType().Name);
+				container = parent.container.OpenScope(scopeName).WithoutSingletonsAndCache();
 			} else {
 				container = new Container(Rules.Default
-					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton));
+					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton)
+					.WithoutThrowOnRegisteringDisposableTransient());
 			}
 
 			Register(context.GetType(), null, context);
@@ -77,7 +79,6 @@ namespace Deveel.Data.Services {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				var resolveType = typeof (IEnumerable<>).MakeGenericType(serviceType);
 				return container.ResolveMany<object>(serviceType);
 			}
 		}

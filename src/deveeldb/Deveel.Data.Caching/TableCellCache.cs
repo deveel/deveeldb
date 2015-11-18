@@ -17,15 +17,17 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
-	public sealed class TableCellCache : ITableCellCache, IConfigurable {
+	public sealed class TableCellCache : ITableCellCache {
 		private Cache cache;
 		private long size;
-		private bool configured;
 
 		public const int DefaultHashSize = 88547;
+
+		public TableCellCache(IConfiguration configuration) {
+			Configure(configuration);
+		}
 
 		public int MaxCellSize { get; private set; }
 
@@ -41,29 +43,16 @@ namespace Deveel.Data.Caching {
 			size -= value;
 		}
 
-		void IConfigurable.Configure(IConfiguration config) {
-			lock (this) {
-				if (!configured) {
-					var hashSize = DefaultHashSize;
-					var maxSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
-					MaxCellSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
+		private void Configure(IConfiguration config) {
+			var hashSize = DefaultHashSize;
+			var maxSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxSize);
+			MaxCellSize = config.GetInt32(DatabaseConfigKeys.CellCacheMaxCellSize);
 
-					var baseCache = new SizeLimitedCache(maxSize);
-					cache = new Cache(this, baseCache, hashSize, maxSize);
-
-					configured = true;
-				}	
-			}
-		}
-
-		bool IConfigurable.IsConfigured {
-			get { return configured; }
+			var baseCache = new SizeLimitedCache(maxSize);
+			cache = new Cache(this, baseCache, hashSize, maxSize);
 		}
 
 		public void Set(CachedCell cell) {
-			if (!configured)
-				return;
-
 			var value = cell.Value;
 
 			if (!value.IsCacheable)
@@ -94,9 +83,6 @@ namespace Deveel.Data.Caching {
 		}
 
 		private void Remove(string database, int tableId, long rowNumber, int columnOffset) {
-			if (!configured)
-				return;
-
 			lock (this) {
 				var cell = cache.Remove(new CacheKey(database, tableId, (int)rowNumber, (short)columnOffset));
 				if (cell != null)
@@ -109,11 +95,6 @@ namespace Deveel.Data.Caching {
 		}
 
 		public bool TryGetValue(CellKey key, out DataObject value) {
-			if (!configured) {
-				value = null;
-				return false;
-			}
-
 			lock (this) {
 				var database = key.Database;
 				var tableKey = key.RowId.TableId;
@@ -136,9 +117,6 @@ namespace Deveel.Data.Caching {
 		}
 
 		public void Clear() {
-			if (!configured)
-				return;
-
 			lock (this) {
 				if (cache.NodeCount == 0 && Size != 0) {
 					// TODO: Raise an error

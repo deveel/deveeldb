@@ -63,6 +63,9 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
+		IServiceContainer IServiceContext.Container {
+			get { return container; }
+		}
 
 		public IDatabaseContext DatabaseContext {
 			get { return Session.Database.DatabaseContext; }

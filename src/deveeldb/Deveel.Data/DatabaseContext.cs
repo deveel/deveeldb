@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,7 +27,6 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class DatabaseContext : IDatabaseContext/*, IResolveScope*/ {
-		private ITableCellCache cellCache;
 		private ServiceContainer container;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
@@ -42,6 +40,8 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("configuration");
 
 			container = new ServiceContainer(this, (ServiceContainer) systemContext.Container);
+			container.Unregister<IConfiguration>();
+			container.Register(configuration);
 
 			SystemContext = systemContext;
 
@@ -50,7 +50,7 @@ namespace Deveel.Data {
 
 			Sessions = new ActiveSessionList(this);
 
-			Init();
+			InitStorageSystem();
 		}
 
 		~DatabaseContext() {
@@ -103,9 +103,9 @@ namespace Deveel.Data {
 			get { return container; }
 		}
 
-		private void Init() {
-			InitStorageSystem();
-		}
+		//private void Init() {
+		//	InitStorageSystem();
+		//}
 
 		private void InitStorageSystem() {
 			var storeSystemType = this.StorageSystemType();
@@ -113,18 +113,16 @@ namespace Deveel.Data {
 				throw new DatabaseConfigurationException("Storage system type is required.");
 
 			try {
-				if (storeSystemType == typeof (InMemoryStorageSystem)) {
-					StoreSystem = new InMemoryStorageSystem();
-				} else if (storeSystemType == typeof(SingleFileStoreSystem)) { 
-					StoreSystem = new SingleFileStoreSystem(this);
-				} else {
-					StoreSystem = CreateExternalStoreSystem(storeSystemType);
-				}
+				var storageTypeName = Configuration.GetString(DatabaseConfigKeys.StorageSystem);
+				StoreSystem = this.ResolveService<IStoreSystem>(storageTypeName);
 
-				// TODO: File and single-file
+				if (StoreSystem == null)
+					throw new DatabaseConfigurationException("The storage system for the database was not set.");
+			} catch(DatabaseConfigurationException) {
+				throw;
 			} catch (Exception ex) {
 				throw new DatabaseConfigurationException("Could not initialize the storage system", ex);
-			}			
+			}
 		}
 
 		private IStoreSystem CreateExternalStoreSystem(Type type) {

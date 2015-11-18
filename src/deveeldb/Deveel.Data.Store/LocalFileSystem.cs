@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Deveel.Data.Sql.Fluid;
+
 namespace Deveel.Data.Store {
 	public sealed class LocalFileSystem : IFileSystem {
 		public bool FileExists(string path) {
@@ -19,10 +21,13 @@ namespace Deveel.Data.Store {
 		}
 
 		IFile IFileSystem.CreateFile(string path) {
-			throw new NotImplementedException();
+			return CreateFile(path);
 		}
 
 		public LocalFile CreateFile(string fileName) {
+			if (String.IsNullOrEmpty(fileName))
+				throw new ArgumentNullException("fileName");
+
 			if (FileExists(fileName))
 				throw new IOException(string.Format("The file '{0}' already exists: cannot create.", fileName));
 
@@ -36,6 +41,11 @@ namespace Deveel.Data.Store {
 
 		public string CombinePath(string path1, string path2) {
 			return Path.Combine(path1, path2);
+		}
+
+		public bool RenameFile(string sourcePath, string destPath) {
+			File.Move(sourcePath, destPath);
+			return File.Exists(destPath);
 		}
 	}
 }

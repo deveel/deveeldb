@@ -15,17 +15,16 @@
 //
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Compile;
-using Deveel.Data.Sql.Query;
+using Deveel.Data.Store;
+#if !PCL
+using Deveel.Data.Store.Journaled;
+#endif
 
 namespace Deveel.Data {
 	/// <summary>
@@ -33,12 +32,6 @@ namespace Deveel.Data {
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
 	public sealed class SystemContext : ISystemContext /*, IResolveScope*/ {
-		// We preserve an instance of some singletons...
-		private ISqlCompiler sqlCompiler;
-		private IEnumerable<IEventRouter> eventRouters;
-		private IQueryPlanner queryPlanner;
-		private ITableCellCache tableCellCache;
-
 		private ServiceContainer container;
 
 		/// <summary>
@@ -63,6 +56,7 @@ namespace Deveel.Data {
 			EventRegistry = new SystemEventRegistry(this);
 
 			container = new ServiceContainer(this);
+			container.Register(configuration);
 
 			UseDefaults();
 		}
@@ -84,12 +78,6 @@ namespace Deveel.Data {
 		/// events happening within the context of the system.
 		/// </summary>
 		public IEventRegistry EventRegistry { get; private set; }
-
-		///// <summary>
-		///// Gets an object used to dynamically resolve system services.
-		///// </summary>
-		///// <seealso cref="ISystemServiceProvider" />
-		//public ISystemServiceProvider ServiceProvider { get; set; }
 
 		IServiceContainer IServiceContext.Container {
 			get { return container; }
@@ -113,56 +101,25 @@ namespace Deveel.Data {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				//if (ServiceProvider != null)
-				//	ServiceProvider.Dispose();
 				if (container != null)
 					container.Dispose();
 			}
 
 			container = null;
-
-			//ServiceProvider = null;
 		}
 
 		private void UseDefaults() {
-			//ServiceProvider = new SystemServiceProvider(this);
 			this.UseDefaultSqlCompiler();
 			this.UseDefaultQueryPlanner();
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
+
+			this.RegisterService<InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
+			this.RegisterService<SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);
+#if !PCL
+			this.RegisterService<JournaledStoreSystem>(DefaultStorageSystemNames.Journaled);
+			this.RegisterService(new LocalFileSystem());
+#endif
 		}
-
-		//object IResolveScope.OnBeforeResolve(Type type, string name) {
-		//	if (typeof (ISqlCompiler).IsAssignableFrom(type))
-		//		return sqlCompiler;
-		//	if (typeof (IQueryPlanner).IsAssignableFrom(type))
-		//		return queryPlanner;
-		//	if (typeof (ITableCellCache).IsAssignableFrom(type))
-		//		return tableCellCache;
-
-		//	return null;
-		//}
-
-		//void IResolveScope.OnAfterResolve(Type type, string name, object obj) {
-		//	if (obj is ISqlCompiler) {
-		//		sqlCompiler = (ISqlCompiler) obj;
-		//	} else if (obj is IQueryPlanner) {
-		//		queryPlanner = (IQueryPlanner) obj;
-		//	} else if (typeof (ITableCellCache).IsAssignableFrom(type)) {
-		//		tableCellCache = (ITableCellCache) obj;
-		//	}
-		//}
-
-		//IEnumerable IResolveScope.OnBeforeResolveAll(Type type) {
-		//	if (type == typeof (IEventRouter))
-		//		return eventRouters;
-
-		//	return null;
-		//}
-
-		//void IResolveScope.OnAfterResolveAll(Type type, IEnumerable list) {
-		//	if (type == typeof (IEventRouter))
-		//		eventRouters = list.Cast<IEventRouter>().ToList();
-		//}
 	}
 }

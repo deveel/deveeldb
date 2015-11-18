@@ -11,5 +11,7 @@ namespace Deveel.Data.Store {
 		bool DeleteFile(string path);
 
 		string CombinePath(string path1, string path2);
+
+		bool RenameFile(string sourcePath, string destPath);
 	}
 }

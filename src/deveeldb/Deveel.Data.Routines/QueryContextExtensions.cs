@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
@@ -46,7 +47,16 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static IRoutine ResolveSystemRoutine(this IQueryContext context, Invoke invoke) {
-			return context.SystemContext().ResolveRoutine(invoke, context);
+			// return context.SystemContext().ResolveRoutine(invoke, context);
+
+			var resolvers = context.ResolveAllServices<IRoutineResolver>();
+			foreach (var resolver in resolvers) {
+				var routine = resolver.ResolveRoutine(invoke, context);
+				if (routine != null)
+					return routine;
+			}
+
+			return null;
 		}
 
 		public static IRoutine ResolveUserRoutine(this IQueryContext context, Invoke invoke) {

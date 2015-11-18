@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Deveel.Data.Configuration;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Store {
@@ -21,6 +23,7 @@ namespace Deveel.Data.Store {
 			dbConfig.SetValue(DatabaseConfigKeys.DatabaseName, DatabaseName);
 			dbConfig.SetKey(DatabaseConfigKeys.StorageSystem);
 			dbConfig.SetValue(DatabaseConfigKeys.StorageSystem, DefaultStorageSystemNames.SingleFile);
+			dbConfig.SetKey(new ConfigKey("database.basePath", Environment.CurrentDirectory, typeof(string)));
 			return new DatabaseContext(context, dbConfig);
 		}
 

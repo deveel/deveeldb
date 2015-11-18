@@ -6,7 +6,7 @@ namespace Deveel.Data.Services {
 	public static class ServiceContainerExtensions {
 		public static void Register<TService>(this IServiceContainer container)
 			where TService : class {
-			Register<TService>(container, null);
+			Register(container, default(TService));
 		}
 
 		public static void Register<TService>(this IServiceContainer container, string name)
@@ -14,12 +14,12 @@ namespace Deveel.Data.Services {
 			Register<TService>(container, name, null);
 		}
 
-		public static void Register<TService>(this IServiceContainer container, object service)
+		public static void Register<TService>(this IServiceContainer container, TService service)
 			where TService : class {
 			Register<TService>(container, null, service);
 		}
 
-		public static void Register<TService>(this IServiceContainer container, string name, object service)
+		public static void Register<TService>(this IServiceContainer container, string name, TService service)
 			where TService : class {
 			container.Register(typeof(TService), name, service);
 		}
@@ -34,6 +34,16 @@ namespace Deveel.Data.Services {
 
 		public static void Register(this IServiceContainer container, Type serviceType) {
 			container.Register(serviceType, null, null);
+		}
+
+		public static void Unregister<TService>(this IServiceContainer container) 
+			where TService : class {
+			Unregister<TService>(container, null);
+		}
+
+		public static void Unregister<TService>(this IServiceContainer container, string name) 
+			where TService : class {
+			container.Unregister(typeof(TService), name);
 		}
 
 		public static TService Resolve<TService>(this IServiceContainer container) where TService : class {

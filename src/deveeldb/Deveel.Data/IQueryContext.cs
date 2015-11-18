@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Variables;
@@ -26,7 +27,7 @@ namespace Deveel.Data {
 	/// Provides a context for executing queries, accessing the
 	/// system resources and evaluation context.
 	/// </summary>
-	public interface IQueryContext : IDisposable {
+	public interface IQueryContext : IServiceContext, IDisposable {
 		//IUserSession Session { get; }
 
 		string CurrentSchema { get; }
