@@ -31,7 +31,7 @@ namespace Deveel.Data {
 	/// This is the context of a database system, that handles the configurations
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
-	public sealed class SystemContext : ISystemContext /*, IResolveScope*/ {
+	public sealed class SystemContext : Context, ISystemContext /*, IResolveScope*/ {
 		private ServiceContainer container;
 
 		/// <summary>
@@ -56,7 +56,7 @@ namespace Deveel.Data {
 			EventRegistry = new SystemEventRegistry(this);
 
 			container = new ServiceContainer(this);
-			container.Register(configuration);
+			container.RegisterInstance<IConfiguration>(configuration);
 
 			UseDefaults();
 		}
@@ -72,6 +72,10 @@ namespace Deveel.Data {
 		/// Gets the system configuration object
 		/// </summary>
 		public IConfiguration Configuration { get; private set; }
+
+		protected override string ContextName {
+			get { return ContextNames.System; }
+		}
 
 		/// <summary>
 		/// Gets an instance of <see cref="IEventRegistry" /> that handles
@@ -91,21 +95,14 @@ namespace Deveel.Data {
 			get { return null; }
 		}
 
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (container != null)
 					container.Dispose();
 			}
 
 			container = null;
+			base.Dispose(true);
 		}
 
 		private void UseDefaults() {
@@ -114,10 +111,10 @@ namespace Deveel.Data {
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
 
-			this.RegisterService<InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
-			this.RegisterService<SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);
+			this.RegisterService<IStoreSystem, InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
+			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);
 #if !PCL
-			this.RegisterService<JournaledStoreSystem>(DefaultStorageSystemNames.Journaled);
+			this.RegisterService<IStoreSystem, JournaledStoreSystem>(DefaultStorageSystemNames.Journaled);
 			this.RegisterService(new LocalFileSystem());
 #endif
 		}

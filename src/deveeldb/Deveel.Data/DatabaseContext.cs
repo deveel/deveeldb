@@ -26,7 +26,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class DatabaseContext : IDatabaseContext/*, IResolveScope*/ {
+	public sealed class DatabaseContext : Context, IDatabaseContext/*, IResolveScope*/ {
 		private ServiceContainer container;
 
 		public DatabaseContext(ISystemContext systemContext, string name) 
@@ -41,7 +41,8 @@ namespace Deveel.Data {
 
 			container = new ServiceContainer(this, (ServiceContainer) systemContext.Container);
 			container.Unregister<IConfiguration>();
-			container.Register(configuration);
+			container.RegisterInstance<IConfiguration>(configuration);
+			container.RegisterInstance<IDatabaseContext>(this);
 
 			SystemContext = systemContext;
 
@@ -53,8 +54,8 @@ namespace Deveel.Data {
 			InitStorageSystem();
 		}
 
-		~DatabaseContext() {
-			Dispose(false);
+		protected override string ContextName {
+			get { return ContextNames.Database; }
 		}
 
 		private static IConfiguration CreateSimpleConfig(ISystemContext systemContext, string dbName) {
@@ -66,12 +67,7 @@ namespace Deveel.Data {
 			return config;
 		}
 
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (StoreSystem != null)
 					StoreSystem.Dispose();
@@ -86,6 +82,8 @@ namespace Deveel.Data {
 			Locker = null;
 			StoreSystem = null;
 			container = null;
+
+			base.Dispose(disposing);
 		}
 
 		public IConfiguration Configuration { get; private set; }

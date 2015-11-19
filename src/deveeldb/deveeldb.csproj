@@ -147,11 +147,16 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Services\Context.cs" />
+    <Compile Include="Deveel.Data.Services\ContextNames.cs" />
+    <Compile Include="Deveel.Data.Services\IContext.cs" />
+    <Compile Include="Deveel.Data.Services\IScope.cs" />
     <Compile Include="Deveel.Data.Services\IServiceContainer.cs" />
     <Compile Include="Deveel.Data.Services\IServiceContext.cs" />
+    <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
-    <Compile Include="Deveel.Data.Services\ServiceContainerExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />

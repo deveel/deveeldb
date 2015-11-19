@@ -30,7 +30,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : IQueryContext, IVariableScope/*, IResolveScope*/ {
+	abstract class QueryContextBase : Context, IQueryContext, IVariableScope/*, IResolveScope*/ {
 #if PCL
 		private Random secureRandom;
 #else
@@ -59,12 +59,15 @@ namespace Deveel.Data {
 			InitPrivilegeManager();
 		}
 
-		~QueryContextBase() {
-			Dispose(false);
-		}
-
 		IServiceContainer IServiceContext.Container {
 			get { return container; }
+		}
+
+		IQueryContext IQueryContext.ParentContext {
+			get { return ParentQueryContext; }
+		}
+		public virtual IQueryContext ParentQueryContext {
+			get { return null; }
 		}
 
 		public IDatabaseContext DatabaseContext {
@@ -93,8 +96,8 @@ namespace Deveel.Data {
 			get { return tableCache; }
 		}
 
-		public virtual IQueryContext ParentContext {
-			get { return null; }
+		protected override string ContextName {
+			get { return ContextNames.Query;  }
 		}
 
 		private void AssertNotDisposed() {
@@ -135,12 +138,7 @@ namespace Deveel.Data {
 			return new SqlNumber(num);
 		}
 
-		public void Dispose() {
-			Dispose(true);			
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {
 					if (VariableManager != null)
@@ -161,6 +159,8 @@ namespace Deveel.Data {
 
 				disposed = true;
 			}
+
+			base.Dispose(true);
 		}
 
 		DataObject IVariableResolver.Resolve(ObjectName variable) {

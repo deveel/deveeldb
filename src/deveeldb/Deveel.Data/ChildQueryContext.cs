@@ -28,7 +28,7 @@ namespace Deveel.Data {
 			this.parentContext = parentContext;
 		}
 
-		public override IQueryContext ParentContext {
+		public override IQueryContext ParentQueryContext {
 			get { return parentContext; }
 		}
 

@@ -24,7 +24,7 @@ namespace Deveel.Data.Services {
 			Assert.IsNotNull(parentService);
 			Assert.IsInstanceOf<TestService1>(parentService);
 
-			Assert.AreNotEqual(parentService, childService);
+			Assert.AreEqual(parentService, childService);
 		}
 
 		[Test]
@@ -33,7 +33,7 @@ namespace Deveel.Data.Services {
 
 			var context1 = new Context();
 			var parent = new ServiceContainer(context1);
-			parent.Register(instance);
+			parent.RegisterInstance(instance);
 
 			var context2 = new Context();
 			var child = new ServiceContainer(context2, parent);
@@ -51,7 +51,7 @@ namespace Deveel.Data.Services {
 
 			var context1 = new Context();
 			var parent = new ServiceContainer(context1);
-			parent.Register(instance);
+			parent.RegisterInstance(instance);
 
 			var context2 = new Context();
 			var child = new ServiceContainer(context2, parent);
@@ -80,7 +80,10 @@ namespace Deveel.Data.Services {
 
 		#region Context
 
-		class Context { 
+		class Context : Services.Context {
+			protected override string ContextName {
+				get { return "TestContext"; }
+			}
 		}
 
 		#endregion

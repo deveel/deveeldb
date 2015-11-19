@@ -8,24 +8,24 @@ namespace Deveel.Data.Services {
 	public class ServiceContainer : IServiceContainer, IServiceProvider {
 		private IContainer container;
 
-		public ServiceContainer(object context) 
+		public ServiceContainer(IContext context) 
 			: this(context, null) {
 		}
 
-		public ServiceContainer(object context, ServiceContainer parent) {
+		public ServiceContainer(IContext context, ServiceContainer parent) {
 			if (context == null)
 				throw new ArgumentNullException("context");
 
 			if (parent != null) {
 				var scopeName = String.Format("{0}.Scope", context.GetType().Name);
-				container = parent.container.OpenScope(scopeName).WithoutSingletonsAndCache();
+				container = parent.container.OpenScope(scopeName);
 			} else {
 				container = new Container(Rules.Default
 					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton)
 					.WithoutThrowOnRegisteringDisposableTransient());
 			}
 
-			Register(context.GetType(), null, context);
+			this.RegisterInstance(context.GetType(), context);
 
 			Context = context;
 			Parent = parent;
@@ -35,7 +35,7 @@ namespace Deveel.Data.Services {
 			Dispose(false);
 		}
 
-		public object Context { get; private set; }
+		public IContext Context { get; private set; }
 
 		public ServiceContainer Parent { get; private set; }
 
@@ -59,7 +59,11 @@ namespace Deveel.Data.Services {
 			GC.SuppressFinalize(this);
 		}
 
-		public object Resolve(Type serviceType, string name) {
+		public IScope OpenScope(string name) {
+			return new ServiceContainer(Context, this);
+		}
+
+		public object Resolve(Type serviceType, object name) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -83,34 +87,28 @@ namespace Deveel.Data.Services {
 			}
 		}
 
-		public void Register(Type serviceType, string serviceName, object service) {
-			if (serviceType == null)
-				throw new ArgumentNullException("serviceType");
+		public void Register(ServiceRegistration registration) {
+			if (registration == null)
+				throw new ArgumentNullException("registration");
 
 			if (container == null)
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				if (!serviceType.IsAbstract && !serviceType.IsInterface) {
-					var ifaces = serviceType.GetInterfaces();
-					foreach (var iface in ifaces) {
-						if (service != null) {
-							container.RegisterInstance(iface, service, serviceKey:serviceName);
-						} else {
-							container.Register(iface, serviceType, serviceKey: serviceName);
-						}
-					}
-				}
+				var serviceType = registration.ServiceType;
+				var service = registration.Instance;
+				var serviceName = registration.ServiceKey;
+				var implementationType = registration.ImplementationType;
 
 				if (service == null) {
-					container.Register(serviceType, serviceKey: serviceName);
+					container.Register(serviceType, implementationType, serviceKey: serviceName);
 				} else {
 					container.RegisterInstance(serviceType, service, serviceKey: serviceName);
 				}
 			}
 		}
 
-		public void Unregister(Type serviceType, string serviceName) {
+		public bool Unregister(Type serviceType, object serviceName) {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
@@ -119,6 +117,7 @@ namespace Deveel.Data.Services {
 
 			lock (this) {
 				container.Unregister(serviceType, serviceName);
+				return true;
 			}
 		}
 

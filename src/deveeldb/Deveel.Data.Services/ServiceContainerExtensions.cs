@@ -21,19 +21,19 @@ namespace Deveel.Data.Services {
 
 		public static void Register<TService>(this IServiceContainer container, string name, TService service)
 			where TService : class {
-			container.Register(typeof(TService), name, service);
+			container.RegisterInstance<TService>(service, name);
 		}
 
 		public static void Register(this IServiceContainer container, Type serviceType, string name) {
-			container.Register(serviceType, name, null);
+			container.Register(serviceType, serviceType, name);
 		}
 
 		public static void Register(this IServiceContainer container, Type serviceType, object instance) {
-			container.Register(serviceType, null, instance);
+			container.RegisterInstance(serviceType, instance);
 		}
 
 		public static void Register(this IServiceContainer container, Type serviceType) {
-			container.Register(serviceType, null, null);
+			container.Register(serviceType, serviceType);
 		}
 
 		public static void Unregister<TService>(this IServiceContainer container) 
