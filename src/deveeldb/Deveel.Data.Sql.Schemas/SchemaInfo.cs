@@ -17,7 +17,7 @@
 using System;
 using System.Globalization;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Schemas {
 	/// <summary>
 	/// Describes the properties of a schema in a database system.
 	/// </summary>

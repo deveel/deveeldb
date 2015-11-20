@@ -18,14 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	public sealed class ViewManager : IObjectManager {
 		private Dictionary<long, ViewInfo> viewCache;
 		private bool viewTableChanged;

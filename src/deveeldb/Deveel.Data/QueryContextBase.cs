@@ -40,7 +40,7 @@ namespace Deveel.Data {
 		private bool disposed;
 
 		protected QueryContextBase(IUserSession session)
-			: base(session.Database.DatabaseContext) {
+			: base(session.SessionContext) {
 			if (session == null)
 				throw new ArgumentNullException("session");
 
@@ -65,9 +65,9 @@ namespace Deveel.Data {
 			get { return null; }
 		}
 
-		public IDatabaseContext DatabaseContext {
-			get { return Session.Database.DatabaseContext; }
-		}
+	    public ISessionContext SessionContext {
+	        get { return Session.SessionContext; }
+	    }
 
 		public VariableManager VariableManager { get; private set; }
 
@@ -101,7 +101,7 @@ namespace Deveel.Data {
 		}
 
 		private void InitUserManager() {
-			var userManager = DatabaseContext.SystemContext.ResolveService<IUserManager>();
+			var userManager = this.ResolveService<IUserManager>();
 			if (userManager == null) {
 				userManager = new UserManager(this);
 				OwnsUserManager = true;
@@ -111,7 +111,7 @@ namespace Deveel.Data {
 		}
 
 		private void InitPrivilegeManager() {
-			var privManager = DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
+			var privManager = this.ResolveService<IPrivilegeManager>();
 			if (privManager == null) {
 				privManager = new PrivilegeManager(this);
 				OwnsPrivilegeManager = true;

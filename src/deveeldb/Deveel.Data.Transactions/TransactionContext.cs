@@ -12,8 +12,12 @@ namespace Deveel.Data.Transactions {
 			get { return ContextNames.Transaction; }
 		}
 
-		public ISessionContext CreateSessionContext() {
-			throw new NotImplementedException();
+	    public IDatabaseContext DatabaseContext {
+	        get { return (IDatabaseContext) ParentContext; }
+	    }
+
+	    public ISessionContext CreateSessionContext() {
+			return new SessionContext(this);
 		}
 	}
 }

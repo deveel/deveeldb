@@ -115,5 +115,13 @@ namespace Deveel.Data {
 		IEventSource IEventSource.ParentSource {
 			get { return SystemContext; }
 		}
+
+	    ITransactionContext IDatabaseContext.CreateTransactionContext() {
+	        return CreateTransactionContext();
+	    }
+
+	    public TransactionContext CreateTransactionContext() {
+	        return new TransactionContext(this);
+	    }
 	}
 }

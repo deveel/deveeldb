@@ -240,7 +240,7 @@ namespace Deveel.Data.Protocol {
 				throw new InvalidOperationException();
 
 			var sessionInfo = new SessionInfo((int)commitId, User);
-			var session = new UserSession(Database, transaction, sessionInfo);
+			var session = new UserSession(transaction, sessionInfo);
 			return new SessionQueryContext(session);
 		}
 
@@ -248,7 +248,7 @@ namespace Deveel.Data.Protocol {
 			// TODO: make the isolation level configurable...
 			var sessionInfo = new SessionInfo(User);
 			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
-			var session = new UserSession(Database, transaction, sessionInfo);
+			var session = new UserSession(transaction, sessionInfo);
 			var context = new SessionQueryContext(session);
 			context.AutoCommit(true);
 
@@ -427,7 +427,7 @@ namespace Deveel.Data.Protocol {
 				throw new InvalidOperationException();
 
 			var sessionInfo = new SessionInfo(commitId, User);
-			using (var session = new UserSession(Database, transaction, sessionInfo)) {
+			using (var session = new UserSession(transaction, sessionInfo)) {
 				session.Commit();
 			}
 		}
@@ -440,7 +440,7 @@ namespace Deveel.Data.Protocol {
 				throw new InvalidOperationException();
 
 			var sessionInfo = new SessionInfo(commitId, User);
-			using (var session = new UserSession(Database, transaction, sessionInfo)) {
+			using (var session = new UserSession(transaction, sessionInfo)) {
 				session.Rollback();
 			}
 		}

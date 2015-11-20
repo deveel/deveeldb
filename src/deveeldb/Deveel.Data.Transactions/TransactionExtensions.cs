@@ -23,6 +23,8 @@ using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Schemas;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;

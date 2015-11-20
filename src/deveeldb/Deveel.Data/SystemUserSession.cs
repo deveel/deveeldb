@@ -25,30 +25,33 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	class SystemUserSession : IUserSession {
-		public SystemUserSession(IDatabase database, ITransaction transaction) 
-			: this(database, transaction, transaction.CurrentSchema()) {
+		public SystemUserSession(ITransaction transaction) 
+			: this(transaction, transaction.CurrentSchema()) {
 		}
 
-		public SystemUserSession(IDatabase database, ITransaction transaction, string currentSchema) {
-			Database = database;
+		public SystemUserSession(ITransaction transaction, string currentSchema) {
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
 			SessionInfo = new SessionInfo(User.System, transaction.Isolation);
+		    SessionContext = transaction.TransactionContext.CreateSessionContext();
 		}
 
 		public void Dispose() {
-			Database = null;
 			Transaction = null;
 			SessionInfo = null;
 		}
 
-		public IDatabase Database { get; private set; }
+	    public IDatabase Database {
+	        get { return Transaction.Database; }
+	    }
 
 		public string CurrentSchema { get; private set; }
 
 		public SessionInfo SessionInfo { get; private set; }
 
 		public ITransaction Transaction { get; private set; }
+
+        public ISessionContext SessionContext { get; private set; }
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return GetMetaData(); }

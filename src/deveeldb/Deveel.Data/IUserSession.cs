@@ -50,6 +50,8 @@ namespace Deveel.Data {
 		/// </summary>
 		ITransaction Transaction { get; }
 
+        ISessionContext SessionContext { get; }
+
 
 		///// <summary>
 		///// Allocates a given amount of memory on the underlying storage system

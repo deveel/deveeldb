@@ -622,8 +622,11 @@ namespace Deveel.Data {
 				// Create a set of IIndexSet for all the tables in this transaction.
 				var indexInfo = (thisCommittedTables.Select(mtable => mtable.CreateIndexSet())).ToList();
 
+                // Create a context for the transaction to handle the isolated storage of variables and services
+			    var context = DatabaseContext.CreateTransactionContext();
+
 				// Create the transaction and record it in the open transactions list.
-				return new Transaction(Database, thisCommitId, isolation, thisCommittedTables, indexInfo);
+				return new Transaction(context, Database, thisCommitId, isolation, thisCommittedTables, indexInfo);
 			}
 		}
 

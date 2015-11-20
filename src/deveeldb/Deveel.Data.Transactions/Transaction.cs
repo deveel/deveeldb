@@ -18,9 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
@@ -51,10 +51,11 @@ namespace Deveel.Data.Transactions {
 		private bool autoCommit;
 		private string parameterStyle;
 
-		internal Transaction(Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
+		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
 			Database = database;
 			Isolation = isolation;
+		    TransactionContext = context;
 
 			InitManagers();
 
@@ -75,8 +76,8 @@ namespace Deveel.Data.Transactions {
 			ignoreCase = database.DatabaseContext.IgnoreIdentifiersCase();
 		}
 
-		internal Transaction(Database database, int commitId, IsolationLevel isolation)
-			: this(database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
+		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation)
+			: this(context, database, commitId, isolation, new TableSource[0], new IIndexSet[0]) {
 		}
 
 		~Transaction() {
@@ -103,6 +104,8 @@ namespace Deveel.Data.Transactions {
 		private bool IsClosed { get; set; }
 
 		public OldNewTableState TableState { get; private set; }
+
+        public ITransactionContext TransactionContext { get; private set; }
 
 		public void SetTableState(OldNewTableState tableState) {
 			TableState = tableState;

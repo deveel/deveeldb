@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Schemas {
 	public sealed class Schema : IDbObject {
 		public Schema(SchemaInfo schemaInfo) {
 			if (schemaInfo == null)

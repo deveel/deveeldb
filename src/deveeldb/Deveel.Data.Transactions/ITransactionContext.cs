@@ -19,6 +19,9 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Transactions {
 	public interface ITransactionContext : IContext {
+        IDatabaseContext DatabaseContext { get; }
+
+	    ISessionContext CreateSessionContext();
 	}
 }
 

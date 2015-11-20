@@ -23,6 +23,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -48,10 +49,6 @@ namespace Deveel.Data {
 		}
 
 		#region Properties
-
-		public static IDatabase Database(this IQueryContext context) {
-			return context.Session().Database;
-		}
 
 		public static bool IgnoreIdentifiersCase(this IQueryContext context) {
 			return context.Session().IgnoreIdentifiersCase();

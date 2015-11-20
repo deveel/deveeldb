@@ -35,16 +35,13 @@ namespace Deveel.Data {
 		/// Constructs the session for the given user and transaction to the
 		/// given database.
 		/// </summary>
-		/// <param name="database">The database to which the user is connected.</param>
 		/// <param name="transaction">A transaction that handles the commands issued by
 		/// the user during the session.</param>
 		/// <param name="sessionInfo">The information about the session to be created (user, 
 		/// connection endpoint, statistics, etc.)</param>
 		/// <seealso cref="ITransaction"/>
 		/// <seealso cref="SessionInfo"/>
-		public UserSession(IDatabase database, ITransaction transaction, SessionInfo sessionInfo) {
-			if (database == null)
-				throw new ArgumentNullException("database");
+		public UserSession(ITransaction transaction, SessionInfo sessionInfo) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 			if (sessionInfo == null)
@@ -54,8 +51,8 @@ namespace Deveel.Data {
 				sessionInfo.User.IsPublic)
 				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", sessionInfo.User.Name));
 
-			Database = database;
-			Transaction = transaction;
+            Transaction = transaction;
+		    SessionContext = transaction.TransactionContext.CreateSessionContext();
 
 			Database.DatabaseContext.Sessions.Add(this);
 
@@ -76,6 +73,8 @@ namespace Deveel.Data {
 		}
 
 		public SessionInfo SessionInfo { get; private set; }
+
+	    public ISessionContext SessionContext { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return null; }
@@ -180,7 +179,9 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IDatabase Database { get; private set; }
+	    public IDatabase Database {
+	        get { return Transaction.Database; }
+	    }
 
 		public void Commit() {
 			AssertNotDisposed();
@@ -215,7 +216,6 @@ namespace Deveel.Data {
 				Database.DatabaseContext.Sessions.Remove(this);
 
 			Transaction = null;
-			Database = null;
 		}
 
 		private void Dispose(bool disposing) {

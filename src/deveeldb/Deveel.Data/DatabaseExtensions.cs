@@ -65,17 +65,17 @@ namespace Deveel.Data {
 				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
 
 			var transaction = database.CreateTransaction(isolation);
-			return new UserSession(database, transaction, sessionInfo);
+			return new UserSession(transaction, sessionInfo);
 		}
 
 		static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
 			var transaction = database.CreateTransaction(isolation);
-			return new SystemUserSession(database, transaction);
+			return new SystemUserSession(transaction);
 		}
 
 		internal static IUserSession CreateInitialSystemSession(this IDatabase database) {
 			var transaction = database.CreateSafeTransaction(IsolationLevel.Serializable);
-			return new SystemUserSession(database, transaction);
+			return new SystemUserSession(transaction);
 		}
 
 		internal static IUserSession CreateSystemSession(this IDatabase database) {
@@ -108,7 +108,7 @@ namespace Deveel.Data {
 			if (transaction == null)
 				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
 
-			return new UserSession(database, transaction, sessionInfo);
+			return new UserSession(transaction, sessionInfo);
 		}
 
 		#endregion

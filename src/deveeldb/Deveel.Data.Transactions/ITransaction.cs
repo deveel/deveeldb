@@ -27,6 +27,8 @@ namespace Deveel.Data.Transactions {
 	/// that can be eventually forbid any data write operation.
 	/// </remarks>
 	public interface ITransaction : IVariableScope, IDisposable {
+        ITransactionContext TransactionContext { get; }
+
 		/// <summary>
 		/// Gets a number uniquely identifying a transaction within a database context.
 		/// </summary>

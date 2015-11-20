@@ -63,6 +63,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DryIoc, Version=2.0.0.356, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0\lib\net35\DryIoc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Data" />
@@ -70,9 +74,6 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Deveel.Math, Version=1.5.64.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\dmath.1.5.64\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
-    </Reference>
-    <Reference Include="DryIoc, Version=2.0.0.342, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\DryIoc.dll.2.0.0-rc4build342\lib\net35\DryIoc.dll</HintPath>
     </Reference>
     <Reference Include="Irony">
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
@@ -173,6 +174,7 @@
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\LimitedTable.cs" />
+    <Compile Include="Deveel.Data.Sql\ViewManager.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\ISystemJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournalRegistryInfo.cs" />
@@ -252,7 +254,7 @@
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
-    <Compile Include="Deveel.Data\SchemaManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
     <Compile Include="Deveel.Data\SchemaTypes.cs" />
     <Compile Include="Deveel.Data\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SequenceManagerExtensions.cs" />
@@ -279,7 +281,6 @@
     <Compile Include="Deveel.Data\SessionInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data\VersionedTableIndexList.cs" />
-    <Compile Include="Deveel.Data\ViewManager.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
@@ -703,8 +704,8 @@
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterDirection.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameterStyle.cs" />
-    <Compile Include="Deveel.Data.Sql\Schema.cs" />
-    <Compile Include="Deveel.Data.Sql\SchemaInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\Schema.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaInfo.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IVariableResolver.cs" />

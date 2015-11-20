@@ -82,8 +82,8 @@
       <HintPath>..\packages\dmath-pcl.1.5.64\lib\portable-net40+sl50+win+wpa81+wp80\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DryIoc, Version=2.0.0.342, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DryIoc.dll.2.0.0-rc4build342\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
+    <Reference Include="DryIoc, Version=2.0.0.356, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Irony.Shared">
@@ -556,6 +556,9 @@
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\Schema.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AddColumnAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AddConstraintAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableActionType.cs" />
@@ -690,6 +693,7 @@
     <Compile Include="Deveel.Data.Sql\RowId.cs" />
     <Compile Include="Deveel.Data.Sql\Schema.cs" />
     <Compile Include="Deveel.Data.Sql\SchemaInfo.cs" />
+    <Compile Include="Deveel.Data.Sql\SchemaManager.cs" />
     <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
@@ -744,6 +748,7 @@
     <Compile Include="Deveel.Data.Transactions\IsolationLevel.cs" />
     <Compile Include="Deveel.Data.Transactions\ITableEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransaction.cs" />
+    <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionFactory.cs" />
     <Compile Include="Deveel.Data.Transactions\Lock.cs" />
@@ -764,6 +769,7 @@
     <Compile Include="Deveel.Data.Transactions\Transaction.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionCollection.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionConstraintExtensions.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />
@@ -824,6 +830,7 @@
     <Compile Include="Deveel.Data\IObjectManager.cs" />
     <Compile Include="Deveel.Data\IObjectManagerResolver.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
+    <Compile Include="Deveel.Data\ISessionContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\ITableContainer.cs" />
@@ -833,10 +840,10 @@
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
-    <Compile Include="Deveel.Data\SchemaManager.cs" />
     <Compile Include="Deveel.Data\SchemaTypes.cs" />
     <Compile Include="Deveel.Data\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SequenceManagerExtensions.cs" />
+    <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data\SessionInfo.cs" />
     <Compile Include="Deveel.Data\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
@@ -859,7 +866,7 @@
     <Compile Include="Deveel.Data\UserSession.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data\VersionedTableIndexList.cs" />
-    <Compile Include="Deveel.Data\ViewManager.cs" />
+    <Compile Include="Deveel.Data.Sql\ViewManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

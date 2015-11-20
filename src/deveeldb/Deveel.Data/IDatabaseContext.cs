@@ -67,5 +67,12 @@ namespace Deveel.Data {
 		/// The database object locker.
 		/// </value>
 		Locker Locker { get; }
+
+        /// <summary>
+        /// Creates a context to handle services and variables
+        /// in the scope of a transaction.
+        /// </summary>
+        /// <returns></returns>
+        ITransactionContext CreateTransactionContext();
 	}
 }

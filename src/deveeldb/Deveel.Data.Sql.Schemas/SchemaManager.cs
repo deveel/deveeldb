@@ -16,11 +16,10 @@
 
 using System;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql.Schemas {
 	public sealed class SchemaManager : IObjectManager {
 		public SchemaManager(ITransaction transaction) {
 			if (transaction == null)

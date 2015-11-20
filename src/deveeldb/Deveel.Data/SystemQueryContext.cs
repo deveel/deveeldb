@@ -21,7 +21,7 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data {
 	sealed class SystemQueryContext : QueryContextBase {
 		public SystemQueryContext(ITransaction transaction, string currentSchema)
-			: base(new SystemUserSession(transaction.Database, transaction, currentSchema)) {
+			: base(new SystemUserSession(transaction, currentSchema)) {
 		}
 
 		public override string CurrentSchema {
