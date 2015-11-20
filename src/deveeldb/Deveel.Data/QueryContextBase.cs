@@ -37,10 +37,10 @@ namespace Deveel.Data {
 		private RNGCryptoServiceProvider secureRandom;
 #endif
 		private ICache tableCache;
-		private ServiceContainer container;
 		private bool disposed;
 
-		protected QueryContextBase(IUserSession session) {
+		protected QueryContextBase(IUserSession session)
+			: base(session.Database.DatabaseContext) {
 			if (session == null)
 				throw new ArgumentNullException("session");
 
@@ -49,7 +49,6 @@ namespace Deveel.Data {
 #else
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
-			container = new ServiceContainer(this, (ServiceContainer) session.Database.DatabaseContext.Container);
 			Session = session;
 			tableCache = new MemoryCache();
 			VariableManager = new VariableManager(this);
@@ -57,10 +56,6 @@ namespace Deveel.Data {
 
 			InitUserManager();
 			InitPrivilegeManager();
-		}
-
-		IServiceContainer IServiceContext.Container {
-			get { return container; }
 		}
 
 		IQueryContext IQueryContext.ParentContext {

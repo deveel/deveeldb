@@ -31,7 +31,7 @@ namespace Deveel.Data {
 	/// object to obtain the configurations and systems
 	/// for operations.
 	/// </remarks>
-	public interface IDatabaseContext : IEventSource, IConfigurationProvider, IServiceContext, IDisposable {
+	public interface IDatabaseContext : IEventSource, IConfigurationProvider, IContext {
 		/// <summary>
 		/// Gets a list of all the open sessions
 		/// to the database.

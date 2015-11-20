@@ -27,7 +27,7 @@ namespace Deveel.Data {
 	/// Provides a context for executing queries, accessing the
 	/// system resources and evaluation context.
 	/// </summary>
-	public interface IQueryContext : IServiceContext, IDisposable {
+	public interface IQueryContext : IContext, IDisposable {
 		//IUserSession Session { get; }
 
 		string CurrentSchema { get; }

@@ -38,8 +38,8 @@ namespace Deveel.Data.Diagnostics {
 			if (logger == null)
 				throw new ArgumentNullException("logger");
 
-			context.RegisterService(new LogEventRouter(context));
-			context.RegisterService(logger);
+			context.RegisterInstance(new LogEventRouter(context));
+			context.RegisterInstance(logger);
 		}
 
 #if !PCL

@@ -283,6 +283,7 @@
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Services\Context.cs" />
+    <Compile Include="Deveel.Data.Services\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ContextNames.cs" />
     <Compile Include="Deveel.Data.Services\IContext.cs" />
     <Compile Include="Deveel.Data.Services\IScope.cs" />

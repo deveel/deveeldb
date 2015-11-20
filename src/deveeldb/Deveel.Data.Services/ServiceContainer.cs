@@ -5,19 +5,15 @@ using System.Collections.Generic;
 using DryIoc;
 
 namespace Deveel.Data.Services {
-	public class ServiceContainer : IServiceContainer, IServiceProvider {
+	public class ServiceContainer : IScope, IServiceProvider {
 		private IContainer container;
 
-		public ServiceContainer(IContext context) 
-			: this(context, null) {
+		public ServiceContainer() 
+			: this(null, null) {
 		}
 
-		public ServiceContainer(IContext context, ServiceContainer parent) {
-			if (context == null)
-				throw new ArgumentNullException("context");
-
+		private ServiceContainer(ServiceContainer parent, string scopeName) {
 			if (parent != null) {
-				var scopeName = String.Format("{0}.Scope", context.GetType().Name);
 				container = parent.container.OpenScope(scopeName);
 			} else {
 				container = new Container(Rules.Default
@@ -25,9 +21,6 @@ namespace Deveel.Data.Services {
 					.WithoutThrowOnRegisteringDisposableTransient());
 			}
 
-			this.RegisterInstance(context.GetType(), context);
-
-			Context = context;
 			Parent = parent;
 		}
 
@@ -60,7 +53,7 @@ namespace Deveel.Data.Services {
 		}
 
 		public IScope OpenScope(string name) {
-			return new ServiceContainer(Context, this);
+			return new ServiceContainer(this, name);
 		}
 
 		public object Resolve(Type serviceType, object name) {

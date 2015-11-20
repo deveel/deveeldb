@@ -64,8 +64,8 @@ namespace Deveel.Data {
 			Assert.DoesNotThrow(() => context = new SystemContext());
 			Assert.IsNotNull(context);
 
-			context.RegisterService(new TestService());
-			context.RegisterService(new TestService2());
+			context.RegisterInstance(new TestService());
+			context.RegisterInstance(new TestService2());
 			context.RegisterService<TestService3>();
 
 			IEnumerable<ITestService> services = null;

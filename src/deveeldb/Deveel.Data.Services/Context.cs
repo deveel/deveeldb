@@ -2,6 +2,8 @@
 
 namespace Deveel.Data.Services {
 	public abstract class Context : IContext {
+		private IScope scope;
+
 		protected Context() 
 			: this(null) {
 		}
@@ -17,7 +19,9 @@ namespace Deveel.Data.Services {
 
 		protected abstract string ContextName { get; }
 
-		protected IScope ContextScope { get; private set; }
+		protected virtual IScope ContextScope { 
+			get { return scope; } 
+		}
 
 		protected IContext ParentContext { get; private set; }
 
@@ -35,16 +39,16 @@ namespace Deveel.Data.Services {
 
 		private void InitScope() {
 			if (ParentContext != null)
-				ContextScope = ParentContext.Scope.OpenScope(ContextName);
+				scope = ParentContext.Scope.OpenScope(ContextName);
 		}
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (ContextScope != null)
-					ContextScope.Dispose();
+				if (scope != null)
+					scope.Dispose();
 			}
 
-			ContextScope = null;
+			scope = null;
 			ParentContext = null;
 		}
 

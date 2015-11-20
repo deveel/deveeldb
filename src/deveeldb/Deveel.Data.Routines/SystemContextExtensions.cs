@@ -38,7 +38,7 @@ namespace Deveel.Data.Routines {
 
 		public static void UseRoutineResolver<TResolver>(this ISystemContext context, TResolver resolver)
 			where TResolver : class, IRoutineResolver {
-			context.RegisterService(resolver);
+			context.RegisterInstance(resolver);
 		}
 
 		public static void UseSystemFunctions(this ISystemContext context) {

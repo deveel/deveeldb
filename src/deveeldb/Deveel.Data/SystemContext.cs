@@ -31,7 +31,7 @@ namespace Deveel.Data {
 	/// This is the context of a database system, that handles the configurations
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
-	public sealed class SystemContext : Context, ISystemContext /*, IResolveScope*/ {
+	public sealed class SystemContext : Context, ISystemContext {
 		private ServiceContainer container;
 
 		/// <summary>
@@ -55,8 +55,9 @@ namespace Deveel.Data {
 			Configuration = configuration;
 			EventRegistry = new SystemEventRegistry(this);
 
-			container = new ServiceContainer(this);
+			container = new ServiceContainer();
 			container.RegisterInstance<IConfiguration>(configuration);
+			container.RegisterInstance<ISystemContext>(this);
 
 			UseDefaults();
 		}
@@ -73,6 +74,10 @@ namespace Deveel.Data {
 		/// </summary>
 		public IConfiguration Configuration { get; private set; }
 
+		protected override IScope ContextScope {
+			get { return container; }
+		}
+
 		protected override string ContextName {
 			get { return ContextNames.System; }
 		}
@@ -83,16 +88,20 @@ namespace Deveel.Data {
 		/// </summary>
 		public IEventRegistry EventRegistry { get; private set; }
 
-		IServiceContainer IServiceContext.Container {
-			get { return container; }
-		}
-
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return new KeyValuePair<string, object>[0]; }
 		}
 
 		IEventSource IEventSource.ParentSource {
 			get { return null; }
+		}
+
+		public DatabaseContext CreateDatabaseContext(IConfiguration configuration) {
+			return new DatabaseContext(this, configuration);
+		}
+
+		IDatabaseContext ISystemContext.CreateDatabaseContext(IConfiguration configuration) {
+			return CreateDatabaseContext(configuration);
 		}
 
 		protected override void Dispose(bool disposing) {
@@ -115,7 +124,7 @@ namespace Deveel.Data {
 			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);
 #if !PCL
 			this.RegisterService<IStoreSystem, JournaledStoreSystem>(DefaultStorageSystemNames.Journaled);
-			this.RegisterService(new LocalFileSystem());
+			this.RegisterInstance(new LocalFileSystem());
 #endif
 		}
 	}

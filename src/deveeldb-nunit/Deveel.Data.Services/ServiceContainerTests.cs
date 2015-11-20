@@ -8,12 +8,10 @@ namespace Deveel.Data.Services {
 	public class ServiceContainerTests {
 		[Test]
 		public void RegisterAndResolveFromChild() {
-			var context1 = new Context();
-			var parent = new ServiceContainer(context1);
+			var parent = new ServiceContainer();
 			parent.Register<TestService1>();
 
-			var context2 = new Context();
-			var child = new ServiceContainer(context2, parent);
+			var child = parent.OpenScope("child");
 
 			var childService = child.Resolve<ITestService>();
 			var parentService = parent.Resolve<ITestService>();
@@ -31,12 +29,10 @@ namespace Deveel.Data.Services {
 		public void RegisterInstanceAndResolveFromChild() {
 			var instance = new TestService1();
 
-			var context1 = new Context();
-			var parent = new ServiceContainer(context1);
+			var parent = new ServiceContainer();
 			parent.RegisterInstance(instance);
 
-			var context2 = new Context();
-			var child = new ServiceContainer(context2, parent);
+			var child = parent.OpenScope("child");
 
 			var childService = child.Resolve<ITestService>();
 
@@ -49,12 +45,10 @@ namespace Deveel.Data.Services {
 		public void RegisterInstanceAndResolveAllFromChild() {
 			var instance = new TestService1();
 
-			var context1 = new Context();
-			var parent = new ServiceContainer(context1);
+			var parent = new ServiceContainer();
 			parent.RegisterInstance(instance);
 
-			var context2 = new Context();
-			var child = new ServiceContainer(context2, parent);
+			var child = parent.OpenScope("child");
 
 			var services = child.ResolveAll<ITestService>();
 
@@ -64,12 +58,10 @@ namespace Deveel.Data.Services {
 
 		[Test]
 		public void ResolveFromChildWithParentService() { 
-			var context1 = new Context();
-			var parent = new ServiceContainer(context1);
+			var parent = new ServiceContainer();
 			parent.Register<TestService2>();
 
-			var context2 = new Context();
-			var child = new ServiceContainer(context2, parent);
+			var child = parent.OpenScope("child");
 			child.Register<TestService1>();
 
 			var service2 = child.Resolve<TestService2>();
