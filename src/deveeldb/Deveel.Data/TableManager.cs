@@ -26,9 +26,9 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	public sealed class TableManager : IObjectManager {
-		private readonly List<TableSource> visibleTables;
+		private readonly List<ITableSource> visibleTables;
 		private List<IMutableTable> accessedTables;
-		private List<TableSource> selectedTables; 
+		private List<ITableSource> selectedTables; 
 		private readonly List<IIndexSet> tableIndices;
 		private List<ITableContainer> internalTables;
 
@@ -36,7 +36,7 @@ namespace Deveel.Data {
 
 		private List<object> cleanupQueue;
 
-		internal TableManager(ITransaction transaction, TableSourceComposite composite) {
+		public TableManager(ITransaction transaction, ITableSourceComposite composite) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 
@@ -44,11 +44,11 @@ namespace Deveel.Data {
 
 			Composite = composite;
 
-			visibleTables = new List<TableSource>();
+			visibleTables = new List<ITableSource>();
 			tableIndices = new List<IIndexSet>();
 			accessedTables = new List<IMutableTable>();
 			tableCache = new Dictionary<ObjectName, IMutableTable>();
-			selectedTables = new List<TableSource>();
+			selectedTables = new List<ITableSource>();
 		}
 
 		~TableManager() {
@@ -57,13 +57,13 @@ namespace Deveel.Data {
 
 		public ITransaction Transaction { get; private set; }
 
-		private TableSourceComposite Composite { get; set; }
+		private ITableSourceComposite Composite { get; set; }
 
 		internal IEnumerable<IMutableTable> AccessedTables {
 			get { return accessedTables; }
 		}
 
-		internal IEnumerable<TableSource> SelectedTables {
+		internal IEnumerable<ITableSource> SelectedTables {
 			get {
 				lock (selectedTables) {
 					return selectedTables.ToArray();
@@ -274,7 +274,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		private void CopyTable(TableSource tableSource, IIndexSet indexSet) {
+		private void CopyTable(ITableSource tableSource, IIndexSet indexSet) {
 			var tableInfo = tableSource.TableInfo;
 			var tableName = tableInfo.TableName;
 			var source = FindVisibleTable(tableName, false);
@@ -293,7 +293,7 @@ namespace Deveel.Data {
 			Transaction.CreateNativeSequence(tableName);
 		}
 
-		internal IIndexSet GetIndexSetForTable(TableSource tableSource) {
+		internal IIndexSet GetIndexSetForTable(ITableSource tableSource) {
 			int sz = tableIndices.Count;
 			for (int i = 0; i < sz; ++i) {
 				if (visibleTables[i].TableId == tableSource.TableId) {
@@ -304,7 +304,7 @@ namespace Deveel.Data {
 			throw new Exception("Table source not found in this transaction.");
 		}
 
-		private void AddVisibleTable(TableSource table, IIndexSet indexSet) {
+		private void AddVisibleTable(ITableSource table, IIndexSet indexSet) {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
@@ -312,7 +312,7 @@ namespace Deveel.Data {
 			tableIndices.Add(indexSet);
 		}
 
-		private static int IndexOfTable(IList<TableSource> sources, int tableId) {
+		private static int IndexOfTable(IList<ITableSource> sources, int tableId) {
 			for (int i = 0; i < sources.Count; i++) {
 				var source = sources[i];
 				if (source.TableId == tableId)
@@ -322,7 +322,7 @@ namespace Deveel.Data {
 			return -1;
 		}
 
-		internal void RemoveVisibleTable(TableSource table) {
+		internal void RemoveVisibleTable(ITableSource table) {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
@@ -351,7 +351,7 @@ namespace Deveel.Data {
 			AddVisibleTable(table, indexSet);
 		}
 
-		private TableSource FindVisibleTable(ObjectName tableName, bool ignoreCase) {
+		private ITableSource FindVisibleTable(ObjectName tableName, bool ignoreCase) {
 			return visibleTables
 				.FirstOrDefault(source => source != null &&
 				                          source.TableInfo.TableName.Equals(tableName, ignoreCase));
@@ -486,7 +486,7 @@ namespace Deveel.Data {
 			// Is it a visable table (match case insensitive)
 			var table = FindVisibleTable(tableName, true);
 			if (table != null)
-				return table.TableName;
+				return table.TableInfo.TableName;
 
 			var comparison = IgnoreIdentifiersCase
 				? StringComparison.OrdinalIgnoreCase
@@ -541,7 +541,7 @@ namespace Deveel.Data {
 					.FirstOrDefault(tableInfo => tableInfo.TableName.Equals(tableName));
 		}
 
-		private IMutableTable CreateTableAtCommit(TableSource source) {
+		private IMutableTable CreateTableAtCommit(ITableSource source) {
 			// Create the table for this transaction.
 			var table = source.CreateTableAtCommit(Transaction);
 
@@ -648,7 +648,7 @@ namespace Deveel.Data {
 			tableCache.Remove(tableName);
 		}
 
-		private void SetIndexSetForTable(TableSource source, IIndexSet indexSet) {
+		private void SetIndexSetForTable(ITableSource source, IIndexSet indexSet) {
 			int sz = tableIndices.Count;
 			for (int i = 0; i < sz; ++i) {
 				if (visibleTables[i].TableId == source.TableId) {
@@ -668,7 +668,7 @@ namespace Deveel.Data {
 			// Is it a visible table (match case insensitive)
 			var table = FindVisibleTable(objName, ignoreCase);
 			if (table != null)
-				return table.TableName;
+				return table.TableInfo.TableName;
 
 			// Is it an internal table?
 			string tschema = objName.ParentName;
@@ -715,7 +715,7 @@ namespace Deveel.Data {
 			internalTables.Add(container);
 		}
 
-		internal IEnumerable<TableSource> GetVisibleTables() {
+		internal IEnumerable<ITableSource> GetVisibleTables() {
 			return visibleTables.ToArray();
 		}
 
@@ -730,7 +730,7 @@ namespace Deveel.Data {
 		public IEnumerable<ObjectName> GetTableNames() {
 			var result = (visibleTables
 				.Where(tableSource => tableSource != null)
-				.Select(tableSource => tableSource.TableName)).ToList();
+				.Select(tableSource => tableSource.TableInfo.TableName)).ToList();
 
 			var dynamicTables = GetDynamicTables();
 			if (dynamicTables != null)

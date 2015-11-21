@@ -22,7 +22,7 @@ namespace Deveel.Data.Services {
 			Assert.IsNotNull(parentService);
 			Assert.IsInstanceOf<TestService1>(parentService);
 
-			Assert.AreEqual(parentService, childService);
+			Assert.AreNotEqual(parentService, childService);
 		}
 
 		[Test]

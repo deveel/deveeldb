@@ -25,7 +25,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	class TableSourceComposite : IDisposable {
+	class TableSourceComposite : ITableSourceComposite, IDisposable {
 		private readonly object commitLock = new object();
 		private Dictionary<int, TableSource> tableSources;
 
@@ -459,6 +459,10 @@ namespace Deveel.Data {
 			StoreSystem.Unlock(StateStoreName);
 		}
 
+		ITableSource ITableSourceComposite.CreateTableSource(TableInfo tableInfo, bool temporary) {
+			return CreateTableSource(tableInfo, temporary);
+		}
+
 		internal TableSource CreateTableSource(TableInfo tableInfo, bool temporary) {
 			lock (commitLock) {
 				try {
@@ -510,8 +514,8 @@ namespace Deveel.Data {
 			
 		}
 
-		internal void Commit(Transaction transaction, IList<TableSource> visibleTables,
-						   IEnumerable<TableSource> selectedFromTables,
+		internal void Commit(Transaction transaction, IList<ITableSource> visibleTables,
+						   IEnumerable<ITableSource> selectedFromTables,
 						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal, Action<TableCommitInfo> commitActions) {
 
 			var state = new TransactionWork(this, transaction, selectedFromTables, touchedTables, journal);
@@ -579,6 +583,10 @@ namespace Deveel.Data {
 					CloseTransaction(transaction);
 				}
 			}
+		}
+
+		ITableSource ITableSourceComposite.CopySourceTable(ITableSource tableSource, IIndexSet indexSet) {
+			return CopySourceTable((TableSource) tableSource, indexSet);
 		}
 
 		internal TableSource CopySourceTable(TableSource tableSource, IIndexSet indexSet) {

@@ -19,8 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
@@ -32,12 +32,6 @@ namespace Deveel.Data.Transactions {
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
 	public sealed class Transaction : ITransaction, ICallbackHandler, ITableStateHandler {
-		private TableManager tableManager;
-		private SequenceManager sequenceManager;
-		private ViewManager viewManager;
-		private PersistentVariableManager variableManager;
-		private SchemaManager schemaManager;
-		private TriggerManager triggerManager;
 		private List<TableCommitCallback> callbacks;
 
 		private Action<TableCommitInfo> commitActions; 
@@ -57,10 +51,10 @@ namespace Deveel.Data.Transactions {
 			Isolation = isolation;
 		    TransactionContext = context;
 
-			InitManagers();
+			context.RegisterInstance<ITransaction>(this);
 
 			Registry = new TransactionRegistry(this);
-			tableManager.AddVisibleTables(committedTables, indexSets);
+			TableManager.AddVisibleTables(committedTables, indexSets);
 
 			AddInternalTables();
 
@@ -125,38 +119,41 @@ namespace Deveel.Data.Transactions {
 			get { return Database.TableComposite; }
 		}
 
-		public IObjectManagerResolver Managers { get; private set; }
+		private SequenceManager SequenceManager {
+			get { return (SequenceManager) this.GetObjectManager(DbObjectType.Sequence); }
+		}
+
+		private ViewManager ViewManager {
+			get { return (ViewManager) this.GetObjectManager(DbObjectType.View); }
+		}
+
+		private TriggerManager TriggerManager {
+			get { return (TriggerManager) this.GetObjectManager(DbObjectType.Trigger); }
+		}
 
 		public TransactionRegistry Registry { get; private set; }
 
-		private void InitManagers() {
-			schemaManager = new SchemaManager(this);
-			tableManager = new TableManager(this, TableComposite);
-			sequenceManager = new SequenceManager(this);
-			viewManager = new ViewManager(this);
-			variableManager = new PersistentVariableManager(this);
-			triggerManager = new TriggerManager(this);
-
-			Managers = new ObjectManagersResolver(this);
+		private TableManager TableManager {
+			get { return this.GetTableManager(); }
 		}
 
 		private void AddInternalTables() {
-			tableManager.AddInternalTables(new TransactionTableContainer(this, IntTableInfo));
+			TableManager.AddInternalTables(new TransactionTableContainer(this, IntTableInfo));
 
 			// OLD and NEW system tables (if applicable)
-			tableManager.AddInternalTables(new OldAndNewTableContainer(this));
+			TableManager.AddInternalTables(new OldAndNewTableContainer(this));
 
 			// Model views as tables (obviously)
-			tableManager.AddInternalTables(viewManager.CreateInternalTableInfo());
+			TableManager.AddInternalTables(ViewManager.CreateInternalTableInfo());
 
 			//// Model procedures as tables
 			//tableManager.AddInternalTables(routineManager.CreateInternalTableInfo());
 
 			// Model sequences as tables
-			tableManager.AddInternalTables(sequenceManager.TableContainer);
+			TableManager.AddInternalTables(SequenceManager.TableContainer);
 
 			// Model triggers as tables
-			tableManager.AddInternalTables(triggerManager.CreateTriggersTableContainer());
+			TableManager.AddInternalTables(TriggerManager.CreateTriggersTableContainer());
 		}
 
 		private void AssertNotReadOnly() {
@@ -167,9 +164,9 @@ namespace Deveel.Data.Transactions {
 		public void Commit() {
 			if (!IsClosed) {
 				try {
-					var touchedTables = tableManager.AccessedTables.ToList();
-					var visibleTables = tableManager.GetVisibleTables().ToList();
-					var selected = tableManager.SelectedTables.ToArray();
+					var touchedTables = TableManager.AccessedTables.ToList();
+					var visibleTables = TableManager.GetVisibleTables().ToList();
+					var selected = TableManager.SelectedTables.ToArray();
 					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry, commitActions);
 				} finally {
 					Finish();
@@ -195,7 +192,11 @@ namespace Deveel.Data.Transactions {
 			try {
 				// Dispose all the table we touched
 				try {
-					tableManager.Dispose();
+					TableManager.Dispose();
+
+					if (TransactionContext != null)
+						TransactionContext.Dispose();
+
 				} catch (Exception) {
 					// TODO: report the error
 				}
@@ -210,6 +211,7 @@ namespace Deveel.Data.Transactions {
 				}
 
 				callbacks = null;
+				TransactionContext = null;
 
 				// Dispose all the objects in the transaction
 			} finally {
@@ -220,7 +222,7 @@ namespace Deveel.Data.Transactions {
 		public void Rollback() {
 			if (!IsClosed) {
 				try {
-					var touchedTables = tableManager.AccessedTables.ToList();
+					var touchedTables = TableManager.AccessedTables.ToList();
 					TableComposite.Rollback(this, touchedTables, Registry);
 				} finally {
 					IsClosed = true;
@@ -487,45 +489,45 @@ namespace Deveel.Data.Transactions {
 
 		#endregion
 
-		#region ObjectManagersResolver
+		//#region ObjectManagersResolver
 
-		class ObjectManagersResolver : IObjectManagerResolver {
-			private readonly Transaction transaction;
+		//class ObjectManagersResolver : IObjectManagerResolver {
+		//	private readonly Transaction transaction;
 
-			public ObjectManagersResolver(Transaction transaction) {
-				this.transaction = transaction;
-			}
+		//	public ObjectManagersResolver(Transaction transaction) {
+		//		this.transaction = transaction;
+		//	}
 
-			public IEnumerable<IObjectManager> ResolveAll() {
-				return new IObjectManager[] {
-					transaction.schemaManager,
-					transaction.tableManager,
-					transaction.sequenceManager,
-					transaction.variableManager,
-					transaction.viewManager,
-					transaction.triggerManager
-				};
-			}
+		//	public IEnumerable<IObjectManager> ResolveAll() {
+		//		return new IObjectManager[] {
+		//			transaction.schemaManager,
+		//			transaction.tableManager,
+		//			transaction.sequenceManager,
+		//			transaction.variableManager,
+		//			transaction.viewManager,
+		//			transaction.triggerManager
+		//		};
+		//	}
 
-			public IObjectManager ResolveForType(DbObjectType objType) {
-				if (objType == DbObjectType.Schema)
-					return transaction.schemaManager;
-				if (objType == DbObjectType.Table)
-					return transaction.tableManager;
-				if (objType == DbObjectType.Sequence)
-					return transaction.sequenceManager;
-				if (objType == DbObjectType.Variable)
-					return transaction.variableManager;
-				if (objType == DbObjectType.View)
-					return transaction.viewManager;
-				if (objType == DbObjectType.Trigger)
-					return transaction.triggerManager;
+		//	public IObjectManager ResolveForType(DbObjectType objType) {
+		//		if (objType == DbObjectType.Schema)
+		//			return transaction.schemaManager;
+		//		if (objType == DbObjectType.Table)
+		//			return transaction.tableManager;
+		//		if (objType == DbObjectType.Sequence)
+		//			return transaction.sequenceManager;
+		//		if (objType == DbObjectType.Variable)
+		//			return transaction.variableManager;
+		//		if (objType == DbObjectType.View)
+		//			return transaction.viewManager;
+		//		if (objType == DbObjectType.Trigger)
+		//			return transaction.triggerManager;
 
-				return null;
-			}
-		}
+		//		return null;
+		//	}
+		//}
 
-		#endregion
+		//#endregion
 
 		#region Variables
 

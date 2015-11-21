@@ -201,6 +201,8 @@
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
+    <Compile Include="Deveel.Data\ITableSource.cs" />
+    <Compile Include="Deveel.Data\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />

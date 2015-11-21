@@ -691,9 +691,6 @@
     <Compile Include="Deveel.Data.Sql\RootTable.cs" />
     <Compile Include="Deveel.Data.Sql\Row.cs" />
     <Compile Include="Deveel.Data.Sql\RowId.cs" />
-    <Compile Include="Deveel.Data.Sql\Schema.cs" />
-    <Compile Include="Deveel.Data.Sql\SchemaInfo.cs" />
-    <Compile Include="Deveel.Data.Sql\SchemaManager.cs" />
     <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
@@ -834,6 +831,8 @@
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\ITableContainer.cs" />
+    <Compile Include="Deveel.Data\ITableSource.cs" />
+    <Compile Include="Deveel.Data\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\IUserSession.cs" />
     <Compile Include="Deveel.Data\IVariableAccessContext.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />

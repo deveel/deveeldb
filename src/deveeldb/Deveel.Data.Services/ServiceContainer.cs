@@ -14,7 +14,8 @@ namespace Deveel.Data.Services {
 
 		private ServiceContainer(ServiceContainer parent, string scopeName) {
 			if (parent != null) {
-				container = parent.container.OpenScope(scopeName);
+				container = parent.container.OpenScope(scopeName)
+					.With(rules => rules.WithDefaultReuseInsteadOfTransient(Reuse.InCurrentNamedScope(scopeName)));
 			} else {
 				container = new Container(Rules.Default
 					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton)

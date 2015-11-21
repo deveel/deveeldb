@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Schemas;
@@ -42,36 +43,44 @@ namespace Deveel.Data.Transactions {
 		#region Managers
 
 		public static void CreateSystem(this ITransaction transaction) {
-			var managers = transaction.Managers.ResolveAll();
+			var managers = transaction.TransactionContext.ResolveAllServices<IObjectManager>();
 			foreach (var manager in managers) {
 				manager.Create();
 			}
 		}
 
 		public static TableManager GetTableManager(this ITransaction transaction) {
-			return (TableManager) transaction.Managers.ResolveForType(DbObjectType.Table);
+			return (TableManager) transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Table);
 		}
 
 		public static ViewManager GetViewManager(this ITransaction transaction) {
-			return (ViewManager) transaction.Managers.ResolveForType(DbObjectType.View);
+			return (ViewManager) transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.View);
 		}
 
 		public static TriggerManager GetTriggerManager(this ITransaction transaction) {
-			return transaction.Managers.ResolveForType(DbObjectType.Trigger) as TriggerManager;
+			return transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Trigger) as TriggerManager;
 		}
 
 		#endregion
 
 		#region Objects
 
+		internal static IObjectManager GetObjectManager(this ITransaction transaction, DbObjectType objectType) {
+			return transaction.TransactionContext.ResolveService<IObjectManager>(objectType);
+		}
+
+		private static IEnumerable<IObjectManager> GetObjectManagers(this ITransaction transaction) {
+			return transaction.TransactionContext.ResolveAllServices<IObjectManager>();
+		}
+
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
-			return transaction.Managers.ResolveAll()
+			return transaction.GetObjectManagers()
 				.Select(manager => manager.GetObject(objName))
 				.FirstOrDefault(obj => obj != null);
 		}
 
 		public static IDbObject GetObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.Managers.ResolveForType(objType);
+			var manager = transaction.GetObjectManager(objType);
 			if (manager == null)
 				return null;
 
@@ -79,12 +88,12 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool ObjectExists(this ITransaction transaction, ObjectName objName) {
-			return transaction.Managers.ResolveAll()
+			return transaction.GetObjectManagers()
 				.Any(manager => manager.ObjectExists(objName));
 		}
 
 		public static bool ObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.Managers.ResolveForType(objType);
+			var manager = transaction.GetObjectManager(objType);
 			if (manager == null)
 				return false;
 
@@ -92,7 +101,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool RealObjectExists(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.Managers.ResolveForType(objType);
+			var manager = transaction.GetObjectManager(objType);
 			if (manager == null)
 				return false;
 
@@ -103,7 +112,7 @@ namespace Deveel.Data.Transactions {
 			if (objInfo == null)
 				throw new ArgumentNullException("objInfo");
 
-			var manager = transaction.Managers.ResolveForType(objInfo.ObjectType);
+			var manager = transaction.GetObjectManager(objInfo.ObjectType);
 			if (manager == null)
 				throw new InvalidOperationException(String.Format("Could not find any manager for object type '{0}' configured for the system.", objInfo.ObjectType));
 
@@ -119,7 +128,7 @@ namespace Deveel.Data.Transactions {
 			if (objInfo == null)
 				throw new ArgumentNullException("objInfo");
 
-			var manager = transaction.Managers.ResolveForType(objInfo.ObjectType);
+			var manager = transaction.GetObjectManager(objInfo.ObjectType);
 			if (manager == null)
 				throw new InvalidOperationException();
 
@@ -130,7 +139,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static bool DropObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
-			var manager = transaction.Managers.ResolveForType(objType);
+			var manager = transaction.GetObjectManager(objType);
 			if (manager == null)
 				return false;
 
@@ -154,7 +163,7 @@ namespace Deveel.Data.Transactions {
 
 			bool found = false;
 
-			foreach (var manager in transaction.Managers.ResolveAll()) {
+			foreach (var manager in transaction.GetObjectManagers()) {
 				if (manager.ObjectExists(objName)) {
 					if (found)
 						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match.", objectName));
@@ -174,7 +183,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
-			var manager = transaction.Managers.ResolveForType(objectType);
+			var manager = transaction.GetObjectManager(objectType);
 			if (manager == null)
 				return objectName;
 
@@ -184,7 +193,7 @@ namespace Deveel.Data.Transactions {
 		public static ObjectName ResolveObjectName(this ITransaction transaction, ObjectName objectName) {
 			var ignoreCase = transaction.IgnoreIdentifiersCase();
 
-			return transaction.Managers.ResolveAll()
+			return transaction.GetObjectManagers()
 				.Select(manager => manager.ResolveName(objectName, ignoreCase))
 				.FirstOrDefault(resolved => resolved != null);
 		}
@@ -275,7 +284,7 @@ namespace Deveel.Data.Transactions {
 			return (ITable) transaction.GetObject(DbObjectType.Table, tableName);
 		}
 
-		internal static IEnumerable<TableSource> GetVisibleTables(this ITransaction transaction) {
+		internal static IEnumerable<ITableSource> GetVisibleTables(this ITransaction transaction) {
 			return transaction.GetTableManager().GetVisibleTables();
 		}
 
@@ -296,7 +305,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static TableInfo GetTableInfo(this ITransaction transaction, ObjectName tableName) {
-			var tableManager = transaction.Managers.ResolveForType(DbObjectType.Table) as TableManager;
+			var tableManager = transaction.GetObjectManager(DbObjectType.Table) as TableManager;
 			if (tableManager == null)
 				throw new InvalidOperationException("No table manager was found.");
 

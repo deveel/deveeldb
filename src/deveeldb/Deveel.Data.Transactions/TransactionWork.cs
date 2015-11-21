@@ -29,9 +29,9 @@ namespace Deveel.Data.Transactions {
 
 		internal Transaction Transaction { get; private set; }
 
-		public IEnumerable<TableSource> SelectedFromTables { get; private set; }
+		public IEnumerable<ITableSource> SelectedFromTables { get; private set; }
 
-		internal TransactionWork(TableSourceComposite composite, Transaction transaction, IEnumerable<TableSource> selectedFromTables, IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
+		internal TransactionWork(TableSourceComposite composite, Transaction transaction, IEnumerable<ITableSource> selectedFromTables, IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
 			Composite = composite;
 			Transaction = transaction;
 			SelectedFromTables = selectedFromTables;

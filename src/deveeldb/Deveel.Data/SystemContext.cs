@@ -21,6 +21,10 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Services;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Schemas;
+using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Store;
 #if !PCL
 using Deveel.Data.Store.Journaled;
@@ -119,6 +123,13 @@ namespace Deveel.Data {
 			this.UseDefaultQueryPlanner();
 			this.UseDefaultTableCellCache();
 			this.UseSystemFunctions();
+
+			this.RegisterService<IObjectManager, TableManager>(DbObjectType.Table);
+			this.RegisterService<IObjectManager, ViewManager>(DbObjectType.View);
+			this.RegisterService<IObjectManager, SchemaManager>(DbObjectType.Schema);
+			this.RegisterService<IObjectManager, TriggerManager>(DbObjectType.Trigger);
+			this.RegisterService<IObjectManager, SequenceManager>(DbObjectType.Sequence);
+			this.RegisterService<IObjectManager, PersistentVariableManager>(DbObjectType.Variable);
 
 			this.RegisterService<IStoreSystem, InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
 			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);

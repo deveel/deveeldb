@@ -30,7 +30,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	class TableSource {
+	class TableSource : ITableSource {
 		private IndexSetStore indexSetStore;
 		private VersionedTableIndexList tableIndices;
 

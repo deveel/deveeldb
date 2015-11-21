@@ -46,11 +46,11 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		IDatabase Database { get; }
 
-		/// <summary>
-		/// Gets an object used to resolve database object managers.
-		/// </summary>
-		/// <seealso cref="IObjectManager"/>
-		IObjectManagerResolver Managers { get; }
+		///// <summary>
+		///// Gets an object used to resolve database object managers.
+		///// </summary>
+		///// <seealso cref="IObjectManager"/>
+		//IObjectManagerResolver Managers { get; }
 
 		TransactionRegistry Registry { get; }
 
