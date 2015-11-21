@@ -135,6 +135,7 @@
     <Compile Include="Deveel.Data.Security\IPrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\IUserManager.cs" />
     <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
+    <Compile Include="Deveel.Data.Security\QueryContext.Security.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
@@ -153,17 +154,23 @@
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\QueryContext.Schemas.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequenceManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\QueryContext.Sequences.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\QueryContext.Statements.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.Commands.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrability.cs" />
@@ -184,6 +191,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\OuterTable.cs" />
+    <Compile Include="Deveel.Data.Sql\QueryContext.Objects.cs" />
     <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RawTableInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ReferenceTable.cs" />
@@ -226,6 +234,7 @@
     <Compile Include="Deveel.Data.Store\LocalFileSystem.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Types\QueryContext.Types.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
     <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
     <Compile Include="Deveel.Data.Util\IBigList.cs" />
@@ -413,7 +422,7 @@
     <Compile Include="Deveel.Data.Routines\IRoutineResolverContainer.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
-    <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\QueryContext.Routines.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
@@ -489,7 +498,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetPasswordAction.cs" />
@@ -520,7 +528,6 @@
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
-    <Compile Include="Deveel.Data.Security\SecurityQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Index\StoreIndex.cs" />
     <Compile Include="Deveel.Data.Index\IndexSetStore.cs" />
     <Compile Include="Deveel.Data.Index\SnapshotIndexSet.cs" />
@@ -892,7 +899,6 @@
     <Compile Include="Deveel.Data.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Types\NumericType.cs" />
     <Compile Include="Deveel.Data.Types\PrimitiveTypes.cs" />
-    <Compile Include="Deveel.Data.Types\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\QueryType.cs" />
     <Compile Include="Deveel.Data.Types\RowType.cs" />
     <Compile Include="Deveel.Data.Types\SqlType.cs" />

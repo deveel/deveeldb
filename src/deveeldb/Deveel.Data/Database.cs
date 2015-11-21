@@ -20,6 +20,7 @@ using System.IO;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 

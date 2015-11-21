@@ -1,20 +1,4 @@
-﻿// 
-//  Copyright 2010-2015 Deveel
-// 
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-// 
-//        http://www.apache.org/licenses/LICENSE-2.0
-// 
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-
-using System;
+﻿using System;
 using System.Linq;
 
 using Deveel.Data.Routines;
@@ -25,17 +9,17 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public static class SecurityQueryExtensions {
+	public static class QueryContext {
 		private static IUserManager UserManager(this IQueryContext context) {
 			if (context is QueryContextBase)
-				return ((QueryContextBase) context).UserManager;
+				return ((QueryContextBase)context).UserManager;
 
 			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IUserManager>();
 		}
 
 		private static IPrivilegeManager PrivilegeManager(this IQueryContext context) {
 			if (context is QueryContextBase)
-				return ((QueryContextBase) context).PrivilegeManager;
+				return ((QueryContextBase)context).PrivilegeManager;
 
 			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
 		}
@@ -77,7 +61,7 @@ namespace Deveel.Data.Security {
 
 		public static UserStatus GetUserStatus(this IQueryContext queryContext, string userName) {
 			if (!queryContext.UserName().Equals(userName) &&
-			    !queryContext.UserCanAccessUsers())
+				!queryContext.UserCanAccessUsers())
 				throw new MissingPrivilegesException(queryContext.UserName(), new ObjectName(userName), Privileges.Select,
 					String.Format("The user '{0}' has not enough rights to access other users information.", queryContext.UserName()));
 
@@ -214,7 +198,7 @@ namespace Deveel.Data.Security {
 
 				// Successfully authenticated...
 				return new User(queryContext, username);
-			} catch(SecurityException) {
+			} catch (SecurityException) {
 				throw;
 			} catch (Exception ex) {
 				throw new SecurityException("Could not authenticate user.", ex);
@@ -305,7 +289,7 @@ namespace Deveel.Data.Security {
 			var objectNameColumn = grantTable.GetResolvedColumnName(2);
 			// All that match the given object
 			var t1 = grantTable.SimpleSelect(context, objectTypeColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.Integer((int) objectType)));
+				SqlExpression.Constant(DataObject.Integer((int)objectType)));
 			// All that match the given parameter
 			t1 = t1.SimpleSelect(context, objectNameColumn, SqlExpressionType.Equal,
 				SqlExpression.Constant(DataObject.String(objectName.FullName)));
@@ -377,14 +361,14 @@ namespace Deveel.Data.Security {
 		}
 
 		public static bool UserCanCreateUsers(this IQueryContext context) {
-			return context.UserHasSecureAccess() || 
+			return context.UserHasSecureAccess() ||
 				context.UserBelongsToGroup(SystemGroups.UserManagerGroup);
 		}
 
 		public static bool UserCanDropUser(this IQueryContext context, string userToDrop) {
 			return context.UserHasSecureAccess() ||
-			       context.UserBelongsToGroup(SystemGroups.UserManagerGroup) ||
-			       context.UserName().Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
+				   context.UserBelongsToGroup(SystemGroups.UserManagerGroup) ||
+				   context.UserName().Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public static bool UserCanAlterUser(this IQueryContext context, string userName) {
@@ -470,14 +454,14 @@ namespace Deveel.Data.Security {
 			return context.UserHasTablePrivilege(tableName, Privileges.Update);
 		}
 
-		public static bool UserCanInsertIntoTable(this IQueryContext context, ObjectName tableName, params string [] columnNames) {
+		public static bool UserCanInsertIntoTable(this IQueryContext context, ObjectName tableName, params string[] columnNames) {
 			// TODO: Column-level select will be implemented in the future
 			return context.UserHasTablePrivilege(tableName, Privileges.Insert);
 		}
 
 		public static bool UserCanExecute(this IQueryContext context, RoutineType routineType, Invoke invoke) {
 			if (routineType == RoutineType.Function &&
-			    context.IsSystemFunction(invoke)) {
+				context.IsSystemFunction(invoke)) {
 				return true;
 			}
 
@@ -520,7 +504,7 @@ namespace Deveel.Data.Security {
 				return true;
 
 			if (context.UserBelongsToSecureGroup() ||
-			    context.UserBelongsToGroup(SystemGroups.UserManagerGroup))
+				context.UserBelongsToGroup(SystemGroups.UserManagerGroup))
 				return true;
 
 			return context.ForSystemUser().UserManager().IsUserGroupAdmin(context.UserName(), groupName);

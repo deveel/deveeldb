@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Query {
 	class FetchViewNode : IQueryPlanNode {

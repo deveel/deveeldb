@@ -21,6 +21,7 @@ using System.Reflection;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	public sealed class QueryExpressionFrom {

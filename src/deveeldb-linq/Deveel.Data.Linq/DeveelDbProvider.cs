@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.Common;
 
-using Deveel.Data.Client;
 using Deveel.Data.Sql.Statements;
 
 using IQToolkit.Data;
