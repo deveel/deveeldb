@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Cursors {
@@ -86,7 +87,7 @@ namespace Deveel.Data.Sql.Cursors {
 		private ITable Evaluate(IQueryContext context, SqlExpression[] args) {
 			try {
 				var prepared = PrepareQuery(args);
-				var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, prepared, null, null);
+				var queryPlan = context.QueryPlanner().PlanQuery(context, prepared, null, null);
 				return queryPlan.Evaluate(context);
 			} catch (Exception) {
 

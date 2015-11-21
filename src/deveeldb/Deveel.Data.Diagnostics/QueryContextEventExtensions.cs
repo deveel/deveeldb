@@ -19,7 +19,6 @@ using System;
 using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
-using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Diagnostics {
 	public static class QueryContextEventExtensions {

@@ -53,7 +53,7 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    SessionContext = transaction.TransactionContext.CreateSessionContext();
 
-			Database.DatabaseContext.Sessions.Add(this);
+			transaction.Database.DatabaseContext.Sessions.Add(this);
 
 			User = user;
 			StartedOn = DateTimeOffset.UtcNow;

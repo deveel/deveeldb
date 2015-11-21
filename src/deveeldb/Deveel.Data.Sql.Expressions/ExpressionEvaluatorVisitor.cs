@@ -21,6 +21,7 @@ using System.Linq;
 using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
@@ -197,13 +198,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitQuery(SqlQueryExpression query) {
-			if (context.DatabaseContext == null)
-				throw new ExpressionEvaluateException("A database context is required to evaluate a query.");
 			if (context.QueryContext == null)
 				throw new ExpressionEvaluateException("A query expression is required to evaluate a query.");
 
 			try {
-				var planner = context.DatabaseContext.QueryPlanner();
+				var planner = context.QueryContext.QueryPlanner();
 				var plan = planner.PlanQuery(context.QueryContext, query, null, null);
 				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
 			} catch (ExpressionEvaluateException) {

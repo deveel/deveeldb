@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			queryExpression.WhereExpression = WherExpression;
 
 			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
-			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, queryExpression, null, null);
+			var queryPlan = context.QueryPlanner().PlanQuery(context, queryExpression, null, null);
 
 			var columns = new List<SqlAssignExpression>();
 			foreach (var assignment in Assignments) {

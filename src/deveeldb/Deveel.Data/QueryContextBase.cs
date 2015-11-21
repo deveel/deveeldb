@@ -21,7 +21,6 @@ using System.Security.Cryptography;
 #endif
 
 using Deveel.Data.Caching;
-using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
@@ -30,7 +29,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : Context, IQueryContext, IVariableScope/*, IResolveScope*/ {
+	abstract class QueryContextBase : Context, IQueryContext, IVariableScope {
 #if PCL
 		private Random secureRandom;
 #else
@@ -44,6 +43,7 @@ namespace Deveel.Data {
 			if (session == null)
 				throw new ArgumentNullException("session");
 
+			this.RegisterInstance<IQueryContext>(this);
 #if PCL
 			secureRandom = new Random();
 #else
@@ -53,9 +53,6 @@ namespace Deveel.Data {
 			tableCache = new MemoryCache();
 			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
-
-			InitUserManager();
-			InitPrivilegeManager();
 		}
 
 		IQueryContext IQueryContext.ParentContext {
@@ -72,14 +69,6 @@ namespace Deveel.Data {
 		public VariableManager VariableManager { get; private set; }
 
 		public CursorManager CursorManager { get; private set; }
-
-		private bool OwnsUserManager { get; set; }
-
-		public IUserManager UserManager { get; private set; }
-
-		public IPrivilegeManager PrivilegeManager { get; private set; }
-
-		private bool OwnsPrivilegeManager { get; set; }
 
 		public IUserSession Session {get; private set; }
 
@@ -98,26 +87,6 @@ namespace Deveel.Data {
 		private void AssertNotDisposed() {
 			if (disposed)
 				throw new ObjectDisposedException("QueryContext", "The query context was disposed.");
-		}
-
-		private void InitUserManager() {
-			var userManager = this.ResolveService<IUserManager>();
-			if (userManager == null) {
-				userManager = new UserManager(this);
-				OwnsUserManager = true;
-			}
-
-			UserManager = userManager;
-		}
-
-		private void InitPrivilegeManager() {
-			var privManager = this.ResolveService<IPrivilegeManager>();
-			if (privManager == null) {
-				privManager = new PrivilegeManager(this);
-				OwnsPrivilegeManager = true;
-			}
-
-			PrivilegeManager = privManager;
 		}
 
 		public virtual SqlNumber NextRandom(int bitSize) {
@@ -140,10 +109,6 @@ namespace Deveel.Data {
 						VariableManager.Dispose();
 					if (CursorManager != null)
 						CursorManager.Dispose();
-
-					if (OwnsUserManager &&
-						UserManager != null)
-						UserManager.Dispose();
 				}
 
 				tableCache = null;

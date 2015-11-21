@@ -29,12 +29,6 @@ namespace Deveel.Data {
 	/// </summary>
 	public interface IUserSession : IEventSource, IDisposable {
 		/// <summary>
-		/// Gets the instance of the database to which the user 
-		/// is connected to in this session.
-		/// </summary>
-		IDatabase Database { get; }
-
-		/// <summary>
 		/// Gets the name of the current schema of this session.
 		/// </summary>
 		string CurrentSchema { get; }

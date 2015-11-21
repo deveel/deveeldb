@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IQueryContext context) {
-			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, null, null);
+			var queryPlan = context.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
 
 			if (IsObjectReference) {
 				var tableRef = ((SqlReferenceExpression) Reference).ReferenceName;

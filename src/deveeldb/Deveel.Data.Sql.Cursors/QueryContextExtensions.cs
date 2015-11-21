@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data.Sql.Cursors {
 	public static class QueryContextExtensions {
 		public static void DeclareCursor(this IQueryContext context, CursorInfo cursorInfo) {
-			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, cursorInfo.QueryExpression, null, null);
+			var queryPlan = context.QueryPlanner().PlanQuery(context, cursorInfo.QueryExpression, null, null);
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
 				if (!context.UserCanSelectFromTable(tableName))

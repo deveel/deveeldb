@@ -75,12 +75,8 @@ namespace Deveel.Data {
 			return context.Session().ParameterStyle();
 		}
 
-		public static IDatabaseContext DatabaseContext(this IQueryContext context) {
-			return context.Session().Database.DatabaseContext;
-		}
-
 		public static ISystemContext SystemContext(this IQueryContext context) {
-			return context.DatabaseContext().SystemContext;
+			return context.SessionContext.TransactionContext.DatabaseContext.SystemContext;
 		}
 
 		#endregion

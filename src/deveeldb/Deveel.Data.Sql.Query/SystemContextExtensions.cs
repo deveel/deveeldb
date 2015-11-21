@@ -6,13 +6,6 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Query {
 	public static class SystemContextExtensions {
-		public static void UseDefaultQueryPlanner(this ISystemContext context) {
-			context.UnregisterService<IQueryPlanner>();
-			context.RegisterService<QueryPlanner>();
-			
-			QueryPlanSerializers.RegisterSerializers(context);			
-		}
-
 		public static void SerializeQueryPlan(this ISystemContext context, IQueryPlanNode planNode, Stream stream) {
 			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
 				context.SerializeQueryPlan(planNode, writer);

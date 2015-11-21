@@ -927,7 +927,7 @@ namespace Deveel.Data {
 
 		class SessionInfoTable : GeneratedTable {
 			public SessionInfoTable(IUserSession session) 
-				: base(session.Database.DatabaseContext) {
+				: base(session.SessionContext) {
 			}
 
 			public override TableInfo TableInfo {

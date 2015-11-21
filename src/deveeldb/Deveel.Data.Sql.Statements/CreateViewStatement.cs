@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 			var viewName = context.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
-			var queryPlan = context.DatabaseContext().QueryPlanner().PlanQuery(context, QueryExpression, null, null);
+			var queryPlan = context.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
 
 			var colList = ColumnNames == null ? new string[0] : ColumnNames.ToArray();
 

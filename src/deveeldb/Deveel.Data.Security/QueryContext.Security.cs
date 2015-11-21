@@ -11,17 +11,11 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Security {
 	public static class QueryContext {
 		private static IUserManager UserManager(this IQueryContext context) {
-			if (context is QueryContextBase)
-				return ((QueryContextBase)context).UserManager;
-
-			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IUserManager>();
+			return context.ResolveService<IUserManager>();
 		}
 
 		private static IPrivilegeManager PrivilegeManager(this IQueryContext context) {
-			if (context is QueryContextBase)
-				return ((QueryContextBase)context).PrivilegeManager;
-
-			return context.Session().Database.DatabaseContext.SystemContext.ResolveService<IPrivilegeManager>();
+			return context.ResolveService<IPrivilegeManager>();
 		}
 
 		#region Group Management

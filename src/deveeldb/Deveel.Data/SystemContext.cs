@@ -20,8 +20,10 @@ using System.Collections.Generic;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
+using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
@@ -134,6 +136,9 @@ namespace Deveel.Data {
 			this.RegisterService<IObjectManager, SequenceManager>(DbObjectType.Sequence);
 			this.RegisterService<IObjectManager, PersistentVariableManager>(DbObjectType.Variable);
 			this.RegisterService<IObjectManager, RoutineManager>(DbObjectType.Routine);
+
+			this.RegisterService<IUserManager, UserManager>();
+			this.RegisterService<IPrivilegeManager, PrivilegeManager>();
 
 			this.RegisterService<IStoreSystem, InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
 			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);

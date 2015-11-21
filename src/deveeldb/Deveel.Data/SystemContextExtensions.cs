@@ -81,14 +81,6 @@ namespace Deveel.Data {
 			context.UseSqlCompiler<SqlDefaultCompiler>();
 		}
 
-		public static IQueryPlanner QueryPlanner(this ISystemContext context) {
-			return context.ResolveService<IQueryPlanner>();
-		}
-
-		public static void UseDefaultQueryPlanner(this ISystemContext context) {
-			context.RegisterService<QueryPlanner>();
-		}
-
 		public static ITableCellCache TableCellCache(this ISystemContext context) {
 			return context.ResolveService<ITableCellCache>();
 		}

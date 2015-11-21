@@ -55,17 +55,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		public IQueryContext QueryContext { get; private set; }
 
-		/// <summary>
-		/// Gets the context of the system the evaluation happens.
-		/// </summary>
-		/// <seealso cref="ISystemContext"/>
-		public ISystemContext SystemContext {
-			get { return DatabaseContext.SystemContext; }
-		}
-
-		public IDatabaseContext DatabaseContext {
-			get { return QueryContext.DatabaseContext(); }
-		}
 
 		/// <summary>
 		/// Gets the current user of the context.

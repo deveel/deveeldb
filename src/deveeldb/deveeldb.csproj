@@ -153,6 +153,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\LimitNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />

@@ -48,11 +48,11 @@ namespace Deveel.Data.Sql.Tables {
 		private static int uniqueKeySeq = 0;
 
 		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: this(queryContext.Session().Database.SingleRowTable, functionList, columnNames, queryContext) {
+			: this(queryContext.Session().Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
 		}
 
 		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: base(queryContext.DatabaseContext()) {
+			: base(queryContext) {
 			// Make sure we are synchronized over the class.
 			lock (typeof(FunctionTable)) {
 				uniqueId = uniqueKeySeq;
@@ -151,7 +151,7 @@ namespace Deveel.Data.Sql.Tables {
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
 				DataObject cell;
-				if (cache.TryGetValue(context.Session().Database.Name(), uniqueId, (int)rowNumber, columnOffset, out cell))
+				if (cache.TryGetValue(context.Session().Transaction.Database.Name(), uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var value = ((SqlConstantExpression) exp).Value;
 			if (cache != null)
-				cache.Set(context.Session().Database.Name(), uniqueId, row, column, value);
+				cache.Set(context.Session().Transaction.Database.Name(), uniqueId, row, column, value);
 
 			return value;
 		}
