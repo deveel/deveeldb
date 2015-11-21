@@ -8,7 +8,7 @@ namespace Deveel.Data.Spatial {
 	public static class SystemContextExtensions {
 		public static void UserSpatial(this ISystemContext context) {
 			context.RegisterService<SpatialTypeResolver>();
-			context.RegisterService<IRoutineResolver>(SpatialSystemFunctions.Resolver);
+			context.RegisterInstance<IRoutineResolver>(SpatialSystemFunctions.Resolver);
 		}
 	}
 }
