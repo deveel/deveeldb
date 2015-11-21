@@ -22,11 +22,9 @@ using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Services;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Variables;
-using Deveel.Data.Types;
 
 namespace Deveel.Data {
 	abstract class QueryContextBase : Context, IQueryContext, IVariableScope {
@@ -67,6 +65,10 @@ namespace Deveel.Data {
 	    }
 
 		public VariableManager VariableManager { get; private set; }
+
+		IVariableManager IVariableScope.VariableManager {
+			get { return VariableManager; }
+		}
 
 		public CursorManager CursorManager { get; private set; }
 
@@ -122,55 +124,5 @@ namespace Deveel.Data {
 
 			base.Dispose(true);
 		}
-
-		DataObject IVariableResolver.Resolve(ObjectName variable) {
-			AssertNotDisposed();
-
-			throw new NotImplementedException();
-		}
-
-		SqlType IVariableResolver.ReturnType(ObjectName variableName) {
-			AssertNotDisposed();
-
-			throw new NotImplementedException();
-		}
-
-		void IVariableScope.OnVariableDefined(Variable variable) {
-			OnVariableDefined(variable);
-		}
-
-		void IVariableScope.OnVariableDropped(Variable variable) {
-			OnVariableDropped(variable);
-		}
-
-		Variable IVariableScope.OnVariableGet(string name) {
-			return OnVariableGet(name);
-		}
-
-		protected virtual Variable OnVariableGet(string name) {
-			return null;
-		}
-
-		protected virtual void OnVariableDropped(Variable variable) {
-		}
-
-		protected virtual void OnVariableDefined(Variable variable) {
-		}
-
-		//object IResolveScope.OnBeforeResolve(Type serviceType, string name) {
-		//	throw new NotImplementedException();
-		//}
-
-		//void IResolveScope.OnAfterResolve(Type serviceType, string name, object obj) {
-		//	throw new NotImplementedException();
-		//}
-
-		//IEnumerable IResolveScope.OnBeforeResolveAll(Type serviceType) {
-		//	throw new NotImplementedException();
-		//}
-
-		//void IResolveScope.OnAfterResolveAll(Type serviceType, IEnumerable list) {
-		//	throw new NotImplementedException();
-		//}
 	}
 }

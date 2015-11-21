@@ -655,12 +655,15 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\UserSessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
     <Compile Include="Deveel.Data.Sql.Views\View.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewInfo.cs" />
@@ -793,6 +796,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionCollection.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionConstraintExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionContext.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionContextExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionErrorCodes.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionExtensions.cs" />

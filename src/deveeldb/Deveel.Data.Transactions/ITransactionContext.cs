@@ -16,9 +16,10 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
-	public interface ITransactionContext : IContext {
+	public interface ITransactionContext : IContext, IVariableScope {
         IDatabaseContext DatabaseContext { get; }
 
 	    ISessionContext CreateSessionContext();

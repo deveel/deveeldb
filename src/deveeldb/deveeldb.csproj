@@ -176,6 +176,9 @@
     <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.Commands.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
@@ -240,6 +243,7 @@
     <Compile Include="Deveel.Data.Store\LocalFileSystem.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\QueryContext.Types.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
     <Compile Include="Deveel.Data.Util\BigArray_T.cs" />

@@ -30,6 +30,9 @@ namespace Deveel.Data {
 		}
 
 		public SystemUserSession(ITransaction transaction, string currentSchema) {
+			if (String.IsNullOrEmpty(currentSchema))
+				throw new ArgumentNullException("currentSchema");
+
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
 		    SessionContext = transaction.TransactionContext.CreateSessionContext();
@@ -39,10 +42,6 @@ namespace Deveel.Data {
 		public void Dispose() {
 			Transaction = null;
 		}
-
-	    public IDatabase Database {
-	        get { return Transaction.Database; }
-	    }
 
 		public string CurrentSchema { get; private set; }
 

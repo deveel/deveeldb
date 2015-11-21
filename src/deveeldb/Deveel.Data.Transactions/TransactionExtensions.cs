@@ -55,10 +55,6 @@ namespace Deveel.Data.Transactions {
 			return (TableManager) transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Table);
 		}
 
-		public static ViewManager GetViewManager(this ITransaction transaction) {
-			return (ViewManager) transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.View);
-		}
-
 		public static TriggerManager GetTriggerManager(this ITransaction transaction) {
 			return transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Trigger) as TriggerManager;
 		}
@@ -400,6 +396,58 @@ namespace Deveel.Data.Transactions {
 
 		#endregion
 
+		#region Variables
+
+		public static string CurrentSchema(this ITransaction transaction) {
+			return transaction.TransactionContext.CurrentSchema();
+		}
+
+		public static void CurrentSchema(this ITransaction transaction, string value) {
+			transaction.TransactionContext.CurrentSchema(value);
+		}
+
+		public static bool IgnoreIdentifiersCase(this ITransaction transaction) {
+			return transaction.TransactionContext.IgnoreIdentifiersCase();
+		}
+
+		public static void IgnoreIdentifiersCase(this ITransaction transaction, bool value) {
+			transaction.TransactionContext.IgnoreIdentifiersCase(value);
+		}
+
+		public static bool AutoCommit(this ITransaction transaction) {
+			return transaction.TransactionContext.AutoCommit();
+		}
+
+		public static void AutoCommit(this ITransaction transaction, bool value) {
+			transaction.TransactionContext.AutoCommit(value);
+		}
+
+		public static QueryParameterStyle ParameterStyle(this ITransaction transaction) {
+			return transaction.TransactionContext.ParameterStyle();
+		}
+
+		public static void ParameterStyle(this ITransaction transaction, QueryParameterStyle value) {
+			transaction.TransactionContext.ParameterStyle(value);
+		}
+
+		public static bool ReadOnly(this ITransaction transaction) {
+			return transaction.TransactionContext.ReadOnly();
+		}
+
+		public static void ReadOnly(this ITransaction transaction, bool value) {
+			transaction.TransactionContext.ReadOnly(value);
+		}
+
+		public static bool ErrorOnDirtySelect(this ITransaction transaction) {
+			return transaction.TransactionContext.ErrorOnDirtySelect();
+		}
+
+		public static void ErrorOnDirtySelect(this ITransaction transaction, bool value) {
+			transaction.TransactionContext.ErrorOnDirtySelect(value);
+		}
+
+		#endregion
+
 		#region Sequences
 
 		public static void CreateSequence(this ITransaction transaction, SequenceInfo sequenceInfo) {
@@ -416,112 +464,6 @@ namespace Deveel.Data.Transactions {
 
 		public static bool DropSequence(this ITransaction transaction, ObjectName sequenceName) {
 			return transaction.DropObject(DbObjectType.Sequence, sequenceName);
-		}
-
-		#endregion
-
-		#region Variables
-
-		public static Variable GetVariable(this ITransaction transaction, string name) {
-			return transaction.GetObject(DbObjectType.Variable, new ObjectName(name)) as Variable;
-		}
-
-		public static void SetVariable(this ITransaction transaction, string name, DataObject value) {
-			var variable = transaction.GetVariable(name);
-			if (variable == null)
-				variable = transaction.DefineVariable(name, value.Type);
-
-			variable.SetValue(value);
-		}
-
-		public static void SetBooleanVariable(this ITransaction transaction, string name, bool value) {
-			transaction.SetVariable(name, DataObject.Boolean(value));
-		}
-
-		public static void SetStringVariable(this ITransaction transaction, string name, string value) {
-			transaction.SetVariable(name, DataObject.String(value));
-		}
-
-		public static Variable DefineVariable(this ITransaction transaction, string name, SqlType type) {
-			var variableInfo = new VariableInfo(name, type, false);
-			transaction.CreateObject(variableInfo);
-			return transaction.GetVariable(name);
-		}
-
-		public static bool GetBooleanVariable(this ITransaction transaction, string name) {
-			var variable = transaction.GetVariable(name);
-			if (variable == null)
-				return false;
-
-			return variable.Value.AsBoolean();
-		}
-
-		public static string GetStringVariable(this ITransaction transaction, string name) {
-			var variable = transaction.GetVariable(name);
-			if (variable == null)
-				return null;
-
-			return variable.Value;
-		}
-
-		public static bool IgnoreIdentifiersCase(this ITransaction transaction) {
-			return transaction.GetBooleanVariable(TransactionSettingKeys.IgnoreIdentifiersCase);
-		}
-
-		public static void IgnoreIdentifiersCase(this ITransaction transaction, bool value) {
-			transaction.SetBooleanVariable(TransactionSettingKeys.IgnoreIdentifiersCase, value);
-		}
-
-		public static bool ReadOnly(this ITransaction transaction) {
-			return transaction.GetBooleanVariable(TransactionSettingKeys.ReadOnly);
-		}
-
-		public static void ReadOnly(this ITransaction transaction, bool value) {
-			transaction.SetBooleanVariable(TransactionSettingKeys.ReadOnly, value);
-		}
-
-		public static bool AutoCommit(this ITransaction transaction) {
-			return transaction.GetBooleanVariable(TransactionSettingKeys.AutoCommit);
-		}
-
-		public static void AutoCommit(this ITransaction transaction, bool value) {
-			transaction.SetBooleanVariable(TransactionSettingKeys.AutoCommit, value);
-		}
-
-		public static void CurrentSchema(this ITransaction transaction, string schemaName) {
-			transaction.SetStringVariable(TransactionSettingKeys.CurrentSchema, schemaName);
-		}
-
-		public static string CurrentSchema(this ITransaction transaction) {
-			return transaction.GetStringVariable(TransactionSettingKeys.CurrentSchema);
-		}
-
-		public static bool ErrorOnDirtySelect(this ITransaction transaction) {
-			return transaction.GetBooleanVariable(TransactionSettingKeys.ErrorOnDirtySelect);
-		}
-
-		public static QueryParameterStyle ParameterStyle(this ITransaction transaction) {
-			var styleString = transaction.GetStringVariable(TransactionSettingKeys.ParameterStyle);
-			if (String.IsNullOrEmpty(styleString))
-				return QueryParameterStyle.Default;
-
-			return (QueryParameterStyle) Enum.Parse(typeof (QueryParameterStyle), styleString, true);
-		}
-
-		public static void ParameterStyle(this ITransaction transaction, QueryParameterStyle value) {
-			if (value == QueryParameterStyle.Default)
-				return;
-
-			var styleString = value.ToString();
-			transaction.SetStringVariable(TransactionSettingKeys.ParameterStyle, styleString);
-		}
-
-		public static void ParameterStyle(this ITransaction transaction, string value) {
-			if (String.IsNullOrEmpty(value))
-				throw new ArgumentNullException("value");
-
-			var style = (QueryParameterStyle) Enum.Parse(typeof (QueryParameterStyle), value, true);
-			transaction.ParameterStyle(style);
 		}
 
 		#endregion

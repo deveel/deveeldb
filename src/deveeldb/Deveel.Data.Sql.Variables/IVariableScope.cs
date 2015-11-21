@@ -17,11 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Variables {
-	public interface IVariableScope : IVariableResolver {
-		void OnVariableDefined(Variable variable);
-
-		void OnVariableDropped(Variable variable);
-
-		Variable OnVariableGet(string name);
+	public interface IVariableScope {
+		IVariableManager VariableManager { get; }
 	}
 }

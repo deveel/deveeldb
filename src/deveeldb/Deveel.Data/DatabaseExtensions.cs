@@ -66,12 +66,12 @@ namespace Deveel.Data {
 
 		static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
 			var transaction = database.CreateTransaction(isolation);
-			return new SystemUserSession(transaction);
+			return new SystemUserSession(transaction, SystemSchema.Name);
 		}
 
 		internal static IUserSession CreateInitialSystemSession(this IDatabase database) {
 			var transaction = database.CreateSafeTransaction(IsolationLevel.Serializable);
-			return new SystemUserSession(transaction);
+			return new SystemUserSession(transaction, SystemSchema.Name);
 		}
 
 		internal static IUserSession CreateSystemSession(this IDatabase database) {

@@ -533,15 +533,7 @@ namespace Deveel.Data.Transactions {
 		//#endregion
 
 		#region Variables
-
-		DataObject IVariableResolver.Resolve(ObjectName variable) {
-			throw new NotImplementedException();
-		}
-
-		SqlType IVariableResolver.ReturnType(ObjectName variable) {
-			throw new NotImplementedException();
-		}
-
+		/*
 		void IVariableScope.OnVariableDefined(Variable variable) {
 			if (variable.Name.Equals(TransactionSettingKeys.CurrentSchema, StringComparison.OrdinalIgnoreCase)) {
 				currentSchema = variable.Value;
@@ -615,7 +607,7 @@ namespace Deveel.Data.Transactions {
 				parameterStyle = null;
 			}
 		}
-
+		
 		private Variable MakeStringVariable(string name, string value) {
 			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.String(), false));
 			variable.SetValue(DataObject.String(value));
@@ -642,6 +634,7 @@ namespace Deveel.Data.Transactions {
 
 			return null;
 		}
+		*/
 
 		#endregion
 

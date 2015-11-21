@@ -17,10 +17,10 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Services;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Variables {
-	public class VariableManager /*: IResolveCallback*/ {
+	public sealed class VariableManager : IVariableManager {
 		private Dictionary<string, Variable> variables;
  
 		public VariableManager(IVariableScope scope) {
@@ -36,13 +36,10 @@ namespace Deveel.Data.Sql.Variables {
 			GC.SuppressFinalize(this);
 		}
 
-		//void IResolveCallback.OnResolved(IResolveScope scope) {
-		//	Scope = scope as IVariableScope;
-		//}
-
-		protected virtual void Dispose(bool disposing) {
+		private void Dispose(bool disposing) {
 			if (disposing) {
-				variables.Clear();
+				if (variables != null)
+					variables.Clear();
 			}
 
 			variables = null;
@@ -56,30 +53,15 @@ namespace Deveel.Data.Sql.Variables {
 				throw new ArgumentException();
 
 			var variable = new Variable(variableInfo);
-			OnDefineVariable(variable);
-			Scope.OnVariableDefined(variable);
-
+			variables[variableInfo.VariableName] = variable;
 			return variable;
 		}
 
-		protected virtual void OnDefineVariable(Variable variable) {
-			variables[variable.Name] = variable;
-		}
-
-		public virtual bool VariableExists(string name) {
+		public bool VariableExists(string name) {
 			return variables.ContainsKey(name);
 		}
 
 		public Variable GetVariable(string name) {
-			Variable variable = Scope.OnVariableGet(name);
-			if (variable == null) {
-				variable = OnGetVariable(name);
-			}
-
-			return variable;
-		}
-
-		protected virtual Variable OnGetVariable(string name) {
 			Variable variable;
 			if (!variables.TryGetValue(name, out variable))
 				return null;
@@ -87,25 +69,24 @@ namespace Deveel.Data.Sql.Variables {
 			return variable;
 		}
 
-		protected virtual bool OnDropVariable(string name, out Variable variable) {
-			if (!variables.TryGetValue(name, out variable))
-				return false;
-
+		public bool DropVariable(string name) {
 			return variables.Remove(name);
 		}
 
-		public bool DropVariable(string name) {
+		DataObject IVariableResolver.Resolve(ObjectName variableName) {
 			Variable variable;
-			if (!OnDropVariable(name, out variable))
-				return false;
+			if (!variables.TryGetValue(variableName.Name, out variable))
+				return null;
 
-			try {
-				Scope.OnVariableDropped(variable);
-			} catch (Exception) {
-				
-			}
+			return variable.Value;
+		}
 
-			return true;
+		SqlType IVariableResolver.ReturnType(ObjectName variableName) {
+			Variable variable;
+			if (!variables.TryGetValue(variableName.Name, out variable))
+				return null;
+
+			return variable.Type;
 		}
 	}
 }

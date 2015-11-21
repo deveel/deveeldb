@@ -17,20 +17,15 @@
 using System;
 
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Variables {
-	public sealed class PersistentVariableManager : VariableManager, IObjectManager {
-		public PersistentVariableManager(ITransaction transaction)
-			: base(transaction) {
+	public sealed class PersistentVariableManager : IVariableManager, IObjectManager {
+		public PersistentVariableManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
 
 		public ITransaction Transaction { get; private set; }
-
-		protected override void Dispose(bool disposing) {
-			Transaction = null;
-			base.Dispose(disposing);
-		}
 
 
 		DbObjectType IObjectManager.ObjectType {
@@ -49,10 +44,6 @@ namespace Deveel.Data.Sql.Variables {
 			DefineVariable(variableInfo);
 		}
 
-		protected override void OnDefineVariable(Variable variable) {
-			throw new NotImplementedException();
-		}
-
 		bool IObjectManager.RealObjectExists(ObjectName objName) {
 			return (this as IObjectManager).ObjectExists(objName);
 		}
@@ -67,8 +58,20 @@ namespace Deveel.Data.Sql.Variables {
 			return VariableExists(objName.Name);
 		}
 
-		public override bool VariableExists(string name) {
+		public Variable DefineVariable(VariableInfo variableInfo) {
+			throw new NotImplementedException();
+		}
+
+		public bool VariableExists(string name) {
 			return VariableExists(name, Transaction.IgnoreIdentifiersCase());
+		}
+
+		public bool DropVariable(string variableName) {
+			throw new NotImplementedException();
+		}
+
+		public Variable GetVariable(string variableName) {
+			throw new NotImplementedException();
 		}
 
 		IDbObject IObjectManager.GetObject(ObjectName objName) {
@@ -79,11 +82,6 @@ namespace Deveel.Data.Sql.Variables {
 				throw new ArgumentException();
 
 			return GetVariable(objName.Name);
-		}
-
-		protected override Variable OnGetVariable(string name) {
-			// TODO:
-			return null;
 		}
 
 		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
@@ -100,10 +98,6 @@ namespace Deveel.Data.Sql.Variables {
 			return DropVariable(objName.Name);
 		}
 
-		protected override bool OnDropVariable(string name, out Variable variable) {
-			throw new NotImplementedException();
-		}
-
 		ObjectName IObjectManager.ResolveName(ObjectName objName, bool ignoreCase) {
 			if (objName.Parent != null)
 				return null;
@@ -116,6 +110,24 @@ namespace Deveel.Data.Sql.Variables {
 
 		private bool VariableExists(string name, bool ignoreCase) {
 			throw new NotImplementedException();
+		}
+
+		DataObject IVariableResolver.Resolve(ObjectName variable) {
+			if (!VariableExists(variable.Name))
+				return null;
+
+			throw new NotImplementedException();
+		}
+
+		SqlType IVariableResolver.ReturnType(ObjectName variable) {
+			if (!VariableExists(variable.Name))
+				return null;
+
+			throw new NotImplementedException();
+		}
+
+		public void Dispose() {
+			Transaction = null;
 		}
 	}
 }
