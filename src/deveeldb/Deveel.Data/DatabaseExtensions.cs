@@ -108,7 +108,7 @@ namespace Deveel.Data {
 
 		public static IQueryContext CreateQueryContext(this IDatabase database, string userName, string password) {
 			var session = database.CreateUserSession(userName, password);
-			return new SessionQueryContext(session);
+			return new QueryContext(session);
 		}
 
 		#endregion
@@ -139,7 +139,7 @@ namespace Deveel.Data {
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
 
-				using (var queryContext = new SessionQueryContext(session)) {
+				using (var queryContext = new QueryContext(session)) {
 					return queryContext.Authenticate(username, password);
 				}
 			}

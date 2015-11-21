@@ -9,7 +9,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {
-	public static partial class QueryContext {
+	public static partial class QueryContextExtensions {
 		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query) {
 			return DeleteFrom(context, tableName, query, -1);
 		}

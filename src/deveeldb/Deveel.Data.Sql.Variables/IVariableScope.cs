@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data.Sql.Variables {
-	public interface IVariableScope {
+	public interface IVariableScope : IContext {
 		IVariableManager VariableManager { get; }
 	}
 }

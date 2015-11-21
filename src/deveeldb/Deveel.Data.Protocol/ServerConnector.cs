@@ -240,14 +240,14 @@ namespace Deveel.Data.Protocol {
 				throw new InvalidOperationException();
 
 			var session = new UserSession(transaction, User);
-			return new SessionQueryContext(session);
+			return new QueryContext(session);
 		}
 
 		private IQueryContext CreateQueryContext() {
 			// TODO: make the isolation level configurable...
 			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
 			var session = new UserSession(transaction, User);
-			var context = new SessionQueryContext(session);
+			var context = new QueryContext(session);
 			context.AutoCommit(true);
 
 			return context;

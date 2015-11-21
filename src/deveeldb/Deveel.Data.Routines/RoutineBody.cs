@@ -41,6 +41,7 @@ namespace Deveel.Data.Routines {
 			get { return declarations.AsEnumerable(); }
 		}
 
+		/*
 		protected override BlockExecuteContext CreateExecuteContext() {
 			var statements = new List<SqlStatement>();
 			statements.AddRange(declarations);
@@ -52,6 +53,7 @@ namespace Deveel.Data.Routines {
 
 			return context;
 		}
+		*/
 
 		public void AddDeclaration(SqlStatement statement) {
 			if (statement == null)

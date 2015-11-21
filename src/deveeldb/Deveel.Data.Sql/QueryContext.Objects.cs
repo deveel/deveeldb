@@ -6,17 +6,13 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql {
-	public static class QueryContext {
+	public static class QueryContextExtensions {
 		public static bool ObjectExists(this IQueryContext context, ObjectName objectName) {
 			// Special types for these database objects that can be 
 			// declared in a limited context
 			if (context.CursorExists(objectName.Name))
 				return true;
 			if (context.VariableExists(objectName.Name))
-				return true;
-
-			if (context.ParentContext != null &&
-				context.ParentContext.ObjectExists(objectName))
 				return true;
 
 			// We haven't found it neither in this context nor in the parent: 
@@ -33,10 +29,6 @@ namespace Deveel.Data.Sql {
 
 			if (objectType == DbObjectType.Variable &&
 				context.VariableExists(objectName.Name))
-				return true;
-
-			if (context.ParentContext != null &&
-				context.ParentContext.ObjectExists(objectType, objectName))
 				return true;
 
 			// We haven't found it neither in this context nor in the parent: 
@@ -59,12 +51,6 @@ namespace Deveel.Data.Sql {
 					return obj;
 			} else if (objType == DbObjectType.Variable) {
 				var obj = context.FindVariable(objName.Name);
-				if (obj != null)
-					return obj;
-			}
-
-			if (context.ParentContext != null) {
-				var obj = context.ParentContext.GetObject(objType, objName, accessType);
 				if (obj != null)
 					return obj;
 			}
@@ -94,10 +80,6 @@ namespace Deveel.Data.Sql {
 				return true;
 			}
 
-			if (context.ParentContext != null &&
-				context.ParentContext.DropObject(objectType, objectName))
-				return true;
-
 			if (!context.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(context.UserName(), objectName, Privileges.Drop);
 
@@ -120,11 +102,6 @@ namespace Deveel.Data.Sql {
 				context.CursorExists(name))
 				return new ObjectName(name);
 
-			ObjectName resolved;
-			if (context.ParentContext != null &&
-				(resolved = context.ParentContext.ResolveObjectName(name)) != null)
-				return resolved;
-
 			return context.Session().ResolveObjectName(name);
 		}
 
@@ -135,11 +112,6 @@ namespace Deveel.Data.Sql {
 			if (objectType == DbObjectType.Cursor &&
 				context.CursorExists(objectName.Name))
 				return new ObjectName(objectName.Name);
-
-			ObjectName resolved;
-			if (context.ParentContext != null &&
-				(resolved = context.ParentContext.ResolveObjectName(objectType, objectName)) != null)
-				return resolved;
 
 			return context.Session().ResolveObjectName(objectType, objectName);
 		}

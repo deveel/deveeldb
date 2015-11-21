@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections;
 #if !PCL
 using System.Security.Cryptography;
 #endif
@@ -23,62 +22,55 @@ using System.Security.Cryptography;
 using Deveel.Data.Caching;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Cursors;
-using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : Context, IQueryContext {
+	public sealed class QueryContext : Context, IQueryContext {
+		/*
 #if PCL
 		private Random secureRandom;
 #else
 		private RNGCryptoServiceProvider secureRandom;
 #endif
-		private bool disposed;
+		*/
 
-		protected QueryContextBase(IUserSession session)
+		internal QueryContext(IUserSession session)
 			: base(session.SessionContext) {
 			if (session == null)
 				throw new ArgumentNullException("session");
 
 			this.RegisterInstance<IQueryContext>(this);
+			/*
 #if PCL
 			secureRandom = new Random();
 #else
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
+			*/
 			Session = session;
 
 			this.RegisterInstance<ICache>(new MemoryCache(), "TableCache");
 		}
 
-		IQueryContext IQueryContext.ParentContext {
-			get { return ParentQueryContext; }
-		}
-		public virtual IQueryContext ParentQueryContext {
-			get { return null; }
+		public ISessionContext SessionContext {
+			get { return Session.SessionContext; }
 		}
 
-	    public ISessionContext SessionContext {
-	        get { return Session.SessionContext; }
-	    }
 
+		public IUserSession Session { get; private set; }
 
-		public CursorManager CursorManager { get; private set; }
-
-		public IUserSession Session {get; private set; }
-
-		public virtual string CurrentSchema {
+		public string CurrentSchema {
 			get { return Session.CurrentSchema; }
 		}
 
 		protected override string ContextName {
-			get { return ContextNames.Query;  }
+			get { return ContextNames.Query; }
 		}
 
-		private void AssertNotDisposed() {
-			if (disposed)
-				throw new ObjectDisposedException("QueryContext", "The query context was disposed.");
+		public IBlockContext CreateBlockContext() {
+			return new BlockContext(this);
 		}
 
+		/*
 		public virtual SqlNumber NextRandom(int bitSize) {
 			AssertNotDisposed();
 
@@ -91,20 +83,11 @@ namespace Deveel.Data {
 #endif
 			return new SqlNumber(num);
 		}
+		*/
 
 		protected override void Dispose(bool disposing) {
-			if (!disposed) {
-				if (disposing) {
-					if (CursorManager != null)
-						CursorManager.Dispose();
-				}
-
-				CursorManager = null;
-				secureRandom = null;
-				Session = null;
-
-				disposed = true;
-			}
+			// secureRandom = null;
+			Session = null;
 
 			base.Dispose(true);
 		}

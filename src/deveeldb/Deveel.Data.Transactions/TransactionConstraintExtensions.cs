@@ -29,11 +29,13 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
 	public static class TransactionConstraintExtensions {
-		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns, string constraintName) {
+		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns,
+			string constraintName) {
 			AddPrimaryKey(transaction, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
-		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		public static void AddPrimaryKey(this ITransaction transaction, ObjectName tableName, string[] columns,
+			ConstraintDeferrability deferred, string constraintName) {
 			var t = transaction.GetMutableTable(SystemSchema.PrimaryKeyInfoTableName);
 			var tcols = transaction.GetMutableTable(SystemSchema.PrimaryKeyColumnsTableName);
 
@@ -46,15 +48,15 @@ namespace Deveel.Data.Transactions {
 				row.SetValue(1, constraintName);
 				row.SetValue(2, tableName.Parent.Name);
 				row.SetValue(3, tableName.Name);
-				row.SetValue(4, (short)deferred);
+				row.SetValue(4, (short) deferred);
 				t.AddRow(row);
 
 				// Insert the columns
 				for (int i = 0; i < columns.Length; ++i) {
 					row = tcols.NewRow();
-					row.SetValue(0, uniqueId);            // unique id
-					row.SetValue(1, columns[i]);              // column name
-					row.SetValue(2, i);         // Sequence number
+					row.SetValue(0, uniqueId); // unique id
+					row.SetValue(1, columns[i]); // column name
+					row.SetValue(2, i); // Sequence number
 					tcols.AddRow(row);
 				}
 
@@ -80,7 +82,8 @@ namespace Deveel.Data.Transactions {
 
 		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns, String constraintName) {
-			AddForeignKey(transaction, table, columns, refTable, refColumns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+			AddForeignKey(transaction, table, columns, refTable, refColumns, ConstraintDeferrability.InitiallyImmediate,
+				constraintName);
 		}
 
 		public static void AddForeignKey(this ITransaction transaction, ObjectName table, string[] columns,
@@ -108,7 +111,7 @@ namespace Deveel.Data.Transactions {
 
 				if (columns.Length != refColumns.Length) {
 					throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' does not have an equal number of " +
-					                             "column terms.", table, refTable));
+					                                  "column terms.", table, refTable));
 				}
 
 				// If delete or update rule is 'SET NULL' then check the foreign key
@@ -120,8 +123,8 @@ namespace Deveel.Data.Transactions {
 						var columnInfo = tableInfo[tableInfo.IndexOfColumn(columns[i])];
 						if (columnInfo.IsNotNull) {
 							throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' update or delete triggered " +
-							                             "action is SET NULL for columns that are constrained as " +
-							                             "NOT NULL.", table, refTable));
+							                                  "action is SET NULL for columns that are constrained as " +
+							                                  "NOT NULL.", table, refTable));
 						}
 					}
 				}
@@ -164,11 +167,13 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns, string constraintName) {
+		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns,
+			string constraintName) {
 			AddUniqueKey(transaction, tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
-		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		public static void AddUniqueKey(this ITransaction transaction, ObjectName tableName, string[] columns,
+			ConstraintDeferrability deferred, string constraintName) {
 			var t = transaction.GetMutableTable(SystemSchema.UniqueKeyInfoTableName);
 			var tcols = transaction.GetMutableTable(SystemSchema.UniqueKeyColumnsTableName);
 
@@ -181,15 +186,15 @@ namespace Deveel.Data.Transactions {
 				row.SetValue(1, constraintName);
 				row.SetValue(2, tableName.Parent.Name);
 				row.SetValue(3, tableName.Name);
-				row.SetValue(4, (short)deferred);
+				row.SetValue(4, (short) deferred);
 				t.AddRow(row);
 
 				// Insert the columns
 				for (int i = 0; i < columns.Length; ++i) {
 					row = tcols.NewRow();
-					row.SetValue(0, uniqueId);            // unique id
-					row.SetValue(1, columns[i]);              // column name
-					row.SetValue(2, i);         // sequence number
+					row.SetValue(0, uniqueId); // unique id
+					row.SetValue(1, columns[i]); // column name
+					row.SetValue(2, i); // sequence number
 					tcols.AddRow(row);
 				}
 
@@ -197,6 +202,7 @@ namespace Deveel.Data.Transactions {
 				// Constraint violation when inserting the data.  Check the type and
 				// wrap around an appropriate error message.
 				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation)
+
 					// This means we gave a constraint name that's already being used
 					// for a primary key.
 					throw new Exception(String.Format("Unique constraint name '{0}' is already being used.", constraintName));
@@ -231,7 +237,7 @@ namespace Deveel.Data.Transactions {
 				rd.SetValue(2, tableName.ParentName);
 				rd.SetValue(3, tableName.Name);
 				rd.SetValue(4, expression.ToString());
-				rd.SetValue(5, (short)deferrability);
+				rd.SetValue(5, (short) deferrability);
 				if (colCount > 6) {
 					rd.SetValue(6, DataObject.Binary(new SqlBinary(binExp)));
 				}
@@ -263,7 +269,7 @@ namespace Deveel.Data.Transactions {
 				// for each i of the input list
 				for (int i = 0; i < size; ++i) {
 					int rowIndex = colList[i];
-					int seqNo = ((SqlNumber)table.GetValue(rowIndex,2).Value).ToInt32();
+					int seqNo = ((SqlNumber) table.GetValue(rowIndex, 2).Value).ToInt32();
 					if (seqNo == n) {
 						list[n] = table.GetValue(rowIndex, 1).Value.ToString();
 						break;
@@ -341,26 +347,30 @@ namespace Deveel.Data.Transactions {
 					return false;
 				if (sz == 0)
 					throw new InvalidOperationException("Assertion failed: We must be able to find the " +
-					                               "row we are testing uniqueness against!");
+					                                    "row we are testing uniqueness against!");
 			}
 
 			return true;
 		}
 
-		private static int RowCountOfReferenceTable(this ITransaction transaction, int rowIndex, ObjectName table1, string[] cols1, ObjectName table2, String[] cols2,
-							  bool checkSourceTableKey) {
+		private static int RowCountOfReferenceTable(this ITransaction transaction, int rowIndex, ObjectName table1,
+			string[] cols1, ObjectName table2, String[] cols2,
+			bool checkSourceTableKey) {
 
 			// Get the tables
 			var t1 = transaction.GetTable(table1);
 			var t2 = transaction.GetTable(table2);
+
 			// The table defs
 			var dti1 = t1.TableInfo;
 			var dti2 = t2.TableInfo;
+
 			// Resolve the list of column names to column indexes
 			var col1Indexes = dti1.IndexOfColumns(cols1).ToArray();
 			var col2Indexes = dti2.IndexOfColumns(cols2).ToArray();
 
 			int keySize = col1Indexes.Length;
+
 			// Get the data from table1
 			var keyValue = new DataObject[keySize];
 			int nullCount = 0;
@@ -407,6 +417,7 @@ namespace Deveel.Data.Transactions {
 			for (int i = 0; i < len; ++i) {
 				// Get the column definition and the cell being inserted,
 				var columnInfo = tableInfo[i];
+
 				// For each row added to this column
 				for (int rn = 0; rn < rowIndices.Length; ++rn) {
 					var value = table.GetValue(rowIndices[rn], i);
@@ -424,14 +435,15 @@ namespace Deveel.Data.Transactions {
 					// Check: If column is an object, then deserialize and check the
 					//        object is an instance of the class constraint,
 					if (!value.IsNull &&
-						columnInfo.ColumnType.TypeCode == SqlTypeCode.Object) {
-						throw new NotImplementedException();	// TODO:
+					    columnInfo.ColumnType.TypeCode == SqlTypeCode.Object) {
+						throw new NotImplementedException(); // TODO:
 					}
 				}
 			}
 		}
 
-		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, ConstraintDeferrability deferred) {
+		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table,
+			ConstraintDeferrability deferred) {
 			// Get all the rows in the table
 			var rows = table.Select(x => x.RowId.RowNumber).ToArray();
 
@@ -439,135 +451,141 @@ namespace Deveel.Data.Transactions {
 			CheckAddConstraintViolations(transaction, table, rows, deferred);
 		}
 
-		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices, ConstraintDeferrability deferred) {
+		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices,
+			ConstraintDeferrability deferred) {
 			string curSchema = table.TableInfo.TableName.Parent.Name;
-			IQueryContext queryContext = new SystemQueryContext(transaction, curSchema);
+			using (var session = new SystemUserSession(transaction, curSchema)) {
+				using (var queryContext = new QueryContext(session)) {
 
-			// Quick exit case
-			if (rowIndices == null || rowIndices.Length == 0)
-				return;
+					// Quick exit case
+					if (rowIndices == null || rowIndices.Length == 0)
+						return;
 
-			var tableInfo = table.TableInfo;
-			var tableName = tableInfo.TableName;
+					var tableInfo = table.TableInfo;
+					var tableName = tableInfo.TableName;
 
-			// ---- Constraint checking ----
+					// ---- Constraint checking ----
 
-			// Check any primary key constraint.
-			var primaryKey = transaction.QueryTablePrimaryKey(tableName);
-			if (primaryKey != null &&
-				(deferred == ConstraintDeferrability.InitiallyDeferred ||
-				 primaryKey.Deferred == ConstraintDeferrability.InitiallyImmediate)) {
+					// Check any primary key constraint.
+					var primaryKey = transaction.QueryTablePrimaryKey(tableName);
+					if (primaryKey != null &&
+					    (deferred == ConstraintDeferrability.InitiallyDeferred ||
+					     primaryKey.Deferred == ConstraintDeferrability.InitiallyImmediate)) {
 
-				// For each row added to this column
-				foreach (int rowIndex in rowIndices) {
-					if (!IsUniqueColumns(table, rowIndex, primaryKey.ColumnNames, false)) {
-						throw new ConstraintViolationException(
-						  SqlModelErrorCodes.PrimaryKeyViolation,
-						  deferred.AsDebugString() + " primary Key constraint violation (" +
-						  primaryKey.ConstraintName + ") Columns = ( " +
-						  String.Join(", ", primaryKey.ColumnNames) +
-						  " ) Table = ( " + tableName + " )");
-					}
-				} // For each row being added
-			}
-
-			// Check any unique constraints.
-			var uniqueConstraints = transaction.QueryTableUniqueKeys(tableName);
-			foreach (var unique in uniqueConstraints) {
-				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					unique.Deferred == ConstraintDeferrability.InitiallyImmediate) {
-
-					// For each row added to this column
-					foreach (int rowIndex in rowIndices) {
-						if (!IsUniqueColumns(table, rowIndex, unique.ColumnNames, true)) {
-							throw new ConstraintViolationException(
-							  SqlModelErrorCodes.UniqueViolation,
-							  deferred.AsDebugString() + " unique constraint violation (" +
-							  unique.ConstraintName + ") Columns = ( " +
-							  String.Join(", ", unique.ColumnNames) + " ) Table = ( " +
-							  tableName + " )");
-						}
-					} // For each row being added
-				}
-			}
-
-			// Check any foreign key constraints.
-			// This ensures all foreign references in the table are referenced
-			// to valid records.
-			var foreignConstraints = transaction.QueryTableForeignKeys(tableName);
-
-			foreach (var reference in foreignConstraints) {
-				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
-					// For each row added to this column
-					foreach (int rowIndex in rowIndices) {
-						// Make sure the referenced record exists
-
-						// Return the count of records where the given row of
-						//   table_name(columns, ...) IN
-						//                    ref_table_name(ref_columns, ...)
-						int rowCount = RowCountOfReferenceTable(transaction,
-												   rowIndex,
-												   reference.TableName, reference.ColumnNames,
-												   reference.ForeignTable, reference.ForeignColumnNames,
-												   false);
-						if (rowCount == -1) {
-							// foreign key is NULL
-						}
-
-						if (rowCount == 0) {
-							throw new ConstraintViolationException(
-							  SqlModelErrorCodes.ForeignKeyViolation,
-							  deferred.AsDebugString() + " foreign key constraint violation (" +
-							  reference.ConstraintName + ") Columns = " +
-							  reference.TableName + "( " +
-							  String.Join(", ", reference.ColumnNames) + " ) -> " +
-							  reference.ForeignTable + "( " +
-							  String.Join(", ", reference.ForeignColumnNames) + " )");
-						}
-					} // For each row being added.
-				}
-			}
-
-			// Any general checks of the inserted data
-			var checkConstraints = transaction.QueryTableCheckExpressions(tableName);
-
-			// For each check constraint, check that it evaluates to true.
-			for (int i = 0; i < checkConstraints.Length; ++i) {
-				var check = checkConstraints[i];
-				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					check.Deferred == ConstraintDeferrability.InitiallyImmediate) {
-
-					// TODO: var exp = tableInfo.ResolveColumns(transaction.IgnoreIdentifierCase(), check.CheckExpression);
-					var exp = tableInfo.ResolveColumns(true, check.CheckExpression);
-
-					// For each row being added to this column
-					for (int rn = 0; rn < rowIndices.Length; ++rn) {
-						var resolver = new TableRowVariableResolver(table, rowIndices[rn]);
-						var evalExp = exp.Evaluate(queryContext, resolver, null);
-						var ob = ((SqlConstantExpression) evalExp).Value;
-
-						var b = ob.AsBoolean();
-
-						if (!b.IsNull) {
-							if (b) {
-								// Evaluated to false so don't allow this row to be added.
+						// For each row added to this column
+						foreach (int rowIndex in rowIndices) {
+							if (!IsUniqueColumns(table, rowIndex, primaryKey.ColumnNames, false)) {
 								throw new ConstraintViolationException(
-								   SqlModelErrorCodes.CheckViolation,
-								   deferred.AsDebugString() + " check constraint violation (" +
-								   check.ConstraintName + ") - '" + exp +
-								   "' evaluated to false for inserted/updated row.");
+									SqlModelErrorCodes.PrimaryKeyViolation,
+									deferred.AsDebugString() + " primary Key constraint violation (" +
+									primaryKey.ConstraintName + ") Columns = ( " +
+									String.Join(", ", primaryKey.ColumnNames) +
+									" ) Table = ( " + tableName + " )");
 							}
-						} else {
-							// NOTE: This error will pass the row by default
-							// TODO: emit a warning
+						} // For each row being added
+					}
+
+					// Check any unique constraints.
+					var uniqueConstraints = transaction.QueryTableUniqueKeys(tableName);
+					foreach (var unique in uniqueConstraints) {
+						if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+						    unique.Deferred == ConstraintDeferrability.InitiallyImmediate) {
+
+							// For each row added to this column
+							foreach (int rowIndex in rowIndices) {
+								if (!IsUniqueColumns(table, rowIndex, unique.ColumnNames, true)) {
+									throw new ConstraintViolationException(
+										SqlModelErrorCodes.UniqueViolation,
+										deferred.AsDebugString() + " unique constraint violation (" +
+										unique.ConstraintName + ") Columns = ( " +
+										String.Join(", ", unique.ColumnNames) + " ) Table = ( " +
+										tableName + " )");
+								}
+							} // For each row being added
+						}
+					}
+
+					// Check any foreign key constraints.
+					// This ensures all foreign references in the table are referenced
+					// to valid records.
+					var foreignConstraints = transaction.QueryTableForeignKeys(tableName);
+
+					foreach (var reference in foreignConstraints) {
+						if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+						    reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
+							// For each row added to this column
+							foreach (int rowIndex in rowIndices) {
+								// Make sure the referenced record exists
+
+								// Return the count of records where the given row of
+								//   table_name(columns, ...) IN
+								//                    ref_table_name(ref_columns, ...)
+								int rowCount = RowCountOfReferenceTable(transaction,
+									rowIndex,
+									reference.TableName, reference.ColumnNames,
+									reference.ForeignTable, reference.ForeignColumnNames,
+									false);
+								if (rowCount == -1) {
+									// foreign key is NULL
+								}
+
+								if (rowCount == 0) {
+									throw new ConstraintViolationException(
+										SqlModelErrorCodes.ForeignKeyViolation,
+										deferred.AsDebugString() + " foreign key constraint violation (" +
+										reference.ConstraintName + ") Columns = " +
+										reference.TableName + "( " +
+										String.Join(", ", reference.ColumnNames) + " ) -> " +
+										reference.ForeignTable + "( " +
+										String.Join(", ", reference.ForeignColumnNames) + " )");
+								}
+							} // For each row being added.
+						}
+					}
+
+					// Any general checks of the inserted data
+					var checkConstraints = transaction.QueryTableCheckExpressions(tableName);
+
+					// For each check constraint, check that it evaluates to true.
+					for (int i = 0; i < checkConstraints.Length; ++i) {
+						var check = checkConstraints[i];
+						if (deferred == ConstraintDeferrability.InitiallyDeferred ||
+						    check.Deferred == ConstraintDeferrability.InitiallyImmediate) {
+
+							// TODO: var exp = tableInfo.ResolveColumns(transaction.IgnoreIdentifierCase(), check.CheckExpression);
+							var exp = tableInfo.ResolveColumns(true, check.CheckExpression);
+
+							// For each row being added to this column
+							for (int rn = 0; rn < rowIndices.Length; ++rn) {
+								var resolver = new TableRowVariableResolver(table, rowIndices[rn]);
+								var evalExp = exp.Evaluate(queryContext, resolver, null);
+								var ob = ((SqlConstantExpression) evalExp).Value;
+
+								var b = ob.AsBoolean();
+
+								if (!b.IsNull) {
+									if (b) {
+										// Evaluated to false so don't allow this row to be added.
+										throw new ConstraintViolationException(
+											SqlModelErrorCodes.CheckViolation,
+											deferred.AsDebugString() + " check constraint violation (" +
+											check.ConstraintName + ") - '" + exp +
+											"' evaluated to false for inserted/updated row.");
+									}
+								} else {
+									// NOTE: This error will pass the row by default
+									// TODO: emit a warning
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 
-		public static void CheckRemoveConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices, ConstraintDeferrability deferred) {
+		public static
+			void CheckRemoveConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices,
+				ConstraintDeferrability deferred) {
 			// Quick exit case
 			if (rowIndices == null || rowIndices.Length == 0)
 				return;
@@ -581,7 +599,7 @@ namespace Deveel.Data.Transactions {
 			var foreignConstraints = transaction.QueryTableImportedForeignKeys(tableName);
 			foreach (var reference in foreignConstraints) {
 				if (deferred == ConstraintDeferrability.InitiallyDeferred ||
-					reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
+				    reference.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 					// For each row removed from this column
 					foreach (int rowIndex in rowIndices) {
 						// Make sure the referenced record exists
@@ -590,21 +608,22 @@ namespace Deveel.Data.Transactions {
 						//   ref_table_name(columns, ...) IN
 						//                    table_name(ref_columns, ...)
 						int rowCount = RowCountOfReferenceTable(transaction,
-												   rowIndex,
-												   reference.ForeignTable, reference.ForeignColumnNames,
-												   reference.TableName, reference.ColumnNames,
-												   true);
+							rowIndex,
+							reference.ForeignTable, reference.ForeignColumnNames,
+							reference.TableName, reference.ColumnNames,
+							true);
+
 						// There must be 0 references otherwise the delete isn't allowed to
 						// happen.
 						if (rowCount > 0) {
 							throw new ConstraintViolationException(SqlModelErrorCodes.ForeignKeyViolation,
-							  deferred.AsDebugString() + " foreign key constraint violation " +
-							  "on delete (" +
-							  reference.ConstraintName + ") Columns = " +
-							  reference.TableName + "( " +
-							  String.Join(", ", reference.ColumnNames) + " ) -> " +
-							  reference.ForeignTable + "( " +
-							  String.Join(", ", reference.ForeignColumnNames) + " )");
+								deferred.AsDebugString() + " foreign key constraint violation " +
+								"on delete (" +
+								reference.ConstraintName + ") Columns = " +
+								reference.TableName + "( " +
+								String.Join(", ", reference.ColumnNames) + " ) -> " +
+								reference.ForeignTable + "( " +
+								String.Join(", ", reference.ForeignColumnNames) + " )");
 						}
 					}
 				}
@@ -937,7 +956,7 @@ namespace Deveel.Data.Transactions {
 			var resultList = data.ToList();
 			if (resultList.Count > 1)
 				throw new InvalidOperationException("Assertion failed: multiple unique constraint name: " + constraintName);
-			
+
 			if (resultList.Count == 1) {
 				var rowIndex = resultList[0];
 

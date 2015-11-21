@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -29,8 +28,9 @@ namespace Deveel.Data {
 
 		string CurrentSchema { get; }
 
-		IQueryContext ParentContext { get; }
+		IBlockContext CreateBlockContext();
 
+		/*
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 
 		/// within the execution context.
@@ -42,5 +42,6 @@ namespace Deveel.Data {
 		/// computed within this execution context.
 		/// </returns>
 		SqlNumber NextRandom(int bitSize);
+		*/
 	}
 }

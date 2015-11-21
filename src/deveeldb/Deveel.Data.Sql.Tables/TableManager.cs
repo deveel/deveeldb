@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Tables {
 	public sealed class TableManager : IObjectManager {
 		private readonly List<ITableSource> visibleTables;
 		private List<IMutableTable> accessedTables;
-		private List<ITableSource> selectedTables; 
+		private List<ITableSource> selectedTables;
 		private readonly List<IIndexSet> tableIndices;
 		private List<ITableContainer> internalTables;
 
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Tables {
 					return selectedTables.ToArray();
 				}
 			}
-		} 
+		}
 
 		private bool IgnoreIdentifiersCase {
 			get { return Transaction.IgnoreIdentifiersCase(); }
@@ -268,6 +268,7 @@ namespace Deveel.Data.Sql.Tables {
 
 				// Drop the current table
 				DropTable(tableName);
+
 				// And copy to the new table
 				CopyTable(currentTable, indexSet);
 			}
@@ -359,7 +360,8 @@ namespace Deveel.Data.Sql.Tables {
 		public SqlNumber SetUniqueId(ObjectName tableName, SqlNumber value) {
 			var tableSource = FindVisibleTable(tableName, false);
 			if (tableSource == null)
-				throw new ObjectNotFoundException(tableName, String.Format("Table with name '{0}' could not be found to set the unique id.", tableName));
+				throw new ObjectNotFoundException(tableName,
+					String.Format("Table with name '{0}' could not be found to set the unique id.", tableName));
 
 			tableSource.SetUniqueId(value.ToInt64());
 			return value;
@@ -368,7 +370,8 @@ namespace Deveel.Data.Sql.Tables {
 		public SqlNumber NextUniqueId(ObjectName tableName) {
 			var tableSource = FindVisibleTable(tableName, false);
 			if (tableSource == null)
-				throw new ObjectNotFoundException(tableName, String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
+				throw new ObjectNotFoundException(tableName,
+					String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
 
 			var value = tableSource.GetNextUniqueId();
 			return new SqlNumber(value);
@@ -497,7 +500,7 @@ namespace Deveel.Data.Sql.Tables {
 			var list = GetDynamicTables();
 			foreach (var ctable in list) {
 				if (String.Equals(ctable.ParentName, tschema, comparison) &&
-					String.Equals(ctable.Name, tname, comparison)) {
+				    String.Equals(ctable.Name, tname, comparison)) {
 					return ctable;
 				}
 			}
@@ -536,8 +539,8 @@ namespace Deveel.Data.Sql.Tables {
 
 			// Otherwise return from the pool of visible tables
 			return visibleTables
-					.Select(table => table.TableInfo)
-					.FirstOrDefault(tableInfo => tableInfo.TableName.Equals(tableName));
+				.Select(table => table.TableInfo)
+				.FirstOrDefault(tableInfo => tableInfo.TableName.Equals(tableName));
 		}
 
 		private IMutableTable CreateTableAtCommit(ITableSource source) {
@@ -566,84 +569,88 @@ namespace Deveel.Data.Sql.Tables {
 
 			// The current schema context is the schema of the table name
 			string currentSchema = tableName.Parent.Name;
-			var context = new SystemQueryContext(Transaction, currentSchema);
+			using (var session = new SystemUserSession(Transaction, currentSchema)) {
+				using (var context = new QueryContext(session)) {
 
-			// Get the next unique id of the unaltered table.
-			var nextId = NextUniqueId(tableName);
+					// Get the next unique id of the unaltered table.
+					var nextId = NextUniqueId(tableName);
 
-			// Drop the current table
-			var cTable = GetTable(tableName);
-			var droppedTableId = cTable.TableInfo.Id;
+					// Drop the current table
+					var cTable = GetTable(tableName);
+					var droppedTableId = cTable.TableInfo.Id;
 
-			DropTable(tableName);
+					DropTable(tableName);
 
-			// And create the table table
-			CreateTable(tableInfo);
+					// And create the table table
+					CreateTable(tableInfo);
 
-			var alteredTable = GetMutableTable(tableName);
-			var source = FindVisibleTable(tableName, false);
-			int alteredTableId = source.TableId;
+					var alteredTable = GetMutableTable(tableName);
+					var source = FindVisibleTable(tableName, false);
+					int alteredTableId = source.TableId;
 
-			// Set the sequence id of the table
-			source.SetUniqueId(nextId.ToInt64());
+					// Set the sequence id of the table
+					source.SetUniqueId(nextId.ToInt64());
 
-			// Work out which columns we have to copy to where
-			int[] colMap = new int[tableInfo.ColumnCount];
-			var origTd = cTable.TableInfo;
-			for (int i = 0; i < colMap.Length; ++i) {
-				string colName = tableInfo[i].ColumnName;
-				colMap[i] = origTd.IndexOfColumn(colName);
-			}
-
-			// First move all the rows from the old table to the new table,
-			// This does NOT update the indexes.
-			var e = cTable.GetEnumerator();
-			while (e.MoveNext()) {
-				int rowIndex = e.Current.RowId.RowNumber;
-				var dataRow = alteredTable.NewRow();
-				for (int i = 0; i < colMap.Length; ++i) {
-					int col = colMap[i];
-					if (col != -1) {
-						dataRow.SetValue(i, cTable.GetValue(rowIndex, col));
+					// Work out which columns we have to copy to where
+					int[] colMap = new int[tableInfo.ColumnCount];
+					var origTd = cTable.TableInfo;
+					for (int i = 0; i < colMap.Length; ++i) {
+						string colName = tableInfo[i].ColumnName;
+						colMap[i] = origTd.IndexOfColumn(colName);
 					}
+
+					// First move all the rows from the old table to the new table,
+					// This does NOT update the indexes.
+					var e = cTable.GetEnumerator();
+					while (e.MoveNext()) {
+						int rowIndex = e.Current.RowId.RowNumber;
+						var dataRow = alteredTable.NewRow();
+						for (int i = 0; i < colMap.Length; ++i) {
+							int col = colMap[i];
+							if (col != -1) {
+								dataRow.SetValue(i, cTable.GetValue(rowIndex, col));
+							}
+						}
+
+						dataRow.SetDefault(context);
+
+						// Note we use a low level 'AddRow' method on the master table
+						// here.  This does not touch the table indexes.  The indexes are
+						// built later.
+						int newRowNumber = source.AddRow(dataRow);
+
+						// Set the record as committed added
+						source.WriteRecordState(newRowNumber, RecordState.CommittedAdded);
+					}
+
+					// TODO: We need to copy any existing index definitions that might
+					//   have been set on the table being altered.
+
+					// Rebuild the indexes in the new master table,
+					source.BuildIndexes();
+
+					// Get the snapshot index set on the new table and set it here
+					SetIndexSetForTable(source, source.CreateIndexSet());
+
+					// Flush this out of the table cache
+					FlushTableCache(tableName);
+
+					// Ensure the native sequence generator exists...
+					Transaction.RemoveNativeSequence(tableName);
+					Transaction.CreateNativeSequence(tableName);
+
+					// Notify that this database object has been successfully dropped and
+					// created.
+					Transaction.Registry.RegisterEvent(new TableDroppedEvent(droppedTableId, tableName));
+					Transaction.Registry.RegisterEvent(new TableCreatedEvent(alteredTableId, tableName));
+
+					return true;
 				}
-
-				dataRow.SetDefault(context);
-
-				// Note we use a low level 'AddRow' method on the master table
-				// here.  This does not touch the table indexes.  The indexes are
-				// built later.
-				int newRowNumber = source.AddRow(dataRow);
-
-				// Set the record as committed added
-				source.WriteRecordState(newRowNumber, RecordState.CommittedAdded);
 			}
-
-			// TODO: We need to copy any existing index definitions that might
-			//   have been set on the table being altered.
-
-			// Rebuild the indexes in the new master table,
-			source.BuildIndexes();
-
-			// Get the snapshot index set on the new table and set it here
-			SetIndexSetForTable(source, source.CreateIndexSet());
-
-			// Flush this out of the table cache
-			FlushTableCache(tableName);
-
-			// Ensure the native sequence generator exists...
-			Transaction.RemoveNativeSequence(tableName);
-			Transaction.CreateNativeSequence(tableName);
-
-			// Notify that this database object has been successfully dropped and
-			// created.
-			Transaction.Registry.RegisterEvent(new TableDroppedEvent(droppedTableId, tableName));
-			Transaction.Registry.RegisterEvent(new TableCreatedEvent(alteredTableId, tableName));
-
-			return true;
 		}
 
-		private void FlushTableCache(ObjectName tableName) {
+		private
+			void FlushTableCache(ObjectName tableName) {
 			tableCache.Remove(tableName);
 		}
 
@@ -677,7 +684,7 @@ namespace Deveel.Data.Sql.Tables {
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			foreach (var ctable in list) {
 				if (String.Equals(ctable.ParentName, tschema, comparison) &&
-					String.Equals(ctable.Name, tname, comparison)) {
+				    String.Equals(ctable.Name, tname, comparison)) {
 					return ctable;
 				}
 			}

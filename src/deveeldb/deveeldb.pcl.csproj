@@ -92,7 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
-    <Compile Include="Deveel.Data.Routines\QueryContext.Routines.cs" />
+    <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
     <Compile Include="Deveel.Data.Security\QueryContext.Security.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
@@ -104,7 +104,6 @@
     <Compile Include="Deveel.Data.Sql.Sequences\QueryContext.Sequences.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryContext.Statements.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.Commands.cs" />
-    <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.cs" />
     <None Include="packages.deveeldb.pcl.config" />
   </ItemGroup>
   <ItemGroup>
@@ -250,7 +249,6 @@
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineExecuteContext.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
@@ -627,6 +625,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\ITableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\QueryContextExtensions.Tables.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.Commands.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TableEventRegistry.cs" />
@@ -673,7 +672,6 @@
     <Compile Include="Deveel.Data.Sql.Views\ViewManager.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\BlockExecuteContext.cs" />
-    <Compile Include="Deveel.Data.Sql\BlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
@@ -842,7 +840,8 @@
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
-    <Compile Include="Deveel.Data\ChildQueryContext.cs" />
+    <Compile Include="Deveel.Data\Block.cs" />
+    <Compile Include="Deveel.Data\BlockContext.cs" />
     <Compile Include="Deveel.Data\Database.cs" />
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
@@ -852,6 +851,9 @@
     <Compile Include="Deveel.Data\DataVersionAttribute.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\GeneratedTable.cs" />
     <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
+    <Compile Include="Deveel.Data\IBlock.cs" />
+    <Compile Include="Deveel.Data\IBlockContext.cs" />
+    <Compile Include="Deveel.Data\IBlockParent.cs" />
     <Compile Include="Deveel.Data\IDatabase.cs" />
     <Compile Include="Deveel.Data\IDatabaseContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
@@ -873,12 +875,10 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SessionContext.cs" />
-    <Compile Include="Deveel.Data\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
-    <Compile Include="Deveel.Data\SystemQueryContext.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemUserSession.cs" />

@@ -110,11 +110,13 @@ namespace Deveel.Data.Sql.Triggers {
 			var schemaColumn = table.GetResolvedColumnName(0);
 			var nameColumn = table.GetResolvedColumnName(1);
 
-			using (var context = new SystemQueryContext(transaction, SystemSchema.Name)) {
-				var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
-					SqlExpression.Constant(DataObject.String(name)));
-				return t.ExhaustiveSelect(context,
-					SqlExpression.Equal(SqlExpression.Reference(schemaColumn), SqlExpression.Constant(DataObject.String(schema))));
+			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
+				using (var context = new QueryContext(session)) {
+					var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
+						SqlExpression.Constant(DataObject.String(name)));
+					return t.ExhaustiveSelect(context,
+						SqlExpression.Equal(SqlExpression.Reference(schemaColumn), SqlExpression.Constant(DataObject.String(schema))));
+				}
 			}
 		}
 
@@ -130,12 +132,14 @@ namespace Deveel.Data.Sql.Triggers {
 			var eventTypeColumn = table.GetResolvedColumnName(4);
 
 			ITable result;
-			using (var context = new SystemQueryContext(transaction, SystemSchema.Name)) {
-				var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
-					SqlExpression.Constant(DataObject.String(fullTableName)));
+			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
+				using (var context = new QueryContext(session)) {
+					var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
+						SqlExpression.Constant(DataObject.String(fullTableName)));
 
-				result = t.ExhaustiveSelect(context,
-					SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
+					result = t.ExhaustiveSelect(context,
+						SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
+				}
 			}
 
 			if (result.RowCount == 0)

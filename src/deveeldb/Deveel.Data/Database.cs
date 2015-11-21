@@ -212,7 +212,7 @@ namespace Deveel.Data {
 				TableComposite.Create();
 
 				using (var session = this.CreateInitialSystemSession()) {
-					using (var context = new SessionQueryContext(session)) {
+					using (var context = new QueryContext(session)) {
 						try {
 							session.CurrentSchema(SystemSchema.Name);
 

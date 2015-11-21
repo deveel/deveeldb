@@ -23,8 +23,8 @@ using Deveel.Data.Sql.Query;
 namespace Deveel.Data {
 	public static class QueryContextExtensions {
 		internal static IUserSession Session(this IQueryContext context) {
-			if ((context is QueryContextBase))
-				return ((QueryContextBase) context).Session;
+			if ((context is QueryContext))
+				return ((QueryContext) context).Session;
 
 			return null;
 		}
@@ -38,7 +38,8 @@ namespace Deveel.Data {
 		}
 
 		internal static IQueryContext ForSystemUser(this IQueryContext queryContext) {
-			return new SystemQueryContext(queryContext.Session().Transaction, queryContext.CurrentSchema);
+			var session = new SystemUserSession(queryContext.Session().Transaction, queryContext.CurrentSchema);
+			return new QueryContext(session);
 		}
 
 		#region Properties

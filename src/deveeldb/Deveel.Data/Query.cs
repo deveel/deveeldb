@@ -1,18 +1,27 @@
 ﻿using System;
 
 using Deveel.Data;
+using Deveel.Data.Services;
 
 namespace Deveel.Data {
-	public sealed class Query : IQuery {
+	public sealed class Query : IQuery, IBlockParent {
 		internal Query(IUserSession session) {
 			Session = session;
 
 			QueryContext = session.SessionContext.CreateQueryContext();
-			// TODO: put this query into the scope
+			QueryContext.RegisterInstance<IQuery>(this);
 		}
 
 		~Query() {
 			Dispose(false);
+		}
+
+		IBlockContext IBlockParent.CreateBlockContext() {
+			return QueryContext.CreateBlockContext();
+		}
+
+		public IBlock CreateBlock() {
+			return new Block(this);
 		}
 
 		public IQueryContext QueryContext { get; private set; }

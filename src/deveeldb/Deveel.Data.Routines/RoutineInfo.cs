@@ -48,7 +48,7 @@ namespace Deveel.Data.Routines {
 
 			RoutineName = routineName;
 			Parameters = parameters;
-			Body = new RoutineBody(this);
+			// TODO: Body = new RoutineBody(this);
 		}
 
 		DbObjectType IObjectInfo.ObjectType {
@@ -75,7 +75,7 @@ namespace Deveel.Data.Routines {
 
 		public Type ExternalType { get; set; }
 
-		public RoutineBody Body { get; private set; }
+		// TODO: public RoutineBody Body { get; private set; }
 
 		internal abstract bool MatchesInvoke(Invoke request, IQueryContext queryContext);
 

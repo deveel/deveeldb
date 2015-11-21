@@ -80,16 +80,20 @@ namespace Deveel.Data.Sql.Views {
 			var schemav = table.GetResolvedColumnName(0);
 			var namev = table.GetResolvedColumnName(1);
 
-			using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
-				var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(viewName.Name)));
-				t = t.ExhaustiveSelect(context, SqlExpression.Equal(SqlExpression.Reference(schemav), SqlExpression.Constant(viewName.ParentName)));
+			using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+				using (var context = new QueryContext(session)) {
+					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
+						SqlExpression.Constant(DataObject.String(viewName.Name)));
+					t = t.ExhaustiveSelect(context,
+						SqlExpression.Equal(SqlExpression.Reference(schemav), SqlExpression.Constant(viewName.ParentName)));
 
-				// This should be at most 1 row in size
-				if (t.RowCount > 1)
-					throw new ArgumentException(String.Format("Multiple view entries for name '{0}' in the system.", viewName));
+					// This should be at most 1 row in size
+					if (t.RowCount > 1)
+						throw new ArgumentException(String.Format("Multiple view entries for name '{0}' in the system.", viewName));
 
-				// Return the entries found.
-				return t;
+					// Return the entries found.
+					return t;
+				}
 			}
 		}
 
@@ -188,9 +192,10 @@ namespace Deveel.Data.Sql.Views {
 					ViewInfo viewInfo;
 					if (!viewCache.TryGetValue(row, out viewInfo)) { 
 						var blob = (SqlBinary)viewTable.GetValue(row, 3).Value;
-
-						using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
-							viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.TypeResolver());
+						using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+							using (var context = new QueryContext(session)) {
+								viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.TypeResolver());
+							}
 						}
 
 						viewCache[row] = viewInfo;
@@ -246,8 +251,10 @@ namespace Deveel.Data.Sql.Views {
 					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
 
-						using (var context = new SystemQueryContext(Transaction, SystemSchema.Name)) {
-							viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.TypeResolver());
+						using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+							using (var context = new QueryContext(session)) {
+								viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.TypeResolver());
+							}
 						}
 
 						viewCache[row] = viewInfo;

@@ -39,9 +39,11 @@ namespace Deveel.Data.Sql.Statements {
 			exceptionHandlers.Add(handler);
 		}
 
+		/*
 		protected virtual BlockExecuteContext CreateExecuteContext() {
 			throw new NotImplementedException();
 		}
+		*/
 
 		protected virtual PlSqlBlock Prepare(IExpressionPreparer preparer) {
 			throw new NotImplementedException();

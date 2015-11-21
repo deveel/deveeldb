@@ -7,7 +7,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Views {
-	public static class QueryContext {
+	public static class QueryContextExtensions {
 		public static bool ViewExists(this IQueryContext context, ObjectName viewName) {
 			return context.ObjectExists(DbObjectType.View, viewName);
 		}

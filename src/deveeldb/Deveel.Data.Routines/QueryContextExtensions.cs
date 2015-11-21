@@ -23,7 +23,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
-	public static class QueryContext {
+	public static class QueryContextExtensions {
 		public static bool IsSystemFunction(this IQueryContext context, Invoke invoke) {
 			var info = context.ResolveFunctionInfo(invoke);
 			if (info == null)

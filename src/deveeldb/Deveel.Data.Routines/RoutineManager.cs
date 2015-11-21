@@ -45,19 +45,21 @@ namespace Deveel.Data.Routines {
 			var schemav = table.GetResolvedColumnName(0);
 			var namev = table.GetResolvedColumnName(1);
 
-			using (var context = new SystemQueryContext(transaction, transaction.CurrentSchema())) {
-				var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
-					SqlExpression.Constant(DataObject.String(routineName.Name)));
-				t = t.ExhaustiveSelect(context,
-					SqlExpression.Equal(SqlExpression.Reference(schemav),
-						SqlExpression.Constant(DataObject.String(routineName.ParentName))));
+			using (var session = new SystemUserSession(transaction)) {
+				using (var context = new QueryContext(session)) {
+					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
+						SqlExpression.Constant(DataObject.String(routineName.Name)));
+					t = t.ExhaustiveSelect(context,
+						SqlExpression.Equal(SqlExpression.Reference(schemav),
+							SqlExpression.Constant(DataObject.String(routineName.ParentName))));
 
-				// This should be at most 1 row in size
-				if (t.RowCount > 1)
-					throw new Exception("Assert failed: multiple procedure names for " + routineName);
+					// This should be at most 1 row in size
+					if (t.RowCount > 1)
+						throw new Exception("Assert failed: multiple procedure names for " + routineName);
 
-				// Return the entries found.
-				return t;
+					// Return the entries found.
+					return t;
+				}
 			}
 		}
 

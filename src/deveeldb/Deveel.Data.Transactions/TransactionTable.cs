@@ -151,7 +151,7 @@ namespace Deveel.Data.Transactions {
 		public DataObject GetValue(long rowNumber, int columnOffset) {
 			AssertNotDisposed();
 
-			return TableSource.GetValue((int)rowNumber, columnOffset);
+			return TableSource.GetValue((int) rowNumber, columnOffset);
 		}
 
 		public ColumnIndex GetIndex(int columnOffset) {
@@ -262,7 +262,7 @@ namespace Deveel.Data.Transactions {
 
 			// Note this doesn't need to be synchronized because we are exclusive on
 			// this table.
-			
+
 			EventRegistry.Register(new TableRowEvent(TableId, rowNum, TableRowEventType.Add));
 
 			return new RowId(TableId, rowNum);
@@ -349,10 +349,11 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		private void ExecuteUpdateReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, DataObject[] newKey, IQueryContext context) {
+		private void ExecuteUpdateReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, DataObject[] newKey,
+			IQueryContext context) {
 			var updateRule = constraint.OnUpdate;
 			if (updateRule == ForeignKeyAction.NoAction &&
-				constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
+			    constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
 				// Constraint check is deferred
 				return;
 			}
@@ -367,6 +368,7 @@ namespace Deveel.Data.Transactions {
 			// Are there keys effected?
 			if (keyEntries.Any()) {
 				if (updateRule == ForeignKeyAction.NoAction)
+
 					// Throw an exception;
 					throw new ConstraintViolationException(
 						SqlModelErrorCodes.ForeignKeyViolation,
@@ -421,102 +423,108 @@ namespace Deveel.Data.Transactions {
 				// This table name
 				var tableInfo = TableInfo;
 				var tName = tableInfo.TableName;
-				IQueryContext context = new SystemQueryContext(Transaction, tName.Parent.Name);
 
-				// Are there any added, deleted or updated entries in the journal since
-				// we last checked?
-				List<int> rowsUpdated = new List<int>();
-				List<int> rowsDeleted = new List<int>();
-				List<int> rowsAdded = new List<int>();
+				using (var session = new SystemUserSession(Transaction, tName.ParentName)) {
+					using (var context = new QueryContext(session)) {
 
-				var events = EventRegistry.Skip(lastEntryRICheck);
-				foreach (var tableEvent in events.OfType<TableRowEvent>()) {
-					var rowNum = tableEvent.RowNumber;
-					if (tableEvent.EventType == TableRowEventType.Remove ||
-					    tableEvent.EventType == TableRowEventType.UpdateRemove) {
-						rowsDeleted.Add(rowNum);
+						// Are there any added, deleted or updated entries in the journal since
+						// we last checked?
+						List<int> rowsUpdated = new List<int>();
+						List<int> rowsDeleted = new List<int>();
+						List<int> rowsAdded = new List<int>();
 
-						var index = rowsAdded.IndexOf(rowNum);
-						if (index != -1)
-							rowsAdded.RemoveAt(index);
-					} else if (tableEvent.EventType == TableRowEventType.Add ||
-					           tableEvent.EventType == TableRowEventType.UpdateAdd) {
-						rowsAdded.Add(rowNum);
-					}
+						var events = EventRegistry.Skip(lastEntryRICheck);
+						foreach (var tableEvent in events.OfType<TableRowEvent>()) {
+							var rowNum = tableEvent.RowNumber;
+							if (tableEvent.EventType == TableRowEventType.Remove ||
+							    tableEvent.EventType == TableRowEventType.UpdateRemove) {
+								rowsDeleted.Add(rowNum);
 
-					if (tableEvent.EventType == TableRowEventType.UpdateAdd ||
-						tableEvent.EventType == TableRowEventType.UpdateRemove)
-						rowsUpdated.Add(rowNum);
-				}
-
-				// Were there any updates or deletes?
-				if (rowsDeleted.Count > 0) {
-					// Get all references on this table
-					var foreignConstraints = Transaction.QueryTableImportedForeignKeys(tName);
-
-					// For each foreign constraint
-					foreach (var constraint in foreignConstraints) {
-						// For each deleted/updated record in the table,
-						foreach (var rowNum in rowsDeleted) {
-							// What was the key before it was updated/deleted
-							var cols = tableInfo.IndexOfColumns(constraint.ForeignColumnNames).ToArray();
-
-							var originalKey = new DataObject[cols.Length];
-							int nullCount = 0;
-							for (int p = 0; p < cols.Length; ++p) {
-								originalKey[p] = GetValue(rowNum, cols[p]);
-								if (originalKey[p].IsNull) {
-									++nullCount;
-								}
+								var index = rowsAdded.IndexOf(rowNum);
+								if (index != -1)
+									rowsAdded.RemoveAt(index);
+							} else if (tableEvent.EventType == TableRowEventType.Add ||
+							           tableEvent.EventType == TableRowEventType.UpdateAdd) {
+								rowsAdded.Add(rowNum);
 							}
 
-							// Check the original key isn't null
-							if (nullCount != cols.Length) {
-								// Is is an update?
-								int updateIndex = rowsUpdated.IndexOf(rowNum);
-								if (updateIndex != -1) {
-									// Yes, this is an update
-									int rowIndexAdd = rowsUpdated[updateIndex + 1];
-									// It must be an update, so first see if the change caused any
-									// of the keys to change.
-									bool keyChanged = false;
-									var keyUpdatedTo = new DataObject[cols.Length];
+							if (tableEvent.EventType == TableRowEventType.UpdateAdd ||
+							    tableEvent.EventType == TableRowEventType.UpdateRemove)
+								rowsUpdated.Add(rowNum);
+						}
+
+						// Were there any updates or deletes?
+						if (rowsDeleted.Count > 0) {
+							// Get all references on this table
+							var foreignConstraints = Transaction.QueryTableImportedForeignKeys(tName);
+
+							// For each foreign constraint
+							foreach (var constraint in foreignConstraints) {
+								// For each deleted/updated record in the table,
+								foreach (var rowNum in rowsDeleted) {
+									// What was the key before it was updated/deleted
+									var cols = tableInfo.IndexOfColumns(constraint.ForeignColumnNames).ToArray();
+
+									var originalKey = new DataObject[cols.Length];
+									int nullCount = 0;
 									for (int p = 0; p < cols.Length; ++p) {
-										keyUpdatedTo[p] = GetValue(rowIndexAdd, cols[p]);
-										if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
-											keyChanged = true;
+										originalKey[p] = GetValue(rowNum, cols[p]);
+										if (originalKey[p].IsNull) {
+											++nullCount;
 										}
 									}
-									if (keyChanged) {
-										// Allow the delete, and execute the action,
-										// What did the key update to?
-										ExecuteUpdateReferentialAction(constraint, originalKey, keyUpdatedTo, context);
-									}
-									// If the key didn't change, we don't need to do anything.
-								} else {
-									// No, so it must be a delete,
-									// This will look at the referencee table and if it contains
-									// the key, work out what to do with it.
-									ExecuteDeleteReferentialAction(constraint, originalKey, context);
-								}
 
-							}  // If the key isn't null
+									// Check the original key isn't null
+									if (nullCount != cols.Length) {
+										// Is is an update?
+										int updateIndex = rowsUpdated.IndexOf(rowNum);
+										if (updateIndex != -1) {
+											// Yes, this is an update
+											int rowIndexAdd = rowsUpdated[updateIndex + 1];
 
-						}  // for each deleted rows
+											// It must be an update, so first see if the change caused any
+											// of the keys to change.
+											bool keyChanged = false;
+											var keyUpdatedTo = new DataObject[cols.Length];
+											for (int p = 0; p < cols.Length; ++p) {
+												keyUpdatedTo[p] = GetValue(rowIndexAdd, cols[p]);
+												if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
+													keyChanged = true;
+												}
+											}
+											if (keyChanged) {
+												// Allow the delete, and execute the action,
+												// What did the key update to?
+												ExecuteUpdateReferentialAction(constraint, originalKey, keyUpdatedTo, context);
+											}
 
-					}  // for each foreign key reference to this table
+											// If the key didn't change, we don't need to do anything.
+										} else {
+											// No, so it must be a delete,
+											// This will look at the referencee table and if it contains
+											// the key, work out what to do with it.
+											ExecuteDeleteReferentialAction(constraint, originalKey, context);
+										}
 
-				}
+									} // If the key isn't null
 
-				// Were there any rows added (that weren't deleted)?
-				if (rowsAdded.Count > 0) {
-					int[] rowIndices = rowsAdded.ToArray();
+								} // for each deleted rows
 
-					// Check for any field constraint violations in the added rows
-					Transaction.CheckFieldConstraintViolations(this, rowIndices);
+							} // for each foreign key reference to this table
 
-					// Check this table, adding the given row_index, immediate
-					Transaction.CheckAddConstraintViolations(this, rowIndices, ConstraintDeferrability.InitiallyImmediate);
+						}
+
+						// Were there any rows added (that weren't deleted)?
+						if (rowsAdded.Count > 0) {
+							int[] rowIndices = rowsAdded.ToArray();
+
+							// Check for any field constraint violations in the added rows
+							Transaction.CheckFieldConstraintViolations(this, rowIndices);
+
+							// Check this table, adding the given row_index, immediate
+							Transaction.CheckAddConstraintViolations(this, rowIndices, ConstraintDeferrability.InitiallyImmediate);
+						}
+					}
 				}
 			} catch (ConstraintViolationException) {
 				// If a constraint violation, roll back the changes since the last
@@ -535,10 +543,11 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+
 		private void ExecuteDeleteReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, IQueryContext context) {
 			var deleteRule = constraint.OnDelete;
 			if (deleteRule == ForeignKeyAction.NoAction &&
-				constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
+			    constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
 				// Constraint check is deferred
 				return;
 			}
@@ -603,7 +612,7 @@ namespace Deveel.Data.Transactions {
 
 		public void RemoveLock() {
 			AssertNotDisposed();
-			
+
 			TableSource.RemoveLock();
 		}
 

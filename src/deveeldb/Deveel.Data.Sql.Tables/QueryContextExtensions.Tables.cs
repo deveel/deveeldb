@@ -10,7 +10,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Schemas;
 
 namespace Deveel.Data.Sql.Tables {
-	public static partial class QueryContext {
+	public static partial class QueryContextExtensions {
 		public static ObjectName ResolveTableName(this IQueryContext context, ObjectName tableName) {
 			return context.Session().ResolveTableName(tableName);
 		}
