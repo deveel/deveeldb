@@ -1,9 +1,14 @@
 ﻿using System;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Variables {
 	public static class VariableScopeExtensions {
+		public static bool HasVariable(this IVariableScope scope, string variableName) {
+			return scope.VariableManager.VariableExists(variableName);
+		}
+
 		public static Variable DefineVariable(this IVariableScope scope, VariableInfo variableInfo) {
 			return scope.VariableManager.DefineVariable(variableInfo);
 		}
@@ -16,16 +21,21 @@ namespace Deveel.Data.Sql.Variables {
 			return scope.DefineVariable(new VariableInfo(variableName, variableType, constant));
 		}
 
+		public static bool DropVariable(this IVariableScope scope, string variableName) {
+			return scope.VariableManager.DropVariable(variableName);
+		}
+
 		public static Variable GetVariable(this IVariableScope scope, string variableName) {
 			return scope.VariableManager.GetVariable(variableName);
 		}
 
-		public static void SetVariable(this IVariableScope scope, string variableName, DataObject value) {
+		public static Variable SetVariable(this IVariableScope scope, string variableName, DataObject value) {
 			var variable = scope.GetVariable(variableName);
 			if (variable == null)
 				variable = scope.DefineVariable(variableName, value.Type);
 
 			variable.SetValue(value);
+			return variable;
 		}
 
 		public static void SetBooleanVariable(this IVariableScope transaction, string name, bool value) {

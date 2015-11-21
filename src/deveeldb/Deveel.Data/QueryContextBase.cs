@@ -24,10 +24,9 @@ using Deveel.Data.Caching;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data {
-	abstract class QueryContextBase : Context, IQueryContext, IVariableScope {
+	abstract class QueryContextBase : Context, IQueryContext {
 #if PCL
 		private Random secureRandom;
 #else
@@ -49,7 +48,6 @@ namespace Deveel.Data {
 #endif
 			Session = session;
 			tableCache = new MemoryCache();
-			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
 		}
 
@@ -64,11 +62,6 @@ namespace Deveel.Data {
 	        get { return Session.SessionContext; }
 	    }
 
-		public VariableManager VariableManager { get; private set; }
-
-		IVariableManager IVariableScope.VariableManager {
-			get { return VariableManager; }
-		}
 
 		public CursorManager CursorManager { get; private set; }
 
@@ -107,14 +100,11 @@ namespace Deveel.Data {
 		protected override void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {
-					if (VariableManager != null)
-						VariableManager.Dispose();
 					if (CursorManager != null)
 						CursorManager.Dispose();
 				}
 
 				tableCache = null;
-				VariableManager = null;
 				CursorManager = null;
 				secureRandom = null;
 				Session = null;

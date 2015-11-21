@@ -36,8 +36,6 @@ namespace Deveel.Data {
 
 		IQueryContext ParentContext { get; }
 
-		VariableManager VariableManager { get; }
-
 		CursorManager CursorManager { get; }
 
 		/// <summary>

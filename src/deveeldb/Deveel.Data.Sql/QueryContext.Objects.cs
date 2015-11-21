@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql {
@@ -10,7 +11,7 @@ namespace Deveel.Data.Sql {
 			// declared in a limited context
 			if (context.CursorManager.CursorExists(objectName))
 				return true;
-			if (context.VariableManager.VariableExists(objectName.Name))
+			if (context.VariableExists(objectName.Name))
 				return true;
 
 			if (context.ParentContext != null &&
@@ -30,7 +31,7 @@ namespace Deveel.Data.Sql {
 				return true;
 
 			if (objectType == DbObjectType.Variable &&
-				context.VariableManager.VariableExists(objectName.Name))
+				context.VariableExists(objectName.Name))
 				return true;
 
 			if (context.ParentContext != null &&
@@ -56,7 +57,7 @@ namespace Deveel.Data.Sql {
 				if (obj != null)
 					return obj;
 			} else if (objType == DbObjectType.Variable) {
-				var obj = context.VariableManager.GetVariable(objName.Name);
+				var obj = context.FindVariable(objName.Name);
 				if (obj != null)
 					return obj;
 			}
@@ -84,7 +85,7 @@ namespace Deveel.Data.Sql {
 
 		public static bool DropObject(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Variable &&
-				context.VariableManager.DropVariable(objectName.Name)) {
+				context.DropVariable(objectName.Name)) {
 				return true;
 			}
 			if (objectType == DbObjectType.Cursor &&
@@ -114,7 +115,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
-			if (context.VariableManager.VariableExists(name) ||
+			if (context.VariableExists(name) ||
 				context.CursorManager.CursorExists(new ObjectName(name)))
 				return new ObjectName(name);
 
@@ -128,7 +129,7 @@ namespace Deveel.Data.Sql {
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Variable &&
-				context.VariableManager.VariableExists(objectName.Name))
+				context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 			if (objectType == DbObjectType.Cursor &&
 				context.CursorManager.CursorExists(objectName))

@@ -95,6 +95,8 @@
     <Compile Include="Deveel.Data.Routines\QueryContext.Routines.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
     <Compile Include="Deveel.Data.Security\QueryContext.Security.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\QueryContext.Sequences.cs" />
