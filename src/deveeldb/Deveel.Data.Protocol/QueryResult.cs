@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Resources;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Protocol {
 	public sealed class QueryResult : IDisposable {

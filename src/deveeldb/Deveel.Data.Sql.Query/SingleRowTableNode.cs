@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Query {
 	class SingleRowTableNode : IQueryPlanNode {
 		public ITable Evaluate(IQueryContext context) {

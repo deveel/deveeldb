@@ -25,6 +25,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;

@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Caching {
 	public sealed class CellKey : IEquatable<CellKey> {

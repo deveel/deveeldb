@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class GrantPrivilegesStatement : SqlStatement {

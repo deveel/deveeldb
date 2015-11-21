@@ -21,6 +21,7 @@ using System.Text;
 using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -88,6 +89,14 @@ namespace Deveel.Data.Routines {
 			tableInfo.AddColumn("in_out", PrimitiveTypes.String());
 			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
 			transaction.CreateTable(tableInfo);
+
+			var fkCol = new[] {"routine_schema", "routine_name"};
+			var refCol = new[] {"schema", "name"};
+			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
+			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
+
+			transaction.AddForeignKey(SystemSchema.RoutineParameterTableName, fkCol, SystemSchema.RoutineTableName, refCol,
+				onDelete, onUpdate, "ROUTINE_PARAMS_FK");
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -114,7 +123,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		public bool RoutineExists(ObjectName objName) {
-			throw new NotImplementedException();
+			// TODO: implement
+			return false;
 		}
 
 		IDbObject IObjectManager.GetObject(ObjectName objName) {
@@ -122,7 +132,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		public IRoutine GetRoutine(ObjectName routineName) {
-			throw new NotImplementedException();
+			// TODO: implement!
+			return null;
 		}
 
 		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
@@ -138,11 +149,13 @@ namespace Deveel.Data.Routines {
 		}
 
 		public bool AlterRoutine(RoutineInfo routineInfo) {
-			throw new NotImplementedException();
+			// TODO: implement
+			return false;
 		}
 
 		public bool DropRoutine(ObjectName objName) {
-			throw new NotImplementedException();
+			// TODO: implement
+			return false;
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
@@ -150,7 +163,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
-			throw new NotImplementedException();
+			// TODO: implement
+			return null;
 		}
 
 		#region RoutinesTableContainer

@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class SelectStatement : SqlStatement {

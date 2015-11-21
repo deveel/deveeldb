@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorState : IDisposable {

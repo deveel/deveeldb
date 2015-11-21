@@ -19,6 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {

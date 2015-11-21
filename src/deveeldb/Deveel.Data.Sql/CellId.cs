@@ -17,6 +17,8 @@
 using System;
 using System.Diagnostics;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql {
 	[DebuggerDisplay("ToString()")]
 	public struct CellId : IEquatable<CellId> {

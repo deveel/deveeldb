@@ -22,6 +22,7 @@ using Deveel.Data.Index;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 using Deveel.Data.Util;
@@ -296,6 +297,7 @@ namespace Deveel.Data {
 			context.AddForeignKey(GroupGrantsTable, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "GROUP_GRANTS_FK");
 		}
 
+		/*
 		private static void CreateRoutineTables(IQueryContext context) {
 			var tableInfo = new TableInfo(RoutineTableName);
 			tableInfo.AddColumn("schema", PrimitiveTypes.String());
@@ -323,10 +325,11 @@ namespace Deveel.Data {
 
 			context.AddForeignKey(RoutineParameterTableName, fkCol, RoutineTableName, refCol, onDelete, onUpdate, "ROUTINE_PARAMS_FK");
 		}
+		*/
 
 		public static void CreateTables(IQueryContext context) {
 			CreateSecurityTables(context);
-			CreateRoutineTables(context);
+			//CreateRoutineTables(context);
 		}
 
 		public static void GrantToPublic(IQueryContext context) {

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Query {
 	class LimitNode : SingleQueryPlanNode {
 		public long Offset { get; private set; }

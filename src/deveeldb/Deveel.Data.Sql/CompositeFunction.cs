@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// The kind of composite function in a <see cref="CompositeTable"/>.

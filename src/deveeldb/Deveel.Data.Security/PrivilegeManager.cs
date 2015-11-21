@@ -5,6 +5,7 @@ using System.Linq;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
 	public class PrivilegeManager : IPrivilegeManager/*, IResolveCallback*/ {

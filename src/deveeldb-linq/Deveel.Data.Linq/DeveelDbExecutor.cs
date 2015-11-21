@@ -5,6 +5,7 @@ using System.Linq;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 using IQToolkit;

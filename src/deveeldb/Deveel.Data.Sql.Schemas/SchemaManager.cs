@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 

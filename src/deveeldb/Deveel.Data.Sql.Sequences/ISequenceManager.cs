@@ -17,13 +17,15 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Sequences;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Manages the sequences within an isolated context.
 	/// </summary>
-	/// <seealso cref="ITransaction.SequenceManager"/>
+	/// <seealso cref="SequenceManager"/>
 	public interface ISequenceManager : IObjectManager {
 		/// <summary>
 		/// Provides a table container that exposes the sequences managed as tables.

@@ -22,6 +22,7 @@ using System.Linq;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {

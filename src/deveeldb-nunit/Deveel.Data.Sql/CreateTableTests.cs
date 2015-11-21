@@ -2,6 +2,7 @@
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 using NUnit.Framework;

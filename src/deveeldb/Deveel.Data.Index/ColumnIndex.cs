@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Index {
 	public abstract class ColumnIndex : IDisposable {

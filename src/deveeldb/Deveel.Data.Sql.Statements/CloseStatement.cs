@@ -20,6 +20,7 @@ using System.IO;
 using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CloseStatement : SqlStatement {

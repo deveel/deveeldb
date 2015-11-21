@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class SqlTableConstraint : IPreparable {

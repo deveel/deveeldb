@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlQueryExpression : SqlExpression {
 		public SqlQueryExpression(IEnumerable<SelectColumn> selectColumns) {

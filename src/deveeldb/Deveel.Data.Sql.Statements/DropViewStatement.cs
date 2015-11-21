@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DropViewStatement : SqlStatement {

@@ -16,7 +16,7 @@
 
 using System;
 
-using Deveel.Data;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	///<summary>

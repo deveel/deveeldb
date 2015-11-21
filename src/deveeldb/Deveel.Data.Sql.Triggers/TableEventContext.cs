@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
 	/// Exposes the context of an event fired on a table.

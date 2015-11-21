@@ -23,6 +23,7 @@ using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class AlterTableStatement : SqlStatement {

@@ -17,14 +17,15 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	/// <summary>
 	/// A branch node for performing a composite function on two child nodes.
 	/// </summary>
 	/// <remarks>
-	/// This branch is used for general <see cref="Sql.CompositeFunction.Union"/>, 
-	/// <see cref="Sql.CompositeFunction.Except"/>, <see cref="Sql.CompositeFunction.Intersect"/>
+	/// This branch is used for general <see cref="Tables.CompositeFunction.Union"/>, 
+	/// <see cref="Tables.CompositeFunction.Except"/>, <see cref="Tables.CompositeFunction.Intersect"/>
 	/// composites. The left and right branch results must have the same number of 
 	/// columns and column types.
 	/// </remarks>

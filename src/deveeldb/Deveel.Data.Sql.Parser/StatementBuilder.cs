@@ -23,6 +23,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {

@@ -2,6 +2,7 @@
 
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 using NUnit.Framework;

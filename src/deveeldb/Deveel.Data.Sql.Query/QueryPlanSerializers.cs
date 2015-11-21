@@ -21,6 +21,7 @@ using System.IO;
 using Deveel.Data.Serialization;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	public static class QueryPlanSerializers {

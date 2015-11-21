@@ -19,6 +19,7 @@ using System;
 using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	/// <summary>

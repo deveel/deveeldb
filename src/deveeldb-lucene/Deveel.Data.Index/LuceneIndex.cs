@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Index {
  	public sealed class LuceneIndex : ColumnIndex {

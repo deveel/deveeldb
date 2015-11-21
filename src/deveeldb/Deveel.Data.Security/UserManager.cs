@@ -7,6 +7,7 @@ using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
 	public class UserManager : IUserManager/*, IResolveCallback*/ {

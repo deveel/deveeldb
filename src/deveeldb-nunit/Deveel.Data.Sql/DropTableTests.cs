@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 using NUnit.Framework;

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerEvent : IEvent {

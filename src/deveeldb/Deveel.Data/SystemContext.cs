@@ -24,6 +24,7 @@ using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
@@ -132,6 +133,7 @@ namespace Deveel.Data {
 			this.RegisterService<IObjectManager, TriggerManager>(DbObjectType.Trigger);
 			this.RegisterService<IObjectManager, SequenceManager>(DbObjectType.Sequence);
 			this.RegisterService<IObjectManager, PersistentVariableManager>(DbObjectType.Variable);
+			this.RegisterService<IObjectManager, RoutineManager>(DbObjectType.Routine);
 
 			this.RegisterService<IStoreSystem, InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
 			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);

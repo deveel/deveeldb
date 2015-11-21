@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Query {
 		/// <summary>
 	/// An interface to an object that describes characteristics of a table based

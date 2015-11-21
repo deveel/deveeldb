@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Index {
