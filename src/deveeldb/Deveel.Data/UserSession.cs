@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
@@ -37,26 +38,25 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="transaction">A transaction that handles the commands issued by
 		/// the user during the session.</param>
-		/// <param name="sessionInfo">The information about the session to be created (user, 
-		/// connection endpoint, statistics, etc.)</param>
+		/// <param name="user"></param>
 		/// <seealso cref="ITransaction"/>
-		/// <seealso cref="SessionInfo"/>
-		public UserSession(ITransaction transaction, SessionInfo sessionInfo) {
+		public UserSession(ITransaction transaction, User user) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
-			if (sessionInfo == null)
-				throw new ArgumentNullException("sessionInfo");
+			
+			if (user == null)
+				throw new ArgumentNullException("user");
 
-			if (sessionInfo.User.IsSystem ||
-				sessionInfo.User.IsPublic)
-				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", sessionInfo.User.Name));
+			if (user.IsSystem || user.IsPublic)
+				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", user.Name));
 
             Transaction = transaction;
 		    SessionContext = transaction.TransactionContext.CreateSessionContext();
 
 			Database.DatabaseContext.Sessions.Add(this);
 
-			SessionInfo = sessionInfo;
+			User = user;
+			StartedOn = DateTimeOffset.UtcNow;
 		}
 
 		~UserSession() {
@@ -72,9 +72,13 @@ namespace Deveel.Data {
 			get { return Transaction.CurrentSchema(); }
 		}
 
-		public SessionInfo SessionInfo { get; private set; }
+		public DateTimeOffset? LastCommandTime { get; private set; }
+
+		public DateTimeOffset StartedOn { get; private set; }
 
 	    public ISessionContext SessionContext { get; private set; }
+
+		public User User { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return null; }
@@ -86,8 +90,8 @@ namespace Deveel.Data {
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
 			return new Dictionary<string, object> {
-				{ EventMetadataKeys.UserName, SessionInfo.User.Name },
-				{ EventMetadataKeys.Protocol, SessionInfo.EndPoint.Protocol }
+				{ EventMetadataKeys.UserName, User.Name },
+				// { EventMetadataKeys.Protocol, SessionInfo.EndPoint.Protocol }
 			};
 		}
 
@@ -183,6 +187,10 @@ namespace Deveel.Data {
 	        get { return Transaction.Database; }
 	    }
 
+		private void OnCommand() {
+			LastCommandTime = DateTimeOffset.UtcNow;
+		}
+
 		public void Commit() {
 			AssertNotDisposed();
 
@@ -190,7 +198,7 @@ namespace Deveel.Data {
 				try {
 					Transaction.Commit();
 				} finally {
-					SessionInfo.OnCommand();
+					OnCommand();
 					DisposeTransaction();
 				}
 			}
@@ -203,7 +211,7 @@ namespace Deveel.Data {
 				try {
 					Transaction.Rollback();
 				} finally {
-					SessionInfo.OnCommand();
+					OnCommand();
 					DisposeTransaction();
 				}
 			}

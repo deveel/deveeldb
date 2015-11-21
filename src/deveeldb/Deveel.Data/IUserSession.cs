@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
@@ -38,11 +39,11 @@ namespace Deveel.Data {
 		/// </summary>
 		string CurrentSchema { get; }
 
-		/// <summary>
-		/// Gets an object that encapsulates the information
-		/// regarding this user session.
-		/// </summary>
-		SessionInfo SessionInfo { get; }
+		DateTimeOffset StartedOn { get; }
+
+		DateTimeOffset? LastCommandTime { get; }
+
+		User User { get; }
 
 		/// <summary>
 		/// Gets the instance of <see cref="ITransaction"/> that handles the

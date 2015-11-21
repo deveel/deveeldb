@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 
@@ -62,7 +63,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IContext DatabaseContext { get; private set; }
 
 		public TableInfo TableInfo {
 			get {

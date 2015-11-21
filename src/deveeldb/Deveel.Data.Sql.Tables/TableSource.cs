@@ -23,6 +23,7 @@ using System.Text;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -1471,7 +1472,7 @@ namespace Deveel.Data.Sql.Tables {
 				
 			}
 
-			public IDatabaseContext DatabaseContext {
+			public IContext DatabaseContext {
 				get { return source.DatabaseContext; }
 			}
 

@@ -20,10 +20,11 @@ using System.Linq;
 
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	public abstract class BaseDataTable : RootTable {
-		private readonly IDatabaseContext context;
+		private readonly IContext context;
 
 		private ColumnIndex[] indexes;
 
@@ -31,11 +32,11 @@ namespace Deveel.Data.Sql.Tables {
 			: this(null) {
 		}
 
-		protected BaseDataTable(IDatabaseContext context) {
+		protected BaseDataTable(IContext context) {
 			this.context = context;
 		}
 
-		public override IDatabaseContext DatabaseContext {
+		public override IContext DatabaseContext {
 			get { return context; }
 		}
 

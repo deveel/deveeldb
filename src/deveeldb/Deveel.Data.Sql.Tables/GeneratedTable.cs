@@ -19,11 +19,12 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Tables {
 	abstract class GeneratedTable : ITable {
-		protected GeneratedTable(IDatabaseContext dbContext) {
+		protected GeneratedTable(IContext dbContext) {
 			DatabaseContext = dbContext;
 		}
 
@@ -31,7 +32,7 @@ namespace Deveel.Data.Sql.Tables {
 			Dispose(false);
 		}
 
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IContext DatabaseContext { get; private set; }
 
 		ObjectName IDbObject.FullName {
 			get { return TableInfo.TableName; }

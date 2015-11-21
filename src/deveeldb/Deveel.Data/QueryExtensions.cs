@@ -6,7 +6,7 @@ using Deveel.Data.Sql;
 namespace Deveel.Data {
 	public static class QueryExtensions {
 		public static User User(this IQuery query) {
-			return query.Session.SessionInfo.User;
+			return query.Session.User;
 		}
 
 		public static string UserName(this IQuery query) {

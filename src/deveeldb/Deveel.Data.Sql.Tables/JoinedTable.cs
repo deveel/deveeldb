@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	abstract class JoinedTable : Table {
@@ -108,7 +109,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public override IDatabaseContext DatabaseContext {
+		public override IContext DatabaseContext {
 			get { return referenceList[0].DatabaseContext; }
 		}
 

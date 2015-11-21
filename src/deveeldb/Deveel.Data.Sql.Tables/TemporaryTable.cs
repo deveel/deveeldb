@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
@@ -31,7 +32,7 @@ namespace Deveel.Data.Sql.Tables {
 			: this((IDatabaseContext)null, tableInfo) {
 		}
 
-		public TemporaryTable(IDatabaseContext context, TableInfo tableInfo)
+		public TemporaryTable(IContext context, TableInfo tableInfo)
 			: base(context) {
 			this.tableInfo = tableInfo.AsReadOnly();
 			rows = new List<DataObject[]>();
@@ -160,7 +161,7 @@ namespace Deveel.Data.Sql.Tables {
 			return new SimpleRowEnumerator(this);
 		}
 
-		public static TemporaryTable SingleColumnTable(IDatabaseContext database, string columnName, SqlType columnType) {
+		public static TemporaryTable SingleColumnTable(IContext database, string columnName, SqlType columnType) {
 			var tableInfo = new TableInfo(new ObjectName("single"));
 			tableInfo.AddColumn(columnName, columnType);
 			tableInfo = tableInfo.AsReadOnly();

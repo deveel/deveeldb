@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	/// <summary>
@@ -37,7 +38,7 @@ namespace Deveel.Data.Sql.Tables {
 	/// </para>
 	/// </remarks>
 	public interface ITable : IDbObject, IEnumerable<Row>, IDisposable {
-		IDatabaseContext DatabaseContext { get; }
+		IContext DatabaseContext { get; }
 
 		/// <summary>
 		/// Gets the metadata information of the table, used to
@@ -68,7 +69,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// than zero or greater or equal than the number of columns
 		/// defined in the table metadata.
 		/// </exception>
-		/// <seealso cref="Sql.TableInfo.IndexOfColumn(string)"/>
+		/// <seealso cref="Tables.TableInfo.IndexOfColumn(string)"/>
 		DataObject GetValue(long rowNumber, int columnOffset);
 
 		/// <summary>

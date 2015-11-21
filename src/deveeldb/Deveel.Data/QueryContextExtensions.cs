@@ -30,7 +30,7 @@ namespace Deveel.Data {
 		}
 
 		public static User User(this IQueryContext context) {
-			return context.Session().SessionInfo.User;
+			return context.Session().User;
 		}
 
 		public static string UserName(this IQueryContext context) {

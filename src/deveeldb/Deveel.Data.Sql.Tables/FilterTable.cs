@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	class FilterTable : Table {
@@ -33,7 +34,7 @@ namespace Deveel.Data.Sql.Tables {
 			return Parent.GetEnumerator();
 		}
 
-		public override IDatabaseContext DatabaseContext {
+		public override IContext DatabaseContext {
 			get { return Parent.DatabaseContext; }
 		}
 

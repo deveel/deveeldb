@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	class CompositeTable : Table, IRootTable {
@@ -65,7 +66,7 @@ namespace Deveel.Data.Sql.Tables {
 			return new SimpleRowEnumerator(this);
 		}
 
-		public override IDatabaseContext DatabaseContext {
+		public override IContext DatabaseContext {
 			get { return mainTable.DatabaseContext; }
 		}
 

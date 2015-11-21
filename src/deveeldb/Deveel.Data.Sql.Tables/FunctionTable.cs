@@ -21,6 +21,7 @@ using System.Linq;
 using Deveel.Data.Caching;
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -138,15 +139,19 @@ namespace Deveel.Data.Sql.Tables {
 			ReferenceTable.Release();
 		}
 
+		private ITableCellCache TableCellCache() {
+			return DatabaseContext.ResolveService<ITableCellCache>();
+		}
+
 		public override DataObject GetValue(long rowNumber, int columnOffset) {
 			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
 			// Check if in the cache,
-			var cache = DatabaseContext.TableCellCache();
+			var cache = TableCellCache();
 
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
 				DataObject cell;
-				if (cache.TryGetValue(DatabaseContext.DatabaseName(), uniqueId, (int)rowNumber, columnOffset, out cell))
+				if (cache.TryGetValue(context.Session().Database.Name(), uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -173,7 +178,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var value = ((SqlConstantExpression) exp).Value;
 			if (cache != null)
-				cache.Set(DatabaseContext.DatabaseName(), uniqueId, row, column, value);
+				cache.Set(context.Session().Database.Name(), uniqueId, row, column, value);
 
 			return value;
 		}

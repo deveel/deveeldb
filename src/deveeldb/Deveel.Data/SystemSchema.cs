@@ -769,15 +769,18 @@ namespace Deveel.Data {
 				if (rowNumber < 0 || rowNumber >= transaction.Database.DatabaseContext.Sessions.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
-				var session = transaction.Database.DatabaseContext.Sessions[(int) rowNumber].SessionInfo;
+				var session = transaction.Database.DatabaseContext.Sessions[(int) rowNumber];
+				var lastCommandTime = session.LastCommandTime == null
+					? SqlDateTime.Null
+					: (SqlDateTime) session.LastCommandTime.Value;
 
 				switch (columnOffset) {
 					case 0:
 						return GetColumnValue(0, new SqlString(session.User.Name));
 					case 1:
-						return GetColumnValue(1, new SqlString(session.EndPoint.ToString()));
+						return GetColumnValue(1, SqlString.Null);
 					case 2:
-						return GetColumnValue(2, ((SqlDateTime)session.LastCommandTime));
+						return GetColumnValue(2, lastCommandTime);
 					case 3:
 						return GetColumnValue(3, (SqlDateTime)session.StartedOn);
 					default:

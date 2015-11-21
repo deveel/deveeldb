@@ -173,6 +173,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.Commands.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.Commands.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
@@ -329,7 +330,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\TemporaryTable.cs" />
     <Compile Include="Deveel.Data\UserSession.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
-    <Compile Include="Deveel.Data\SessionInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleEventLogger.cs" />

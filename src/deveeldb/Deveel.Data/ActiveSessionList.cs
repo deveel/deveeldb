@@ -57,7 +57,7 @@ namespace Deveel.Data {
 		/// <returns></returns>
 		public bool IsUserActive(string userName) {
 			lock (this) {
-				return sessions.Any(x => x.SessionInfo.User.Name == userName);
+				return sessions.Any(x => x.User.Name == userName);
 			}
 		}
 

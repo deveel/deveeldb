@@ -52,20 +52,16 @@ namespace Deveel.Data {
 
 		#region Sessions
 
-		static IUserSession CreateUserSession(this IDatabase database, SessionInfo sessionInfo) {
-			if (sessionInfo == null)
-				throw new ArgumentNullException("sessionInfo");
+		static IUserSession CreateUserSession(this IDatabase database, User user, IsolationLevel isolation) {
+			if (user == null)
+				throw new ArgumentNullException("user");
 
 			// TODO: if the isolation is not specified, use a configured default one
-			var isolation = sessionInfo.Isolation;
 			if (isolation == IsolationLevel.Unspecified)
 				isolation = IsolationLevel.Serializable;
 
-			if (sessionInfo.CommitId >= 0)
-				throw new ArgumentException("Cannot create a session that reference an existing commit state.");
-
 			var transaction = database.CreateTransaction(isolation);
-			return new UserSession(transaction, sessionInfo);
+			return new UserSession(transaction, user);
 		}
 
 		static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
@@ -84,7 +80,7 @@ namespace Deveel.Data {
 
 		internal static IUserSession CreateUserSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
-			return database.CreateUserSession(new SessionInfo(user));
+			return database.CreateUserSession(user, IsolationLevel.Unspecified);
 		}
 
 		private static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
@@ -95,12 +91,7 @@ namespace Deveel.Data {
 			return database.CreateUserSession(user);
 		}
 
-		static IUserSession OpenUserSession(this IDatabase database, SessionInfo sessionInfo) {
-			if (sessionInfo == null)
-				throw new ArgumentNullException("sessionInfo");
-
-			var commitId = sessionInfo.CommitId;
-
+		static IUserSession OpenUserSession(this IDatabase database, int commitId, User user) {
 			if (commitId < 0)
 				throw new ArgumentException("Invalid commit reference specified.");
 
@@ -108,7 +99,7 @@ namespace Deveel.Data {
 			if (transaction == null)
 				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
 
-			return new UserSession(transaction, sessionInfo);
+			return new UserSession(transaction, user);
 		}
 
 		#endregion

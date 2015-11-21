@@ -32,13 +32,12 @@ namespace Deveel.Data {
 		public SystemUserSession(ITransaction transaction, string currentSchema) {
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
-			SessionInfo = new SessionInfo(User.System, transaction.Isolation);
 		    SessionContext = transaction.TransactionContext.CreateSessionContext();
+			StartedOn = DateTimeOffset.UtcNow;
 		}
 
 		public void Dispose() {
 			Transaction = null;
-			SessionInfo = null;
 		}
 
 	    public IDatabase Database {
@@ -47,7 +46,15 @@ namespace Deveel.Data {
 
 		public string CurrentSchema { get; private set; }
 
-		public SessionInfo SessionInfo { get; private set; }
+		public DateTimeOffset StartedOn { get; private set; }
+
+		public DateTimeOffset? LastCommandTime {
+			get { return null; }
+		}
+
+		public User User {
+			get { return User.System; }
+		}
 
 		public ITransaction Transaction { get; private set; }
 
