@@ -659,13 +659,13 @@
     <Compile Include="Deveel.Data.Sql\BlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql\CellId.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
-    <Compile Include="Deveel.Data.Sql.Tables\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrabilityExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintType.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintViolationException.cs" />
+    <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql\DbObjectType.cs" />
     <Compile Include="Deveel.Data.Sql\ExceptionHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\FilterTable.cs" />

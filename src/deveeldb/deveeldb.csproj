@@ -164,7 +164,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
-    <Compile Include="Deveel.Data.Sql.Tables\CompositeFunction.cs" />
+    <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrability.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrabilityExtensions.cs" />
