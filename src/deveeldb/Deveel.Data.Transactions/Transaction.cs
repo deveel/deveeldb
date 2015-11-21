@@ -41,12 +41,7 @@ namespace Deveel.Data.Transactions {
 
 		private static readonly TableInfo[] IntTableInfo;
 
-		private string currentSchema;
-		private bool readOnly;
 		private readonly bool dbReadOnly;
-		private bool ignoreCase;
-		private bool autoCommit;
-		private string parameterStyle;
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
@@ -67,10 +62,11 @@ namespace Deveel.Data.Transactions {
 
 			Database.TransactionFactory.OpenTransactions.AddTransaction(this);
 
-			currentSchema = database.DatabaseContext.DefaultSchema();
-			readOnly = dbReadOnly = database.DatabaseContext.ReadOnly();
-			autoCommit = database.DatabaseContext.AutoCommit();
-			ignoreCase = database.DatabaseContext.IgnoreIdentifiersCase();
+			this.CurrentSchema(database.DatabaseContext.DefaultSchema());
+			this.ReadOnly(database.DatabaseContext.ReadOnly());
+			this.AutoCommit(database.DatabaseContext.AutoCommit());
+			this.IgnoreIdentifiersCase(database.DatabaseContext.IgnoreIdentifiersCase());
+			this.ParameterStyle(QueryParameterStyle.Marker);
 		}
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation)
