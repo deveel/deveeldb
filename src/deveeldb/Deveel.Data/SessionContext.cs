@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {

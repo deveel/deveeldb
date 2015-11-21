@@ -22,11 +22,11 @@ namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorManager : IObjectManager {
 		private List<Cursor> cursors;
 
-		public CursorManager(IQueryContext context) {
-			if (context == null)
-				throw new ArgumentNullException("context");
+		public CursorManager(ICursorScope scope) {
+			if (scope == null)
+				throw new ArgumentNullException("scope");
 
-			Context = context;
+			Scope = scope;
 			cursors = new List<Cursor>();
 		}
 
@@ -34,15 +34,7 @@ namespace Deveel.Data.Sql.Cursors {
 			Dispose(false);
 		}
 
-		//void IResolveCallback.OnResolved(IResolveScope scope) {
-		//	var context = scope as IQueryContext;
-		//	if (context == null)
-		//		throw new InvalidOperationException("The cursor manager is not resolved within a query context scope");
-
-		//	Context = context;
-		//}
-
-		public IQueryContext Context { get; private set; }
+		public ICursorScope Scope { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -61,7 +53,7 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 
 			cursors = null;
-			Context = null;
+			Scope = null;
 		}
 
 		DbObjectType IObjectManager.ObjectType {
@@ -76,11 +68,11 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		bool IObjectManager.RealObjectExists(ObjectName objName) {
-			return CursorExists(objName);
+			return CursorExists(objName.Name);
 		}
 
 		bool IObjectManager.ObjectExists(ObjectName objName) {
-			return CursorExists(objName);
+			return CursorExists(objName.Name);
 		}
 
 		IDbObject IObjectManager.GetObject(ObjectName objName) {
@@ -92,7 +84,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		bool IObjectManager.DropObject(ObjectName objName) {
-			return DropCursor(objName);
+			return DropCursor(objName.Name);
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
@@ -122,14 +114,14 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
-		public bool CursorExists(ObjectName cursorName) {
-			var ignoreCase = Context.IgnoreIdentifiersCase();
+		public bool CursorExists(string cursorName) {
+			var ignoreCase = Scope.IgnoreCase;
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-			return cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName.Name, comparison));
+			return cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName, comparison));
 		}
 
 		public Cursor GetCursor(string cursorName) {
-			var ignoreCase = Context.IgnoreIdentifiersCase();
+			var ignoreCase = Scope.IgnoreCase;
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			return cursors.FirstOrDefault(x => x.CursorInfo.CursorName.Equals(cursorName, comparison));
 		}
@@ -143,10 +135,12 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
-		public bool DropCursor(ObjectName cursorName) {
+		public bool DropCursor(string cursorName) {
+			var ignoreCase = Scope.IgnoreCase;
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			for (int i = cursors.Count - 1; i >= 0; i--) {
 				var cursor = cursors[i];
-				if (cursor.CursorInfo.CursorName.Equals(cursorName.Name, StringComparison.OrdinalIgnoreCase)) {
+				if (cursor.CursorInfo.CursorName.Equals(cursorName, comparison)) {
 					cursors.RemoveAt(i);
 					cursor.Dispose();
 					return true;

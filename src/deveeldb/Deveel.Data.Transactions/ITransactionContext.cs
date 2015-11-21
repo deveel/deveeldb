@@ -16,10 +16,11 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
-	public interface ITransactionContext : IContext, IVariableScope {
+	public interface ITransactionContext : IContext, IVariableScope, ICursorScope {
         IDatabaseContext DatabaseContext { get; }
 
 	    ISessionContext CreateSessionContext();

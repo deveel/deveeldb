@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public override ITable Evaluate(IQueryContext context) {
 			ITable childTable = Child.Evaluate(context);
-			context.TableCache.Set(MarkName, childTable);
+			context.CacheTable(MarkName, childTable);
 			return childTable;
 		}
 

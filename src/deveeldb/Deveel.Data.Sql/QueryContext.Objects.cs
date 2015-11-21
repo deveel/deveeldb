@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
@@ -9,7 +10,7 @@ namespace Deveel.Data.Sql {
 		public static bool ObjectExists(this IQueryContext context, ObjectName objectName) {
 			// Special types for these database objects that can be 
 			// declared in a limited context
-			if (context.CursorManager.CursorExists(objectName))
+			if (context.CursorExists(objectName.Name))
 				return true;
 			if (context.VariableExists(objectName.Name))
 				return true;
@@ -27,7 +28,7 @@ namespace Deveel.Data.Sql {
 			// Special types for these database objects that can be 
 			// declared in a limited context
 			if (objectType == DbObjectType.Cursor &&
-				context.CursorManager.CursorExists(objectName))
+				context.CursorExists(objectName.Name))
 				return true;
 
 			if (objectType == DbObjectType.Variable &&
@@ -53,7 +54,7 @@ namespace Deveel.Data.Sql {
 			// If they are declared in the context, the user owns them and we don't need
 			//  to verify the ownership
 			if (objType == DbObjectType.Cursor) {
-				var obj = context.CursorManager.GetCursor(objName.Name);
+				var obj = context.FindCursor(objName.Name);
 				if (obj != null)
 					return obj;
 			} else if (objType == DbObjectType.Variable) {
@@ -89,7 +90,7 @@ namespace Deveel.Data.Sql {
 				return true;
 			}
 			if (objectType == DbObjectType.Cursor &&
-				context.CursorManager.DropCursor(objectName)) {
+				context.DropCursor(objectName.Name)) {
 				return true;
 			}
 
@@ -116,7 +117,7 @@ namespace Deveel.Data.Sql {
 
 		public static ObjectName ResolveObjectName(this IQueryContext context, string name) {
 			if (context.VariableExists(name) ||
-				context.CursorManager.CursorExists(new ObjectName(name)))
+				context.CursorExists(name))
 				return new ObjectName(name);
 
 			ObjectName resolved;
@@ -132,7 +133,7 @@ namespace Deveel.Data.Sql {
 				context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 			if (objectType == DbObjectType.Cursor &&
-				context.CursorManager.CursorExists(objectName))
+				context.CursorExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 
 			ObjectName resolved;

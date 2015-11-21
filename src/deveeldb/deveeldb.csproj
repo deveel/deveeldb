@@ -149,6 +149,10 @@
     <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
     <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
@@ -178,6 +182,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
@@ -285,7 +290,6 @@
     <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorStatus.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\FetchDirection.cs" />
-    <Compile Include="Deveel.Data.Sql.Cursors\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\BreakStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ContinueStatementNode.cs" />

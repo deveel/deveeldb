@@ -32,7 +32,6 @@ namespace Deveel.Data {
 #else
 		private RNGCryptoServiceProvider secureRandom;
 #endif
-		private ICache tableCache;
 		private bool disposed;
 
 		protected QueryContextBase(IUserSession session)
@@ -47,8 +46,8 @@ namespace Deveel.Data {
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
 			Session = session;
-			tableCache = new MemoryCache();
-			CursorManager = new CursorManager(this);
+
+			this.RegisterInstance<ICache>(new MemoryCache(), "TableCache");
 		}
 
 		IQueryContext IQueryContext.ParentContext {
@@ -69,10 +68,6 @@ namespace Deveel.Data {
 
 		public virtual string CurrentSchema {
 			get { return Session.CurrentSchema; }
-		}
-
-		public virtual ICache TableCache {
-			get { return tableCache; }
 		}
 
 		protected override string ContextName {
@@ -104,7 +99,6 @@ namespace Deveel.Data {
 						CursorManager.Dispose();
 				}
 
-				tableCache = null;
 				CursorManager = null;
 				secureRandom = null;
 				Session = null;

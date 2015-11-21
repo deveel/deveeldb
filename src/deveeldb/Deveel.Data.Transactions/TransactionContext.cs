@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
@@ -8,6 +9,7 @@ namespace Deveel.Data.Transactions {
 		public TransactionContext (IDatabaseContext databaseContext)
 			: base(databaseContext) {
 			VariableManager = new VariableManager(this);
+			CursorManager = new CursorManager(this);
 		}
 
 		protected override string ContextName {
@@ -22,14 +24,23 @@ namespace Deveel.Data.Transactions {
 			return new SessionContext(this);
 		}
 
+		bool ICursorScope.IgnoreCase {
+			get { return this.IgnoreIdentifiersCase(); }
+		}
+
 		public IVariableManager VariableManager { get; private set; }
+
+		public CursorManager CursorManager { get; private set; }
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
 				if (VariableManager != null)
 					VariableManager.Dispose();
+				if (CursorManager != null)
+					CursorManager.Dispose();
 			}
 
+			CursorManager = null;
 			VariableManager = null;
 			base.Dispose(disposing);
 		}

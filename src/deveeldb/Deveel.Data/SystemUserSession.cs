@@ -100,5 +100,9 @@ namespace Deveel.Data {
 		public void Rollback() {
 			Transaction.Rollback();
 		}
+
+		public IQuery CreateQuery() {
+			return new Query(this);
+		}
 	}
 }

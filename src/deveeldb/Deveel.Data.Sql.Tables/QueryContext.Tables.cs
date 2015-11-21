@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Schemas;
 
@@ -160,29 +162,36 @@ namespace Deveel.Data.Sql.Tables {
 			return context.GetTable(tableName) as IMutableTable;
 		}
 
+		private static ICache TableCache(this IQueryContext context) {
+			return context.ResolveService<ICache>("TableCache");
+		}
+
 		public static ITable GetCachedTable(this IQueryContext context, string cacheKey) {
-			if (context.TableCache == null)
+			var tableCache = context.TableCache();
+			if (tableCache == null)
 				return null;
 
 			object obj;
-			if (!context.TableCache.TryGet(cacheKey, out obj))
+			if (!tableCache.TryGet(cacheKey, out obj))
 				return null;
 
 			return obj as ITable;
 		}
 
 		public static void CacheTable(this IQueryContext context, string cacheKey, ITable table) {
-			if (context.TableCache == null)
+			var tableCache = context.TableCache();
+			if (tableCache == null)
 				return;
 
-			context.TableCache.Set(cacheKey, table);
+			tableCache.Set(cacheKey, table);
 		}
 
 		public static void ClearCachedTables(this IQueryContext context) {
-			if (context.TableCache == null)
+			var tableCache = context.TableCache();
+			if (tableCache == null)
 				return;
 
-			context.TableCache.Clear();
+			tableCache.Clear();
 		}
 
 		#region Constraints

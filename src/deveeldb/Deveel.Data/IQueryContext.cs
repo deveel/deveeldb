@@ -16,11 +16,8 @@
 
 using System;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -32,11 +29,7 @@ namespace Deveel.Data {
 
 		string CurrentSchema { get; }
 
-		ICache TableCache { get; }
-
 		IQueryContext ParentContext { get; }
-
-		CursorManager CursorManager { get; }
 
 		/// <summary>
 		/// Computes a new random number, that is ensured to be unique 

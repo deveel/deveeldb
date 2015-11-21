@@ -226,6 +226,10 @@ namespace Deveel.Data {
 			Transaction = null;
 		}
 
+		public IQuery CreateQuery() {
+			return new Query(this);
+		}
+
 		private void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {

@@ -77,6 +77,8 @@ namespace Deveel.Data {
 
 		void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode);
 
+		IQuery CreateQuery();
+
 
 		/// <summary>
 		/// Commits the latest changes made by the user in the session.
