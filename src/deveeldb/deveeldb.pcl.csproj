@@ -637,7 +637,11 @@
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\View.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\ViewInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\ViewManager.cs" />
     <Compile Include="Deveel.Data.Sql\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data.Sql\BlockQueryContext.cs" />
@@ -668,8 +672,8 @@
     <Compile Include="Deveel.Data.Sql\IQueryTable.cs" />
     <Compile Include="Deveel.Data.Sql\IRootTable.cs" />
     <Compile Include="Deveel.Data.Sql\IRowIndex.cs" />
-    <Compile Include="Deveel.Data.Sql\ISequence.cs" />
-    <Compile Include="Deveel.Data.Sql\ISequenceManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\ISequence.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\ISequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql\ITable.cs" />
     <Compile Include="Deveel.Data.Sql\ITableVariableResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IVariableResolver.cs" />
@@ -692,8 +696,9 @@
     <Compile Include="Deveel.Data.Sql\Row.cs" />
     <Compile Include="Deveel.Data.Sql\RowId.cs" />
     <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
-    <Compile Include="Deveel.Data.Sql\SequenceInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
+    <Compile Include="Deveel.Data.Sql\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data.Sql\SortColumn.cs" />
     <Compile Include="Deveel.Data.Sql\SqlErrorException.cs" />
     <Compile Include="Deveel.Data.Sql\SqlModelErrorCodes.cs" />
@@ -705,9 +710,6 @@
     <Compile Include="Deveel.Data.Sql\TableInternalExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\TableQueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\UserContextTable.cs" />
-    <Compile Include="Deveel.Data.Sql\VariableInfo.cs" />
-    <Compile Include="Deveel.Data.Sql\View.cs" />
-    <Compile Include="Deveel.Data.Sql\ViewInfo.cs" />
     <Compile Include="Deveel.Data.Sql\VirtualTable.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
@@ -824,8 +826,7 @@
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseManager.cs" />
-    <Compile Include="Deveel.Data\IObjectManager.cs" />
-    <Compile Include="Deveel.Data\IObjectManagerResolver.cs" />
+    <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
@@ -834,18 +835,16 @@
     <Compile Include="Deveel.Data\ITableSource.cs" />
     <Compile Include="Deveel.Data\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\IUserSession.cs" />
-    <Compile Include="Deveel.Data\IVariableAccessContext.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
-    <Compile Include="Deveel.Data\SchemaTypes.cs" />
-    <Compile Include="Deveel.Data\SequenceManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SequenceManagerExtensions.cs" />
     <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data\SessionInfo.cs" />
     <Compile Include="Deveel.Data\SessionQueryContext.cs" />
-    <Compile Include="Deveel.Data\SimpleRowEnumerator.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
@@ -865,7 +864,6 @@
     <Compile Include="Deveel.Data\UserSession.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data\VersionedTableIndexList.cs" />
-    <Compile Include="Deveel.Data.Sql\ViewManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

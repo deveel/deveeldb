@@ -17,13 +17,11 @@
 using System;
 
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Transactions;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Sequences {
 	/// <summary>
 	/// Represents a numberic sequence in a transaction.
 	/// </summary>
-	/// <seealso cref="ISimpleTransaction.SetValue"/>
 	public interface ISequence : IDbObject {
 		/// <summary>
 		/// Gets the configuration information of the sequence.

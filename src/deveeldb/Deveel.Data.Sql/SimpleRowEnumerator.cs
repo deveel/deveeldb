@@ -18,9 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	public class SimpleRowEnumerator : IEnumerator<Row> {
 		private readonly ITable source;
 		private int index = -1;

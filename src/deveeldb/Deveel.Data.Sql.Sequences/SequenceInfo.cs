@@ -18,7 +18,7 @@ using System;
 
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Sequences {
 	/// <summary>
 	/// Provides the meta information about a <see cref="ISequence"/> configuring
 	/// its operative behavior.

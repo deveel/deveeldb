@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Views {
 	public sealed class ViewInfo : IObjectInfo {
 		public ViewInfo(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
 			if (tableInfo == null)

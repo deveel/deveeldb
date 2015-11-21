@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Views {
 	public sealed class View : IDbObject {
 		public View(ViewInfo viewInfo) {
 			if (viewInfo == null)

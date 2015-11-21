@@ -21,8 +21,10 @@ using System.Linq;
 using Deveel.Data.Index;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
+using Deveel.Data.Sql.Views;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {

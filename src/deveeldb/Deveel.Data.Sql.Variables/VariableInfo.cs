@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Variables {
 	public sealed class VariableInfo : IObjectInfo {
 		public VariableInfo(string variableName, SqlType type, bool isConstant) {
 			if (String.IsNullOrEmpty(variableName))

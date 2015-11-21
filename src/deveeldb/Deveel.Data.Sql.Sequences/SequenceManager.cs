@@ -18,12 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql.Sequences {
 	/// <summary>
 	/// A default implementation of a sequence manager that is backed by 
 	/// a given transaction.

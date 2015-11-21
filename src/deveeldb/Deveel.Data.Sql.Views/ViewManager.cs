@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Views {
 	public sealed class ViewManager : IObjectManager {
 		private Dictionary<long, ViewInfo> viewCache;
 		private bool viewTableChanged;

@@ -16,9 +16,7 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Defines the contract for the business managers of database objects of a given type.
 	/// </summary>
