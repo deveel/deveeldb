@@ -15,10 +15,10 @@ using QueryParameter = IQToolkit.Data.Common.QueryParameter;
 
 namespace Deveel.Data.Linq {
 	class DeveelDbExecutor : QueryExecutor {
-		private IQueryContext context;
+		private IQuery context;
 		private int rowsAffected;
 
-		public DeveelDbExecutor(IQueryContext context) {
+		public DeveelDbExecutor(IQuery context) {
 			this.context = context;
 		}
 

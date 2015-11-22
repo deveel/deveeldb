@@ -25,7 +25,7 @@ namespace Deveel.Data.Xml {
 			var args = ((SqlFunctionCallExpression)exp).Arguments;
 			var invoke = new Invoke(functionName, args);
 
-			return QueryContext.InvokeFunction(invoke);
+			return Query.InvokeFunction(invoke);
 		}
 
 		[Test]

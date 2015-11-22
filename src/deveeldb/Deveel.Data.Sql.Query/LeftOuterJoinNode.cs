@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public string MarkerName { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			// Evaluate the child branch,
 			var result = Child.Evaluate(context);
 			// Get the table of the complete mark name,

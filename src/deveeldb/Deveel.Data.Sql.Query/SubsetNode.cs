@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName[] AliasColumnNames { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var table = Child.Evaluate(context);
 			return table.Subset(OriginalColumnNames, AliasColumnNames);
 		}

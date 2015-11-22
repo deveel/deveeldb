@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
@@ -66,8 +67,8 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns an instance of <see cref="SqlStatement"/> that represents the
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
-		/// <seealso cref="Prepare(IExpressionPreparer, IQueryContext)"/>
-		protected virtual SqlStatement PrepareStatement(IQueryContext context) {
+		/// <seealso cref="Prepare(IExpressionPreparer, IQuery)"/>
+		protected virtual SqlStatement PrepareStatement(IQuery context) {
 			return this;
 		}
 
@@ -88,7 +89,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public SqlStatement Prepare(IExpressionPreparer preparer, IQueryContext context) {
+		public SqlStatement Prepare(IExpressionPreparer preparer, IQuery context) {
 			SqlStatement prepared = this;
 
 			try {
@@ -109,7 +110,7 @@ namespace Deveel.Data.Sql.Statements {
 			return prepared;
 		}
 
-		IStatement IStatement.Prepare(IQueryContext context) {
+		IStatement IStatement.Prepare(IQuery context) {
 			return PrepareStatement(context);
 		}
 
@@ -128,15 +129,15 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public ITable Execute(IQueryContext context) {
+		public ITable Execute(IQuery context) {
 			return PrepareAndExecute(null, context);
 		}
 
-		ITable IExecutable.Execute(IQueryContext context) {
+		ITable IExecutable.Execute(IQuery context) {
 			return ExecuteStatement(context);
 		}
 
-		private ITable PrepareAndExecute(IExpressionPreparer preparer, IQueryContext context) {
+		private ITable PrepareAndExecute(IExpressionPreparer preparer, IQuery context) {
 			SqlStatement prepared;
 
 			try {
@@ -148,7 +149,7 @@ namespace Deveel.Data.Sql.Statements {
 			return prepared.ExecuteStatement(context);
 		}
 
-		protected virtual ITable ExecuteStatement(IQueryContext context) {
+		protected virtual ITable ExecuteStatement(IQuery context) {
 			// This method is not abstract because a statement can be different after
 			// preparation, that means a statement can be a builder for another 
 			throw new PreparationRequiredException(GetType().FullName);
@@ -183,27 +184,24 @@ namespace Deveel.Data.Sql.Statements {
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
-		public static IEnumerable<SqlStatement> Parse(IQueryContext context, string sqlSource) {
+		public static IEnumerable<SqlStatement> Parse(IContext context, string sqlSource) {
 			return Parse(context, new SqlQuery(sqlSource));
 		}
 
 		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
 
-		public static IEnumerable<SqlStatement> Parse(IQueryContext context, SqlQuery query) {
+		public static IEnumerable<SqlStatement> Parse(IContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
 			var compiler = DefaultCompiler;
 
-			ISystemContext systemContext = null;
-
 			if (context != null) {
-				systemContext = context.SystemContext();
-				compiler = systemContext.SqlCompiler();
+				compiler = context.ResolveService<ISqlCompiler>();
 			}
 
 			try {
-				var compileContext = new SqlCompileContext(systemContext, query.Text);
+				var compileContext = new SqlCompileContext(context, query.Text);
 				var result = compiler.Compile(compileContext);
 				if (result.HasErrors)
 					throw new SqlParseException();

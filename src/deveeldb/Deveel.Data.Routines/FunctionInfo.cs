@@ -95,13 +95,13 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		public FunctionType FunctionType { get; private set; }
 
-		internal override bool MatchesInvoke(Invoke request, IQueryContext queryContext) {
+		internal override bool MatchesInvoke(Invoke request, IQuery query) {
 			if (request == null)
 				return false;
 
 			bool ignoreCase = true;
-			if (queryContext != null)
-				ignoreCase = queryContext.IgnoreIdentifiersCase();
+			if (query != null)
+				ignoreCase = query.IgnoreIdentifiersCase();
 
 			if (!RoutineName.Equals(request.RoutineName, ignoreCase))
 				return false;
@@ -110,7 +110,7 @@ namespace Deveel.Data.Routines {
 			//       and compare it to the parameter type definition
 			bool unboundedSeen = false;
 			for (int i = 0; i < request.Arguments.Length; i++) {
-				var argType = request.Arguments[i].ReturnType(queryContext, null);
+				var argType = request.Arguments[i].ReturnType(query, null);
 
 				if (i + 1 > Parameters.Length) {
 					if (!unboundedSeen)

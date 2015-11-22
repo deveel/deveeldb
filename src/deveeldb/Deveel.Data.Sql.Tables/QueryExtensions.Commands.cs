@@ -30,9 +30,9 @@ namespace Deveel.Data.Sql.Tables {
 			queryExpression.FromClause.AddTable(tableName.Name);
 			queryExpression.WhereExpression = expression;
 
-			var planExpression = queryExpression.Evaluate(context.QueryContext, null);
+			var planExpression = queryExpression.Evaluate(context, null);
 			var plan = (SqlQueryObject)((SqlConstantExpression)planExpression).Value.Value;
-			var deleteSet = plan.QueryPlan.Evaluate(context.QueryContext);
+			var deleteSet = plan.QueryPlan.Evaluate(context);
 
 			return context.DeleteFrom(tableName, deleteSet, limit);
 		}
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Tables {
 			IQueryPlanNode plan;
 
 			try {
-				var planValue = query.EvaluateToConstant(context.QueryContext, null);
+				var planValue = query.EvaluateToConstant(context, null);
 				if (planValue == null)
 					throw new InvalidOperationException();
 
@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Tables {
 				throw new InvalidOperationException(String.Format("Could not delete from table '{0}': unable to form the delete set.", tableName), ex);
 			}
 
-			var deleteSet = plan.Evaluate(context.QueryContext);
+			var deleteSet = plan.Evaluate(context);
 			return context.DeleteFrom(tableName, deleteSet, limit);
 		}
 
@@ -88,8 +88,8 @@ namespace Deveel.Data.Sql.Tables {
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 
-			var updateSet = queryPlan.Evaluate(context.QueryContext);
-			return table.Update(context.QueryContext, updateSet, assignments, limit);
+			var updateSet = queryPlan.Evaluate(context);
+			return table.Update(context, updateSet, assignments, limit);
 		}
 
 		public static void InsertIntoTable(this IQuery context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
@@ -101,10 +101,12 @@ namespace Deveel.Data.Sql.Tables {
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Insert);
 
 			var table = context.GetMutableTable(tableName);
+			if (table == null)
+				throw new ObjectNotFoundException(tableName);
 
 			var row = table.NewRow();
 			foreach (var expression in assignments) {
-				row.EvaluateAssignment(expression, context.QueryContext);
+				row.EvaluateAssignment(expression, context);
 			}
 
 			table.AddRow(row);

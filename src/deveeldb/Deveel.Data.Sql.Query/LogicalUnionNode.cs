@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Query {
 			: base(left, right) {
 		}
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var leftResult = Left.Evaluate(context);
 			var rightResult = Right.Evaluate(context);
 

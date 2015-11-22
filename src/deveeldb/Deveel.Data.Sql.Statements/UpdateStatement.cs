@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			var tableName = context.ResolveTableName(TableName);
 			if (!context.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			queryExpression.WhereExpression = WherExpression;
 
 			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
-			var queryPlan = context.QueryPlanner().PlanQuery(context, queryExpression, null, null);
+			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, queryExpression, null, null);
 
 			var columns = new List<SqlAssignExpression>();
 			foreach (var assignment in Assignments) {
@@ -93,7 +93,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public int Limit { get; private set; }
 
-			protected override ITable ExecuteStatement(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQuery context) {
 				var updateCount = context.UpdateTable(TableName, QueryPlan, Columns, Limit);
 				return FunctionTable.ResultTable(context, updateCount);
 			}

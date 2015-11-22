@@ -21,7 +21,7 @@ using System.Security.Cryptography;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class QueryContext : Context, IQueryContext {
@@ -33,10 +33,8 @@ namespace Deveel.Data {
 #endif
 		*/
 
-		internal QueryContext(IUserSession session)
-			: base(session.SessionContext) {
-			if (session == null)
-				throw new ArgumentNullException("session");
+		internal QueryContext(ISessionContext parentContext)
+			: base(parentContext) {
 
 			this.RegisterInstance<IQueryContext>(this);
 			/*
@@ -46,20 +44,12 @@ namespace Deveel.Data {
 			secureRandom = new RNGCryptoServiceProvider();
 #endif
 			*/
-			Session = session;
 
 			this.RegisterInstance<ICache>(new MemoryCache(), "TableCache");
 		}
 
 		public ISessionContext SessionContext {
-			get { return Session.SessionContext; }
-		}
-
-
-		public IUserSession Session { get; private set; }
-
-		public string CurrentSchema {
-			get { return Session.CurrentSchema; }
+			get { return (ISessionContext)ParentContext; }
 		}
 
 		protected override string ContextName {
@@ -85,11 +75,5 @@ namespace Deveel.Data {
 		}
 		*/
 
-		protected override void Dispose(bool disposing) {
-			// secureRandom = null;
-			Session = null;
-
-			base.Dispose(true);
-		}
 	}
 }

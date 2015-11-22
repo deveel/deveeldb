@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			QueryContext.CreateTable(tableInfo);
-			QueryContext.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			Query.CreateTable(tableInfo);
+			Query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		[Test]
@@ -49,13 +49,13 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<AlterTableStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0,  ((SqlNumber) result.GetValue(0,0).Value).ToInt32());
 
-			var testTable = QueryContext.GetTable(new ObjectName("test_table"));
+			var testTable = Query.GetTable(new ObjectName("test_table"));
 
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);

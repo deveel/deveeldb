@@ -7,8 +7,8 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public static class Query {
-		public static bool IsSystemFunction(this IQuery context, Invoke invoke) {
-			var info = context.ResolveFunctionInfo(invoke);
+		public static bool IsSystemFunction(this IQuery query, Invoke invoke) {
+			var info = query.ResolveFunctionInfo(invoke);
 			if (info == null)
 				return false;
 
@@ -16,25 +16,25 @@ namespace Deveel.Data.Routines {
 				   info.FunctionType != FunctionType.UserDefined;
 		}
 
-		public static bool IsAggregateFunction(this IQuery context, Invoke invoke) {
-			var function = context.ResolveFunction(invoke);
+		public static bool IsAggregateFunction(this IQuery query, Invoke invoke) {
+			var function = query.ResolveFunction(invoke);
 			return function != null && function.FunctionType == FunctionType.Aggregate;
 		}
 
-		public static IRoutine ResolveRoutine(this IQuery context, Invoke invoke) {
-			var routine = context.ResolveSystemRoutine(invoke);
+		public static IRoutine ResolveRoutine(this IQuery query, Invoke invoke) {
+			var routine = query.ResolveSystemRoutine(invoke);
 			if (routine == null)
-				routine = context.ResolveUserRoutine(invoke);
+				routine = query.ResolveUserRoutine(invoke);
 
 			return routine;
 		}
 
-		public static IRoutine ResolveSystemRoutine(this IQuery context, Invoke invoke) {
-			// return context.SystemContext().ResolveRoutine(invoke, context);
+		public static IRoutine ResolveSystemRoutine(this IQuery query, Invoke invoke) {
+			// return query.SystemContext().ResolveRoutine(invoke, query);
 
-			var resolvers = context.QueryContext.ResolveAllServices<IRoutineResolver>();
+			var resolvers = query.QueryContext.ResolveAllServices<IRoutineResolver>();
 			foreach (var resolver in resolvers) {
-				var routine = resolver.ResolveRoutine(invoke, context.QueryContext);
+				var routine = resolver.ResolveRoutine(invoke, query);
 				if (routine != null)
 					return routine;
 			}
@@ -42,51 +42,51 @@ namespace Deveel.Data.Routines {
 			return null;
 		}
 
-		public static IRoutine ResolveUserRoutine(this IQuery context, Invoke invoke) {
-			var routine = context.Session.ResolveRoutine(invoke);
+		public static IRoutine ResolveUserRoutine(this IQuery query, Invoke invoke) {
+			var routine = query.Session.ResolveRoutine(invoke);
 			if (routine != null &&
-				!context.UserCanExecute(routine.Type, invoke))
+				!query.UserCanExecute(routine.Type, invoke))
 				throw new InvalidOperationException();
 
 			return routine;
 		}
 
-		public static IFunction ResolveFunction(this IQuery context, Invoke invoke) {
-			return context.ResolveRoutine(invoke) as IFunction;
+		public static IFunction ResolveFunction(this IQuery query, Invoke invoke) {
+			return query.ResolveRoutine(invoke) as IFunction;
 		}
 
-		public static IFunction ResolveFunction(this IQuery context, ObjectName functionName, params SqlExpression[] args) {
+		public static IFunction ResolveFunction(this IQuery query, ObjectName functionName, params SqlExpression[] args) {
 			var invoke = new Invoke(functionName, args);
-			return context.ResolveFunction(invoke);
+			return query.ResolveFunction(invoke);
 		}
 
-		public static FunctionInfo ResolveFunctionInfo(this IQuery context, Invoke invoke) {
-			return context.ResolveRoutineInfo(invoke) as FunctionInfo;
+		public static FunctionInfo ResolveFunctionInfo(this IQuery query, Invoke invoke) {
+			return query.ResolveRoutineInfo(invoke) as FunctionInfo;
 		}
 
-		public static RoutineInfo ResolveRoutineInfo(this IQuery context, Invoke invoke) {
-			var routine = context.ResolveRoutine(invoke);
+		public static RoutineInfo ResolveRoutineInfo(this IQuery query, Invoke invoke) {
+			var routine = query.ResolveRoutine(invoke);
 			if (routine == null)
 				return null;
 
 			return routine.RoutineInfo;
 		}
 
-		public static DataObject InvokeSystemFunction(this IQuery context, string functionName,
+		public static DataObject InvokeSystemFunction(this IQuery query, string functionName,
 			params SqlExpression[] args) {
 			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
 			var invoke = new Invoke(resolvedName, args);
-			return context.InvokeFunction(invoke);
+			return query.InvokeFunction(invoke);
 		}
 
-		public static DataObject InvokeFunction(this IQuery context, Invoke invoke) {
-			var result = invoke.Execute(context.QueryContext);
+		public static DataObject InvokeFunction(this IQuery query, Invoke invoke) {
+			var result = invoke.Execute(query);
 			return result.ReturnValue;
 		}
 
-		public static DataObject InvokeFunction(this IQuery context, ObjectName functionName,
+		public static DataObject InvokeFunction(this IQuery query, ObjectName functionName,
 			params SqlExpression[] args) {
-			return context.InvokeFunction(new Invoke(functionName, args));
+			return query.InvokeFunction(new Invoke(functionName, args));
 		}
 	}
 }

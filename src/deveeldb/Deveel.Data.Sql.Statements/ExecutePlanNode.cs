@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ExecutePlanNode ChildTree { get; private set; }
 
-		public void Execute(IQueryContext context) {
+		public void Execute(IQuery context) {
 			Statement.Execute(context);
 		}
 

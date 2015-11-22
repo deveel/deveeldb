@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 		}
 
-		private SelectColumn PrepareColumn(SelectColumn column, IQueryContext context, IList<SelectColumn> functionColumns,
+		private SelectColumn PrepareColumn(SelectColumn column, IQuery context, IList<SelectColumn> functionColumns,
 			ref int aggregateCount) {
 			if (column.Expression is SqlQueryExpression)
 				throw new InvalidOperationException("Sub-query expressions are invalid in select columns.");
@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql.Query {
 			return newColumn;
 		}
 
-		public PreparedQuerySelectColumns Prepare(IQueryContext context) {
+		public PreparedQuerySelectColumns Prepare(IQuery context) {
 			int aggregateCount = 0;
 			var functionColumns = new List<SelectColumn>();
 			var preparedColumns = new List<SelectColumn>();

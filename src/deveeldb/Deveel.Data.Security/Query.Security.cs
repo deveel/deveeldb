@@ -18,11 +18,18 @@ namespace Deveel.Data.Security {
 			return query.QueryContext.ResolveService<IPrivilegeManager>();
 		}
 
+		public static void CreateUserGroup(this IQuery query, string groupName) {
+			if (!query.UserCanManageGroups())
+				throw new InvalidOperationException(String.Format("User '{0}' has not enough privileges to create a group.", query.UserName()));
+
+			query.Direct().UserManager().CreateUserGroup(groupName);
+		}
+
 		#region User Management
 
 		public static User GetUser(this IQuery query, string userName) {
 			if (query.UserName().Equals(userName, StringComparison.OrdinalIgnoreCase))
-				return new User(query.QueryContext, userName);
+				return new User(userName);
 
 			if (!query.UserCanAccessUsers())
 				throw new MissingPrivilegesException(query.UserName(), new ObjectName(userName), Privileges.Select,
@@ -31,7 +38,7 @@ namespace Deveel.Data.Security {
 			if (!query.Direct().UserManager().UserExists(userName))
 				return null;
 
-			return new User(query.QueryContext, userName);
+			return new User(userName);
 		}
 
 		public static void SetUserStatus(this IQuery queryContext, string username, UserStatus status) {
@@ -112,7 +119,7 @@ namespace Deveel.Data.Security {
 
 			query.Direct().UserManager().CreateUser(userInfo, password);
 
-			return new User(query.QueryContext, userName);
+			return new User(userName);
 		}
 
 		public static void AlterUserPassword(this IQuery queryContext, string username, string password) {
@@ -171,7 +178,7 @@ namespace Deveel.Data.Security {
 					return null;
 
 				// Successfully authenticated...
-				return new User(queryContext.QueryContext, username);
+				return new User(username);
 			} catch (SecurityException) {
 				throw;
 			} catch (Exception ex) {
@@ -264,10 +271,10 @@ namespace Deveel.Data.Security {
 			var objectTypeColumn = grantTable.GetResolvedColumnName(1);
 			var objectNameColumn = grantTable.GetResolvedColumnName(2);
 			// All that match the given object
-			var t1 = grantTable.SimpleSelect(query.QueryContext, objectTypeColumn, SqlExpressionType.Equal,
+			var t1 = grantTable.SimpleSelect(query, objectTypeColumn, SqlExpressionType.Equal,
 				SqlExpression.Constant(DataObject.Integer((int)objectType)));
 			// All that match the given parameter
-			t1 = t1.SimpleSelect(query.QueryContext, objectNameColumn, SqlExpressionType.Equal,
+			t1 = t1.SimpleSelect(query, objectNameColumn, SqlExpressionType.Equal,
 				SqlExpression.Constant(DataObject.String(objectName.FullName)));
 
 			// Remove these rows from the table

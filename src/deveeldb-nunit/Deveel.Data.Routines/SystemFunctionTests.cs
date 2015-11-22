@@ -12,17 +12,17 @@ namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class SystemFunctionTests : ContextBasedTest {
 		private DataObject InvokeFunction(string name) {
-			return QueryContext.InvokeSystemFunction(name);
+			return Query.InvokeSystemFunction(name);
 		}
 
 		private DataObject InvokeFunction(string name, DataObject arg) {
-			return QueryContext.InvokeSystemFunction(name, SqlExpression.Constant(arg));
+			return Query.InvokeSystemFunction(name, SqlExpression.Constant(arg));
 		}
 
 		[Test]
 		public void ResolveSystemFunctionWithNoSchema() {
 			IFunction function = null;
-			Assert.DoesNotThrow(() => function = QueryContext.ResolveFunction(new ObjectName("user")));
+			Assert.DoesNotThrow(() => function = Query.ResolveFunction(new ObjectName("user")));
 			Assert.IsNotNull(function);
 			Assert.AreEqual(SystemSchema.Name, function.FullName.ParentName);
 			Assert.AreEqual("user", function.FullName.Name);
@@ -31,7 +31,7 @@ namespace Deveel.Data.Routines {
 		[Test]
 		public void ResolveSystemFunctionFullyQualified() {
 			IFunction function = null;
-			Assert.DoesNotThrow(() => function = QueryContext.ResolveFunction(ObjectName.Parse("SYSTEM.user")));
+			Assert.DoesNotThrow(() => function = Query.ResolveFunction(ObjectName.Parse("SYSTEM.user")));
 			Assert.IsNotNull(function);
 			Assert.AreEqual(SystemSchema.Name, function.FullName.ParentName);
 			Assert.AreEqual("user", function.FullName.Name);

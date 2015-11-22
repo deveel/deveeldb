@@ -25,7 +25,7 @@ namespace Deveel.Data.Types {
 			const string typeString = "GEOMETRY";
 
 			SqlType type = null;
-			Assert.DoesNotThrow(() => type = SqlType.Parse(QueryContext, typeString));
+			Assert.DoesNotThrow(() => type = SqlType.Parse(Query.QueryContext, typeString));
 			Assert.IsNotNull(type);
 			Assert.IsInstanceOf<SpatialType>(type);
 			Assert.AreEqual(-1, ((SpatialType)type).Srid);
@@ -36,7 +36,7 @@ namespace Deveel.Data.Types {
 			const string typeString = "GEOMETRY(SRID = '2029')";
 
 			SqlType type = null;
-			Assert.DoesNotThrow(() => type = SqlType.Parse(QueryContext, typeString));
+			Assert.DoesNotThrow(() => type = SqlType.Parse(Query.QueryContext, typeString));
 			Assert.IsNotNull(type);
 			Assert.IsInstanceOf<SpatialType>(type);
 			Assert.AreEqual(2029, ((SpatialType)type).Srid);

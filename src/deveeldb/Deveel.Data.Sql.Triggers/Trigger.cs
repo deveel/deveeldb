@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		private void FireTrigger(IQueryContext context, TableEventContext tableEvent) {
+		private void FireTrigger(IQuery context, TableEventContext tableEvent) {
 			if (TriggerType == TriggerType.Callback) {
 				NotifyTriggerEvent(context, tableEvent);
 			} else {
@@ -90,17 +90,17 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		private void ExecuteProcedure(IQueryContext context) {
+		private void ExecuteProcedure(IQuery context) {
 			throw new NotImplementedException();
 		}
 
-		private void NotifyTriggerEvent(IQueryContext context, TableEventContext tableEvent) {
+		private void NotifyTriggerEvent(IQuery context, TableEventContext tableEvent) {
 			var tableName = tableEvent.Table.FullName;
 			var eventType = tableEvent.EventType;
 
-			var triggerEvent = new TriggerEvent(context.Session(), TriggerName, tableName, eventType, tableEvent.OldRowId,
+			var triggerEvent = new TriggerEvent(context.Session, TriggerName, tableName, eventType, tableEvent.OldRowId,
 				tableEvent.NewRow);
-			context.RegisterEvent(triggerEvent);
+			// TODO: context.RegisterEvent(triggerEvent);
 		}
 
 		public bool CanInvoke(TableEventContext context) {
@@ -112,10 +112,10 @@ namespace Deveel.Data.Sql.Triggers {
 			       TriggerInfo.TableName.Equals(tableName, true);
 		}
 
-		public void Invoke(IQueryContext context, TableEventContext tableEvent) {
+		public void Invoke(IQuery context, TableEventContext tableEvent) {
 			var isBefore = (tableEvent.EventType & TriggerEventType.Before) != 0;
 
-			var transaction = context.Session().Transaction;
+			var transaction = context.Session.Transaction;
 			if (transaction is ITableStateHandler) {
 				var stateHandler = (ITableStateHandler) transaction;
 				var oldState = stateHandler.TableState;

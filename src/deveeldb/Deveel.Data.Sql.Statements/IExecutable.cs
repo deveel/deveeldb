@@ -20,6 +20,6 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public interface IExecutable {
-		ITable Execute(IQueryContext context);
+		ITable Execute(IQuery context);
 	}
 }

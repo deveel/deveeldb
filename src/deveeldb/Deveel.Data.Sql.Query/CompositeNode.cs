@@ -24,8 +24,8 @@ namespace Deveel.Data.Sql.Query {
 	/// A branch node for performing a composite function on two child nodes.
 	/// </summary>
 	/// <remarks>
-	/// This branch is used for general <see cref="Tables.CompositeFunction.Union"/>, 
-	/// <see cref="Tables.CompositeFunction.Except"/>, <see cref="Tables.CompositeFunction.Intersect"/>
+	/// This branch is used for general <see cref="Sql.CompositeFunction.Union"/>, 
+	/// <see cref="Sql.CompositeFunction.Except"/>, <see cref="Sql.CompositeFunction.Intersect"/>
 	/// composites. The left and right branch results must have the same number of 
 	/// columns and column types.
 	/// </remarks>
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public bool All { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var leftResult = Left.Evaluate(context);
 			var rightResult = Right.Evaluate(context);
 

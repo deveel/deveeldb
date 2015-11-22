@@ -36,8 +36,8 @@ namespace Deveel.Data.Routines {
 			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;
 		}
 
-		public static DataObject User(IQueryContext context) {
-			return DataObject.String(context.User().Name);
+		public static DataObject User(IQuery query) {
+			return DataObject.String(query.User().Name);
 		}
 
 
@@ -69,8 +69,8 @@ namespace Deveel.Data.Routines {
 			return value.CastTo(destType);
 		}
 
-		public static DataObject Cast(IQueryContext context, DataObject value, SqlString typeString) {
-			var destType = SqlType.Parse(context, typeString.ToString());
+		public static DataObject Cast(IQuery query, DataObject value, SqlString typeString) {
+			var destType = SqlType.Parse(query.QueryContext, typeString.ToString());
 			return Cast(value, destType);
 		}
 
@@ -86,34 +86,34 @@ namespace Deveel.Data.Routines {
 			return value.CastTo(PrimitiveTypes.Binary());
 		}
 
-		public static DataObject UniqueKey(IQueryContext context, DataObject tableName) {
+		public static DataObject UniqueKey(IQuery query, DataObject tableName) {
 			var tableNameString = (SqlString)tableName.Value;
-			var value = UniqueKey(context, tableNameString);
+			var value = UniqueKey(query, tableNameString);
 			return DataObject.Number(value);
 		}
 
-		public static SqlNumber UniqueKey(IQueryContext context, SqlString tableName) {
+		public static SqlNumber UniqueKey(IQuery query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = context.ResolveTableName(tableNameString);
-			return context.GetNextValue(resolvedName);
+			var resolvedName = query.ResolveTableName(tableNameString);
+			return query.GetNextValue(resolvedName);
 		}
 
-		public static DataObject CurrentValue(IQueryContext context, DataObject tableName) {
+		public static DataObject CurrentValue(IQuery query, DataObject tableName) {
 			var tableNameString = (SqlString)tableName.Value;
-			var value = CurrentValue(context, tableNameString);
+			var value = CurrentValue(query, tableNameString);
 			return DataObject.Number(value);
 		}
 
-		public static SqlNumber CurrentValue(IQueryContext context, SqlString tableName) {
+		public static SqlNumber CurrentValue(IQuery query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = context.ResolveTableName(tableNameString);
-			return context.GetCurrentValue(resolvedName);
+			var resolvedName = query.ResolveTableName(tableNameString);
+			return query.GetCurrentValue(resolvedName);
 		}
 
 		internal static ExecuteResult Iif(ExecuteContext context) {
 			var result = DataObject.Null();
 
-			var evalContext = new EvaluateContext(context.QueryContext, context.VariableResolver, context.GroupResolver);
+			var evalContext = new EvaluateContext(context.Query, context.VariableResolver, context.GroupResolver);
 
 			var condition = context.Arguments[0].EvaluateToConstant(evalContext);
 			if (condition.Type is BooleanType) {

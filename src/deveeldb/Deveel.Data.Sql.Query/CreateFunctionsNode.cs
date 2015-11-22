@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Query {
 		public string[] Names { get; private set; }
 
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var childTable = Child.Evaluate(context);
 			var funTable = new FunctionTable(childTable, Functions, Names, context);
 			return funTable.MergeWith(null);

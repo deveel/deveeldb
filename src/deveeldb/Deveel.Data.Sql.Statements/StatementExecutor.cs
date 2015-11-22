@@ -27,16 +27,16 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// This class is used to transform an input query to a set of statements
-	/// and execute them within a given context.
+	/// and execute them within a given query.
 	/// </summary>
 	public static class StatementExecutor {
 		/// <summary>
 		/// This method transforms the input SQL query into a set of statements,
-		/// prepares and executes them against the provided context.
+		/// prepares and executes them against the provided query.
 		/// </summary>
-		/// <param name="context">The context used to prepare and execute the statements
+		/// <param name="query">The query used to prepare and execute the statements
 		/// resolved from the compilation of the input query.</param>
-		/// <param name="query">The input SQL query with optional parameters, that is
+		/// <param name="sqlQuery">The input SQL query with optional parameters, that is
 		/// compiled into a set of statements to be executed.</param>
 		/// <remarks>
 		/// The method first tries to resolve the compiled statements from the specialized
@@ -46,11 +46,11 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns an array of <see cref="ITable"/> objects that represent the results
 		/// of the execution of the input query.
 		/// </returns>
-		public static ITable[] Execute(IQueryContext context, SqlQuery query) {
+		public static ITable[] Execute(IQuery query, SqlQuery sqlQuery) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
-			var sqlSouce = query.Text;
+			var sqlSouce = sqlQuery.Text;
 
 			// TODO: find it from the cache...
 
@@ -58,28 +58,28 @@ namespace Deveel.Data.Sql.Statements {
 
 			// TODO: set it in cache ...
 
-			var preparer = new QueryPreparer(query);
+			var preparer = new QueryPreparer(sqlQuery);
 
 			bool statementSeen = false;
 
 			var results = new List<ITable>();
 			foreach (var statement in statements) {
-				context.RegisterQuery(statement);
+				// TODO: query.RegisterQuery(statement);
 
 				// TODO: Invoke diagnostics for the preparation...
 
-				var prepared = statement.Prepare(preparer, context);
+				var prepared = statement.Prepare(preparer, query);
 
 				ITable result;
 
 				try {
-					result = prepared.Execute(context);
+					result = prepared.Execute(query);
 				} catch(StatementException ex) {
-					context.RegisterError(ex);
+					// TODO: query.RegisterError(ex);
 					throw;
 				} catch (Exception ex) {
 					var sex = new StatementException("An unhanded error occurred while executing the statement.", ex);
-					context.RegisterError(sex);
+					// TODO: query.RegisterError(sex);
 					throw sex;
 				} finally {
 					statementSeen = true;

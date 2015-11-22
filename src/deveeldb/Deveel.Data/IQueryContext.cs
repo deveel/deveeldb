@@ -26,8 +26,6 @@ namespace Deveel.Data {
 	public interface IQueryContext : IContext {
         ISessionContext SessionContext { get; }
 
-		string CurrentSchema { get; }
-
 		IBlockContext CreateBlockContext();
 
 		/*

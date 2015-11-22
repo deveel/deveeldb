@@ -21,7 +21,7 @@ using Deveel.Data;
 namespace Deveel.Data.Routines {
 	public sealed class SystemProcedureProvider : IRoutineResolver {
 		// TODO:
-		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
+		public IRoutine ResolveRoutine(Invoke request, IQuery context) {
 			return null;
 		}
 	}

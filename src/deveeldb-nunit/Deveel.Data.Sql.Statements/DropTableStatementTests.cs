@@ -9,13 +9,13 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public sealed class DropTableStatementTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
-			CreateTestTables(context);
-			return context;
+		protected override IQuery CreateQuery(IUserSession session) {
+			var query = base.CreateQuery(session);
+			CreateTestTables(query);
+			return query;
 		}
 
-		private void CreateTestTables(IQueryContext context) {
+		private void CreateTestTables(IQuery context) {
 			var tn1 = ObjectName.Parse("APP.test_table1");
 			var tableInfo1 = new TableInfo(tn1);
 			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
@@ -38,21 +38,21 @@ namespace Deveel.Data.Sql.Statements {
 		public void DropNonReferencedTable() {
 			const string sql = "DROP TABLE test_table2";
 
-			Assert.DoesNotThrow(() => QueryContext.ExecuteQuery(sql));
+			Assert.DoesNotThrow(() => Query.ExecuteQuery(sql));
 		}
 
 		[Test]
 		public void DropReferencedTable() {
 			const string sql = "DROP TABLE APP.test_table1";
 
-			Assert.Throws<StatementException>(() => QueryContext.ExecuteQuery(sql));
+			Assert.Throws<StatementException>(() => Query.ExecuteQuery(sql));
 		}
 
 		[Test]
 		public void DropAllTables() {
 			const string sql = "DROP TABLE IF EXISTS APP.test_table1, test_table2";
 
-			Assert.DoesNotThrow(() => QueryContext.ExecuteQuery(sql));
+			Assert.DoesNotThrow(() => Query.ExecuteQuery(sql));
 		}
 	}
 }

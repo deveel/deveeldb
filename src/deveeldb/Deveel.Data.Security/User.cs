@@ -34,19 +34,10 @@ namespace Deveel.Data.Security {
 		/// Constructs a new user with the given name.
 		/// </summary>
 		/// <param name="name"></param>
-		private User(string name) 
-			: this(null, name) {
-		}
-
-		/// <summary>
-		/// Constructs a new user with the given name.
-		/// </summary>
-		/// <param name="name"></param>
-		internal User(IQueryContext context, string name) {
+		internal User(string name) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
-			Context = context;
 			Name = name;
 		}
 
@@ -80,115 +71,6 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
-		}
-
-		/// <summary>
-		/// Gets the query context used to obtain this user object.
-		/// </summary>
-		/// <remarks>
-		/// In some special cases, this is <c>null</c> (for example
-		/// for the <see cref="System"/> or <see cref="Public"/> users).
-		/// </remarks>
-		/// <value>
-		/// The query context of the user.
-		/// </value>
-		public IQueryContext Context { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether this user is authenticated.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if this user is authenticated; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsAuthenticated {
-			get {
-				return IsSystem || 
-				IsPublic || 
-				(Context != null && Context.UserName().Equals(Name, StringComparison.OrdinalIgnoreCase)); }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether this user has secure access
-		/// over the contextual database.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if this user has secure access over the database; 
-		/// otherwise, <c>false</c>.
-		/// </value>
-		/// <seealso cref="SecurityQueryExtensions.UserHasSecureAccess(IQueryContext, string)"/>
-		public bool HasSecureAccess {
-			get {
-				if (IsSystem)
-					return true;
-				if (!IsAuthenticated)
-					return false;
-
-				return Context.UserHasSecureAccess();
-			}
-		}
-
-		/// <summary>
-		/// Gets a list of the groups to which the user belongs.
-		/// </summary>
-		/// <value>
-		/// The groups where the user belongs.
-		/// </value>
-		public string[] Groups {
-			get {
-				if (IsSystem)
-					return new string[0];
-
-				return Context.GetGroupsUserBelongsTo(Name);
-			}
-		}
-
-		/// <summary>
-		/// Determines whether the user has privileges over the specified object.
-		/// </summary>
-		/// <param name="objectType">Type of the database object.</param>
-		/// <param name="objectName">Name of the object to check.</param>
-		/// <param name="privileges">The privileges to check.</param>
-		/// <returns>
-		/// Returns <c>true</c> if this user has the given privileges over the
-		/// object of the given type having the given name, <c>false</c> otherwise.
-		/// </returns>
-		public bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (!IsAuthenticated && !IsSystem)
-				return false;
-
-			return Context.UserHasPrivilege(objectType, objectName, privileges);
-		}
-
-		/// <summary>
-		/// Determines whether this user can create in the schema given.
-		/// </summary>
-		/// <param name="schemaName">The name of the schema to verify.</param>
-		/// <returns></returns>
-		public bool CanCreateInSchema(ObjectName schemaName) {
-			return HasPrivileges(DbObjectType.Schema, schemaName, Privileges.Create);
-		}
-
-		internal bool TryGetObjectGrant(ObjectName objectName, out Privileges grant) {
-			if (grantCache == null) {
-				grant = Privileges.None;
-				return false;
-			}
-
-			return grantCache.TryGetValue(objectName, out grant);
-		}
-
-		internal void CacheObjectGrant(ObjectName objectName, Privileges grant) {
-			if (grantCache == null)
-				grantCache = new Dictionary<ObjectName, Privileges>();
-
-			grantCache[objectName] = grant;
-		}
-
-		internal void ClearGrantCache(ObjectName objName) {
-			if (grantCache.Remove(objName)) {
-				if (grantCache.Count == 0)
-					grantCache = null;
-			}
 		}
 	}
 }

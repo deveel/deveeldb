@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -312,7 +313,7 @@ namespace Deveel.Data.Types {
 		/// Parses a SQL formatted string that defines a data-type into
 		/// a constructed <see cref="SqlType"/> object equivalent.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="query"></param>
 		/// <param name="s">The SQL formatted data-type string, defining the properties of the type.</param>
 		/// <remarks>
 		/// This method only supports primitive types.
@@ -321,7 +322,7 @@ namespace Deveel.Data.Types {
 		/// </returns>
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
-		public static SqlType Parse(IQueryContext context, string s) {
+		public static SqlType Parse(IContext context, string s) {
 			var sqlCompiler = SqlParsers.DataType;
 
 			try {

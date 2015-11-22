@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Transactions;
+
 using NUnit.Framework;
 
 namespace Deveel.Data {
@@ -13,11 +15,13 @@ namespace Deveel.Data {
 			get { return false; }
 		}
 
-		protected IQueryContext QueryContext { get; private set; }
+		protected IQuery Query { get; private set; }
 
 		protected ISystemContext SystemContext { get; private set; }
 
 		protected IDatabase Database { get; private set; }
+
+		protected IUserSession Session { get; private set; }
 
 		protected IDatabaseContext DatabaseContext { get; private set; }
 
@@ -29,12 +33,18 @@ namespace Deveel.Data {
 			return database;
 		}
 
-		protected virtual IQueryContext CreateQueryContext(IDatabase database) {
-			return database.CreateQueryContext(AdminUserName, AdminPassword);
+		protected virtual IUserSession CreateAdminSession(IDatabase database) {
+			var user = database.Authenticate(AdminUserName, AdminPassword);
+			var transaction = database.CreateTransaction(IsolationLevel.Serializable);
+			return new UserSession(transaction, user);
 		}
 
-		protected IQueryContext CreateUserQueryContext(string userName, string password) {
-			return Database.CreateQueryContext(userName, password);
+		protected virtual IQuery CreateQuery(IUserSession session) {
+			return session.CreateQuery();
+		}
+
+		protected IUserSession CreateUserSession(string userName, string password) {
+			return Database.CreateUserSession(userName, password);
 		}
 
 		protected virtual void OnSetUp(string testName) {
@@ -72,12 +82,13 @@ namespace Deveel.Data {
 			SystemContext = CreateSystemContext();
 			DatabaseContext = CreateDatabaseContext(SystemContext);
 			Database = CreateDatabase(DatabaseContext);
-			QueryContext = CreateQueryContext(Database);
+			Session = CreateAdminSession(Database);
+			Query = CreateQuery(Session);
 		}
 
 		private void DisposeContext() {
-			if (QueryContext != null)
-				QueryContext.Dispose();
+			if (Query != null)
+				Query.Dispose();
 
 			if (Database != null)
 				Database.Dispose();
@@ -91,7 +102,7 @@ namespace Deveel.Data {
 			Database = null;
 			DatabaseContext = null;
 			SystemContext = null;
-			QueryContext = null;
+			Query = null;
 		}
 
 		[TearDown]

@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public long Id { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			// Is the result available in the context?
 			var childTable = context.GetCachedTable(Id.ToString());
 			if (childTable == null) {

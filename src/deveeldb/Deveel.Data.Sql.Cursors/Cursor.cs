@@ -84,10 +84,10 @@ namespace Deveel.Data.Sql.Cursors {
 			return result;
 		}
 
-		private ITable Evaluate(IQueryContext context, SqlExpression[] args) {
+		private ITable Evaluate(IQuery context, SqlExpression[] args) {
 			try {
 				var prepared = PrepareQuery(args);
-				var queryPlan = context.QueryPlanner().PlanQuery(context, prepared, null, null);
+				var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, prepared, null, null);
 				return queryPlan.Evaluate(context);
 			} catch (Exception) {
 
@@ -95,7 +95,7 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
-		public void Open(IQueryContext context, params SqlExpression[] args) {
+		public void Open(IQuery context, params SqlExpression[] args) {
 			lock (this) {
 				AssertNotDisposed();
 
@@ -124,24 +124,24 @@ namespace Deveel.Data.Sql.Cursors {
 
 			var table = State.Result;
 			if (!CursorInfo.IsInsensitive)
-				table = Evaluate(context.QueryContext, State.OpenArguments);
+				table = Evaluate(context.Query, State.OpenArguments);
 
 			var fetchRow = State.FetchRowFrom(table, context.Direction, context.Offset);
 
 			if (context.IsGlobalReference) {
 				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;
-				FetchIntoReference(context.QueryContext, fetchRow, reference);
+				FetchIntoReference(context.Query, fetchRow, reference);
 			} else if (context.IsVariableReference) {
 				var varName = ((SqlVariableReferenceExpression) context.Reference).VariableName;
-				FetchIntoVatiable(context.QueryContext, fetchRow, varName);
+				FetchIntoVatiable(context.Query, fetchRow, varName);
 			}
 		}
 
-		private void FetchIntoVatiable(IQueryContext queryContext, Row row, string varName) {
+		private void FetchIntoVatiable(IQuery query, Row row, string varName) {
 			throw new NotImplementedException();
 		}
 
-		private void FetchIntoReference(IQueryContext queryContext, Row row, ObjectName reference) {
+		private void FetchIntoReference(IQuery query, Row row, ObjectName reference) {
 			throw new NotImplementedException();
 		}
 

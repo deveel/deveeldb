@@ -6,6 +6,7 @@ using Deveel.Data.Caching;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Schemas;
 
 namespace Deveel.Data.Sql.Tables {
@@ -65,6 +66,10 @@ namespace Deveel.Data.Sql.Tables {
 			using (var systemContext = query.Direct()) {
 				systemContext.GrantToUserOnTable(tableInfo.TableName, query.User().Name, Privileges.TableAll);
 			}
+		}
+
+		public static ITableQueryInfo GetTableQueryInfo(this IQuery context, ObjectName tableName, ObjectName alias) {
+			return context.Session.GetTableQueryInfo(tableName, alias);
 		}
 
 		internal static void CreateSystemTable(this IQuery query, TableInfo tableInfo) {
@@ -153,7 +158,7 @@ namespace Deveel.Data.Sql.Tables {
 			if (table == null) {
 				table = query.Session.GetTable(tableName);
 				if (table != null) {
-					table = new UserContextTable(query.QueryContext, table);
+					table = new UserContextTable(query, table);
 					query.CacheTable(tableName.FullName, table);
 				}
 			}

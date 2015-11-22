@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Query {
 			: base(left, right) {
 		}
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			// Solve the left branch result
 			var leftResult = Left.Evaluate(context);
 			// Solve the Join (natural)

@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private void AddTestData() {
-			var table = QueryContext.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
+			var table = Query.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
 
 			var row = table.NewRow();
 			row["person_id"] = DataObject.Integer(1);
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 			row["age"] = DataObject.Integer(56);
 			table.AddRow(row);
 
-			table = QueryContext.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
+			table = Query.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
 			row = table.NewRow();
 			row["person_id"] = DataObject.Integer(1);
 			row["code"] = DataObject.String("123456");
@@ -56,11 +56,11 @@ namespace Deveel.Data.Sql {
 
 		private void CreateTestTables() {
 			var tableInfo = CreateFirstTable();
-			QueryContext.CreateTable(tableInfo);
-			QueryContext.AddPrimaryKey(tableInfo.TableName, "person_id");
+			Query.CreateTable(tableInfo);
+			Query.AddPrimaryKey(tableInfo.TableName, "person_id");
 
 			tableInfo = CreateSecondTable();
-			QueryContext.CreateTable(tableInfo);
+			Query.CreateTable(tableInfo);
 		}
 
 		private TableInfo CreateSecondTable() {
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql {
 			Assert.IsInstanceOf<SqlQueryExpression>(expression);
 
 			SqlExpression resultExpression = null;
-			Assert.DoesNotThrow(() => resultExpression = expression.Evaluate(QueryContext, null));
+			Assert.DoesNotThrow(() => resultExpression = expression.Evaluate(Query, null));
 			Assert.IsNotNull(resultExpression);
 			Assert.IsInstanceOf<SqlConstantExpression>(resultExpression);
 
@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql {
 			var queryPlan = ((SqlQueryObject) constantExpression.Value.Value);
 			ITable result = null;
 
-			Assert.DoesNotThrow(() => result = queryPlan.QueryPlan.Evaluate(QueryContext));
+			Assert.DoesNotThrow(() => result = queryPlan.QueryPlan.Evaluate(Query));
 
 			Assert.IsNotNull(result);
 		}

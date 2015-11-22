@@ -31,14 +31,14 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <param name="resolver">The routine resolver.</param>
 		/// <param name="request">The invocation request used to resolve the function.</param>
-		/// <param name="context">The parent query context.</param>
+		/// <param name="query">The parent query context.</param>
 		/// <returns>
 		/// Returns <c>true</c> if a routine was resolved for the given request,
 		/// this is a <see cref="IFunction"/> and the <see cref="FunctionType"/> is
 		/// <see cref="FunctionType.Aggregate"/>, otherwise <c>false</c>.
 		/// </returns>
-		public static bool IsAggregateFunction(this IRoutineResolver resolver, Invoke request, IQueryContext context) {
-			var routine = resolver.ResolveRoutine(request, context);
+		public static bool IsAggregateFunction(this IRoutineResolver resolver, Invoke request, IQuery query) {
+			var routine = resolver.ResolveRoutine(request, query);
 
 			var function = routine as IFunction;
 			if (function == null)
@@ -51,7 +51,7 @@ namespace Deveel.Data.Routines {
 			return ResolveFunction(resolver, null, name);
 		}
 
-		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery context, string name) {
 			return ResolveFunction(resolver, context, name, new SqlExpression[0]);
 		}
 
@@ -63,7 +63,7 @@ namespace Deveel.Data.Routines {
 			return ResolveFunction(resolver, null, name, args);
 		}
 
-		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name, params DataObject[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery context, string name, params DataObject[] args) {
 			var exps = new SqlExpression[0];
 			if (args != null && args.Length > 0) {
 				exps = new SqlExpression[args.Length];
@@ -75,9 +75,9 @@ namespace Deveel.Data.Routines {
 			return resolver.ResolveFunction(context, name, exps);
 		}
 
-		public static IFunction ResolveFunction(this FunctionProvider resolver, IQueryContext context, string name, SqlExpression[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery query, string name, SqlExpression[] args) {
 			var funName = new ObjectName(new ObjectName(resolver.SchemaName), name);
-			var routine = ((IRoutineResolver) resolver).ResolveRoutine(new Invoke(funName, args), context);
+			var routine = ((IRoutineResolver) resolver).ResolveRoutine(new Invoke(funName, args), query);
 			if (!(routine is IFunction))
 				throw new InvalidOperationException();
 

@@ -30,12 +30,12 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <param name="request">The routine invocation request used to resolve
 		/// the routine.</param>
-		/// <param name="context">The parent query context.</param>
+		/// <param name="query">The parent query context.</param>
 		/// <returns>
 		/// Returns an instance of <see cref="IRoutine"/> that matches the
 		/// given request, or <c>null</c> if no routine was found in the
 		/// underlying context.
 		/// </returns>
-		IRoutine ResolveRoutine(Invoke request, IQueryContext context);
+		IRoutine ResolveRoutine(Invoke request, IQuery query);
 	}
 }

@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterUserStatement(UserName, action);
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
 				context.AlterUserPassword(UserName, password);

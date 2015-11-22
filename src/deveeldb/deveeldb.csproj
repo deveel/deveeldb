@@ -136,7 +136,6 @@
     <Compile Include="Deveel.Data.Security\IUserManager.cs" />
     <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
-    <Compile Include="Deveel.Data.Security\QueryContext.Security.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
@@ -148,6 +147,7 @@
     <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
     <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
@@ -160,30 +160,28 @@
     <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Schemas\QueryContext.Schemas.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequenceManager.cs" />
-    <Compile Include="Deveel.Data.Sql.Sequences\QueryContext.Sequences.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\QueryContext.Statements.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
-    <Compile Include="Deveel.Data.Sql.Tables\QueryContext.Tables.Commands.cs" />
-    <Compile Include="Deveel.Data.Sql.Tables\QueryContextExtensions.Tables.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.Commands.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\QueryExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableScopeExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Views\QueryContext.Views.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ConstraintDeferrability.cs" />
@@ -204,7 +202,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\OuterTable.cs" />
-    <Compile Include="Deveel.Data.Sql\QueryContext.Objects.cs" />
     <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RawTableInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ReferenceTable.cs" />
@@ -221,7 +218,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\VirtualTable.cs" />
     <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEventException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventEventTypeExtensions.cs" />
@@ -246,7 +242,8 @@
     <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Types\QueryContext.Types.cs" />
+    <Compile Include="Deveel.Data.Types\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Types\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Util\BigArray.cs" />
     <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
     <Compile Include="Deveel.Data.Util\IBigList.cs" />
@@ -269,6 +266,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\Query.cs" />
+    <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
@@ -318,10 +316,8 @@
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
-    <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
-    <Compile Include="Deveel.Data\SystemManager.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
@@ -358,7 +354,6 @@
     <Compile Include="Deveel.Data.Diagnostics\NotificationEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\NotificationLevel.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\QueryContextEventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\QueryEvent.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
@@ -437,7 +432,6 @@
     <Compile Include="Deveel.Data.Routines\IRoutineResolverContainer.cs" />
     <Compile Include="Deveel.Data.Routines\IRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
-    <Compile Include="Deveel.Data.Routines\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />

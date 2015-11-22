@@ -82,18 +82,18 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Checks if the target of the invocation is an aggregate function.
 		/// </summary>
-		/// <param name="context">The query context used to resolve the routine.</param>
+		/// <param name="query">The query context used to resolve the routine.</param>
 		/// <returns>
 		/// Returns <c>true</c> if the target routine of the invocation is a <see cref="IFunction"/>
 		/// and the <see cref="IFunction.FunctionType"/> is <see cref="FunctionType.Aggregate"/>,
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
-		public bool IsAggregate(IQueryContext context) {
-			if (context.IsAggregateFunction(this))
+		public bool IsAggregate(IQuery query) {
+			if (query.IsAggregateFunction(this))
 				return true;
 
 			// Look at parameterss
-			return Arguments.Any(x => x.HasAggregate(context));
+			return Arguments.Any(x => x.HasAggregate(query));
 		}
 
 		/// <summary>
@@ -112,7 +112,7 @@ namespace Deveel.Data.Routines {
 		/// <exception cref="InvalidOperationException">
 		/// If the routine could not be resolved for this call.
 		/// </exception>
-		public IRoutine ResolveRoutine(IQueryContext context) {
+		public IRoutine ResolveRoutine(IQuery context) {
 			if (cached != null)
 				return cached;
 
@@ -128,11 +128,11 @@ namespace Deveel.Data.Routines {
 			return cached;
 		}
 
-		public IFunction ResolveFunction(IQueryContext context) {
+		public IFunction ResolveFunction(IQuery context) {
 			return ResolveRoutine(context) as IFunction;
 		}
 
-		public IProcedure ResolveProcedure(IQueryContext context) {
+		public IProcedure ResolveProcedure(IQuery context) {
 			return ResolveRoutine(context) as IProcedure;
 		}
 		
@@ -152,17 +152,17 @@ namespace Deveel.Data.Routines {
 			return Execute(null);
 		}
 
-		public ExecuteResult Execute(IQueryContext context) {
-			return Execute(context, null);
+		public ExecuteResult Execute(IQuery query) {
+			return Execute(query, null);
 		}
 
-		public ExecuteResult Execute(IQueryContext context, IVariableResolver resolver) {
-			return Execute(context, resolver, null);
+		public ExecuteResult Execute(IQuery query, IVariableResolver resolver) {
+			return Execute(query, resolver, null);
 		}
 
-		public ExecuteResult Execute(IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
-			var routine = ResolveRoutine(context);
-			var executeContext = new ExecuteContext(this, routine, resolver, group, context);
+		public ExecuteResult Execute(IQuery query, IVariableResolver resolver, IGroupResolver group) {
+			var routine = ResolveRoutine(query);
+			var executeContext = new ExecuteContext(this, routine, resolver, group, query);
 			return routine.Execute(executeContext);
 		}
 

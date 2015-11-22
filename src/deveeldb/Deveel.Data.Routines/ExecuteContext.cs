@@ -30,13 +30,13 @@ namespace Deveel.Data.Routines {
 		private DataObject[] evaluatedArgs;
 		private Dictionary<string, DataObject> output; 
 
-		internal ExecuteContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IQueryContext queryContext) {
+		internal ExecuteContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IQuery query) {
 			if (invoke == null)
 				throw new ArgumentNullException("invoke");
 			if (routine == null)
 				throw new ArgumentNullException("routine");
 
-			QueryContext = queryContext;
+			Query = query;
 			GroupResolver = group;
 			VariableResolver = resolver;
 			Invoke = invoke;
@@ -82,14 +82,14 @@ namespace Deveel.Data.Routines {
 
 		public IGroupResolver GroupResolver { get; private set; }
 
-		public IQueryContext QueryContext { get; private set; }
+		public IQuery Query { get; private set; }
 
 		public DataObject[] EvaluatedArguments {
 			get {
 				if (evaluatedArgs == null) {
 					evaluatedArgs = new DataObject[Arguments.Length];
 					for (int i = 0; i < Arguments.Length; i++) {
-						evaluatedArgs[i] = Arguments[i].EvaluateToConstant(QueryContext, VariableResolver);
+						evaluatedArgs[i] = Arguments[i].EvaluateToConstant(Query, VariableResolver);
 					}
 				}
 
@@ -131,7 +131,7 @@ namespace Deveel.Data.Routines {
 				return false;
 			}
 
-			value = exp.EvaluateToConstant(QueryContext, VariableResolver);
+			value = exp.EvaluateToConstant(Query, VariableResolver);
 			return true;
 		}
 

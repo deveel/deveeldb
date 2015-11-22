@@ -37,12 +37,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool WithGrant { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			var objName = context.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			var obj = context.FindObject(ObjectName);
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));

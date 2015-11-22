@@ -8,9 +8,9 @@ using IQToolkit.Data.Common;
 
 namespace Deveel.Data.Linq {
 	class DeveelDbProvider : EntityProvider {
-		private readonly IQueryContext context;
+		private readonly IQuery context;
 
-		public DeveelDbProvider(IQueryContext context, QueryMapping mapping, QueryPolicy policy) 
+		public DeveelDbProvider(IQuery context, QueryMapping mapping, QueryPolicy policy) 
 			: base(new DeveelDbLanguage(), mapping, policy) {
 			this.context = context;
 		}

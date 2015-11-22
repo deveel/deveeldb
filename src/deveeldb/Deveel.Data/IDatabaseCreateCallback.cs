@@ -23,6 +23,6 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="context">The privileged system context that
 		/// is used to generate the initial database.</param>
-		void OnDatabaseCreate(IQueryContext context);
+		void OnDatabaseCreate(IQuery context);
 	}
 }

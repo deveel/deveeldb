@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new CreateUserStatement(UserName, preparedPassword);
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			var evaluated = Password.EvaluateToConstant(context, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
 

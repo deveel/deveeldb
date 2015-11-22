@@ -45,8 +45,8 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("order", PrimitiveTypes.Integer());
 
-			QueryContext.CreateTable(tableInfo);
-			return QueryContext.GetMutableTable(tableName);
+			Query.CreateTable(tableInfo);
+			return Query.GetMutableTable(tableName);
 		}
 
 		[Test]
@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql {
 			var queryExpression = SqlExpression.GreaterThan(SqlExpression.Reference(new ObjectName("order")), SqlExpression.Constant(2));
 
 			int deleteCount = -1;
-			Assert.DoesNotThrow(() => deleteCount = QueryContext.DeleteFrom(ObjectName.Parse("APP.test_table"), queryExpression));
+			Assert.DoesNotThrow(() => deleteCount = Query.DeleteFrom(ObjectName.Parse("APP.test_table"), queryExpression));
 			Assert.AreEqual(1, deleteCount);
 		}
 	}

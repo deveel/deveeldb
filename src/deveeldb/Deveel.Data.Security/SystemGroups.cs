@@ -54,7 +54,7 @@ namespace Deveel.Data.Security {
 		/// </remarks>
 		public const string UserManagerGroup = "user_manager";
 
-		public static void Create(IQueryContext context) {
+		public static void Create(IQuery context) {
 			context.CreateUserGroup(SecureGroup);
 			context.CreateUserGroup(UserManagerGroup);
 			context.CreateUserGroup(SchemaManagerGroup);

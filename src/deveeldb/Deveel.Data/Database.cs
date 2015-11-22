@@ -158,7 +158,7 @@ namespace Deveel.Data {
 		/// </summary>
 		public ITable SingleRowTable { get; private set; }
 
-		private void OnDatabaseCreate(IQueryContext context) {
+		private void OnDatabaseCreate(IQuery context) {
 			var callbacks = DatabaseContext.ResolveAllServices<IDatabaseCreateCallback>();
 			if (callbacks != null) {
 				foreach (var callback in callbacks) {
@@ -212,7 +212,7 @@ namespace Deveel.Data {
 				TableComposite.Create();
 
 				using (var session = this.CreateInitialSystemSession()) {
-					using (var context = new QueryContext(session)) {
+					using (var context = session.CreateQuery()) {
 						try {
 							session.CurrentSchema(SystemSchema.Name);
 
@@ -261,11 +261,11 @@ namespace Deveel.Data {
 			}
 		}
 
-		private void SetCurrentDataVersion(IQueryContext context) {
+		private void SetCurrentDataVersion(IQuery context) {
 			// TODO: Get the data version and then set it to the database table 'vars'
 		}
 
-		private void CreateSchemata(IQueryContext context) {
+		private void CreateSchemata(IQuery context) {
 			try {
 				context.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
 				context.CreateSchema(DatabaseContext.DefaultSchema(), SchemaTypes.Default);

@@ -42,6 +42,6 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public IQueryPlanNode Right { get; private set; }
 
-		public abstract ITable Evaluate(IQueryContext context);
+		public abstract ITable Evaluate(IQuery context);
 	}
 }

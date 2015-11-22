@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; } 
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			var tableName = context.ResolveTableName(TableName);
 
 			var table = context.GetTable(tableName);
@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQuery context) {
 				var insertCount = context.InsertIntoTable(TableName, Assignments);
 				return FunctionTable.ResultTable(context, insertCount);
 			}

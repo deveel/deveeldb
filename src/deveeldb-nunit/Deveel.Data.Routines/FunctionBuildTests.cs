@@ -20,7 +20,7 @@ namespace Deveel.Data.Routines {
 			Assert.IsNotNull(function);
 
 			ExecuteResult result=null;
-			Assert.DoesNotThrow(() => result = function.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = function.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.ReturnValue.Value.ToString());
 		}
@@ -55,7 +55,7 @@ namespace Deveel.Data.Routines {
 			protected override void OnInit() {
 				Register(config => config.Named("user2")
 					.ReturnsType(PrimitiveTypes.String())
-					.WhenExecute(context => context.Result(DataObject.String(context.QueryContext.User().Name))));
+					.WhenExecute(context => context.Result(DataObject.String(context.Query.User().Name))));
 			}
 		}
 

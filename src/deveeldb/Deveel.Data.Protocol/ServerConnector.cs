@@ -234,29 +234,27 @@ namespace Deveel.Data.Protocol {
 		//	return context;
 		//}
 
-		private IQueryContext OpenQueryContext(long commitId) {
+		private IQuery OpenQueryContext(long commitId) {
 			var transaction = Database.TransactionFactory.OpenTransactions.FindById((int)commitId);
 			if (transaction == null)
 				throw new InvalidOperationException();
 
 			var session = new UserSession(transaction, User);
-			return new QueryContext(session);
+			return session.CreateQuery();
 		}
 
-		private IQueryContext CreateQueryContext() {
+		private IQuery CreateQueryContext() {
 			// TODO: make the isolation level configurable...
 			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
 			var session = new UserSession(transaction, User);
-			var context = new QueryContext(session);
-			context.AutoCommit(true);
-
-			return context;
+			session.AutoCommit(true);
+			return session.CreateQuery();
 		}
 
 		protected IQueryResponse[] ExecuteQuery(long commitId, string text, IEnumerable<QueryParameter> parameters) {
 			AssertAuthenticated();
 
-			IQueryContext queryContext;
+			IQuery queryContext;
 			if (commitId > 0) {
 				queryContext = OpenQueryContext(commitId);
 			} else {
@@ -266,7 +264,7 @@ namespace Deveel.Data.Protocol {
 			return ExecuteQuery(queryContext, text, parameters);
 		}
 
-		protected virtual IQueryResponse[] ExecuteQuery(IQueryContext context, string text, IEnumerable<QueryParameter> parameters) {
+		protected virtual IQueryResponse[] ExecuteQuery(IQuery context, string text, IEnumerable<QueryParameter> parameters) {
 			// TODO: Log a debug message..
 
 			IQueryResponse[] response = null;
@@ -306,7 +304,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected IQueryResponse[] CoreExecuteQuery(IQueryContext context, string text, IEnumerable<QueryParameter> parameters) {
+		protected IQueryResponse[] CoreExecuteQuery(IQuery context, string text, IEnumerable<QueryParameter> parameters) {
 			// Where Query result eventually resides.
 			int resultId = -1;
 

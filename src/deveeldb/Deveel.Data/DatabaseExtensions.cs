@@ -78,12 +78,12 @@ namespace Deveel.Data {
 			return database.CreateSystemSession(IsolationLevel.Serializable);
 		}
 
-		internal static IUserSession CreateUserSession(this IDatabase database, User user) {
+		public static IUserSession CreateUserSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
 			return database.CreateUserSession(user, IsolationLevel.Unspecified);
 		}
 
-		private static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
+		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
 			var user = database.Authenticate(userName, password);
 			if (user == null)
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
@@ -104,18 +104,9 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Query Contest
-
-		public static IQueryContext CreateQueryContext(this IDatabase database, string userName, string password) {
-			var session = database.CreateUserSession(userName, password);
-			return new QueryContext(session);
-		}
-
-		#endregion
-
 		#region Security
 
-		public static void CreateAdminUser(this IDatabase database, IQueryContext context, string adminName, string adminPassword) {
+		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
 			try {
 				var user = context.CreateUser(adminName, adminPassword);
 
@@ -139,7 +130,7 @@ namespace Deveel.Data {
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
 
-				using (var queryContext = new QueryContext(session)) {
+				using (var queryContext = session.CreateQuery()) {
 					return queryContext.Authenticate(username, password);
 				}
 			}

@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Statements {
 			return result.ToArray();
 		}
 
-		public static ColumnChecker Default(IQueryContext context, ObjectName tableName) {
+		public static ColumnChecker Default(IQuery context, ObjectName tableName) {
 			var table = context.GetTable(tableName);
 			if (table == null)
 				throw new InvalidOperationException(String.Format("Table '{0}' not found in the context.", tableName));

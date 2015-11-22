@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Query {
 		public SqlExpression Expression { get; private set; }
 
 		/// <inheritdoc/>
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var t = Child.Evaluate(context);
 
 			var exp = Expression;
@@ -98,10 +98,10 @@ namespace Deveel.Data.Sql.Query {
 
 		class RangeSetUpdater : SqlExpressionVisitor {
 			private IndexRangeSet indexRangeSet;
-			private readonly IQueryContext context;
+			private readonly IQuery context;
 			private readonly ColumnInfo field;
 
-			public RangeSetUpdater(IQueryContext context, ColumnInfo field, IndexRangeSet indexRangeSet) {
+			public RangeSetUpdater(IQuery context, ColumnInfo field, IndexRangeSet indexRangeSet) {
 				this.context = context;
 				this.field = field;
 				this.indexRangeSet = indexRangeSet;
@@ -137,10 +137,10 @@ namespace Deveel.Data.Sql.Query {
 
 		class RangeSetCalculator : SqlExpressionVisitor {
 			private IndexRangeSet rangeSet;
-			private readonly IQueryContext context;
+			private readonly IQuery context;
 			private readonly ColumnInfo field;
 
-			public RangeSetCalculator(IQueryContext context, ColumnInfo field, IndexRangeSet rangeSet) {
+			public RangeSetCalculator(IQuery context, ColumnInfo field, IndexRangeSet rangeSet) {
 				this.context = context;
 				this.field = field;
 				this.rangeSet = rangeSet;

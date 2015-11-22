@@ -53,13 +53,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new Prepared(tableInfo, IfNotExists, Temporary);
 		}
 
-		private TableInfo CreateTableInfo(IQueryContext context) {
+		private TableInfo CreateTableInfo(IQuery context) {
 			var tableName = context.ResolveTableName(TableName);
 
 			var idColumnCount = Columns.Count(x => x.IsIdentity);
@@ -117,7 +117,7 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQuery context) {
 				try {
 					context.CreateTable(TableInfo, IfNotExists, Temporary);
 

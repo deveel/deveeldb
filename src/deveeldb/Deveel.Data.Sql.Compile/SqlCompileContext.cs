@@ -16,6 +16,7 @@
 
 using System;
 using Deveel.Data;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Compile {
     public sealed class SqlCompileContext {
@@ -23,18 +24,18 @@ namespace Deveel.Data.Sql.Compile {
 			: this(null, sourceText) {
 	    }
 
-	    internal SqlCompileContext(ISystemContext systemContext, string sourceText) {
+	    internal SqlCompileContext(IContext context, string sourceText) {
             if (string.IsNullOrEmpty(sourceText))
                 throw new ArgumentNullException("sourceText");
 
-            SystemContext = systemContext;
+            Context = context;
             SourceText = sourceText;
         }
 
-        public ISystemContext SystemContext { get; private set; }
+        public IContext Context { get; private set; }
 
 	    public bool IsInContext {
-			get { return SystemContext != null; }
+			get { return Context != null; }
 	    }
 
         public string SourceText { get; private set; }

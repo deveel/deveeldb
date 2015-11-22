@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName[] RightColumns { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			// Solve the left branch result
 			var leftResult = Left.Evaluate(context);
 			// Solve the right branch result

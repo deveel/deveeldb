@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ExceptionName { get; set; }
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			return base.ExecuteStatement(context);
 		}
 	}

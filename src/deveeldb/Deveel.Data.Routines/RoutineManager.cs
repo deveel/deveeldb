@@ -46,7 +46,7 @@ namespace Deveel.Data.Routines {
 			var namev = table.GetResolvedColumnName(1);
 
 			using (var session = new SystemUserSession(transaction)) {
-				using (var context = new QueryContext(session)) {
+				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(routineName.Name)));
 					t = t.ExhaustiveSelect(context,
@@ -164,7 +164,7 @@ namespace Deveel.Data.Routines {
 			throw new NotImplementedException();
 		}
 
-		public IRoutine ResolveRoutine(Invoke request, IQueryContext context) {
+		public IRoutine ResolveRoutine(Invoke request, IQuery context) {
 			// TODO: implement
 			return null;
 		}

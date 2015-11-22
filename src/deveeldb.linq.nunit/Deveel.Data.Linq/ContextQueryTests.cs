@@ -10,19 +10,19 @@ namespace Deveel.Data.Linq {
 		[Test]
 		public void CreateContext() {
 			QueryContext context = null;
-			Assert.DoesNotThrow(() => context =  new EmptyTestQueryContext(QueryContext));
+			Assert.DoesNotThrow(() => context =  new EmptyTestQueryContext(Query));
 			Assert.IsNotNull(context);
 		}
 
 		[Test]
 		public void RequestTableNotConfigured() {
-			var context = new EmptyTestQueryContext(QueryContext);
+			var context = new EmptyTestQueryContext(Query);
 			Assert.DoesNotThrow(() => context.Table<EmptyTestType>());
 		}
 
 		[Test]
 		public void RequestEntryNotConfigured() {
-			var context = new EmptyTestQueryContext(QueryContext);
+			var context = new EmptyTestQueryContext(Query);
 			Assert.Throws<QueryException>(() => context.Table<EmptyTestType>().FindById(1));
 		}
 
@@ -30,7 +30,7 @@ namespace Deveel.Data.Linq {
 		}
 
 		class EmptyTestQueryContext : QueryContext {
-			public EmptyTestQueryContext(IQueryContext context)
+			public EmptyTestQueryContext(IQuery context)
 				: base(context) {
 			}
 

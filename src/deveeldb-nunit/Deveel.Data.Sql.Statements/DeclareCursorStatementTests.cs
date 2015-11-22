@@ -10,18 +10,19 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class DeclareCursorStatementTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			// We first create the table in another context...
-			using (var context = database.CreateQueryContext(AdminUserName, AdminPassword)) {
-				var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-				tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-				tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
+		protected override IUserSession CreateAdminSession(IDatabase database) {
+			using (var session = base.CreateAdminSession(database)) {
+				using (var query = session.CreateQuery()) {
+					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+					tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-				context.CreateTable(tableInfo, false, false);
-				context.Commit();
+					query.CreateTable(tableInfo, false, false);
+					query.Commit();
+				}
 			}
 
-			return base.CreateQueryContext(database);
+			return base.CreateAdminSession(database);
 		}
 
 		[Test]

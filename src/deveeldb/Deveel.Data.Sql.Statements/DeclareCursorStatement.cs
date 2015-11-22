@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<CursorParameter> Parameters { get; set; } 
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			var cursorInfo = new CursorInfo(CursorName, Flags, QueryExpression);
 			if (Parameters != null) {
 				foreach (var parameter in Parameters) {

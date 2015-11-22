@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data.Services;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -13,7 +11,7 @@ namespace Deveel.Data.Security {
 	public class UserManager : IUserManager/*, IResolveCallback*/ {
 		private Dictionary<string, string[]> userGroupsCache;
 		 
-		public UserManager(IQueryContext queryContext) {
+		public UserManager(IQuery queryContext) {
 			QueryContext = queryContext;
 		}
 
@@ -21,7 +19,7 @@ namespace Deveel.Data.Security {
 			Dispose(false);
 		}
 
-		public IQueryContext QueryContext { get; private set; }
+		public IQuery QueryContext { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);

@@ -111,7 +111,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var nameColumn = table.GetResolvedColumnName(1);
 
 			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
-				using (var context = new QueryContext(session)) {
+				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(name)));
 					return t.ExhaustiveSelect(context,
@@ -133,7 +133,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 			ITable result;
 			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
-				using (var context = new QueryContext(session)) {
+				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(fullTableName)));
 
@@ -290,7 +290,7 @@ namespace Deveel.Data.Sql.Triggers {
 			return triggers.Select(x => new Trigger(x));
 		}
 
-		public void FireTriggers(IQueryContext context, TableEventContext tableEvent) {
+		public void FireTriggers(IQuery context, TableEventContext tableEvent) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 

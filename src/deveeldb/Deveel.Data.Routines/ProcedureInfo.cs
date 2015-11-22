@@ -46,13 +46,13 @@ namespace Deveel.Data.Routines {
 
 		public ProcedureType ProcedureType { get; private set; }
 
-		internal override bool MatchesInvoke(Invoke invoke, IQueryContext queryContext) {
+		internal override bool MatchesInvoke(Invoke invoke, IQuery query) {
 			if (invoke == null)
 				return false;
 
 			bool ignoreCase = true;
-			if (queryContext != null)
-				ignoreCase = queryContext.IgnoreIdentifiersCase();
+			if (query != null)
+				ignoreCase = query.IgnoreIdentifiersCase();
 
 			if (!RoutineName.Equals(invoke.RoutineName, ignoreCase))
 				return false;
@@ -67,7 +67,7 @@ namespace Deveel.Data.Routines {
 				if (!invoke.Arguments[i].IsConstant())
 					return false;
 
-				var argType = invoke.Arguments[i].ReturnType(queryContext, null);
+				var argType = invoke.Arguments[i].ReturnType(query, null);
 				var paramType = Parameters[i].Type;
 
 				// TODO: verify if this is assignable (castable) ...

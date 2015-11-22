@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Query {
 		public ObjectName AliasName { get; private set; }
 
 
-		public ITable Evaluate(IQueryContext context) {
+		public ITable Evaluate(IQuery context) {
 			var t = context.GetTable(TableName);
 			return AliasName != null ? new ReferenceTable(t, AliasName) : t;
 		}

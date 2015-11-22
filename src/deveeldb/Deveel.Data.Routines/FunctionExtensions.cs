@@ -33,20 +33,18 @@ namespace Deveel.Data.Routines {
 		/// the function.</param>
 		/// <param name="group"></param>
 		/// <param name="resolver"></param>
-		/// <param name="context"></param>
+		/// <param name="query"></param>
 		/// <returns></returns>
-		public static DataObject Execute(this IFunction function,
-			Invoke request,
-			IGroupResolver group,
+		public static DataObject Execute(this IFunction function, Invoke request, IGroupResolver group,
 			IVariableResolver resolver,
-			IQueryContext context) {
-			var execContext = new ExecuteContext(request, function, resolver, group, context);
+			IQuery query) {
+			var execContext = new ExecuteContext(request, function, resolver, group, query);
 			var result = function.Execute(execContext);
 			return result.ReturnValue;
 		}
 
-		public static SqlType ReturnType(this IFunction function, Invoke request, IQueryContext context, IVariableResolver resolver) {
-			var execContext = new ExecuteContext(request, function, resolver, null, context);
+		public static SqlType ReturnType(this IFunction function, Invoke request, IQuery query, IVariableResolver resolver) {
+			var execContext = new ExecuteContext(request, function, resolver, null, query);
 			return function.ReturnType(execContext);
 		}
 	}

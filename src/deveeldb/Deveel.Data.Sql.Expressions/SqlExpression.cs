@@ -184,11 +184,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return Evaluate(null, null);
 		}
 
-		public SqlExpression Evaluate(IQueryContext context, IVariableResolver variables) {
+		public SqlExpression Evaluate(IQuery context, IVariableResolver variables) {
 			return Evaluate(context, variables, null);
 		}
 
-		public SqlExpression Evaluate(IQueryContext context, IVariableResolver variables, IGroupResolver group) {
+		public SqlExpression Evaluate(IQuery context, IVariableResolver variables, IGroupResolver group) {
 			return Evaluate(new EvaluateContext(context, variables, group));
 		}
 
@@ -201,7 +201,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Parses the given SQL string to an expression that can be evaluated.
 		/// </summary>
 		/// <param name="s">The string to parse.</param>
-		/// <param name="context"></param>
 		/// <returns>
 		/// Returns an instance of <seealso cref="SqlExpression"/> that represents
 		/// the given SQL string parsed.

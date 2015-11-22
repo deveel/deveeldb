@@ -7,7 +7,7 @@ using IQToolkit;
 
 namespace Deveel.Data.Linq {
 	public abstract class QueryContext : IDisposable {
-		public QueryContext(IQueryContext context) {
+		public QueryContext(IQuery context) {
 			ParentContext = context;
 		}
 
@@ -15,7 +15,7 @@ namespace Deveel.Data.Linq {
 			Dispose(false);
 		}
 
-		public IQueryContext ParentContext { get; private set; }
+		public IQuery ParentContext { get; private set; }
 
 		private IQueryProvider Provider { get; set; }
 

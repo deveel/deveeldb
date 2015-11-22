@@ -25,14 +25,14 @@ namespace Deveel.Data.Sql.Tables {
 	/// A wrapper around a table that fires triggers on table events.
 	/// </summary>
 	class UserContextTable : BaseDataTable, IMutableTable {
-		public UserContextTable(IQueryContext context, ITable table) {
+		public UserContextTable(IQuery context, ITable table) {
 			Context = context;
 			Table = table;
 		}
 
 		public ITable Table { get; private set; }
 
-		public IQueryContext Context { get; private set; }
+		public IQuery Context { get; private set; }
 
 		private IMutableTable MutableTable {
 			get { return Table as IMutableTable; }

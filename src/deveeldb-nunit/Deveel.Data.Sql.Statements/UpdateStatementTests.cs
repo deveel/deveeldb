@@ -13,14 +13,14 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class UpdateStatementTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
-			CreateTestTable(context);
-			AddTestData(context);
-			return context;
+		protected override IQuery CreateQuery(IUserSession session) {
+			var query = base.CreateQuery(session);
+			CreateTestTable(query);
+			AddTestData(query);
+			return query;
 		}
 
-		private void CreateTestTable(IQueryContext context) {
+		private void CreateTestTable(IQuery context) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUE_KEY",
@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 			context.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
-		private void AddTestData(IQueryContext context) {
+		private void AddTestData(IQuery context) {
 			var table = context.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 			row.SetValue("id", DataObject.Integer(0));

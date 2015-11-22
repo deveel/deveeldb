@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <remarks>
 		/// When a row is not established in the parent table, this
-		/// value is <see cref="Sql.RowId.Null"/>.
+		/// value is <see cref="Tables.RowId.Null"/>.
 		/// </remarks>
 		public RowId RowId { get; private set; }
 
@@ -371,7 +371,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <exception cref="InvalidOperationException">
 		/// If the column has no <c>DEFAULT</c> value defined.
 		/// </exception>
-		public void SetDefault(int columnOffset, IQueryContext context) {
+		public void SetDefault(int columnOffset, IQuery context) {
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
@@ -389,8 +389,8 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <param name="context">The context that is used to evaluate the
 		/// <c>DEFAULT</c> <see cref="SqlExpression"/> of the column.</param>
-		/// <seealso cref="SetDefault(int, IQueryContext)"/>
-		public void SetDefault(IQueryContext context) {
+		/// <seealso cref="SetDefault(int, IQuery)"/>
+		public void SetDefault(IQuery context) {
 			for (int i = 0; i < Table.TableInfo.ColumnCount; ++i) {
 				if (!values.ContainsKey(i)) {
 					SetDefault(i, context);
@@ -398,7 +398,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		private DataObject Evaluate(SqlExpression expression, IQueryContext queryContext) {
+		private DataObject Evaluate(SqlExpression expression, IQuery queryContext) {
 			var ignoreCase = queryContext.IgnoreIdentifiersCase();
 			// Resolve any variables to the table_def for this expression.
 			expression = Table.TableInfo.ResolveColumns(ignoreCase, expression);
@@ -479,7 +479,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <param name="rowNumber">The zero-based number to set
 		/// for identifying this row.</param>
-		/// <seealso cref="Sql.RowId.RowNumber"/>
+		/// <seealso cref="Tables.RowId.RowNumber"/>
 		/// <seealso cref="RowId"/>
 		public void SetRowNumber(int rowNumber) {
 			RowId = new RowId(Table.TableInfo.Id, rowNumber);
@@ -497,7 +497,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQueryContext context) {
+		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQuery context) {
 			var colRef = (SqlReferenceExpression) assignExpression.ReferenceExpression;
 			var valueExp = assignExpression.ValueExpression;
 			var value = valueExp.EvaluateToConstant(context, VariableResolver);

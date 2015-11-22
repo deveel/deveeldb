@@ -12,7 +12,7 @@ namespace Deveel.Data.Security {
 		private Dictionary<GrantCacheKey, Privileges> grantsCache;
 		private Dictionary<string, Privileges> groupsPrivilegesCache;
 
-		public PrivilegeManager(IQueryContext queryContext) {
+		public PrivilegeManager(IQuery queryContext) {
 			QueryContext = queryContext;
 		}
 
@@ -20,7 +20,7 @@ namespace Deveel.Data.Security {
 			Dispose(false);
 		}
 
-		public IQueryContext QueryContext { get; private set; }
+		public IQuery QueryContext { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -39,7 +39,7 @@ namespace Deveel.Data.Security {
 			QueryContext = null;
 		}
 
-		private static void UpdateGrants(IQueryContext queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName,
+		private static void UpdateGrants(IQuery queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName,
 			string granter, string grantee, Privileges privileges, bool withOption) {
 			RevokeAllGrants(queryContext, grantTable, objectType, objectName, granter, grantee, withOption);
 
@@ -56,7 +56,7 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private static void RevokeAllGrants(IQueryContext queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName, string revoker, string user, bool withOption = false) {
+		private static void RevokeAllGrants(IQuery queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName, string revoker, string user, bool withOption = false) {
 			var objectCol = grantTable.GetResolvedColumnName(1);
 			var paramCol = grantTable.GetResolvedColumnName(2);
 			var granteeCol = grantTable.GetResolvedColumnName(3);
@@ -218,7 +218,7 @@ namespace Deveel.Data.Security {
 			grantTable.Delete(t1);
 		}
 
-		private static Privileges QueryPrivileges(IQueryContext queryContext, ITable grantTable, string grantee,
+		private static Privileges QueryPrivileges(IQuery queryContext, ITable grantTable, string grantee,
 			DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic) {
 			var objectCol = grantTable.GetResolvedColumnName(1);
 			var paramCol = grantTable.GetResolvedColumnName(2);

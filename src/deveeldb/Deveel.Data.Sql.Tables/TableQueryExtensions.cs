@@ -246,7 +246,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		public static IEnumerable<int> SelectRows(this ITable table,
 			IVariableResolver resolver,
-			IQueryContext context,
+			IQuery context,
 			SqlBinaryExpression expression) {
 
 			var objRef = expression.Left as SqlReferenceExpression;
@@ -473,7 +473,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.AsVirtual(() => table.SelectAllRows(columnOffset));
 		}
 
-		public static ITable Select(this ITable table, IQueryContext context, SqlExpression expression) {
+		public static ITable Select(this ITable table, IQuery context, SqlExpression expression) {
 			if (expression is SqlBinaryExpression) {
 				var binary = (SqlBinaryExpression)expression;
 
@@ -496,7 +496,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table;
 		}
 
-		public static ITable SimpleSelect(this ITable table, IQueryContext context, ObjectName columnName, SqlExpressionType op, SqlExpression exp) {
+		public static ITable SimpleSelect(this ITable table, IQuery context, ObjectName columnName, SqlExpressionType op, SqlExpression exp) {
 			// Find the row with the name given in the condition.
 			int column = table.FindColumn(columnName);
 
@@ -583,7 +583,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public static ITable ExhaustiveSelect(this ITable table, IQueryContext context, SqlExpression expression) {
+		public static ITable ExhaustiveSelect(this ITable table, IQuery context, SqlExpression expression) {
 			var result = table;
 
 			// Exit early if there's nothing in the table to select from
@@ -1132,7 +1132,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.Join(otherTable, true);
 		}
 
-		public static ITable Join(this ITable table, IQueryContext context, ITable other, ObjectName columnName, SqlExpressionType operatorType,
+		public static ITable Join(this ITable table, IQuery context, ITable other, ObjectName columnName, SqlExpressionType operatorType,
 			SqlExpression expression) {
 			var rightExpression = expression;
 			// If the rightExpression is a simple variable then we have the option
@@ -1165,7 +1165,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.SimpleJoin(context, other, joinExp);
 		}
 
-		public static ITable SimpleJoin(this ITable thisTable, IQueryContext context, ITable other, SqlBinaryExpression binary) {
+		public static ITable SimpleJoin(this ITable thisTable, IQuery context, ITable other, SqlBinaryExpression binary) {
 			var objRef = binary.Left as SqlReferenceExpression;
 			if (objRef == null)
 				throw new ArgumentException();
@@ -1256,7 +1256,7 @@ namespace Deveel.Data.Sql.Tables {
 			return new VirtualTable(table, resultList);
 		}
 
-		public static ITable EquiJoin(this ITable table, IQueryContext context, ITable other, ObjectName[] leftColumns, ObjectName[] rightColumns) {
+		public static ITable EquiJoin(this ITable table, IQuery context, ITable other, ObjectName[] leftColumns, ObjectName[] rightColumns) {
 			// TODO: This needs to migrate to a better implementation that
 			//   exploits multi-column indexes if one is defined that can be used.
 

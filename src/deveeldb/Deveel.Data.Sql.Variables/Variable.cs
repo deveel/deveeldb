@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Variables {
 			return Value.Equals(other.Value);
 		}
 
-		public void SetValue(IQueryContext context, SqlExpression expression) {
+		public void SetValue(IQuery context, SqlExpression expression) {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 

@@ -15,9 +15,7 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -34,6 +32,6 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public IQueryPlanNode Child { get; private set; }
 
-		public abstract ITable Evaluate(IQueryContext context);
+		public abstract ITable Evaluate(IQuery context);
 	}
 }

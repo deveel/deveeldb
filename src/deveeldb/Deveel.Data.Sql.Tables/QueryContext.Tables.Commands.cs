@@ -10,15 +10,15 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	public static partial class QueryContextExtensions {
-		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query) {
+		public static int DeleteFrom(this IQuery context, ObjectName tableName, SqlQueryExpression query) {
 			return DeleteFrom(context, tableName, query, -1);
 		}
 
-		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlExpression expression) {
+		public static int DeleteFrom(this IQuery context, ObjectName tableName, SqlExpression expression) {
 			return DeleteFrom(context, tableName, expression, -1);
 		}
 
-		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlExpression expression, int limit) {
+		public static int DeleteFrom(this IQuery context, ObjectName tableName, SqlExpression expression, int limit) {
 			if (expression is SqlQueryExpression)
 				return context.DeleteFrom(tableName, (SqlQueryExpression)expression, limit);
 
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Tables {
 			return context.DeleteFrom(tableName, deleteSet, limit);
 		}
 
-		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, SqlQueryExpression query, int limit) {
+		public static int DeleteFrom(this IQuery context, ObjectName tableName, SqlQueryExpression query, int limit) {
 			IQueryPlanNode plan;
 
 			try {
@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Tables {
 			return context.DeleteFrom(tableName, deleteSet, limit);
 		}
 
-		public static int DeleteFrom(this IQueryContext context, ObjectName tableName, ITable deleteSet, int limit) {
+		public static int DeleteFrom(this IQuery context, ObjectName tableName, ITable deleteSet, int limit) {
 			if (!context.UserCanDeleteFromTable(tableName))
 				throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Delete);
 
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.Delete(deleteSet, limit);
 		}
 
-		public static int UpdateTable(this IQueryContext context, ObjectName tableName, IQueryPlanNode queryPlan,
+		public static int UpdateTable(this IQuery context, ObjectName tableName, IQueryPlanNode queryPlan,
 			IEnumerable<SqlAssignExpression> assignments, int limit) {
 			var columnNames = assignments.Select(x => x.ReferenceExpression)
 				.Cast<SqlReferenceExpression>()
@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.Update(context, updateSet, assignments, limit);
 		}
 
-		public static void InsertIntoTable(this IQueryContext context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
+		public static void InsertIntoTable(this IQuery context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
 			var columnNames =
 				assignments.Select(x => x.ReferenceExpression)
 					.Cast<SqlReferenceExpression>()
@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Tables {
 			table.AddRow(row);
 		}
 
-		public static int InsertIntoTable(this IQueryContext context, ObjectName tableName,
+		public static int InsertIntoTable(this IQuery context, ObjectName tableName,
 			IEnumerable<SqlAssignExpression[]> assignments) {
 			int insertCount = 0;
 

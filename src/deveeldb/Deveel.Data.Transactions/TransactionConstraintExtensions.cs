@@ -455,7 +455,7 @@ namespace Deveel.Data.Transactions {
 			ConstraintDeferrability deferred) {
 			string curSchema = table.TableInfo.TableName.Parent.Name;
 			using (var session = new SystemUserSession(transaction, curSchema)) {
-				using (var queryContext = new QueryContext(session)) {
+				using (var queryContext = session.CreateQuery()) {
 
 					// Quick exit case
 					if (rowIndices == null || rowIndices.Length == 0)

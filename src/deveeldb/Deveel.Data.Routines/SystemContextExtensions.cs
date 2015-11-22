@@ -21,7 +21,7 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Routines {
 	public static class SystemContextExtensions {
-		public static IRoutine ResolveRoutine(this ISystemContext context, Invoke invoke, IQueryContext queryContext) {
+		public static IRoutine ResolveRoutine(this ISystemContext context, Invoke invoke, IQuery queryContext) {
 			var resolvers = context.ResolveAllServices<IRoutineResolver>();
 			foreach (var resolver in resolvers) {
 				var routine = resolver.ResolveRoutine(invoke, queryContext);

@@ -350,7 +350,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		private void ExecuteUpdateReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, DataObject[] newKey,
-			IQueryContext context) {
+			IQuery context) {
 			var updateRule = constraint.OnUpdate;
 			if (updateRule == ForeignKeyAction.NoAction &&
 			    constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {
@@ -425,7 +425,7 @@ namespace Deveel.Data.Transactions {
 				var tName = tableInfo.TableName;
 
 				using (var session = new SystemUserSession(Transaction, tName.ParentName)) {
-					using (var context = new QueryContext(session)) {
+					using (var context = session.CreateQuery()) {
 
 						// Are there any added, deleted or updated entries in the journal since
 						// we last checked?
@@ -544,7 +544,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 
-		private void ExecuteDeleteReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, IQueryContext context) {
+		private void ExecuteDeleteReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, IQuery context) {
 			var deleteRule = constraint.OnDelete;
 			if (deleteRule == ForeignKeyAction.NoAction &&
 			    constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {

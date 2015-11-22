@@ -22,13 +22,13 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ReturnTypeVisitor : SqlExpressionVisitor {
-		private readonly IQueryContext queryContext;
+		private readonly IQuery query;
 		private readonly IVariableResolver variableResolver;
 
 		private SqlType sqlType;
 
-		public ReturnTypeVisitor(IQueryContext queryContext, IVariableResolver variableResolver) {
-			this.queryContext = queryContext;
+		public ReturnTypeVisitor(IQuery query, IVariableResolver variableResolver) {
+			this.query = query;
 			this.variableResolver = variableResolver;
 
 			sqlType = PrimitiveTypes.Null();
@@ -61,9 +61,9 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
-			var function = invoke.ResolveRoutine(queryContext) as IFunction;
+			var function = invoke.ResolveRoutine(query) as IFunction;
 			if (function != null)
-				sqlType = function.ReturnType(invoke, queryContext, variableResolver);
+				sqlType = function.ReturnType(invoke, query, variableResolver);
 
 			return base.VisitFunctionCall(expression);
 		}

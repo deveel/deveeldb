@@ -40,11 +40,11 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			throw new NotImplementedException();
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			throw new NotImplementedException();
 		}
 	}

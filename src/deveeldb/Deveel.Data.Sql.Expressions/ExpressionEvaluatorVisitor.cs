@@ -175,17 +175,17 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			try {
 				var invoke = new Invoke(expression.FunctioName, expression.Arguments);
-				IQueryContext queryContext = null;
+				IQuery query = null;
 				IVariableResolver variableResolver = null;
 				IGroupResolver groupResolver = null;
 				if (context != null) {
-					queryContext = context.QueryContext;
+					query = context.Query;
 					variableResolver = context.VariableResolver;
 					groupResolver = context.GroupResolver;
 				}
 
 				// TODO: if we don't have a return value (PROCEDURES) what should w return?
-				var result = invoke.Execute(queryContext, variableResolver, groupResolver);
+				var result = invoke.Execute(query, variableResolver, groupResolver);
 				if (!result.HasReturnValue)
 					return SqlExpression.Constant(DataObject.Null());
 
@@ -198,12 +198,12 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitQuery(SqlQueryExpression query) {
-			if (context.QueryContext == null)
+			if (context.Query == null)
 				throw new ExpressionEvaluateException("A query expression is required to evaluate a query.");
 
 			try {
-				var planner = context.QueryContext.QueryPlanner();
-				var plan = planner.PlanQuery(context.QueryContext, query, null, null);
+				var planner = context.Query.QueryContext.QueryPlanner();
+				var plan = planner.PlanQuery(context.Query, query, null, null);
 				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
 			} catch (ExpressionEvaluateException) {
 				throw;
@@ -250,7 +250,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
-			if (context.QueryContext == null)
+			if (context.Query == null)
 				throw new ExpressionEvaluateException("Cannot assign a variable outside a query context.");
 
 			var valueExpression = Visit(assign.ValueExpression);
@@ -276,7 +276,7 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 
 			try {
-				context.QueryContext.SetVariable(variableName, valueExpression);
+				context.Query.SetVariable(variableName, valueExpression);
 			} catch (Exception ex) {
 				throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
 			}
@@ -306,13 +306,13 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
 			var refName = reference.VariableName;
 
-			if (context.QueryContext == null)
+			if (context.Query == null)
 				throw new ExpressionEvaluateException(String.Format("Cannot dereference variable {0} outside a query context", refName));
 			if (context.VariableResolver == null)
 				throw new ExpressionEvaluateException("The query context does not handle variables.");
 
 			
-			var variable = context.QueryContext.FindVariable(refName);
+			var variable = context.Query.FindVariable(refName);
 			if (variable == null)
 				return SqlExpression.Constant(DataObject.Null());
 

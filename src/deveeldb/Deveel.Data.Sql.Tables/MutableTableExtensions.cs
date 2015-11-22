@@ -118,7 +118,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.RemoveRow(list[0]);
 		}
 
-		public static int Update(this IMutableTable mutableTable, IQueryContext context, ITable table,
+		public static int Update(this IMutableTable mutableTable, IQuery context, ITable table,
 			IEnumerable<SqlAssignExpression> assignList, int limit) {
 
 			// Get the rows from the input table.

@@ -47,8 +47,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
-			var queryPlan = context.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
+		protected override SqlStatement PrepareStatement(IQuery context) {
+			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
 
 			if (IsObjectReference) {
 				var tableRef = ((SqlReferenceExpression) Reference).ReferenceName;
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQueryContext context) {
+			protected override ITable ExecuteStatement(IQuery context) {
 				var result = QueryPlan.Evaluate(context);
 
 				if (IsForTable) {

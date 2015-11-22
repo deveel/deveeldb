@@ -22,8 +22,8 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			QueryContext.CreateTable(tableInfo);
-			QueryContext.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			Query.CreateTable(tableInfo);
+			Query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		[Test]
@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 				"VALUES ('Antonello', 'Provenzano', TOODATE('1980-06-04'))";
 
 			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.QueryContext, sql));
 			Assert.IsNotNull(statements);
 
 			var statementList = statements.ToList();
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 				"('Sebastiano', 'Provenzano', TODATE('1981-08-27'))";
 
 			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.QueryContext, sql));
 			Assert.IsNotNull(statements);
 
 			var statementList = statements.ToList();
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Statements {
 				"INSERT INTO test_table SET first_name = 'Antonello', last_name = 'Provenzano', birth_date = TODATE('1980-06-04')";
 
 			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.QueryContext, sql));
 			Assert.IsNotNull(statements);
 
 			var statementList = statements.ToList();
@@ -98,7 +98,7 @@ namespace Deveel.Data.Sql.Statements {
 			const string sql = "INSERT INTO test_table FROM (SELECT * FROM table2 WHERE arg1 = 1)";
 
 			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(QueryContext, sql));
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.QueryContext, sql));
 			Assert.IsNotNull(statements);
 
 			var statementList = statements.ToList();

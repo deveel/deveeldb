@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlExpression Expression { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var t = Child.Evaluate(context);
 			return t.Select(context, Expression);
 		}

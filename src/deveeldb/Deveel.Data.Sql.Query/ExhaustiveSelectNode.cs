@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public SqlExpression Expression { get; private set; }
 
-		public override ITable Evaluate(IQueryContext context) {
+		public override ITable Evaluate(IQuery context) {
 			var t = Child.Evaluate(context);
 			return t.ExhaustiveSelect(context, Expression);
 		}

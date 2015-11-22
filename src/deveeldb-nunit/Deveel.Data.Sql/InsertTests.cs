@@ -9,18 +9,21 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class InsertTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
+		protected override IUserSession CreateAdminSession(IDatabase database) {
+			using (var session = base.CreateAdminSession(database)) {
+				using (var query = session.CreateQuery()) {
+					var tableInfo = new TableInfo(ObjectName.Parse("APP.people"));
+					tableInfo.AddColumn("id", PrimitiveTypes.BigInt());
+					tableInfo.AddColumn("first_name", PrimitiveTypes.String(), true);
+					tableInfo.AddColumn("last_name", PrimitiveTypes.String());
+					tableInfo.AddColumn("age", PrimitiveTypes.TinyInt());
 
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.people"));
-			tableInfo.AddColumn("id", PrimitiveTypes.BigInt());
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("age", PrimitiveTypes.TinyInt());
+					query.CreateTable(tableInfo);
+					query.Commit();
+				}
+			}
 
-			context.CreateTable(tableInfo);
-
-			return context;
+			return base.CreateAdminSession(database);
 		}
 
 		[Test]
@@ -35,7 +38,7 @@ namespace Deveel.Data.Sql {
 					SqlExpression.Constant("Provenzano"))
 			};
 
-			QueryContext.InsertIntoTable(tableName, assignments);
+			Query.InsertIntoTable(tableName, assignments);
 		}
 	}
 }

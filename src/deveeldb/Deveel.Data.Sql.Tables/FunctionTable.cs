@@ -27,7 +27,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	class FunctionTable : BaseDataTable {
-		private readonly IQueryContext context;
+		private readonly IQuery context;
 		private readonly ITableVariableResolver varResolver;
 		private readonly TableInfo funTableInfo;
 		private bool wholeTableIsSimpleEnum;
@@ -47,12 +47,12 @@ namespace Deveel.Data.Sql.Tables {
 
 		private static int uniqueKeySeq = 0;
 
-		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: this(queryContext.Session().Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
+		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQuery queryContext)
+			: this(queryContext.Session.Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
 		}
 
-		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQueryContext queryContext)
-			: base(queryContext) {
+		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQuery queryContext)
+			: base(queryContext.QueryContext) {
 			// Make sure we are synchronized over the class.
 			lock (typeof(FunctionTable)) {
 				uniqueId = uniqueKeySeq;
@@ -151,7 +151,7 @@ namespace Deveel.Data.Sql.Tables {
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
 				DataObject cell;
-				if (cache.TryGetValue(context.Session().Transaction.Database.Name(), uniqueId, (int)rowNumber, columnOffset, out cell))
+				if (cache.TryGetValue(context.Session.Transaction.Database.Name(), uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var value = ((SqlConstantExpression) exp).Value;
 			if (cache != null)
-				cache.Set(context.Session().Transaction.Database.Name(), uniqueId, row, column, value);
+				cache.Set(context.Session.Transaction.Database.Name(), uniqueId, row, column, value);
 
 			return value;
 		}
@@ -403,7 +403,7 @@ namespace Deveel.Data.Sql.Tables {
 			list.Insert(index, value);
 		}
 
-		public static ITable ResultTable(IQueryContext context, SqlExpression expression) {
+		public static ITable ResultTable(IQuery context, SqlExpression expression) {
 			var exp = new [] { expression };
 			var names = new[] { "result" };
 			var table = new FunctionTable(exp, names, context);
@@ -411,11 +411,11 @@ namespace Deveel.Data.Sql.Tables {
 			return new SubsetColumnTable(table, new[]{0}, new []{new ObjectName("result") });
 		}
 
-		public static ITable ResultTable(IQueryContext context, DataObject value) {
+		public static ITable ResultTable(IQuery context, DataObject value) {
 			return ResultTable(context, SqlExpression.Constant(value));
 		}
 
-		public static ITable ResultTable(IQueryContext context, int value) {
+		public static ITable ResultTable(IQuery context, int value) {
 			return ResultTable(context, DataObject.Integer(value));
 		}
 

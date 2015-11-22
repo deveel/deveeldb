@@ -28,20 +28,20 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class SelectStatementTests : ContextBasedTest {
-		protected override IDatabase CreateDatabase(IDatabaseContext context) {
-			var database = base.CreateDatabase(context);
+		protected override IUserSession CreateAdminSession(IDatabase database) {
+			using (var session = base.CreateAdminSession(database)) {
+				using (var query = session.CreateQuery()) {
+					CreateTestTable(query);
+					AddTestData(query);
 
-			using (var queryContext = database.CreateQueryContext(AdminUserName, AdminPassword)) {
-				CreateTestTable(queryContext);
-				AddTestData(queryContext);
-
-				queryContext.Commit();
+					query.Commit();
+				}
 			}
 
-			return database;
+			return base.CreateAdminSession(database);
 		}
 
-		private void CreateTestTable(IQueryContext context) {
+		private void CreateTestTable(IQuery context) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			context.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
-		private void AddTestData(IQueryContext context) {
+		private void AddTestData(IQuery context) {
 			var table = context.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 
@@ -188,7 +188,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
@@ -207,7 +207,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 
@@ -230,7 +230,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
@@ -249,7 +249,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsInstanceOf<SelectStatement>(statement);
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(QueryContext));
+			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}

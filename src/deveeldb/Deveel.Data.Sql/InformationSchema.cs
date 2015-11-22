@@ -60,16 +60,16 @@ namespace Deveel.Data.Sql {
 		public static readonly ObjectName ThisUserTableInfoViewName = new ObjectName(Name, "ThisUserTableInfo");
 
 
-		public static void CreateViews(IQueryContext context) {
+		public static void CreateViews(IQuery query) {
 			// This view shows the grants that the user has (no join, only priv_bit).
-			context.ExecuteQuery("CREATE VIEW " + ThisUserSimpleGrantViewName + " AS " +
+			query.ExecuteQuery("CREATE VIEW " + ThisUserSimpleGrantViewName + " AS " +
 			                     "  SELECT \"priv_bit\", \"object\", \"name\", \"user\", " +
 			                     "         \"grant_option\", \"granter\" " +
 			                     "    FROM " + SystemSchema.UserGrantsTableName +
 			                     "   WHERE ( user = user() OR user = '@PUBLIC' )");
 
 			// This view shows the grants that the user is allowed to see
-			context.ExecuteQuery("CREATE VIEW " + ThisUserGrantViewName + " AS " +
+			query.ExecuteQuery("CREATE VIEW " + ThisUserGrantViewName + " AS " +
 			                     "  SELECT \"description\", \"object\", \"name\", \"user\", " +
 			                     "         \"grant_option\", \"granter\" " +
 			                     "    FROM " + SystemSchema.UserGrantsTableName + ", " + SystemSchema.PrivilegesTableName +
@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql {
 
 			// A view that represents the list of schema this user is allowed to view
 			// the contents of.
-			context.ExecuteQuery("CREATE VIEW " + ThisUserSchemaInfoViewName + " AS " +
+			query.ExecuteQuery("CREATE VIEW " + ThisUserSchemaInfoViewName + " AS " +
 			                     "  SELECT * FROM  " + SystemSchema.SchemaInfoTableName +
 			                     "   WHERE \"name\" IN ( " +
 			                     "     SELECT \"name\" " +
@@ -89,19 +89,19 @@ namespace Deveel.Data.Sql {
 
 			// A view that exposes the table_columns table but only for the tables
 			// this user has read access to.
-			context.ExecuteQuery("CREATE VIEW " + ThisUserTableColumnsViewName + " AS " +
+			query.ExecuteQuery("CREATE VIEW " + ThisUserTableColumnsViewName + " AS " +
 			                     "  SELECT * FROM " + SystemSchema.TableColumnsTableName +
 			                     "   WHERE \"schema\" IN ( " +
 			                     "     SELECT \"name\" FROM " + ThisUserSchemaInfoViewName + ")");
 
 			// A view that exposes the 'table_info' table but only for the tables
 			// this user has read access to.
-			context.ExecuteQuery("CREATE VIEW " + ThisUserTableInfoViewName + " AS " +
+			query.ExecuteQuery("CREATE VIEW " + ThisUserTableInfoViewName + " AS " +
 			                     "  SELECT * FROM " + SystemSchema.TableInfoTableName +
 			                     "   WHERE \"schema\" IN ( " +
 			                     "     SELECT \"name\" FROM "+ThisUserSchemaInfoViewName + ")");
 
-			context.ExecuteQuery("  CREATE VIEW " + Tables + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + Tables + " AS " +
 			                     "  SELECT NULL AS \"TABLE_CATALOG\", \n" +
 			                     "         \"schema\" AS \"TABLE_SCHEMA\", \n" +
 			                     "         \"name\" AS \"TABLE_NAME\", \n" +
@@ -114,17 +114,17 @@ namespace Deveel.Data.Sql {
 			                     "         NULL AS \"REF_GENERATION\" \n" +
 			                     "    FROM " + ThisUserTableInfoViewName + "\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + Schemata + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + Schemata + " AS " +
 			                     "  SELECT \"name\" AS \"TABLE_SCHEMA\", \n" +
 			                     "         NULL AS \"TABLE_CATALOG\" \n" +
 			                     "    FROM " + ThisUserSchemaInfoViewName + "\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + Catalogs + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + Catalogs + " AS " +
 			                     "  SELECT NULL AS \"TABLE_CATALOG\" \n" +
 			                     "    FROM " + SystemSchema.SchemaInfoTableName + "\n" + // Hacky, this will generate a 0 row
 			                     "   WHERE FALSE\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + Columns + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + Columns + " AS " +
 			                     "  SELECT NULL AS \"TABLE_CATALOG\",\n" +
 			                     "         \"schema\" AS \"TABLE_SCHEMA\",\n" +
 			                     "         \"table\" AS \"TABLE_NAME\",\n" +
@@ -145,7 +145,7 @@ namespace Deveel.Data.Sql {
 			                     "         IIF(\"not_null\", 'NO', 'YES') AS \"IS_NULLABLE\"\n" +
 			                     "    FROM " + ThisUserTableColumnsViewName + "\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + ColumnPrivileges + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + ColumnPrivileges + " AS " +
 			                     "  SELECT \"TABLE_CATALOG\",\n" +
 			                     "         \"TABLE_SCHEMA\",\n" +
 			                     "         \"TABLE_NAME\",\n" +
@@ -162,7 +162,7 @@ namespace Deveel.Data.Sql {
 			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
 			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
 
-			context.ExecuteQuery("  CREATE VIEW " + TablePrivileges + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + TablePrivileges + " AS " +
 			                     "  SELECT \"TABLE_CATALOG\",\n" +
 			                     "         \"TABLE_SCHEMA\",\n" +
 			                     "         \"TABLE_NAME\",\n" +
@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql {
 			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
 			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
 
-			context.ExecuteQuery("  CREATE VIEW " + PrimaryKeys + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + PrimaryKeys + " AS " +
 			                     "  SELECT NULL \"TABLE_CATALOG\",\n" +
 			                     "         \"schema\" \"TABLE_SCHEMA\",\n" +
 			                     "         \"table\" \"TABLE_NAME\",\n" +
@@ -190,7 +190,7 @@ namespace Deveel.Data.Sql {
 			                     "     AND \"schema\" IN\n" +
 			                     "            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + ImportedKeys + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + ImportedKeys + " AS " +
 			                     "  SELECT NULL \"PKTABLE_CATALOG\",\n" +
 			                     "         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 			                     "         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -210,7 +210,7 @@ namespace Deveel.Data.Sql {
 			                     "     AND \"fkey_info.schema\" IN\n" +
 			                     "              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + ExportedKeys + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + ExportedKeys + " AS " +
 			                     "  SELECT NULL \"PKTABLE_CAT\",\n" +
 			                     "         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 			                     "         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -230,7 +230,7 @@ namespace Deveel.Data.Sql {
 			                     "     AND \"fkey_info.schema\" IN\n" +
 			                     "              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
 
-			context.ExecuteQuery("  CREATE VIEW " + CrossReference + " AS " +
+			query.ExecuteQuery("  CREATE VIEW " + CrossReference + " AS " +
 			                     "  SELECT NULL \"PKTABLE_CAT\",\n" +
 			                     "         \"fkey_info.ref_schema\" \"PKTABLE_SCHEMA\",\n" +
 			                     "         \"fkey_info.ref_table\" \"PKTABLE_NAME\",\n" +
@@ -251,23 +251,23 @@ namespace Deveel.Data.Sql {
 			                     "              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
 		}
 
-		public static void GrantToPublic(IQueryContext context) {
-			context.GrantToUserOn(DbObjectType.View, ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
+		public static void GrantToPublic(IQuery query) {
+			query.GrantToUserOn(DbObjectType.View, ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
 
-			context.GrantToUserOn(DbObjectType.View, Catalogs, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, Schemata, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, Tables, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, TablePrivileges, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, Columns, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ColumnPrivileges, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, PrimaryKeys, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ImportedKeys, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, ExportedKeys, User.PublicName, Privileges.TableRead);
-			context.GrantToUserOn(DbObjectType.View, CrossReference, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, Catalogs, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, Schemata, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, Tables, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, TablePrivileges, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, Columns, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ColumnPrivileges, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, PrimaryKeys, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ImportedKeys, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, ExportedKeys, User.PublicName, Privileges.TableRead);
+			query.GrantToUserOn(DbObjectType.View, CrossReference, User.PublicName, Privileges.TableRead);
 		}
 	}
 }

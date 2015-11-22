@@ -50,7 +50,7 @@ namespace Deveel.Data {
 			return query.QueryContext.ParameterStyle();
 		}
 
-		public static void Commit(IQuery query) {
+		public static void Commit(this IQuery query) {
 			query.Session.Commit();
 		}
 

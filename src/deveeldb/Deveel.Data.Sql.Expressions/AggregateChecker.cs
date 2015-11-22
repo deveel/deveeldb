@@ -21,16 +21,16 @@ using Deveel.Data.Routines;
 
 namespace Deveel.Data.Sql.Expressions {
 	class AggregateChecker : SqlExpressionVisitor {
-		private readonly IQueryContext queryContext;
+		private readonly IQuery query;
 		private bool aggFunFound;
 
-		public AggregateChecker(IQueryContext queryContext) {
-			this.queryContext = queryContext;
+		public AggregateChecker(IQuery query) {
+			this.query = query;
 		}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
-			aggFunFound = invoke.IsAggregate(queryContext);
+			aggFunFound = invoke.IsAggregate(query);
 
 			return base.VisitFunctionCall(expression);
 		}

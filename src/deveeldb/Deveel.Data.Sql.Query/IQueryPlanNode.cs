@@ -28,6 +28,6 @@ namespace Deveel.Data.Sql.Query {
 	/// for the construction of better plans.
 	/// </remarks>
 	public interface IQueryPlanNode {
-		ITable Evaluate(IQueryContext context);
+		ITable Evaluate(IQuery context);
 	}
 }

@@ -9,48 +9,50 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class DropTableTests : ContextBasedTest {
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
-			CreateTestTables(context);
-			return context;
-		}
+		protected override IUserSession CreateAdminSession(IDatabase database) {
+			using (var session = base.CreateAdminSession(database)) {
+				using (var query = session.CreateQuery()) {
+					var tn1 = ObjectName.Parse("APP.test_table1");
+					var tableInfo1 = new TableInfo(tn1);
+					tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
+					tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
+					tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
+					query.CreateTable(tableInfo1);
+					query.AddPrimaryKey(tn1, "id");
 
-		private void CreateTestTables(IQueryContext context) {
-			var tn1 = ObjectName.Parse("APP.test_table1");
-			var tableInfo1 = new TableInfo(tn1);
-			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
-			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
-			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
-			context.CreateTable(tableInfo1);
-			context.AddPrimaryKey(tn1, "id");
-				
-			var tn2 = ObjectName.Parse("APP.test_table2");
-			var tableInfo2 = new TableInfo(tn2);
-			tableInfo2.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
-			tableInfo2.AddColumn(new ColumnInfo("other_id", PrimitiveTypes.Integer()));
-			tableInfo2.AddColumn(new ColumnInfo("count", PrimitiveTypes.Integer()));
-			context.CreateTable(tableInfo2);
-			context.AddPrimaryKey(tn2, "id");
-			context.AddForeignKey(tn2, new []{"other_id"}, tn1, new []{"id"}, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, null);
+					var tn2 = ObjectName.Parse("APP.test_table2");
+					var tableInfo2 = new TableInfo(tn2);
+					tableInfo2.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
+					tableInfo2.AddColumn(new ColumnInfo("other_id", PrimitiveTypes.Integer()));
+					tableInfo2.AddColumn(new ColumnInfo("count", PrimitiveTypes.Integer()));
+					query.CreateTable(tableInfo2);
+					query.AddPrimaryKey(tn2, "id");
+					query.AddForeignKey(tn2, new[] { "other_id" }, tn1, new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, null);
+
+					query.Commit();
+				}
+			}
+
+			return base.CreateAdminSession(database);
 		}
 
 		[Test]
 		public void DropNonReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table2");
-			Assert.DoesNotThrow(() => QueryContext.DropTable(tableName));
+			Assert.DoesNotThrow(() => Query.DropTable(tableName));
 
 			bool exists = false;
-			Assert.DoesNotThrow(() => exists = QueryContext.TableExists(tableName));
+			Assert.DoesNotThrow(() => exists = Query.TableExists(tableName));
 			Assert.IsFalse(exists);
 		}
 
 		[Test]
 		public void DropReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table1");
-			Assert.Throws<ConstraintViolationException>(() => QueryContext.DropTable(tableName));
+			Assert.Throws<ConstraintViolationException>(() => Query.DropTable(tableName));
 
 			bool exists = false;
-			Assert.DoesNotThrow(() => exists = QueryContext.TableExists(tableName));
+			Assert.DoesNotThrow(() => exists = Query.TableExists(tableName));
 			Assert.IsTrue(exists);
 		}
 
@@ -61,7 +63,7 @@ namespace Deveel.Data.Sql {
 				ObjectName.Parse("APP.test_table2"),
 			};
 
-			Assert.DoesNotThrow(() => QueryContext.DropTables(tableNames));
+			Assert.DoesNotThrow(() => Query.DropTables(tableNames));
 		}
 	}
 }

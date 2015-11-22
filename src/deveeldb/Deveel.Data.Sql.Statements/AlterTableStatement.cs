@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IQueryContext context) {
+		protected override SqlStatement PrepareStatement(IQuery context) {
 			var tableName = context.ResolveTableName(TableName);
 			return new AlterTableStatement(tableName, Action);
 		}
@@ -64,12 +64,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		}
 
-		private bool CheckColumnNamesMatch(IQueryContext context, String col1, String col2) {
+		private bool CheckColumnNamesMatch(IQuery context, String col1, String col2) {
 			var comparison = context.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			return col1.Equals(col2, comparison);
 		}
 
-		protected override ITable ExecuteStatement(IQueryContext context) {
+		protected override ITable ExecuteStatement(IQuery context) {
 			if (!context.UserCanAlterTable(TableName))
 				throw new InvalidAccessException(context.UserName(), TableName);
 

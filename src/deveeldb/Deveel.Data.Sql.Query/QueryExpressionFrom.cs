@@ -224,7 +224,7 @@ namespace Deveel.Data.Sql.Query {
 			return referenceName;
 		}
 
-		public static QueryExpressionFrom Create(IQueryContext context, SqlQueryExpression expression) {
+		public static QueryExpressionFrom Create(IQuery context, SqlQueryExpression expression) {
 			// Get the 'from_clause' from the table expression
 			var fromClause = expression.FromClause;
 			var ignoreCase = context.IgnoreIdentifiersCase();

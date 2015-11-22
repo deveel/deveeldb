@@ -10,16 +10,17 @@ namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerListenTests : ContextBasedTest {
 		private static readonly ObjectName TestTableName = ObjectName.Parse("APP.test_table");
 
-		protected override IQueryContext CreateQueryContext(IDatabase database) {
-			var context = base.CreateQueryContext(database);
+		protected override IQuery CreateQuery(IUserSession session) {
+			var query = base.CreateQuery(session);
 
 			var tableInfo = new TableInfo(TestTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 
-			context.CreateTable(tableInfo);
-			return context;
+			query.CreateTable(tableInfo);
+
+			return query;
 		}
 
 		private TriggerEvent beforeEvent;
@@ -47,7 +48,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		[Test]
 		public void Insert_NoTriggers() {
-			var table = QueryContext.GetMutableTable(TestTableName);
+			var table = Query.GetMutableTable(TestTableName);
 
 			Assert.IsNotNull(table);
 
@@ -57,7 +58,7 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(2, "Provenzano");
 
 			Assert.DoesNotThrow(() => table.AddRow(row));
-			Assert.DoesNotThrow(() => QueryContext.Commit());
+			Assert.DoesNotThrow(() => Query.Commit());
 
 			Assert.IsNull(beforeEvent);
 			Assert.IsNull(afterEvent);

@@ -84,15 +84,15 @@ namespace Deveel.Data.Sql.Expressions {
 			return constantExp.Value;
 		}
 
-		public static DataObject EvaluateToConstant(this SqlExpression expression, IQueryContext queryContext, IVariableResolver variableResolver) {
-			return expression.EvaluateToConstant(new EvaluateContext(queryContext, variableResolver));
+		public static DataObject EvaluateToConstant(this SqlExpression expression, IQuery query, IVariableResolver variableResolver) {
+			return expression.EvaluateToConstant(new EvaluateContext(query, variableResolver));
 		}
 
 		/// <summary>
 		/// Gets the return type of the expression when evaluated.
 		/// </summary>
 		/// <param name="expression">The expression to check.</param>
-		/// <param name="queryContext">The query context used to evaluate the return type
+		/// <param name="query">The query context used to evaluate the return type
 		/// of the expression.</param>
 		/// <param name="variableResolver">The object used to resolve variable references in the expression tree.</param>
 		/// <returns>
@@ -100,8 +100,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// would return, or <c>null</c> if the final result of the evaluation has
 		/// no return type.
 		/// </returns>
-		public static SqlType ReturnType(this SqlExpression expression, IQueryContext queryContext, IVariableResolver variableResolver) {
-			var visitor = new ReturnTypeVisitor(queryContext, variableResolver);
+		public static SqlType ReturnType(this SqlExpression expression, IQuery query, IVariableResolver variableResolver) {
+			var visitor = new ReturnTypeVisitor(query, variableResolver);
 			return visitor.GetType(expression);
 		}
 
@@ -110,13 +110,13 @@ namespace Deveel.Data.Sql.Expressions {
 		/// in the tree.
 		/// </summary>
 		/// <param name="expression">The expression to verify.</param>
-		/// <param name="queryContext"></param>
+		/// <param name="query"></param>
 		/// <returns>
 		/// Returns <c>true</c> if the expression has any aggregate function in its tree,
 		/// or <c>false</c> otherwise.
 		/// </returns>
-		public static bool HasAggregate(this SqlExpression expression, IQueryContext queryContext) {
-			var visitor = new AggregateChecker(queryContext);
+		public static bool HasAggregate(this SqlExpression expression, IQuery query) {
+			var visitor = new AggregateChecker(query);
 			return visitor.HasAggregate(expression);
 		}
 

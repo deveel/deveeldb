@@ -31,34 +31,34 @@ namespace Deveel.Data.Routines {
 			return Execute(routine, args, null);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context) {
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQuery context) {
 			return Execute(routine, args, context, null);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context, IVariableResolver resolver) {
-			return Execute(routine, args, context, resolver, null);
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQuery query, IVariableResolver resolver) {
+			return Execute(routine, args, query, resolver, null);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context) {
-			return Execute(routine, context, null);
+		public static ExecuteResult Execute(this IRoutine routine, IQuery query) {
+			return Execute(routine, query, null);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context, IVariableResolver resolver) {
-			return Execute(routine, context, resolver, null);
+		public static ExecuteResult Execute(this IRoutine routine, IQuery query, IVariableResolver resolver) {
+			return Execute(routine, query, resolver, null);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
-			return Execute(routine, new SqlExpression[0], context, resolver, group);
+		public static ExecuteResult Execute(this IRoutine routine, IQuery query, IVariableResolver resolver, IGroupResolver group) {
+			return Execute(routine, new SqlExpression[0], query, resolver, group);
 		}
 
-		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQueryContext context, IVariableResolver resolver, IGroupResolver group) {
+		public static ExecuteResult Execute(this IRoutine routine, SqlExpression[] args, IQuery query, IVariableResolver resolver, IGroupResolver group) {
 			var request = new Invoke(routine.FullName, args);
 
-			if (context != null &&
-			    !context.UserCanExecuteFunction(request))
+			if (query != null &&
+			    !query.UserCanExecuteFunction(request))
 				throw new InvalidOperationException();
 
-			var executeContext = new ExecuteContext(request, routine, resolver, group, context);
+			var executeContext = new ExecuteContext(request, routine, resolver, group, query);
 			return routine.Execute(executeContext);
 		}
 

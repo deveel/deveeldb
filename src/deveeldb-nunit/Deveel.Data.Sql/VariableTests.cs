@@ -11,19 +11,19 @@ namespace Deveel.Data.Sql {
 	public class VariableTests : ContextBasedTest {
 		protected override void OnSetUp(string testName) {
 			if (testName != "DeclareVariable")
-				QueryContext.DeclareVariable("a", PrimitiveTypes.String());
+				Query.DeclareVariable("a", PrimitiveTypes.String());
 
 			base.OnSetUp(testName);
 		}
 
 		[Test]
 		public void DeclareVariable() {
-			QueryContext.DeclareVariable("a", PrimitiveTypes.String());
+			Query.DeclareVariable("a", PrimitiveTypes.String());
 		}
 
 		[Test]
 		public void GetVariable() {
-			var variable = QueryContext.FindVariable("a");
+			var variable = Query.FindVariable("a");
 
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<StringType>(variable.Type);
@@ -31,9 +31,9 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void SetExistingVariable() {
-			QueryContext.SetVariable("a", SqlExpression.Constant("test"));
+			Query.SetVariable("a", SqlExpression.Constant("test"));
 
-			var variable = QueryContext.FindVariable("a");
+			var variable = Query.FindVariable("a");
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<StringType>(variable.Type);
 			Assert.IsNotNull(variable.Value);
@@ -42,9 +42,9 @@ namespace Deveel.Data.Sql {
 
 		[Test]
 		public void SetNotExistingVariable() {
-			QueryContext.SetVariable("b", SqlExpression.Constant(23));
+			Query.SetVariable("b", SqlExpression.Constant(23));
 
-			var variable = QueryContext.FindVariable("b");
+			var variable = Query.FindVariable("b");
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<NumericType>(variable.Type);
 			Assert.IsNotNull(variable.Value);

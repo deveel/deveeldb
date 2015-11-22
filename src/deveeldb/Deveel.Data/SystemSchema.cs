@@ -236,7 +236,7 @@ namespace Deveel.Data {
 
 		#endregion
 
-		private static void CreateSecurityTables(IQueryContext context) {
+		private static void CreateSecurityTables(IQuery context) {
 			var tableInfo = new TableInfo(UserTableName);
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			// TODO: User table must be completed ...
@@ -327,12 +327,12 @@ namespace Deveel.Data {
 		}
 		*/
 
-		public static void CreateTables(IQueryContext context) {
+		public static void CreateTables(IQuery context) {
 			CreateSecurityTables(context);
 			//CreateRoutineTables(context);
 		}
 
-		public static void GrantToPublic(IQueryContext context) {
+		public static void GrantToPublic(IQuery context) {
 			context.GrantToUserOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
 			context.GrantToUserOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
 			context.GrantToUserOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
@@ -419,8 +419,8 @@ namespace Deveel.Data {
 			return new PrivilegesTable(transaction);
 		}
 
-		public static ITable GetSessionInfoTable(IQueryContext context) {
-			return new SessionInfoTable(context.Session());
+		public static ITable GetSessionInfoTable(IQuery context) {
+			return new SessionInfoTable(context.Session);
 		}
 
 		public static ITable GetStatisticsTable(ITransaction transaction) {

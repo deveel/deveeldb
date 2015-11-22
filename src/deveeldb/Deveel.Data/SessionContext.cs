@@ -34,7 +34,7 @@ namespace Deveel.Data {
 		}
 
 		public IQueryContext CreateQueryContext() {
-			throw new NotImplementedException();
+			return new QueryContext(this);
 		}
 	}
 }
