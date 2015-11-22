@@ -2,6 +2,7 @@
 
 using Deveel.Data;
 using Deveel.Data.Routines;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -11,10 +12,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Spatial {
 	[TestFixture]
 	public class SpatialFunctionsTest : ContextBasedTest {
-		protected override ISystemContext CreateSystemContext() {
-			var context = base.CreateSystemContext();
-			context.UserSpatial();
-			return context;
+		protected override void RegisterServices(ServiceContainer container) {
+			container.UseSpatial();
 		}
 
 		private DataObject ParseAndInvoke(string text) {

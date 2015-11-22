@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data.Diagnostics {
 	/// <summary>
 	/// Represents the origin of system events, providing
@@ -36,6 +38,8 @@ namespace Deveel.Data.Diagnostics {
 	/// </para>
 	/// </remarks>
 	public interface IEventSource {
+		IContext Context { get; }
+
 		/// <summary>
 		/// Gets an optional parent source.
 		/// </summary>

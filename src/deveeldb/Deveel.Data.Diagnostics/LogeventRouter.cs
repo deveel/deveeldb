@@ -45,12 +45,13 @@ namespace Deveel.Data.Diagnostics {
 		/// </summary>
 		public ISystemContext Context { get; private set; }
 
+		public bool CanRoute(IEvent @event) {
+			return (@event.EventType != (byte) EventType.Error &&
+			        @event.EventType != (byte) EventType.Notification);
+		}
+
 		public void RouteEvent(IEvent e) {
 			if (e == null)
-				return;
-
-			if (e.EventType != (byte)EventType.Error &&
-				e.EventType != (byte)EventType.Notification)
 				return;
 
 			var loggers = Context.ResolveAllServices<IEventLogger>();

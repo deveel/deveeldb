@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -82,6 +83,15 @@ namespace Deveel.Data.Configuration {
 			}
 
 			return returnKeys.Values.AsEnumerable();
+		}
+
+		public IEnumerator<KeyValuePair<string, object>> GetEnumerator() {
+			var keys = GetKeys(ConfigurationLevel.Deep);
+			return keys.Select(key => new KeyValuePair<string, object>(key, GetValue(key))).GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
 		}
 
 

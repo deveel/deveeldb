@@ -844,6 +844,7 @@
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
+    <Compile Include="Deveel.Data\DatabaseSystem.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data\DataObject.cs" />
     <Compile Include="Deveel.Data\DataVersionAttribute.cs" />
@@ -858,9 +859,11 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\IDatabaseManager.cs" />
     <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
+    <Compile Include="Deveel.Data\IOperation.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
+    <Compile Include="Deveel.Data\ISystem.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\IUserSession.cs" />
@@ -873,10 +876,10 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data\SessionContext.cs" />
+    <Compile Include="Deveel.Data\SystemBuilder.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
-    <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemUserSession.cs" />

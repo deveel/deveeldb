@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Services;
 using Deveel.Data.Spatial;
 
 using NUnit.Framework;
@@ -7,10 +8,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Types {
 	[TestFixture]
 	public sealed class DataTypeParseTests : ContextBasedTest {
-		protected override ISystemContext CreateSystemContext() {
-			var context = base.CreateSystemContext();
-			context.UserSpatial();
-			return context;
+		protected override void RegisterServices(ServiceContainer container) {
+			container.UseSpatial();
 		}
 
 		[Test]

@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql {
 			return query.Session.GetObject(objType, objName, accessType);
 		}
 
-		internal static void CreateObject(this IQuery query, IObjectInfo objectInfo) {
+		public static void CreateObject(this IQuery query, IObjectInfo objectInfo) {
 			// TODO: throw a specialized exception
 			if (!query.UserCanCreateObject(objectInfo.ObjectType, objectInfo.FullName))
 				throw new InvalidOperationException();

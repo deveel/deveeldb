@@ -37,7 +37,7 @@ namespace Deveel.Data {
 	/// </list>
 	/// </para>
 	/// </remarks>
-	public interface IDatabase : IDisposable {
+	public interface IDatabase : IEventSource, IDisposable {
 		/// <summary>
 		/// Gets the context that contains this database.
 		/// </summary>

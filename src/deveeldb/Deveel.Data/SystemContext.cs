@@ -17,21 +17,9 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Routines;
-using Deveel.Data.Security;
 using Deveel.Data.Services;
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Schemas;
-using Deveel.Data.Sql.Sequences;
-using Deveel.Data.Sql.Tables;
-using Deveel.Data.Sql.Triggers;
-using Deveel.Data.Sql.Variables;
-using Deveel.Data.Sql.Views;
-using Deveel.Data.Store;
 #if !PCL
 using Deveel.Data.Store.Journaled;
 #endif
@@ -68,20 +56,13 @@ namespace Deveel.Data {
 			get { return ContextNames.System; }
 		}
 
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return new KeyValuePair<string, object>[0]; }
-		}
-
-		IEventSource IEventSource.ParentSource {
-			get { return null; }
-		}
-
 		public DatabaseContext CreateDatabaseContext(IConfiguration configuration) {
 			return new DatabaseContext(this, configuration);
 		}
 
 		IDatabaseContext ISystemContext.CreateDatabaseContext(IConfiguration configuration) {
-			return CreateDatabaseContext(configuration);
+			var dbConfig = Configuration.MergeWith(configuration);
+			return CreateDatabaseContext(dbConfig);
 		}
 
 		protected override void Dispose(bool disposing) {

@@ -19,42 +19,28 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Sequences;
-using Deveel.Data.Transactions;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
-	public sealed class SequenceManagerTests {
-		private ObjectName testSequenceName;
-			
-		[SetUp]
-		public void TestSetup() {
-			testSequenceName = ObjectName.Parse("APP.test_sequence");
+	public sealed class SequenceManagerTests : ContextBasedTest {
+		private ObjectName testSequenceName = ObjectName.Parse("APP.test_sequence");
 
-			var dbConfig = new Configuration.Configuration();
-			dbConfig.SetValue("database.name", "testdb");
-
-			var builder = new SystemBuilder();
-			var systemContext = builder.BuildContext();
-			var dbContext = new DatabaseContext(systemContext, dbConfig);
-			var database = new Database(dbContext);
-			database.Create("SA", "12345");
-			database.Open();
-
-			transaction = database.CreateTransaction(IsolationLevel.Serializable);
+		protected override IQuery CreateQuery(IUserSession session) {
+			var query = base.CreateQuery(session);
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {
 				var seqInfo = new SequenceInfo(testSequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
-				transaction.CreateSequence(seqInfo);
+				query.CreateObject(seqInfo);
 			}
-		}
 
-		private ITransaction transaction;
+			return query;
+		}
 
 		[Test]
 		public void CreateNormalSequence() {
-			var sequenceManager = new SequenceManager(transaction);
+			var sequenceManager = new SequenceManager(Session.Transaction);
 
 			var sequenceName = ObjectName.Parse("APP.test_sequence");
 			var seqInfo = new SequenceInfo(sequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
@@ -66,7 +52,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void CreateNativeSequence() {
-			var sequenceManager = new SequenceManager(transaction);
+			var sequenceManager = new SequenceManager(Session.Transaction);
 
 			var tableName = ObjectName.Parse("APP.test_table");
 			var seqInfo = SequenceInfo.Native(tableName);
@@ -78,7 +64,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void IncremementSequenceValue() {
-			var sequenceManager = new SequenceManager(transaction);
+			var sequenceManager = new SequenceManager(Session.Transaction);
 
 			ISequence sequence = null;
 			Assert.DoesNotThrow(() => sequence = sequenceManager.GetSequence(testSequenceName));

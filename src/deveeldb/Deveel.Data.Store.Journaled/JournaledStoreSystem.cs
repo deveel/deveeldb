@@ -5,10 +5,6 @@ namespace Deveel.Data.Store.Journaled {
 		public void Dispose() {
 		}
 
-		public StorageType StorageType {
-			get { return StorageType.File; }
-		}
-
 		public void Load() {
 			throw new NotImplementedException();
 		}

@@ -30,10 +30,11 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public ISystemContext SystemContext { get; private set; }
 
-		public void RouteEvent(IEvent e) {
-			if (!(e is TriggerEvent))
-				return;
+		public bool CanRoute(IEvent @event) {
+			return @event is TriggerEvent;
+		}
 
+		public void RouteEvent(IEvent e) {
 			var triggerEvent = (TriggerEvent) e;
 
 			var listeners = SystemContext.ResolveAllServices<ITriggerListener>();

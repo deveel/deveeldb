@@ -15,7 +15,9 @@ using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
+#if !PCL
 using Deveel.Data.Store.Journaled;
+#endif
 
 namespace Deveel.Data {
 	public class SystemBuilder {
@@ -135,6 +137,11 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnServiceRegistration(ServiceContainer container) {
+		}
+
+		public ISystem BuildSystem() {
+			var context = BuildContext();
+			return new DatabaseSystem(context);
 		}
 	}
 }

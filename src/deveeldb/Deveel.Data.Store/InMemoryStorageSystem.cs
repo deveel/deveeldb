@@ -50,14 +50,6 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		public StorageType StorageType {
-			get { return StorageType.Memory; }
-		}
-
-		public void Load() {
-			// nothing to load from memory
-		}
-
 		public bool StoreExists(string name) {
 			lock (this) {
 				return nameStoreMap.ContainsKey(name);

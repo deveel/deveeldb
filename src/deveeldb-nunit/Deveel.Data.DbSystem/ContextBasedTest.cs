@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Configuration;
+using Deveel.Data.Services;
 using Deveel.Data.Transactions;
 
 using NUnit.Framework;
@@ -17,20 +19,22 @@ namespace Deveel.Data {
 
 		protected IQuery Query { get; private set; }
 
-		protected ISystemContext SystemContext { get; private set; }
+		protected ISystem System { get; private set; }
 
 		protected IDatabase Database { get; private set; }
 
 		protected IUserSession Session { get; private set; }
 
-		protected IDatabaseContext DatabaseContext { get; private set; }
+		protected virtual void RegisterServices(ServiceContainer container) {
+		}
 
-		protected virtual IDatabase CreateDatabase(IDatabaseContext context) {
-			var database = new Database(context);
-			database.Create(AdminUserName, AdminPassword);
-			database.Open();
+		protected virtual ISystem CreateSystem() {
+			var builder = new TestSystemBuilder(this);
+			return builder.BuildSystem();
+		}
 
-			return database;
+		protected virtual IDatabase CreateDatabase(ISystem system, IConfiguration configuration) {
+			return system.CreateDatabase(configuration, AdminUserName, AdminPassword);
 		}
 
 		protected virtual IUserSession CreateAdminSession(IDatabase database) {
@@ -52,18 +56,9 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnTearDown() {
-			
+
 		}
 
-		protected virtual IDatabaseContext CreateDatabaseContext(ISystemContext context) {
-			return new DatabaseContext(context, DatabaseName);
-		}
-
-		protected virtual ISystemContext CreateSystemContext() {
-			var builder = new SystemBuilder();
-			return builder.BuildContext();
-		}
-		
 		[SetUp]
 		public void TestSetUp() {
 			if (!SingleContext)
@@ -80,9 +75,12 @@ namespace Deveel.Data {
 		}
 
 		private void CreateContext() {
-			SystemContext = CreateSystemContext();
-			DatabaseContext = CreateDatabaseContext(SystemContext);
-			Database = CreateDatabase(DatabaseContext);
+			System = CreateSystem();
+
+			var dbConfig = new Configuration.Configuration();
+			dbConfig.SetValue("database.name", DatabaseName);
+
+			Database = CreateDatabase(System, dbConfig);
 			Session = CreateAdminSession(Database);
 			Query = CreateQuery(Session);
 		}
@@ -94,16 +92,13 @@ namespace Deveel.Data {
 			if (Database != null)
 				Database.Dispose();
 
-			if (DatabaseContext != null)
-				DatabaseContext.Dispose();
+			if (System != null)
+				System.Dispose();
 
-			if (SystemContext != null)
-				SystemContext.Dispose();
-
-			Database = null;
-			DatabaseContext = null;
-			SystemContext = null;
 			Query = null;
+			Database = null;
+			Database = null;
+			System = null;
 		}
 
 		[TearDown]
@@ -118,6 +113,18 @@ namespace Deveel.Data {
 		public void TestFixtureTearDown() {
 			if (SingleContext)
 				DisposeContext();
+		}
+
+		private class TestSystemBuilder : SystemBuilder {
+			private ContextBasedTest test;
+
+			public TestSystemBuilder(ContextBasedTest test) {
+				this.test = test;
+			}
+
+			protected override void OnServiceRegistration(ServiceContainer container) {
+				test.RegisterServices(container);
+			}
 		}
 	}
 }

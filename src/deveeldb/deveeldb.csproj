@@ -124,8 +124,11 @@
     <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistryExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
@@ -258,6 +261,7 @@
     <Compile Include="Deveel.Data\Database.cs" />
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
+    <Compile Include="Deveel.Data\DatabaseSystem.cs" />
     <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
     <Compile Include="Deveel.Data\IBlock.cs" />
     <Compile Include="Deveel.Data\IBlockContext.cs" />
@@ -265,7 +269,10 @@
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
+    <Compile Include="Deveel.Data\IDatabaseScanner.cs" />
+    <Compile Include="Deveel.Data\IOperation.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
+    <Compile Include="Deveel.Data\ISystem.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
@@ -860,7 +867,6 @@
     <Compile Include="Deveel.Data.Store\RecordType.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
-    <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Text\PatternSearch.cs" />

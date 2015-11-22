@@ -20,6 +20,7 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
@@ -81,7 +82,11 @@ namespace Deveel.Data {
 		public User User { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
-			get { return null; }
+			get { return Transaction; }
+		}
+
+		IContext IEventSource.Context {
+			get { return SessionContext; }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {

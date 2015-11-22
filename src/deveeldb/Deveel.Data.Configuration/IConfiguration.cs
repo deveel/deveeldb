@@ -30,7 +30,7 @@ namespace Deveel.Data.Configuration {
 	/// define it by itself.
 	/// </para>
 	/// </remarks>
-	public interface IConfiguration {
+	public interface IConfiguration : IEnumerable<KeyValuePair<string, object>> {
 		/// <summary>
 		/// Gets or sets an optional source of the configuration object
 		/// </summary>

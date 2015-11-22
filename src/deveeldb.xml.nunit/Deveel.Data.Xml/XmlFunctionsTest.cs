@@ -2,6 +2,7 @@
 using System.Text;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -11,10 +12,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Xml {
 	[TestFixture]
 	public class XmlFunctionsTest : ContextBasedTest {
-		protected override ISystemContext CreateSystemContext() {
-			var context = base.CreateSystemContext();
-			context.UseXml();
-			return context;
+		protected override void RegisterServices(ServiceContainer container) {
+			container.UseXml();
 		}
 
 		private DataObject ParseAndInvoke(string text) {

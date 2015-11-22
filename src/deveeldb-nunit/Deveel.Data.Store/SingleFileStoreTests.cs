@@ -8,21 +8,19 @@ using NUnit.Framework;
 namespace Deveel.Data.Store {
 	[TestFixture]
 	public class SingleFileStoreTests {
-		private ISystemContext systemContext;
-		private IDatabaseContext databaseContext;
+		private ISystem systemContext;
 		private IDatabase database;
 
 		private const string DatabaseName = "test_db";
 		private const string TestAdminUser = "SA";
 		private const string TestAdminPass = "abc1234";
 
-		private static IDatabaseContext CreateDatabaseContext(ISystemContext context) {
-			var config = context.Configuration;
-			var dbConfig = new Configuration.Configuration(config);
+		private static IConfiguration CreateDatabaseConfig() {
+			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 			dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.SingleFile);
 			dbConfig.SetValue("database.basePath", Environment.CurrentDirectory);
-			return new DatabaseContext(context, dbConfig);
+			return dbConfig;
 		}
 
 		private static string GetDbFileName() {
@@ -33,12 +31,12 @@ namespace Deveel.Data.Store {
 
 		private void OnSetUp(string testName) {
 			var systemBuilder = new SystemBuilder();
-			systemContext = systemBuilder.BuildContext();
-			databaseContext = CreateDatabaseContext(systemContext);
+			systemContext = systemBuilder.BuildSystem();
+
+			var dbConfig = CreateDatabaseConfig();
 
 			if (testName != "CreateNewDatabase") {
-				database = new Database(databaseContext);
-				database.Create(TestAdminUser, TestAdminPass);
+				database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass); 
 			}
 
 			if (testName != "OpenDatabase" &&
@@ -63,8 +61,8 @@ namespace Deveel.Data.Store {
 
 		[Test]
 		public void CreateNewDatabase() {
-			database = new Database(databaseContext);
-			database.Create(TestAdminUser, TestAdminPass);
+			var dbConfig = CreateDatabaseConfig();
+			database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
 		}
 	}
 }

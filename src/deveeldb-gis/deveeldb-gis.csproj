@@ -88,6 +88,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Spatial\FluentConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data.Spatial\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Spatial\SpatialModule.cs" />
     <Compile Include="Deveel.Data.Spatial\SqlGeometry.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Spatial\SpatialSystemFunctions.cs" />

@@ -34,6 +34,8 @@ namespace Deveel.Data.Diagnostics {
 	/// </para>
 	/// </remarks>
 	public interface IEventRouter {
+		bool CanRoute(IEvent @event);
+
 		/// <summary>
 		/// Routes the input event to the final destination.
 		/// </summary>

@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
@@ -26,7 +27,7 @@ namespace Deveel.Data.Transactions {
 	/// This contract allows implementors to define simple transactions
 	/// that can be eventually forbid any data write operation.
 	/// </remarks>
-	public interface ITransaction : IDisposable {
+	public interface ITransaction : IEventSource, IDisposable {
         ITransactionContext TransactionContext { get; }
 
 		/// <summary>

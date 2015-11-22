@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
@@ -35,13 +37,8 @@ namespace Deveel.Data {
 	/// in the relational model.
 	/// </remarks>
 	public sealed class Database : IDatabase {
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Database"/> class providing
-		/// a given parent <see cref="IDatabaseContext"/>.
-		/// </summary>
-		/// <param name="context">The database context that provides the required
-		/// configurations and services to the database.</param>
-		public Database(IDatabaseContext context) {
+		internal Database(DatabaseSystem system, IDatabaseContext context) {
+			System = system;
 			DatabaseContext = context;
 
 			DiscoverDataVersion();
@@ -76,11 +73,28 @@ namespace Deveel.Data {
 			get { return DatabaseContext.DatabaseName(); }
 		}
 
+		public DatabaseSystem System { get; private set; }
+
 		/// <summary>
 		/// Gets an object that is used to create new transactions to this database
 		/// </summary>
 		/// <seealso cref="ITransactionFactory" />
 		public ITransactionFactory TransactionFactory { get; private set; }
+
+		IEventSource IEventSource.ParentSource {
+			get { return System; }
+		}
+
+		IContext IEventSource.Context {
+			get { return DatabaseContext; }
+		}
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get {
+				// TODO: scan the store system to get information...
+				return new KeyValuePair<string, object>[0];
+			}
+		}
 
 		private void DiscoverDataVersion() {
 			var dataVerion = Attribute.GetCustomAttribute(typeof (Database).Assembly, typeof (DataVersionAttribute))
@@ -102,8 +116,11 @@ namespace Deveel.Data {
 
 				TableComposite.Dispose();
 				DatabaseContext.Dispose();
+
+				System.RemoveDatabase(this);
 			}
 
+			System = null;
 			TableComposite = null;
 			DatabaseContext = null;
 		}

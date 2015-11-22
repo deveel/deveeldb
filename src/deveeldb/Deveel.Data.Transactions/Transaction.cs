@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
@@ -109,6 +110,18 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public Database Database { get; private set; }
+
+		IEventSource IEventSource.ParentSource {
+			get { return Database; }
+		}
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
+			get { return new KeyValuePair<string, object>[0];}
+		}
+			
+		IContext IEventSource.Context {
+			get { return TransactionContext; }
+		}
 
 		public IDatabaseContext DatabaseContext {
 			get { return Database.DatabaseContext; }

@@ -15,20 +15,15 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class DatabaseContext : Context, IDatabaseContext/*, IResolveScope*/ {
-		public DatabaseContext(ISystemContext systemContext, string name) 
+	public sealed class DatabaseContext : Context, IDatabaseContext {
+		internal DatabaseContext(ISystemContext systemContext, string name) 
 			: this(systemContext, CreateSimpleConfig(systemContext, name)) {
 		}
 
@@ -103,18 +98,6 @@ namespace Deveel.Data {
 			} catch (Exception ex) {
 				throw new DatabaseConfigurationException("Could not initialize the storage system", ex);
 			}
-		}
-
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get {
-				return new Dictionary<string, object> {
-					{"Database", this.DatabaseName()}
-				}.AsEnumerable();
-			}
-		}
-
-		IEventSource IEventSource.ParentSource {
-			get { return SystemContext; }
 		}
 
 	    ITransactionContext IDatabaseContext.CreateTransactionContext() {

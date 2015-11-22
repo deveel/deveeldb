@@ -26,16 +26,17 @@ namespace Deveel.Data.Sql.Triggers {
 		private TriggerEvent beforeEvent;
 		private TriggerEvent afterEvent;
 
-		protected override ISystemContext CreateSystemContext() {
-			var context = base.CreateSystemContext();
-			context.ListenTriggers(trigger => {
+		protected override ISystem CreateSystem() {
+			var system = base.CreateSystem();
+			system.Context.ListenTriggers(trigger => {
 				if ((trigger.TriggerEventType & TriggerEventType.After) != 0) {
 					afterEvent = trigger;
 				} else if ((trigger.TriggerEventType & TriggerEventType.Before) != 0) {
 					beforeEvent = trigger;
 				}
 			});
-			return context;
+
+			return system;
 		}
 
 		protected override void OnSetUp(string testName) {

@@ -334,5 +334,14 @@ namespace Deveel.Data.Configuration {
 		}
 
 		#endregion
+
+		public static IConfiguration MergeWith(this IConfiguration configuration, IConfiguration other) {
+			var newConfig = new Configuration(configuration);
+			foreach (var pair in other) {
+				newConfig.SetValue(pair.Key, pair.Value);
+			}
+
+			return newConfig;
+		}
 	}
 }
