@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data {
 	public interface ISystemModule {
-		void Register(ISystemContext context);
+		void Register(IScope systemScope);
 	}
 }

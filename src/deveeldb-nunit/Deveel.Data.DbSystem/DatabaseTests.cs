@@ -17,7 +17,8 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public void TestSetup() {
-			systemContext = new SystemContext();
+			var systemBuilder = new SystemBuilder();
+			systemContext = systemBuilder.BuildContext();
 
 			var test = TestContext.CurrentContext.Test.Name;
 			if (test != "CreateNewContext") {

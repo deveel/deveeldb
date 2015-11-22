@@ -9,6 +9,10 @@ namespace Deveel.Data.Store.Journaled {
 			get { return StorageType.File; }
 		}
 
+		public void Load() {
+			throw new NotImplementedException();
+		}
+
 		public bool StoreExists(string name) {
 			throw new NotImplementedException();
 		}

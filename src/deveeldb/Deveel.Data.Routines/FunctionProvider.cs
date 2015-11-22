@@ -19,12 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-using Deveel.Data;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using DryIoc;

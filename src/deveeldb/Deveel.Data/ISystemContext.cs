@@ -26,12 +26,6 @@ namespace Deveel.Data {
 	/// the configurations and the components used to manage databases.
 	/// </summary>
 	public interface ISystemContext : IEventSource, IConfigurationProvider, IContext {
-		/// <summary>
-		/// Gets an instance of <see cref="IEventRegistry"/> that handles
-		/// events happening within the context of the database system.
-		/// </summary>
-		IEventRegistry EventRegistry { get; }
-
 		IDatabaseContext CreateDatabaseContext(IConfiguration configuration);
 	}
 }

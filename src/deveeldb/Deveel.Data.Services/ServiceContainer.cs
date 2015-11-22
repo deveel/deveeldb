@@ -7,6 +7,7 @@ using DryIoc;
 namespace Deveel.Data.Services {
 	public class ServiceContainer : IScope, IServiceProvider {
 		private IContainer container;
+		private List<IRegistrationConfigurationProvider> registrationProviders; 
 
 		public ServiceContainer() 
 			: this(null, null) {
@@ -16,22 +17,20 @@ namespace Deveel.Data.Services {
 			if (parent != null) {
 				container = parent.container.OpenScope(scopeName)
 					.With(rules => rules.WithDefaultReuseInsteadOfTransient(Reuse.InCurrentNamedScope(scopeName)));
+
+				ScopeName = scopeName;
 			} else {
 				container = new Container(Rules.Default
 					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton)
 					.WithoutThrowOnRegisteringDisposableTransient());
 			}
 
-			Parent = parent;
+			registrationProviders = new List<IRegistrationConfigurationProvider>();
 		}
 
 		~ServiceContainer() {
 			Dispose(false);
 		}
-
-		public IContext Context { get; private set; }
-
-		public ServiceContainer Parent { get; private set; }
 
 		object IServiceProvider.GetService(Type serviceType) {
 			return Resolve(serviceType, null);
@@ -48,12 +47,35 @@ namespace Deveel.Data.Services {
 			container = null;
 		}
 
+		private string ScopeName { get; set; }
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
+		private void RegisterConfigurations() {
+			if (registrationProviders != null && registrationProviders.Count > 0) {
+				foreach (var provider in registrationProviders) {
+					RegisterConfiguration(provider);
+				}
+
+				registrationProviders.Clear();
+			}
+		}
+
+		private void RegisterConfiguration(IRegistrationConfigurationProvider provider) {
+			var registration = new ServiceRegistration(provider.ServiceType, provider.ImplementationType) {
+				Scope = provider.ScopeName,
+				ServiceKey = provider.ServiceKey,
+				Instance = provider.Instance
+			};
+
+			Register(registration);
+		}
+
 		public IScope OpenScope(string name) {
+			RegisterConfigurations();
 			return new ServiceContainer(this, name);
 		}
 
@@ -68,6 +90,12 @@ namespace Deveel.Data.Services {
 				return container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
 			}
 		}
+
+		public IRegistrationConfiguration<TService> Bind<TService>() {
+			var config = new RegistrationConfiguration<TService>(this);
+			registrationProviders.Add(config);
+			return config;
+		} 
 
 		public IEnumerable ResolveAll(Type serviceType) {
 			if (serviceType == null)
@@ -94,10 +122,17 @@ namespace Deveel.Data.Services {
 				var serviceName = registration.ServiceKey;
 				var implementationType = registration.ImplementationType;
 
+				var reuse = Reuse.Singleton;
+				if (!String.IsNullOrEmpty(ScopeName))
+					reuse = Reuse.InCurrentNamedScope(ScopeName);
+
+				if (!String.IsNullOrEmpty(registration.Scope))
+					reuse = Reuse.InCurrentNamedScope(registration.Scope);
+
 				if (service == null) {
-					container.Register(serviceType, implementationType, serviceKey: serviceName);
+					container.Register(serviceType, implementationType, serviceKey: serviceName, reuse: reuse);
 				} else {
-					container.RegisterInstance(serviceType, service, serviceKey: serviceName);
+					container.RegisterInstance(serviceType, service, serviceKey: serviceName, reuse: reuse);
 				}
 			}
 		}
@@ -115,113 +150,72 @@ namespace Deveel.Data.Services {
 			}
 		}
 
-		//#region ServiceScopeContext
+		#region RegistrationConfiguration
 
-		//class ServiceScopeContext : IScopeContext {
-		//	private IScope currentScope;
+		class RegistrationConfiguration<TService> : IRegistrationConfiguration<TService>, IRegistrationConfigurationProvider {
+			public RegistrationConfiguration(ServiceContainer container) {
+				Container = container;
+			}
 
+			public IRegistrationWithBindingConfiguration<TService, TImplementation> To<TImplementation>() where TImplementation : class, TService {
+				AssertNotBound();
+				ImplementationType = typeof (TImplementation);
+				IsBound = true;
+				return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
+			}
 
-		//	~ServiceScopeContext() {
-		//		Dispose(false);
-		//	}
+			public IRegistrationWithBindingConfiguration<TService, TImplementation> ToInstance<TImplementation>(TImplementation instance) where TImplementation : class, TService {
+				AssertNotBound();
+				ImplementationType = typeof (TImplementation);
+				Instance = instance;
+				IsBound = true;
+				return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
+			}
 
-		//	public void Dispose() {
-		//		Dispose(true);
-		//		GC.SuppressFinalize(this);
-		//	}
+			public Type ServiceType {
+				get { return typeof (TService); }
+			}
 
-		//	private void Dispose(bool disposing) {
-		//		if (disposing) {
-		//			if (currentScope != null)
-		//				currentScope.Dispose();
-		//		}
+			private void AssertNotBound() {
+				if (IsBound)
+					throw new InvalidOperationException("The registration was already bound.");
+			}
 
-		//		currentScope = null;
-		//	}
+			public ServiceContainer Container { get; private set; }
 
-		//	public IScope GetCurrentOrDefault() {
-		//		return currentScope;
-		//	}
+			private bool IsBound { get; set; }
 
-		//	public IScope SetCurrent(SetCurrentScopeHandler setCurrentScope) {
-		//		var newScope = setCurrentScope(currentScope);
-		//		if (newScope != null)
-		//			currentScope = newScope;
+			public Type ImplementationType { get; set; }
 
-		//		return currentScope;
-		//	}
+			public object ServiceKey { get; set; }
 
-		//	public string RootScopeName {
-		//		get { return "ServiceContext"; }
-		//	}
-		//}
+			public string ScopeName { get; set; }
 
-		//#endregion
+			public object Instance { get; private set; }
+		}
 
-		//#region ContextScope
+		#endregion
 
-		//class ContextScope : IScope {
-		//	private Dictionary<int, object> values;
+		#region RegistrationWithBindingConfiguration
 
-		//	public ContextScope(IScope parent) {
-		//		Parent = parent;
-		//	}
+		class RegistrationWithBindingConfiguration<TService, TImplementation> : IRegistrationWithBindingConfiguration<TService, TImplementation> {
+			private RegistrationConfiguration<TService> configuration;
 
-		//	~ContextScope() {
-		//		Dispose(false);
-		//	} 
+			public RegistrationWithBindingConfiguration(RegistrationConfiguration<TService> configuration) {
+				this.configuration = configuration;
+			}
 
-		//	public void Dispose() {
-		//		Dispose(true);
-		//		GC.SuppressFinalize(this);
-		//	}
+			public IRegistrationWithBindingConfiguration<TService, TImplementation> InScope(string scopeName) {
+				configuration.ScopeName = scopeName;
+				return this;
+			}
 
-		//	private void Dispose(bool disposing) {
-		//		if (disposing) {
-		//			if (values != null) {
-		//				foreach (var value in values.Values) {
-		//					if (value is IDisposable)
-		//						((IDisposable)value).Dispose();
-		//				}
+			public IRegistrationWithBindingConfiguration<TService, TImplementation> WithKey(object serviceKey) {
+				configuration.ServiceKey = serviceKey;
+				return this;
+			}
+		}
 
-		//				values.Clear();
-		//			}
-		//		}
-
-		//		values = null;
-		//	}
-
-		//	public object GetOrAdd(int id, CreateScopedValue createValue) {
-		//		if (values == null)
-		//			return null;
-
-		//		object value;
-		//		if (!values.TryGetValue(id, out value)) {
-		//			value = createValue();
-		//			values[id] = value;
-		//		}
-
-		//		return value;
-		//	}
-
-		//	public void SetOrAdd(int id, object item) {
-		//		if (values == null)
-		//			return;
-
-		//		values[id] = item;
-		//	}
-
-		//	public int GetScopedItemIdOrSelf(int externalId) {
-		//		return externalId;
-		//	}
-
-		//	public IScope Parent { get; private set; }
-
-		//	public object Name {
-		//		get { return "ContextScope"; }
-		//	}
-		//}
-
-		//#endregion
+		#endregion
 	}
 }

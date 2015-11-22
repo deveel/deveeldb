@@ -21,7 +21,7 @@ namespace Deveel.Data.Store {
 	public sealed class InMemoryStorageSystem : IStoreSystem {
 		private Dictionary<string, InMemoryStore> nameStoreMap;
 
-		public const int DefaultStoreSize = 256*1024;
+		public const int DefaultStoreSize = 1024;
 
 		public InMemoryStorageSystem() {
 			nameStoreMap = new Dictionary<string, InMemoryStore>();
@@ -52,6 +52,10 @@ namespace Deveel.Data.Store {
 
 		public StorageType StorageType {
 			get { return StorageType.Memory; }
+		}
+
+		public void Load() {
+			// nothing to load from memory
 		}
 
 		public bool StoreExists(string name) {

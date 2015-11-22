@@ -143,7 +143,11 @@
     <Compile Include="Deveel.Data.Services\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ContextNames.cs" />
     <Compile Include="Deveel.Data.Services\IContext.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Services\IScope.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationWithBindingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Services\RegistrationConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
     <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
@@ -269,7 +273,6 @@
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
-    <Compile Include="Deveel.Data\SystemEventRegistry.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />
     <Compile Include="Deveel.Data\DataVersionAttribute.cs" />
@@ -318,6 +321,7 @@
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
+    <Compile Include="Deveel.Data\SystemBuilder.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
@@ -336,7 +340,6 @@
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\VersionedTableIndexList.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\ConsoleEventLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />

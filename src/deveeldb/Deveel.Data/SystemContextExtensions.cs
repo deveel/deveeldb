@@ -51,44 +51,5 @@ namespace Deveel.Data {
 		}
 
 		#endregion
-
-	
-		#region Features
-
-		public static ISqlCompiler SqlCompiler(this ISystemContext context) {
-			return context.ResolveService<ISqlCompiler>();
-		}
-
-		public static void UseSqlCompiler<TCompiler>(this ISystemContext context) where TCompiler : ISqlCompiler {
-			context.UseSqlCompiler(typeof(TCompiler));
-		}
-
-		public static void UseSqlCompiler(this ISystemContext context, Type compilerType) {
-			if (compilerType == null)
-				throw new ArgumentNullException("compilerType");
-
-			if (!typeof(ISqlCompiler).IsAssignableFrom(compilerType))
-				throw new ArgumentException(String.Format("The type '{0}' is not a SQL Compiler.", compilerType));
-
-			context.RegisterService(compilerType);
-		}
-
-		public static void UseSqlCompiler(this ISystemContext context, ISqlCompiler compiler) {
-			context.RegisterInstance(compiler);
-		}
-
-		public static void UseDefaultSqlCompiler(this ISystemContext context) {
-			context.UseSqlCompiler<SqlDefaultCompiler>();
-		}
-
-		public static ITableCellCache TableCellCache(this ISystemContext context) {
-			return context.ResolveService<ITableCellCache>();
-		}
-
-		public static void UseDefaultTableCellCache(this ISystemContext context) {
-			context.RegisterService<TableCellCache>();
-		}
-
-		#endregion
 	}
 }

@@ -26,7 +26,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	class TableSourceComposite : ITableSourceComposite, IDisposable {
+	class TableSourceComposite : ITableSourceComposite {
 		private readonly object commitLock = new object();
 		private Dictionary<int, TableSource> tableSources;
 

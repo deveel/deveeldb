@@ -11,8 +11,9 @@ namespace Deveel.Data {
 	public class SystemTests {
 		[Test]
 		public void FromDefaultConfig() {
+			var builder = new SystemBuilder();
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext());
+			Assert.DoesNotThrow(() => context = builder.BuildContext());
 			Assert.IsNotNull(context);
 			Assert.IsFalse(context.ReadOnly());
 			Assert.IsTrue(context.IgnoreIdentifiersCase());
@@ -21,8 +22,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveSingleServiceFromRegister() {
+			var builder = new SystemBuilder();
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext());
+			Assert.DoesNotThrow(() => context = builder.BuildContext());
 			Assert.IsNotNull(context);
 
 			context.RegisterService<TestService>();
@@ -38,8 +40,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveManyServicesForInterface() {
+			var builder = new SystemBuilder();
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext());
+			Assert.DoesNotThrow(() => context = builder.BuildContext());
 			Assert.IsNotNull(context);
 			
 			context.RegisterService<TestService>();
@@ -60,8 +63,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
+			var builder = new SystemBuilder();
 			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = new SystemContext());
+			Assert.DoesNotThrow(() => context = builder.BuildContext());
 			Assert.IsNotNull(context);
 
 			context.RegisterInstance(new TestService());

@@ -32,8 +32,6 @@ namespace Deveel.Data.Store {
 			this.context = context;
 
 			Configure(configuration);
-
-			OpenOrCreateFile();
 		}
 
 		~SingleFileStoreSystem() {
@@ -216,6 +214,10 @@ namespace Deveel.Data.Store {
 				throw new IOException("Corruption when reading the store.");
 
 			return outputStream;
+		}
+
+		public void Load() {
+			OpenOrCreateFile();
 		}
 
 		public bool StoreExists(string name) {

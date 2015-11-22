@@ -19,9 +19,7 @@ using System;
 using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Compile {
-    public interface ISqlCompiler {
-		IObjectSerializerResolver StatementSerializerResolver { get; }
-
+    public interface ISqlCompiler : IDisposable {
         SqlCompileResult Compile(SqlCompileContext context);
     }
 }

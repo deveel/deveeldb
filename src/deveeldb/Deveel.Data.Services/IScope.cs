@@ -3,8 +3,6 @@ using System.Collections;
 
 namespace Deveel.Data.Services {
 	public interface IScope : IDisposable {
-		IContext Context { get; }
-
 		IScope OpenScope(string name);
 
 		void Register(ServiceRegistration registration);

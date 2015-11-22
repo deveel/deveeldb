@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Triggers {
 						listener(trigger);
 				} catch (Exception ex) {
 					// TODO: form a source...
-					systemContext.EventRegistry.Error(null, ex);
+					// TODO: systemContext.EventRegistry.Error(null, ex);
 				}
 			}
 

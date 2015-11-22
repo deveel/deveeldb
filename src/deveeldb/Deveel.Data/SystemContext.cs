@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
@@ -41,41 +42,17 @@ namespace Deveel.Data {
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
 	public sealed class SystemContext : Context, ISystemContext {
-		private ServiceContainer container;
+		private IScope container;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SystemContext"/> class,
-		/// using the default set of configurations
-		/// </summary>
-		public SystemContext()
-			: this(new Configuration.Configuration()) {
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SystemContext"/> class.
-		/// </summary>
-		/// <param name="configuration">The configuration.</param>
-		/// <exception cref="System.ArgumentNullException">If the provided <paramref name="configuration"/>
-		/// is <c>null</c>.</exception>
-		public SystemContext(IConfiguration configuration) {
+		internal SystemContext(IConfiguration configuration, ServiceContainer container) {
 			if (configuration == null)
 				throw new ArgumentNullException("configuration");
 
 			Configuration = configuration;
-			EventRegistry = new SystemEventRegistry(this);
 
-			container = new ServiceContainer();
+			this.container = container.OpenScope(ContextNames.System);
 			container.RegisterInstance<IConfiguration>(configuration);
 			container.RegisterInstance<ISystemContext>(this);
-
-			UseDefaults();
-		}
-
-		/// <summary>
-		/// Finalizes an instance of the <see cref="SystemContext"/> class.
-		/// </summary>
-		~SystemContext() {
-			Dispose(false);
 		}
 
 		/// <summary>
@@ -90,12 +67,6 @@ namespace Deveel.Data {
 		protected override string ContextName {
 			get { return ContextNames.System; }
 		}
-
-		/// <summary>
-		/// Gets an instance of <see cref="IEventRegistry" /> that handles
-		/// events happening within the context of the system.
-		/// </summary>
-		public IEventRegistry EventRegistry { get; private set; }
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return new KeyValuePair<string, object>[0]; }
@@ -121,31 +92,6 @@ namespace Deveel.Data {
 
 			container = null;
 			base.Dispose(true);
-		}
-
-		private void UseDefaults() {
-			this.UseDefaultSqlCompiler();
-			this.UseDefaultQueryPlanner();
-			this.UseDefaultTableCellCache();
-			this.UseSystemFunctions();
-
-			this.RegisterService<IObjectManager, TableManager>(DbObjectType.Table);
-			this.RegisterService<IObjectManager, ViewManager>(DbObjectType.View);
-			this.RegisterService<IObjectManager, SchemaManager>(DbObjectType.Schema);
-			this.RegisterService<IObjectManager, TriggerManager>(DbObjectType.Trigger);
-			this.RegisterService<IObjectManager, SequenceManager>(DbObjectType.Sequence);
-			this.RegisterService<IObjectManager, PersistentVariableManager>(DbObjectType.Variable);
-			this.RegisterService<IObjectManager, RoutineManager>(DbObjectType.Routine);
-
-			this.RegisterService<IUserManager, UserManager>();
-			this.RegisterService<IPrivilegeManager, PrivilegeManager>();
-
-			this.RegisterService<IStoreSystem, InMemoryStorageSystem>(DefaultStorageSystemNames.Heap);
-			this.RegisterService<IStoreSystem, SingleFileStoreSystem>(DefaultStorageSystemNames.SingleFile);
-#if !PCL
-			this.RegisterService<IStoreSystem, JournaledStoreSystem>(DefaultStorageSystemNames.Journaled);
-			this.RegisterInstance(new LocalFileSystem());
-#endif
 		}
 	}
 }

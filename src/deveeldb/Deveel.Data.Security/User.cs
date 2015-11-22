@@ -25,8 +25,8 @@ namespace Deveel.Data.Security {
 	/// Provides the information for a user in a database system
 	/// </summary>
 	public sealed class User {
-		public readonly static User System = new User(SystemName);
-		public readonly static User Public = new User(PublicName);
+		public static readonly User System = new User(SystemName);
+		public static readonly User Public = new User(PublicName);
 
 		private Dictionary<ObjectName, Privileges> grantCache;
 

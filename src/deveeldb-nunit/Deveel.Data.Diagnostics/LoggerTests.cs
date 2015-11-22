@@ -8,12 +8,6 @@ using NUnit.Framework;
 namespace Deveel.Data.Diagnostics {
 	[TestFixture]
 	public class LoggerTests : ContextBasedTest {
-		protected override ISystemContext CreateSystemContext() {
-			var contxt = base.CreateSystemContext();
-			contxt.UseDefaultConsoleLogger();
-			return contxt;
-		}
-
 		/*
 		TODO:
 		[Test]

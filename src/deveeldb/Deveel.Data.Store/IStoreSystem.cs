@@ -35,8 +35,6 @@ namespace Deveel.Data.Store {
 		/// or the random-access memory.
 		/// </summary>
 		/// <remarks>
-		/// This property must be <c>static</c>, that means it must be accessible 
-		/// even before any call to <see cref="Init"/> method.
 		/// <para>
 		/// The reason of this behavior is that the system will query
 		/// the instance of <see cref="IStoreSystem"/> to check whether
@@ -46,6 +44,11 @@ namespace Deveel.Data.Store {
 		/// </remarks>
 		/// <seealso cref="Store.StorageType"/>
 		StorageType StorageType { get; }
+
+		/// <summary>
+		/// Loads the stores from a previous usage of the system.
+		/// </summary>
+		void Load();
 
 				/// <summary>
 		/// Returns true if the store with the given name exists within the 

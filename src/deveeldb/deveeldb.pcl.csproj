@@ -93,6 +93,10 @@
   <ItemGroup>
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
+    <Compile Include="Deveel.Data.Services\IRegistrationWithBindingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Services\RegistrationConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />

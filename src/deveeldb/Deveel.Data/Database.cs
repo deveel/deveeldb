@@ -49,7 +49,7 @@ namespace Deveel.Data {
 			TableComposite = new TableSourceComposite(this);
 
 			DatabaseContext.RegisterInstance(this);
-			DatabaseContext.RegisterInstance(TableComposite);
+			DatabaseContext.RegisterInstance<ITableSourceComposite>(TableComposite);
 
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);

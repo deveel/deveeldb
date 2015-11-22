@@ -26,8 +26,8 @@ using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
 	class SqlDefaultParser : ISqlParser {
-		private readonly LanguageData languageData;
-		private readonly Irony.Parsing.Parser parser;
+		private LanguageData languageData;
+		private Irony.Parsing.Parser parser;
 
 		public SqlDefaultParser(SqlGrammarBase grammar) {
 			languageData = new LanguageData(grammar);
@@ -38,6 +38,8 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public void Dispose() {
+			parser = null;
+			languageData = null;
 		}
 
 		public string Dialect {

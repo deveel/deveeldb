@@ -35,7 +35,8 @@ namespace Deveel.Data {
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", "testdb");
 
-			var systemContext = new SystemContext();
+			var builder = new SystemBuilder();
+			var systemContext = builder.BuildContext();
 			var dbContext = new DatabaseContext(systemContext, dbConfig);
 			var database = new Database(dbContext);
 			database.Create("SA", "12345");

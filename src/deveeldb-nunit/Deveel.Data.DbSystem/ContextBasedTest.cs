@@ -60,7 +60,8 @@ namespace Deveel.Data {
 		}
 
 		protected virtual ISystemContext CreateSystemContext() {
-			return new SystemContext();
+			var builder = new SystemBuilder();
+			return builder.BuildContext();
 		}
 		
 		[SetUp]

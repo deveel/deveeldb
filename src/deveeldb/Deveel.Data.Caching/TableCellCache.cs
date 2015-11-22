@@ -19,21 +19,25 @@ using System;
 using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Caching {
-	public sealed class TableCellCache : ITableCellCache {
+	public sealed class TableCellCache : ITableCellCache, IDisposable {
 		private Cache cache;
 		private long size;
 
 		public const int DefaultHashSize = 88547;
 #if X64
-		public const int DefaultMaxSize = 1024*1024*10;
+		public const int DefaultMaxSize = 1024*1024;
 #else
-		public const int DefaultMaxSize = 512*512*8;
+		public const int DefaultMaxSize = 512*512;
 #endif
 
 		public const int DefaultMaxCellSize = 1024*64;
 
 		public TableCellCache(IConfiguration configuration) {
 			Configure(configuration);
+		}
+
+		~TableCellCache() {
+			Dispose(false);
 		}
 
 		public int MaxCellSize { get; private set; }
@@ -44,6 +48,20 @@ namespace Deveel.Data.Caching {
 					return size;
 				}
 			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (cache != null)
+					cache.Dispose();
+			}
+
+			cache = null;
 		}
 
 		private void ReduceCacheSize(long value) {

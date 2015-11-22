@@ -22,7 +22,7 @@ namespace Deveel.Data.Services {
 			Assert.IsNotNull(parentService);
 			Assert.IsInstanceOf<TestService1>(parentService);
 
-			Assert.AreNotEqual(parentService, childService);
+			Assert.AreEqual(parentService, childService);
 		}
 
 		[Test]
@@ -59,10 +59,10 @@ namespace Deveel.Data.Services {
 		[Test]
 		public void ResolveFromChildWithParentService() { 
 			var parent = new ServiceContainer();
-			parent.Register<TestService2>();
+			parent.Register<TestService1>();
 
 			var child = parent.OpenScope("child");
-			child.Register<TestService1>();
+			child.Register<TestService2>();
 
 			var service2 = child.Resolve<TestService2>();
 

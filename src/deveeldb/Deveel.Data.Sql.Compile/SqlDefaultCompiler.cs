@@ -22,22 +22,15 @@ using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {
-		public SqlDefaultCompiler() {
-			StatementSerializerResolver =new StatementSerializerProvider();
-		}
-
-		public IObjectSerializerResolver StatementSerializerResolver { get; private set; }
-
 		public SqlCompileResult Compile(SqlCompileContext context) {
 			if (context == null)
 				throw new ArgumentNullException("context");
 
-			var compiler = SqlParsers.Default;
 			var compileResult = new SqlCompileResult(context);
 
 			try {
 				var sqlSource = context.SourceText;
-				var result = compiler.Parse(sqlSource);
+				var result = SqlParsers.Default.Parse(sqlSource);
 
 				foreach (var error in result.Errors) {
 					var location = new SourceLocation(error.Line, error.Column);
@@ -57,6 +50,9 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return compileResult;
+		}
+
+		public void Dispose() {
 		}
 	}
 }

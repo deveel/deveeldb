@@ -51,35 +51,5 @@ namespace Deveel.Data {
 		public static bool IgnoreIdentifiersCase(this IDatabaseContext context) {
 			return context.SystemContext.IgnoreIdentifiersCase();
 		}
-
-		public static IQueryPlanner QueryPlanner(this IDatabaseContext context) {
-			return context.SystemContext.QueryPlanner();
-		}
-
-		public static ITableCellCache TableCellCache(this IDatabaseContext context) {
-			return context.SystemContext.TableCellCache();
-		}
-
-#region Services
-
-		//public static object ResolveService(this IDatabaseContext context, Type serviceType) {
-		//	return ResolveService(context, serviceType, null);
-		//}
-
-		//public static object ResolveService(this IDatabaseContext context, Type serviceType, string name) {
-		//	var scope = context as IResolveScope;
-		//	return context.SystemContext.ResolveService(serviceType, name, scope);
-		//}
-
-		//public static TService ResolveService<TService>(this IDatabaseContext context) {
-		//	return ResolveService<TService>(context, null);
-		//}
-
-		//public static TService ResolveService<TService>(this IDatabaseContext context, string name) {
-		//	var scope = context as IResolveScope;
-		//	return context.SystemContext.ResolveService<TService>(name, scope);
-		//}
-
-#endregion
 	}
 }

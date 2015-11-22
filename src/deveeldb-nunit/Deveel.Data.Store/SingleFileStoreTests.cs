@@ -32,7 +32,8 @@ namespace Deveel.Data.Store {
 		}
 
 		private void OnSetUp(string testName) {
-			systemContext = new SystemContext();
+			var systemBuilder = new SystemBuilder();
+			systemContext = systemBuilder.BuildContext();
 			databaseContext = CreateDatabaseContext(systemContext);
 
 			if (testName != "CreateNewDatabase") {

@@ -164,7 +164,7 @@ namespace Deveel.Data.Sql.Tables {
 		public bool HasShutdown { get; private set; }
 
 		private ITableCellCache CellCache {
-			get { return DatabaseContext.TableCellCache(); }
+			get { return DatabaseContext.ResolveService<ITableCellCache>(); }
 		}
 
 		public bool CellCaching {

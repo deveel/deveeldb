@@ -41,15 +41,5 @@ namespace Deveel.Data.Diagnostics {
 			context.RegisterInstance(new LogEventRouter(context));
 			context.RegisterInstance(logger);
 		}
-
-#if !PCL
-		public static void UseDefaultConsoleLogger(this ISystemContext context) {
-			UseDefaultConsoleLogger(context, LogLevel.Warning);
-		}
-
-		public static void UseDefaultConsoleLogger(this ISystemContext context, LogLevel level) {
-			context.UseLogger(new ConsoleEventLogger {Level = level});
-		}
-#endif
 	}
 }
