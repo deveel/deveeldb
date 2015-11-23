@@ -762,7 +762,6 @@
     <Compile Include="Deveel.Data.Store\SingleFileStore.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStoreSystem.cs" />
     <Compile Include="Deveel.Data.Store\StorageErrorCodes.cs" />
-    <Compile Include="Deveel.Data.Store\StorageType.cs" />
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Text\PatternSearch.cs" />
