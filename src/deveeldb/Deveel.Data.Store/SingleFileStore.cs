@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Store {
+	[DebuggerDisplay("[{Id}] {Name}")]
 	public sealed class SingleFileStore : StoreBase {
 		private SingleFileStoreSystem system;
 		private Stream dataStream;
@@ -70,6 +72,7 @@ namespace Deveel.Data.Store {
 
 				var inputStream = system.LoadStoreData(Id);
 				if (inputStream != null) {
+					inputStream.Seek(0, SeekOrigin.Begin);
 					inputStream.CopyTo(dataStream);
 				}
 
@@ -79,9 +82,6 @@ namespace Deveel.Data.Store {
 
 		protected override void CloseStore() {
 			lock (CheckPointLock) {
-				if (!IsOpen)
-					throw new IOException("The store is already closed.");
-
 				if (lockCount == 0)
 					IsOpen = false;
 			}
@@ -106,23 +106,30 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				lock (CheckPointLock) {
-					if (dataStream != null)
-						dataStream.Dispose();
-				}
-			}
+		private bool disposed;
 
-			dataStream = null;
-			system = null;
-			IsOpen = false;
-			base.Dispose(disposing);
+		protected override void Dispose(bool disposing) {
+			if (!disposed) {
+				base.Dispose(disposing);
+
+				if (disposing) {
+					lock (CheckPointLock) {
+						if (dataStream != null)
+							dataStream.Dispose();
+					}
+				}
+
+				dataStream = null;
+				system = null;
+				IsOpen = false;
+				disposed = true;
+			}
 		}
 
 		internal void WriteTo(Stream stream) {
 			lock (CheckPointLock) {
 				if (dataStream != null) {
+					dataStream.Seek(0, SeekOrigin.Begin);
 					dataStream.CopyTo(stream);
 				}
 			}

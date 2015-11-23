@@ -38,11 +38,6 @@ namespace Deveel.Data.Store {
 			if (testName != "CreateNewDatabase") {
 				database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass); 
 			}
-
-			if (testName != "OpenDatabase" &&
-				testName != "CreateNewDatabase") {
-				database.Open();
-			}
 		}
 
 		[SetUp]
@@ -54,6 +49,11 @@ namespace Deveel.Data.Store {
 
 		[TearDown]
 		public void TearDown() {
+			if (database != null) {
+				database.Close();
+				database.Dispose();
+			}
+
 			var fileName = GetDbFileName();
 			if (File.Exists(fileName))
 				File.Delete(fileName);

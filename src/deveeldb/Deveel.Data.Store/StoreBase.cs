@@ -740,9 +740,15 @@ namespace Deveel.Data.Store {
 			GC.SuppressFinalize(this);
 		}
 
+		private bool disposed;
+
 		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				Close();
+			if (!disposed) {
+				if (disposing) {
+					Close();
+				}
+
+				disposed = true;
 			}
 		}
 

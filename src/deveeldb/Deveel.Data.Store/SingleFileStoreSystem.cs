@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -130,7 +131,9 @@ namespace Deveel.Data.Store {
 					LoadStores(dataFile);
 				} else {
 					using (var stream = new FileStream(dataFile)) {
-						WriteHeaders(stream);
+						WriteHeaders(stream, 24);
+
+						stream.Flush();
 					}
 				}
 			} finally {
@@ -141,7 +144,7 @@ namespace Deveel.Data.Store {
 
 		private void LoadStores(IFile dataFile) {
 			using (var fileStream = new FileStream(dataFile)) {
-				using (var reader = new BinaryReader(fileStream)) {
+				using (var reader = new BinaryReader(fileStream, Encoding.Unicode)) {
 					LoadHeaders(reader);
 				}
 			}
@@ -189,29 +192,25 @@ namespace Deveel.Data.Store {
 			var size = info.Size;
 			var offset = info.Offset;
 
-			var dataFile = FileSystem.OpenFile(FileName, true);
+			using (var dataFile = FileSystem.OpenFile(FileName, true)) {
+				using (var stream = new FileStream(dataFile)) {
+					stream.Seek(offset, SeekOrigin.Begin);
 
-			var stream = new FileStream(dataFile);
-			stream.Seek(offset, SeekOrigin.Begin);
+					var buffer = new byte[size];
 
-			var byteCount = 0;
-			const int bufferSize = 1024;
-			var buffer = new byte[bufferSize];
+					var outputStream = new MemoryStream();
 
-			var outputStream = new MemoryStream();
-			while (byteCount < size) {
-				var readCount = stream.Read(buffer, 0, bufferSize);
-				if (readCount == 0)
-					break;
+					// TODO: support larger portions...
+					stream.Read(buffer, 0, (int) size);
 
-				outputStream.Write(buffer, 0, readCount);
-				byteCount += readCount;
+					outputStream.Write(buffer, 0, buffer.Length);
+
+					if (outputStream.Length != size)
+						throw new IOException("Corruption when reading the store.");
+
+					return outputStream;
+				}
 			}
-
-			if (outputStream.Length != size)
-				throw new IOException("Corruption when reading the store.");
-
-			return outputStream;
 		}
 
 		public bool StoreExists(string name) {
@@ -306,7 +305,8 @@ namespace Deveel.Data.Store {
 
 					using (var dataFile = FileSystem.CreateFile(TempFileName)) {
 						using (var stream = new FileStream(dataFile)) {
-							WriteHeaders(stream);
+							var dataStartOffset = GetDataStartOffset();
+							WriteHeaders(stream, dataStartOffset);
 							WriteStores(stream);
 
 							stream.Flush();
@@ -325,6 +325,18 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		private long GetDataStartOffset() {
+			long offset = 24;
+
+			foreach (var store in stores.Values) {
+				var nameLength = Encoding.Unicode.GetByteCount(store.Name);
+
+				offset += 4 + nameLength + 4 + 8 + 8;
+			}
+
+			return offset;
+		}
+
 		private void WriteStores(Stream stream) {
 			if (stores != null) {
 				foreach (var store in stores.Values) {
@@ -340,9 +352,7 @@ namespace Deveel.Data.Store {
 			var size = store.DataLength;
 
 			writer.Write(nameLength);
-			for (int i = 0; i < nameLength; i++) {
-				writer.Write(name[i]);
-			}
+			writer.Write(name.ToCharArray());
 
 			writer.Write(id);
 			writer.Write(offset);
@@ -355,7 +365,7 @@ namespace Deveel.Data.Store {
 			return offset;
 		}
 
-		private void WriteHeaders(Stream stream) {
+		private void WriteHeaders(Stream stream, long dataStartOffset) {
 			var writer = new BinaryWriter(stream, Encoding.Unicode);
 			writer.Write(Magic);
 			writer.Write(1);
@@ -367,7 +377,7 @@ namespace Deveel.Data.Store {
 			writer.Write(storeCount);
 			writer.Write(topId);
 
-			long offset = 24;
+			long offset = dataStartOffset;
 
 			if (stores != null) {
 				storeInfo = new Dictionary<int, StoreInfo>(stores.Count);
@@ -415,6 +425,7 @@ namespace Deveel.Data.Store {
 
 		#region StoreInfo
 
+		[DebuggerDisplay("[{Id}]{Name} ({Offset} - {Size})")]
 		class StoreInfo {
 			public StoreInfo(string name, int id, long offset, long size) {
 				Name = name;

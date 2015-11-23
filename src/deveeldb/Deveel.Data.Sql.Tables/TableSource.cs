@@ -58,6 +58,8 @@ namespace Deveel.Data.Sql.Tables {
 
 			GC = new TableSourceGC(this);
 
+			CellCache = composite.DatabaseContext.ResolveService<ITableCellCache>();
+
 			// Generate the name of the store file name.
 			StoreIdentity = MakeSourceIdentity(composite.DatabaseContext.SystemContext, tableId, sourceName);
 		}
@@ -163,9 +165,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		public bool HasShutdown { get; private set; }
 
-		private ITableCellCache CellCache {
-			get { return DatabaseContext.ResolveService<ITableCellCache>(); }
-		}
+		private ITableCellCache CellCache { get; set; }
 
 		public bool CellCaching {
 			get { return CellCache != null; }

@@ -168,7 +168,8 @@ namespace Deveel.Data {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				Close();
+				if (!IsClosed)
+					Close();
 
 				if (lobStore != null)
 					lobStore.Dispose();

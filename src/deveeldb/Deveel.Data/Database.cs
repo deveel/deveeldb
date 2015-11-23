@@ -108,21 +108,30 @@ namespace Deveel.Data {
 			GC.SuppressFinalize(this);
 		}
 
+		private bool disposed;
+
 		private void Dispose(bool disposing) {
-			if (disposing) {
-				if (IsOpen) {
-					// TODO: Report the error
+			if (!disposed) {
+				if (disposing) {
+					if (IsOpen) {
+						// TODO: Report the error
+					}
+
+					if (TableComposite != null)
+						TableComposite.Dispose();
+
+					if (DatabaseContext != null)
+						DatabaseContext.Dispose();
+
+					if (System != null)
+						System.RemoveDatabase(this);
 				}
 
-				TableComposite.Dispose();
-				DatabaseContext.Dispose();
-
-				System.RemoveDatabase(this);
+				System = null;
+				TableComposite = null;
+				DatabaseContext = null;
+				disposed = true;
 			}
-
-			System = null;
-			TableComposite = null;
-			DatabaseContext = null;
 		}
 
 		/// <summary>
