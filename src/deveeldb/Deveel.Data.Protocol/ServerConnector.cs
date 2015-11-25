@@ -239,14 +239,14 @@ namespace Deveel.Data.Protocol {
 			if (transaction == null)
 				throw new InvalidOperationException();
 
-			var session = new UserSession(transaction, User);
+			var session = new Session(transaction, User);
 			return session.CreateQuery();
 		}
 
 		private IQuery CreateQueryContext() {
 			// TODO: make the isolation level configurable...
 			var transaction = Database.CreateTransaction(IsolationLevel.Serializable);
-			var session = new UserSession(transaction, User);
+			var session = new Session(transaction, User);
 			session.AutoCommit(true);
 			return session.CreateQuery();
 		}
@@ -422,7 +422,7 @@ namespace Deveel.Data.Protocol {
 			if (transaction == null)
 				throw new InvalidOperationException();
 
-			using (var session = new UserSession(transaction, User)) {
+			using (var session = new Session(transaction, User)) {
 				session.Commit();
 			}
 		}
@@ -434,7 +434,7 @@ namespace Deveel.Data.Protocol {
 			if (transaction == null)
 				throw new InvalidOperationException();
 
-			using (var session = new UserSession(transaction, User)) {
+			using (var session = new Session(transaction, User)) {
 				session.Rollback();
 			}
 		}

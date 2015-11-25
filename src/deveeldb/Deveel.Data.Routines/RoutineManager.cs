@@ -45,7 +45,7 @@ namespace Deveel.Data.Routines {
 			var schemav = table.GetResolvedColumnName(0);
 			var namev = table.GetResolvedColumnName(1);
 
-			using (var session = new SystemUserSession(transaction)) {
+			using (var session = new SystemSession(transaction)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(routineName.Name)));

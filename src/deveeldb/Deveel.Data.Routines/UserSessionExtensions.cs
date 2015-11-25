@@ -22,7 +22,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Routines {
 	static class UserSessionExtensions {
-		public static IRoutine ResolveRoutine(this IUserSession session, Invoke invoke) {
+		public static IRoutine ResolveRoutine(this ISession session, Invoke invoke) {
 			return session.GetObject(DbObjectType.Routine, invoke.RoutineName, AccessType.Read) as IRoutine;
 		}
 	}

@@ -23,7 +23,7 @@ namespace Deveel.Data {
 
 		protected IDatabase Database { get; private set; }
 
-		protected IUserSession Session { get; private set; }
+		protected ISession Session { get; private set; }
 
 		protected virtual void RegisterServices(ServiceContainer container) {
 		}
@@ -37,17 +37,17 @@ namespace Deveel.Data {
 			return system.CreateDatabase(configuration, AdminUserName, AdminPassword);
 		}
 
-		protected virtual IUserSession CreateAdminSession(IDatabase database) {
+		protected virtual ISession CreateAdminSession(IDatabase database) {
 			var user = database.Authenticate(AdminUserName, AdminPassword);
 			var transaction = database.CreateTransaction(IsolationLevel.Serializable);
-			return new UserSession(transaction, user);
+			return new Session(transaction, user);
 		}
 
-		protected virtual IQuery CreateQuery(IUserSession session) {
+		protected virtual IQuery CreateQuery(ISession session) {
 			return session.CreateQuery();
 		}
 
-		protected IUserSession CreateUserSession(string userName, string password) {
+		protected ISession CreateUserSession(string userName, string password) {
 			return Database.CreateUserSession(userName, password);
 		}
 

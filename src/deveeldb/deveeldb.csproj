@@ -298,7 +298,7 @@
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableContainer.cs" />
-    <Compile Include="Deveel.Data\IUserSession.cs" />
+    <Compile Include="Deveel.Data\ISession.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\Cursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorState.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\FetchContext.cs" />
@@ -343,7 +343,7 @@
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
-    <Compile Include="Deveel.Data\SystemUserSession.cs" />
+    <Compile Include="Deveel.Data\SystemSession.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TableEventRegistry.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TableSource.cs" />
@@ -352,7 +352,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\TableStateStore.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TableTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TemporaryTable.cs" />
-    <Compile Include="Deveel.Data\UserSession.cs" />
+    <Compile Include="Deveel.Data\Session.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\VersionedTableIndexList.cs" />

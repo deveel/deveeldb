@@ -24,8 +24,8 @@ namespace Deveel.Data {
 	/// Manages all the open sessions towards a single database within
 	/// as system.
 	/// </summary>
-	public sealed class ActiveSessionList : IEnumerable<IUserSession> {
-		private readonly List<IUserSession> sessions;
+	public sealed class ActiveSessionList : IEnumerable<ISession> {
+		private readonly List<ISession> sessions;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ActiveSessionList"/> class that
@@ -39,7 +39,7 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("database");
 
 			Database = database;
-			sessions = new List<IUserSession>();
+			sessions = new List<ISession>();
 		}
 
 		/// <summary>
@@ -76,14 +76,14 @@ namespace Deveel.Data {
 		}
 
 		/// <summary>
-		/// Gets the <see cref="IUserSession"/> at the specified index.
+		/// Gets the <see cref="ISession"/> at the specified index.
 		/// </summary>
 		/// <value>
-		/// The <see cref="IUserSession"/>.
+		/// The <see cref="ISession"/>.
 		/// </value>
 		/// <param name="index">The zero-based index of the session to get.</param>
 		/// <returns></returns>
-		public IUserSession this[int index] {
+		public ISession this[int index] {
 			get {
 				lock (this) {
 					return sessions[index];
@@ -97,7 +97,7 @@ namespace Deveel.Data {
 		/// <returns>
 		/// A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.
 		/// </returns>
-		public IEnumerator<IUserSession> GetEnumerator() {
+		public IEnumerator<ISession> GetEnumerator() {
 			lock (this) {
 				return sessions.GetEnumerator();
 			}
@@ -107,7 +107,7 @@ namespace Deveel.Data {
 			return GetEnumerator();
 		}
 
-		internal bool Add(IUserSession session) {
+		internal bool Add(ISession session) {
 			lock (this) {
 				if (sessions.Contains(session))
 					return false;
@@ -117,7 +117,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		internal void Remove(IUserSession session) {
+		internal void Remove(ISession session) {
 			lock (this) {
 				sessions.Remove(session);
 			}

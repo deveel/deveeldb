@@ -11,11 +11,11 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Security {
 	public static class Query {
 		private static IUserManager UserManager(this IQuery query) {
-			return query.QueryContext.ResolveService<IUserManager>();
+			return query.Context.ResolveService<IUserManager>();
 		}
 
 		private static IPrivilegeManager PrivilegeManager(this IQuery query) {
-			return query.QueryContext.ResolveService<IPrivilegeManager>();
+			return query.Context.ResolveService<IPrivilegeManager>();
 		}
 
 		public static void CreateUserGroup(this IQuery query, string groupName) {

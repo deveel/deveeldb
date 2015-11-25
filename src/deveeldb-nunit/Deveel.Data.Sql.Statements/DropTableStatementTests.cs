@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public sealed class DropTableStatementTests : ContextBasedTest {
-		protected override IQuery CreateQuery(IUserSession session) {
+		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
 			CreateTestTables(query);
 			return query;

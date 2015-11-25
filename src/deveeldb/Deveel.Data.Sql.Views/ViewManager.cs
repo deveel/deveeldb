@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Views {
 			var schemav = table.GetResolvedColumnName(0);
 			var namev = table.GetResolvedColumnName(1);
 
-			using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+			using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 				using (var query =session.CreateQuery()) {
 					var t = table.SimpleSelect(query, namev, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(viewName.Name)));
@@ -192,9 +192,9 @@ namespace Deveel.Data.Sql.Views {
 					ViewInfo viewInfo;
 					if (!viewCache.TryGetValue(row, out viewInfo)) { 
 						var blob = (SqlBinary)viewTable.GetValue(row, 3).Value;
-						using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 							using (var context = session.CreateQuery()) {
-								viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.QueryContext.TypeResolver());
+								viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.Context.TypeResolver());
 							}
 						}
 
@@ -251,9 +251,9 @@ namespace Deveel.Data.Sql.Views {
 					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
 
-						using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
+						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 							using (var context = session.CreateQuery()) {
-								viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.QueryContext.TypeResolver());
+								viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.Context.TypeResolver());
 							}
 						}
 

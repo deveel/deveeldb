@@ -454,7 +454,7 @@ namespace Deveel.Data.Transactions {
 		public static void CheckAddConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices,
 			ConstraintDeferrability deferred) {
 			string curSchema = table.TableInfo.TableName.Parent.Name;
-			using (var session = new SystemUserSession(transaction, curSchema)) {
+			using (var session = new SystemSession(transaction, curSchema)) {
 				using (var queryContext = session.CreateQuery()) {
 
 					// Quick exit case

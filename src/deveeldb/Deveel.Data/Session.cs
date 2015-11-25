@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// This is a session that is constructed around a given user and a transaction,
 	/// to the given database.
 	/// </summary>
-	public sealed class UserSession : IUserSession {
+	public sealed class Session : ISession {
 		private List<LockHandle> lockHandles;
 		private bool disposed;
 
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 		/// the user during the session.</param>
 		/// <param name="user"></param>
 		/// <seealso cref="ITransaction"/>
-		public UserSession(ITransaction transaction, User user) {
+		public Session(ITransaction transaction, User user) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 			
@@ -52,7 +52,7 @@ namespace Deveel.Data {
 				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", user.Name));
 
             Transaction = transaction;
-		    SessionContext = transaction.TransactionContext.CreateSessionContext();
+		    Context = transaction.Context.CreateSessionContext();
 
 			transaction.Database.Sessions.Add(this);
 
@@ -60,7 +60,7 @@ namespace Deveel.Data {
 			StartedOn = DateTimeOffset.UtcNow;
 		}
 
-		~UserSession() {
+		~Session() {
 			Dispose(false);
 		}
 
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 
 		public DateTimeOffset StartedOn { get; private set; }
 
-	    public ISessionContext SessionContext { get; private set; }
+	    public ISessionContext Context { get; private set; }
 
 		public User User { get; private set; }
 
@@ -86,7 +86,7 @@ namespace Deveel.Data {
 		}
 
 		IContext IEventSource.Context {
-			get { return SessionContext; }
+			get { return Context; }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
@@ -104,7 +104,7 @@ namespace Deveel.Data {
 
 		private void AssertNotDisposed() {
 			if (disposed)
-				throw new ObjectDisposedException("UserSession");
+				throw new ObjectDisposedException("Session");
 		}
 
 		public void Access(IEnumerable<IDbObject> objects, AccessType accessType) {

@@ -27,7 +27,7 @@ namespace Deveel.Data {
 	public sealed class SequenceManagerTests : ContextBasedTest {
 		private ObjectName testSequenceName = ObjectName.Parse("APP.test_sequence");
 
-		protected override IQuery CreateQuery(IUserSession session) {
+		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {

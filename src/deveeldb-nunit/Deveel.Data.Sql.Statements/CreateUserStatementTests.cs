@@ -13,7 +13,7 @@ namespace Deveel.Data.Sql.Statements {
 			const string sql = "CREATE USER test IDENTIFIED BY PASSWORD '123456789';";
 
 			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.QueryContext, sql));
+			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(Query.Context, sql));
 
 			Assert.IsNotNull(statements);
 

@@ -424,7 +424,7 @@ namespace Deveel.Data.Transactions {
 				var tableInfo = TableInfo;
 				var tName = tableInfo.TableName;
 
-				using (var session = new SystemUserSession(Transaction, tName.ParentName)) {
+				using (var session = new SystemSession(Transaction, tName.ParentName)) {
 					using (var context = session.CreateQuery()) {
 
 						// Are there any added, deleted or updated entries in the journal since

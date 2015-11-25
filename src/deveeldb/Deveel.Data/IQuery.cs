@@ -2,8 +2,8 @@
 
 namespace Deveel.Data {
 	public interface IQuery : IRequest {
-		IQueryContext QueryContext { get; }
+		new IQueryContext Context { get; }
 
-		IUserSession Session { get;  }
+		ISession Session { get;  }
 	}
 }

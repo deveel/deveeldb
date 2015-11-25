@@ -8,14 +8,14 @@ namespace Deveel.Data.Sql.Cursors {
 	public static class QueryExtensions {
 
 		public static void DeclareCursor(this IQuery context, CursorInfo cursorInfo) {
-			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, cursorInfo.QueryExpression, null, null);
+			var queryPlan = context.Context.QueryPlanner().PlanQuery(context, cursorInfo.QueryExpression, null, null);
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
 				if (!context.UserCanSelectFromTable(tableName))
 					throw new MissingPrivilegesException(context.UserName(), tableName, Privileges.Select);
 			}
 
-			context.QueryContext.DeclareCursor(cursorInfo);
+			context.Context.DeclareCursor(cursorInfo);
 		}
 
 		public static void DeclareCursor(this IQuery context, string cursorName, SqlQueryExpression query) {
@@ -39,23 +39,23 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public static bool CursorExists(this IQuery query, string cursorName) {
-			return query.QueryContext.CursorExists(cursorName);
+			return query.Context.CursorExists(cursorName);
 		}
 
 		public static bool DropCursor(this IQuery query, string cursorName) {
-			return query.QueryContext.DropCursor(cursorName);
+			return query.Context.DropCursor(cursorName);
 		}
 
 		public static Cursor FindCursor(this IQuery query, string cursorName) {
-			return query.QueryContext.FindCursor(cursorName);
+			return query.Context.FindCursor(cursorName);
 		}
 
 		public static bool OpenCursor(this IQuery query, string cursorName, params SqlExpression[] args) {
-			return query.QueryContext.OpenCursor(query, cursorName, args);
+			return query.Context.OpenCursor(query, cursorName, args);
 		}
 
 		public static bool CloseCursor(this IQuery query, string cursorName) {
-			return query.QueryContext.CloseCursor(cursorName);
+			return query.Context.CloseCursor(cursorName);
 		}
 	}
 }

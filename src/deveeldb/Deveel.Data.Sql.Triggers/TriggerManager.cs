@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var schemaColumn = table.GetResolvedColumnName(0);
 			var nameColumn = table.GetResolvedColumnName(1);
 
-			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
+			using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(name)));
@@ -132,7 +132,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var eventTypeColumn = table.GetResolvedColumnName(4);
 
 			ITable result;
-			using (var session = new SystemUserSession(transaction, SystemSchema.Name)) {
+			using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(fullTableName)));

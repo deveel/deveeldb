@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	static class UserSessionExtensions {
-		public static ITableQueryInfo GetTableQueryInfo(this IUserSession session, ObjectName tableName, ObjectName alias) {
+		public static ITableQueryInfo GetTableQueryInfo(this ISession session, ObjectName tableName, ObjectName alias) {
 			var tableInfo = session.GetTableInfo(tableName);
 			if (alias != null) {
 				tableInfo = tableInfo.Alias(alias);
@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Query {
 			return new TableQueryInfo(session, tableInfo, tableName, alias);
 		}
 
-		public static IQueryPlanNode CreateQueryPlan(this IUserSession session, ObjectName tableName, ObjectName aliasedName) {
+		public static IQueryPlanNode CreateQueryPlan(this ISession session, ObjectName tableName, ObjectName aliasedName) {
 			string tableType = session.GetTableType(tableName);
 			if (tableType.Equals(TableTypes.View))
 				return new FetchViewNode(tableName, aliasedName);
@@ -41,14 +41,14 @@ namespace Deveel.Data.Sql.Query {
 		#region TableQueryInfo
 
 		class TableQueryInfo : ITableQueryInfo {
-			public TableQueryInfo(IUserSession session, TableInfo tableInfo, ObjectName tableName, ObjectName aliasName) {
+			public TableQueryInfo(ISession session, TableInfo tableInfo, ObjectName tableName, ObjectName aliasName) {
 				Session = session;
 				TableInfo = tableInfo;
 				TableName = tableName;
 				AliasName = aliasName;
 			}
 
-			public IUserSession Session { get; private set; }
+			public ISession Session { get; private set; }
 
 			public TableInfo TableInfo { get; private set; }
 

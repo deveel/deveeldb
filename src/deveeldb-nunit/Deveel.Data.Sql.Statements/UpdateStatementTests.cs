@@ -13,7 +13,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class UpdateStatementTests : ContextBasedTest {
-		protected override IQuery CreateQuery(IUserSession session) {
+		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
 			CreateTestTable(query);
 			AddTestData(query);

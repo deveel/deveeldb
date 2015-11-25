@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class DropTableTests : ContextBasedTest {
-		protected override IUserSession CreateAdminSession(IDatabase database) {
+		protected override ISession CreateAdminSession(IDatabase database) {
 			using (var session = base.CreateAdminSession(database)) {
 				using (var query = session.CreateQuery()) {
 					var tn1 = ObjectName.Parse("APP.test_table1");

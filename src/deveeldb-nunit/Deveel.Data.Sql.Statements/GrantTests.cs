@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class GrantTests : ContextBasedTest {
-		protected override IQuery CreateQuery(IUserSession session) {
+		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
 			query.CreateUser("test_user", "12345");
 			return query;

@@ -27,7 +27,7 @@ namespace Deveel.Data {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface IUserSession : IEventSource, IDisposable {
+	public interface ISession : IEventSource, IDisposable {
 		/// <summary>
 		/// Gets the name of the current schema of this session.
 		/// </summary>
@@ -45,7 +45,7 @@ namespace Deveel.Data {
 		/// </summary>
 		ITransaction Transaction { get; }
 
-        ISessionContext SessionContext { get; }
+        new ISessionContext Context { get; }
 
 
 		///// <summary>

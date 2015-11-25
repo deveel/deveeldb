@@ -10,16 +10,16 @@ namespace Deveel.Data {
 	public sealed class Query : IQuery {
 		private Dictionary<string, object> metadata;
 
-		internal Query(IUserSession session) 
+		internal Query(ISession session) 
 			: this(session, null) {
 		}
 
-		internal Query(IUserSession session, SqlQuery sourceQuery) {
+		internal Query(ISession session, SqlQuery sourceQuery) {
 			Session = session;
 			SourceQuery = sourceQuery;
 
-			QueryContext = session.SessionContext.CreateQueryContext();
-			QueryContext.RegisterInstance<IQuery>(this);
+			Context = session.Context.CreateQueryContext();
+			Context.RegisterInstance<IQuery>(this);
 
 			StartedOn = DateTimeOffset.UtcNow;
 
@@ -38,7 +38,7 @@ namespace Deveel.Data {
 		}
 
 		IBlockContext IRequest.CreateBlockContext() {
-			return QueryContext.CreateBlockContext();
+			return Context.CreateBlockContext();
 		}
 
 		public IBlock CreateBlock() {
@@ -49,9 +49,9 @@ namespace Deveel.Data {
 			get { return this; }
 		}
 
-		public IQueryContext QueryContext { get; private set; }
+		public IQueryContext Context { get; private set; }
 
-		public IUserSession Session { get; private set; }
+		public ISession Session { get; private set; }
 
 		public DateTimeOffset StartedOn { get; private set; }
 
@@ -68,16 +68,16 @@ namespace Deveel.Data {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (QueryContext != null)
-					QueryContext.Dispose();
+				if (Context != null)
+					Context.Dispose();
 			}
 
-			QueryContext = null;
+			Context = null;
 			Session = null;
 		}
 
 		IContext IEventSource.Context {
-			get { return QueryContext; }
+			get { return Context; }
 		}
 
 		IEventSource IEventSource.ParentSource {

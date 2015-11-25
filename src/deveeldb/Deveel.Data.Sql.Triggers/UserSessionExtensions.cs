@@ -20,7 +20,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Triggers {
 	static class UserSessionExtensions {
-		public static void CreateTrigger(this IUserSession session, TriggerInfo triggerInfo) {
+		public static void CreateTrigger(this ISession session, TriggerInfo triggerInfo) {
 			var manager = session.Transaction.GetTriggerManager();
 			if (manager == null)
 				return;
@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Triggers {
 			manager.CreateTrigger(triggerInfo);
 		}
 
-		public static bool TriggerExists(this IUserSession session, ObjectName triggerName) {
+		public static bool TriggerExists(this ISession session, ObjectName triggerName) {
 			var manager = session.Transaction.GetTriggerManager();
 			if (manager == null)
 				return false;

@@ -70,7 +70,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static DataObject Cast(IQuery query, DataObject value, SqlString typeString) {
-			var destType = SqlType.Parse(query.QueryContext, typeString.ToString());
+			var destType = SqlType.Parse(query.Context, typeString.ToString());
 			return Cast(value, destType);
 		}
 

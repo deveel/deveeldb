@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Cursors {
 		private ITable Evaluate(IRequest context, SqlExpression[] args) {
 			try {
 				var prepared = PrepareQuery(args);
-				var queryPlan = context.Query.QueryContext.QueryPlanner().PlanQuery(context, prepared, null, null);
+				var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(context, prepared, null, null);
 				return queryPlan.Evaluate(context);
 			} catch (Exception) {
 

@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
-		protected override IUserSession CreateAdminSession(IDatabase database) {
+		protected override ISession CreateAdminSession(IDatabase database) {
 			var testName = TestContext.CurrentContext.Test.Name;
 			if (testName != "CreateUser") {
 				using (var session = base.CreateAdminSession(database)) {

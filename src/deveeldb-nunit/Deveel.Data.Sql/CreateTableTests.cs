@@ -12,7 +12,7 @@ namespace Deveel.Data.Sql {
 		private const string TestUserName = "test";
 		private const string TestPassword = "abc1234";
 
-		protected override IUserSession CreateAdminSession(IDatabase database) {
+		protected override ISession CreateAdminSession(IDatabase database) {
 			using (var session = database.CreateUserSession(AdminUserName, AdminPassword)) {
 				using (var query = session.CreateQuery()) {
 					if (TestContext.CurrentContext.Test.Name.Equals("CreateSimple_RegularUser")) {

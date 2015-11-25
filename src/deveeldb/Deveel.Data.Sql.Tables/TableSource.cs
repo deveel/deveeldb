@@ -1559,7 +1559,7 @@ namespace Deveel.Data.Sql.Tables {
 			public SqlType ResolveType(TypeResolveContext resolveContext) {
 				using (var session = database.CreateSystemSession()) {
 					using (var query = session.CreateQuery()) {
-						return query.QueryContext.ResolveType(resolveContext.TypeName, resolveContext.GetMeta());
+						return query.Context.ResolveType(resolveContext.TypeName, resolveContext.GetMeta());
 					}
 				}
 			}

@@ -28,7 +28,7 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class SelectStatementTests : ContextBasedTest {
-		protected override IUserSession CreateAdminSession(IDatabase database) {
+		protected override ISession CreateAdminSession(IDatabase database) {
 			using (var session = base.CreateAdminSession(database)) {
 				using (var query = session.CreateQuery()) {
 					CreateTestTable(query);

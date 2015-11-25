@@ -6,19 +6,19 @@ using Deveel.Data.Types;
 namespace Deveel.Data.Sql.Variables {
 	public static class QueryExtensions {
 		public static Variable DeclareVariable(this IQuery query, VariableInfo variableInfo) {
-			return query.QueryContext.DeclareVariable(variableInfo);
+			return query.Context.DeclareVariable(variableInfo);
 		}
 
 		public static void DropVariable(this IQuery query, string variableName) {
-			query.QueryContext.DropVariable(variableName);
+			query.Context.DropVariable(variableName);
 		}
 
 		public static Variable SetVariable(this IQuery query, string variableName, SqlExpression value) {
-			return query.QueryContext.SetVariable(variableName, value);
+			return query.Context.SetVariable(variableName, value);
 		}
 
 		public static Variable FindVariable(this IQuery query, string variableName) {
-			return query.QueryContext.FindVariable(variableName);
+			return query.Context.FindVariable(variableName);
 		}
 
 		public static Variable DeclareVariable(this IQuery query, string variableName, SqlType variableType) {

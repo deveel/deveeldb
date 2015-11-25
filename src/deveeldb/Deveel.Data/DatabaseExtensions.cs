@@ -43,7 +43,7 @@ namespace Deveel.Data {
 
 		#region Sessions
 
-		static IUserSession CreateUserSession(this IDatabase database, User user, IsolationLevel isolation) {
+		static ISession CreateUserSession(this IDatabase database, User user, IsolationLevel isolation) {
 			if (user == null)
 				throw new ArgumentNullException("user");
 
@@ -52,29 +52,29 @@ namespace Deveel.Data {
 				isolation = IsolationLevel.Serializable;
 
 			var transaction = database.CreateTransaction(isolation);
-			return new UserSession(transaction, user);
+			return new Session(transaction, user);
 		}
 
-		static IUserSession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
+		static ISession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
 			var transaction = database.CreateTransaction(isolation);
-			return new SystemUserSession(transaction, SystemSchema.Name);
+			return new SystemSession(transaction, SystemSchema.Name);
 		}
 
-		internal static IUserSession CreateInitialSystemSession(this IDatabase database) {
+		internal static ISession CreateInitialSystemSession(this IDatabase database) {
 			var transaction = database.CreateSafeTransaction(IsolationLevel.Serializable);
-			return new SystemUserSession(transaction, SystemSchema.Name);
+			return new SystemSession(transaction, SystemSchema.Name);
 		}
 
-		internal static IUserSession CreateSystemSession(this IDatabase database) {
+		internal static ISession CreateSystemSession(this IDatabase database) {
 			return database.CreateSystemSession(IsolationLevel.Serializable);
 		}
 
-		public static IUserSession CreateUserSession(this IDatabase database, User user) {
+		public static ISession CreateUserSession(this IDatabase database, User user) {
 			// TODO: get the pre-configured default transaction isolation
 			return database.CreateUserSession(user, IsolationLevel.Unspecified);
 		}
 
-		public static IUserSession CreateUserSession(this IDatabase database, string userName, string password) {
+		public static ISession CreateUserSession(this IDatabase database, string userName, string password) {
 			var user = database.Authenticate(userName, password);
 			if (user == null)
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
@@ -82,7 +82,7 @@ namespace Deveel.Data {
 			return database.CreateUserSession(user);
 		}
 
-		static IUserSession OpenUserSession(this IDatabase database, int commitId, User user) {
+		static ISession OpenUserSession(this IDatabase database, int commitId, User user) {
 			if (commitId < 0)
 				throw new ArgumentException("Invalid commit reference specified.");
 
@@ -90,7 +90,7 @@ namespace Deveel.Data {
 			if (transaction == null)
 				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
 
-			return new UserSession(transaction, user);
+			return new Session(transaction, user);
 		}
 
 		#endregion

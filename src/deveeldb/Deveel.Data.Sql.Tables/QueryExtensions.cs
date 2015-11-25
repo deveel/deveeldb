@@ -150,7 +150,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private static ICache TableCache(this IQuery query) {
-			return query.QueryContext.ResolveService<ICache>("TableCache");
+			return query.Context.ResolveService<ICache>("TableCache");
 		}
 
 		public static ITable GetTable(this IQuery query, ObjectName tableName) {

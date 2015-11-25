@@ -11,9 +11,9 @@ using Deveel.Data.Transactions;
 namespace Deveel.Data.Sql {
 	public static class QueryExtensions {
 		public static bool ObjectExists(this IQuery query, ObjectName objectName) {
-			if (query.QueryContext.VariableExists(objectName.Name))
+			if (query.Context.VariableExists(objectName.Name))
 				return true;
-			if (query.QueryContext.VariableExists(objectName.Name))
+			if (query.Context.VariableExists(objectName.Name))
 				return true;
 
 			return query.Session.ObjectExists(objectName);
@@ -21,10 +21,10 @@ namespace Deveel.Data.Sql {
 
 		public static bool ObjectExists(this IQuery query, DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Cursor &&
-			    query.QueryContext.CursorExists(objectName.Name))
+			    query.Context.CursorExists(objectName.Name))
 				return true;
 			if (objectType == DbObjectType.Variable &&
-			    query.QueryContext.VariableExists(objectName.Name))
+			    query.Context.VariableExists(objectName.Name))
 				return true;
 
 			return query.Session.ObjectExists(objectType, objectName);
@@ -36,9 +36,9 @@ namespace Deveel.Data.Sql {
 
 		public static IDbObject GetObject(this IQuery query, DbObjectType objType, ObjectName objName, AccessType accessType) {
 			if (objType == DbObjectType.Cursor)
-				return query.QueryContext.FindCursor(objName.Name);
+				return query.Context.FindCursor(objName.Name);
 			if (objType == DbObjectType.Variable)
-				return query.QueryContext.FindVariable(objName.Name);
+				return query.Context.FindVariable(objName.Name);
 
 			// TODO: throw a specialized exception
 			if (!query.UserCanAccessObject(objType, objName))
@@ -57,9 +57,9 @@ namespace Deveel.Data.Sql {
 
 		public static bool DropObject(this IQuery query, DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Cursor)
-				return query.QueryContext.DropCursor(objectName.Name);
+				return query.Context.DropCursor(objectName.Name);
 			if (objectType == DbObjectType.Variable)
-				return query.QueryContext.DropVariable(objectName.Name);
+				return query.Context.DropVariable(objectName.Name);
 
 			if (!query.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(query.UserName(), objectName, Privileges.Drop);
@@ -84,9 +84,9 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static ObjectName ResolveObjectName(this IQuery query, string name) {
-			if (query.QueryContext.CursorExists(name))
+			if (query.Context.CursorExists(name))
 				return new ObjectName(name);
-			if (query.QueryContext.VariableExists(name))
+			if (query.Context.VariableExists(name))
 				return new ObjectName(name);
 
 			return query.Session.ResolveObjectName(name);
@@ -94,20 +94,20 @@ namespace Deveel.Data.Sql {
 
 		public static ObjectName ResolveObjectName(this IQuery query, DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Variable  &&
-				query.QueryContext.VariableExists(objectName.Name))
+				query.Context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 			if (objectType == DbObjectType.Cursor &&
-				query.QueryContext.VariableExists(objectName.Name))
+				query.Context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 
 			return query.Session.ResolveObjectName(objectType, objectName);
 		}
 
 		public static IDbObject FindObject(this IQuery query, ObjectName objectName) {
-			if (query.QueryContext.CursorExists(objectName.Name))
-				return query.QueryContext.FindCursor(objectName.Name);
-			if (query.QueryContext.VariableExists(objectName.Name))
-				return query.QueryContext.FindVariable(objectName.Name);
+			if (query.Context.CursorExists(objectName.Name))
+				return query.Context.FindCursor(objectName.Name);
+			if (query.Context.VariableExists(objectName.Name))
+				return query.Context.FindVariable(objectName.Name);
 
 			return query.Session.FindObject(objectName);
 		}

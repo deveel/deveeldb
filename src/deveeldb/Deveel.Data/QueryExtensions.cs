@@ -14,40 +14,40 @@ namespace Deveel.Data {
 		}
 
 		internal static IQuery Direct(this IQuery query) {
-			var systemSession = new SystemUserSession(query.Session.Transaction, query.Session.CurrentSchema);
+			var systemSession = new SystemSession(query.Session.Transaction, query.Session.CurrentSchema);
 			return new Query(systemSession);
 		}
 
 		public static bool IgnoreIdentifiersCase(this IQuery query) {
-			return query.QueryContext.IgnoreIdentifiersCase();
+			return query.Context.IgnoreIdentifiersCase();
 		}
 
 		public static void IgnoreIdentifiersCase(this IQuery query, bool value) {
-			query.QueryContext.IgnoreIdentifiersCase(value);
+			query.Context.IgnoreIdentifiersCase(value);
 		}
 
 		public static void AutoCommit(this IQuery query, bool value) {
-			query.QueryContext.AutoCommit(value);
+			query.Context.AutoCommit(value);
 		}
 
 		public static bool AutoCommit(this IQuery query) {
-			return query.QueryContext.AutoCommit();
+			return query.Context.AutoCommit();
 		}
 
 		public static string CurrentSchema(this IQuery query) {
-			return query.QueryContext.CurrentSchema();
+			return query.Context.CurrentSchema();
 		}
 
 		public static void CurrentSchema(this IQuery query, string value) {
-			query.QueryContext.CurrentSchema(value);
+			query.Context.CurrentSchema(value);
 		}
 
 		public static void ParameterStyle(this IQuery query, QueryParameterStyle value) {
-			query.QueryContext.ParameterStyle(value);
+			query.Context.ParameterStyle(value);
 		}
 
 		public static QueryParameterStyle ParameterStyle(this IQuery query) {
-			return query.QueryContext.ParameterStyle();
+			return query.Context.ParameterStyle();
 		}
 
 		public static void Commit(this IQuery query) {

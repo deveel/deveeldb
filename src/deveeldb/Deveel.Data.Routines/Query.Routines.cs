@@ -32,7 +32,7 @@ namespace Deveel.Data.Routines {
 		public static IRoutine ResolveSystemRoutine(this IQuery query, Invoke invoke) {
 			// return query.SystemContext().ResolveRoutine(invoke, query);
 
-			var resolvers = query.QueryContext.ResolveAllServices<IRoutineResolver>();
+			var resolvers = query.Context.ResolveAllServices<IRoutineResolver>();
 			foreach (var resolver in resolvers) {
 				var routine = resolver.ResolveRoutine(invoke, query);
 				if (routine != null)

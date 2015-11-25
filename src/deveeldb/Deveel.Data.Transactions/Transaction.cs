@@ -20,14 +20,11 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
-using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -48,7 +45,7 @@ namespace Deveel.Data.Transactions {
 			CommitId = commitId;
 			Database = database;
 			Isolation = isolation;
-		    TransactionContext = context;
+		    Context = context;
 
 			context.RegisterInstance<ITransaction>(this);
 
@@ -99,7 +96,7 @@ namespace Deveel.Data.Transactions {
 
 		public OldNewTableState TableState { get; private set; }
 
-        public ITransactionContext TransactionContext { get; private set; }
+        public ITransactionContext Context { get; private set; }
 
 		public void SetTableState(OldNewTableState tableState) {
 			TableState = tableState;
@@ -120,7 +117,7 @@ namespace Deveel.Data.Transactions {
 		}
 			
 		IContext IEventSource.Context {
-			get { return TransactionContext; }
+			get { return Context; }
 		}
 
 		public IDatabaseContext DatabaseContext {
@@ -206,8 +203,8 @@ namespace Deveel.Data.Transactions {
 				try {
 					TableManager.Dispose();
 
-					if (TransactionContext != null)
-						TransactionContext.Dispose();
+					if (Context != null)
+						Context.Dispose();
 
 				} catch (Exception) {
 					// TODO: report the error
@@ -223,7 +220,7 @@ namespace Deveel.Data.Transactions {
 				}
 
 				callbacks = null;
-				TransactionContext = null;
+				Context = null;
 
 				// Dispose all the objects in the transaction
 			} finally {

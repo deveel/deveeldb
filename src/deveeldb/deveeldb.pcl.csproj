@@ -864,11 +864,11 @@
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\IRequest.cs" />
+    <Compile Include="Deveel.Data\ISession.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
     <Compile Include="Deveel.Data\ISystem.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
-    <Compile Include="Deveel.Data\IUserSession.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data\Query.cs" />
     <Compile Include="Deveel.Data\QueryContextBase.cs" />
@@ -878,15 +878,15 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data\Session.cs" />
     <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data\SystemBuilder.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data\SystemErrorCodes.cs" />
     <Compile Include="Deveel.Data\SystemSchema.cs" />
+    <Compile Include="Deveel.Data\SystemSession.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
-    <Compile Include="Deveel.Data\SystemUserSession.cs" />
-    <Compile Include="Deveel.Data\UserSession.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -45,18 +45,18 @@ namespace Deveel.Data.Transactions {
 		#region Managers
 
 		public static void CreateSystem(this ITransaction transaction) {
-			var managers = transaction.TransactionContext.ResolveAllServices<IObjectManager>();
+			var managers = transaction.Context.ResolveAllServices<IObjectManager>();
 			foreach (var manager in managers) {
 				manager.Create();
 			}
 		}
 
 		public static TableManager GetTableManager(this ITransaction transaction) {
-			return (TableManager) transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Table);
+			return (TableManager) transaction.Context.ResolveService<IObjectManager>(DbObjectType.Table);
 		}
 
 		public static TriggerManager GetTriggerManager(this ITransaction transaction) {
-			return transaction.TransactionContext.ResolveService<IObjectManager>(DbObjectType.Trigger) as TriggerManager;
+			return transaction.Context.ResolveService<IObjectManager>(DbObjectType.Trigger) as TriggerManager;
 		}
 
 		#endregion
@@ -64,11 +64,11 @@ namespace Deveel.Data.Transactions {
 		#region Objects
 
 		internal static IObjectManager GetObjectManager(this ITransaction transaction, DbObjectType objectType) {
-			return transaction.TransactionContext.ResolveService<IObjectManager>(objectType);
+			return transaction.Context.ResolveService<IObjectManager>(objectType);
 		}
 
 		private static IEnumerable<IObjectManager> GetObjectManagers(this ITransaction transaction) {
-			return transaction.TransactionContext.ResolveAllServices<IObjectManager>();
+			return transaction.Context.ResolveAllServices<IObjectManager>();
 		}
 
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
@@ -399,51 +399,51 @@ namespace Deveel.Data.Transactions {
 		#region Variables
 
 		public static string CurrentSchema(this ITransaction transaction) {
-			return transaction.TransactionContext.CurrentSchema();
+			return transaction.Context.CurrentSchema();
 		}
 
 		public static void CurrentSchema(this ITransaction transaction, string value) {
-			transaction.TransactionContext.CurrentSchema(value);
+			transaction.Context.CurrentSchema(value);
 		}
 
 		public static bool IgnoreIdentifiersCase(this ITransaction transaction) {
-			return transaction.TransactionContext.IgnoreIdentifiersCase();
+			return transaction.Context.IgnoreIdentifiersCase();
 		}
 
 		public static void IgnoreIdentifiersCase(this ITransaction transaction, bool value) {
-			transaction.TransactionContext.IgnoreIdentifiersCase(value);
+			transaction.Context.IgnoreIdentifiersCase(value);
 		}
 
 		public static bool AutoCommit(this ITransaction transaction) {
-			return transaction.TransactionContext.AutoCommit();
+			return transaction.Context.AutoCommit();
 		}
 
 		public static void AutoCommit(this ITransaction transaction, bool value) {
-			transaction.TransactionContext.AutoCommit(value);
+			transaction.Context.AutoCommit(value);
 		}
 
 		public static QueryParameterStyle ParameterStyle(this ITransaction transaction) {
-			return transaction.TransactionContext.ParameterStyle();
+			return transaction.Context.ParameterStyle();
 		}
 
 		public static void ParameterStyle(this ITransaction transaction, QueryParameterStyle value) {
-			transaction.TransactionContext.ParameterStyle(value);
+			transaction.Context.ParameterStyle(value);
 		}
 
 		public static bool ReadOnly(this ITransaction transaction) {
-			return transaction.TransactionContext.ReadOnly();
+			return transaction.Context.ReadOnly();
 		}
 
 		public static void ReadOnly(this ITransaction transaction, bool value) {
-			transaction.TransactionContext.ReadOnly(value);
+			transaction.Context.ReadOnly(value);
 		}
 
 		public static bool ErrorOnDirtySelect(this ITransaction transaction) {
-			return transaction.TransactionContext.ErrorOnDirtySelect();
+			return transaction.Context.ErrorOnDirtySelect();
 		}
 
 		public static void ErrorOnDirtySelect(this ITransaction transaction, bool value) {
-			transaction.TransactionContext.ErrorOnDirtySelect(value);
+			transaction.Context.ErrorOnDirtySelect(value);
 		}
 
 		#endregion

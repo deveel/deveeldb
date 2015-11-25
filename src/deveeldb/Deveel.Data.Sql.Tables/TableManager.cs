@@ -569,7 +569,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			// The current schema context is the schema of the table name
 			string currentSchema = tableName.Parent.Name;
-			using (var session = new SystemUserSession(Transaction, currentSchema)) {
+			using (var session = new SystemSession(Transaction, currentSchema)) {
 				using (var context = session.CreateQuery()) {
 
 					// Get the next unique id of the unaltered table.

@@ -12,7 +12,7 @@ namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateViewStatementTests : ContextBasedTest {
 
-		protected override IUserSession CreateAdminSession(IDatabase database) {
+		protected override ISession CreateAdminSession(IDatabase database) {
 			using (var session = base.CreateAdminSession(database)) {
 				using (var query = session.CreateQuery()) {
 					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));

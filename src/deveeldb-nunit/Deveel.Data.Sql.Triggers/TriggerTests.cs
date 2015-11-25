@@ -10,7 +10,7 @@ namespace Deveel.Data.Sql.Triggers {
 	public class TriggerTests : ContextBasedTest {
 		private static readonly ObjectName TestTableName = ObjectName.Parse("APP.test_table");
 
-		protected override IQuery CreateQuery(IUserSession session) {
+		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
 			var tableInfo = new TableInfo(TestTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer());

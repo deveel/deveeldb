@@ -25,18 +25,18 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	class SystemUserSession : IUserSession {
-		public SystemUserSession(ITransaction transaction) 
+	class SystemSession : ISession {
+		public SystemSession(ITransaction transaction) 
 			: this(transaction, transaction.CurrentSchema()) {
 		}
 
-		public SystemUserSession(ITransaction transaction, string currentSchema) {
+		public SystemSession(ITransaction transaction, string currentSchema) {
 			if (String.IsNullOrEmpty(currentSchema))
 				throw new ArgumentNullException("currentSchema");
 
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
-		    SessionContext = transaction.TransactionContext.CreateSessionContext();
+		    Context = transaction.Context.CreateSessionContext();
 			StartedOn = DateTimeOffset.UtcNow;
 		}
 
@@ -58,7 +58,7 @@ namespace Deveel.Data {
 
 		public ITransaction Transaction { get; private set; }
 
-        public ISessionContext SessionContext { get; private set; }
+        public ISessionContext Context { get; private set; }
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return GetMetaData(); }
@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		}
 
 		IContext IEventSource.Context {
-			get { return SessionContext; }
+			get { return Context; }
 		}
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetaData() {
