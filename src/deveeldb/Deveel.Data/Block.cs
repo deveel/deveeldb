@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 
 namespace Deveel.Data {
-	public class Block : IBlock, IBlockParent {
+	public class Block : IBlock {
 		private IQuery query;
 
-		internal Block(IBlockParent parent) {
-			if (parent == null)
-				throw new ArgumentNullException("parent");
+		public Block(IRequest request) {
+			if (request == null)
+				throw new ArgumentNullException("request");
 
-			query = parent as IQuery;
+			query = request as IQuery;
 			
-			Context = parent.CreateBlockContext();
+			Context = request.CreateBlockContext();
 			Context.UnregisterService<IBlock>();
 			Context.RegisterInstance<IBlock>(this);
 
-			Parent = parent as IBlock;
+			Parent = request as IBlock;
 		}
 
 		~Block() {
@@ -55,13 +54,14 @@ namespace Deveel.Data {
 			GC.SuppressFinalize(this);
 		}
 
-		protected void Dispose(bool disposing) {
+		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				if (Context != null)
 					Context.Dispose();
 			}
 
 			Context = null;
+			query = null;
 		}
 
 		public IBlockContext Context { get; private set; }
@@ -70,7 +70,7 @@ namespace Deveel.Data {
 			get { return Context; }
 		}
 
-		IBlockContext IBlockParent.CreateBlockContext() {
+		IBlockContext IRequest.CreateBlockContext() {
 			return Context.CreateBlockContext();
 		}
 

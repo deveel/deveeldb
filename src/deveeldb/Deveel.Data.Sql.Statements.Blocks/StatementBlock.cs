@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Sql.Statements {
+namespace Deveel.Data.Sql.Statements.Blocks {
 	public abstract class StatementBlock : Block {
 		protected StatementBlock(Data.Query query) 
 			: base(query) {

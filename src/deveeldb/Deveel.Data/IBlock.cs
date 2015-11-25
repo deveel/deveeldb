@@ -9,7 +9,5 @@ namespace Deveel.Data {
 		IBlock Next { get; }
 
 		void Execute(BlockExecuteContext context);
-
-		IBlock CreateBlock();
 	}
 }

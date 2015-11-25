@@ -73,7 +73,7 @@ namespace Deveel.Data.Linq {
 
 		private void AddParameter(SqlQuery query, QueryParameter queryParameter, object value) {
 			var sqlType = GetSqlType(queryParameter.Type);
-			var param = new Deveel.Data.Sql.QueryParameter(queryParameter.Name, sqlType, (ISqlObject)value);
+			var param = new Sql.QueryParameter(queryParameter.Name, sqlType, (ISqlObject)value);
 			param.Direction = QueryParameterDirection.In;
 			query.Parameters.Add(param);
 		}

@@ -7,7 +7,7 @@ using Deveel.Data.Services;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
-	public sealed class Query : IQuery, IBlockParent {
+	public sealed class Query : IQuery {
 		private Dictionary<string, object> metadata;
 
 		internal Query(IUserSession session) 
@@ -37,7 +37,7 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
-		IBlockContext IBlockParent.CreateBlockContext() {
+		IBlockContext IRequest.CreateBlockContext() {
 			return QueryContext.CreateBlockContext();
 		}
 
