@@ -46,7 +46,7 @@ namespace Deveel.Data {
 			tempStoreSystem = new InMemoryStorageSystem();
 			objectStates = new List<TransactionObjectState>();
 
-			StateStoreName = String.Format("{0}_{1}", database.Name(), StateStorePostfix);
+			StateStoreName = String.Format("{0}_{1}", database.Name, StateStorePostfix);
 
 			Setup();
 		}
