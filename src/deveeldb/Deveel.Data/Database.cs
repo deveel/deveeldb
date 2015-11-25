@@ -48,6 +48,8 @@ namespace Deveel.Data {
 			DatabaseContext.RegisterInstance(this);
 			DatabaseContext.RegisterInstance<ITableSourceComposite>(TableComposite);
 
+			Name = DatabaseContext.DatabaseName();
+
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);
 			t.NewRow();
@@ -69,9 +71,7 @@ namespace Deveel.Data {
 		/// <value>
 		/// The database name.
 		/// </value>
-		public string Name {
-			get { return DatabaseContext.DatabaseName(); }
-		}
+		public string Name { get; private set; }
 
 		public DatabaseSystem System { get; private set; }
 
