@@ -42,8 +42,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, OrderBy, Limit);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var queryPlan = context.Query.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, OrderBy, Limit);
 			return new Prepared(queryPlan);
 		}
 
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQuery context) {
+			protected override ITable ExecuteStatement(IRequest context) {
 				return QueryPlan.Evaluate(context);
 			}
 		}

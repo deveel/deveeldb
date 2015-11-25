@@ -47,8 +47,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var queryPlan = context.Query.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
 
 			if (IsObjectReference) {
 				var tableRef = ((SqlReferenceExpression) Reference).ReferenceName;
@@ -94,11 +94,11 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQuery context) {
+			protected override ITable ExecuteStatement(IRequest context) {
 				var result = QueryPlan.Evaluate(context);
 
 				if (IsForTable) {
-					var table = context.GetMutableTable(Table);
+					var table = context.Query.GetMutableTable(Table);
 					if (table == null)
 						throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", Table));
 

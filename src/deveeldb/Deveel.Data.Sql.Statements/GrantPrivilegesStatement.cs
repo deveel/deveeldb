@@ -37,17 +37,17 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool WithGrant { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var objName = context.ResolveObjectName(ObjectName.FullName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var objName = context.Query.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
-			var obj = context.FindObject(ObjectName);
+		protected override ITable ExecuteStatement(IRequest context) {
+			var obj = context.Query.FindObject(ObjectName);
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
 
-			context.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
+			context.Query.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
 			return FunctionTable.ResultTable(context, 0);
 		}
 	}

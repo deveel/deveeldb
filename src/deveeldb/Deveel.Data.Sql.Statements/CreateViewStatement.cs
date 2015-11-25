@@ -50,11 +50,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var viewName = context.ResolveTableName(ViewName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var viewName = context.Query.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
-			var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
+			var queryPlan = context.Query.QueryContext.QueryPlanner().PlanQuery(context, QueryExpression, null, null);
 
 			var colList = ColumnNames == null ? new string[0] : ColumnNames.ToArray();
 
@@ -116,14 +116,14 @@ namespace Deveel.Data.Sql.Statements {
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 
-			protected override ITable ExecuteStatement(IQuery context) {
+			protected override ITable ExecuteStatement(IRequest context) {
 				// We have to execute the plan to get the TableInfo that represents the
 				// result of the view execution.
 				var table = QueryPlan.Evaluate(context);
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-				context.DefineView(viewInfo, ReplaceIfExists);
+				context.Query.DefineView(viewInfo, ReplaceIfExists);
 
 				return FunctionTable.ResultTable(context, 0);
 			}

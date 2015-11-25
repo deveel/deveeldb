@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var viewNameList = ViewNames.ToList();
 			var dropViews = new List<string>();
 
@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 				dropViews.Add(tableName);
 			}
 
-			var resolvedNames = dropViews.Select(context.ResolveObjectName);
+			var resolvedNames = dropViews.Select(context.Query.ResolveObjectName);
 
 			return new Prepared(resolvedNames.ToArray(), IfExists);
 		}
@@ -71,8 +71,8 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQuery context) {
-				context.DropViews(ViewNames, IfExists);
+			protected override ITable ExecuteStatement(IRequest context) {
+				context.Query.DropViews(ViewNames, IfExists);
 				return FunctionTable.ResultTable(context, 0);
 			}
 		}

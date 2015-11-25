@@ -45,10 +45,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; } 
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var tableName = context.ResolveTableName(TableName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var tableName = context.Query.ResolveTableName(TableName);
 
-			var table = context.GetTable(tableName);
+			var table = context.Query.GetTable(tableName);
 			if (table == null)
 				throw new InvalidOperationException();
 
@@ -109,8 +109,8 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQuery context) {
-				var insertCount = context.InsertIntoTable(TableName, Assignments);
+			protected override ITable ExecuteStatement(IRequest context) {
+				var insertCount = context.Query.InsertIntoTable(TableName, Assignments);
 				return FunctionTable.ResultTable(context, insertCount);
 			}
 		}

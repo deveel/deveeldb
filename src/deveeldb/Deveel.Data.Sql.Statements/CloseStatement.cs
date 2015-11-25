@@ -37,8 +37,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return false; }
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
-			context.CloseCursor(CursorName);
+		protected override ITable ExecuteStatement(IRequest context) {
+			context.Query.CloseCursor(CursorName);
 			return FunctionTable.ResultTable(context, 0);
 		}
 

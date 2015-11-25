@@ -39,8 +39,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
-			var tableName = context.ResolveTableName(TableName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var tableName = context.Query.ResolveTableName(TableName);
 			return new AlterTableStatement(tableName, Action);
 		}
 
@@ -64,16 +64,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		}
 
-		private bool CheckColumnNamesMatch(IQuery context, String col1, String col2) {
-			var comparison = context.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+		private bool CheckColumnNamesMatch(IRequest context, String col1, String col2) {
+			var comparison = context.Query.IgnoreIdentifiersCase() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			return col1.Equals(col2, comparison);
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
-			if (!context.UserCanAlterTable(TableName))
-				throw new InvalidAccessException(context.UserName(), TableName);
+		protected override ITable ExecuteStatement(IRequest context) {
+			if (!context.Query.UserCanAlterTable(TableName))
+				throw new InvalidAccessException(context.Query.UserName(), TableName);
 
-			var table = context.GetTable(TableName);
+			var table = context.Query.GetTable(TableName);
 			if (table == null)
 				throw new ObjectNotFoundException(TableName);
 
@@ -105,24 +105,24 @@ namespace Deveel.Data.Sql.Statements {
 				} else if (Action.ActionType == AlterTableActionType.DropColumn &&
 						   CheckColumnNamesMatch(context, ((DropColumnAction)Action).ColumnName, columnName)) {
 					// Check there are no referential links to this column
-					var refs = context.GetTableImportedForeignKeys(TableName);
+					var refs = context.Query.GetTableImportedForeignKeys(TableName);
 					foreach (var reference in refs) {
 						CheckColumnConstraint(columnName, reference.ForeignColumnNames, reference.ForeignTable, reference.ConstraintName);
 					}
 
 					// Or from it
-					refs = context.GetTableForeignKeys(TableName);
+					refs = context.Query.GetTableForeignKeys(TableName);
 					foreach (var reference in refs) {
 						CheckColumnConstraint(columnName, reference.ColumnNames, reference.TableName, reference.ConstraintName);
 					}
 
 					// Or that it's part of a primary key
-					var primaryKey = context.GetTablePrimaryKey(TableName);
+					var primaryKey = context.Query.GetTablePrimaryKey(TableName);
 					if (primaryKey != null)
 						CheckColumnConstraint(columnName, primaryKey.ColumnNames, TableName, primaryKey.ConstraintName);
 
 					// Or that it's part of a unique set
-					var uniques = context.GetTableUniqueKeys(TableName);
+					var uniques = context.Query.GetTableUniqueKeys(TableName);
 					foreach (var unique in uniques) {
 						CheckColumnConstraint(columnName, unique.ColumnNames, TableName, unique.ConstraintName);
 					}
@@ -167,12 +167,12 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (Action.ActionType == AlterTableActionType.DropConstraint) {
 				string constraintName = ((DropConstraintAction)Action).ConstraintName;
-				int dropCount = context.DropConstraint(TableName, constraintName);
+				int dropCount = context.Query.DropConstraint(TableName, constraintName);
 				if (dropCount == 0)
 					throw new InvalidOperationException("Named constraint to drop on table " + TableName + " was not found: " + constraintName);
 			} else if (Action.ActionType == AlterTableActionType.DropPrimaryKey) {
 				string constraintName = ((DropConstraintAction)Action).ConstraintName;
-				if (!context.DropPrimaryKey(TableName, constraintName))
+				if (!context.Query.DropPrimaryKey(TableName, constraintName))
 					throw new InvalidOperationException("No primary key to delete on table " + TableName);
 			}
 
@@ -182,7 +182,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				ObjectName refTname = null;
 				if (foreignConstraint) {
-					refTname = context.ResolveTableName(constraint.ReferenceTable);
+					refTname = context.Query.ResolveTableName(constraint.ReferenceTable);
 				}
 
 				var columnNames = checker.StripColumnList(TableName.FullName, constraint.Columns);
@@ -205,7 +205,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (constraint.ConstraintType == ConstraintType.Check)
 					newConstraint.CheckExpression = expression;
 
-				context.AddConstraint(TableName, newConstraint);
+				context.Query.AddConstraint(TableName, newConstraint);
 			}
 
 			// Alter the existing table to the new format...
@@ -213,12 +213,12 @@ namespace Deveel.Data.Sql.Statements {
 				if (newTableInfo.ColumnCount == 0)
 					throw new InvalidOperationException("Can not ALTER table to have 0 columns.");
 
-				context.AlterTable(newTableInfo);
+				context.Query.AlterTable(newTableInfo);
 			} else {
 				// If the table wasn't physically altered, check the constraints.
 				// Calling this method will also make the transaction check all
 				// deferred constraints during the next commit.
-				context.CheckConstraints(TableName);
+				context.Query.CheckConstraints(TableName);
 			}
 
 			// Return '0' if everything successful.

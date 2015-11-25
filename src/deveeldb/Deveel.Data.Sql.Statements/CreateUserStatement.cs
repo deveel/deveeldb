@@ -48,11 +48,11 @@ namespace Deveel.Data.Sql.Statements {
 			return new CreateUserStatement(UserName, preparedPassword);
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
+		protected override ITable ExecuteStatement(IRequest context) {
 			var evaluated = Password.EvaluateToConstant(context, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
 
-			context.CreateUser(UserName, passwordText);
+			context.Query.CreateUser(UserName, passwordText);
 			return FunctionTable.ResultTable(context, 0);
 		}
 

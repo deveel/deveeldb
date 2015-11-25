@@ -84,10 +84,10 @@ namespace Deveel.Data.Sql.Cursors {
 			return result;
 		}
 
-		private ITable Evaluate(IQuery context, SqlExpression[] args) {
+		private ITable Evaluate(IRequest context, SqlExpression[] args) {
 			try {
 				var prepared = PrepareQuery(args);
-				var queryPlan = context.QueryContext.QueryPlanner().PlanQuery(context, prepared, null, null);
+				var queryPlan = context.Query.QueryContext.QueryPlanner().PlanQuery(context, prepared, null, null);
 				return queryPlan.Evaluate(context);
 			} catch (Exception) {
 
@@ -95,7 +95,7 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
-		public void Open(IQuery context, params SqlExpression[] args) {
+		public void Open(IRequest context, params SqlExpression[] args) {
 			lock (this) {
 				AssertNotDisposed();
 

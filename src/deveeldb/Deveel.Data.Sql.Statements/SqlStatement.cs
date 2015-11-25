@@ -67,8 +67,8 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns an instance of <see cref="SqlStatement"/> that represents the
 		/// prepared version of this statement and that will be executed in a later moment.
 		/// </returns>
-		/// <seealso cref="Prepare(IExpressionPreparer, IQuery)"/>
-		protected virtual SqlStatement PrepareStatement(IQuery context) {
+		/// <seealso cref="Prepare(IExpressionPreparer, IRequest)"/>
+		protected virtual SqlStatement PrepareStatement(IRequest context) {
 			return this;
 		}
 
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public SqlStatement Prepare(IExpressionPreparer preparer, IQuery context) {
+		public SqlStatement Prepare(IExpressionPreparer preparer, IRequest context) {
 			SqlStatement prepared = this;
 
 			try {
@@ -129,7 +129,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public ITable Execute(IQuery context) {
+		public ITable Execute(IRequest context) {
 			return PrepareAndExecute(null, context);
 		}
 
@@ -137,7 +137,7 @@ namespace Deveel.Data.Sql.Statements {
 			return ExecuteStatement(context);
 		}
 
-		private ITable PrepareAndExecute(IExpressionPreparer preparer, IQuery context) {
+		private ITable PrepareAndExecute(IExpressionPreparer preparer, IRequest context) {
 			SqlStatement prepared;
 
 			try {
@@ -149,7 +149,7 @@ namespace Deveel.Data.Sql.Statements {
 			return prepared.ExecuteStatement(context);
 		}
 
-		protected virtual ITable ExecuteStatement(IQuery context) {
+		protected virtual ITable ExecuteStatement(IRequest context) {
 			// This method is not abstract because a statement can be different after
 			// preparation, that means a statement can be a builder for another 
 			throw new PreparationRequiredException(GetType().FullName);

@@ -47,19 +47,19 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterUserStatement(UserName, action);
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
+		protected override ITable ExecuteStatement(IRequest context) {
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
-				context.AlterUserPassword(UserName, password);
+				context.Query.AlterUserPassword(UserName, password);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
 				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
 					.Cast<SqlConstantExpression>()
 					.Select(x => x.Value.Value.ToString())
 					.ToArray();
 
-				context.SetUserGroups(UserName, groupNames);
+				context.Query.SetUserGroups(UserName, groupNames);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetAccountStatus) {
-				context.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
+				context.Query.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}
 
 			return FunctionTable.ResultTable(context, 0);

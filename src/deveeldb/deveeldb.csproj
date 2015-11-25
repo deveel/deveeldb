@@ -143,9 +143,11 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Blocks\BranchBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\CreateTableBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\INamedBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\IStatementBlockSerializer.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Blocks\SelectBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\StatementBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />

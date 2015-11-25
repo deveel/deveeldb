@@ -53,20 +53,20 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new Prepared(tableInfo, IfNotExists, Temporary);
 		}
 
-		private TableInfo CreateTableInfo(IQuery context) {
-			var tableName = context.ResolveTableName(TableName);
+		private TableInfo CreateTableInfo(IRequest context) {
+			var tableName = context.Query.ResolveTableName(TableName);
 
 			var idColumnCount = Columns.Count(x => x.IsIdentity);
 			if (idColumnCount > 1)
 				throw new InvalidOperationException("More than one IDENTITY column specified.");
 
-			bool ignoreCase = context.IgnoreIdentifiersCase();
+			bool ignoreCase = context.Query.IgnoreIdentifiersCase();
 			var columnChecker = new TableColumnChecker(Columns, ignoreCase);
 
 
@@ -117,9 +117,9 @@ namespace Deveel.Data.Sql.Statements {
 				get { return false; }
 			}
 
-			protected override ITable ExecuteStatement(IQuery context) {
+			protected override ITable ExecuteStatement(IRequest context) {
 				try {
-					context.CreateTable(TableInfo, IfNotExists, Temporary);
+					context.Query.CreateTable(TableInfo, IfNotExists, Temporary);
 
 					return FunctionTable.ResultTable(context, 0);
 				} catch (SecurityException ex) {

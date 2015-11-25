@@ -47,8 +47,8 @@ namespace Deveel.Data.Sql.Tables {
 
 		private static int uniqueKeySeq = 0;
 
-		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IQuery queryContext)
-			: this(queryContext.Session.Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
+		public FunctionTable(SqlExpression[] functionList, string[] columnNames, IRequest queryContext)
+			: this(queryContext.Query.Session.Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
 		}
 
 		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IRequest queryContext)
@@ -403,7 +403,7 @@ namespace Deveel.Data.Sql.Tables {
 			list.Insert(index, value);
 		}
 
-		public static ITable ResultTable(IQuery context, SqlExpression expression) {
+		public static ITable ResultTable(IRequest context, SqlExpression expression) {
 			var exp = new [] { expression };
 			var names = new[] { "result" };
 			var table = new FunctionTable(exp, names, context);
@@ -411,11 +411,11 @@ namespace Deveel.Data.Sql.Tables {
 			return new SubsetColumnTable(table, new[]{0}, new []{new ObjectName("result") });
 		}
 
-		public static ITable ResultTable(IQuery context, DataObject value) {
+		public static ITable ResultTable(IRequest context, DataObject value) {
 			return ResultTable(context, SqlExpression.Constant(value));
 		}
 
-		public static ITable ResultTable(IQuery context, int value) {
+		public static ITable ResultTable(IRequest context, int value) {
 			return ResultTable(context, DataObject.Integer(value));
 		}
 

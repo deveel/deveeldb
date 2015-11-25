@@ -65,13 +65,13 @@ namespace Deveel.Data.Sql.Statements {
 			return result.ToArray();
 		}
 
-		public static ColumnChecker Default(IQuery context, ObjectName tableName) {
-			var table = context.GetTable(tableName);
+		public static ColumnChecker Default(IRequest context, ObjectName tableName) {
+			var table = context.Query.GetTable(tableName);
 			if (table == null)
 				throw new InvalidOperationException(String.Format("Table '{0}' not found in the context.", tableName));
 
 			var tableInfo = table.TableInfo;
-			var ignoreCase = context.IgnoreIdentifiersCase();
+			var ignoreCase = context.Query.IgnoreIdentifiersCase();
 
 			return new DefaultChecker(tableInfo, ignoreCase);
 		}

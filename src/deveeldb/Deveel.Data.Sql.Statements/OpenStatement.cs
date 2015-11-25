@@ -55,10 +55,10 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override SqlStatement PrepareStatement(IQuery context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			SqlExpression[] args = Arguments;
 
-			var cursor = context.FindCursor(CursorName);
+			var cursor = context.Query.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementPrepareException(String.Format("Cursor '{0}' was not found.", CursorName));
 
@@ -75,8 +75,8 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override ITable ExecuteStatement(IQuery context) {
-			var cursor = context.FindCursor(CursorName);
+		protected override ITable ExecuteStatement(IRequest context) {
+			var cursor = context.Query.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
