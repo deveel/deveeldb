@@ -1,6 +1,8 @@
 ﻿using System;
 
-namespace Deveel.Data.Services {
+using Deveel.Data.Services;
+
+namespace Deveel.Data {
 	public interface IContext : IDisposable {
 		IContext Parent { get; }
 

@@ -22,12 +22,12 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ReturnTypeVisitor : SqlExpressionVisitor {
-		private readonly IQuery query;
+		private readonly IRequest query;
 		private readonly IVariableResolver variableResolver;
 
 		private SqlType sqlType;
 
-		public ReturnTypeVisitor(IQuery query, IVariableResolver variableResolver) {
+		public ReturnTypeVisitor(IRequest query, IVariableResolver variableResolver) {
 			this.query = query;
 			this.variableResolver = variableResolver;
 

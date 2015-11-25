@@ -36,7 +36,7 @@ namespace Deveel.Data.Routines {
 			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;
 		}
 
-		public static DataObject User(IQuery query) {
+		public static DataObject User(IRequest query) {
 			return DataObject.String(query.User().Name);
 		}
 
@@ -86,34 +86,34 @@ namespace Deveel.Data.Routines {
 			return value.CastTo(PrimitiveTypes.Binary());
 		}
 
-		public static DataObject UniqueKey(IQuery query, DataObject tableName) {
+		public static DataObject UniqueKey(IRequest query, DataObject tableName) {
 			var tableNameString = (SqlString)tableName.Value;
 			var value = UniqueKey(query, tableNameString);
 			return DataObject.Number(value);
 		}
 
-		public static SqlNumber UniqueKey(IQuery query, SqlString tableName) {
+		public static SqlNumber UniqueKey(IRequest query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = query.ResolveTableName(tableNameString);
-			return query.GetNextValue(resolvedName);
+			var resolvedName = query.Query.ResolveTableName(tableNameString);
+			return query.Query.GetNextValue(resolvedName);
 		}
 
-		public static DataObject CurrentValue(IQuery query, DataObject tableName) {
+		public static DataObject CurrentValue(IRequest query, DataObject tableName) {
 			var tableNameString = (SqlString)tableName.Value;
 			var value = CurrentValue(query, tableNameString);
 			return DataObject.Number(value);
 		}
 
-		public static SqlNumber CurrentValue(IQuery query, SqlString tableName) {
+		public static SqlNumber CurrentValue(IRequest query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = query.ResolveTableName(tableNameString);
-			return query.GetCurrentValue(resolvedName);
+			var resolvedName = query.Query.ResolveTableName(tableNameString);
+			return query.Query.GetCurrentValue(resolvedName);
 		}
 
 		internal static ExecuteResult Iif(ExecuteContext context) {
 			var result = DataObject.Null();
 
-			var evalContext = new EvaluateContext(context.Query, context.VariableResolver, context.GroupResolver);
+			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);
 
 			var condition = context.Arguments[0].EvaluateToConstant(evalContext);
 			if (condition.Type is BooleanType) {

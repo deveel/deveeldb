@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -25,7 +24,7 @@ namespace Deveel.Data.Sql.Query {
 			: base(left, right) {
 		}
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			var leftResult = Left.Evaluate(context);
 			var rightResult = Right.Evaluate(context);
 

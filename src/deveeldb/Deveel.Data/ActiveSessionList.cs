@@ -31,14 +31,14 @@ namespace Deveel.Data {
 		/// Initializes a new instance of the <see cref="ActiveSessionList"/> class that
 		/// is wrapped around a given database context.
 		/// </summary>
-		/// <param name="databaseContext">The database context holding the sessions.</param>
+		/// <param name="database">The database context holding the sessions.</param>
 		/// <exception cref="System.ArgumentNullException">If the provided
-		/// <paramref name="databaseContext">database context</paramref> object is <c>null</c>.</exception>
-		public ActiveSessionList(IDatabaseContext databaseContext) {
-			if (databaseContext == null)
-				throw new ArgumentNullException("databaseContext");
+		/// <paramref name="database">database context</paramref> object is <c>null</c>.</exception>
+		public ActiveSessionList(IDatabase database) {
+			if (database == null)
+				throw new ArgumentNullException("database");
 
-			DatabaseContext = databaseContext;
+			Database = database;
 			sessions = new List<IUserSession>();
 		}
 
@@ -48,7 +48,7 @@ namespace Deveel.Data {
 		/// <value>
 		/// The database context.
 		/// </value>
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IDatabase Database { get; private set; }
 
 		/// <summary>
 		/// Determines whether the specific user is active.

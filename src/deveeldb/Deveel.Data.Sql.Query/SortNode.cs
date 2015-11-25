@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public bool[] Ascending { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			var t = Child.Evaluate(context);
 			return t.OrderBy(ColumnNames, Ascending);
 		}

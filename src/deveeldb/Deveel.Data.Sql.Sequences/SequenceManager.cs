@@ -252,7 +252,7 @@ namespace Deveel.Data.Sql.Sequences {
 				var cycle = seqTable.GetValue(seqRowI, 7);
 
 
-				return new SequenceTable(transaction.Database.DatabaseContext, tableInfo) {
+				return new SequenceTable(transaction.Database.Context, tableInfo) {
 					TopValue = topValue,
 					LastValue = lastValue,
 					CurrentValue = currentValue,

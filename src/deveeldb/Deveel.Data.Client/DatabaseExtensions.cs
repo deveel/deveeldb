@@ -26,7 +26,7 @@ namespace Deveel.Data.Client {
 			if (database == null)
 				throw new ArgumentNullException("database");
 
-			var dbHandler = database.DatabaseContext.SystemContext as IDatabaseHandler;
+			var dbHandler = database.Context.SystemContext as IDatabaseHandler;
 			if (dbHandler == null)
 				dbHandler = new SingleDatabaseHandler(database);
 

@@ -63,10 +63,10 @@ namespace Deveel.Data.Transactions {
 
 			Database.TransactionFactory.OpenTransactions.AddTransaction(this);
 
-			this.CurrentSchema(database.DatabaseContext.DefaultSchema());
-			this.ReadOnly(database.DatabaseContext.ReadOnly());
-			this.AutoCommit(database.DatabaseContext.AutoCommit());
-			this.IgnoreIdentifiersCase(database.DatabaseContext.IgnoreIdentifiersCase());
+			this.CurrentSchema(database.Context.DefaultSchema());
+			this.ReadOnly(database.Context.ReadOnly());
+			this.AutoCommit(database.Context.AutoCommit());
+			this.IgnoreIdentifiersCase(database.Context.IgnoreIdentifiersCase());
 			this.ParameterStyle(QueryParameterStyle.Marker);
 		}
 
@@ -124,7 +124,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public IDatabaseContext DatabaseContext {
-			get { return Database.DatabaseContext; }
+			get { return Database.Context; }
 		}
 
 		private TableSourceComposite TableComposite {

@@ -24,14 +24,14 @@ namespace Deveel.Data.Sql.Expressions {
 	/// Encapsulates the elements needed to evaluate an <see cref="SqlExpression"/>
 	/// </summary>
 	public sealed class EvaluateContext {
-		public EvaluateContext(IQuery query, IVariableResolver variableResolver) 
-			: this(query, variableResolver, null) {
+		public EvaluateContext(IRequest request, IVariableResolver variableResolver) 
+			: this(request, variableResolver, null) {
 		}
 
-		public EvaluateContext(IQuery query, IVariableResolver variableResolver, IGroupResolver groupResolver) {
+		public EvaluateContext(IRequest request, IVariableResolver variableResolver, IGroupResolver groupResolver) {
 			GroupResolver = groupResolver;
 			VariableResolver = variableResolver;
-			Query = query;
+			Request = request;
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the query in which an expression is evaluated.
 		/// </summary>
-		public IQuery Query { get; private set; }
+		public IRequest Request { get; private set; }
 
 
 		/// <summary>
@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <seealso cref="User"/>
 		/// <seealso cref="Security.User"/>
 		public User User {
-			get { return Query.User(); }
+			get { return Request.User(); }
 		}
 	}
 }

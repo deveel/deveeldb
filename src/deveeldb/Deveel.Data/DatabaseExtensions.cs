@@ -22,10 +22,6 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class DatabaseExtensions {
-		public static Locker Locker(this IDatabase database) {
-			return database.DatabaseContext.Locker;
-		}
-
 		#region Transactions
 
 		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {
@@ -108,7 +104,7 @@ namespace Deveel.Data {
 				// This is the admin user so add to the 'secure access' table.
 				context.AddUserToGroup(adminName, SystemGroups.SecureGroup);
 
-				context.GrantToUserOnSchema(database.DatabaseContext.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
+				context.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
 				context.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
 				context.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
 

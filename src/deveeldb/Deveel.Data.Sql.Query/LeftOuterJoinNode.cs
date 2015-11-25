@@ -51,11 +51,11 @@ namespace Deveel.Data.Sql.Query {
 
 		public string MarkerName { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			// Evaluate the child branch,
 			var result = Child.Evaluate(context);
 			// Get the table of the complete mark name,
-			var completeLeft = context.GetCachedTable(MarkerName);
+			var completeLeft = context.Query.GetCachedTable(MarkerName);
 
 			// The rows in 'complete_left' that are outside (not in) the rows in the
 			// left result.

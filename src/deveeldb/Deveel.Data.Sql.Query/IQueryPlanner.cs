@@ -21,6 +21,6 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		IQueryPlanNode PlanQuery(IQuery context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit);
+		IQueryPlanNode PlanQuery(IRequest context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit);
 	}
 }

@@ -84,8 +84,8 @@ namespace Deveel.Data.Sql.Expressions {
 			return constantExp.Value;
 		}
 
-		public static DataObject EvaluateToConstant(this SqlExpression expression, IQuery query, IVariableResolver variableResolver) {
-			return expression.EvaluateToConstant(new EvaluateContext(query, variableResolver));
+		public static DataObject EvaluateToConstant(this SqlExpression expression, IRequest request, IVariableResolver variableResolver) {
+			return expression.EvaluateToConstant(new EvaluateContext(request, variableResolver));
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// would return, or <c>null</c> if the final result of the evaluation has
 		/// no return type.
 		/// </returns>
-		public static SqlType ReturnType(this SqlExpression expression, IQuery query, IVariableResolver variableResolver) {
+		public static SqlType ReturnType(this SqlExpression expression, IRequest query, IVariableResolver variableResolver) {
 			var visitor = new ReturnTypeVisitor(query, variableResolver);
 			return visitor.GetType(expression);
 		}
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns <c>true</c> if the expression has any aggregate function in its tree,
 		/// or <c>false</c> otherwise.
 		/// </returns>
-		public static bool HasAggregate(this SqlExpression expression, IQuery query) {
+		public static bool HasAggregate(this SqlExpression expression, IRequest query) {
 			var visitor = new AggregateChecker(query);
 			return visitor.HasAggregate(expression);
 		}

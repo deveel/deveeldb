@@ -146,7 +146,11 @@
     <Compile Include="Deveel.Data.Services\Context.cs" />
     <Compile Include="Deveel.Data.Services\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ContextNames.cs" />
-    <Compile Include="Deveel.Data.Services\IContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\INamedBlock.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementBlock.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
+    <Compile Include="Deveel.Data\IContext.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Services\IScope.cs" />
@@ -271,7 +275,7 @@
     <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseScanner.cs" />
-    <Compile Include="Deveel.Data\IOperation.cs" />
+    <Compile Include="Deveel.Data\IRequest.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\ISystem.cs" />
     <Compile Include="Deveel.Data\ISystemModule.cs" />
@@ -280,6 +284,7 @@
     <Compile Include="Deveel.Data\Query.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
+    <Compile Include="Deveel.Data\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
-	public interface ISystem : IDatabaseHandler, IOperation {
+	public interface ISystem : IDatabaseHandler, IEventSource, IDisposable {
 		new ISystemContext Context { get; }
 
 		IEnumerable<string> GetDatabases();

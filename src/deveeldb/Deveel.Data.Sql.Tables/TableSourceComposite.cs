@@ -58,7 +58,7 @@ namespace Deveel.Data {
 		public Database Database { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
-			get { return Database.DatabaseContext; }
+			get { return Database.Context; }
 		}
 
 		private IStoreSystem StoreSystem {
@@ -68,7 +68,7 @@ namespace Deveel.Data {
 		public int CurrentCommitId { get; private set; }
 
 		private bool IsReadOnly {
-			get { return Database.DatabaseContext.ReadOnly(); }
+			get { return Database.Context.ReadOnly(); }
 		}
 
 		private bool IsClosed {

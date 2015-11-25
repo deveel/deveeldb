@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Query {
 		public SqlExpression Expression { get; private set; }
 
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			// Evaluate the expression
 			var exp = Expression.Evaluate(context, null);
 			if (exp.ExpressionType != SqlExpressionType.Constant)

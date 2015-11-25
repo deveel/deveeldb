@@ -184,11 +184,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return Evaluate(null, null);
 		}
 
-		public SqlExpression Evaluate(IQuery context, IVariableResolver variables) {
+		public SqlExpression Evaluate(IRequest context, IVariableResolver variables) {
 			return Evaluate(context, variables, null);
 		}
 
-		public SqlExpression Evaluate(IQuery context, IVariableResolver variables, IGroupResolver group) {
+		public SqlExpression Evaluate(IRequest context, IVariableResolver variables, IGroupResolver group) {
 			return Evaluate(new EvaluateContext(context, variables, group));
 		}
 

@@ -55,7 +55,7 @@ namespace Deveel.Data.Routines {
 			protected override void OnInit() {
 				Register(config => config.Named("user2")
 					.ReturnsType(PrimitiveTypes.String())
-					.WhenExecute(context => context.Result(DataObject.String(context.Query.User().Name))));
+					.WhenExecute(context => context.Result(DataObject.String(context.Request.User().Name))));
 			}
 		}
 

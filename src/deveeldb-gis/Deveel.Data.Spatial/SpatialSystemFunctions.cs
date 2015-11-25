@@ -42,7 +42,7 @@ namespace Deveel.Data.Spatial {
 			return geometry.ToWellKnownBytes();
 		}
 
-		public static DataObject FromWkt(IQuery context, DataObject source) {
+		public static DataObject FromWkt(IRequest context, DataObject source) {
 			var input = (SqlString) source.Value;
 			var result = FromWkt(input);
 			return new DataObject(SpatialType.Geometry(), result);

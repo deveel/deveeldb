@@ -20,8 +20,8 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	class SingleRowTableNode : IQueryPlanNode {
-		public ITable Evaluate(IQuery context) {
-			return context.Session.Transaction.Database.SingleRowTable;
+		public ITable Evaluate(IRequest context) {
+			return context.Query.Session.Transaction.Database.SingleRowTable;
 		}
 	}
 }

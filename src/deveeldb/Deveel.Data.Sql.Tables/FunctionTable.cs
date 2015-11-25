@@ -27,7 +27,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	class FunctionTable : BaseDataTable {
-		private readonly IQuery context;
+		private readonly IRequest context;
 		private readonly ITableVariableResolver varResolver;
 		private readonly TableInfo funTableInfo;
 		private bool wholeTableIsSimpleEnum;
@@ -51,8 +51,8 @@ namespace Deveel.Data.Sql.Tables {
 			: this(queryContext.Session.Transaction.Database.SingleRowTable, functionList, columnNames, queryContext) {
 		}
 
-		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IQuery queryContext)
-			: base(queryContext.QueryContext) {
+		public FunctionTable(ITable table, SqlExpression[] functionList, string[] columnNames, IRequest queryContext)
+			: base(queryContext.Context) {
 			// Make sure we are synchronized over the class.
 			lock (typeof(FunctionTable)) {
 				uniqueId = uniqueKeySeq;
@@ -151,7 +151,7 @@ namespace Deveel.Data.Sql.Tables {
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
 				DataObject cell;
-				if (cache.TryGetValue(context.Session.Transaction.Database.Name, uniqueId, (int)rowNumber, columnOffset, out cell))
+				if (cache.TryGetValue(context.Query.Session.Transaction.Database.Name, uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
 
@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var value = ((SqlConstantExpression) exp).Value;
 			if (cache != null)
-				cache.Set(context.Session.Transaction.Database.Name, uniqueId, row, column, value);
+				cache.Set(context.Query.Session.Transaction.Database.Name, uniqueId, row, column, value);
 
 			return value;
 		}

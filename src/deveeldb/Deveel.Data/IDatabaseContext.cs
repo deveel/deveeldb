@@ -17,8 +17,6 @@
 using System;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -32,15 +30,6 @@ namespace Deveel.Data {
 	/// for operations.
 	/// </remarks>
 	public interface IDatabaseContext : IConfigurationProvider, IContext {
-		/// <summary>
-		/// Gets a list of all the open sessions
-		/// to the database.
-		/// </summary>
-		/// <value>
-		/// The open sessions to the database.
-		/// </value>
-		ActiveSessionList Sessions { get; }
-
 		/// <summary>
 		/// Gets the context of the database system that handles
 		/// this database.
@@ -58,15 +47,6 @@ namespace Deveel.Data {
 		/// The database store system.
 		/// </value>
 		IStoreSystem StoreSystem { get; }
-
-		/// <summary>
-		/// Gets the objects that is used to lock database 
-		/// objects between transactions.
-		/// </summary>
-		/// <value>
-		/// The database object locker.
-		/// </value>
-		Locker Locker { get; }
 
         /// <summary>
         /// Creates a context to handle services and variables

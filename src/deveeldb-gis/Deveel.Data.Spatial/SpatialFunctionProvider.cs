@@ -33,7 +33,7 @@ namespace Deveel.Data.Spatial {
 
 			Register(config => config.Named("from_wkt")
 				.WithParameter(p => p.Named("source").OfType(PrimitiveTypes.String()))
-				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.FromWkt(context.Query, args[0])))
+				.WhenExecute(context => Simple(context, args => SpatialSystemFunctions.FromWkt(context.Request, args[0])))
 				.ReturnsType(SpatialType.Geometry()));
 
 			Register(config => config.Named("to_wkt")

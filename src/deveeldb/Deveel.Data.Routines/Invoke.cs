@@ -88,8 +88,8 @@ namespace Deveel.Data.Routines {
 		/// and the <see cref="IFunction.FunctionType"/> is <see cref="FunctionType.Aggregate"/>,
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
-		public bool IsAggregate(IQuery query) {
-			if (query.IsAggregateFunction(this))
+		public bool IsAggregate(IRequest query) {
+			if (query.Query.IsAggregateFunction(this))
 				return true;
 
 			// Look at parameterss
@@ -112,14 +112,14 @@ namespace Deveel.Data.Routines {
 		/// <exception cref="InvalidOperationException">
 		/// If the routine could not be resolved for this call.
 		/// </exception>
-		public IRoutine ResolveRoutine(IQuery context) {
+		public IRoutine ResolveRoutine(IRequest context) {
 			if (cached != null)
 				return cached;
 
 			if (context == null) {
 				cached = SystemFunctions.Provider.ResolveFunction(this, null);
 			} else {
-				cached = context.ResolveRoutine(this);
+				cached = context.Query.ResolveRoutine(this);
 			}
 
 			if (cached == null)
@@ -152,15 +152,15 @@ namespace Deveel.Data.Routines {
 			return Execute(null);
 		}
 
-		public ExecuteResult Execute(IQuery query) {
+		public ExecuteResult Execute(IRequest query) {
 			return Execute(query, null);
 		}
 
-		public ExecuteResult Execute(IQuery query, IVariableResolver resolver) {
+		public ExecuteResult Execute(IRequest query, IVariableResolver resolver) {
 			return Execute(query, resolver, null);
 		}
 
-		public ExecuteResult Execute(IQuery query, IVariableResolver resolver, IGroupResolver group) {
+		public ExecuteResult Execute(IRequest query, IVariableResolver resolver, IGroupResolver group) {
 			var routine = ResolveRoutine(query);
 			var executeContext = new ExecuteContext(this, routine, resolver, group, query);
 			return routine.Execute(executeContext);

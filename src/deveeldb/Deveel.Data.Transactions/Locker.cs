@@ -17,17 +17,15 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
-
 namespace Deveel.Data.Transactions {
 	public sealed class Locker {
 		private readonly Dictionary<object, LockingQueue> queuesMap = new Dictionary<object, LockingQueue>();
 
-		public Locker(IDatabaseContext context) {
-			DatabaseContext = context;
+		public Locker(IDatabase database) {
+			Database = database;
 		}
 
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IDatabase Database { get; private set; }
 
 		private void AddToHandle(LockHandle handle, ILockable[] lockables, AccessType accessType, LockingMode mode) {
 			if (lockables == null)

@@ -54,7 +54,7 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    SessionContext = transaction.TransactionContext.CreateSessionContext();
 
-			transaction.Database.DatabaseContext.Sessions.Add(this);
+			transaction.Database.Sessions.Add(this);
 
 			User = user;
 			StartedOn = DateTimeOffset.UtcNow;
@@ -123,7 +123,7 @@ namespace Deveel.Data {
 				LockHandle handle;
 
 				if (isolation == IsolationLevel.Serializable) {
-					handle = Database.Locker().Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
+					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
 				} else {
 					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.", isolation));
 				}
@@ -153,7 +153,7 @@ namespace Deveel.Data {
 				//  to be available...
 				CheckAccess(lockables, accessType);
 
-				var handle = Database.Locker().Lock(lockables, accessType, mode);
+				var handle = Database.Locker.Lock(lockables, accessType, mode);
 
 				if (lockHandles == null)
 					lockHandles = new List<LockHandle>();
@@ -226,7 +226,7 @@ namespace Deveel.Data {
 			ReleaseLocks();
 
 			if (Database != null)
-				Database.DatabaseContext.Sessions.Remove(this);
+				Database.Sessions.Remove(this);
 
 			Transaction = null;
 		}

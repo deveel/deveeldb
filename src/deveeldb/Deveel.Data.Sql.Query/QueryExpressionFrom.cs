@@ -224,10 +224,10 @@ namespace Deveel.Data.Sql.Query {
 			return referenceName;
 		}
 
-		public static QueryExpressionFrom Create(IQuery context, SqlQueryExpression expression) {
+		public static QueryExpressionFrom Create(IRequest context, SqlQueryExpression expression) {
 			// Get the 'from_clause' from the table expression
 			var fromClause = expression.FromClause;
-			var ignoreCase = context.IgnoreIdentifiersCase();
+			var ignoreCase = context.Query.IgnoreIdentifiersCase();
 
 			var queryFrom = new QueryExpressionFrom(ignoreCase);
 			foreach (var fromTable in fromClause.AllTables) {
@@ -251,9 +251,9 @@ namespace Deveel.Data.Sql.Query {
 					string name = fromTable.Name;
 
 					// Resolve to full table name
-					var tableName = context.ResolveTableName(name);
+					var tableName = context.Query.ResolveTableName(name);
 
-					if (!context.TableExists(tableName))
+					if (!context.Query.TableExists(tableName))
 						throw new InvalidOperationException(String.Format("Table '{0}' was not found.", tableName));
 
 					ObjectName givenName = null;
@@ -261,7 +261,7 @@ namespace Deveel.Data.Sql.Query {
 						givenName = new ObjectName(alias);
 
 					// Get the ITableQueryInfo object for this table name (aliased).
-					ITableQueryInfo tableQueryInfo = context.GetTableQueryInfo(tableName, givenName);
+					ITableQueryInfo tableQueryInfo = context.Query.GetTableQueryInfo(tableName, givenName);
 
 					queryFrom.AddTable(new FromTableDirectSource(ignoreCase, tableQueryInfo, uniqueKey, givenName, tableName));
 				}

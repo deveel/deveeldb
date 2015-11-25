@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -28,7 +27,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName[] ColumnNames { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			var table = Child.Evaluate(context);
 			return table.DistinctBy(ColumnNames);
 		}

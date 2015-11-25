@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlExpression Expression { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			// Solve the child branch result
 			var table = Child.Evaluate(context);
 

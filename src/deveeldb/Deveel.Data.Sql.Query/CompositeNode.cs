@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public bool All { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			var leftResult = Left.Evaluate(context);
 			var rightResult = Right.Evaluate(context);
 

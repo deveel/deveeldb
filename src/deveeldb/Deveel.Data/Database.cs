@@ -39,16 +39,20 @@ namespace Deveel.Data {
 	public sealed class Database : IDatabase {
 		internal Database(DatabaseSystem system, IDatabaseContext context) {
 			System = system;
-			DatabaseContext = context;
+			Context = context;
 
 			DiscoverDataVersion();
 
 			TableComposite = new TableSourceComposite(this);
 
-			DatabaseContext.RegisterInstance(this);
-			DatabaseContext.RegisterInstance<ITableSourceComposite>(TableComposite);
+			Context.RegisterInstance(this);
+			Context.RegisterInstance<ITableSourceComposite>(TableComposite);
 
-			Name = DatabaseContext.DatabaseName();
+			Name = Context.DatabaseName();
+
+			Locker = new Locker(this);
+
+			Sessions = new ActiveSessionList(this);
 
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);
@@ -75,6 +79,10 @@ namespace Deveel.Data {
 
 		public DatabaseSystem System { get; private set; }
 
+		public ActiveSessionList Sessions { get; private set; }
+
+		public Locker Locker { get; private set; }
+
 		/// <summary>
 		/// Gets an object that is used to create new transactions to this database
 		/// </summary>
@@ -86,7 +94,7 @@ namespace Deveel.Data {
 		}
 
 		IContext IEventSource.Context {
-			get { return DatabaseContext; }
+			get { return Context; }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
@@ -117,19 +125,23 @@ namespace Deveel.Data {
 						// TODO: Report the error
 					}
 
+					if (Locker != null)
+						Locker.Reset();
+
 					if (TableComposite != null)
 						TableComposite.Dispose();
 
-					if (DatabaseContext != null)
-						DatabaseContext.Dispose();
+					if (Context != null)
+						Context.Dispose();
 
 					if (System != null)
 						System.RemoveDatabase(this);
 				}
 
+				Locker = null;
 				System = null;
 				TableComposite = null;
-				DatabaseContext = null;
+				Context = null;
 				disposed = true;
 			}
 		}
@@ -138,7 +150,7 @@ namespace Deveel.Data {
 		/// Gets the context that contains this database.
 		/// </summary>
 		/// <seealso cref="IDatabaseContext" />
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IDatabaseContext Context { get; private set; }
 
 		/// <summary>
 		/// Gets the version number of this database.
@@ -153,7 +165,7 @@ namespace Deveel.Data {
 		/// Gets a boolean value indicating if the database exists within the
 		/// context given.
 		/// </summary>
-		/// <exception cref="System.Exception">An error occurred while testing database existence.</exception>
+		/// <exception cref="Exception">An error occurred while testing database existence.</exception>
 		/// <seealso cref="Create" />
 		public bool Exists {
 			get {
@@ -185,7 +197,7 @@ namespace Deveel.Data {
 		public ITable SingleRowTable { get; private set; }
 
 		private void OnDatabaseCreate(IQuery context) {
-			var callbacks = DatabaseContext.ResolveAllServices<IDatabaseCreateCallback>();
+			var callbacks = Context.ResolveAllServices<IDatabaseCreateCallback>();
 			if (callbacks != null) {
 				foreach (var callback in callbacks) {
 					try {
@@ -209,7 +221,7 @@ namespace Deveel.Data {
 		/// to commit the initial information or if another unhanded error occurred while 
 		/// creating the database.
 		/// </exception>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		/// If either one of <paramref name="adminName"/> or <paramref name="adminPassword"/>
 		/// are <c>null</c> or empty.
 		/// </exception>
@@ -225,7 +237,7 @@ namespace Deveel.Data {
 		/// </remarks>
 		/// <seealso cref="IDatabaseContext.Configuration" />
 		public void Create(string adminName, string adminPassword) {
-			if (DatabaseContext.ReadOnly())
+			if (Context.ReadOnly())
 				throw new DatabaseSystemException("Cannot create database in read-only mode.");
 
 			if (String.IsNullOrEmpty(adminName))
@@ -294,7 +306,7 @@ namespace Deveel.Data {
 		private void CreateSchemata(IQuery context) {
 			try {
 				context.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				context.CreateSchema(DatabaseContext.DefaultSchema(), SchemaTypes.Default);
+				context.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {
@@ -367,7 +379,7 @@ namespace Deveel.Data {
 				throw new DatabaseSystemException("The database is not initialized.");
 
 			try {
-				if (DatabaseContext.DeleteOnClose()) {
+				if (Context.DeleteOnClose()) {
 					// Delete the tables if the database is set to delete on
 					// shutdown.
 					TableComposite.Delete();

@@ -31,11 +31,11 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName AliasName { get; private set; }
 
-		private IQueryPlanNode CreateChildNode(IQuery context) {
-			return context.GetViewQueryPlan(ViewName);
+		private IQueryPlanNode CreateChildNode(IRequest context) {
+			return context.Query.GetViewQueryPlan(ViewName);
 		}
 
-		public ITable Evaluate(IQuery context) {
+		public ITable Evaluate(IRequest context) {
 			IQueryPlanNode node = CreateChildNode(context);
 			var t = node.Evaluate(context);
 

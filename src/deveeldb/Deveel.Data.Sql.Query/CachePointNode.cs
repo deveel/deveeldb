@@ -44,13 +44,13 @@ namespace Deveel.Data.Sql.Query {
 
 		public long Id { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			// Is the result available in the context?
-			var childTable = context.GetCachedTable(Id.ToString());
+			var childTable = context.Query.GetCachedTable(Id.ToString());
 			if (childTable == null) {
 				// No so evaluate the child and cache it
 				childTable = Child.Evaluate(context);
-				context.CacheTable(Id.ToString(), childTable);
+				context.Query.CacheTable(Id.ToString(), childTable);
 			}
 
 			return childTable;

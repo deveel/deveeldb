@@ -14,7 +14,7 @@ namespace Deveel.Data.Sql.Query {
 			Count = count;
 		}
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			var table = Child.Evaluate(context);
 			return new LimitedTable(table, Offset, Count);
 		}

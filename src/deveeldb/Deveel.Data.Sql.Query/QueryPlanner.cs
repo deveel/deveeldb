@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Query {
 	public sealed class QueryPlanner : IQueryPlanner {
 		private static readonly ObjectName FunctionTableName = new ObjectName("FUNCTIONTABLE");
 
-		private SqlExpression PrepareSearchExpression(IQuery context, QueryExpressionFrom queryFrom, SqlExpression expression) {
+		private SqlExpression PrepareSearchExpression(IRequest context, QueryExpressionFrom queryFrom, SqlExpression expression) {
 			// first check the expression is not null
 			if (expression == null)
 				return null;
@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql.Query {
 
 		#endregion
 
-		private QueryTablePlanner CreateTablePlanner(IQuery context, QueryExpressionFrom queryFrom) {
+		private QueryTablePlanner CreateTablePlanner(IRequest context, QueryExpressionFrom queryFrom) {
 			// Set up plans for each table in the from clause of the command.  For
 			// sub-queries, we recurse.
 
@@ -230,7 +230,7 @@ namespace Deveel.Data.Sql.Query {
 			}
 		}
 
-		private SqlExpression FilterHaving(SqlExpression havingExpression, IList<SqlExpression> aggregates, IQuery context) {
+		private SqlExpression FilterHaving(SqlExpression havingExpression, IList<SqlExpression> aggregates, IRequest context) {
 			if (havingExpression is SqlBinaryExpression) {
 				var binary = (SqlBinaryExpression) havingExpression;
 				var expType = binary.ExpressionType;
@@ -253,7 +253,7 @@ namespace Deveel.Data.Sql.Query {
 			return havingExpression;
 		}
 
-		private int ResolveGroupBy(SqlQueryExpression queryExpression, QueryExpressionFrom queryFrom, IQuery context, out ObjectName[] columnNames, out IList<SqlExpression> expressions) {
+		private int ResolveGroupBy(SqlQueryExpression queryExpression, QueryExpressionFrom queryFrom, IRequest context, out ObjectName[] columnNames, out IList<SqlExpression> expressions) {
 			var groupBy = queryExpression.GroupBy == null
 				? new List<SqlExpression>(0)
 				: queryExpression.GroupBy.ToList();
@@ -355,7 +355,7 @@ namespace Deveel.Data.Sql.Query {
 			return resolvedColumns.ToArray();
 		}
 
-		public IQueryPlanNode PlanQuery(IQuery context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit) {
+		public IQueryPlanNode PlanQuery(IRequest context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit) {
 			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 			var orderBy = new List<SortColumn>();
 			if (sortColumns != null)
@@ -364,7 +364,7 @@ namespace Deveel.Data.Sql.Query {
 			return PlanQuery(context, queryExpression, queryFrom, orderBy, limit);
 		}
 
-		private IQueryPlanNode PlanQuery(IQuery context, SqlQueryExpression queryExpression,
+		private IQueryPlanNode PlanQuery(IRequest context, SqlQueryExpression queryExpression,
 			QueryExpressionFrom queryFrom, IList<SortColumn> sortColumns, QueryLimit limit) {
 
 			// ----- Resolve the SELECT list
@@ -628,9 +628,9 @@ namespace Deveel.Data.Sql.Query {
 		class QueryExpressionPreparer : IExpressionPreparer {
 			private readonly QueryPlanner planner;
 			private readonly QueryExpressionFrom parent;
-			private readonly IQuery context;
+			private readonly IRequest context;
 
-			public QueryExpressionPreparer(QueryPlanner planner, QueryExpressionFrom parent, IQuery context) {
+			public QueryExpressionPreparer(QueryPlanner planner, QueryExpressionFrom parent, IRequest context) {
 				this.planner = planner;
 				this.parent = parent;
 				this.context = context;

@@ -38,19 +38,40 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	public interface IDatabase : IEventSource, IDisposable {
+		/// <summary>
+		/// Gets the name of the database.
+		/// </summary>
 		string Name { get; }
 
 		/// <summary>
 		/// Gets the context that contains this database.
 		/// </summary>
 		/// <seealso cref="IDatabaseContext"/>
-		IDatabaseContext DatabaseContext { get; }
+		new IDatabaseContext Context { get; }
 
 		/// <summary>
 		/// Gets an object that is used to create new transactions to this database
 		/// </summary>
 		/// <seealso cref="ITransactionFactory"/>
 		ITransactionFactory TransactionFactory { get; }
+
+		/// <summary>
+		/// Gets a list of all the open sessions
+		/// to the database.
+		/// </summary>
+		/// <value>
+		/// The open sessions to the database.
+		/// </value>
+		ActiveSessionList Sessions { get; }
+
+		/// <summary>
+		/// Gets the objects that is used to lock database 
+		/// objects between transactions.
+		/// </summary>
+		/// <value>
+		/// The database object locker.
+		/// </value>
+		Locker Locker { get; }
 
 		/// <summary>
 		/// Gets the version number of this database.

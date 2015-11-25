@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlExpression RightExpression { get; private set; }
 
-		public override ITable Evaluate(IQuery context) {
+		public override ITable Evaluate(IRequest context) {
 			// Solve the left branch result
 			var leftResult = Left.Evaluate(context);
 			// Solve the right branch result

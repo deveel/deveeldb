@@ -88,10 +88,6 @@ namespace Deveel.Data {
 			Context = null;
 		}
 
-		IContext IOperation.Context {
-			get { return Context; }
-		}
-
 		IContext IEventSource.Context {
 			get { return Context; }
 		}

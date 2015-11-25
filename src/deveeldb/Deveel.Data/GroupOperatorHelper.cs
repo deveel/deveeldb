@@ -45,11 +45,11 @@ namespace Deveel.Data {
 					}
 
 					// Clear the cache in the context
-					context.Query.ClearCachedTables();
+					context.Request.Query.ClearCachedTables();
 				}
 
 				// Evaluate the plan,
-				var t = plan.Evaluate(context.Query);
+				var t = plan.Evaluate(context.Request);
 
 				// The ANY operation
 				var revPlainOp = plainType.Reverse();
@@ -101,11 +101,11 @@ namespace Deveel.Data {
 					}
 
 					// Clear the cache in the context
-					context.Query.ClearCachedTables();
+					context.Request.Query.ClearCachedTables();
 				}
 
 				// Evaluate the plan,
-				var t = planObj.QueryPlan.Evaluate(context.Query);
+				var t = planObj.QueryPlan.Evaluate(context.Request);
 
 				var revPlainOp = plainType.Reverse();
 				return DataObject.Boolean(t.AllRowsMatchColumnValue(0, revPlainOp, ob1));

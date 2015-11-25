@@ -66,7 +66,7 @@ namespace Deveel.Data.Routines {
 
 		private void AddSecurityFunctions() {
 			Register(config => config.Named("user")
-				.WhenExecute(context => context.Result(SystemFunctions.User(context.Query)))
+				.WhenExecute(context => context.Result(SystemFunctions.User(context.Request)))
 				.ReturnsString());
 		}
 
@@ -112,12 +112,12 @@ namespace Deveel.Data.Routines {
 		private void AddSequenceFunctions() {
 			Register(config => config.Named("uniquekey")
 				.WithStringParameter("table")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.UniqueKey(context.Query, args[0])))
+				.WhenExecute(context => Simple(context, args => SystemFunctions.UniqueKey(context.Request, args[0])))
 				.ReturnsNumeric());
 
 			Register(config => config.Named("curval")
 				.WithStringParameter("table")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Query, args[0])))
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Request, args[0])))
 				.ReturnsNumeric());
 		}
 
@@ -139,7 +139,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		private static SqlType ReturnType(SqlExpression exp, ExecuteContext context) {
-			return exp.ReturnType(context.Query, context.VariableResolver);
+			return exp.ReturnType(context.Request, context.VariableResolver);
 		}
 
 		protected override void OnInit() {
@@ -172,7 +172,7 @@ namespace Deveel.Data.Routines {
 
 					var exp = context.Arguments[0];
 					for (int i = 0; i < size; ++i) {
-						var val = exp.EvaluateToConstant(context.Query, context.GroupResolver.GetVariableResolver(i));
+						var val = exp.EvaluateToConstant(context.Request, context.GroupResolver.GetVariableResolver(i));
 						if (val.IsNull) {
 							--totalCount;
 						}
@@ -204,7 +204,7 @@ namespace Deveel.Data.Routines {
 				var value = context.EvaluatedArguments[0];
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
-				var type = SqlType.Parse(context.Query.QueryContext, typeString);
+				var type = SqlType.Parse(context.Request.Context, typeString);
 
 				return context.Result(SystemFunctions.Cast(value, type));
 			}
@@ -212,7 +212,7 @@ namespace Deveel.Data.Routines {
 			public static SqlType ReturnType(ExecuteContext context) {
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
-				return SqlType.Parse(context.Query.QueryContext, typeString);
+				return SqlType.Parse(context.Request.Context, typeString);
 			}
 		}
 

@@ -21,10 +21,10 @@ using Deveel.Data.Routines;
 
 namespace Deveel.Data.Sql.Expressions {
 	class AggregateChecker : SqlExpressionVisitor {
-		private readonly IQuery query;
+		private readonly IRequest query;
 		private bool aggFunFound;
 
-		public AggregateChecker(IQuery query) {
+		public AggregateChecker(IRequest query) {
 			this.query = query;
 		}
 

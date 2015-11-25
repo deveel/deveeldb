@@ -81,10 +81,10 @@ namespace Deveel.Data.Sql.Views {
 			var namev = table.GetResolvedColumnName(1);
 
 			using (var session = new SystemUserSession(Transaction, SystemSchema.Name)) {
-				using (var context =session.CreateQuery()) {
-					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
+				using (var query =session.CreateQuery()) {
+					var t = table.SimpleSelect(query, namev, SqlExpressionType.Equal,
 						SqlExpression.Constant(DataObject.String(viewName.Name)));
-					t = t.ExhaustiveSelect(context,
+					t = t.ExhaustiveSelect(query,
 						SqlExpression.Equal(SqlExpression.Reference(schemav), SqlExpression.Constant(viewName.ParentName)));
 
 					// This should be at most 1 row in size

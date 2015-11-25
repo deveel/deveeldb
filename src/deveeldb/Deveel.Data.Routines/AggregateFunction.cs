@@ -27,9 +27,9 @@ namespace Deveel.Data.Routines {
 			: base(name, parameters, returnType, FunctionType.Aggregate) {
 		}
 
-		protected abstract DataObject Evaluate(DataObject value1, DataObject value2, IQuery query, IGroupResolver group);
+		protected abstract DataObject Evaluate(DataObject value1, DataObject value2, IRequest query, IGroupResolver group);
 
-		protected virtual DataObject PostEvaluate(DataObject result, IQuery query, IGroupResolver group) {
+		protected virtual DataObject PostEvaluate(DataObject result, IRequest query, IGroupResolver group) {
 			// By default, do nothing....
 			return result;
 		}
@@ -58,7 +58,7 @@ namespace Deveel.Data.Routines {
 			if (v != null) {
 				for (int i = 0; i < size; ++i) {
 					val = group.Resolve(v, i);
-					result = Evaluate(result, val, context.Query, group);
+					result = Evaluate(result, val, context.Request, group);
 				}
 			} else {
 				// Otherwise we must resolve the expression for each entry in group,
@@ -66,13 +66,13 @@ namespace Deveel.Data.Routines {
 				// work for a group.
 				var exp = context.Arguments[0];
 				for (int i = 0; i < size; ++i) {
-					val = exp.EvaluateToConstant(context.Query, group.GetVariableResolver(i));
-					result = Evaluate(result, val, context.Query, group);
+					val = exp.EvaluateToConstant(context.Request, group.GetVariableResolver(i));
+					result = Evaluate(result, val, context.Request, group);
 				}
 			}
 
 			// Post method.
-			result = PostEvaluate(result, context.Query, group);
+			result = PostEvaluate(result, context.Request, group);
 
 			return context.Result(result);
 		}

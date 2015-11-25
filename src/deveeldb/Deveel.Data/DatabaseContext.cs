@@ -23,11 +23,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class DatabaseContext : Context, IDatabaseContext {
-		internal DatabaseContext(ISystemContext systemContext, string name) 
-			: this(systemContext, CreateSimpleConfig(systemContext, name)) {
-		}
-
-		public DatabaseContext(ISystemContext systemContext, IConfiguration configuration)
+		internal DatabaseContext(ISystemContext systemContext, IConfiguration configuration)
 			: base(systemContext) {
 			if (systemContext == null)
 				throw new ArgumentNullException("systemContext");
@@ -41,9 +37,6 @@ namespace Deveel.Data {
 			SystemContext = systemContext;
 
 			Configuration = configuration;
-			Locker = new Locker(this);
-
-			Sessions = new ActiveSessionList(this);
 
 			InitStorageSystem();
 		}
@@ -65,12 +58,8 @@ namespace Deveel.Data {
 			if (disposing) {
 				if (StoreSystem != null)
 					StoreSystem.Dispose();
-
-				if (Locker != null)
-					Locker.Reset();
 			}
 
-			Locker = null;
 			StoreSystem = null;
 
 			base.Dispose(disposing);
@@ -78,13 +67,9 @@ namespace Deveel.Data {
 
 		public IConfiguration Configuration { get; private set; }
 
-		public ActiveSessionList Sessions { get; private set; }
-
 		public ISystemContext SystemContext { get; private set; }
 
 		public IStoreSystem StoreSystem { get; private set; }
-
-		public Locker Locker { get; private set; }
 
 		private void InitStorageSystem() {
 			try {

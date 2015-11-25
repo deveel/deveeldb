@@ -379,7 +379,7 @@ namespace Deveel.Data.Sql.Triggers {
 				private TableInfo tableInfo;
 
 				public TriggerTable(ITransaction transaction, TableInfo tableInfo) 
-					: base(transaction.Database.DatabaseContext) {
+					: base(transaction.Database.Context) {
 					this.tableInfo = tableInfo;
 				}
 
