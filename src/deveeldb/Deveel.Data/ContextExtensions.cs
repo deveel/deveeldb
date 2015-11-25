@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Deveel.Data.Services {
+using Deveel.Data.Services;
+
+namespace Deveel.Data {
 	public static class ContextExtensions {
 		public static object ResolveService(this IContext context, Type serviceType, object serviceKey) {
 			return context.Scope.Resolve(serviceType, serviceKey);

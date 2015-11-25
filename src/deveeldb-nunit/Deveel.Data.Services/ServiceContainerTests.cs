@@ -70,16 +70,6 @@ namespace Deveel.Data.Services {
 			Assert.IsNotNull(service2.Service1);
 		}
 
-		#region Context
-
-		class Context : Services.Context {
-			protected override string ContextName {
-				get { return "TestContext"; }
-			}
-		}
-
-		#endregion
-
 		#region ITestService
 
 		interface ITestService {

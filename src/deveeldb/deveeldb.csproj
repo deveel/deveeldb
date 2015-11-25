@@ -143,13 +143,13 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
-    <Compile Include="Deveel.Data.Services\Context.cs" />
-    <Compile Include="Deveel.Data.Services\ContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Services\ContextNames.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\INamedBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
+    <Compile Include="Deveel.Data\Context.cs" />
+    <Compile Include="Deveel.Data\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data\ContextNames.cs" />
     <Compile Include="Deveel.Data\IContext.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />

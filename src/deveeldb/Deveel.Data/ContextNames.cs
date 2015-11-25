@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Services {
+namespace Deveel.Data {
 	public static class ContextNames {
 		public const string System = "system";
 		public const string Database = "database";
