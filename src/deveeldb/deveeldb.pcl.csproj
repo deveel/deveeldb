@@ -86,8 +86,8 @@
       <HintPath>..\packages\DryIoc.dll.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Irony.Shared">
-      <HintPath>..\..\lib\irony.pcl\Irony.Shared.dll</HintPath>
+    <Reference Include="Irony">
+      <HintPath>..\..\lib\irony.pcl\Irony.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

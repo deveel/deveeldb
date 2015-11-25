@@ -37,9 +37,14 @@ namespace Deveel.Data.Sql.Parser {
 				throw new InvalidOperationException();
 		}
 
-		public void Dispose() {
+		private void Dispose(bool disposing) {
 			parser = null;
 			languageData = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public string Dialect {
@@ -169,7 +174,7 @@ namespace Deveel.Data.Sql.Parser {
 			return result.ToList();
 		}
 
-		#region Timer
+#region Timer
 
 		class Timer : IDisposable {
 #if PCL
@@ -205,6 +210,6 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

@@ -31,7 +31,7 @@ namespace Deveel.Data {
 			 if (String.IsNullOrEmpty(databaseName))
 				 throw new ArgumentNullException("databaseName");
 
-			 if (!String.Equals(databaseName, database.Name()))
+			 if (!String.Equals(databaseName, database.Name))
 				 return null;
 
 			 return database;

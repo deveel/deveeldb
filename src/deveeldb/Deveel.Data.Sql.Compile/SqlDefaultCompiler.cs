@@ -43,6 +43,7 @@ namespace Deveel.Data.Sql.Compile {
 				foreach (var statement in statements) {
 					compileResult.Statements.Add(statement);
 				}
+
 			} catch (SqlParseException ex) {
 				compileResult.Messages.Add(new SqlCompileMessage(CompileMessageLevel.Error, ex.Message));
 			} catch (Exception ex) {

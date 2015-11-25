@@ -16,17 +16,12 @@
 
 using System;
 
-using Deveel.Data.Protocol;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class DatabaseExtensions {
-		public static string Name(this IDatabase database) {
-			return database.DatabaseContext.DatabaseName();
-		}
-
 		public static Locker Locker(this IDatabase database) {
 			return database.DatabaseContext.Locker;
 		}
@@ -35,7 +30,7 @@ namespace Deveel.Data {
 
 		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {
 			if (!database.IsOpen)
-				throw new InvalidOperationException(String.Format("Database '{0}' is not open.", database.Name()));
+				throw new InvalidOperationException(String.Format("Database '{0}' is not open.", database.Name));
 
 			return database.CreateSafeTransaction(isolation);
 		}

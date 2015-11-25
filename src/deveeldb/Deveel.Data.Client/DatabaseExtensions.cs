@@ -36,7 +36,7 @@ namespace Deveel.Data.Client {
 			var settings = new DeveelDbConnectionStringBuilder {
 				UserName = userName,
 				Password = password,
-				Database = database.Name()
+				Database = database.Name
 			};
 
 			return new DeveelDbConnection(clientConnector, settings);

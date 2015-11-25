@@ -331,7 +331,7 @@ namespace Deveel.Data {
 				if (!TableComposite.Exists())
 					// If neither store or state file exist, assume database doesn't
 					// exist.
-					throw new DatabaseSystemException(String.Format("The database {0} does not exist.", this.Name()));
+					throw new DatabaseSystemException(String.Format("The database {0} does not exist.", Name));
 
 				// Open the conglomerate
 				TableComposite.Open();
