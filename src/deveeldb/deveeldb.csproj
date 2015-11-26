@@ -143,6 +143,10 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
+    <Compile Include="Deveel.Data.Serialization\SerializationGraph.cs" />
+    <Compile Include="Deveel.Data.Serialization\SerializedGraph.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\BranchBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\CreateTableBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Blocks\INamedBlock.cs" />
