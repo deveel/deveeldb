@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// Enumerates the kind of group join in a selection query.
 	/// </summary>

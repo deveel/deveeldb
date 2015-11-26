@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// A node describing the <c>JOIN</c> between two sources within a query.
@@ -51,7 +53,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// <c>LEFT OUTER</c>, <c>RIGHT OUTER</c>.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="Sql.JoinType"/>
+		/// <seealso cref="Expressions.JoinType"/>
 		public string JoinType { get; private set; }
 
 		public JoinNode NextJoin { get; private set; }

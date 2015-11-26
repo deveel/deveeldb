@@ -103,8 +103,14 @@
     <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\QueryExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\FromClause.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\FromTable.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\JoinPart.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\JoinType.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\InformationSchema.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\QueryExtensions.cs" />
     <None Include="packages.deveeldb.pcl.config" />
@@ -683,8 +689,6 @@
     <Compile Include="Deveel.Data.Sql\ExceptionHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\FilterTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ForeignKeyAction.cs" />
-    <Compile Include="Deveel.Data.Sql\FromClause.cs" />
-    <Compile Include="Deveel.Data.Sql\FromTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\FunctionTable.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
     <Compile Include="Deveel.Data.Sql\IDbObject.cs" />
@@ -692,7 +696,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\IMutableTable.cs" />
     <Compile Include="Deveel.Data.Sql\IndexInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IndexSetInfo.cs" />
-    <Compile Include="Deveel.Data.Sql\InformationSchema.cs" />
     <Compile Include="Deveel.Data.Sql\IObjectInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\IQueryTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\IRootTable.cs" />
@@ -702,8 +705,6 @@
     <Compile Include="Deveel.Data.Sql\ITableVariableResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IVariableResolver.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\JoinedTable.cs" />
-    <Compile Include="Deveel.Data.Sql\JoinPart.cs" />
-    <Compile Include="Deveel.Data.Sql\JoinType.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\LimitedTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\MutableTableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\NaturallyJoinedTable.cs" />
@@ -720,7 +721,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\RootTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\Row.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RowId.cs" />
-    <Compile Include="Deveel.Data.Sql\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\SimpleRowEnumerator.cs" />

@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Sql.Fluid {
 	public interface IFromTableConfiguration {
 		IFromTableConfiguration As(string alias);

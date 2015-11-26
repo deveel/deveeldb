@@ -17,9 +17,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Sql.Expressions;
-
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// Describes a single table declaration in the from clause of a 
 	/// table expression (<c>SELECT</c>).

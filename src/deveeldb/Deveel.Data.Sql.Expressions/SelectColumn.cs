@@ -17,9 +17,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Sql.Expressions;
-
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// Represents a column selected to be in the output of a select
 	/// statement.

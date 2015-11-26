@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Sql.Query {
 	sealed class PreparedQuerySelectColumns {
 		public PreparedQuerySelectColumns(IEnumerable<SelectColumn> selected, IEnumerable<SelectColumn> functions, int aggregateCount) {

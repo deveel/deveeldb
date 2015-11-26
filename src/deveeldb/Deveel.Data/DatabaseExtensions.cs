@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {

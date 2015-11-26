@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Statements;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Schemas {
 	public static class InformationSchema {
 		public const string SchemaName = "INFORMATION_SCHEMA";
 

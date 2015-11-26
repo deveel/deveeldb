@@ -17,9 +17,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Sql.Expressions;
-
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Expressions {
 	public sealed class JoinPart {
 		internal JoinPart(JoinType joinType, ObjectName tableName, SqlExpression onExpression) {
 			if (tableName == null) 

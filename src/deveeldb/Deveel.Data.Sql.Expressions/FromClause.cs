@@ -19,9 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-using Deveel.Data.Sql.Expressions;
-
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// A container for the <i>FROM</i> clause of a select statement.
 	/// </summary>
