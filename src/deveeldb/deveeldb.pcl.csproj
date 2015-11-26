@@ -104,6 +104,7 @@
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\QueryExtensions.cs" />
     <None Include="packages.deveeldb.pcl.config" />

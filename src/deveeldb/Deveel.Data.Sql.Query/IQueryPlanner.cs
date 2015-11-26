@@ -15,12 +15,9 @@
 //
 
 using System;
-using System.Collections.Generic;
-
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Query {
 	public interface IQueryPlanner {
-		IQueryPlanNode PlanQuery(IRequest context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit);
+		IQueryPlanNode PlanQuery(QueryInfo queryInfo);
 	}
 }

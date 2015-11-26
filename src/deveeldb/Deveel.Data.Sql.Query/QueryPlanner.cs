@@ -355,7 +355,15 @@ namespace Deveel.Data.Sql.Query {
 			return resolvedColumns.ToArray();
 		}
 
-		public IQueryPlanNode PlanQuery(IRequest context, SqlQueryExpression queryExpression, IEnumerable<SortColumn> sortColumns, QueryLimit limit) {
+		public IQueryPlanNode PlanQuery(QueryInfo queryInfo) {
+			if (queryInfo == null)
+				throw new ArgumentNullException("queryInfo");
+
+			var context = queryInfo.Request;
+			var queryExpression = queryInfo.Expression;
+			var sortColumns = queryInfo.SortColumns;
+			var limit = queryInfo.Limit;
+
 			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 			var orderBy = new List<SortColumn>();
 			if (sortColumns != null)

@@ -8,7 +8,7 @@ namespace Deveel.Data.Sql.Cursors {
 	public static class QueryExtensions {
 
 		public static void DeclareCursor(this IQuery context, CursorInfo cursorInfo) {
-			var queryPlan = context.Context.QueryPlanner().PlanQuery(context, cursorInfo.QueryExpression, null, null);
+			var queryPlan = context.Context.QueryPlanner().PlanQuery(new QueryInfo(context, cursorInfo.QueryExpression));
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
 				if (!context.UserCanSelectFromTable(tableName))
