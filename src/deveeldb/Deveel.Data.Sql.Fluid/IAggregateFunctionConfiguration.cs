@@ -21,6 +21,6 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Fluid {
 	public interface IAggregateFunctionConfiguration : IFunctionConfiguration {
-		IAggregateFunctionConfiguration OnAfterAggregate(Func<ExecuteContext, DataObject, DataObject> afterAggregate);
+		IAggregateFunctionConfiguration OnAfterAggregate(Func<InvokeContext, DataObject, DataObject> afterAggregate);
 	}
 }

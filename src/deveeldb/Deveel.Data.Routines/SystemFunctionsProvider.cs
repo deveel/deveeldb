@@ -36,13 +36,13 @@ namespace Deveel.Data.Routines {
 			return base.NormalizeName(functionName);
 		}
 
-		private ExecuteResult Simple(ExecuteContext context, Func<DataObject[], DataObject> func) {
+		private InvokeResult Simple(InvokeContext context, Func<DataObject[], DataObject> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated);
 			return context.Result(value);
 		}
 
-		private ExecuteResult Binary(ExecuteContext context, Func<DataObject, DataObject, DataObject> func) {
+		private InvokeResult Binary(InvokeContext context, Func<DataObject, DataObject, DataObject> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated[0], evaluated[1]);
 			return context.Result(value);			
@@ -138,7 +138,7 @@ namespace Deveel.Data.Routines {
 			}));
 		}
 
-		private static SqlType ReturnType(SqlExpression exp, ExecuteContext context) {
+		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
 			return exp.ReturnType(context.Request, context.VariableResolver);
 		}
 
@@ -155,7 +155,7 @@ namespace Deveel.Data.Routines {
 		#region Count
 
 		private static class Count {
-			public static ExecuteResult Execute(ExecuteContext context) {
+			public static InvokeResult Execute(InvokeContext context) {
 				if (context.GroupResolver == null)
 					throw new Exception("'count' can only be used as an aggregate function.");
 
@@ -190,7 +190,7 @@ namespace Deveel.Data.Routines {
 		#region DistinctCount
 
 		static class DistinctCount {
-			public static ExecuteResult Execute(ExecuteContext context) {
+			public static InvokeResult Execute(InvokeContext context) {
 				throw new NotImplementedException();
 			}
 		}
@@ -200,7 +200,7 @@ namespace Deveel.Data.Routines {
 		#region Cast
 
 		static class Cast {
-			public static ExecuteResult Execute(ExecuteContext context) {
+			public static InvokeResult Execute(InvokeContext context) {
 				var value = context.EvaluatedArguments[0];
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
@@ -209,7 +209,7 @@ namespace Deveel.Data.Routines {
 				return context.Result(SystemFunctions.Cast(value, type));
 			}
 
-			public static SqlType ReturnType(ExecuteContext context) {
+			public static SqlType ReturnType(InvokeContext context) {
 				var typeArg = context.EvaluatedArguments[1];
 				var typeString = typeArg.AsVarChar().Value.ToString();
 				return SqlType.Parse(context.Request.Context, typeString);

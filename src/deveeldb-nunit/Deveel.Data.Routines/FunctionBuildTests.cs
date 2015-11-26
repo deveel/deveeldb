@@ -19,7 +19,7 @@ namespace Deveel.Data.Routines {
 			Assert.DoesNotThrow(() => function = factory1.ResolveFunction("user2"));
 			Assert.IsNotNull(function);
 
-			ExecuteResult result=null;
+			InvokeResult result=null;
 			Assert.DoesNotThrow(() => result = function.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.ReturnValue.Value.ToString());
@@ -35,7 +35,7 @@ namespace Deveel.Data.Routines {
 			Assert.DoesNotThrow(() => function = factory2.ResolveFunction("add2", args));
 			Assert.IsNotNull(function);
 
-			ExecuteResult result = null;
+			InvokeResult result = null;
 			Assert.DoesNotThrow(() => result = function.Execute(args));
 			Assert.IsNotNull(result);
 

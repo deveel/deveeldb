@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
@@ -26,11 +25,11 @@ namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Encapsulates the 
 	/// </summary>
-	public sealed class ExecuteContext : IDisposable {
+	public sealed class InvokeContext : IDisposable {
 		private DataObject[] evaluatedArgs;
 		private Dictionary<string, DataObject> output; 
 
-		internal ExecuteContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IRequest request) {
+		internal InvokeContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IRequest request) {
 			if (invoke == null)
 				throw new ArgumentNullException("invoke");
 			if (routine == null)
@@ -43,7 +42,7 @@ namespace Deveel.Data.Routines {
 			Routine = routine;
 		}
 
-		~ExecuteContext() {
+		~InvokeContext() {
 			Dispose(false);
 		}
 
@@ -139,18 +138,18 @@ namespace Deveel.Data.Routines {
 			throw new NotImplementedException();
 		}
 
-		public ExecuteResult Result(DataObject value) {
+		public InvokeResult Result(DataObject value) {
 			if (Routine.Type != RoutineType.Function)
 				throw new InvalidOperationException("The routine is not a function.");
 
-			return new ExecuteResult(this, value);
+			return new InvokeResult(this, value);
 		}
 
-		public ExecuteResult Result() {
+		public InvokeResult Result() {
 			if (Routine.Type != RoutineType.Procedure)
 				throw new InvalidOperationException("The routine is not a procedure: a return value is required.");
 
-			return new ExecuteResult(this);
+			return new InvokeResult(this);
 		}
 
 		private RoutineParameter GetParameter(string name) {

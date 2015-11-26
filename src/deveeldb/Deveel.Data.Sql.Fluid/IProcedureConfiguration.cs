@@ -24,6 +24,6 @@ namespace Deveel.Data.Sql.Fluid {
 
 		IProcedureConfiguration WithParameter(Action<IProcedureParameterConfiguration> config);
 
-		IProcedureConfiguration WhenExecute(Action<ExecuteContext> execute);
+		IProcedureConfiguration WhenExecute(Action<InvokeContext> execute);
 	}
 }

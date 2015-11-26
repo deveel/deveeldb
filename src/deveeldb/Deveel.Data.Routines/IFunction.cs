@@ -38,6 +38,6 @@ namespace Deveel.Data.Routines {
 		/// Returns a <see cref="SqlType"/> that is the type of the
 		/// value returned by the function.
 		/// </returns>
-		SqlType ReturnType(ExecuteContext context);
+		SqlType ReturnType(InvokeContext context);
 	}
 }

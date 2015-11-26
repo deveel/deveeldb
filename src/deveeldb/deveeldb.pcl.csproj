@@ -91,6 +91,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
+    <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
@@ -226,8 +228,6 @@
     <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
     <Compile Include="Deveel.Data.Routines\AggregateFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
-    <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
@@ -247,7 +247,6 @@
     <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineBody.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
@@ -291,8 +290,6 @@
     <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\INamedBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\StatementBlock.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />

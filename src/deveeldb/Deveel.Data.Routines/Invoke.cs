@@ -148,21 +148,21 @@ namespace Deveel.Data.Routines {
 			return ResolveRoutine(null) as IFunction;
 		}
 
-		public ExecuteResult Execute() {
+		public InvokeResult Execute() {
 			return Execute(null);
 		}
 
-		public ExecuteResult Execute(IRequest query) {
+		public InvokeResult Execute(IRequest query) {
 			return Execute(query, null);
 		}
 
-		public ExecuteResult Execute(IRequest query, IVariableResolver resolver) {
+		public InvokeResult Execute(IRequest query, IVariableResolver resolver) {
 			return Execute(query, resolver, null);
 		}
 
-		public ExecuteResult Execute(IRequest query, IVariableResolver resolver, IGroupResolver group) {
+		public InvokeResult Execute(IRequest query, IVariableResolver resolver, IGroupResolver group) {
 			var routine = ResolveRoutine(query);
-			var executeContext = new ExecuteContext(this, routine, resolver, group, query);
+			var executeContext = new InvokeContext(this, routine, resolver, group, query);
 			return routine.Execute(executeContext);
 		}
 

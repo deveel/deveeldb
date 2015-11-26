@@ -110,7 +110,7 @@ namespace Deveel.Data.Routines {
 			return query.Query.GetCurrentValue(resolvedName);
 		}
 
-		internal static ExecuteResult Iif(ExecuteContext context) {
+		internal static InvokeResult Iif(InvokeContext context) {
 			var result = DataObject.Null();
 
 			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);

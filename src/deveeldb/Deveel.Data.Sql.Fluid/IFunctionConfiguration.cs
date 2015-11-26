@@ -29,8 +29,8 @@ namespace Deveel.Data.Sql.Fluid {
 
 		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
 
-		IFunctionConfiguration ReturnsType(Func<ExecuteContext, SqlType> returns);
+		IFunctionConfiguration ReturnsType(Func<InvokeContext, SqlType> returns);
 
-		IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute);
+		IFunctionConfiguration WhenExecute(Func<InvokeContext, InvokeResult> execute);
 	}
 }

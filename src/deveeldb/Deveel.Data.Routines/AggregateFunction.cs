@@ -34,7 +34,7 @@ namespace Deveel.Data.Routines {
 			return result;
 		}
 
-		public override ExecuteResult Execute(ExecuteContext context) {
+		public override InvokeResult Execute(InvokeContext context) {
 			if (context == null)
 				throw new ArgumentNullException("context");
 

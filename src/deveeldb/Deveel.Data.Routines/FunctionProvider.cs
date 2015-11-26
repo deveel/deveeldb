@@ -54,7 +54,7 @@ namespace Deveel.Data.Routines {
 			return name;
 		}
 
-		protected void Register(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> body, Func<ExecuteContext, SqlType> returnType) {
+		protected void Register(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, SqlType> returnType) {
 			Register(new DelegateFunction(functionInfo, body, returnType));
 		}
 
@@ -103,20 +103,20 @@ namespace Deveel.Data.Routines {
 		#region DelegateFunction
 
 		class DelegateFunction : Function {
-			private readonly Func<ExecuteContext, ExecuteResult> functionBody;
-			private readonly Func<ExecuteContext, SqlType> returnType; 
+			private readonly Func<InvokeContext, InvokeResult> functionBody;
+			private readonly Func<InvokeContext, SqlType> returnType; 
  
-			public DelegateFunction(FunctionInfo functionInfo, Func<ExecuteContext, ExecuteResult> functionBody, Func<ExecuteContext, SqlType> returnType)
+			public DelegateFunction(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> functionBody, Func<InvokeContext, SqlType> returnType)
 				: base(functionInfo) {
 				this.functionBody = functionBody;
 				this.returnType = returnType;
 			}
 
-			public override ExecuteResult Execute(ExecuteContext context) {
+			public override InvokeResult Execute(InvokeContext context) {
 				return functionBody(context);
 			}
 
-			public override SqlType ReturnType(ExecuteContext context) {
+			public override SqlType ReturnType(InvokeContext context) {
 				if (returnType == null)
 					return FunctionInfo.ReturnType;
 
@@ -141,9 +141,9 @@ namespace Deveel.Data.Routines {
 
 			public FunctionType FunctionType { get; private set; }
 
-			public Func<ExecuteContext, SqlType> ReturnTypeFunc { get; private set; }
+			public Func<InvokeContext, SqlType> ReturnTypeFunc { get; private set; }
 
-			public Func<ExecuteContext, ExecuteResult> ExecuteFunc { get; private set; }
+			public Func<InvokeContext, InvokeResult> ExecuteFunc { get; private set; }
 
 			public FunctionInfo[] FunctionInfo {
 				get {
@@ -224,12 +224,12 @@ namespace Deveel.Data.Routines {
 				return this;
 			}
 
-			public IFunctionConfiguration ReturnsType(Func<ExecuteContext, SqlType> returns) {
+			public IFunctionConfiguration ReturnsType(Func<InvokeContext, SqlType> returns) {
 				ReturnTypeFunc = returns;
 				return this;
 			}
 
-			public IFunctionConfiguration WhenExecute(Func<ExecuteContext, ExecuteResult> execute) {
+			public IFunctionConfiguration WhenExecute(Func<InvokeContext, InvokeResult> execute) {
 				ExecuteFunc = execute;
 				return this;
 			}

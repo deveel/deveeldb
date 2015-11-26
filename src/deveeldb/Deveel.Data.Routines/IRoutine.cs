@@ -32,6 +32,6 @@ namespace Deveel.Data.Routines {
 
 		RoutineInfo RoutineInfo { get; }
 
-		ExecuteResult Execute(ExecuteContext context);
+		InvokeResult Execute(InvokeContext context);
 	}
 }

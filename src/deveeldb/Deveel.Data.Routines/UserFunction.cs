@@ -37,7 +37,7 @@ namespace Deveel.Data.Routines {
 			: base(name, parameters, returnType, functionType) {
 		}
 
-		public override ExecuteResult Execute(ExecuteContext context) {
+		public override InvokeResult Execute(InvokeContext context) {
 			throw new NotImplementedException();
 		}
 	}

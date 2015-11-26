@@ -143,12 +143,6 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\BranchBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\CreateTableBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\INamedBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\IStatementBlockSerializer.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\SelectBlock.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements.Blocks\StatementBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
@@ -628,8 +622,8 @@
     <Compile Include="Deveel.Data.Index\RangeFieldOffset.cs" />
     <Compile Include="Deveel.Data.Index\IIndexSet.cs" />
     <Compile Include="Deveel.Data.Index\IndexRange.cs" />
-    <Compile Include="Deveel.Data.Routines\ExecuteContext.cs" />
-    <Compile Include="Deveel.Data.Routines\ExecuteResult.cs" />
+    <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
+    <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionInfo.cs" />

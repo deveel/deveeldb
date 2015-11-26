@@ -88,11 +88,11 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <param name="context">The context of the execution.</param>
 		/// <returns>
-		/// Returns a <see cref="ExecuteResult"/> instance that encapsulates
+		/// Returns a <see cref="InvokeResult"/> instance that encapsulates
 		/// the returned value of the function.
 		/// </returns>
-		/// <seealso cref="ExecuteResult.ReturnValue"/>
-		public abstract ExecuteResult Execute(ExecuteContext context);
+		/// <seealso cref="InvokeResult.ReturnValue"/>
+		public abstract InvokeResult Execute(InvokeContext context);
 
 		/// <summary>
 		/// Gets the function static return type
@@ -118,7 +118,7 @@ namespace Deveel.Data.Routines {
 		/// the type of the returned value resolved against the given
 		/// execution context..
 		/// </returns>
-		public virtual SqlType ReturnType(ExecuteContext context) {
+		public virtual SqlType ReturnType(InvokeContext context) {
 			return FunctionInfo.ReturnType;
 		}
 

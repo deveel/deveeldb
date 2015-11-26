@@ -29,7 +29,7 @@ namespace Deveel.Data.Routines {
 				throw new ArgumentException("The information specified are not pointing to any external function.");
 		}
 
-		public override ExecuteResult Execute(ExecuteContext context) {
+		public override InvokeResult Execute(InvokeContext context) {
 			if (method == null)
 				method = DiscoverMethod();
 
@@ -69,7 +69,7 @@ namespace Deveel.Data.Routines {
 			return values;
 		}
 
-		public override SqlType ReturnType(ExecuteContext context) {
+		public override SqlType ReturnType(InvokeContext context) {
 			if (method == null)
 				method = DiscoverMethod();
 

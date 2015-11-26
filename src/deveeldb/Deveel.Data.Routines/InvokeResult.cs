@@ -22,27 +22,27 @@ namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Represents the result of the execution of a routine.
 	/// </summary>
-	public sealed class ExecuteResult {
+	public sealed class InvokeResult {
 		private Dictionary<string, DataObject> outputValues;
 
-		private ExecuteResult(ExecuteContext context, DataObject returnValue, bool hasReturn) {
+		private InvokeResult(InvokeContext context, DataObject returnValue, bool hasReturn) {
 			Context = context;
 			ReturnValue = returnValue;
 			HasReturnValue = hasReturn;
 		}
 
-		internal ExecuteResult(ExecuteContext context) 
+		internal InvokeResult(InvokeContext context) 
 			: this(context, DataObject.Null(), false) {
 		}
 
-		internal ExecuteResult(ExecuteContext context, DataObject returnValue)
+		internal InvokeResult(InvokeContext context, DataObject returnValue)
 			: this(context, returnValue, true) {
 		}
 
 		/// <summary>
 		/// Gets the parent context that originated the result.
 		/// </summary>
-		public ExecuteContext Context { get; private set; }
+		public InvokeContext Context { get; private set; }
 
 		/// <summary>
 		/// If the context of the result is a function, gets the return value of

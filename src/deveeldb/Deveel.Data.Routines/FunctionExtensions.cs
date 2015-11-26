@@ -38,13 +38,13 @@ namespace Deveel.Data.Routines {
 		public static DataObject Execute(this IFunction function, Invoke request, IGroupResolver group,
 			IVariableResolver resolver,
 			IRequest query) {
-			var execContext = new ExecuteContext(request, function, resolver, group, query);
+			var execContext = new InvokeContext(request, function, resolver, group, query);
 			var result = function.Execute(execContext);
 			return result.ReturnValue;
 		}
 
 		public static SqlType ReturnType(this IFunction function, Invoke request, IRequest query, IVariableResolver resolver) {
-			var execContext = new ExecuteContext(request, function, resolver, null, query);
+			var execContext = new InvokeContext(request, function, resolver, null, query);
 			return function.ReturnType(execContext);
 		}
 	}
