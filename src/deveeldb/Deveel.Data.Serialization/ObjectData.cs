@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 
 namespace Deveel.Data.Serialization {
-	public sealed class SerializedGraph {
+	public sealed class ObjectData {
 		private readonly Dictionary<string, object> values;
 		 
-		internal SerializedGraph(Type entityType, IEnumerable<KeyValuePair<string, object>> values) {
+		internal ObjectData(Type entityType, IEnumerable<KeyValuePair<string, object>> values) {
 			EntityType = entityType;
 			this.values = new Dictionary<string, object>();
 			if (values != null) {

@@ -133,8 +133,8 @@ namespace Deveel.Data.Sql.Statements {
 			return PrepareAndExecute(null, context);
 		}
 
-		ITable IExecutable.Execute(IQuery context) {
-			return ExecuteStatement(context);
+		void IExecutable.Execute(ExecutionContext context) {
+			ExecuteStatement(context.Request);
 		}
 
 		private ITable PrepareAndExecute(IExpressionPreparer preparer, IRequest context) {
