@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Tables;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class GrantPrivilegesStatement : SqlStatement {
+	[Serializable]
+	public sealed class GrantPrivilegesStatement : SqlPreparedStatement, IPreparableStatement {
 		public GrantPrivilegesStatement(string grantee, Privileges privilege, ObjectName objName) 
 			: this(grantee, privilege, false, objName) {
 		}
@@ -27,6 +27,14 @@ namespace Deveel.Data.Sql.Statements {
 			WithGrant = withGrant;
 		}
 
+		private GrantPrivilegesStatement(ObjectData data) {
+			ObjectName = data.GetValue<ObjectName>("ObjectName");
+			Grantee = data.GetString("Grantee");
+			Privilege = (Privileges) data.GetInt32("Privilege");
+			Columns = data.GetValue<string[]>("Columns");
+			WithGrant = data.GetBoolean("WithGrant");
+		}
+
 		public IEnumerable<string> Columns { get; private set; }
 
 		public string Grantee { get; private set; }
@@ -37,18 +45,25 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool WithGrant { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override void GetData(SerializeData data) {
+			data.SetValue("ObjectName", ObjectName);
+			data.SetValue("Grantee", Grantee);
+			data.SetValue("Privilege", (int)Privilege);
+			data.SetValue("Columns", Columns);
+			data.SetValue("WithGrant", WithGrant);
+		}
+
+		IPreparedStatement IPreparableStatement.Prepare(IRequest context) {
 			var objName = context.Query.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			var obj = context.Query.FindObject(ObjectName);
+		protected override void ExecuteStatement(ExecutionContext context) {
+			var obj = context.Request.Query.FindObject(ObjectName);
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
 
-			context.Query.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
-			return FunctionTable.ResultTable(context, 0);
+			context.Request.Query.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
 		}
 	}
 }

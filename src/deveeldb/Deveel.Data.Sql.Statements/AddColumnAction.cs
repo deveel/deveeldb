@@ -16,15 +16,21 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class AddColumnAction : IAlterTableAction, IPreparable {
 		public AddColumnAction(SqlTableColumn column) {
 			if (column == null)
 				throw new ArgumentNullException("column");
 
 			Column = column;
+		}
+
+		private AddColumnAction(ObjectData data) {
+			Column = data.GetValue<SqlTableColumn>("Column");
 		}
 
 		public SqlTableColumn Column { get; private set; }
@@ -43,6 +49,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.AddColumn; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Column", Column);
 		}
 	}
 }

@@ -17,15 +17,21 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class SetPasswordAction : IAlterUserAction, IPreparable {
 		public SetPasswordAction(SqlExpression passwordExpression) {
 			if (passwordExpression == null)
 				throw new ArgumentNullException("passwordExpression");
 
 			PasswordExpression = passwordExpression;
+		}
+
+		private SetPasswordAction(ObjectData data) {
+			PasswordExpression = data.GetValue<SqlExpression>("Password");
 		}
 
 		public AlterUserActionType ActionType {
@@ -39,13 +45,17 @@ namespace Deveel.Data.Sql.Statements {
 			return new SetPasswordAction(preparedExp);
 		}
 
-		public static void Serialize(SetPasswordAction action, BinaryWriter writer) {
-			SqlExpression.Serialize(action.PasswordExpression, writer);
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Password", PasswordExpression);
 		}
 
-		public static SetPasswordAction Deserialize(BinaryReader reader) {
-			var exp = SqlExpression.Deserialize(reader);
-			return new SetPasswordAction(exp);
-		}
+		//public static void Serialize(SetPasswordAction action, BinaryWriter writer) {
+		//	SqlExpression.Serialize(action.PasswordExpression, writer);
+		//}
+
+		//public static SetPasswordAction Deserialize(BinaryReader reader) {
+		//	var exp = SqlExpression.Deserialize(reader);
+		//	return new SetPasswordAction(exp);
+		//}
 	}
 }

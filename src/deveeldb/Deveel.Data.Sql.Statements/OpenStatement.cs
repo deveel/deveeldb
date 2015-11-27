@@ -15,16 +15,15 @@
 //
 
 using System;
-using System.IO;
 using System.Linq;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class OpenStatement : SqlStatement {
+	[Serializable]
+	public sealed class OpenStatement : SqlPreparedStatement, IPreparable, IPreparableStatement {
 		public OpenStatement(string cursorName) 
 			: this(cursorName, new SqlExpression[] {}) {
 		}
@@ -34,15 +33,16 @@ namespace Deveel.Data.Sql.Statements {
 			Arguments = arguments;
 		}
 
+		private OpenStatement(ObjectData data) {
+			CursorName = data.GetString("CursorName");
+			Arguments = data.GetValue<SqlExpression[]>("Arguments");
+		}
+
 		public string CursorName { get; private set; }
 
 		public SqlExpression[] Arguments { get; set; }
 
-		protected override bool IsPreparable {
-			get { return true; }
-		}
-
-		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			SqlExpression[] args = null;
 			if (Arguments != null) {
 				args = (SqlExpression[])Arguments.Clone();
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		IPreparedStatement IPreparableStatement.Prepare(IRequest context) {
 			SqlExpression[] args = Arguments;
 
 			var cursor = context.Query.FindCursor(CursorName);
@@ -75,44 +75,48 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			var cursor = context.Query.FindCursor(CursorName);
+		protected override void GetData(SerializeData data) {
+			data.SetValue("CursorName", CursorName);
+			data.SetValue("Arguments", Arguments);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			var cursor = context.Request.Query.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
-			cursor.Open(context, Arguments);
-			return FunctionTable.ResultTable(context, 0);
+			cursor.Open(context.Request, Arguments);
 		}
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<OpenStatement> {
-			public override void Serialize(OpenStatement obj, BinaryWriter writer) {
-				writer.Write(obj.CursorName);
+		//internal class PreparedSerializer : ObjectBinarySerializer<OpenStatement> {
+		//	public override void Serialize(OpenStatement obj, BinaryWriter writer) {
+		//		writer.Write(obj.CursorName);
 
-				var argc = obj.Arguments == null ? 0 : obj.Arguments.Length;
-				writer.Write(argc);
+		//		var argc = obj.Arguments == null ? 0 : obj.Arguments.Length;
+		//		writer.Write(argc);
 
-				if (obj.Arguments != null) {
-					for (int i = 0; i < argc; i++) {
-						SqlExpression.Serialize(obj.Arguments[i], writer);
-					}
-				}
-			}
+		//		if (obj.Arguments != null) {
+		//			for (int i = 0; i < argc; i++) {
+		//				SqlExpression.Serialize(obj.Arguments[i], writer);
+		//			}
+		//		}
+		//	}
 
-			public override OpenStatement Deserialize(BinaryReader reader) {
-				var cursorName = reader.ReadString();
+		//	public override OpenStatement Deserialize(BinaryReader reader) {
+		//		var cursorName = reader.ReadString();
 
-				var argc = reader.ReadInt32();
-				var args = new SqlExpression[argc];
+		//		var argc = reader.ReadInt32();
+		//		var args = new SqlExpression[argc];
 
-				for (int i = 0; i < argc; i++) {
-					args[i] = SqlExpression.Deserialize(reader);
-				}
+		//		for (int i = 0; i < argc; i++) {
+		//			args[i] = SqlExpression.Deserialize(reader);
+		//		}
 
-				return new OpenStatement(cursorName, args);
-			}
-		}
+		//		return new OpenStatement(cursorName, args);
+		//	}
+		//}
 
 		#endregion
 	}

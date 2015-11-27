@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Services;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
@@ -27,7 +27,17 @@ namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
-	public abstract class SqlStatement : IStatement {
+	[Serializable]
+	public abstract class SqlStatement : IStatement, ISerializable {
+		protected SqlStatement() {
+			
+		}
+
+		protected SqlStatement(ObjectData data) {
+			SourceQuery = data.GetValue<SqlQuery>("SourceQuery");
+			IsFromQuery = data.GetBoolean("IsFromQuery");
+		}
+
 		/// <summary>
 		/// Gets the <see cref="SqlQuery"/> that is the origin of this statement.
 		/// </summary>
@@ -53,27 +63,15 @@ namespace Deveel.Data.Sql.Statements {
 			IsFromQuery = true;
 		}
 
-		protected virtual bool IsPreparable {
-			get { return true; }
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("SourceQuery", SourceQuery);
+			data.SetValue("IsFromQuery", IsFromQuery);
+
+			GetData(data);
 		}
 
-		/// <summary>
-		/// When overridden by an implementing class, this method generates a prepared
-		/// version of this statement that can be executed.
-		/// </summary>
-		/// <param name="context">The executing context in used to prepare the statement
-		/// properties.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="SqlStatement"/> that represents the
-		/// prepared version of this statement and that will be executed in a later moment.
-		/// </returns>
-		/// <seealso cref="Prepare(IExpressionPreparer, IRequest)"/>
-		protected virtual SqlStatement PrepareStatement(IRequest context) {
-			return this;
-		}
-
-		protected virtual SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
-			return this;
+		protected virtual void GetData(SerializeData data) {
+			
 		}
 
 		/// <summary>
@@ -89,15 +87,15 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public SqlStatement Prepare(IExpressionPreparer preparer, IRequest context) {
-			SqlStatement prepared = this;
+		public IExecutable Prepare(IExpressionPreparer preparer, IRequest context) {
+			IStatement prepared = this;
 
 			try {
-				if (preparer != null)
-					prepared = PrepareExpressions(preparer);
+				if (preparer != null && prepared is IPreparable)
+					prepared = ((IPreparable)this).Prepare(preparer) as IStatement;
 
-				if (context != null)
-					prepared = PrepareStatement(context);
+				if (context != null && prepared is IPreparableStatement)
+					prepared = ((IPreparableStatement)prepared).Prepare(context);
 
 				if (prepared == null)
 					throw new InvalidOperationException("Unable to prepare the statement.");
@@ -107,15 +105,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new StatementPrepareException(String.Format("An error occurred while preparing a statement of type '{0}'.", GetType()), ex);
 			}
 
-			return prepared;
-		}
-
-		IStatement IStatement.Prepare(IQuery context) {
-			return PrepareStatement(context);
-		}
-
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			return PrepareExpressions(preparer);
+			return prepared as IExecutable;
 		}
 
 		/// <summary>
@@ -133,12 +123,8 @@ namespace Deveel.Data.Sql.Statements {
 			return PrepareAndExecute(null, context);
 		}
 
-		void IExecutable.Execute(ExecutionContext context) {
-			ExecuteStatement(context.Request);
-		}
-
 		private ITable PrepareAndExecute(IExpressionPreparer preparer, IRequest context) {
-			SqlStatement prepared;
+			IExecutable prepared;
 
 			try {
 				prepared = Prepare(preparer, context);
@@ -146,13 +132,15 @@ namespace Deveel.Data.Sql.Statements {
 				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}
 
-			return prepared.ExecuteStatement(context);
-		}
+			if (prepared == null)
+				throw new InvalidOperationException();
 
-		protected virtual ITable ExecuteStatement(IRequest context) {
-			// This method is not abstract because a statement can be different after
-			// preparation, that means a statement can be a builder for another 
-			throw new PreparationRequiredException(GetType().FullName);
+			var exeContext = new ExecutionContext(context);
+			prepared.Execute(exeContext);
+			if (!exeContext.HasResult)
+				return FunctionTable.ResultTable(context, 0);
+
+			return exeContext.Result;
 		}
 
 		/// <summary>

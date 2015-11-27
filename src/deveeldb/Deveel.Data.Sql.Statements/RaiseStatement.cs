@@ -16,27 +16,31 @@
 
 using System;
 
-using Deveel.Data;
-using Deveel.Data.Sql.Tables;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class RaiseStatement : SqlStatement {
+	[Serializable]
+	public sealed class RaiseStatement : SqlPreparedStatement {
 		public RaiseStatement() 
-			: this(null) {
+			: this((string) null) {
 		}
 
 		public RaiseStatement(string exceptionName) {
 			ExceptionName = exceptionName;
 		}
 
-		protected override bool IsPreparable {
-			get { return false; }
+		private RaiseStatement(ObjectData data) {
+			ExceptionName = data.GetString("ExceptionName");
 		}
 
 		public string ExceptionName { get; set; }
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			return base.ExecuteStatement(context);
+		protected override void GetData(SerializeData data) {
+			data.SetValue("ExceptionName", ExceptionName);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			throw new NotImplementedException();
 		}
 	}
 }

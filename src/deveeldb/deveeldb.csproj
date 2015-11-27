@@ -147,7 +147,10 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
@@ -327,7 +330,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RaiseStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />

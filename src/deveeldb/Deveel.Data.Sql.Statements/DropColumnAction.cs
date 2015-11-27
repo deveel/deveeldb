@@ -16,18 +16,27 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DropColumnAction : IAlterTableAction {
 		public DropColumnAction(string columnName) {
 			ColumnName = columnName;
+		}
+
+		private DropColumnAction(ObjectData data) {
+			ColumnName = data.GetString("Column");
 		}
 
 		public string ColumnName { get; private set; }
 
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropColumn; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Column", ColumnName);
 		}
 	}
 }

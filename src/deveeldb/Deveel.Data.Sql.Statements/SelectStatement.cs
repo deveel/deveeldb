@@ -17,13 +17,12 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectStatement : SqlStatement {
+	public sealed class SelectStatement : SqlPreparableStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}
@@ -42,26 +41,32 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));
 			return new Prepared(queryPlan);
 		}
 
 		#region Prepared
 
-		class Prepared : SqlStatement {
+		[Serializable]
+		class Prepared : SqlPreparedStatement {
 			public Prepared(IQueryPlanNode queryPlan) {
 				QueryPlan = queryPlan;
 			}
 
-			public IQueryPlanNode QueryPlan { get; private set; }
-
-			protected override bool IsPreparable {
-				get { return false; }
+			private Prepared(ObjectData data) {
+				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
 			}
 
-			protected override ITable ExecuteStatement(IRequest context) {
-				return QueryPlan.Evaluate(context);
+			public IQueryPlanNode QueryPlan { get; private set; }
+
+			protected override void GetData(SerializeData data) {
+				data.SetValue("QueryPlan", QueryPlan);
+			}
+
+			protected override void ExecuteStatement(ExecutionContext context) {
+				var result = QueryPlan.Evaluate(context.Request);
+				context.SetResult(result);
 			}
 		}
 

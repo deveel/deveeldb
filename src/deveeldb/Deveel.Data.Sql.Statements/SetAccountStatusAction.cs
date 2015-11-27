@@ -18,11 +18,17 @@ using System;
 using System.IO;
 
 using Deveel.Data.Security;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class SetAccountStatusAction : IAlterUserAction {
 		public SetAccountStatusAction(UserStatus status) {
 			Status = status;
+		}
+
+		private SetAccountStatusAction(ObjectData data) {
+			Status = (UserStatus) data.GetInt32("Status");
 		}
 
 		public UserStatus Status { get; private set; }
@@ -31,13 +37,17 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterUserActionType.SetAccountStatus; }
 		}
 
-		public static void Serialize(SetAccountStatusAction action, BinaryWriter writer) {
-			writer.Write((byte)action.Status);
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Status", (int) Status);
 		}
 
-		public static SetAccountStatusAction Deserialize(BinaryReader reader) {
-			var status = (UserStatus) reader.ReadByte();
-			return new SetAccountStatusAction(status);
-		} 
+		//public static void Serialize(SetAccountStatusAction action, BinaryWriter writer) {
+		//	writer.Write((byte)action.Status);
+		//}
+
+		//public static SetAccountStatusAction Deserialize(BinaryReader reader) {
+		//	var status = (UserStatus) reader.ReadByte();
+		//	return new SetAccountStatusAction(status);
+		//} 
 	}
 }

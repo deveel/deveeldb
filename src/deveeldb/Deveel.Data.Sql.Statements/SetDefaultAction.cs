@@ -16,13 +16,20 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class SetDefaultAction : IAlterTableAction, IPreparable {
 		public SetDefaultAction(string columnName, SqlExpression defaultExpression) {
 			ColumnName = columnName;
 			DefaultExpression = defaultExpression;
+		}
+
+		private SetDefaultAction(ObjectData data) {
+			ColumnName = data.GetString("ColumnName");
+			DefaultExpression = data.GetValue<SqlExpression>("Default");
 		}
 
 		public string ColumnName { get; private set; }
@@ -39,6 +46,11 @@ namespace Deveel.Data.Sql.Statements {
 				defaultExp = defaultExp.Prepare(preparer);
 
 			return new SetDefaultAction(ColumnName, defaultExp);
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("ColumnName", ColumnName);
+			data.SetValue("Default", DefaultExpression);
 		}
 	}
 }

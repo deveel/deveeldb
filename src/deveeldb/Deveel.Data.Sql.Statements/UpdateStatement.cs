@@ -17,12 +17,13 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateStatement : SqlStatement {
+	public sealed class UpdateStatement : SqlPreparableStatement {
 		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
 				throw new ArgumentNullException("wherExpression");
@@ -44,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
 			if (!context.Query.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
@@ -72,7 +73,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		sealed class Prepared : SqlStatement {
+		[Serializable]
+		sealed class Prepared : SqlPreparedStatement {
 			internal Prepared(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
 				TableName = tableName;
 				QueryPlan = queryPlan;
@@ -80,8 +82,11 @@ namespace Deveel.Data.Sql.Statements {
 				Limit = limit;
 			}
 
-			protected override bool IsPreparable {
-				get { return false; }
+			private Prepared(ObjectData data) {
+				TableName = data.GetValue<ObjectName>("TableName");
+				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+				Columns = data.GetValue<SqlAssignExpression[]>("Columns");
+				Limit = data.GetInt32("Limit");
 			}
 
 			public ObjectName TableName { get; private set; }
@@ -92,9 +97,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			public int Limit { get; private set; }
 
-			protected override ITable ExecuteStatement(IRequest context) {
-				var updateCount = context.Query.UpdateTable(TableName, QueryPlan, Columns, Limit);
-				return FunctionTable.ResultTable(context, updateCount);
+			protected override void ExecuteStatement(ExecutionContext context) {
+				var updateCount = context.Request.Query.UpdateTable(TableName, QueryPlan, Columns, Limit);
+				context.SetResult(updateCount);
 			}
 		}
 

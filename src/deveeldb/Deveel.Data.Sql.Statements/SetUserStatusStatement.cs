@@ -32,9 +32,5 @@ namespace Deveel.Data.Sql.Statements {
 		public string UserName { get; private set; }
 
 		public UserStatus Status { get; private set; }
-
-		protected override bool IsPreparable {
-			get { return false; }
-		}
 	}
 }

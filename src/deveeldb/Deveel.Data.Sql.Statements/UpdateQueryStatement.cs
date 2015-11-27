@@ -17,11 +17,12 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateQueryStatement : SqlStatement {
+	public sealed class UpdateQueryStatement : SqlPreparableStatement, IPreparable {
 		public UpdateQueryStatement(string tableName, SqlQueryExpression sourceExpression, SqlExpression whereExpression) {
 			TableName = tableName;
 			SourceExpression = sourceExpression;
@@ -36,16 +37,31 @@ namespace Deveel.Data.Sql.Statements {
 
 		public int Limit { get; set; }
 
-		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			throw new NotImplementedException();
 		}
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			throw new NotImplementedException();
 		}
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			throw new NotImplementedException();
+		#region Prepared
+
+		[Serializable]
+		class Prepared : SqlPreparedStatement {
+			private Prepared(ObjectData data) {
+				
+			}
+
+			protected override void ExecuteStatement(ExecutionContext context) {
+				throw new NotImplementedException();
+			}
+
+			protected override void GetData(SerializeData data) {
+				base.GetData(data);
+			}
 		}
+
+		#endregion
 	}
 }

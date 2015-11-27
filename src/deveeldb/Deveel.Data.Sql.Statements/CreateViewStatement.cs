@@ -26,7 +26,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateViewStatement : SqlStatement {
+	public sealed class CreateViewStatement : SqlPreparableStatement {
 		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			var viewName = context.Query.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
@@ -96,7 +96,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		internal class Prepared : SqlStatement {
+		[Serializable]
+		class Prepared : SqlPreparedStatement {
 			internal Prepared(ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
 				ViewName = viewName;
 				QueryPlan = queryPlan;
@@ -104,8 +105,11 @@ namespace Deveel.Data.Sql.Statements {
 				QueryExpression = queryExpression;
 			}
 
-			protected override bool IsPreparable {
-				get { return false; }
+			private Prepared(ObjectData data) {
+				ViewName = data.GetValue<ObjectName>("Name");
+				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+				ReplaceIfExists = data.GetBoolean("ReplaceIfExists");
+				QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
 			}
 
 			public ObjectName ViewName { get; private set; }
@@ -116,16 +120,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 
-			protected override ITable ExecuteStatement(IRequest context) {
+			protected override void GetData(SerializeData data) {
+				data.SetValue("Name", ViewName);
+				data.SetValue("QueryPlan", QueryPlan);
+				data.SetValue("QueryExpression", QueryExpression);
+				data.SetValue("ReplaceIfExists", ReplaceIfExists);
+			}
+
+			protected override void ExecuteStatement(ExecutionContext context) {
 				// We have to execute the plan to get the TableInfo that represents the
 				// result of the view execution.
-				var table = QueryPlan.Evaluate(context);
+				var table = QueryPlan.Evaluate(context.Request);
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-				context.Query.DefineView(viewInfo, ReplaceIfExists);
-
-				return FunctionTable.ResultTable(context, 0);
+				context.Request.Query.DefineView(viewInfo, ReplaceIfExists);
 			}
 		}
 
@@ -133,31 +142,31 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				ObjectName.Serialize(obj.ViewName, writer);
+		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
+		//		ObjectName.Serialize(obj.ViewName, writer);
 
-				var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
-				writer.Write(queryPlanTypeName);
+		//		var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
+		//		writer.Write(queryPlanTypeName);
 
-				QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
-				SqlExpression.Serialize(obj.QueryExpression, writer);
-				writer.Write(obj.ReplaceIfExists);
-			}
+		//		QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
+		//		SqlExpression.Serialize(obj.QueryExpression, writer);
+		//		writer.Write(obj.ReplaceIfExists);
+		//	}
 
-			public override Prepared Deserialize(BinaryReader reader) {
-				var viewName = ObjectName.Deserialize(reader);
+		//	public override Prepared Deserialize(BinaryReader reader) {
+		//		var viewName = ObjectName.Deserialize(reader);
 
-				var queryPlanTypeName = reader.ReadString();
-				var queryPlanType = Type.GetType(queryPlanTypeName, true);
-				var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+		//		var queryPlanTypeName = reader.ReadString();
+		//		var queryPlanType = Type.GetType(queryPlanTypeName, true);
+		//		var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
 
-				var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
-				var replaceIfExists = reader.ReadBoolean();
+		//		var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
+		//		var replaceIfExists = reader.ReadBoolean();
 
-				return new Prepared(viewName, queryExpression, queryPlan, replaceIfExists);
-			}
-		}
+		//		return new Prepared(viewName, queryExpression, queryPlan, replaceIfExists);
+		//	}
+		//}
 
 		#endregion
 	}

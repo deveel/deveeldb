@@ -15,16 +15,14 @@
 //
 
 using System;
-using System.IO;
 
-using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateUserStatement : SqlStatement {
+	[Serializable]
+	public sealed class CreateUserStatement : SqlPreparedStatement, IPreparable {
 		public CreateUserStatement(string userName, SqlExpression password) {
 			if (password == null)
 				throw new ArgumentNullException("password");
@@ -35,42 +33,47 @@ namespace Deveel.Data.Sql.Statements {
 			Password = password;
 		}
 
+		private CreateUserStatement(ObjectData data) {
+			UserName = data.GetString("UserName");
+			Password = data.GetValue<SqlExpression>("Password");
+		}
+
 		public string UserName { get; private set; }
 
 		public SqlExpression Password { get; private set; }
 
-		protected override bool IsPreparable {
-			get { return true; }
+		protected override void GetData(SerializeData data) {
+			data.SetValue("UserName", UserName);
+			data.SetValue("Password", Password);
 		}
 
-		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			var preparedPassword = Password.Prepare(preparer);
 			return new CreateUserStatement(UserName, preparedPassword);
 		}
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			var evaluated = Password.EvaluateToConstant(context, null);
+		protected override void ExecuteStatement(ExecutionContext context) {
+			var evaluated = Password.EvaluateToConstant(context.Request, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
 
-			context.Query.CreateUser(UserName, passwordText);
-			return FunctionTable.ResultTable(context, 0);
+			context.Request.Query.CreateUser(UserName, passwordText);
 		}
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<CreateUserStatement> {
-			public override void Serialize(CreateUserStatement obj, BinaryWriter writer) {
-				writer.Write(obj.UserName);
-				SqlExpression.Serialize(obj.Password, writer);
-			}
+		//internal class PreparedSerializer : ObjectBinarySerializer<CreateUserStatement> {
+		//	public override void Serialize(CreateUserStatement obj, BinaryWriter writer) {
+		//		writer.Write(obj.UserName);
+		//		SqlExpression.Serialize(obj.Password, writer);
+		//	}
 
-			public override CreateUserStatement Deserialize(BinaryReader reader) {
-				var userName = reader.ReadString();
-				var expression = SqlExpression.Deserialize(reader);
+		//	public override CreateUserStatement Deserialize(BinaryReader reader) {
+		//		var userName = reader.ReadString();
+		//		var expression = SqlExpression.Deserialize(reader);
 
-				return new CreateUserStatement(userName, expression);
-			}
-		}
+		//		return new CreateUserStatement(userName, expression);
+		//	}
+		//}
 
 		#endregion
 	}
