@@ -133,7 +133,6 @@
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
-    <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
     <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
     <Compile Include="Deveel.Data.Security\IPrivilegeManager.cs" />
@@ -143,12 +142,15 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
-    <Compile Include="Deveel.Data.Serialization\SerializationGraph.cs" />
-    <Compile Include="Deveel.Data.Serialization\SerializedGraph.cs" />
+    <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
@@ -242,7 +244,6 @@
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql\ExceptionHandler.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewManager.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\ISystemJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
@@ -321,9 +322,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ExecutePlanNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IExecutable.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ILabeledExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IParentExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />

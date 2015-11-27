@@ -19,6 +19,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Describes the name of an object within a database.
@@ -38,9 +40,10 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	[DebuggerDisplay("{FullName}")]
-	public sealed class ObjectName : IEquatable<ObjectName>, IComparable<ObjectName> {
+	[Serializable]
+	public sealed class ObjectName : IEquatable<ObjectName>, IComparable<ObjectName>, ISerializable {
 		/// <summary>
-		/// The special name usedas a wilcard to indicate all the columns of a table
+		/// The special name used as a wild-card to indicate all the columns of a table
 		/// must be referenced in a given context.
 		/// </summary>
 		public const string GlobName = "*";
@@ -83,6 +86,11 @@ namespace Deveel.Data.Sql {
 			
 			Name = name;
 			Parent = parent;
+		}
+
+		private ObjectName(ObjectData graph) {
+			Name = graph.GetString("Name");
+			Parent = graph.GetValue<ObjectName>("Parent");
 		}
 
 		/// <summary>
@@ -223,6 +231,11 @@ namespace Deveel.Data.Sql {
 
 			sb.Append(Name);
 			return sb.ToString();
+		}
+
+		void ISerializable.GetData(SerializeData graph) {
+			graph.SetValue("Name", Name);
+			graph.SetValue("Parent", Parent);
 		}
 
 		public override bool Equals(object obj) {

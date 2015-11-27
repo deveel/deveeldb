@@ -2,6 +2,6 @@
 
 namespace Deveel.Data.Serialization {
 	public interface ISerializable {
-		void WriteToGraph(SerializationGraph graph);
+		void GetData(SerializeData data);
 	}
 }

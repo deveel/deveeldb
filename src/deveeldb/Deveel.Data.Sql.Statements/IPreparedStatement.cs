@@ -1,6 +1,8 @@
 ﻿using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Statements {
-    interface IPreparedStatement {
-    }
+	public interface IPreparedStatement : IExecutable, ISerializable {
+	}
 }

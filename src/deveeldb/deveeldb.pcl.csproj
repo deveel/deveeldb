@@ -95,6 +95,12 @@
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
+    <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
+    <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
+    <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="System\NonSerializedAttribute.cs" />
+    <Compile Include="System\SerializableAttribute.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationWithBindingConfiguration.cs" />
@@ -242,7 +248,6 @@
     <Compile Include="Deveel.Data.Routines\FunctionProvider.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionType.cs" />
     <Compile Include="Deveel.Data.Routines\IFunction.cs" />
-    <Compile Include="Deveel.Data.Routines\IFunctionQueryContext.cs" />
     <Compile Include="Deveel.Data.Routines\ImportedKey.cs" />
     <Compile Include="Deveel.Data.Routines\Invoke.cs" />
     <Compile Include="Deveel.Data.Routines\IProcedure.cs" />
@@ -297,6 +302,9 @@
     <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
@@ -590,14 +598,10 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropPrimaryKeyAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ExecutePlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IBlockQueryContext.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IExecutable.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\ILabeledExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IParentExecutable.cs" />
