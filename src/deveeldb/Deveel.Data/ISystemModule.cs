@@ -20,6 +20,10 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data {
 	public interface ISystemModule {
+		string ModuleName { get; }
+
+		string Version { get; }
+
 		void Register(IScope systemScope);
 	}
 }

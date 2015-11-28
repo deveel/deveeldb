@@ -101,6 +101,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
+    <Compile Include="Deveel.Data\ModuleInfo.cs" />
     <Compile Include="System\NonSerializedAttribute.cs" />
     <Compile Include="System\SerializableAttribute.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />

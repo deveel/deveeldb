@@ -12,25 +12,25 @@ namespace Deveel.Data {
 		[Test]
 		public void FromDefaultConfig() {
 			var builder = new SystemBuilder();
-			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = builder.BuildContext());
-			Assert.IsNotNull(context);
-			Assert.IsFalse(context.ReadOnly());
-			Assert.IsTrue(context.IgnoreIdentifiersCase());
-			Assert.AreEqual("APP", context.DefaultSchema());
+			ISystem system = null;
+			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.IsNotNull(system);
+			Assert.IsFalse(system.Context.ReadOnly());
+			Assert.IsTrue(system.Context.IgnoreIdentifiersCase());
+			Assert.AreEqual("APP", system.Context.DefaultSchema());
 		}
 
 		[Test]
 		public void ResolveSingleServiceFromRegister() {
 			var builder = new SystemBuilder();
-			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = builder.BuildContext());
-			Assert.IsNotNull(context);
+			ISystem system = null;
+			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.IsNotNull(system);
 
-			context.RegisterService<TestService>();
+			system.Context.RegisterService<TestService>();
 
 			object serviceObj = null;
-			Assert.DoesNotThrow(() => serviceObj = context.ResolveService(typeof(TestService)));
+			Assert.DoesNotThrow(() => serviceObj = system.Context.ResolveService(typeof(TestService)));
 			Assert.IsNotNull(serviceObj);
 			Assert.IsInstanceOf<TestService>(serviceObj);
 
@@ -41,16 +41,16 @@ namespace Deveel.Data {
 		[Test]
 		public void ResolveManyServicesForInterface() {
 			var builder = new SystemBuilder();
-			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = builder.BuildContext());
-			Assert.IsNotNull(context);
+			ISystem system = null;
+			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.IsNotNull(system);
 			
-			context.RegisterService<TestService>();
-			context.RegisterService<TestService2>();
-			context.RegisterService<TestService3>();
+			system.Context.RegisterService<TestService>();
+			system.Context.RegisterService<TestService2>();
+			system.Context.RegisterService<TestService3>();
 
 			IEnumerable<ITestService> services = null;
-			Assert.DoesNotThrow(() => services = context.ResolveAllServices<ITestService>());
+			Assert.DoesNotThrow(() => services = system.Context.ResolveAllServices<ITestService>());
 			Assert.IsNotNull(services);
 
 			var serviceList = services.ToList();
@@ -64,16 +64,16 @@ namespace Deveel.Data {
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
 			var builder = new SystemBuilder();
-			ISystemContext context = null;
-			Assert.DoesNotThrow(() => context = builder.BuildContext());
-			Assert.IsNotNull(context);
+			ISystem system = null;
+			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.IsNotNull(system);
 
-			context.RegisterInstance(new TestService());
-			context.RegisterInstance(new TestService2());
-			context.RegisterService<TestService3>();
+			system.Context.RegisterInstance(new TestService());
+			system.Context.RegisterInstance(new TestService2());
+			system.Context.RegisterService<TestService3>();
 
 			IEnumerable<ITestService> services = null;
-			Assert.DoesNotThrow(() => services = context.ResolveAllServices<ITestService>());
+			Assert.DoesNotThrow(() => services = system.Context.ResolveAllServices<ITestService>());
 			Assert.IsNotNull(services);
 
 			var serviceList = services.ToList();

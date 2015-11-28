@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
@@ -118,30 +120,36 @@ namespace Deveel.Data {
 #endif
 		}
 
-		public ISystemContext BuildContext() {
+		private ISystemContext BuildContext(out IEnumerable<ModuleInfo> modules) {
 			RegisterDefaultServices();
 
 			OnServiceRegistration(ServiceContainer);
-			LoadModules();
+			modules = LoadModules();
 
 			return new SystemContext(Configuration, ServiceContainer);
 		}
 
-		private void LoadModules() {
+		private IEnumerable<ModuleInfo> LoadModules() {
+			var moduleInfo = new List<ModuleInfo>();
+
 			var modules = ServiceContainer.ResolveAll<ISystemModule>();
 			foreach (var systemModule in modules) {
 				systemModule.Register(ServiceContainer);
+
+				moduleInfo.Add(new ModuleInfo(systemModule.ModuleName, systemModule.Version));
 			}
 
 			ServiceContainer.Unregister<ISystemModule>();
+			return moduleInfo;
 		}
 
 		protected virtual void OnServiceRegistration(ServiceContainer container) {
 		}
 
 		public ISystem BuildSystem() {
-			var context = BuildContext();
-			return new DatabaseSystem(context);
+			IEnumerable<ModuleInfo> modules;
+			var context = BuildContext(out modules);
+			return new DatabaseSystem(context, modules);
 		}
 	}
 }

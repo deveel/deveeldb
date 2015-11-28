@@ -12,9 +12,9 @@ namespace Deveel.Data {
 
 		private IDictionary<string, IDatabase> databases; 
 
-		internal DatabaseSystem(ISystemContext context) {
+		internal DatabaseSystem(ISystemContext context, IEnumerable<ModuleInfo> modules) {
 			Context = context;
-
+			Modules = modules;
 			CreateMetadata();
 		}
 
@@ -39,6 +39,10 @@ namespace Deveel.Data {
 			foreach (var config in Configuration) {
 				metadata[String.Format("[config]:{0}", config.Key)] = config.Value;
 			}
+
+			foreach (var module in Modules) {
+				metadata[String.Format("[module]:{0}", module.ModuleName)] = module.Version;
+			}
 		}
 
 		public IDatabase GetDatabase(string databaseName) {
@@ -54,6 +58,8 @@ namespace Deveel.Data {
 			}
 		}
 
+		public IEnumerable<ModuleInfo> Modules { get; private set; } 
+			
 		IEventSource IEventSource.ParentSource {
 			get { return null; }
 		}

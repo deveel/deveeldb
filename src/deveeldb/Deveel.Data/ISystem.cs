@@ -6,6 +6,8 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
 	public interface ISystem : IDatabaseHandler, IEventSource, IDisposable {
+		IEnumerable<ModuleInfo> Modules { get; }
+		 
 		new ISystemContext Context { get; }
 
 		IEnumerable<string> GetDatabases();
