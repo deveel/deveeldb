@@ -95,6 +95,7 @@
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
@@ -313,12 +314,8 @@
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
     <Compile Include="Deveel.Data.Services\IScope.cs" />
-    <Compile Include="Deveel.Data.Services\IServiceContainer.cs" />
-    <Compile Include="Deveel.Data.Services\IServiceContext.cs" />
     <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
-    <Compile Include="Deveel.Data.Services\ServiceContainerExtensions.cs" />
-    <Compile Include="Deveel.Data.Services\ServiceContextExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />

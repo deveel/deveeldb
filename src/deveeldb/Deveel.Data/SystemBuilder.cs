@@ -37,7 +37,7 @@ namespace Deveel.Data {
 		private ServiceContainer ServiceContainer { get; set; }
 
 		private void RegisterDefaultServices() {
-			// RegisterService<IRoutineResolver, SystemFunctionsProvider>();
+			ServiceContainer.Register<SecurityModule>();
 
 			ServiceContainer.Bind<IRoutineResolver>()
 				.To<SystemFunctionsProvider>()
@@ -89,14 +89,6 @@ namespace Deveel.Data {
 				.To<RoutineManager>()
 				.WithKey(DbObjectType.Routine)
 				.InTransactionScope();
-
-			ServiceContainer.Bind<IUserManager>()
-				.To<UserManager>()
-				.InQueryScope();
-
-			ServiceContainer.Bind<IPrivilegeManager>()
-				.To<PrivilegeManager>()
-				.InQueryScope();
 
 			ServiceContainer.Bind<IStoreSystem>()
 				.To<InMemoryStorageSystem>()

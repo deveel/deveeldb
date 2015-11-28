@@ -7,6 +7,8 @@ namespace Deveel.Data.Services {
 
 		void Register(ServiceRegistration registration);
 
+		IRegistrationConfiguration<TService> Bind<TService>(); 
+
 		bool Unregister(Type serviceType, object serviceKey);
 
 		object Resolve(Type serviceType, object serviceKey);

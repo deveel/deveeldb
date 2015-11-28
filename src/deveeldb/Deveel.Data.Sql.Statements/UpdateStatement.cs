@@ -101,6 +101,13 @@ namespace Deveel.Data.Sql.Statements {
 				var updateCount = context.Request.Query.UpdateTable(TableName, QueryPlan, Columns, Limit);
 				context.SetResult(updateCount);
 			}
+
+			protected override void GetData(SerializeData data) {
+				data.SetValue("TableName", TableName);
+				data.SetValue("QueryPlan", QueryPlan);
+				data.SetValue("Columns", Columns);
+				data.SetValue("Limit", Limit);
+			}
 		}
 
 		#endregion

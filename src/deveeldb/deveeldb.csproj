@@ -141,6 +141,7 @@
     <Compile Include="Deveel.Data.Security\Query.Security.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
