@@ -18,10 +18,12 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class NumericType : SqlType, ISizeableType {
 		public NumericType(SqlTypeCode typeCode, int size, byte scale) 
 			: base("NUMERIC", typeCode) {
@@ -38,12 +40,23 @@ namespace Deveel.Data.Types {
 			: this(typeCode, size, 0) {
 		}
 
+		private NumericType(ObjectData data)
+			: base(data) {
+			Size = data.GetInt32("Size");
+			Scale = data.GetByte("Scale");
+		}
+
 		public int Size { get; private set; }
 
 		public byte Scale { get; private set; }
 
 		public override bool IsStorable {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Size", Size);
+			data.SetValue("Scale", Scale);
 		}
 
 		public override bool Equals(object obj) {

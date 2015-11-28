@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -28,6 +29,7 @@ namespace Deveel.Data.Sql.Query {
 	/// The simple select requires a LHS variable, an operator, and an expression 
 	/// representing the RHS.
 	/// </remarks>
+	[Serializable]
 	class SimpleSelectNode : SingleQueryPlanNode {
 		public SimpleSelectNode(IQueryPlanNode child, ObjectName columnName, SqlExpressionType op, SqlExpression expression)
 			: base(child) {
@@ -36,11 +38,24 @@ namespace Deveel.Data.Sql.Query {
 			Expression = expression;
 		}
 
+		private SimpleSelectNode(ObjectData data)
+			: base(data) {
+			ColumnName = data.GetValue<ObjectName>("Column");
+			OperatorType = (SqlExpressionType) data.GetInt32("Operator");
+			Expression = data.GetValue<SqlExpression>("Expression");
+		}
+
 		public ObjectName ColumnName { get; private set; }
 
 		public SqlExpressionType OperatorType { get; private set; }
 
 		public SqlExpression Expression { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Column", ColumnName);
+			data.SetValue("Operator", (int)OperatorType);
+			data.SetValue("Expression", Expression);
+		}
 
 		public override ITable Evaluate(IRequest context) {
 			// Solve the child branch result

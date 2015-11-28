@@ -17,9 +17,11 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	sealed class CachePointNode : SingleQueryPlanNode {
 		private readonly static Object GlobLock = new Object();
 		private static int GlobId;
@@ -31,6 +33,11 @@ namespace Deveel.Data.Sql.Query {
 		public CachePointNode(IQueryPlanNode child, long id)
 			: base(child) {
 			Id = id;
+		}
+
+		private CachePointNode(ObjectData data)
+			: base(data) {
+			Id = data.GetInt32("Id");
 		}
 
 		private static long NewId() {
@@ -54,6 +61,10 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			return childTable;
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Id", Id);
 		}
 	}
 }

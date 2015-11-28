@@ -16,13 +16,21 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// An expression that references an object within a context.
 	/// </summary>
+	[Serializable]
 	public sealed class SqlReferenceExpression : SqlExpression {
 		internal SqlReferenceExpression(ObjectName name) {
 			ReferenceName = name;
+		}
+
+		private SqlReferenceExpression(ObjectData data)
+			: base(data) {
+			ReferenceName = data.GetValue<ObjectName>("Reference");
 		}
 
 		public override bool CanEvaluate {
@@ -37,6 +45,10 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <inheritdoc/>
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Reference; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Reference", ReferenceName);
 		}
 	}
 }

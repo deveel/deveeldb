@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -27,10 +28,16 @@ namespace Deveel.Data.Sql.Query {
 	/// <remarks>
 	/// This is useful for implementing things such as outer joins.
 	/// </remarks>
+	[Serializable]
 	class MarkerNode : SingleQueryPlanNode {
 		public MarkerNode(IQueryPlanNode child, string markName)
 			: base(child) {
 			MarkName = markName;
+		}
+
+		private MarkerNode(ObjectData data)
+			: base(data) {
+			MarkName = data.GetString("Marker");
 		}
 
 		public override ITable Evaluate(IRequest context) {
@@ -40,5 +47,9 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public string MarkName { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Marker", MarkName);
+		}
 	}
 }

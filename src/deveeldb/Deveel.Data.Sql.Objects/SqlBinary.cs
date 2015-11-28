@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Objects {
 		/// that this binary can handle.
 		/// </summary>
 		/// <seealso cref="Length"/>
-		public const int MaxLength = Int16.MaxValue;
+		public const int MaxLength = Int32.MaxValue - 1;
 
 		public SqlBinary(byte[] source)
 			: this(source, source == null ? 0 : source.Length) {

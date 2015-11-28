@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -28,9 +29,14 @@ namespace Deveel.Data.Sql.Query {
 	/// These branches should be optimized out if possible because they 
 	/// result in huge results.
 	/// </remarks>
+	[Serializable]
 	class NaturalJoinNode : BranchQueryPlanNode {
 		public NaturalJoinNode(IQueryPlanNode left, IQueryPlanNode right)
 			: base(left, right) {
+		}
+
+		private NaturalJoinNode(ObjectData data)
+			: base(data) {
 		}
 
 		public override ITable Evaluate(IRequest context) {

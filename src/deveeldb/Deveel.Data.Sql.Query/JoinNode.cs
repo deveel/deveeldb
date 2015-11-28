@@ -17,16 +17,25 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class JoinNode : BranchQueryPlanNode {
 		public JoinNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName leftColumnName, SqlExpressionType @operator, SqlExpression rightExpression) 
 			: base(left, right) {
 			LeftColumnName = leftColumnName;
 			Operator = @operator;
 			RightExpression = rightExpression;
+		}
+
+		private JoinNode(ObjectData data)
+			: base(data) {
+			LeftColumnName = data.GetValue<ObjectName>("LeftColumn");
+			Operator = (SqlExpressionType) data.GetInt32("Operator");
+			RightExpression = data.GetValue<SqlExpression>("RightExpression");
 		}
 
 		public ObjectName LeftColumnName { get; private set; }
@@ -42,6 +51,12 @@ namespace Deveel.Data.Sql.Query {
 			var rightResult = Right.Evaluate(context);
 
 			return leftResult.Join(context, rightResult, LeftColumnName, Operator, RightExpression);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("LeftColumn", LeftColumnName);
+			data.SetValue("Operator", (int)Operator);
+			data.SetValue("RightExpression", RightExpression);
 		}
 	}
 }

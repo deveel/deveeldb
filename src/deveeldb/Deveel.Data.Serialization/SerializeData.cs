@@ -22,11 +22,11 @@ namespace Deveel.Data.Serialization {
 			if (type == null)
 				throw new ArgumentNullException("type");
 
-			if (type.IsArray &&
-			    !IsSupported(type.GetElementType()))
+			if (type.IsArray) {
+				if (!IsSupported(type.GetElementType()))
 				throw new NotSupportedException(String.Format("The element type '{0}' of the array is not supported.",
 					type.GetElementType()));
-			if (!IsSupported(type))
+			} else if (!type.IsArray && !IsSupported(type))
 				throw new NotSupportedException(String.Format("The type '{0}' is not supported.", type));
 
 			if (value != null && !type.IsInstanceOfType(value))

@@ -16,10 +16,12 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Objects {
-	public struct SqlNumber : ISqlObject, IComparable<SqlNumber>, IConvertible, IEquatable<SqlNumber> {
+	[Serializable]
+	public struct SqlNumber : ISqlObject, IComparable<SqlNumber>, IConvertible, IEquatable<SqlNumber>, ISerializable {
 		private readonly BigDecimal innerValue;
 		private readonly int byteCount;
 		private readonly long valueAsLong;
@@ -91,6 +93,21 @@ namespace Deveel.Data.Sql.Objects {
 			: this(new BigDecimal(value, new MathContext(precision))) {
 		}
 
+		private SqlNumber(ObjectData data)
+			: this() {
+			var state = (NumericState) data.GetByte("State");
+
+			if (state == NumericState.None) {
+				var bytes = data.GetValue<byte[]>("Bytes");
+				var scale = data.GetInt32("Scale");
+				var precision = data.GetInt32("Precision");
+
+				innerValue = new BigDecimal(new BigInteger(bytes), scale, new MathContext(precision));
+			}
+
+			State = state;
+		}
+
 		public NumericState State { get; private set; }
 
 		public bool CanBeInt64 {
@@ -115,6 +132,20 @@ namespace Deveel.Data.Sql.Objects {
 
 		public int Sign {
 			get { return State == NumericState.None ? innerValue.Sign : 0; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("State", (byte)State);
+
+			if (State == NumericState.None) {
+				var bytes = innerValue.UnscaledValue.ToByteArray();
+				var scale = innerValue.Scale;
+				var precision = innerValue.Precision;
+
+				data.SetValue("Bytes", bytes);
+				data.SetValue("Scale", scale);
+				data.SetValue("Precision", precision);
+			}
 		}
 
 		int IComparable.CompareTo(object obj) {

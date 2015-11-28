@@ -15,7 +15,8 @@
 //
 
 using System;
-using System.IO;
+
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -26,7 +27,8 @@ namespace Deveel.Data.Sql.Expressions {
 	/// This includes being either an aggregate function, a column or "*" 
 	/// which is the entire set of columns.
 	/// </remarks>
-	public sealed class SelectColumn : IPreparable {
+	[Serializable]
+	public sealed class SelectColumn : IPreparable, ISerializable {
 		/// <summary>
 		/// Constructs a new <see cref="SelectColumn"/> for the given
 		/// expression and aliased with the given name.
@@ -50,6 +52,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// a column within a <c>SELECT</c> statement.</param>
 		public SelectColumn(SqlExpression expression)
 			: this(expression, null) {
+		}
+
+		private SelectColumn(ObjectData data) {
+			Expression = data.GetValue<SqlExpression>("Expression");
+			Alias = data.GetString("Alias");
 		}
 
 		/// <summary>
@@ -107,6 +114,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		internal ObjectName ResolvedName { get; set; }
 
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Expression", Expression);
+			data.SetValue("Alias", Alias);
+		}
+
 		/// <inheritdoc/>
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			var exp = Expression;
@@ -129,55 +141,6 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </returns>
 		public static SelectColumn Glob(string glob) {
 			return new SelectColumn(SqlExpression.Reference(ObjectName.Parse(glob)));
-		}
-
-		public static void Serialize(SelectColumn column, BinaryWriter writer) {
-			SqlExpression.Serialize(column.Expression, writer);
-
-			var hasAlias = !String.IsNullOrEmpty(column.Alias);
-			if (!hasAlias) {
-				writer.Write((byte)0);
-			} else {
-				writer.Write((byte)1);
-				writer.Write(column.Alias);
-			}
-			
-			bool hasInternalName = column.InternalName != null;
-			if (hasInternalName) {
-				writer.Write((byte)1);
-				ObjectName.Serialize(column.InternalName, writer);
-			} else {
-				writer.Write((byte)0);
-			}
-
-			bool hasResolvedName = column.ResolvedName != null;
-			if (hasResolvedName) {
-				writer.Write((byte) 1);
-				ObjectName.Serialize(column.ResolvedName, writer);
-			} else {
-				writer.Write((byte)0);
-			}
-		}
-
-		public static SelectColumn Deserialize(BinaryReader reader) {
-			var exp = SqlExpression.Deserialize(reader);
-			string alias = null;
-
-			var hasAlias = reader.ReadByte() == 1;
-			if (hasAlias)
-				alias = reader.ReadString();
-
-			var column = new SelectColumn(exp, alias);
-
-			var hasInternalName = reader.ReadByte() == 1;
-			if (hasInternalName)
-				column.InternalName = ObjectName.Deserialize(reader);
-
-			var hasResolvedName = reader.ReadByte() == 1;
-			if (hasResolvedName)
-				column.ResolvedName = ObjectName.Deserialize(reader);
-
-			return column;
 		}
 	}
 }

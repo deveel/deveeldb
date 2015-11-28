@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Objects {
 	/// <summary>
 	/// An SQL object handling a single-byte value that represents
@@ -29,7 +31,8 @@ namespace Deveel.Data.Sql.Objects {
 	/// state cannot be determined.
 	/// </para>
 	/// </remarks>
-	public struct SqlBoolean : ISqlObject, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, IConvertible {
+	[Serializable]
+	public struct SqlBoolean : ISqlObject, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, IConvertible, ISerializable {
 		private readonly byte? value;
 
 		/// <summary>
@@ -45,7 +48,7 @@ namespace Deveel.Data.Sql.Objects {
 		/// <summary>
 		/// Defines a <c>null</c> boolean.
 		/// </summary>
-		public static readonly SqlBoolean Null = new SqlBoolean(null);
+		public static readonly SqlBoolean Null = new SqlBoolean((byte?)null);
 
 		/// <summary>
 		/// Constructs a given boolean object with a defined byte value.
@@ -77,11 +80,22 @@ namespace Deveel.Data.Sql.Objects {
 			this.value = value;
 		}
 
+		private SqlBoolean(ObjectData data)
+			: this() {
+			if (data.HasValue("Value"))
+				value = data.GetByte("Value");
+		}
+
 		int IComparable.CompareTo(object obj) {
 			if (!(obj is ISqlObject))
 				throw new ArgumentException();
 
 			return CompareTo((ISqlObject) obj);
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			if (value != null)
+				data.SetValue("Value", value.Value);
 		}
 
 		/// <inheritdoc/>

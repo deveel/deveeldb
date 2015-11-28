@@ -355,7 +355,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
@@ -564,7 +563,6 @@
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReference.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReferencesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QuerySelectColumns.cs" />

@@ -22,7 +22,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {
@@ -35,7 +37,8 @@ namespace Deveel.Data.Sql.Tables {
 	/// database system, and a list columns that shape the
 	/// design of the data that the table can accommodate.
 	/// </remarks>
-	public sealed class TableInfo : IObjectInfo, IEnumerable<ColumnInfo> {
+	[Serializable]
+	public sealed class TableInfo : IObjectInfo, IEnumerable<ColumnInfo>, ISerializable {
 		private readonly IList<ColumnInfo> columns;
 		private readonly Dictionary<ObjectName, int> columnsCache;
 
@@ -61,6 +64,24 @@ namespace Deveel.Data.Sql.Tables {
 			IsPermanent = perm;
 			this.columns = columns;
 			IsReadOnly = isReadOnly;
+
+			columnsCache = new Dictionary<ObjectName, int>();
+		}
+
+		private TableInfo(ObjectData data) {
+			TableName = data.GetValue<ObjectName>("TableName");
+			Id = data.GetInt32("TableId");
+			IsPermanent = data.GetBoolean("Permanent");
+			IsReadOnly = data.GetBoolean("ReaDOnly");
+
+			columns = new List<ColumnInfo>();
+			var columnInfo = data.GetValue<ColumnInfo[]>("Columns");
+			if (columnInfo != null) {
+				foreach (var info in columnInfo) {
+					info.TableInfo = this;
+					columns.Add(info);
+				}
+			}
 
 			columnsCache = new Dictionary<ObjectName, int>();
 		}
@@ -169,6 +190,14 @@ namespace Deveel.Data.Sql.Tables {
 		public void Establish(int id) {
 			Id = id;
 			IsPermanent = true;
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("TableName", TableName);
+			data.SetValue("TableId", Id);
+			data.SetValue("ReadOnly", IsReadOnly);
+			data.SetValue("Permanent", IsPermanent);
+			data.SetValue("Columns", columns.ToArray());
 		}
 
 		internal void AddColumnSafe(ColumnInfo column) {

@@ -17,14 +17,21 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class SimplePatternSelectNode : SingleQueryPlanNode {
 		public SimplePatternSelectNode(IQueryPlanNode child, SqlExpression expression) 
 			: base(child) {
 			Expression = expression;
+		}
+
+		private SimplePatternSelectNode(ObjectData data)
+			: base(data) {
+			Expression = data.GetValue<SqlExpression>("Expression");
 		}
 
 		public SqlExpression Expression { get; private set; }
@@ -32,6 +39,10 @@ namespace Deveel.Data.Sql.Query {
 		public override ITable Evaluate(IRequest context) {
 			var t = Child.Evaluate(context);
 			return t.Select(context, Expression);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Expression", Expression);
 		}
 	}
 }

@@ -16,13 +16,21 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlVariableReferenceExpression : SqlExpression {
 		internal SqlVariableReferenceExpression(string variableName) {
 			if (String.IsNullOrEmpty(variableName))
 				throw new ArgumentNullException("variableName");
 
 			VariableName = variableName;
+		}
+
+		private SqlVariableReferenceExpression(ObjectData data)
+			: base(data) {
+			VariableName = data.GetString("Variable");
 		}
 
 		public override SqlExpressionType ExpressionType {
@@ -33,6 +41,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Variable", VariableName);
 		}
 	}
 }

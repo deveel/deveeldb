@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -29,11 +30,18 @@ namespace Deveel.Data.Sql.Query {
 	/// For example, we may want to add an expression <c>a + 10</c> or 
 	/// <c>coalesce(a, b, 1)</c>.
 	/// </remarks>
+	[Serializable]
 	class CreateFunctionsNode : SingleQueryPlanNode {
 		public CreateFunctionsNode(IQueryPlanNode child, SqlExpression[] functionList, string[] nameList)
 			: base(child) {
 			Functions = functionList;
 			Names = nameList;
+		}
+
+		private CreateFunctionsNode(ObjectData data)
+			: base(data) {
+			Functions = data.GetValue<SqlExpression[]>("Functions");
+			Names = data.GetValue<string[]>("Names");
 		}
 
 		/// <summary>
@@ -51,6 +59,11 @@ namespace Deveel.Data.Sql.Query {
 			var childTable = Child.Evaluate(context);
 			var funTable = new FunctionTable(childTable, Functions, Names, context);
 			return funTable.MergeWith(null);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Functions", Functions);
+			data.SetValue("Names", Names);
 		}
 	}
 }

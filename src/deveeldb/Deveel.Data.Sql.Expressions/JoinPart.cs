@@ -17,8 +17,11 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
-	public sealed class JoinPart {
+	[Serializable]
+	public sealed class JoinPart : ISerializable {
 		internal JoinPart(JoinType joinType, ObjectName tableName, SqlExpression onExpression) {
 			if (tableName == null) 
 				throw new ArgumentNullException("tableName");
@@ -37,6 +40,13 @@ namespace Deveel.Data.Sql.Expressions {
 			SubQuery = subQuery;
 		}
 
+		private JoinPart(ObjectData data) {
+			TableName = data.GetValue<ObjectName>("Table");
+			SubQuery = data.GetValue<SqlQueryExpression>("SubQuery");
+			JoinType = (JoinType) data.GetInt32("JoinType");
+			OnExpression = data.GetValue<SqlExpression>("On");
+		}
+
 		public JoinType JoinType { get; private set; }
 
 		public ObjectName TableName { get; private set; }
@@ -45,42 +55,49 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression OnExpression { get; private set; }
 
-		public static void Serialize(JoinPart joinPart, BinaryWriter writer) {
-			writer.Write((byte)joinPart.JoinType);
-
-			if (joinPart.SubQuery != null) {
-				writer.Write((byte)2);
-				SqlExpression.Serialize(joinPart.SubQuery, writer);
-			} else {
-				writer.Write((byte)1);
-				ObjectName.Serialize(joinPart.TableName, writer);
-			}
-
-			SqlExpression.Serialize(joinPart.OnExpression, writer);
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Table", TableName);
+			data.SetValue("SubQuery", SubQuery);
+			data.SetValue("JoinType", (int)JoinType);
+			data.SetValue("On", OnExpression);
 		}
 
-		public static JoinPart Deserialize(BinaryReader reader) {
-			var joinType = (JoinType) reader.ReadByte();
+		//public static void Serialize(JoinPart joinPart, BinaryWriter writer) {
+		//	writer.Write((byte)joinPart.JoinType);
 
-			var joinSourceType = reader.ReadByte();
+		//	if (joinPart.SubQuery != null) {
+		//		writer.Write((byte)2);
+		//		SqlExpression.Serialize(joinPart.SubQuery, writer);
+		//	} else {
+		//		writer.Write((byte)1);
+		//		ObjectName.Serialize(joinPart.TableName, writer);
+		//	}
 
-			SqlQueryExpression subQuery = null;
-			ObjectName tableName = null;
+		//	SqlExpression.Serialize(joinPart.OnExpression, writer);
+		//}
 
-			if (joinSourceType == 1) {
-				tableName = ObjectName.Deserialize(reader);
-			} else if (joinSourceType == 2) {
-				subQuery = (SqlQueryExpression) SqlExpression.Deserialize(reader);
-			} else {
-				throw new FormatException();
-			}
+		//public static JoinPart Deserialize(BinaryReader reader) {
+		//	var joinType = (JoinType) reader.ReadByte();
 
-			var onExpression = SqlExpression.Deserialize(reader);
+		//	var joinSourceType = reader.ReadByte();
 
-			if (joinSourceType == 1)
-				return new JoinPart(joinType, tableName, onExpression);
+		//	SqlQueryExpression subQuery = null;
+		//	ObjectName tableName = null;
 
-			return new JoinPart(joinType, subQuery, onExpression);
-		}
+		//	if (joinSourceType == 1) {
+		//		tableName = ObjectName.Deserialize(reader);
+		//	} else if (joinSourceType == 2) {
+		//		subQuery = (SqlQueryExpression) SqlExpression.Deserialize(reader);
+		//	} else {
+		//		throw new FormatException();
+		//	}
+
+		//	var onExpression = SqlExpression.Deserialize(reader);
+
+		//	if (joinSourceType == 1)
+		//		return new JoinPart(joinType, tableName, onExpression);
+
+		//	return new JoinPart(joinType, subQuery, onExpression);
+		//}
 	}
 }

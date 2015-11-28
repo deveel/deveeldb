@@ -18,14 +18,15 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Views {
-	public sealed class ViewInfo : IObjectInfo {
+	[Serializable]
+	public sealed class ViewInfo : IObjectInfo, ISerializable {
 		public ViewInfo(TableInfo tableInfo, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan) {
 			if (tableInfo == null)
 				throw new ArgumentNullException("tableInfo");
@@ -35,6 +36,13 @@ namespace Deveel.Data.Sql.Views {
 			TableInfo = tableInfo;
 			QueryExpression = queryExpression;
 			QueryPlan = queryPlan;
+		}
+
+		private ViewInfo(ObjectData data) {
+			TableInfo = data.GetValue<TableInfo>("TableInfo");
+			QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
+			QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+
 		}
 
 		public TableInfo TableInfo { get; private set; }
@@ -55,40 +63,57 @@ namespace Deveel.Data.Sql.Views {
 			get { return ViewName; }
 		}
 
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("TableInfo", TableInfo);
+			data.SetValue("QueryPlan", QueryPlan);
+			data.SetValue("QueryExpression", QueryExpression);
+		}
+
 		public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
-			TableInfo.Serialize(viewInfo.TableInfo, writer);
-			SqlExpression.Serialize(viewInfo.QueryExpression, writer);
-
-			var queryPlanType = viewInfo.QueryPlan.GetType();
-			writer.Write(queryPlanType.FullName);
-			QueryPlanSerializers.Serialize(viewInfo.QueryPlan, writer);
+			var serializer = new BinarySerializer();
+			serializer.Serialize(writer, viewInfo);
 		}
 
-		public static ViewInfo Deserialize(Stream stream, ITypeResolver resolver) {
-			var reader = new BinaryReader(stream, Encoding.Unicode);
-			return Deserialize(reader, resolver);
+		public static ViewInfo Deserialize(Stream stream) {
+			var serializer = new BinarySerializer();
+			return (ViewInfo) serializer.Deserialize(stream, typeof (ViewInfo));
 		}
 
-		public static ViewInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
-			var tableInfo = TableInfo.Deserialize(reader, typeResolver);
-			var expression = SqlExpression.Deserialize(reader);
+		//public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
+		//	TableInfo.Serialize(viewInfo.TableInfo, writer);
+		//	SqlExpression.Serialize(viewInfo.QueryExpression, writer);
 
-			if (!(expression is SqlQueryExpression))
-				throw new InvalidOperationException();
+		//	var queryPlanType = viewInfo.QueryPlan.GetType();
+		//	writer.Write(queryPlanType.FullName);
+		//	QueryPlanSerializers.Serialize(viewInfo.QueryPlan, writer);
+		//}
 
-			var queryExpression = (SqlQueryExpression) expression;
+		//public static ViewInfo Deserialize(Stream stream, ITypeResolver resolver) {
+		//	var reader = new BinaryReader(stream, Encoding.Unicode);
+		//	return Deserialize(reader, resolver);
+		//}
 
-			var queryPlanTypeString = reader.ReadString();
-			var queryPlanType = Type.GetType(queryPlanTypeString, true);
-			var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+		//public static ViewInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
+		//	var tableInfo = TableInfo.Deserialize(reader, typeResolver);
+		//	var expression = SqlExpression.Deserialize(reader);
 
-			return new ViewInfo(tableInfo, queryExpression, queryPlan);
-		}
+		//	if (!(expression is SqlQueryExpression))
+		//		throw new InvalidOperationException();
+
+		//	var queryExpression = (SqlQueryExpression) expression;
+
+		//	var queryPlanTypeString = reader.ReadString();
+		//	var queryPlanType = Type.GetType(queryPlanTypeString, true);
+		//	var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+
+		//	return new ViewInfo(tableInfo, queryExpression, queryPlan);
+		//}
 
 		public SqlBinary AsBinary() {
 			using (var stream = new MemoryStream()) {
 				using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-					Serialize(this, writer);
+					var serializer = new BinarySerializer();
+					serializer.Serialize(writer, this);
 					writer.Flush();
 				}
 

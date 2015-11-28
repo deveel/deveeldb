@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -27,7 +28,7 @@ namespace Deveel.Data.Sql.Query {
 	/// nodes. The design allows for plan nodes to be easily reorganized 
 	/// for the construction of better plans.
 	/// </remarks>
-	public interface IQueryPlanNode {
+	public interface IQueryPlanNode : ISerializable {
 		ITable Evaluate(IRequest context);
 	}
 }

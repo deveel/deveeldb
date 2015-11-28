@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -27,10 +28,16 @@ namespace Deveel.Data.Sql.Query {
 	/// <remarks>
 	/// This is a tree node and has no children.
 	/// </remarks>
+	[Serializable]
 	class FetchTableNode : IQueryPlanNode {
 		public FetchTableNode(ObjectName tableName, ObjectName aliasName) {
 			TableName = tableName;
 			AliasName = aliasName;
+		}
+
+		private FetchTableNode(ObjectData data) {
+			TableName = data.GetValue<ObjectName>("TableName");
+			AliasName = data.GetValue<ObjectName>("AliasName");
 		}
 
 		/// <summary>
@@ -43,6 +50,10 @@ namespace Deveel.Data.Sql.Query {
 		/// </summary>
 		public ObjectName AliasName { get; private set; }
 
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("TableName", TableName);
+			data.SetValue("AliasName", AliasName);
+		}
 
 		public ITable Evaluate(IRequest context) {
 			var t = context.Query.GetTable(TableName);

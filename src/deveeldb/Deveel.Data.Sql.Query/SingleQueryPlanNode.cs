@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -27,11 +28,22 @@ namespace Deveel.Data.Sql.Query {
 			Child = child;
 		}
 
+		protected SingleQueryPlanNode(ObjectData data) {
+			Child = data.GetValue<IQueryPlanNode>("Child");
+		}
+
 		/// <summary>
 		/// Gets the single child node of the plan.
 		/// </summary>
 		public IQueryPlanNode Child { get; private set; }
 
 		public abstract ITable Evaluate(IRequest context);
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Child", Child);
+			GetData(data);
+		}
+		protected virtual void GetData(SerializeData data) {
+		}
 	}
 }

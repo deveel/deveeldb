@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -48,10 +49,16 @@ namespace Deveel.Data.Sql.Query {
 	/// (col &gt; 10 AND col &lt; 100) OR col &gt; 1000 OR col == 10
 	/// </code>
 	/// </example>
+	[Serializable]
 	class RangeSelectNode : SingleQueryPlanNode {
 		public RangeSelectNode(IQueryPlanNode child, SqlExpression expression)
 			: base(child) {
 			Expression = expression;
+		}
+
+		private RangeSelectNode(ObjectData data)
+			: base(data) {
+			Expression = data.GetValue<SqlExpression>("Expression");
 		}
 
 		/// <summary>
@@ -60,6 +67,10 @@ namespace Deveel.Data.Sql.Query {
 		/// formed.
 		/// </summary>
 		public SqlExpression Expression { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Expression", Expression);
+		}
 
 		/// <inheritdoc/>
 		public override ITable Evaluate(IRequest context) {

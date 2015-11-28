@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -30,7 +31,8 @@ namespace Deveel.Data {
 	/// Represents a dynamic object that encapsulates a defined
 	/// <see cref="SqlType"/> and a compatible constant <see cref="ISqlObject"/> value.
 	/// </summary>
-	public sealed class DataObject : IComparable, IComparable<DataObject>, IEquatable<DataObject> {
+	[Serializable]
+	public sealed class DataObject : IComparable, IComparable<DataObject>, IEquatable<DataObject>, ISerializable {
 		/// <summary>
 		/// The representation of a BOOLEAN <c>true</c> as <see cref="DataObject"/>
 		/// </summary>
@@ -62,6 +64,11 @@ namespace Deveel.Data {
 
 			Type = type;
 			Value = value;
+		}
+
+		private DataObject(ObjectData data) {
+			Type = data.GetValue<SqlType>("Type");
+			Value = data.GetValue<ISqlObject>("Value");
 		}
 
 		/// <summary>
@@ -100,6 +107,11 @@ namespace Deveel.Data {
 
 		internal int Size {
 			get { return Type.ColumnSizeOf(Value); }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Type", Type);
+			data.SetValue("Value", Value);
 		}
 
 		/// <summary>

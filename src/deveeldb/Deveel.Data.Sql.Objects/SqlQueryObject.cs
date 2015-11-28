@@ -16,14 +16,20 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Objects {
-	public sealed class SqlQueryObject : ISqlObject {
-		public static readonly SqlQueryObject Null = new SqlQueryObject(null);
+	[Serializable]
+	public sealed class SqlQueryObject : ISqlObject, ISerializable {
+		public static readonly SqlQueryObject Null = new SqlQueryObject((IQueryPlanNode) null);
 
 		public SqlQueryObject(IQueryPlanNode queryPlan) {
 			QueryPlan = queryPlan;
+		}
+
+		private SqlQueryObject(ObjectData data) {
+			QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
 		}
 
 		public IQueryPlanNode QueryPlan { get; private set; }
@@ -42,6 +48,10 @@ namespace Deveel.Data.Sql.Objects {
 
 		bool ISqlObject.IsComparableTo(ISqlObject other) {
 			return false;
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("QueryPlan", QueryPlan);
 		}
 	}
 }

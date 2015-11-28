@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -23,6 +24,7 @@ namespace Deveel.Data.Sql.Expressions {
 	/// An <see cref="SqlExpression"/> that will cast a value retrieved by
 	/// the evaluation of another expression into a given SQL data type.
 	/// </summary>
+	[Serializable]
 	public sealed class SqlCastExpression : SqlExpression {
 		/// <summary>
 		/// Constructs the expression with the a given value to be converted
@@ -35,6 +37,11 @@ namespace Deveel.Data.Sql.Expressions {
 		public SqlCastExpression(SqlExpression value, SqlType sqlType) {
 			SqlType = sqlType;
 			Value = value;
+		}
+
+		private SqlCastExpression(ObjectData data) {
+			Value = data.GetValue<SqlExpression>("Value");
+			SqlType = data.GetValue<SqlType>("Type");
 		}
 
 		/// <summary>
@@ -57,6 +64,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <inheritdoc/>
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Value", Value);
+			data.SetValue("Type", SqlType);
 		}
 	}
 }

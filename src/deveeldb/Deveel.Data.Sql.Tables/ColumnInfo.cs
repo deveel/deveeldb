@@ -18,6 +18,7 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -31,7 +32,8 @@ namespace Deveel.Data.Sql.Tables {
 	/// <see cref="SqlType"/> that is used to define the type
 	/// of data cells in the table will handle.
 	/// </remarks>
-	public sealed class ColumnInfo {
+	[Serializable]
+	public sealed class ColumnInfo : ISerializable {
 		/// <summary>
 		/// Constructs a new column with the given name and type.
 		/// </summary>
@@ -53,6 +55,14 @@ namespace Deveel.Data.Sql.Tables {
 			ColumnName = columnName;
 		}
 
+		private ColumnInfo(ObjectData data) {
+			ColumnName = data.GetString("ColumnName");
+			ColumnType = data.GetValue<SqlType>("ColumnType");
+			IsNotNull = data.GetBoolean("IsNotNull");
+			DefaultExpression = data.GetValue<SqlExpression>("Default");
+			IndexType = data.GetString("IndexType");
+		}
+
 		/// <summary>
 		/// Gets the <see cref="TableInfo">table</see> where the column
 		/// is attached to.
@@ -60,7 +70,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <remarks>
 		/// This value is set when this object is added to a table.
 		/// </remarks>
-		/// <seealso cref="Sql.TableInfo.AddColumn(ColumnInfo)"/>
+		/// <seealso cref="Tables.TableInfo.AddColumn(ColumnInfo)"/>
 		public TableInfo TableInfo { get; internal set; }
 
 		/// <summary>
@@ -91,7 +101,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <summary>
 		/// Gets the zero-based offset of the column within the containing table.
 		/// </summary>
-		/// <seealso cref="Sql.TableInfo.IndexOfColumn(string)"/>
+		/// <seealso cref="Tables.TableInfo.IndexOfColumn(string)"/>
 		public int Offset {
 			get { return TableInfo == null ? -1 : TableInfo.IndexOfColumn(ColumnName); }
 		}
@@ -150,8 +160,18 @@ namespace Deveel.Data.Sql.Tables {
 
 		public string IndexType { get; internal set; }
 
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("ColumnName", ColumnName);
+			data.SetValue("ColumnType", ColumnType);
+			data.SetValue("IsNotNull", IsNotNull);
+			data.SetValue("Default", DefaultExpression);
+			data.SetValue("IndexType", IndexType);
+		}
+
+
 		public static void Serialize(ColumnInfo columnInfo, BinaryWriter writer) {
-			writer.Write(3);	// Version
+			writer.Write(3);    // Version
 			writer.Write(columnInfo.ColumnName);
 
 			TypeSerializer.SerializeTo(writer, columnInfo.ColumnType);

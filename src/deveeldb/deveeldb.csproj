@@ -470,7 +470,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
@@ -512,7 +511,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\UpdateColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\UpdateStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ValuesInsertNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AddColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />

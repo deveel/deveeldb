@@ -17,14 +17,22 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class EquiJoinNode : BranchQueryPlanNode {
 		public EquiJoinNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumns, ObjectName[] rightColumns) 
 			: base(left, right) {
 			LeftColumns = leftColumns;
 			RightColumns = rightColumns;
+		}
+
+		private EquiJoinNode(ObjectData data)
+			: base(data) {
+			LeftColumns = data.GetValue<ObjectName[]>("LeftColumns");
+			RightColumns = data.GetValue<ObjectName[]>("RightColumns");
 		}
 
 		public ObjectName[] LeftColumns { get; private set; }
@@ -38,6 +46,11 @@ namespace Deveel.Data.Sql.Query {
 			var rightResult = Right.Evaluate(context);
 
 			return leftResult.EquiJoin(context, rightResult, LeftColumns, RightColumns);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("LeftColumns", LeftColumns);
+			data.SetValue("RightColumns", RightColumns);
 		}
 	}
 }

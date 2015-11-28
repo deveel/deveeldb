@@ -16,9 +16,15 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Objects {
-	public struct SqlNull : ISqlObject, IConvertible {
+	[Serializable]
+	public struct SqlNull : ISqlObject, IConvertible, ISerializable {
 		public static readonly SqlNull Value = new SqlNull();
+
+		private SqlNull(ObjectData data) {
+		}
 
 		int IComparable.CompareTo(object obj) {
 			return (this as ISqlObject).CompareTo((ISqlObject) obj);
@@ -30,6 +36,9 @@ namespace Deveel.Data.Sql.Objects {
 
 		public bool IsNull {
 			get { return true; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
 		}
 
 		bool ISqlObject.IsComparableTo(ISqlObject other) {
