@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -32,10 +33,16 @@ namespace Deveel.Data.Sql.Query {
 	/// <b>Note:</b> The expression may have correlated sub-queries.
 	/// </para>
 	/// </remarks>
+	[Serializable]
 	class ExhaustiveSelectNode : SingleQueryPlanNode {
 		public ExhaustiveSelectNode(IQueryPlanNode child, SqlExpression exp)
 			: base(child) {
 			Expression = exp;
+		}
+
+		private ExhaustiveSelectNode(ObjectData data)
+			: base(data) {
+			Expression = data.GetValue<SqlExpression>("Expression");
 		}
 
 		/// <summary>
@@ -46,6 +53,10 @@ namespace Deveel.Data.Sql.Query {
 		public override ITable Evaluate(IRequest context) {
 			var t = Child.Evaluate(context);
 			return t.ExhaustiveSelect(context, Expression);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Expression", Expression);
 		}
 	}
 }

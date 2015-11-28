@@ -16,9 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -195,13 +197,26 @@ namespace Deveel.Data.Sql.Triggers {
 			throw new NotImplementedException();
 		}
 
+		private static byte[] SerializeArguments(SqlExpression[] expressions) {
+			using (var stream = new MemoryStream()) {
+				using (var writer = new BinaryWriter(stream)) {
+					var serializer = new BinarySerializer();
+					serializer.Serialize(writer, expressions);
+
+					writer.Flush();
+
+					return stream.ToArray();
+				}
+			}
+		}
+
 		public void CreateTrigger(TriggerInfo triggerInfo) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 
 			try {
 				var args = triggerInfo.Arguments.ToArray();
-				var binArgs = SqlExpression.Serialize(args);
+				var binArgs = SerializeArguments(args);
 
 				var schema = triggerInfo.TriggerName.ParentName;
 				var name = triggerInfo.TriggerName.Name;

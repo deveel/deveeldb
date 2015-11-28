@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data;
-using Deveel.Data.Services;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -30,7 +29,8 @@ namespace Deveel.Data.Types {
 	/// Defines the properties of a specific SQL Type and handles the
 	/// <see cref="ISqlObject">values compatible</see>.
 	/// </summary>
-	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType> {
+	[Serializable]
+	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType>, ISerializable {
 		/// <summary>
 		/// Constructs the <see cref="SqlType"/> for the given specific
 		/// <see cref="SqlTypeCode">SQL TYPE</see>.
@@ -53,6 +53,11 @@ namespace Deveel.Data.Types {
 		protected SqlType(string name, SqlTypeCode typeCode) {
 			TypeCode = typeCode;
 			Name = name;
+		}
+
+		protected SqlType(ObjectData data) {
+			Name = data.GetString("Name");
+			TypeCode = (SqlTypeCode) data.GetInt32("TypeCode");
 		}
 
 		/// <summary>
@@ -268,6 +273,14 @@ namespace Deveel.Data.Types {
 
 		public virtual ISqlObject Reverse(ISqlObject value) {
 			return SqlNull.Value;
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Name", Name);
+			data.SetValue("TypeCode", (int) TypeCode);
+		}
+
+		protected virtual void GetData(SerializeData data) {
 		}
 
 		/// <summary>

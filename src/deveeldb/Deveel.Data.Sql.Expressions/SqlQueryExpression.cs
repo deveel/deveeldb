@@ -16,14 +16,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-using Deveel.Data.Sql.Tables;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlQueryExpression : SqlExpression {
 		public SqlQueryExpression(IEnumerable<SelectColumn> selectColumns) {
 			SelectColumns = selectColumns;
 			FromClause = new FromClause();
+		}
+
+		private SqlQueryExpression(ObjectData data) {
+			if (data.HasValue("Columns"))
+				SelectColumns = data.GetValue<SelectColumn[]>("Columns");
+
+			Distinct = data.GetBoolean("Distinct");
+			FromClause = data.GetValue<FromClause>("From");
+			WhereExpression = data.GetValue<SqlExpression>("Where");
+			HavingExpression = data.GetValue<SqlExpression>("Having");
+			GroupBy = data.GetValue<SqlExpression[]>("GroupBy");
+			GroupMax = data.GetValue<ObjectName>("GroupMax");
+			NextComposite = data.GetValue<SqlQueryExpression>("NextComposite");
+
+			if (data.HasValue("CompositeFunction"))
+				CompositeFunction = (CompositeFunction) data.GetInt32("CompositeFunction");
+
+			IsCompositeAll = data.GetBoolean("CompositeAll");
 		}
 
 		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
@@ -53,5 +73,23 @@ namespace Deveel.Data.Sql.Expressions {
 		public bool IsCompositeAll { get; set; }
 
 		public bool Distinct { get; set; }
+
+		protected override void GetData(SerializeData data) {
+			if (SelectColumns != null)
+				data.SetValue("Columns", SelectColumns.ToArray());
+
+			data.SetValue("Distinct", Distinct);
+			data.SetValue("From", FromClause);
+			data.SetValue("Where", WhereExpression);
+			data.SetValue("Having", HavingExpression);
+
+			if (GroupBy != null)
+				data.SetValue("GroupBy", GroupBy.ToArray());
+
+			data.SetValue("GroupMax", GroupMax);
+			data.SetValue("NextComposite", NextComposite);
+			data.SetValue("CompositeFunction", (int)CompositeFunction);
+			data.SetValue("CompositeAll", IsCompositeAll);
+		}
 	}
 }

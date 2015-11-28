@@ -19,11 +19,13 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Text;
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class StringType : SqlType, ISizeableType {
 		private CompareInfo collator;
 
@@ -38,6 +40,21 @@ namespace Deveel.Data.Types {
 			MaxSize = maxSize;
 			Locale = locale;
 			Encoding = encoding;
+		}
+
+		private StringType(ObjectData data)
+			: base(data) {
+			MaxSize = data.GetInt32("MaxSize");
+
+			if (data.HasValue("Locale")) {
+				var locale = data.GetString("Locale");
+				Locale = new CultureInfo(locale);
+			}
+
+			if (data.HasValue("Encoding")) {
+				var encoding = data.GetString("Encoding");
+				Encoding = Encoding.GetEncoding(encoding);
+			}
 		}
 
 		private static void AssertIsString(SqlTypeCode sqlType) {
@@ -83,6 +100,14 @@ namespace Deveel.Data.Types {
 		}
 
 		public Encoding Encoding { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("MaxSize", MaxSize);
+			if (Locale != null)
+				data.SetValue("Locale", Locale.Name);
+			if (Encoding != null)
+				data.SetValue("Encoding", Encoding.WebName);
+		}
 
 		public override bool IsCacheable(ISqlObject value) {
 			return value is SqlString || value is SqlNull || value == null;

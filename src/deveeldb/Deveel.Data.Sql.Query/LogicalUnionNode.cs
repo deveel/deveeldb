@@ -16,12 +16,18 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class LogicalUnionNode : BranchQueryPlanNode {
 		public LogicalUnionNode(IQueryPlanNode left, IQueryPlanNode right) 
 			: base(left, right) {
+		}
+
+		private LogicalUnionNode(ObjectData data)
+			: base(data) {
 		}
 
 		public override ITable Evaluate(IRequest context) {

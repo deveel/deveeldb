@@ -16,13 +16,20 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class DistinctNode : SingleQueryPlanNode {
 		public DistinctNode(IQueryPlanNode child, ObjectName[] columnNames) 
 			: base(child) {
 			ColumnNames = columnNames;
+		}
+
+		private DistinctNode(ObjectData data)
+			: base(data) {
+			ColumnNames = data.GetValue<ObjectName[]>("Columns");
 		}
 
 		public ObjectName[] ColumnNames { get; private set; }
@@ -30,6 +37,10 @@ namespace Deveel.Data.Sql.Query {
 		public override ITable Evaluate(IRequest context) {
 			var table = Child.Evaluate(context);
 			return table.DistinctBy(ColumnNames);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Columns", ColumnNames);
 		}
 	}
 }

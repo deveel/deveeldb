@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -29,11 +30,18 @@ namespace Deveel.Data.Sql.Query {
 	/// composites. The left and right branch results must have the same number of 
 	/// columns and column types.
 	/// </remarks>
+	[Serializable]
 	class CompositeNode : BranchQueryPlanNode {
 		public CompositeNode(IQueryPlanNode left, IQueryPlanNode right, CompositeFunction compositeOp, bool allOp)
 			: base(left, right) {
 			CompositeFunction = compositeOp;
 			All = allOp;
+		}
+
+		private CompositeNode(ObjectData data)
+			: base(data) {
+			CompositeFunction = (CompositeFunction) data.GetInt32("Function");
+			All = data.GetBoolean("All");
 		}
 
 		/// <summary>
@@ -53,6 +61,11 @@ namespace Deveel.Data.Sql.Query {
 
 			// Form the composite table
 			return leftResult.Composite(rightResult, CompositeFunction, All);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Function", (int)CompositeFunction);
+			data.SetValue("All", All);
 		}
 	}
 }

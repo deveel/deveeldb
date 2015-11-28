@@ -16,15 +16,22 @@
 
 using System;
 
-using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class SubsetNode : SingleQueryPlanNode {
 		public SubsetNode(IQueryPlanNode child, ObjectName[] originalColumnNames, ObjectName[] aliasColumnNames) 
 			: base(child) {
 			OriginalColumnNames = originalColumnNames;
 			AliasColumnNames = aliasColumnNames;
+		}
+
+		private SubsetNode(ObjectData data)
+			: base(data) {
+			OriginalColumnNames = data.GetValue<ObjectName[]>("OriginalColumns");
+			AliasColumnNames = data.GetValue<ObjectName[]>("AliasColumns");
 		}
 
 		public ObjectName[] OriginalColumnNames { get; private set; }
@@ -43,6 +50,11 @@ namespace Deveel.Data.Sql.Query {
 			}
 
 			AliasColumnNames = aliases;
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("OriginalColumns", OriginalColumnNames);
+			data.SetValue("AliasColumns", AliasColumnNames);
 		}
 	}
 }

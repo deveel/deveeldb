@@ -17,6 +17,7 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -24,6 +25,7 @@ namespace Deveel.Data.Types {
 	/// A data type that represents the <c>NULL</c> value of a given
 	/// SQL data type.
 	/// </summary>
+	[Serializable]
 	public sealed class NullType : SqlType {
 		/// <summary>
 		/// Constructs the type with the given <see cref="SqlTypeCode"/>.
@@ -31,6 +33,10 @@ namespace Deveel.Data.Types {
 		/// <param name="typeCode"></param>
 		public NullType(SqlTypeCode typeCode) 
 			: base("NULL", typeCode) {
+		}
+
+		private NullType(ObjectData data)
+			: base(data) {
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

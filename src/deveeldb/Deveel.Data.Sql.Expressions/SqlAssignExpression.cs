@@ -16,7 +16,10 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlAssignExpression : SqlExpression {
 		internal SqlAssignExpression(SqlExpression reference, SqlExpression valueExpression) {
 			if (reference == null)
@@ -26,6 +29,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 			ValueExpression = valueExpression;
 			ReferenceExpression = reference;
+		}
+
+		private SqlAssignExpression(ObjectData data)
+			: base(data) {
 		}
 
 		public SqlExpression ReferenceExpression { get; private set; }
@@ -38,6 +45,11 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Reference", ReferenceExpression);
+			data.SetValue("Value", ValueExpression);
 		}
 	}
 }

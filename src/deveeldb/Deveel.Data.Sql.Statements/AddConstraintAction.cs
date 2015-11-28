@@ -16,15 +16,21 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class AddConstraintAction : IAlterTableAction, IPreparable {
 		public AddConstraintAction(SqlTableConstraint constraint) {
 			if (constraint == null)
 				throw new ArgumentNullException("constraint");
 
 			Constraint = constraint;
+		}
+
+		private AddConstraintAction(ObjectData data) {
+			Constraint = data.GetValue<SqlTableConstraint>("Constraint");
 		}
 
 		public SqlTableConstraint Constraint { get; private set; }
@@ -36,6 +42,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.AddConstraint; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Constraint", Constraint);
 		}
 	}
 }

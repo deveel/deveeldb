@@ -194,7 +194,8 @@ namespace Deveel.Data.Sql.Views {
 						var blob = (SqlBinary)viewTable.GetValue(row, 3).Value;
 						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 							using (var context = session.CreateQuery()) {
-								viewInfo = ViewInfo.Deserialize(blob.GetInput(), context.Context.TypeResolver());
+
+								viewInfo = ViewInfo.Deserialize(blob.GetInput());
 							}
 						}
 
@@ -253,7 +254,7 @@ namespace Deveel.Data.Sql.Views {
 
 						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 							using (var context = session.CreateQuery()) {
-								viewInfo = ViewInfo.Deserialize(binary.GetInput(), context.Context.TypeResolver());
+								viewInfo = ViewInfo.Deserialize(binary.GetInput());
 							}
 						}
 

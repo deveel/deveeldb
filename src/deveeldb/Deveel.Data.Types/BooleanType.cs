@@ -18,13 +18,19 @@ using System;
 using System.Globalization;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class BooleanType : SqlType {
 		public BooleanType(SqlTypeCode typeCode) 
 			: base("BOOLEAN", typeCode) {
 			AssertIsBoolean(typeCode);
+		}
+
+		private BooleanType(ObjectData data)
+			: base(data) {
 		}
 
 		private static void AssertIsBoolean(SqlTypeCode sqlType) {

@@ -98,6 +98,9 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="System\NonSerializedAttribute.cs" />
     <Compile Include="System\SerializableAttribute.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
@@ -352,7 +355,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionException.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionVisitor.cs" />
@@ -561,7 +563,6 @@
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanner.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryPlanNodeVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReference.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryReferencesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QuerySelectColumns.cs" />
@@ -627,7 +628,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableContainer.cs" />

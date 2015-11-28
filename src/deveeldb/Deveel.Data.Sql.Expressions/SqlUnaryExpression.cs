@@ -16,16 +16,25 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// Handles expressions computed against an unary operator.
 	/// </summary>
+	[Serializable]
 	public sealed class SqlUnaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
 
 		internal SqlUnaryExpression(SqlExpressionType expressionType, SqlExpression operand) {
 			this.expressionType = expressionType;
 			Operand = operand;
+		}
+
+		private SqlUnaryExpression(ObjectData data)
+			: base(data) {
+			Operand = data.GetValue<SqlExpression>("Operand");
+			expressionType = (SqlExpressionType) data.GetInt32("Operator");
 		}
 
 		/// <summary>
@@ -41,6 +50,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <inheritdoc/>
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Operand", Operand);
+			data.SetValue("Operator", (int)expressionType);
 		}
 	}
 }

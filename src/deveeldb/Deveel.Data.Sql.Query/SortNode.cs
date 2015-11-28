@@ -17,9 +17,11 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class SortNode : SingleQueryPlanNode {
 		public SortNode(IQueryPlanNode child, ObjectName[] columnNames, bool[] ascending) 
 			: base(child) {
@@ -51,6 +53,12 @@ namespace Deveel.Data.Sql.Query {
 			Ascending = ascending;
 		}
 
+		private SortNode(ObjectData data)
+			: base(data) {
+			ColumnNames = data.GetValue<ObjectName[]>("Columns");
+			Ascending = data.GetValue<bool[]>("Ascending");
+		}
+
 		public ObjectName[] ColumnNames { get; private set; }
 
 		public bool[] Ascending { get; private set; }
@@ -58,6 +66,11 @@ namespace Deveel.Data.Sql.Query {
 		public override ITable Evaluate(IRequest context) {
 			var t = Child.Evaluate(context);
 			return t.OrderBy(ColumnNames, Ascending);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Columns", ColumnNames);
+			data.SetValue("Ascending", Ascending);
 		}
 	}
 }

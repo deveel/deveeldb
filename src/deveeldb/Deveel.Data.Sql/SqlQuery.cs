@@ -19,8 +19,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql {
-	public sealed class SqlQuery {
+	[Serializable]
+	public sealed class SqlQuery : ISerializable {
 		public SqlQuery(string text) 
 			: this(text, QueryParameterStyle.Default) {
 		}
@@ -31,11 +34,34 @@ namespace Deveel.Data.Sql {
 			Parameters = new QueryParameterCollection(this);
 		}
 
+		private SqlQuery(ObjectData data) {
+			Text = data.GetString("Text");
+			ParameterStyle = (QueryParameterStyle) data.GetInt32("ParameterStyle");
+
+			Parameters = new QueryParameterCollection(this);
+
+			var parameters = data.GetValue<QueryParameter[]>("Parameters");
+			if (parameters != null) {
+				foreach (var parameter in parameters) {
+					Parameters.Add(parameter);
+				}
+			}
+		}
+
 		public string Text { get; private set; }
 
 		public ICollection<QueryParameter> Parameters { get; private set; }
 
 		public QueryParameterStyle ParameterStyle { get; private set; }
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Text", Text);
+			data.SetValue("ParameterStyle", (int)ParameterStyle);
+
+			var parameters = Parameters.ToArray();
+			if (parameters.Length > 0)
+				data.SetValue("Parameters", parameters);
+		}
 
 		internal void ChangeStyle(QueryParameterStyle style) {
 			if (ParameterStyle != QueryParameterStyle.Default)

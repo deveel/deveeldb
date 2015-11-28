@@ -16,16 +16,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertSelectStatement : SqlStatement {
+	public sealed class InsertSelectStatement : SqlPreparableStatement {
 		public InsertSelectStatement(string tableName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			TableName = tableName;
 			ColumnNames = columnNames;
@@ -38,18 +37,35 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
-			
-			throw new NotImplementedException();
+		protected override IPreparedStatement PrepareStatement(IRequest request) {
+			var tableName = request.Query.ResolveTableName(TableName);
+			if (tableName == null)
+				throw new ObjectNotFoundException(ObjectName.Parse(TableName));
+
+			var columns = new string[0];
+			if (ColumnNames != null)
+				columns = ColumnNames.ToArray();
+
+			// TODO: Verify the columns!!!
+
+			var queryPlan = request.Context.QueryPlanner().PlanQuery(new QueryInfo(request, QueryExpression));
+			return new Prepared(tableName, columns, queryPlan);
 		}
 
 		#region PreparedInsertStatement
 
-		internal class Prepared : SqlStatement {
+		[Serializable]
+		class Prepared : SqlPreparedStatement {
 			internal Prepared(ObjectName tableName, string[] columnNames, IQueryPlanNode queryPlan) {
 				TableName = tableName;
 				ColumnNames = columnNames;
 				QueryPlan = queryPlan;
+			}
+
+			private Prepared(ObjectData data) {
+				TableName = data.GetValue<ObjectName>("TableName");
+				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+				ColumnNames = data.GetValue<string[]>("ColumnNames");
 			}
 
 			public ObjectName TableName { get; private set; }
@@ -58,11 +74,13 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string[] ColumnNames { get; private set; }
 
-			protected override bool IsPreparable {
-				get { return false; }
+			protected override void GetData(SerializeData data) {
+				data.SetValue("TableName", TableName);
+				data.SetValue("QueryPlan", QueryPlan);
+				data.SetValue("ColumnNames", ColumnNames);
 			}
 
-			protected override ITable ExecuteStatement(IRequest context) {
+			protected override void ExecuteStatement(ExecutionContext context) {
 				throw new NotImplementedException();
 			}
 		}
@@ -71,40 +89,40 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				ObjectName.Serialize(obj.TableName, writer);
+		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
+		//		ObjectName.Serialize(obj.TableName, writer);
 
-				var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
-				writer.Write(queryPlanTypeName);
+		//		var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
+		//		writer.Write(queryPlanTypeName);
 
-				var colLength = obj.ColumnNames == null ? 0 : obj.ColumnNames.Length;
-				writer.Write(colLength);
+		//		var colLength = obj.ColumnNames == null ? 0 : obj.ColumnNames.Length;
+		//		writer.Write(colLength);
 
-				if (obj.ColumnNames != null) {
-					for (int i = 0; i < colLength; i++) {
-						writer.Write(obj.ColumnNames[i]);
-					}
-				}
-			}
+		//		if (obj.ColumnNames != null) {
+		//			for (int i = 0; i < colLength; i++) {
+		//				writer.Write(obj.ColumnNames[i]);
+		//			}
+		//		}
+		//	}
 
-			public override Prepared Deserialize(BinaryReader reader) {
-				var tableName = ObjectName.Deserialize(reader);
+		//	public override Prepared Deserialize(BinaryReader reader) {
+		//		var tableName = ObjectName.Deserialize(reader);
 
-				var queryPlanTypeName = reader.ReadString();
-				var queryPlanType = Type.GetType(queryPlanTypeName, true);
+		//		var queryPlanTypeName = reader.ReadString();
+		//		var queryPlanType = Type.GetType(queryPlanTypeName, true);
 
-				var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+		//		var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
 
-				var colLength = reader.ReadInt32();
-				var cols = new string[colLength];
-				for (int i = 0; i < colLength; i++) {
-					cols[i] = reader.ReadString();
-				}
+		//		var colLength = reader.ReadInt32();
+		//		var cols = new string[colLength];
+		//		for (int i = 0; i < colLength; i++) {
+		//			cols[i] = reader.ReadString();
+		//		}
 
-				return new Prepared(tableName, cols, queryPlan);
-			}
-		}
+		//		return new Prepared(tableName, cols, queryPlan);
+		//	}
+		//}
 
 		#endregion
 	}

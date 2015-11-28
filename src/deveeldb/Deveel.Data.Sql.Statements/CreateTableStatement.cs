@@ -16,20 +16,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// The statement object used to create a table in a database.
 	/// </summary>
-	public sealed class CreateTableStatement : SqlStatement {
+	public sealed class CreateTableStatement : SqlPreparableStatement {
 		/// <summary>
 		/// 
 		/// </summary>
@@ -53,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new Prepared(tableInfo, IfNotExists, Temporary);
@@ -100,7 +97,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		internal class Prepared : SqlStatement {
+		[Serializable]
+		internal class Prepared : SqlPreparedStatement {
+			private Prepared(ObjectData data) {
+				TableInfo = data.GetValue<TableInfo>("TableInfo");
+				Temporary = data.GetBoolean("Temporary");
+				IfNotExists = data.GetBoolean("IfNotExists");
+			}
+
 			public TableInfo TableInfo { get; private set; }
 
 			public bool Temporary { get; private set; }
@@ -113,18 +117,18 @@ namespace Deveel.Data.Sql.Statements {
 				Temporary = temporary;
 			}
 
-			protected override bool IsPreparable {
-				get { return false; }
-			}
-
-			protected override ITable ExecuteStatement(IRequest context) {
+			protected override void ExecuteStatement(ExecutionContext context) {
 				try {
-					context.Query.CreateTable(TableInfo, IfNotExists, Temporary);
-
-					return FunctionTable.ResultTable(context, 0);
+					context.Request.Query.CreateTable(TableInfo, IfNotExists, Temporary);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}
+			}
+
+			protected override void GetData(SerializeData data) {
+				data.SetValue("TableInfo", typeof(TableInfo), TableInfo);
+				data.SetValue("Temporary", Temporary);
+				data.SetValue("IfNotExists", IfNotExists);
 			}
 		}
 
@@ -161,22 +165,22 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				TableInfo.Serialize(obj.TableInfo, writer);
-				writer.Write(obj.Temporary);
-				writer.Write(obj.IfNotExists);
-			}
+		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
+		//		TableInfo.Serialize(obj.TableInfo, writer);
+		//		writer.Write(obj.Temporary);
+		//		writer.Write(obj.IfNotExists);
+		//	}
 
-			public override Prepared Deserialize(BinaryReader reader) {
-				// TODO: Type Resolver!!!
-				var tableInfo = TableInfo.Deserialize(reader, null);
-				var temporary = reader.ReadBoolean();
-				var ifNotExists = reader.ReadBoolean();
+		//	public override Prepared Deserialize(BinaryReader reader) {
+		//		// TODO: Type Resolver!!!
+		//		var tableInfo = TableInfo.Deserialize(reader, null);
+		//		var temporary = reader.ReadBoolean();
+		//		var ifNotExists = reader.ReadBoolean();
 
-				return new Prepared(tableInfo, ifNotExists, temporary);
-			}
-		}
+		//		return new Prepared(tableInfo, ifNotExists, temporary);
+		//	}
+		//}
 
 		#endregion
 	}

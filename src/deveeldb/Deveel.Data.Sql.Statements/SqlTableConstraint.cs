@@ -17,11 +17,13 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SqlTableConstraint : IPreparable {
+	[Serializable]
+	public sealed class SqlTableConstraint : IPreparable, ISerializable {
 		public SqlTableConstraint(ConstraintType constraintType, string[] columns) 
 			: this(null, constraintType, columns) {
 		}
@@ -30,6 +32,17 @@ namespace Deveel.Data.Sql.Statements {
 			ConstraintName = constraintName;
 			ConstraintType = constraintType;
 			Columns = columns;
+		}
+
+		private SqlTableConstraint(ObjectData data) {
+			ConstraintName = data.GetString("Name");
+			ConstraintType = (ConstraintType) data.GetInt32("Type");
+			Columns = data.GetValue<string[]>("Columns");
+			CheckExpression = data.GetValue<SqlExpression>("Check");
+			ReferenceTable = data.GetString("ReferenceTable");
+			ReferenceColumns = data.GetValue<string[]>("ReferenceColumns");
+			OnDelete = (ForeignKeyAction) data.GetInt32("OnDelete");
+			OnUpdate = (ForeignKeyAction) data.GetInt32("OnUpdate");
 		}
 
 		public string ConstraintName { get; private set; }
@@ -90,6 +103,17 @@ namespace Deveel.Data.Sql.Statements {
 
 		public static SqlTableConstraint Deserialize(BinaryReader reader) {
 			throw new NotImplementedException();
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Name", ConstraintName);
+			data.SetValue("Type", (int)ConstraintType);
+			data.SetValue("Columns", Columns);
+			data.SetValue("ReferenceTable", ReferenceTable);
+			data.SetValue("ReferenceColumns", ReferenceColumns);
+			data.SetValue("Check", CheckExpression);
+			data.SetValue("OnDelete", (int)OnDelete);
+			data.SetValue("OnUpdate", (int)OnUpdate);
 		}
 	}
 }

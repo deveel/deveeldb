@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Statements {
-	public interface IAlterTableAction {
+	public interface IAlterTableAction : ISerializable {
 		AlterTableActionType ActionType { get; }
 	}
 }

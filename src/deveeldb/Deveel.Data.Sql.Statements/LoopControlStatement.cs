@@ -21,7 +21,8 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class LoopControlStatement : SqlStatement {
+	[Serializable]
+	public sealed class LoopControlStatement : SqlPreparedStatement, IPreparable {
 		public LoopControlStatement(LoopControlType controlType) 
 			: this(controlType, (SqlExpression) null) {
 		}
@@ -40,17 +41,19 @@ namespace Deveel.Data.Sql.Statements {
 			ControlType = controlType;
 		}
 
+		private LoopControlStatement(ObjectData data) {
+			Label = data.GetString("ControlType");
+			ControlType = (LoopControlType) data.GetInt32("ControlType");
+			WhenExpression = data.GetValue<SqlExpression>("WhenExpression");
+		}
+
 		public LoopControlType ControlType { get; private set; }
 
 		public string Label { get; set; }
 
 		public SqlExpression WhenExpression { get; set; }
 
-		protected override bool IsPreparable {
-			get { return true; }
-		}
-
-		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			var label = Label;
 			var whenExp = WhenExpression;
 			if (whenExp != null)
@@ -59,32 +62,42 @@ namespace Deveel.Data.Sql.Statements {
 			return new LoopControlStatement(ControlType, label, whenExp);
 		}
 
+		protected override void ExecuteStatement(ExecutionContext context) {
+			throw new NotImplementedException();
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Label", Label);
+			data.SetValue("WhenExpression", WhenExpression);
+			data.SetValue("ControlType", (int)ControlType);
+		}
+
 		#region Serializer
 
-		internal class Serializer : ObjectBinarySerializer<LoopControlStatement> {
-			public override void Serialize(LoopControlStatement obj, BinaryWriter writer) {
-				writer.Write((byte)obj.ControlType);
-				writer.Write(obj.Label);
+		//internal class Serializer : ObjectBinarySerializer<LoopControlStatement> {
+		//	public override void Serialize(LoopControlStatement obj, BinaryWriter writer) {
+		//		writer.Write((byte)obj.ControlType);
+		//		writer.Write(obj.Label);
 
-				if (obj.WhenExpression != null) {
-					writer.Write(true);
-					SqlExpression.Serialize(obj.WhenExpression, writer);
-				} else {
-					writer.Write(false);
-				}
-			}
+		//		if (obj.WhenExpression != null) {
+		//			writer.Write(true);
+		//			SqlExpression.Serialize(obj.WhenExpression, writer);
+		//		} else {
+		//			writer.Write(false);
+		//		}
+		//	}
 
-			public override LoopControlStatement Deserialize(BinaryReader reader) {
-				var controlType = (LoopControlType) reader.ReadByte();
-				var label = reader.ReadString();
-				SqlExpression whenExp = null;
-				var hasExp = reader.ReadBoolean();
-				if (hasExp)
-					whenExp = SqlExpression.Deserialize(reader);
+		//	public override LoopControlStatement Deserialize(BinaryReader reader) {
+		//		var controlType = (LoopControlType) reader.ReadByte();
+		//		var label = reader.ReadString();
+		//		SqlExpression whenExp = null;
+		//		var hasExp = reader.ReadBoolean();
+		//		if (hasExp)
+		//			whenExp = SqlExpression.Deserialize(reader);
 
-				return new LoopControlStatement(controlType, label, whenExp);
-			}
-		}
+		//		return new LoopControlStatement(controlType, label, whenExp);
+		//	}
+		//}
 
 		#endregion
 	}

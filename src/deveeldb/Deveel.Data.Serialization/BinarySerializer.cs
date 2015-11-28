@@ -19,9 +19,8 @@ namespace Deveel.Data.Serialization {
 			if (!stream.CanRead)
 				throw new ArgumentException("The input stream cannot be read.", "stream");
 
-			using (var reader = new BinaryReader(stream, Encoding)) {
-				return Deserialize(reader, graphType);
-			}
+			var reader = new BinaryReader(stream, Encoding);
+			return Deserialize(reader, graphType);
 		}
 
 		public object Deserialize(BinaryReader reader, Type graphType) {
@@ -122,22 +121,26 @@ namespace Deveel.Data.Serialization {
 			if (nullCheck)
 				return null;
 
-			if (typeCode == (byte) TypeCode.Boolean)
+			if (typeCode == BooleanType)
 				return reader.ReadBoolean();
-			if (typeCode == (byte) TypeCode.Byte)
+			if (typeCode == ByteType)
 				return reader.ReadByte();
-			if (typeCode == (byte) TypeCode.Int16)
+			if (typeCode == Int16Type)
 				return reader.ReadInt16();
-			if (typeCode == (byte)TypeCode.Int32)
+			if (typeCode == Int32Type)
 				return reader.ReadInt32();
-			if (typeCode == (byte) TypeCode.Single)
+			if (typeCode == Int64Type)
+				return reader.ReadInt64();
+			if (typeCode == SingleType)
 				return reader.ReadSingle();
-			if (typeCode == (byte) TypeCode.Double)
+			if (typeCode == DoubleType)
 				return reader.ReadDouble();
-			if (typeCode == (byte) TypeCode.String)
+			if (typeCode == StringType)
 				return reader.ReadString();
-			if (typeCode == (byte) TypeCode.Object)
+			if (typeCode == ObjectType)
 				return ReadObject(reader, encoding);
+			if (typeCode == ArrayType)
+				return ReadArray(reader, encoding);
 
 			throw new NotSupportedException("Invalid type code in serialization graph");
 		}
@@ -148,23 +151,23 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private static object ReadObject(BinaryReader reader, Encoding encoding) {
-			var objTypeCode = reader.ReadByte();
 			var objType = ReadType(reader);
-			if (objTypeCode == 2) {
-				var arrayLength = reader.ReadInt32();
-				var array = Array.CreateInstance(objType, arrayLength);
-				for (int i = 0; i < arrayLength; i++) {
-					array.SetValue(ReadValue(reader, encoding), i);
-				}
-
-				return array;
-			}
-
 			var serializer = new BinarySerializer {
 				Encoding = encoding
 			};
 
 			return serializer.Deserialize(reader, objType);
+		}
+
+		private static Array ReadArray(BinaryReader reader, Encoding encoding) {
+			var objType = ReadType(reader);
+			var arrayLength = reader.ReadInt32();
+			var array = Array.CreateInstance(objType, arrayLength);
+			for (int i = 0; i < arrayLength; i++) {
+				array.SetValue(ReadValue(reader, encoding), i);
+			}
+
+			return array;
 		}
 
 		private ConstructorInfo GetSpecialConstructor(Type type) {
@@ -185,9 +188,8 @@ namespace Deveel.Data.Serialization {
 			if (!stream.CanWrite)
 				throw new ArgumentException("The serialization stream is not writeable.");
 
-			using (var writer = new BinaryWriter(stream, Encoding)) {
-				Serialize(writer, obj);
-			}
+			var writer = new BinaryWriter(stream, Encoding);
+			Serialize(writer, obj);
 		}
 
 		public void Serialize(BinaryWriter writer, object obj) {
@@ -258,90 +260,96 @@ namespace Deveel.Data.Serialization {
 			}
 		}
 
-		private static TypeCode GetTypeCode(Type type) {
-			if (type.IsPrimitive) {
-				if (type == typeof(ushort) ||
-					type == typeof(uint) ||
-					type == typeof(ulong) ||
-					type == typeof(sbyte))
-					return TypeCode.Empty;
+		private const byte BooleanType = 1;
+		private const byte ByteType = 2;
+		private const byte Int16Type = 3;
+		private const byte Int32Type = 4;
+		private const byte Int64Type = 5;
+		private const byte SingleType = 6;
+		private const byte DoubleType = 7;
+		private const byte StringType = 8;
+		private const byte ObjectType = 15;
+		private const byte ArrayType = 20;
 
+		private static byte? GetTypeCode(Type type) {
+			if (type.IsArray)
+				return ArrayType;
+
+			if (type.IsPrimitive) {
 				if (type == typeof(bool))
-					return TypeCode.Boolean;
+					return BooleanType;
 				if (type == typeof(byte))
-					return TypeCode.Byte;
+					return ByteType;
 				if (type == typeof(short))
-					return TypeCode.Int16;
+					return Int16Type;
 				if (type == typeof(int))
-					return TypeCode.Int32;
+					return Int32Type;
 				if (type == typeof(long))
-					return TypeCode.Int64;
+					return Int64Type;
 				if (type == typeof(float))
-					return TypeCode.Single;
+					return SingleType;
 				if (type == typeof(double))
-					return TypeCode.Double;
+					return DoubleType;
 			}
 
-			if (type == typeof(string))
-				return TypeCode.String;
+			if (type == typeof (string))
+				return StringType;
 
-			if (!Attribute.IsDefined(type, typeof(SerializableAttribute)))
-				return TypeCode.Empty;
+			if (Attribute.IsDefined(type, typeof(SerializableAttribute)))
+				return ObjectType;
 
-			return TypeCode.Object;
+			return null;
 		}
 
 		private static void SerializeValue(BinaryWriter writer, Encoding encoding, Type type, object value) {
 			var typeCode = GetTypeCode(type);
-			if (typeCode == TypeCode.Empty)
+			if (typeCode == null)
 				throw new NotSupportedException(String.Format("The type '{0}' is not supported.", type));
 
 			var nullCheck = value == null;
 
-			writer.Write((byte)typeCode);
+			writer.Write(typeCode.Value);
 			writer.Write(nullCheck);
 
 			if (value == null)
 				return;
 
-			if (typeCode == TypeCode.Object) {
-				var typeString = type.FullName;
+			if (typeCode == ArrayType) {
+				var typeString = type.GetElementType().FullName;
 				writer.Write(typeString);
 
-				if (type.IsArray) {
-					writer.Write((byte) 2);
+				var array = (Array) value;
+				var arrayLength = array.Length;
+				var arrayType = type.GetElementType();
 
-					var array = (Array) value;
-					var arrayLength = array.Length;
-					var arrayType = type.GetElementType();
+				writer.Write(arrayLength);
 
-					writer.Write(arrayLength);
-
-					for (int i = 0; i < arrayLength; i++) {
-						var element = array.GetValue(i);
-						SerializeValue(writer, encoding, arrayType, element);
-					}
-				} else {
-					writer.Write((byte) 1);
-					var serializer = new BinarySerializer {Encoding = encoding};
-					serializer.Serialize(writer, value);
+				for (int i = 0; i < arrayLength; i++) {
+					var element = array.GetValue(i);
+					SerializeValue(writer, encoding, arrayType, element);
 				}
-			} else if (typeCode == TypeCode.Boolean) {
-				writer.Write((bool)value);
-			} else if (typeCode == TypeCode.Byte) {
-				writer.Write((byte)value);
-			} else if (typeCode == TypeCode.Int16) {
-				writer.Write((short)value);
-			} else if (typeCode == TypeCode.Int32) {
-				writer.Write((int)value);
-			} else if (typeCode == TypeCode.Int64) {
-				writer.Write((long)value);
-			} else if (typeCode == TypeCode.Single) {
-				writer.Write((float)value);
-			} else if (typeCode == TypeCode.Double) {
-				writer.Write((double)value);
-			} else if (typeCode == TypeCode.String) {
-				writer.Write((string)value);
+			} else if (typeCode == ObjectType) {
+				var realType = value.GetType();
+				writer.Write(realType.FullName);
+
+				var serializer = new BinarySerializer {Encoding = encoding};
+				serializer.Serialize(writer, value);
+			} else if (typeCode == BooleanType) {
+				writer.Write((bool) value);
+			} else if (typeCode == ByteType) {
+				writer.Write((byte) value);
+			} else if (typeCode == Int16Type) {
+				writer.Write((short) value);
+			} else if (typeCode == Int32Type) {
+				writer.Write((int) value);
+			} else if (typeCode == Int64Type) {
+				writer.Write((long) value);
+			} else if (typeCode == SingleType) {
+				writer.Write((float) value);
+			} else if (typeCode == DoubleType) {
+				writer.Write((double) value);
+			} else if (typeCode == StringType) {
+				writer.Write((string) value);
 			}
 		}
 	}

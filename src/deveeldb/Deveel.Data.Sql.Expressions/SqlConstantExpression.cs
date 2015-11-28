@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -28,9 +29,15 @@ namespace Deveel.Data.Sql.Expressions {
 	/// return <c>false</c> and the value of <see cref="SqlExpression.Evaluate(EvaluateContext)"/>
 	/// will return the expression itself.
 	/// </remarks>
+	[Serializable]
 	public sealed class SqlConstantExpression : SqlExpression {
 		internal SqlConstantExpression(DataObject value) {
 			Value = value;
+		}
+
+		private SqlConstantExpression(ObjectData data)
+			: base(data) {
+			Value = data.GetValue<DataObject>("Value");
 		}
 
 		/// <summary>
@@ -54,5 +61,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Gets the constant value of the expression.
 		/// </summary>
 		public DataObject Value { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Value", typeof(DataObject), Value);
+		}
 	}
 }

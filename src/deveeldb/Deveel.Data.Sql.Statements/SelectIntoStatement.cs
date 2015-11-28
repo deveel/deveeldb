@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectIntoStatement : SqlStatement {
+	public sealed class SelectIntoStatement : SqlPreparableStatement {
 		public SelectIntoStatement(SqlQueryExpression queryExpression, SqlExpression reference) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override SqlStatement PrepareStatement(IRequest context) {
+		protected override IPreparedStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
 
 			if (IsObjectReference) {
@@ -65,7 +65,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region Prepared
 
-		internal class Prepared : SqlStatement {
+		[Serializable]
+		class Prepared : SqlPreparedStatement {
 			internal Prepared(IQueryPlanNode queryPlan, ObjectName table)
 				: this(queryPlan) {
 				IsForTable = true;
@@ -82,6 +83,13 @@ namespace Deveel.Data.Sql.Statements {
 				QueryPlan = queryPlan;
 			}
 
+			private Prepared(ObjectData data) {
+				IsForTable = data.GetBoolean("IsForTable");
+				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+				Table = data.GetValue<ObjectName>("Table");
+				VariableName = data.GetString("VariableName");
+			}
+
 			public bool IsForTable { get; private set; }
 
 			public IQueryPlanNode QueryPlan { get; private set; }
@@ -90,20 +98,22 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string VariableName { get; private set; }
 
-			protected override bool IsPreparable {
-				get { return false; }
+			protected override void GetData(SerializeData data) {
+				data.SetValue("IsForTable", IsForTable);
+				data.SetValue("QueryPlan", QueryPlan);
+				data.SetValue("Table", Table);
+				data.SetValue("VariableName", VariableName);
 			}
 
-			protected override ITable ExecuteStatement(IRequest context) {
-				var result = QueryPlan.Evaluate(context);
+			protected override void ExecuteStatement(ExecutionContext context) {
+				var result = QueryPlan.Evaluate(context.Request);
 
 				if (IsForTable) {
-					var table = context.Query.GetMutableTable(Table);
+					var table = context.Request.Query.GetMutableTable(Table);
 					if (table == null)
 						throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", Table));
 
 					SelectIntoTable(table, result);
-					return FunctionTable.ResultTable(context, 0);
 				}
 
 				// TODO: get the variable from ref and check if the result is compatible and set it
@@ -147,50 +157,50 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region PreparedSerializer
 
-		internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-			public override void Serialize(Prepared obj, BinaryWriter writer) {
-				if (obj.IsForTable) {
-					writer.Write((byte)1);
-					ObjectName.Serialize(obj.Table, writer);
-				} else {
-					writer.Write((byte)2);
-					writer.Write(obj.VariableName);
-				}
+		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
+		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
+		//		if (obj.IsForTable) {
+		//			writer.Write((byte)1);
+		//			ObjectName.Serialize(obj.Table, writer);
+		//		} else {
+		//			writer.Write((byte)2);
+		//			writer.Write(obj.VariableName);
+		//		}
 
-				var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
-				writer.Write(queryPlanTypeName);
+		//		var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
+		//		writer.Write(queryPlanTypeName);
 
-				QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
-			}
+		//		QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
+		//	}
 
-			public override Prepared Deserialize(BinaryReader reader) {
-				var intoType = reader.ReadByte();
+		//	public override Prepared Deserialize(BinaryReader reader) {
+		//		var intoType = reader.ReadByte();
 
-				ObjectName tableName = null;
-				string variableName = null;
+		//		ObjectName tableName = null;
+		//		string variableName = null;
 
-				if (intoType == 1) {
-					tableName = ObjectName.Deserialize(reader);
-				} else if (intoType == 2) {
-					variableName = reader.ReadString();
-				} else {
-					throw new NotSupportedException();
-				}
+		//		if (intoType == 1) {
+		//			tableName = ObjectName.Deserialize(reader);
+		//		} else if (intoType == 2) {
+		//			variableName = reader.ReadString();
+		//		} else {
+		//			throw new NotSupportedException();
+		//		}
 
-				var queryPlanTypeName = reader.ReadString();
-				var queryPlanType = Type.GetType(queryPlanTypeName, true);
+		//		var queryPlanTypeName = reader.ReadString();
+		//		var queryPlanType = Type.GetType(queryPlanTypeName, true);
 
-				var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
+		//		var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
 
-				if (intoType == 1)
-					return new Prepared(queryPlan, tableName);
+		//		if (intoType == 1)
+		//			return new Prepared(queryPlan, tableName);
 
-				if (intoType == 2)
-					return new Prepared(queryPlan, variableName);
+		//		if (intoType == 2)
+		//			return new Prepared(queryPlan, variableName);
 
-				throw new NotSupportedException();
-			}
-		}
+		//		throw new NotSupportedException();
+		//	}
+		//}
 
 		#endregion
 	}

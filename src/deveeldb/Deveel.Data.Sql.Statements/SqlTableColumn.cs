@@ -17,11 +17,13 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SqlTableColumn : IPreparable {
+	[Serializable]
+	public sealed class SqlTableColumn : IPreparable, ISerializable {
 		public SqlTableColumn(string columnName, SqlType columnType) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
@@ -30,6 +32,14 @@ namespace Deveel.Data.Sql.Statements {
 			
 			ColumnName = columnName;
 			ColumnType = columnType;
+		}
+
+		private SqlTableColumn(ObjectData data) {
+			ColumnName = data.GetString("ColumnName");
+			ColumnType = data.GetValue<SqlType>("ColumnType");
+			IsIdentity = data.GetBoolean("IsIdentity");
+			IsNotNull = data.GetBoolean("IsNotNull");
+			DefaultExpression = data.GetValue<SqlExpression>("Default");
 		}
 
 		public string ColumnName { get; private set; }
@@ -55,26 +65,34 @@ namespace Deveel.Data.Sql.Statements {
 			return column;
 		}
 
-		public static SqlTableColumn Deserialize(BinaryReader reader) {
-			// TODO: Type resolver!!
-			var columnName = reader.ReadString();
-			var columnType = TypeSerializer.Deserialize(reader, null);
-			var notNull = reader.ReadBoolean();
-			var identity = reader.ReadBoolean();
-			var defaultExpression = SqlExpression.Deserialize(reader);
-			return new SqlTableColumn(columnName, columnType) {
-				IsNotNull = notNull,
-				IsIdentity = identity,
-				DefaultExpression = defaultExpression
-			};
-		}
+		//public static SqlTableColumn Deserialize(BinaryReader reader) {
+		//	// TODO: Type resolver!!
+		//	var columnName = reader.ReadString();
+		//	var columnType = TypeSerializer.Deserialize(reader, null);
+		//	var notNull = reader.ReadBoolean();
+		//	var identity = reader.ReadBoolean();
+		//	var defaultExpression = SqlExpression.Deserialize(reader);
+		//	return new SqlTableColumn(columnName, columnType) {
+		//		IsNotNull = notNull,
+		//		IsIdentity = identity,
+		//		DefaultExpression = defaultExpression
+		//	};
+		//}
 
-		public static void Serialize(SqlTableColumn column, BinaryWriter writer) {
-			writer.Write(column.ColumnName);
-			TypeSerializer.SerializeTo(writer, column.ColumnType);
-			writer.Write(column.IsNotNull);
-			writer.Write(column.IsIdentity);
-			SqlExpression.Serialize(column.DefaultExpression, writer);
+		//public static void Serialize(SqlTableColumn column, BinaryWriter writer) {
+		//	writer.Write(column.ColumnName);
+		//	TypeSerializer.SerializeTo(writer, column.ColumnType);
+		//	writer.Write(column.IsNotNull);
+		//	writer.Write(column.IsIdentity);
+		//	SqlExpression.Serialize(column.DefaultExpression, writer);
+		//}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("ColumnName", ColumnName);
+			data.SetValue("ColumnType", ColumnType);
+			data.SetValue("IsNotNull", IsNotNull);
+			data.SetValue("IsIdentity", IsIdentity);
+			data.SetValue("Default", DefaultExpression);
 		}
 	}
 }

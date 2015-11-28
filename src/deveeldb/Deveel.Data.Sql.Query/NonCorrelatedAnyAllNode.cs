@@ -17,15 +17,23 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class NonCorrelatedAnyAllNode : BranchQueryPlanNode {
 		public NonCorrelatedAnyAllNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumnNames, SqlExpressionType subQueryType) 
 			: base(left, right) {
 			LeftColumnNames = leftColumnNames;
 			SubQueryType = subQueryType;
+		}
+
+		private NonCorrelatedAnyAllNode(ObjectData data)
+			: base(data) {
+			LeftColumnNames = data.GetValue<ObjectName[]>("LeftColumns");
+			SubQueryType = (SqlExpressionType) data.GetInt32("SubQueryType");
 		}
 
 		public ObjectName[] LeftColumnNames { get; private set; }
@@ -41,6 +49,11 @@ namespace Deveel.Data.Sql.Query {
 			// Solve the sub query on the left columns with the right plan and the
 			// given operator.
 			return leftResult.SelectAnyAllNonCorrelated(LeftColumnNames, SubQueryType, rightResult);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("LeftColumns", LeftColumnNames);
+			data.SetValue("SubQueryType", (int)SubQueryType);
 		}
 	}
 }

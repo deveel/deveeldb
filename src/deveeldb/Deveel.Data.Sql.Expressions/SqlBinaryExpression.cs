@@ -16,7 +16,10 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlBinaryExpression : SqlExpression {
 		private readonly SqlExpressionType expressionType;
 
@@ -32,6 +35,13 @@ namespace Deveel.Data.Sql.Expressions {
 			Right = right;
 		}
 
+		private SqlBinaryExpression(ObjectData data)
+			: base(data) {
+			Left = data.GetValue<SqlExpression>("Left");
+			Right = data.GetValue<SqlExpression>("Right");
+			expressionType = (SqlExpressionType) data.GetInt32("ExpressionType");
+		}
+
 		public SqlExpression Left { get; private set; }
 
 		public SqlExpression Right { get; private set; }
@@ -42,6 +52,12 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override SqlExpressionType ExpressionType {
 			get { return expressionType; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Left", Left);
+			data.SetValue("Right", Right);
+			data.SetValue("ExpressionType", (int)expressionType);
 		}
 	}
 }

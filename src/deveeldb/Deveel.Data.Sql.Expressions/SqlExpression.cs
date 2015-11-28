@@ -18,7 +18,7 @@ using System;
 using System.IO;
 using System.Text;
 
-using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Types;
 
@@ -31,7 +31,8 @@ namespace Deveel.Data.Sql.Expressions {
 	/// internal to the project, that means it will be possible to construct expressions
 	/// only through this class, calling factory methods (for example <see cref="Binary"/>).
 	/// </remarks>
-	public abstract class SqlExpression {
+	[Serializable]
+	public abstract class SqlExpression : ISerializable {
 		private int precedence;
 
 		/// <summary>
@@ -39,6 +40,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// to be allowed to inherit this class.
 		/// </summary>
 		internal SqlExpression() {
+		}
+
+		internal SqlExpression(ObjectData data) {
 		}
 
 		/// <summary>
@@ -132,6 +136,13 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public virtual SqlExpression Accept(SqlExpressionVisitor visitor) {
 			return visitor.Visit(this);
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			GetData(data);
+		}
+
+		protected virtual void GetData(SerializeData data) {
 		}
 
 		/// <summary>
@@ -553,52 +564,14 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#endregion
 
-		public static void Serialize(SqlExpression expression, Stream stream) {
-			Serialize(expression, stream, Encoding.Unicode);
+		internal static void Serialize(SqlExpression expression, BinaryWriter writer) {
+			var serializer = new BinarySerializer();
+			serializer.Serialize(writer, expression);
 		}
 
-		public static void Serialize(SqlExpression expression, Stream stream, Encoding encoding) {
-			var writer = new BinaryWriter(stream, encoding);
-			Serialize(expression, writer);
-		}
-
-		public static SqlExpression Deserialize(Stream stream) {
-			return Deserialize(stream, Encoding.Unicode);
-		}
-
-		public static SqlExpression Deserialize(Stream stream, Encoding encoding) {
-			var reader = new BinaryReader(stream, encoding);
-			return Deserialize(reader);
-		}
-
-		public static void Serialize(SqlExpression expression, BinaryWriter writer) {
-			SqlExpressionSerializers.Serialize(expression, writer);
-		}
-
-		public static SqlExpression Deserialize(BinaryReader reader) {
-			return SqlExpressionSerializers.Deserialize(reader);
-		}
-
-		public static byte[] Serialize(SqlExpression[] expressions) {
-			using (var stream = new MemoryStream()) {
-				Serialize(expressions, stream);
-				return stream.ToArray();
-			}
-		}
-
-		public static void Serialize(SqlExpression[] expressions, Stream stream) {
-			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-				Serialize(expressions, writer);
-			}
-		}
-
-		public static void Serialize(SqlExpression[] expressions, BinaryWriter writer) {
-			int argc = expressions == null ? 0 : expressions.Length;
-			if (expressions != null) {
-				for (int i = 0; i < argc; i++) {
-					Serialize(expressions[i], writer);
-				}
-			}
+		internal static SqlExpression Deserialize(BinaryReader reader) {
+			var serializer = new BinarySerializer();
+			return (SqlExpression) serializer.Deserialize(reader, typeof(SqlExpression));
 		}
 	}
 }

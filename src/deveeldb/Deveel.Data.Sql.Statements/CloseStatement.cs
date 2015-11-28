@@ -15,15 +15,13 @@
 //
 
 using System;
-using System.IO;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CloseStatement : SqlStatement {
+	[Serializable]
+	public sealed class CloseStatement : SqlPreparedStatement {
 		public CloseStatement(string cursorName) {
 			if (String.IsNullOrEmpty(cursorName))
 				throw new ArgumentNullException("cursorName");
@@ -31,29 +29,32 @@ namespace Deveel.Data.Sql.Statements {
 			CursorName = cursorName;
 		}
 
-		public string CursorName { get; private set; }
-
-		protected override bool IsPreparable {
-			get { return false; }
+		private CloseStatement(ObjectData data) {
+			CursorName = data.GetString("CursorName");
 		}
 
-		protected override ITable ExecuteStatement(IRequest context) {
-			context.Query.CloseCursor(CursorName);
-			return FunctionTable.ResultTable(context, 0);
+		public string CursorName { get; private set; }
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			context.Request.Query.CloseCursor(CursorName);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("CursorName", CursorName);
 		}
 
 		#region Serializer
 
-		internal class Serializer : ObjectBinarySerializer<CloseStatement> {
-			public override void Serialize(CloseStatement obj, BinaryWriter writer) {
-				writer.Write(obj.CursorName);
-			}
+		//internal class Serializer : ObjectBinarySerializer<CloseStatement> {
+		//	public override void Serialize(CloseStatement obj, BinaryWriter writer) {
+		//		writer.Write(obj.CursorName);
+		//	}
 
-			public override CloseStatement Deserialize(BinaryReader reader) {
-				var cursorName = reader.ReadString();
-				return new CloseStatement(cursorName);
-			}
-		}
+		//	public override CloseStatement Deserialize(BinaryReader reader) {
+		//		var cursorName = reader.ReadString();
+		//		return new CloseStatement(cursorName);
+		//	}
+		//}
 
 		#endregion
 	}

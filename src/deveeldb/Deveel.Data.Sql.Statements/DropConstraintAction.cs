@@ -16,10 +16,11 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropConstraintAction : IAlterTableAction {
+	[Serializable]
+	public sealed class DropConstraintAction : IAlterTableAction, ISerializable {
 		public DropConstraintAction(string constraintName) {
 			if (String.IsNullOrEmpty(constraintName))
 				throw new ArgumentNullException("constraintName");
@@ -27,10 +28,18 @@ namespace Deveel.Data.Sql.Statements {
 			ConstraintName = constraintName;
 		}
 
+		private DropConstraintAction(ObjectData data) {
+			ConstraintName = data.GetString("Constraint");
+		}
+
 		public string ConstraintName { get; private set; }
 
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropConstraint; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Constraint", ConstraintName);
 		}
 	}
 }

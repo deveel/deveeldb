@@ -16,12 +16,23 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class SingleRowTableNode : IQueryPlanNode {
+		private SingleRowTableNode(ObjectData data) {
+		}
+
+		public SingleRowTableNode() {
+		}
+
 		public ITable Evaluate(IRequest context) {
 			return context.Query.Session.Transaction.Database.SingleRowTable;
+		}
+
+		void ISerializable.GetData(SerializeData data) {
 		}
 	}
 }

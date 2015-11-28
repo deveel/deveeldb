@@ -16,11 +16,12 @@
 
 using System;
 
-using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
+	[Serializable]
 	class GroupNode : SingleQueryPlanNode {
 		public GroupNode(IQueryPlanNode child, ObjectName groupMaxColumn, SqlExpression[] functions, string[] names) 
 			: this(child, new ObjectName[0], groupMaxColumn, functions, names) {
@@ -33,6 +34,14 @@ namespace Deveel.Data.Sql.Query {
 			Names = names;
 		}
 
+		private GroupNode(ObjectData data)
+			: base(data) {
+			ColumnNames = data.GetValue<ObjectName[]>("Columns");
+			GroupMaxColumn = data.GetValue<ObjectName>("GroupMax");
+			Functions = data.GetValue<SqlExpression[]>("Functions");
+			Names = data.GetValue<string[]>("Names");
+		}
+
 		public ObjectName[] ColumnNames { get; private set; }
 
 		public ObjectName GroupMaxColumn { get; private set; }
@@ -40,6 +49,13 @@ namespace Deveel.Data.Sql.Query {
 		public SqlExpression[] Functions { get; private set; }
 
 		public string[] Names { get; private set; }
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Columns", ColumnNames);
+			data.SetValue("GroupMax", GroupMaxColumn);
+			data.SetValue("Functions", Functions);
+			data.SetValue("Names", Names);
+		}
 
 		public override ITable Evaluate(IRequest context) {
 			var childTable = Child.Evaluate(context);

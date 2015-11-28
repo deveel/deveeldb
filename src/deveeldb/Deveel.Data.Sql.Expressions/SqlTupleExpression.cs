@@ -16,16 +16,28 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlTupleExpression : SqlExpression {
 		internal SqlTupleExpression(SqlExpression[] expressions) {
 			Expressions = expressions;
+		}
+
+		private SqlTupleExpression(ObjectData data)
+			: base(data) {
+			Expressions = data.GetValue<SqlExpression[]>("Expressions");
 		}
 
 		public SqlExpression[] Expressions { get; private set; }
 
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Tuple; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Expressions", Expressions);
 		}
 	}
 }

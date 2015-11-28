@@ -16,18 +16,28 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	class QueryReferenceExpression : SqlExpression {
 		public QueryReferenceExpression(QueryReference reference) {
 			QueryReference = reference;
+		}
+
+		private QueryReferenceExpression(ObjectData data) {
+			QueryReference = data.GetValue<QueryReference>("Reference");
 		}
 
 		public QueryReference QueryReference { get; private set; }
 
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.Reference; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Reference", QueryReference);
 		}
 	}
 }

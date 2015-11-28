@@ -16,10 +16,21 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DropPrimaryKeyAction : IAlterTableAction {
+		public DropPrimaryKeyAction() {
+		}
+
+		private DropPrimaryKeyAction(ObjectData data) {
+		}
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropPrimaryKey; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
 		}
 	}
 }

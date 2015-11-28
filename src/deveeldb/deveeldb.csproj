@@ -147,7 +147,10 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
@@ -327,7 +330,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RaiseStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
@@ -468,7 +470,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
@@ -510,7 +511,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\UpdateColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\UpdateStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ValuesInsertNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\QueryPlanSerializers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AddColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />

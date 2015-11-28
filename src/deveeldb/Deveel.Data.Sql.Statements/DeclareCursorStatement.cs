@@ -27,7 +27,8 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeclareCursorStatement : SqlStatement {
+	[Serializable]
+	public sealed class DeclareCursorStatement : SqlPreparedStatement {
 		public DeclareCursorStatement(string cursorName, SqlQueryExpression queryExpression) 
 			: this(cursorName, null, queryExpression) {
 		}
@@ -52,8 +53,15 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
-		protected override bool IsPreparable {
-			get { return false; }
+		private DeclareCursorStatement(ObjectData data) {
+			CursorName = data.GetString("CursorName");
+			QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
+			Flags = (CursorFlags) data.GetInt32("Flags");
+
+			if (data.HasValue("Parameters")) {
+				var parameters = data.GetValue<CursorParameter[]>("Parameters");
+				Parameters = new List<CursorParameter>(parameters);
+			}
 		}
 
 		public string CursorName { get; private set; }
@@ -62,9 +70,20 @@ namespace Deveel.Data.Sql.Statements {
 
 		public CursorFlags Flags { get; set; }
 
-		public IEnumerable<CursorParameter> Parameters { get; set; } 
+		public IEnumerable<CursorParameter> Parameters { get; set; }
 
-		protected override ITable ExecuteStatement(IRequest context) {
+		protected override void GetData(SerializeData data) {
+			data.SetValue("CursorName", CursorName);
+			data.SetValue("QueryExpression", QueryExpression);
+			data.SetValue("Flags", (int)Flags);
+
+			if (Parameters != null) {
+				var parameters = Parameters.ToArray();
+				data.SetValue("Parameters", parameters);
+			}
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
 			var cursorInfo = new CursorInfo(CursorName, Flags, QueryExpression);
 			if (Parameters != null) {
 				foreach (var parameter in Parameters) {
@@ -72,48 +91,47 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			context.Query.DeclareCursor(cursorInfo);
-			return FunctionTable.ResultTable(context, 0);
+			context.Request.Query.DeclareCursor(cursorInfo);
 		}
 
 		#region Serializer
 
-		internal class Serializer : ObjectBinarySerializer<DeclareCursorStatement> {
-			public override void Serialize(DeclareCursorStatement obj, BinaryWriter writer) {
-				writer.Write(obj.CursorName);
-				writer.Write((byte)obj.Flags);
+		//internal class Serializer : ObjectBinarySerializer<DeclareCursorStatement> {
+		//	public override void Serialize(DeclareCursorStatement obj, BinaryWriter writer) {
+		//		writer.Write(obj.CursorName);
+		//		writer.Write((byte)obj.Flags);
 
-				if (obj.Parameters != null) {
-					var pars = obj.Parameters.ToArray();
-					var parLength = pars.Length;
-					writer.Write(parLength);
+		//		if (obj.Parameters != null) {
+		//			var pars = obj.Parameters.ToArray();
+		//			var parLength = pars.Length;
+		//			writer.Write(parLength);
 
-					for (int i = 0; i < parLength; i++) {
-						CursorParameter.Serialize(pars[i], writer);
-					}
-				} else {
-					writer.Write(0);
-				}
+		//			for (int i = 0; i < parLength; i++) {
+		//				CursorParameter.Serialize(pars[i], writer);
+		//			}
+		//		} else {
+		//			writer.Write(0);
+		//		}
 
-				SqlExpression.Serialize(obj.QueryExpression, writer);
-			}
+		//		SqlExpression.Serialize(obj.QueryExpression, writer);
+		//	}
 
-			public override DeclareCursorStatement Deserialize(BinaryReader reader) {
-				var cursorName = reader.ReadString();
-				var flags = (CursorFlags) reader.ReadByte();
+		//	public override DeclareCursorStatement Deserialize(BinaryReader reader) {
+		//		var cursorName = reader.ReadString();
+		//		var flags = (CursorFlags) reader.ReadByte();
 
-				var pars = new List<CursorParameter>();
-				var parLength = reader.ReadInt32();
-				for (int i = 0; i < parLength; i++) {
-					var param = CursorParameter.Deserialize(reader);
-					pars.Add(param);
-				}
+		//		var pars = new List<CursorParameter>();
+		//		var parLength = reader.ReadInt32();
+		//		for (int i = 0; i < parLength; i++) {
+		//			var param = CursorParameter.Deserialize(reader);
+		//			pars.Add(param);
+		//		}
 
-				var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
+		//		var queryExpression = SqlExpression.Deserialize(reader) as SqlQueryExpression;
 
-				return new DeclareCursorStatement(cursorName, pars.ToArray(), flags, queryExpression);
-			}
-		}
+		//		return new DeclareCursorStatement(cursorName, pars.ToArray(), flags, queryExpression);
+		//	}
+		//}
 
 		#endregion
 	}

@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Objects {
@@ -37,7 +38,8 @@ namespace Deveel.Data.Sql.Objects {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="ISqlString"/>
-	public struct SqlString : ISqlString, IEquatable<SqlString>, IConvertible {
+	[Serializable]
+	public struct SqlString : ISqlString, IEquatable<SqlString>, IConvertible, ISerializable {
 		/// <summary>
 		/// The maximum length of characters a <see cref="SqlString"/> can handle.
 		/// </summary>
@@ -93,6 +95,11 @@ namespace Deveel.Data.Sql.Objects {
 
 		public SqlString(byte[] bytes)
 			: this(bytes, 0, bytes == null ? 0 : bytes.Length) {
+		}
+
+		private SqlString(ObjectData data)
+			: this() {
+			source = data.GetValue<byte[]>("Source");
 		}
 
 		private static char[] GetChars(byte[] bytes, int offset, int length) {
@@ -167,6 +174,10 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public long Length { get; private set; }
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Source", source);
+		}
 
 		public string ToString(Encoding encoding) {
 			if (IsNull)

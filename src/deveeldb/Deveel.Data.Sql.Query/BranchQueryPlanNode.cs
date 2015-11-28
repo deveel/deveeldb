@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -32,6 +33,11 @@ namespace Deveel.Data.Sql.Query {
 			Right = right;
 		}
 
+		protected BranchQueryPlanNode(ObjectData data) {
+			Left = data.GetValue<IQueryPlanNode>("Left");
+			Right = data.GetValue<IQueryPlanNode>("Right");
+		}
+
 		/// <summary>
 		/// Gets the left node of the branch query plan node.
 		/// </summary>
@@ -43,5 +49,15 @@ namespace Deveel.Data.Sql.Query {
 		public IQueryPlanNode Right { get; private set; }
 
 		public abstract ITable Evaluate(IRequest context);
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Left", Left);
+			data.SetValue("Right", Right);
+
+			GetData(data);
+		}
+
+		protected virtual void GetData(SerializeData data) {
+		}
 	}
 }

@@ -15,13 +15,15 @@
 //
 
 using System;
-using System.Globalization;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
-	public sealed class QueryParameter {
+	// TODO: Make it disposable?
+	[Serializable]
+	public sealed class QueryParameter : ISerializable {
 		public QueryParameter(SqlType sqlType) 
 			: this(sqlType, null) {
 		}
@@ -51,6 +53,13 @@ namespace Deveel.Data.Sql {
 			Direction = QueryParameterDirection.In;
 		}
 
+		private QueryParameter(ObjectData data) {
+			Name = data.GetString("Name");
+			SqlType = data.GetValue<SqlType>("Type");
+			Value = data.GetValue<ISqlObject>("Value");
+			Direction = (QueryParameterDirection) data.GetInt32("Direction");
+		}
+
 		public const char NamePrefix = ':';
 		public const string Marker = "?";
 
@@ -61,5 +70,12 @@ namespace Deveel.Data.Sql {
 		public QueryParameterDirection Direction { get; set; }
 
 		public ISqlObject Value { get; set; }
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Name", Name);
+			data.SetValue("Type", SqlType);
+			data.SetValue("Direction", Direction);
+			data.SetValue("Value", Value);
+		}
 	}
 }

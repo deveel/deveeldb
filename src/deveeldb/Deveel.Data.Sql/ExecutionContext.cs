@@ -26,6 +26,10 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
+		public void SetResult(int value) {
+			SetResult(FunctionTable.ResultTable(Request, value));
+		}
+
 		public void Terminate() {
 			HasTermination = true;
 		}

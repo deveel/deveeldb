@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns an array of <see cref="ITable"/> objects that represent the results
 		/// of the execution of the input query.
 		/// </returns>
-		public static ITable[] Execute(IQuery query, SqlQuery sqlQuery) {
+		public static ITable[] Execute(IRequest query, SqlQuery sqlQuery) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
@@ -73,7 +73,13 @@ namespace Deveel.Data.Sql.Statements {
 				ITable result;
 
 				try {
-					result = prepared.Execute(query);
+					var exeContext = new ExecutionContext(query);
+					prepared.Execute(exeContext);
+					if (exeContext.HasResult) {
+						result = exeContext.Result;
+					} else {
+						result = FunctionTable.ResultTable(query, 0);
+					}
 				} catch(StatementException ex) {
 					// TODO: query.RegisterError(ex);
 					throw;

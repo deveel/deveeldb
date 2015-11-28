@@ -18,13 +18,19 @@ using System;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class QueryType : SqlType {
 		public QueryType()
 			: base("QUERY", SqlTypeCode.QueryPlan) {
+		}
+
+		private QueryType(ObjectData data)
+			: base(data) {
 		}
 
 		public override bool IsIndexable {
@@ -43,9 +49,14 @@ namespace Deveel.Data.Types {
 
 			var nodeTypeString = reader.ReadString();
 			var nodeType = Type.GetType(nodeTypeString, true);
-			var queryPlan = QueryPlanSerializers.Deserialize(nodeType, reader);
+			var queryPlan = DeserializePlan(nodeType, reader);
 
 			return new SqlQueryObject(queryPlan);
+		}
+
+		private static IQueryPlanNode DeserializePlan(Type nodeType, BinaryReader reader) {
+			var serializer = new BinarySerializer();
+			return (IQueryPlanNode) serializer.Deserialize(reader, nodeType);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
@@ -61,8 +72,13 @@ namespace Deveel.Data.Types {
 					throw new InvalidOperationException();
 
 				writer.Write(nodeTypeString);
-				QueryPlanSerializers.Serialize(queryPlanObj.QueryPlan, writer);
+				SerializePlan(queryPlanObj.QueryPlan, writer);
 			}
+		}
+
+		private static void SerializePlan(IQueryPlanNode queryPlan, BinaryWriter writer) {
+			var serializer = new BinarySerializer();
+			serializer.Serialize(writer, queryPlan);
 		}
 	}
 }

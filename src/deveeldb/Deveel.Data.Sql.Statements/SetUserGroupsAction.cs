@@ -17,9 +17,11 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class SetUserGroupsAction : IAlterUserAction {
 		public SetUserGroupsAction(IEnumerable<SqlExpression> groups) {
 			if (groups == null)
@@ -28,10 +30,18 @@ namespace Deveel.Data.Sql.Statements {
 			Groups = groups;
 		}
 
+		private SetUserGroupsAction(ObjectData data) {
+			Groups = data.GetValue<SqlExpression[]>("Groups");
+		}
+
 		public IEnumerable<SqlExpression> Groups { get; private set; }
 
 		public AlterUserActionType ActionType {
 			get { return AlterUserActionType.SetGroups; }
+		}
+
+		void ISerializable.GetData(SerializeData data) {
+			data.SetValue("Groups", Groups);
 		}
 	}
 }

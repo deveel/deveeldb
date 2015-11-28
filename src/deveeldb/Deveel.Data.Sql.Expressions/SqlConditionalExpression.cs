@@ -16,7 +16,10 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Expressions {
+	[Serializable]
 	public sealed class SqlConditionalExpression : SqlExpression {
 		internal SqlConditionalExpression(SqlExpression testExpression, SqlExpression trueExpression, SqlExpression falsExpression) {
 			if (testExpression == null) 
@@ -27,6 +30,13 @@ namespace Deveel.Data.Sql.Expressions {
 			TrueExpression = trueExpression;
 			TestExpression = testExpression;
 			FalseExpression = falsExpression;
+		}
+
+		private SqlConditionalExpression(ObjectData data)
+			: base(data) {
+			TestExpression = data.GetValue<SqlExpression>("Test");
+			TrueExpression = data.GetValue<SqlExpression>("True");
+			FalseExpression = data.GetValue<SqlExpression>("False");
 		}
 
 		public SqlExpression TestExpression { get; private set; }
@@ -41,6 +51,12 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanEvaluate {
 			get { return true; }
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Test", TestExpression);
+			data.SetValue("True", TrueExpression);
+			data.SetValue("False", FalseExpression);
 		}
 	}
 }

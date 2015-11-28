@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -25,10 +26,16 @@ namespace Deveel.Data.Sql.Query {
 	/// The node for evaluating an expression that contains entirely 
 	/// constant values (no variables).
 	/// </summary>
+	[Serializable]
 	class ConstantSelectNode : SingleQueryPlanNode {
 		public ConstantSelectNode(IQueryPlanNode child, SqlExpression expression)
 			: base(child) {
 			Expression = expression;
+		}
+
+		private ConstantSelectNode(ObjectData data)
+			: base(data) {
+			Expression = data.GetValue<SqlExpression>("Expression");
 		}
 
 		public SqlExpression Expression { get; private set; }
@@ -47,6 +54,10 @@ namespace Deveel.Data.Sql.Query {
 				return Child.Evaluate(context).EmptySelect();
 
 			return Child.Evaluate(context);
+		}
+
+		protected override void GetData(SerializeData data) {
+			data.SetValue("Expression", Expression);
 		}
 	}
 }
