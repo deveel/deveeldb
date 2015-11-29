@@ -15,14 +15,14 @@
 
 using System;
 
-using Deveel.Data.Services;
-using Deveel.Data.Sql.Variables;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public class SessionContext : Context, ISessionContext {
 		public SessionContext(ITransactionContext transactionContext)
 			: base(transactionContext) {
+			EventRegistry = new EventRegistry(this);
 		}
 
 		public ITransactionContext TransactionContext {
@@ -33,6 +33,13 @@ namespace Deveel.Data {
 			get { return ContextNames.Session; }
 		}
 
+
+		public EventRegistry EventRegistry { get; private set; }
+
+		IEventRegistry IEventScope.EventRegistry {
+			get { return EventRegistry; }
+		}
+		
 		public IQueryContext CreateQueryContext() {
 			return new QueryContext(this);
 		}

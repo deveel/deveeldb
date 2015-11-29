@@ -88,10 +88,10 @@
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
     <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
-    <Compile Include="Deveel.Data.DbSystem\ContextBasedTest.cs" />
-    <Compile Include="Deveel.Data.DbSystem\DatabaseTests.cs" />
+    <Compile Include="Deveel.Data\ContextBasedTest.cs" />
+    <Compile Include="Deveel.Data\DatabaseTests.cs" />
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
-    <Compile Include="Deveel.Data.DbSystem\SystemTests.cs" />
+    <Compile Include="Deveel.Data\SystemTests.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatementTests.cs" />

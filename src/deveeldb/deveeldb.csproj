@@ -131,6 +131,11 @@
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LogEntry.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LoggerBase.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LoggerSettings.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\PerformanceEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />

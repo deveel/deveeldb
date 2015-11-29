@@ -1,90 +1,130 @@
 ﻿using System;
 
-using JetBrains.dotMemoryUnit;
+using Deveel.Data.Configuration;
+using Deveel.Data.Services;
+using Deveel.Data.Transactions;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
-	[DotMemoryUnit(CollectAllocations = true)]
 	public abstract class ContextBasedTest {
-		private IUserSession session;
-
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
 
-		protected IQueryContext QueryContext { get; private set; }
+		protected virtual bool SingleContext {
+			get { return false; }
+		}
 
-		protected ISystemContext SystemContext { get; private set; }
+		protected IQuery Query { get; private set; }
+
+		protected ISystem System { get; private set; }
 
 		protected IDatabase Database { get; private set; }
 
-		protected IDatabaseContext DatabaseContext { get; private set; }
+		protected ISession Session { get; private set; }
 
-		protected virtual IDatabase CreateDatabase(IDatabaseContext context) {
-			var database = new Database(context);
-			database.Create(AdminUserName, AdminPassword);
-			database.Open();
-
-			return database;
+		protected virtual void RegisterServices(ServiceContainer container) {
 		}
 
-		protected virtual IQueryContext CreateQueryContext(IDatabase database) {
-			session = database.CreateUserSession(AdminUserName, AdminPassword);
-			return new SessionQueryContext(session);
+		protected virtual ISystem CreateSystem() {
+			var builder = new TestSystemBuilder(this);
+			return builder.BuildSystem();
 		}
 
-		protected virtual void OnSetUp() {
+		protected virtual IDatabase CreateDatabase(ISystem system, IConfiguration configuration) {
+			return system.CreateDatabase(configuration, AdminUserName, AdminPassword);
+		}
+
+		protected virtual ISession CreateAdminSession(IDatabase database) {
+			var user = database.Authenticate(AdminUserName, AdminPassword);
+			var transaction = database.CreateTransaction(IsolationLevel.Serializable);
+			return new Session(transaction, user);
+		}
+
+		protected virtual IQuery CreateQuery(ISession session) {
+			return session.CreateQuery();
+		}
+
+		protected ISession CreateUserSession(string userName, string password) {
+			return Database.CreateUserSession(userName, password);
+		}
+
+		protected virtual void OnSetUp(string testName) {
 			
 		}
 
 		protected virtual void OnTearDown() {
-			
+
 		}
 
-		protected virtual IDatabaseContext CreateDatabaseContext(ISystemContext context) {
-			return new DatabaseContext(context, DatabaseName);
-		}
-
-		protected virtual ISystemContext CreateSystemContext() {
-			return new SystemContext();
-		}
-		
 		[SetUp]
 		public void TestSetUp() {
-			SystemContext = CreateSystemContext();
-			DatabaseContext = CreateDatabaseContext(SystemContext);
-			Database = CreateDatabase(DatabaseContext);
-			QueryContext = CreateQueryContext(Database);
+			if (!SingleContext)
+				CreateContext();
 
-			OnSetUp();
+			var testName = TestContext.CurrentContext.Test.Name;
+			OnSetUp(testName);
+		}
+
+		[TestFixtureSetUp]
+		public void TestFixtureSetUp() {
+			if (SingleContext)
+				CreateContext();
+		}
+
+		private void CreateContext() {
+			System = CreateSystem();
+
+			var dbConfig = new Configuration.Configuration();
+			dbConfig.SetValue("database.name", DatabaseName);
+
+			Database = CreateDatabase(System, dbConfig);
+			Session = CreateAdminSession(Database);
+			Query = CreateQuery(Session);
+		}
+
+		private void DisposeContext() {
+			if (Query != null)
+				Query.Dispose();
+
+			if (Database != null)
+				Database.Dispose();
+
+			if (System != null)
+				System.Dispose();
+
+			Query = null;
+			Database = null;
+			Database = null;
+			System = null;
 		}
 
 		[TearDown]
 		public void TestTearDown() {
 			OnTearDown();
 
-			if (QueryContext != null)
-				QueryContext.Dispose();
-			
-			if (session != null)
-				session.Dispose();
+			if (!SingleContext)
+				DisposeContext();
+		}
 
-			if (Database != null)
-				Database.Dispose();
+		[TestFixtureTearDown]
+		public void TestFixtureTearDown() {
+			if (SingleContext)
+				DisposeContext();
+		}
 
-			if (DatabaseContext != null)
-				DatabaseContext.Dispose();
+		private class TestSystemBuilder : SystemBuilder {
+			private ContextBasedTest test;
 
-			if (SystemContext != null)
-				SystemContext.Dispose();
+			public TestSystemBuilder(ContextBasedTest test) {
+				this.test = test;
+			}
 
-			Database = null;
-			DatabaseContext = null;
-			SystemContext = null;
-			QueryContext = null;
-			session = null;
+			protected override void OnServiceRegistration(ServiceContainer container) {
+				test.RegisterServices(container);
+			}
 		}
 	}
 }

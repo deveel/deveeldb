@@ -21,7 +21,7 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Triggers {
-	public sealed class TriggerEvent : IEvent {
+	public sealed class TriggerEvent : Event {
 		internal TriggerEvent(IEventSource source, ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
@@ -36,11 +36,6 @@ namespace Deveel.Data.Sql.Triggers {
 			NewRow = newRow;
 		}
 
-		IEventSource IEvent.EventSource {
-			get { return Source; }
-			set { Source = value; }
-		}
-
 		private IEventSource Source { get; set; }
 
 		public ObjectName TriggerName { get; private set; }
@@ -53,15 +48,13 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public Row NewRow { get; set; }
 
-		IDictionary<string, object> IEvent.EventData {
-			get {
-				return new Dictionary<string, object> {
-					{"Trigger-Name", TriggerName.ToString()},
-					{"Event-Type", TriggerEventType.ToString()},
-					{"Old-Row-Id", OldRowId.ToString()},
-					{"New-Row", NewRow}
-				};
-			}
+		protected override void GetEventData(Dictionary<string, object> data) {
+			data["trigger.name"] = TriggerName.FullName;
+			data["trigger.eventType"] = TriggerEventType.ToString();
+			data["trigger.source"] = SourceName.FullName;
+			data["trigger.old.tableId"] = OldRowId.TableId;
+			data["trigger.old.rowNumber"] = OldRowId.RowNumber;
+			data["trigger.new"] = NewRow;
 		}
 	}
 }

@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -28,7 +27,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Triggers {
-	public sealed class TriggerManager : IObjectManager {
+	public sealed class TriggerManager : IObjectManager, ITriggerManager {
 		private ITransaction transaction;
 		private bool tableModified;
 		private bool cacheValid;
@@ -225,6 +224,10 @@ namespace Deveel.Data.Sql.Triggers {
 					return stream.ToArray();
 				}
 			}
+		}
+
+		void ITriggerManager.RegisterTrigger(TriggerInfo triggerInfo) {
+			CreateTrigger(triggerInfo);
 		}
 
 		public void CreateTrigger(TriggerInfo triggerInfo) {

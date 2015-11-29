@@ -91,10 +91,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LogEntry.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LoggerBase.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LoggerSettings.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\PerformanceEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
     <Compile Include="Deveel.Data.Routines\Query.Routines.cs" />

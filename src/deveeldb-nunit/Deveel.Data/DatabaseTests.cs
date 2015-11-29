@@ -7,8 +7,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DatabaseTests {
-		private ISystemContext systemContext;
-		private IDatabaseContext databaseContext;
+		private ISystem systemContext;
 		private IDatabase database;
 
 		private const string TestDbName = "testdb";
@@ -17,19 +16,16 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public void TestSetup() {
-			systemContext = new SystemContext();
+			var systemBuilder = new SystemBuilder();
+			systemContext = systemBuilder.BuildSystem();
 
 			var test = TestContext.CurrentContext.Test.Name;
-			if (test != "CreateNewContext") {
-				databaseContext = new DatabaseContext(systemContext, TestDbName);
-			}
 
 			if (test != "CreateNew" &&
-				test != "DatabaseNotExists" &&
-				test != "CreateNewContext") {
-				database = new Database(databaseContext);
-				database.Create(TestAdminUser, TestAdminPass);
-				database.Open();
+				test != "DatabaseNotExists") {
+				var dbConfig = new Configuration.Configuration();
+				dbConfig.SetValue("database.name", TestDbName);
+				database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
 			}
 		}
 
@@ -39,24 +35,15 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void CreateNewContext() {
-			IDatabaseContext context = null;
-			Assert.DoesNotThrow(() => context = new DatabaseContext(systemContext,TestDbName));
-			Assert.IsNotNull(context);
-			Assert.AreEqual(TestDbName, context.DatabaseName());
-			Assert.IsInstanceOf<InMemoryStorageSystem>(context.StoreSystem);
-		}
-
-		[Test]
 		public void DatabaseNotExists() {
-			database = new Database(databaseContext);
-			Assert.IsFalse(database.Exists);
+			Assert.IsFalse(systemContext.DatabaseExists(TestDbName));
 		}
 
 		[Test]
 		public void CreateNew() {
-			database = new Database(databaseContext);
-			Assert.DoesNotThrow(() => database.Create(TestAdminUser, TestAdminPass));
+			var dbConfig = new Configuration.Configuration();
+			dbConfig.SetValue("database.name", TestDbName);
+			database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
 		}
 
 		[Test]

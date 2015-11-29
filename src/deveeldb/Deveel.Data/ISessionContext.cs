@@ -16,11 +16,11 @@
 
 using System;
 
-using Deveel.Data.Services;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public interface ISessionContext : IContext {
+	public interface ISessionContext : IEventScope, IContext {
 		ITransactionContext TransactionContext { get; }
 
 		IQueryContext CreateQueryContext();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public abstract class Event : IEvent {
-		private IDictionary<string, object> metadata;
+		private readonly IDictionary<string, object> metadata;
 		 
 		protected Event() {
 			metadata = GenerateEventData();

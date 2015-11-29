@@ -1,28 +1,12 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-#if PCL
-using System.Threading.Tasks;
-#endif
 
 using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class EventRegistry : IEventRegistry, IDisposable {
-		private readonly Queue<IEvent> eventsQueue;
-#if PCL
-		private CancellationTokenSource cancellationTokenSource;
-		private CancellationToken cancellationToken;
-		private List<Task> tasks; 
-#else
-		private List<Thread> threads;
-#endif
-		private bool route;
-
-		private AutoResetEvent reset;
-
+	public sealed class EventRegistry : ThreadedQueue<IEvent>, IEventRegistry, IDisposable {
 		private bool disposed;
+
+		private readonly int threadCount;
 
 		public EventRegistry(IContext context) {
 			if (context == null)
@@ -30,13 +14,8 @@ namespace Deveel.Data.Diagnostics {
 
 			Context = context;
 
-#if PCL
-			cancellationTokenSource = new CancellationTokenSource();
-			cancellationToken = cancellationTokenSource.Token;
-#endif
-
-			eventsQueue = new Queue<IEvent>();
-			Start();
+			var config = context.ResolveService<IConfiguration>();
+			threadCount = config.GetInt32("system.events.threadCount", 4);
 		}
 
 		~EventRegistry() {
@@ -45,114 +24,33 @@ namespace Deveel.Data.Diagnostics {
 
 		public IContext Context { get; private set; }
 
+		public override int ThreadCount {
+			get { return threadCount; }
+		}
+
 		public void RegisterEvent(IEvent @event) {
-			lock (((ICollection)eventsQueue).SyncRoot) {
-				if (!route)
-					return;
-
-				eventsQueue.Enqueue(@event);
-				reset.Set();
-			}
+			Enqueue(@event);
 		}
 
-		private void RouteEvents() {
-			while (route) {
-				IEvent eventToRoute;
-
-				lock (((ICollection) eventsQueue).SyncRoot) {
-					reset.WaitOne();
-
-					eventToRoute = eventsQueue.Dequeue();
-				}
-
-				var routers = Context.ResolveAllServices<IEventRouter>();
-				foreach (var router in routers) {
-					if (router.CanRoute(eventToRoute))
-						router.RouteEvent(eventToRoute);
-				}
-			}
-		}
-
-		private void Start() {
-			var config = Context.ResolveService<IConfiguration>();
-			var threadCount = config.GetInt32("system.events.threads", 5);
-
-#if PCL
-			tasks = new List<Task>();
-#else
-			threads = new List<Thread>(threadCount);
-#endif
-
-			for (int i = 0; i < threadCount; i++) {
-#if PCL
-				tasks.Add(new Task(RouteEvents, cancellationToken));
-#else
-				var thread = new Thread(RouteEvents) {
-					IsBackground = true,
-					Name = String.Format("EventRegistry:{0} ({1})", Context.Name, i),
-					Priority = ThreadPriority.AboveNormal
-				};
-
-				threads.Add(thread);
-#endif
-			}
-
-			route = true;
-			reset = new AutoResetEvent(false);
-
-#if PCL
-			foreach (var task in tasks) {
-				task.Start();
-			}
-#else
-			foreach (var thread in threads) {
-				thread.Start();
-			}
-#endif
-		}
-
-		private void Stop() {
-			route = false;
-
-#if PCL
-			cancellationTokenSource.Cancel(true);
-
-			foreach (var task in tasks) {
+		protected override void Consume(IEvent message) {
+			var routers = Context.ResolveAllServices<IEventRouter>();
+			foreach (var router in routers) {
 				try {
-					task.Wait(300);
-				} catch (TaskCanceledException) {
+					if (router.CanRoute(message))
+						router.RouteEvent(message);
+				} catch (Exception ex) {
+					Enqueue(new ErrorEvent(ex, -1, ErrorLevel.Critical));
 				}
 			}
-#else
-			foreach (var thread in threads) {
-				try {
-					thread.Join(300);
-					thread.Interrupt();
-				} catch (ThreadInterruptedException) {
-				}
-			}
-#endif
 		}
 
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (disposed) {
-				if (disposing) {
-					Stop();
-				}
-
-#if PCL
-				tasks = null;
-#else
-				threads = null;
-#endif
 				Context = null;
 				disposed = true;
 			}
+
+			base.Dispose(disposing);
 		}
 	}
 }

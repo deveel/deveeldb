@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// and services used by all the databases managed within this scope.
 	/// </summary>
 	public sealed class SystemContext : Context, ISystemContext {
-		private IScope container;
+		private IScope scope;
 
 		internal SystemContext(IConfiguration configuration, ServiceContainer container) {
 			if (configuration == null)
@@ -38,9 +38,11 @@ namespace Deveel.Data {
 
 			Configuration = configuration;
 
-			this.container = container.OpenScope(ContextNames.System);
-			container.RegisterInstance<IConfiguration>(configuration);
-			container.RegisterInstance<ISystemContext>(this);
+			scope = container.OpenScope(ContextNames.System);
+			scope.RegisterInstance<IConfiguration>(configuration);
+			scope.RegisterInstance<ISystemContext>(this);
+
+			EventRegistry = new EventRegistry(this);
 		}
 
 		/// <summary>
@@ -49,7 +51,7 @@ namespace Deveel.Data {
 		public IConfiguration Configuration { get; private set; }
 
 		protected override IScope ContextScope {
-			get { return container; }
+			get { return scope; }
 		}
 
 		protected override string ContextName {
@@ -65,13 +67,19 @@ namespace Deveel.Data {
 			return CreateDatabaseContext(dbConfig);
 		}
 
+		IEventRegistry IEventScope.EventRegistry {
+			get { return EventRegistry; }
+		}
+
+		public EventRegistry EventRegistry { get; private set; }
+
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if (container != null)
-					container.Dispose();
+				if (scope != null)
+					scope.Dispose();
 			}
 
-			container = null;
+			scope = null;
 			base.Dispose(true);
 		}
 	}
