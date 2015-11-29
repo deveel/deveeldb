@@ -21,15 +21,15 @@ using Deveel.Data.Diagnostics;
 namespace Deveel.Data.Transactions {
 	public class TransactionException : ErrorException {
 		public TransactionException(int errorCode) 
-			: base(EventClasses.Transactions, errorCode) {
+			: base(errorCode) {
 		}
 
 		public TransactionException(int errorCode, string message) 
-			: base(EventClasses.Transactions, errorCode, message) {
+			: base(errorCode, message) {
 		}
 
 		public TransactionException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Transactions, errorCode, message, innerException) {
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

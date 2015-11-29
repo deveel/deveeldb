@@ -22,5 +22,8 @@ namespace Deveel.Data.Diagnostics {
 		public static void OnEvent(this IEventSource source, IEvent @event) {
 			source.Context.RegisterEvent(@event);
 		}
+
+		public static void OnError(this IEventSource source, Exception error) {
+		}
 	}
 }

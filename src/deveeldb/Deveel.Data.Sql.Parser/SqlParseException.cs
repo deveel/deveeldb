@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public SqlParseException(int errorCode) 
-			: base(EventClasses.Compiler, errorCode) {
+			: base(errorCode) {
 		}
 
 		public SqlParseException(string message) 
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public SqlParseException(int errorCode, string message) 
-			: base(EventClasses.Compiler, errorCode, message) {
+			: base(errorCode, message) {
 		}
 
 		public SqlParseException(string message, Exception innerException) 
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public SqlParseException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Compiler, errorCode, message, innerException) {
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

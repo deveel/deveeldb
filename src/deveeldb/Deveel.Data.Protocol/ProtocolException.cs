@@ -25,7 +25,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public ProtocolException(int errorCode) 
-			: base(EventClasses.Protocol, errorCode) {
+			: base(errorCode) {
 		}
 
 		public ProtocolException(string message) 
@@ -33,7 +33,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public ProtocolException(int errorCode, string message) 
-			: base(EventClasses.Protocol, errorCode, message) {
+			: base(errorCode, message) {
 		}
 
 		public ProtocolException(string message, Exception innerException) 
@@ -41,7 +41,7 @@ namespace Deveel.Data.Protocol {
 		}
 
 		public ProtocolException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Protocol, errorCode, message, innerException) {
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

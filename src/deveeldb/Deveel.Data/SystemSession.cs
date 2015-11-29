@@ -74,7 +74,7 @@ namespace Deveel.Data {
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetaData() {
 			return new Dictionary<string, object> {
-				{EventMetadataKeys.UserName, User.SystemName }
+				{ "session.user", User.SystemName }
 			};
 		} 
 

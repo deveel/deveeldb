@@ -197,11 +197,28 @@ namespace Deveel.Data.Sql.Triggers {
 			throw new NotImplementedException();
 		}
 
-		private static byte[] SerializeArguments(SqlExpression[] expressions) {
+		[Serializable]
+		class TriggerArgument : ISerializable {
+			public TriggerArgument(SqlExpression[] args) {
+				Arguments = args;
+			}
+
+			private TriggerArgument(ObjectData data) {
+				Arguments = data.GetValue<SqlExpression[]>("Arguments");
+			}
+
+			public SqlExpression[] Arguments { get; private set; }
+
+			void ISerializable.GetData(SerializeData data) {
+				data.SetValue("Arguments", Arguments);
+			}
+		}
+
+		private static byte[] SerializeArguments(TriggerArgument args) {
 			using (var stream = new MemoryStream()) {
 				using (var writer = new BinaryWriter(stream)) {
 					var serializer = new BinarySerializer();
-					serializer.Serialize(writer, expressions);
+					serializer.Serialize(writer, args);
 
 					writer.Flush();
 
@@ -215,7 +232,7 @@ namespace Deveel.Data.Sql.Triggers {
 				return;
 
 			try {
-				var args = triggerInfo.Arguments.ToArray();
+				var args = new TriggerArgument(triggerInfo.Arguments.ToArray());
 				var binArgs = SerializeArguments(args);
 
 				var schema = triggerInfo.TriggerName.ParentName;

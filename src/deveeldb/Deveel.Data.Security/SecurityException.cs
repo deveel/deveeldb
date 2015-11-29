@@ -41,7 +41,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public SecurityException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.System, errorCode, message, innerException) {
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

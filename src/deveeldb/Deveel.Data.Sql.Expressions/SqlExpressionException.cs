@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public SqlExpressionException(ExpressionErrorCodes errorCode, string message, Exception innerException) 
-			: base(EventClasses.Expressions, (int) errorCode, message, innerException) {
+			: base((int)errorCode, message, innerException) {
 		}
 	}
 }

@@ -36,23 +36,9 @@ namespace Deveel.Data.Sql.Triggers {
 			NewRow = newRow;
 		}
 
-		byte IEvent.EventType {
-			get { return (byte) EventType.Notification; }
-		}
-
-		int IEvent.EventClass {
-			get { return EventClasses.SqlModel; }
-		}
-
-		int IEvent.EventCode {
-			get {
-				// TODO:
-				return -1;
-			}
-		}
-
 		IEventSource IEvent.EventSource {
 			get { return Source; }
+			set { Source = value; }
 		}
 
 		private IEventSource Source { get; set; }
@@ -66,12 +52,6 @@ namespace Deveel.Data.Sql.Triggers {
 		public RowId OldRowId { get; set; }
 
 		public Row NewRow { get; set; }
-
-		string IEvent.EventMessage {
-			get {
-				return String.Format("Trigger '{0}' fired on '{1}' to '{2}'", TriggerName, TriggerEventType, SourceName);
-			}
-		}
 
 		IDictionary<string, object> IEvent.EventData {
 			get {

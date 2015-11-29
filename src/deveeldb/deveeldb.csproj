@@ -126,7 +126,8 @@
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventRegistryExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
@@ -359,22 +360,11 @@
     <Compile Include="Deveel.Data.Sql.Tables\VersionedTableIndexList.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorException.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorLevel.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventMetadataKeys.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\FileEventLogger.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\ICommandEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventRouter.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventLoggerBase.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventSource.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\IEventLogger.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventLog.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\LogEventRouter.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\NotificationEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
     <Compile Include="Deveel.Data.Diagnostics\NotificationLevel.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\QueryEvent.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -539,7 +529,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEventContext.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerCallbackEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
@@ -753,8 +742,6 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IVariableResolver.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventClasses.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />

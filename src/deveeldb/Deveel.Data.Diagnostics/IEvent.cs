@@ -28,28 +28,28 @@ namespace Deveel.Data.Diagnostics {
 		/// <value>
 		/// The event source.
 		/// </value>
-		IEventSource EventSource { get; }
+		IEventSource EventSource { get; set; }
 
-		/// <summary>
-		/// Gets a value that identifies the type of event
-		/// </summary>
-		/// <seealso cref="EventType"/>
-		byte EventType { get; }
+		///// <summary>
+		///// Gets a value that identifies the type of event
+		///// </summary>
+		///// <seealso cref="EventType"/>
+		//byte EventType { get; }
 
-		/// <summary>
-		/// Gets the class code of the event
-		/// </summary>
-		int EventClass { get; }
+		///// <summary>
+		///// Gets the class code of the event
+		///// </summary>
+		//int EventClass { get; }
 
-		/// <summary>
-		/// Gets a unique event code within the class of event.
-		/// </summary>
-		int EventCode { get; }
+		///// <summary>
+		///// Gets a unique event code within the class of event.
+		///// </summary>
+		//int EventCode { get; }
 
-		/// <summary>
-		/// Gets a message that describes the message that occurred.
-		/// </summary>
-		string EventMessage { get; }
+		///// <summary>
+		///// Gets a message that describes the message that occurred.
+		///// </summary>
+		//string EventMessage { get; }
 
 		/// <summary>
 		/// Gets additional event data that come with the event.

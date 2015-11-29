@@ -42,7 +42,7 @@ namespace Deveel.Data.Store {
 		}
 
 		public DataStorageException(int errorCode, string message, Exception innerException) 
-			: base(EventClasses.Storage, errorCode, message, innerException) {
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

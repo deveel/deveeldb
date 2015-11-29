@@ -15,8 +15,6 @@
 //
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	/// <summary>
@@ -24,37 +22,30 @@ namespace Deveel.Data.Diagnostics {
 	/// can be converted to events sent to the diagnostics.
 	/// </summary>
 	public class ErrorException : Exception {
-		/// <summary>
-		/// Constructs a new exception with the given event class and code and
-		/// without any specific error message.
-		/// </summary>
-		/// <param name="eventClass">The class of the event that this error belongs to.</param>
-		/// <param name="errorCode">The error specific code.</param>
-		public ErrorException(int eventClass, int errorCode)
-			: this(eventClass, errorCode, null) {
+		public ErrorException(int errorCode)
+			: this(errorCode, null) {
 		}
 
-		/// <summary>
-		/// Constructs a new exception with the given event class and code and
-		/// with a specific error message.
-		/// </summary>
-		/// <param name="eventClass">The class of the event that this error belongs to.</param>
-		/// <param name="errorCode">The error specific code.</param>
-		/// <param name="message">A descriptive error message of the error.</param>
-		public ErrorException(int eventClass, int errorCode, string message)
-			: this(eventClass, errorCode, message, null) {
+		public ErrorException(int errorCode, string message)
+			: this(errorCode, message, null) {
 		}
 
-		public ErrorException(int eventClass, int errorCode, string message, Exception innerException)
+		public ErrorException()
+			: this(null) {
+		}
+
+		public ErrorException(string message)
+			: this(message, null) {
+		}
+
+		public ErrorException(string message, Exception innerException)
+			: this(SystemErrorCodes.Unknown, message, innerException) {
+		}
+
+		public ErrorException(int errorCode, string message, Exception innerException)
 			: base(message, innerException) {
 			ErrorCode = errorCode;
-			EventClass = eventClass;
 		}
-
-		/// <summary>
-		/// Gets a numeric value representing the class of the event fired
-		/// </summary>
-		public int EventClass { get; private set; }
 
 		/// <summary>
 		/// Gets a numeric value representing the code of the error catched
@@ -79,17 +70,10 @@ namespace Deveel.Data.Diagnostics {
 		/// about this exception, that can be routed to the diagnostics.
 		/// </returns>
 		public ErrorEvent AsEvent(IEventSource source) {
-			var e = new ErrorEvent(source, EventClass, ErrorCode, Message);
+			var e = new ErrorEvent(this, ErrorCode, ErrorLevel);
 
-			foreach (DictionaryEntry entry in Data) {
-				e.SetData(entry.Key.ToString(), entry.Value);
-			}
-
-			e.ErrorLevel(ErrorLevel);
-			e.StackTrace(StackTrace);
-#if !PCL
-			e.ErrorSource(Source);
-#endif
+			if (source != null)
+				e.EventSource = source;
 
 			return e;
 		}
