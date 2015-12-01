@@ -19,7 +19,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SqlColumnAssignment {
+	public sealed class SqlColumnAssignment : IPreparable {
 		public SqlColumnAssignment(string columnName, SqlExpression expression) {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
@@ -33,5 +33,13 @@ namespace Deveel.Data.Sql.Statements {
 		public string ColumnName { get; private set; }
 
 		public SqlExpression Expression { get; private set; }
+
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			var expression = Expression;
+			if (expression != null)
+				expression = expression.Prepare(preparer);
+
+			return new SqlColumnAssignment(ColumnName, expression);
+		}
 	}
 }

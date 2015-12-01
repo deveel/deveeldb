@@ -150,14 +150,19 @@
     <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
@@ -178,7 +183,6 @@
     <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
-    <Compile Include="Deveel.Data.Sql.Cursors\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />

@@ -74,6 +74,8 @@ namespace Deveel.Data.Sql.Parser {
 				BuildOpenCursor((OpenCursorStatementNode) node);
 			if (node is CloseCursorStatementNode)
 				BuildCloseCursor((CloseCursorStatementNode) node);
+			if (node is FetchStatementNode)
+				BuildFetchFromCursor((FetchStatementNode) node);
 
 			if (node is CreateUserStatementNode)
 				BuildCreateUser((CreateUserStatementNode) node);
@@ -172,6 +174,34 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			statements.Add(new OpenStatement(node.CursorName, args.ToArray()));
+		}
+
+		private static bool TryParseDirection(string s, out FetchDirection direction) {
+#if PCL
+			return Enum.TryParse(s, true, out direction);
+#else
+			try {
+				direction = (FetchDirection) Enum.Parse(typeof (FetchDirection), s, true);
+				return true;
+			} catch (Exception) {
+				direction = new FetchDirection();
+				return false;
+			}
+#endif
+		}
+
+		private void BuildFetchFromCursor(FetchStatementNode node) {
+			FetchDirection direction;
+			if (!TryParseDirection(node.Direction, out direction))
+				throw new InvalidOperationException();
+
+			var statement = new FetchStatement(node.CursorName, direction);
+			if (node.Into != null)
+				statement.IntoReference = Expression(node.Into);
+			if (node.Position != null)
+				statement.PositionExpression = Expression(node.Position);
+
+			statements.Add(statement);
 		}
 
 		private SqlType BuildDataType(DataTypeNode node) {

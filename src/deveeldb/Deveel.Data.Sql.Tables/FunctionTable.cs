@@ -19,9 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Caching;
-using Deveel.Data;
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Types;
 
@@ -140,7 +138,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private ITableCellCache TableCellCache() {
-			return DatabaseContext.ResolveService<ITableCellCache>();
+			return Context.ResolveService<ITableCellCache>();
 		}
 
 		public override DataObject GetValue(long rowNumber, int columnOffset) {

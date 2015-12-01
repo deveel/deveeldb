@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Index;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
@@ -113,7 +112,7 @@ namespace Deveel.Data {
 			OpenSessionsTableInfo.AddColumn("time_connected", PrimitiveTypes.DateTime());
 			OpenSessionsTableInfo = OpenSessionsTableInfo.AsReadOnly();
 
-			// CONNECTION_INFO
+			// SYSTEM.SESSION_INFO
 			SessionInfoTableInfo = new TableInfo(SessionInfoTableName);
 			SessionInfoTableInfo.AddColumn("var", PrimitiveTypes.String());
 			SessionInfoTableInfo.AddColumn("value", PrimitiveTypes.String());

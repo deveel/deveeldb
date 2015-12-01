@@ -21,7 +21,6 @@ using System.IO;
 using System.Linq;
 
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 
@@ -42,7 +41,7 @@ namespace Deveel.Data.Transactions {
 			Transaction = transaction;
 			TableSource = tableSource;
 			EventRegistry = eventRegistry;
-			DatabaseContext = tableSource.DatabaseContext;
+			Context = tableSource.DatabaseContext;
 			indexSet = transaction.GetTableManager().GetIndexSetForTable(tableSource);
 			rowListRebuild = 0;
 
@@ -63,7 +62,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public IContext DatabaseContext { get; private set; }
+		public IContext Context { get; private set; }
 
 		public TableInfo TableInfo {
 			get {

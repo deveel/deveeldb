@@ -110,9 +110,13 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlPreparedStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data\ModuleInfo.cs" />
     <Compile Include="System\NonSerializedAttribute.cs" />
     <Compile Include="System\SerializableAttribute.cs" />
@@ -124,7 +128,6 @@
     <Compile Include="Deveel.Data.Sql.Cursors\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursorScope.cs" />
-    <Compile Include="Deveel.Data.Sql.Cursors\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\FromClause.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\FromTable.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\JoinPart.cs" />

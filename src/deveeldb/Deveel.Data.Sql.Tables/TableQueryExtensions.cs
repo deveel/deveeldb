@@ -528,7 +528,7 @@ namespace Deveel.Data.Sql.Tables {
 				// Construct a temporary table with a single column that we are
 				// comparing to.
 				var col = table.TableInfo[column];
-				var ttable = TemporaryTable.SingleColumnTable(table.DatabaseContext, col.ColumnName, col.ColumnType);
+				var ttable = TemporaryTable.SingleColumnTable(table.Context, col.ColumnName, col.ColumnType);
 
 				foreach (var expression in list) {
 					var rowNum = ttable.NewRow();

@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Tables {
 			this.context = context;
 		}
 
-		public override IContext DatabaseContext {
+		public override IContext Context {
 			get { return context; }
 		}
 

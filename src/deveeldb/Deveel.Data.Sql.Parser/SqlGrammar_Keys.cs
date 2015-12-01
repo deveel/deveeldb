@@ -25,10 +25,6 @@ namespace Deveel.Data.Sql.Parser {
 
 		private KeyTerm ACCOUNT;
 		private KeyTerm AFTER;
-		private KeyTerm AND;
-		private KeyTerm ANY;
-		private KeyTerm ARRAY;
-		private KeyTerm AS;
 		private KeyTerm ASC;
 		private KeyTerm BEFORE;
 		private KeyTerm BEGIN;
@@ -103,10 +99,10 @@ namespace Deveel.Data.Sql.Parser {
 				"AFTER",
 				"ALL",
 				"ALTER",
-				AND.Text,
-				ANY.Text,
-				ARRAY.Text,
-				AS.Text,
+				"AND",
+				"ANY",
+				"ARRAY",
+				"AS",
 				ASC.Text,
 				BEFORE.Text,
 				BEGIN.Text,
@@ -130,10 +126,6 @@ namespace Deveel.Data.Sql.Parser {
 		protected override void Keywords() {
 			ACCOUNT = ToTerm("ACCOUNT");
 			AFTER = ToTerm("AFTER");
-			AND = ToTerm("AND");
-			ANY = ToTerm("ANY");
-			ARRAY = ToTerm("ARRAY");
-			AS = ToTerm("AS");
 			ASC = ToTerm("ASC");
 			BEFORE = ToTerm("BEFORE");
 			BEGIN = ToTerm("BEGIN");

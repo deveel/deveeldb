@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Tables {
 	/// </para>
 	/// </remarks>
 	public interface ITable : IDbObject, IEnumerable<Row>, IDisposable {
-		IContext DatabaseContext { get; }
+		IContext Context { get; }
 
 		/// <summary>
 		/// Gets the metadata information of the table, used to

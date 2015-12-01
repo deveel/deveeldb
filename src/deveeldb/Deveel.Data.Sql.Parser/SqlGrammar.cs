@@ -74,6 +74,7 @@ namespace Deveel.Data.Sql.Parser {
 						   Close() |
 						   Fetch() |
 			               Select() |
+						   CursorDeclaration() |
 			               Insert() |
 			               Update() |
 			               Delete() |
@@ -173,7 +174,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal Fetch() {
-			var fetchCommand=new NonTerminal("fetch_command");
+			var fetchCommand=new NonTerminal("fetch_command", typeof(FetchStatementNode));
 			var directionOpt = new NonTerminal("direction_opt");
 			var fetchDirection = new NonTerminal("fetch_direction");
 			var fromOpt = new NonTerminal("from_opt");
@@ -463,7 +464,7 @@ namespace Deveel.Data.Sql.Parser {
 			columnName.Rule = Identifier;
 			columnList.Rule = MakeStarRule(columnList, Comma, columnName);
 			columnListOpt.Rule = Empty | "(" + columnList + ")";
-			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + columnListOpt + AS + SqlQueryExpression();
+			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + columnListOpt + "AS" + SqlQueryExpression();
 			return createView;
 		}
 

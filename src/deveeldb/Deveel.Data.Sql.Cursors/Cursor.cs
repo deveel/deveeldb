@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
@@ -51,6 +50,10 @@ namespace Deveel.Data.Sql.Cursors {
 
 		DbObjectType IDbObject.ObjectType {
 			get { return DbObjectType.Cursor; }
+		}
+
+		public SqlQueryExpression QueryExpression {
+			get { return CursorInfo.QueryExpression; }
 		}
 
 		private void AssertNotDisposed() {

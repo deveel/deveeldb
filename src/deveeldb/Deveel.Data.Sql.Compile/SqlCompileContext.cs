@@ -15,16 +15,14 @@
 //
 
 using System;
-using Deveel.Data;
-using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Compile {
     public sealed class SqlCompileContext {
-	    internal SqlCompileContext(string sourceText) 
+	    public SqlCompileContext(string sourceText) 
 			: this(null, sourceText) {
 	    }
 
-	    internal SqlCompileContext(IContext context, string sourceText) {
+	    public SqlCompileContext(IContext context, string sourceText) {
             if (string.IsNullOrEmpty(sourceText))
                 throw new ArgumentNullException("sourceText");
 

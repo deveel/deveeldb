@@ -87,37 +87,5 @@ namespace Deveel.Data.Sql.Statements {
 
 			cursor.Open(context.Request, Arguments);
 		}
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<OpenStatement> {
-		//	public override void Serialize(OpenStatement obj, BinaryWriter writer) {
-		//		writer.Write(obj.CursorName);
-
-		//		var argc = obj.Arguments == null ? 0 : obj.Arguments.Length;
-		//		writer.Write(argc);
-
-		//		if (obj.Arguments != null) {
-		//			for (int i = 0; i < argc; i++) {
-		//				SqlExpression.Serialize(obj.Arguments[i], writer);
-		//			}
-		//		}
-		//	}
-
-		//	public override OpenStatement Deserialize(BinaryReader reader) {
-		//		var cursorName = reader.ReadString();
-
-		//		var argc = reader.ReadInt32();
-		//		var args = new SqlExpression[argc];
-
-		//		for (int i = 0; i < argc; i++) {
-		//			args[i] = SqlExpression.Deserialize(reader);
-		//		}
-
-		//		return new OpenStatement(cursorName, args);
-		//	}
-		//}
-
-		#endregion
 	}
 }

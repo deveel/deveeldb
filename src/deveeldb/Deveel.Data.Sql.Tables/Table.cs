@@ -18,9 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data;
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Transactions;
 using Deveel.Data.Types;
 
@@ -48,7 +46,7 @@ namespace Deveel.Data.Sql.Tables {
 		protected virtual void Dispose(bool disposing) {
 		}
 
-		public abstract IContext DatabaseContext { get; }
+		public abstract IContext Context { get; }
 
 		public abstract TableInfo TableInfo { get; }
 

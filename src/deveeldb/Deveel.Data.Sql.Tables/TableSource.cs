@@ -1472,7 +1472,7 @@ namespace Deveel.Data.Sql.Tables {
 				
 			}
 
-			public IContext DatabaseContext {
+			public IContext Context {
 				get { return source.DatabaseContext; }
 			}
 

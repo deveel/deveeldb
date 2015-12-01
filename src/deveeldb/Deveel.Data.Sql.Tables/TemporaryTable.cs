@@ -18,8 +18,6 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
-using Deveel.Data.Services;
-using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Tables {

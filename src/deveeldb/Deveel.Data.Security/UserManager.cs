@@ -1,4 +1,20 @@
-﻿using System;
+﻿// 
+//  Copyright 2010-2015 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +24,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public class UserManager : IUserManager/*, IResolveCallback*/ {
+	public class UserManager : IUserManager {
 		private Dictionary<string, string[]> userGroupsCache;
 		 
 		public UserManager(IQuery queryContext) {
@@ -30,14 +46,6 @@ namespace Deveel.Data.Security {
 			userGroupsCache = null;
 			QueryContext = null;
 		}
-
-		//void IResolveCallback.OnResolved(IResolveScope scope) {
-		//	var context = scope as IQueryContext;
-		//	if (context == null)
-		//		throw new InvalidOperationException("The user manager was resolved outside the query context scope.");
-
-		//	QueryContext = context;
-		//}
 
 		public bool UserExists(string userName) {
 			var table = QueryContext.GetTable(SystemSchema.UserTableName);
@@ -183,22 +191,6 @@ namespace Deveel.Data.Security {
 
 			userGroupsCache[userName] = groups;
 		}
-
-		//public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
-		//	var grantTable = QueryContext.GetMutableTable(SystemSchema.UserGrantsTableName);
-
-		//	var objectTypeColumn = grantTable.GetResolvedColumnName(1);
-		//	var objectNameColumn = grantTable.GetResolvedColumnName(2);
-		//	// All that match the given object
-		//	var t1 = grantTable.SimpleSelect(QueryContext, objectTypeColumn, SqlExpressionType.Equal,
-		//		SqlExpression.Constant(DataObject.Integer((int)objectType)));
-		//	// All that match the given parameter
-		//	t1 = t1.SimpleSelect(QueryContext, objectNameColumn, SqlExpressionType.Equal,
-		//		SqlExpression.Constant(DataObject.String(objectName.FullName)));
-
-		//	// Remove these rows from the table
-		//	grantTable.Delete(t1);
-		//}
 
 
 		public bool DropUser(string userName) {

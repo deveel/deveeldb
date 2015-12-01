@@ -19,20 +19,19 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Tables {
 	abstract class GeneratedTable : ITable {
 		protected GeneratedTable(IContext dbContext) {
-			DatabaseContext = dbContext;
+			Context = dbContext;
 		}
 
 		~GeneratedTable() {
 			Dispose(false);
 		}
 
-		public IContext DatabaseContext { get; private set; }
+		public IContext Context { get; private set; }
 
 		ObjectName IDbObject.FullName {
 			get { return TableInfo.TableName; }
@@ -71,6 +70,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		protected virtual void Dispose(bool disposing) {
+			Context = null;
 		}
 	}
 }

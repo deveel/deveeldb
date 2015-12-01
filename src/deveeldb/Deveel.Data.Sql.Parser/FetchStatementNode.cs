@@ -1,0 +1,64 @@
+﻿using System;
+using System.Linq;
+
+namespace Deveel.Data.Sql.Parser {
+	class FetchStatementNode : SqlNode, IStatementNode {
+		public string Direction { get; private set; }
+
+		public string CursorName { get; private set; }
+
+		public IExpressionNode Position { get; private set; }
+
+		public IExpressionNode Into { get; private set; }
+
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName == "direction_opt") {
+				GetDirection(node);
+			} else if (node is IdentifierNode) {
+				CursorName = ((IdentifierNode) node).Text;
+			} else if (node.NodeName == "into_opt") {
+				GetInto(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetDirection(ISqlNode node) {
+			var childNode = node.ChildNodes.FirstOrDefault();
+			if (childNode == null)
+				return;
+
+			childNode = childNode.ChildNodes.FirstOrDefault();
+			if (childNode == null)
+				throw new SqlParseException();
+
+			if (String.Equals(childNode.NodeName, "NEXT", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(childNode.NodeName, "PRIOR", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(childNode.NodeName, "FIRST", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(childNode.NodeName, "LAST", StringComparison.OrdinalIgnoreCase)) {
+				Direction = childNode.NodeName.ToUpper();
+			} else if (String.Equals(childNode.NodeName, "ABSOLUTE", StringComparison.OrdinalIgnoreCase) ||
+			           String.Equals(childNode.NodeName, "RELATIVE", StringComparison.OrdinalIgnoreCase)) {
+				var positionNode = childNode.ChildNodes.FirstOrDefault();
+				if (positionNode == null)
+					throw new SqlParseException("The position expression if required in an ABSOLUTE or RELATIVE fetch.");
+
+				var expression = positionNode as IExpressionNode;
+				if (expression == null)
+					throw new SqlParseException();
+
+				Direction = childNode.NodeName.ToUpper();
+				Position = expression;
+			}
+		}
+
+		private void GetInto(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode) {
+					Into = childNode as IExpressionNode;
+					break;
+				}
+			}
+		}
+	}
+}
