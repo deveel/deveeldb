@@ -151,11 +151,15 @@
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectData.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparedStatement.cs" />

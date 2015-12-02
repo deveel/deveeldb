@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
@@ -45,12 +44,17 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public void Build(ISqlNode node) {
+			if (node is CreateSchemaNode)
+				BuildCreateSchema((CreateSchemaNode) node);
+
 			if (node is CreateTableNode)
 				BuildCreateTable((CreateTableNode) node);
 			if (node is CreateViewNode)
 				BuildCreateView((CreateViewNode) node);
 			if (node is CreateTriggerNode)
 				BuildCreateTrigger((CreateTriggerNode) node);
+			if (node is CreateSequenceNode)
+				BuildCreateSequence((CreateSequenceNode) node);
 
 			if (node is AlterTableNode)
 				BuildAlterTable((AlterTableNode) node);
@@ -108,6 +112,10 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
+		private void BuildCreateSchema(CreateSchemaNode node) {
+			statements.Add(new CreateSchemaStatement(node.SchemaName));
+		}
+
 		private void BuildGrant(GrantStatementNode node) {
 			var objName = ObjectName.Parse(node.ObjectName);
 			foreach (var grantee in node.Grantees) {
@@ -137,6 +145,26 @@ namespace Deveel.Data.Sql.Parser {
 				exp = ExpressionBuilder.Build(node.WhenExpression);
 
 			statements.Add(new LoopControlStatement(LoopControlType.Exit, node.Label, exp));
+		}
+
+		private void BuildCreateSequence(CreateSequenceNode node) {
+			var seqName = ObjectName.Parse(node.SequenceName);
+			var statement = new CreateSequenceStatement(seqName);
+
+			if (node.IncrementBy != null)
+				statement.IncrementBy = Expression(node.IncrementBy);
+			if (node.Cache != null)
+				statement.Cache = Expression(node.Cache);
+			if (node.StartWith != null)
+				statement.StartWith = Expression(node.StartWith);
+			if (node.MinValue != null)
+				statement.MinValue = Expression(node.MinValue);
+			if (node.MaxValue != null)
+				statement.MaxValue = Expression(node.MaxValue);
+
+			statement.Cycle = node.Cycle;
+
+			statements.Add(statement);
 		}
 
 		private void BuildBreak(BreakStatementNode node) {

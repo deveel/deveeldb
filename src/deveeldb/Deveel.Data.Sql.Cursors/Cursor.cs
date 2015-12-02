@@ -127,24 +127,31 @@ namespace Deveel.Data.Sql.Cursors {
 
 			var table = State.Result;
 			if (!CursorInfo.IsInsensitive)
-				table = Evaluate(context.Query, State.OpenArguments);
+				table = Evaluate(context.Request, State.OpenArguments);
 
 			var fetchRow = State.FetchRowFrom(table, context.Direction, context.Offset);
 
 			if (context.IsGlobalReference) {
 				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;
-				FetchIntoReference(context.Query, fetchRow, reference);
+				FetchIntoReference(context.Request, fetchRow, reference);
 			} else if (context.IsVariableReference) {
 				var varName = ((SqlVariableReferenceExpression) context.Reference).VariableName;
-				FetchIntoVatiable(context.Query, fetchRow, varName);
+				FetchIntoVatiable(context.Request, fetchRow, varName);
 			}
 		}
 
-		private void FetchIntoVatiable(IQuery query, Row row, string varName) {
+		private void FetchIntoVatiable(IRequest request, Row row, string varName) {
 			throw new NotImplementedException();
 		}
 
-		private void FetchIntoReference(IQuery query, Row row, ObjectName reference) {
+		private void FetchIntoReference(IRequest request, Row row, ObjectName reference) {
+			if (reference == null)
+				throw new ArgumentNullException("reference");
+
+			var table = request.Query.GetMutableTable(reference);
+			if (table == null)
+				throw new ObjectNotFoundException(reference);
+
 			throw new NotImplementedException();
 		}
 

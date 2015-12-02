@@ -14,6 +14,8 @@
 //    limitations under the License.
 //
 
+using System.ComponentModel;
+
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
@@ -506,35 +508,45 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal CreateSequence() {
-			var createSequence = new NonTerminal("create_sequence");
+			var createSequence = new NonTerminal("create_sequence", typeof(CreateSequenceNode));
 
-			var incrementOpt = new NonTerminal("sequence_increment_opt");
-			var startOpt = new NonTerminal("sequence_start_opt");
-			var minvalueOpt = new NonTerminal("sequence_minvalue_opt");
-			var maxvalueOpt = new NonTerminal("sequence_maxvalue_opt");
-			var cacheOpt = new NonTerminal("sequence_cache_opt");
-			var cycleOpt = new NonTerminal("sequence_cycle_opt");
+			var incrementOpt = new NonTerminal("increment_opt");
+			var increment = new NonTerminal("increment");
+			var startOpt = new NonTerminal("start_opt");
+			var start = new NonTerminal("start");
+			var minvalueOpt = new NonTerminal("minvalue_opt");
+			var minvalue = new NonTerminal("minvalue");
+			var maxvalueOpt = new NonTerminal("maxvalue_opt");
+			var maxvalue = new NonTerminal("maxvalue");
+			var cacheOpt = new NonTerminal("cache_opt");
+			var cycleOpt = new NonTerminal("cycle_opt");
+			var cache = new NonTerminal("cache");
 
-			createSequence.Rule = CREATE + SEQUENCE + ObjectName() +
+			createSequence.Rule = Key("CREATE") + Key("SEQUENCE") + ObjectName() +
 			                       incrementOpt +
 			                       startOpt +
 			                       minvalueOpt +
 			                       maxvalueOpt +
 			                       cacheOpt +
 			                       cycleOpt;
-			incrementOpt.Rule = INCREMENT + BY + SqlExpression() | Empty;
-			startOpt.Rule = START + WITH + SqlExpression() | Empty;
-			minvalueOpt.Rule = MINVALUE + SqlExpression() | Empty;
-			maxvalueOpt.Rule = MAXVALUE + SqlExpression() | Empty;
-			cycleOpt.Rule = CYCLE | Empty;
-			cacheOpt.Rule = CACHE + SqlExpression() | Empty;
+			incrementOpt.Rule = Empty | increment;
+			increment.Rule = Key("INCREMENT") + Key("BY") + SqlExpression();
+			startOpt.Rule = Empty | start;
+			start.Rule = Key("START") + Key("WITH") + SqlExpression();
+			minvalueOpt.Rule = Empty | minvalue;
+			minvalue.Rule = Key("MINVALUE") + SqlExpression();
+			maxvalueOpt.Rule = Empty | maxvalue;
+			maxvalue.Rule = Key("MAXVALUE") + SqlExpression();
+			cycleOpt.Rule = Empty | Key("CYCLE");
+			cacheOpt.Rule = Empty | cache;
+			cache.Rule = Key("CACHE") + SqlExpression();
 
 			return createSequence;
 		}
 
 		private NonTerminal CreateSchema() {
-			var createSchema = new NonTerminal("create_schema");
-			createSchema.Rule = CREATE + SCHEMA + Identifier;
+			var createSchema = new NonTerminal("create_schema", typeof(CreateSchemaNode));
+			createSchema.Rule = Key("CREATE") + Key("SCHEMA") + Identifier;
 
 			return createSchema;
 		}
@@ -618,7 +630,7 @@ namespace Deveel.Data.Sql.Parser {
 			var columnConstraintList = new NonTerminal("column_constraint_lst");
 			var columnDefaultOpt = new NonTerminal("column_default_opt");
 			var columnIdentityOpt = new NonTerminal("column_identity_opt");
-			var columnConstraint = new NonTerminal("column_constraint");
+			var columnConstraint = new NonTerminal("column_constraint", typeof(ColumnConstraintNode));
 			var columnConstraintRefOpt = new NonTerminal("column_constraint_ref_opt");
 			var fkeyActionList = new NonTerminal("fkey_action_list");
 			var fkeyAction = new NonTerminal("fkey_action");
@@ -642,17 +654,16 @@ namespace Deveel.Data.Sql.Parser {
 			setDefault.Rule = Key("ALTER") + columnOpt + Identifier + Key("SET") + Key("DEFAULT") + SqlExpression();
 			alterColumn.Rule = Key("ALTER") + columnOpt + columnDef;
 			columnDef.Rule = Identifier + DataType() + columnConstraintList + columnDefaultOpt + columnIdentityOpt;
-			columnIdentityOpt.Rule = columnConstraintList.Rule = MakeStarRule(columnConstraintList, columnConstraint);
+			columnConstraintList.Rule = MakeStarRule(columnConstraintList, columnConstraint);
 			columnConstraint.Rule = Key("NULL") |
 									 Key("NOT") + Key("NULL") |
 									 Key("UNIQUE") |
-									 "PRIMARY" + "KEY" |
-									 "CHECK" + SqlExpression() |
-									 "REFERENCES" + ObjectName() + columnConstraintRefOpt + fkeyActionList;
+									 Key("PRIMARY") + Key("KEY") |
+									 Key("CHECK") + SqlExpression() |
+									 Key("REFERENCES") + ObjectName() + columnConstraintRefOpt + fkeyActionList;
 			columnConstraintRefOpt.Rule = Empty | "(" + Identifier + ")";
-			columnDefaultOpt.Rule = Empty | DEFAULT + SqlExpression();
-			columnIdentityOpt.Rule = Empty | IDENTITY;
-			columnIdentityOpt.Rule = Empty | IDENTITY;
+			columnDefaultOpt.Rule = Empty | Key("DEFAULT") + SqlExpression();
+			columnIdentityOpt.Rule = Empty | Key("IDENTITY");
 			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
 			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
 			fkeyActionType.Rule = Key("CASCADE") |
@@ -973,8 +984,34 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal Set() {
 			var set = new NonTerminal("set_command");
-			set.Rule = Key("SET");
+			set.Rule = SetTransaction() | SetVariable();
 			return set;
+		}
+
+		private NonTerminal SetTransaction() {
+			var set = new NonTerminal("set_transaction");
+			var access = new NonTerminal("access");
+			var accessType = new NonTerminal("access_type");
+			var isolationLevel = new NonTerminal("isolation_level");
+			var levelType = new NonTerminal("level_type");
+			var defaultSchema = new NonTerminal("default_schema");
+
+			set.Rule = access | isolationLevel | defaultSchema;
+			access.Rule = Key("SET") + Key("TRANSACTION") + accessType;
+			accessType.Rule = Key("READ") + Key("ONLY") | Key("READ") + Key("WRITE");
+			isolationLevel.Rule = Key("SET") + Key("TRANSACTION") + Key("ISOLATION") + Key("LEVEL") + levelType;
+			levelType.Rule = Key("SERIALIZABLE") |
+			                 Key("READ") + Key("COMMITTED") |
+			                 Key("READ") + Key("UNCOMMITTED") |
+			                 Key("SNAPSHOT");
+			defaultSchema.Rule = Key("SET") + Key("TRANSACTION") + Key("DEFAULT") + Key("SCHEMA") + Identifier;
+			return set;
+		}
+
+		private NonTerminal SetVariable() {
+			var varSet = new NonTerminal("var_set");
+			varSet.Rule = Identifier + "=" + SqlExpression();
+			return varSet;
 		}
 	}
 }

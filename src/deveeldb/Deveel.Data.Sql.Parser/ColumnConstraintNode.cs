@@ -40,9 +40,9 @@ namespace Deveel.Data.Sql.Parser {
 				var keyNode = (SqlKeyNode) node;
 				if (String.Equals(keyNode.Text, "NULL", StringComparison.OrdinalIgnoreCase)) {
 					if (notSeen) {
-						ConstraintType = "NOT NULL";
+						ConstraintType = ConstraintTypeNames.NotNull;
 					} else {
-						ConstraintType = "NULL";
+						ConstraintType = ConstraintTypeNames.Null;
 					}
 				} else if (String.Equals(keyNode.Text, "NOT", StringComparison.OrdinalIgnoreCase)) {
 					notSeen = true;

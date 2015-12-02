@@ -88,7 +88,9 @@
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
     <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CursorCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\DatabaseTests.cs" />

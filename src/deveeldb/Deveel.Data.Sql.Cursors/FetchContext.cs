@@ -23,13 +23,13 @@ namespace Deveel.Data.Sql.Cursors {
 	public sealed class FetchContext {
 		private int offset;
 
-		public FetchContext(IQuery query, SqlExpression reference) 
-			: this(query, FetchDirection.Next, reference) {
+		public FetchContext(IRequest request, SqlExpression reference) 
+			: this(request, FetchDirection.Next, reference) {
 		}
 
-		public FetchContext(IQuery query, FetchDirection direction, SqlExpression reference) {
-			if (query == null)
-				throw new ArgumentNullException("query");
+		public FetchContext(IRequest request, FetchDirection direction, SqlExpression reference) {
+			if (request == null)
+				throw new ArgumentNullException("request");
 			if (reference == null)
 				throw new ArgumentNullException("reference");
 
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Cursors {
 				reference.ExpressionType != SqlExpressionType.Reference)
 				throw new ArgumentException("Invalid reference expression type.");
 
-			Query = query;
+			Request = request;
 			Direction = direction;
 			Reference = reference;
 		}
@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Cursors {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		public IQuery Query { get; private set; }
+		public IRequest Request { get; private set; }
 
 		public int Offset {
 			get { return offset; }

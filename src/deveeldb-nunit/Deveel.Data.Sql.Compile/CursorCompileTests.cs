@@ -169,7 +169,7 @@ namespace Deveel.Data.Sql.Compile {
 		public void FetchNextImplicitCursor() {
 			const string sql = "FETCH NEXT";
 
-						var result = Compile(sql);
+			var result = Compile(sql);
 
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
