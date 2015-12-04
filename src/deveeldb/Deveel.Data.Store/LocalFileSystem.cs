@@ -17,8 +17,6 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Sql.Fluid;
-
 namespace Deveel.Data.Store {
 	public sealed class LocalFileSystem : IFileSystem {
 		public bool FileExists(string path) {
@@ -62,6 +60,18 @@ namespace Deveel.Data.Store {
 		public bool RenameFile(string sourcePath, string destPath) {
 			File.Move(sourcePath, destPath);
 			return File.Exists(destPath);
+		}
+
+		public bool DirectoryExists(string path) {
+			return Directory.Exists(path);
+		}
+
+		public void CreateDirectory(string path) {
+			Directory.CreateDirectory(path);
+		}
+
+		public long GetFileSize(string path) {
+			return new FileInfo(path).Length;
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
 	public class AlterTableCompileTests : CursorCompileTests {
 		[Test]
-		public void AlterTableAddColumn() {
+		public void AddColumn() {
 			const string sql = "ALTER TABLE test ADD COLUMN b INT NOT NULL";
 
 			var result = Compile(sql);
@@ -33,6 +33,18 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.AreEqual("b", alterAction.Column.ColumnName);
 			Assert.IsInstanceOf<NumericType>(alterAction.Column.ColumnType);
 			Assert.IsTrue(alterAction.Column.IsNotNull);
+		}
+
+
+		[Test]
+		public void AddMultipleColumns() {
+			const string sql = "ALTER TABLE test ADD COLUMN b INT NOT NULL ADD c VARCHAR DEFAULT 'test'";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(2, result.Statements.Count);
 		}
 	}
 }

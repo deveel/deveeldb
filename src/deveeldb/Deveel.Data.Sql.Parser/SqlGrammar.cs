@@ -179,11 +179,14 @@ namespace Deveel.Data.Sql.Parser {
 			var fetchCommand=new NonTerminal("fetch_command", typeof(FetchStatementNode));
 			var directionOpt = new NonTerminal("direction_opt");
 			var fetchDirection = new NonTerminal("fetch_direction");
+			var identOpt = new NonTerminal("ident_opt");
+			identOpt.Flags = TermFlags.IsTransient;
 			var fromOpt = new NonTerminal("from_opt");
 			var intoOpt = new NonTerminal("into_opt");
 
-			fetchCommand.Rule = Key("FETCH") + directionOpt + fromOpt + Identifier + intoOpt;
+			fetchCommand.Rule = Key("FETCH") + directionOpt + fromOpt + identOpt + intoOpt;
 			directionOpt.Rule = Empty | fetchDirection;
+			identOpt.Rule = Empty | Identifier;
 			fetchDirection.Rule = Key("NEXT") |
 			                      Key("PRIOR") |
 			                      Key("FIRST") |

@@ -18,8 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using Deveel.Data.Configuration;
-
 namespace Deveel.Data.Store.Journaled {
 	public sealed class BufferManager : IBufferManager {
 		private IComparer<Page> pageComparer;
@@ -39,11 +37,17 @@ namespace Deveel.Data.Store.Journaled {
 		public BufferManager(IDatabaseContext databaseContext) {
 			DatabaseContext = databaseContext;
 
+			FileSystem = databaseContext.ResolveService<IFileSystem>();
+
 			currentTime = 0;
 			pageComparer = new PageComparer(this);
 
 			pages = new List<Page>();
 			pageMap = new Page[256];
+		}
+
+		~BufferManager() {
+			Dispose(false);
 		}
 
 		public int MaxPages { get; set; }
@@ -59,17 +63,33 @@ namespace Deveel.Data.Store.Journaled {
 		public bool EnableLogging { get; set; }
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				Stop();
+
+				if (journalingSystem != null)
+					journalingSystem.Dispose();
+			}
+
+			journalingSystem = null;
 		}
 
 		public void Start() {
-			journalingSystem = new JournalingSystem(DatabaseContext);
+			journalingSystem = new JournalingSystem(FileSystem, DataFactory);
 			journalingSystem.JournalPath = JournalPath;
 			journalingSystem.PageSize = PageSize;
 			journalingSystem.ReadOnly = ReadOnly;
 			journalingSystem.EnableLogging = EnableLogging;
 			journalingSystem.Start();
 		}
+
+		public IStoreDataFactory DataFactory { get; set; }
+
+		public IFileSystem FileSystem { get; set; }
 
 		public void Stop() {
 			if (journalingSystem != null)
@@ -237,7 +257,40 @@ namespace Deveel.Data.Store.Journaled {
 		}
 
 		public void Write(IJournaledResource data, long position, byte[] buffer, int offset, int length) {
-			throw new NotImplementedException();
+			long pageNumber = position / PageSize;
+			int startOffset = (int)(position % PageSize);
+			int toWrite = System.Math.Min(length, PageSize - startOffset);
+
+			Page page = FetchPage(data, pageNumber);
+			lock (page) {
+				try {
+					page.Open();
+					page.Write(startOffset, buffer, offset, toWrite);
+				} finally {
+					page.Dispose();
+				}
+			}
+
+			length -= toWrite;
+
+			while (length > 0) {
+				offset += toWrite;
+				position += toWrite;
+				++pageNumber;
+				toWrite = System.Math.Min(length, PageSize);
+
+				page = FetchPage(data, pageNumber);
+				lock (page) {
+					try {
+						page.Open();
+						page.Write(0, buffer, offset, toWrite);
+					} finally {
+						page.Dispose();
+					}
+				}
+
+				length -= toWrite;
+			}
 		}
 
 		public void Lock() {
@@ -305,6 +358,51 @@ namespace Deveel.Data.Store.Journaled {
 					Monitor.PulseAll(writeLock);
 				}
 			}
+		}
+
+		internal void CloseStore(IJournaledResource data) {
+			long id = data.Id;
+			// Flush all changes made to the resource then close.
+			lock (pageMap) {
+				// Flush all the pages out to the log.
+				// This scans the entire hash for values and could be an expensive
+				// operation.  Fortunately 'close' isn't used all that often.
+				for (int i = 0; i < pageMap.Length; ++i) {
+					Page page = pageMap[i];
+					Page prev = null;
+
+					while (page != null) {
+						bool deletedHash = false;
+						if (page.Number == id) {
+							lock (page) {
+								// Flush the page (will only actually flush if there are changes)
+								page.Flush();
+
+								// Remove this page if it is no longer in use
+								if (!page.IsUsed) {
+									deletedHash = true;
+									if (prev == null) {
+										pageMap[i] = page.Next;
+									} else {
+										prev.Next = page.Next;
+									}
+								}
+							}
+
+						}
+
+						// Go to next page in hash chain
+						if (!deletedHash) {
+							prev = page;
+						}
+
+						page = page.Next;
+
+					}
+				}
+			}
+
+			data.Close();
 		}
 
 		#region Page

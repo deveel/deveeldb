@@ -170,6 +170,8 @@
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\JournaledStore.cs" />
+    <Compile Include="Deveel.Data.Store\ScatteringFileStoreDataFactory.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />

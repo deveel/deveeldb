@@ -25,12 +25,16 @@ namespace Deveel.Data.Store {
 		private List<FileStoreData> fileSlices;
 		private long trueFileLength;
 		
-		public ScatteringFileStoreData(string basePath, string fileName, string fileExtention, int maxFileSlice) {
+		public ScatteringFileStoreData(IFileSystem fileSystem, string basePath, string fileName, string fileExtention, int maxFileSlice) {
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
+
+			FileSystem = fileSystem;
 			MaxFileSlice = maxFileSlice;
 			FileExtention = fileExtention;
 			FileName = fileName;
 			BasePath = basePath;
-			fileSlices = new List<FileStoreData>(maxFileSlice);
+			fileSlices = new List<FileStoreData>();
 		}
 
 		~ScatteringFileStoreData() {
@@ -45,11 +49,13 @@ namespace Deveel.Data.Store {
 
 		public int MaxFileSlice { get; private set; }
 
+		public IFileSystem FileSystem { get; private set; }
+
 		public int FileCount {
 			get {
 				int i = 0;
 				string f = SliceFileName(i);
-				while (File.Exists(f)) {
+				while (FileSystem.FileExists(f)) {
 					++i;
 					f = SliceFileName(i);
 				}
@@ -61,7 +67,7 @@ namespace Deveel.Data.Store {
 
 		private string SliceFileName(int i) {
 			if (i == 0)
-				return Path.Combine(BasePath, String.Format("{0}.{1}", FileName, FileExtention));
+				return FileSystem.CombinePath(BasePath, String.Format("{0}.{1}", FileName, FileExtention));
 
 			var fn = new StringBuilder();
 			fn.Append(FileName);
@@ -82,8 +88,10 @@ namespace Deveel.Data.Store {
 				// Does the file exist?
 				int i = 0;
 				string f = SliceFileName(i);
-				while (File.Exists(f)) {
-					runningTotal += new FileInfo(f).Length;
+				while (FileSystem.FileExists(f)) {
+					var fileLength = FileSystem.GetFileSize(f);
+
+					runningTotal += fileLength;
 
 					++i;
 					f = SliceFileName(i);
@@ -111,7 +119,7 @@ namespace Deveel.Data.Store {
 		}
 
 		public bool Exists {
-			get { return File.Exists(SliceFileName(0)); }
+			get { return FileSystem.FileExists(SliceFileName(0)); }
 		}
 
 		public long Length {
@@ -141,13 +149,13 @@ namespace Deveel.Data.Store {
 			lock (objectLock) {
 				// Does the file exist?
 				string f = SliceFileName(0);
-				bool openExisting = File.Exists(f);
+				bool openExisting = FileSystem.FileExists(f);
 
 				// If the file already exceeds the threshold and there isn't a secondary
 				// file then we need to convert the file.
 				if (openExisting && f.Length > MaxFileSlice) {
 					string f2 = SliceFileName(1);
-					if (File.Exists(f2))
+					if (FileSystem.FileExists(f2))
 						throw new IOException("File length exceeds maximum slice size setting.");
 
 					// We need to scatter the file.
@@ -167,7 +175,7 @@ namespace Deveel.Data.Store {
 				if (openExisting) {
 					int i = 1;
 					string slicePart = SliceFileName(i);
-					while (File.Exists(slicePart)) {
+					while (FileSystem.FileExists(slicePart)) {
 						// Create the new slice information for this part of the file.
 						slice = new FileStoreData(slicePart);
 						slice.Open(readOnly);

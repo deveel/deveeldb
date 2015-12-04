@@ -58,6 +58,10 @@ namespace Deveel.Data.Store.Journaled {
 		public Stream FileStream { get; private set; }
 
 		private static IFile CreateHandle(JournalingSystem system, string fileName, bool readOnly) {
+			if (!system.FileSystem.FileExists(fileName)) {
+				return system.FileSystem.CreateFile(fileName);
+			}
+
 			return system.FileSystem.OpenFile(fileName, readOnly);
 		}
 

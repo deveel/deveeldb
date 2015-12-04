@@ -29,5 +29,11 @@ namespace Deveel.Data.Store {
 		string CombinePath(string path1, string path2);
 
 		bool RenameFile(string sourcePath, string destPath);
+
+		bool DirectoryExists(string path);
+
+		void CreateDirectory(string path);
+
+		long GetFileSize(string path);
 	}
 }

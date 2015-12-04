@@ -19,8 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Store.Journaled {
 	public sealed class JournalingSystem : IDisposable {
 		private readonly object initLock = new object();
@@ -35,8 +33,9 @@ namespace Deveel.Data.Store.Journaled {
 
 		private JournalingThread journalingThread;
 
-		public JournalingSystem(IDatabaseContext databaseContext) {
-			DatabaseContext = databaseContext;
+		public JournalingSystem(IFileSystem fileSystem, IStoreDataFactory dataFactory) {
+			FileSystem = fileSystem;
+			DataFactory = dataFactory;
 			registries = new List<JournalRegistry>();
 			EnableLogging = true;
 
@@ -47,15 +46,9 @@ namespace Deveel.Data.Store.Journaled {
 			Dispose(false);
 		}
 
-		public IDatabaseContext DatabaseContext { get; private set; }
+		public IFileSystem FileSystem { get; private set; }
 
-		public IFileSystem FileSystem {
-			get { return DatabaseContext.ResolveService<IFileSystem>(); }
-		}
-
-		public IStoreDataFactory DataFactory {
-			get { return DatabaseContext.ResolveService<IStoreDataFactory>(); }
-		}
+		public IStoreDataFactory DataFactory { get; private set; }
 
 		public bool IsStarted {
 			get {
@@ -90,6 +83,7 @@ namespace Deveel.Data.Store.Journaled {
 					throw new InvalidOperationException("The system was already started.");
 
 				journalingThread = new JournalingThread(this);
+
 				Recover();
 
 				if (!ReadOnly)
@@ -196,7 +190,7 @@ namespace Deveel.Data.Store.Journaled {
 			var fileName = GetRegistryFileName((registryId & 63) + 10);
 			registryId++;
 
-			var fullPath = Path.Combine(JournalPath, fileName);
+			var fullPath = FileSystem.CombinePath(JournalPath, fileName);
 			if (FileSystem.FileExists(fullPath))
 				throw new InvalidOperationException(string.Format("The registry file '{0}' already exists.", fullPath));
 
@@ -384,6 +378,14 @@ namespace Deveel.Data.Store.Journaled {
 
 			public override bool Exists {
 				get { return dataExists; }
+			}
+
+			public override long Size {
+				get {
+					lock (journalEntries) {
+						return size;
+					}
+				}
 			}
 
 			public override void Read(long pageNumber, byte[] buffer, int offset) {
@@ -581,11 +583,20 @@ namespace Deveel.Data.Store.Journaled {
 			}
 
 			public override void Close() {
-				throw new NotImplementedException();
+				lock (journalEntries) {
+					dataOpen = false;
+				}
 			}
 
 			public override void Delete() {
-				throw new NotImplementedException();
+				lock (System.topRegistryLock) {
+					System.TopRegistry.DeleteResource(Name);
+				}
+				lock (journalEntries) {
+					dataExists = false;
+					dataDeleted = true;
+					size = 0;
+				}
 			}
 
 			public override void PersistClose() {
@@ -646,6 +657,15 @@ namespace Deveel.Data.Store.Journaled {
 					StoreData.Flush();
 			}
 
+			public override void SetSize(long value) {
+				lock (journalEntries) {
+					this.size = value;
+				}
+				lock (System.topRegistryLock) {
+					System.TopRegistry.ChangeResourceSize(Name, size);
+				}
+			}
+
 			public override void OnRecovered() {
 				dataExists = StoreData.Exists;
 			}
@@ -667,7 +687,7 @@ namespace Deveel.Data.Store.Journaled {
 				thread = new Thread(Process);
 				thread.Name = "Journaling Thread";
 				thread.IsBackground = true;
-
+				thread.Start();
 			}
 
 			~JournalingThread() {
