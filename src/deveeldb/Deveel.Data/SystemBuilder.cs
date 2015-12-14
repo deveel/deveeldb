@@ -33,9 +33,6 @@ using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
-#if !PCL
-using Deveel.Data.Store.Journaled;
-#endif
 
 namespace Deveel.Data {
 	public class SystemBuilder {
@@ -117,11 +114,6 @@ namespace Deveel.Data {
 				.InDatabaseScope();
 
 #if !PCL
-			ServiceContainer.Bind<IStoreSystem>()
-				.To<JournaledStoreSystem>()
-				.WithKey(DefaultStorageSystemNames.Journaled)
-				.InDatabaseScope();
-
 			ServiceContainer.Bind<IFileSystem>()
 				.To<LocalFileSystem>()
 				.InSystemScope();

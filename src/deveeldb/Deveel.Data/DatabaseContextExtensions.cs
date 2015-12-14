@@ -17,9 +17,6 @@
 using System;
 
 using Deveel.Data.Configuration;
-#if !PCL
-using Deveel.Data.Store.Journaled;
-#endif
 
 namespace Deveel.Data {
 	public static class DatabaseContextExtensions {

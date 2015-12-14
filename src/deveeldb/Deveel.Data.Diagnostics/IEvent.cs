@@ -30,6 +30,8 @@ namespace Deveel.Data.Diagnostics {
 		/// </value>
 		IEventSource EventSource { get; set; }
 
+		DateTimeOffset TimeStamp { get; }
+
 		/// <summary>
 		/// Gets additional event data that come with the event.
 		/// </summary>

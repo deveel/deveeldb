@@ -19,10 +19,15 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public abstract class Event : IEvent {
-		private readonly IDictionary<string, object> metadata;
-		 
-		protected Event() {
-			metadata = GenerateEventData();
+		private IDictionary<string, object> metadata;
+		private IEventSource source;
+
+		protected Event() 
+			: this(DateTimeOffset.UtcNow) {
+		}
+
+		protected Event(DateTimeOffset timeStamp) {
+			TimeStamp = timeStamp;
 		}
 
 		private IDictionary<string, object> GenerateEventData() {
@@ -34,10 +39,33 @@ namespace Deveel.Data.Diagnostics {
 		protected virtual void GetEventData(Dictionary<string, object> data) {
 		}
 
-		public IEventSource EventSource { get; set; }
+		public IEventSource EventSource {
+			get {
+				if (source == null)
+					return null;
+
+				return OnSourceGet(source);
+			}
+			set { source = OnSourceSet(value); }
+		}
+
+		public DateTimeOffset TimeStamp { get; private set; }
+
+		protected virtual IEventSource OnSourceGet(IEventSource eventSource) {
+			return eventSource;
+		}
+
+		protected virtual IEventSource OnSourceSet(IEventSource eventSource) {
+			return eventSource;
+		}
 
 		IDictionary<string, object> IEvent.EventData {
-			get { return metadata; }
+			get {
+				if (metadata == null)
+					metadata = GenerateEventData();
+
+				return metadata;
+			}
 		}
 	}
 }

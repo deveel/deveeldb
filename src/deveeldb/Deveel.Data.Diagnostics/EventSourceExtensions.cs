@@ -24,6 +24,40 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void OnError(this IEventSource source, Exception error) {
+			OnError(source, error, -1);
+		}
+
+		public static void OnError(this IEventSource source, Exception error, int errorCode) {
+			OnError(source, error, errorCode, ErrorLevel.Error);
+		}
+
+		public static void OnError(this IEventSource source, Exception error, ErrorLevel level) {
+			OnError(source, error, -1, level);
+		}
+
+		public static void OnError(this IEventSource source, Exception error, int errorCode, ErrorLevel level) {
+			var errorEvent = new ErrorEvent(error, errorCode, level);
+			source.OnEvent(errorEvent);
+		}
+
+		public static void OnInformation(this IEventSource source, string message) {
+			source.OnInformation(message, InformationLevel.Information);
+		}
+
+		public static void OnInformation(this IEventSource source, string message, InformationLevel level) {
+			source.OnEvent(new InformationEvent(message, level));
+		}
+
+		public static void OnVerbose(this IEventSource source, string message) {
+			source.OnInformation(message, InformationLevel.Verbose);
+		}
+
+		public static void OnDebug(this IEventSource source, string message) {
+			source.OnInformation(message, InformationLevel.Debug);
+		}
+
+		public static void OnPerformance(this IEventSource source, string key, object value) {
+			source.OnEvent(new PerformanceEvent(key, value));
 		}
 	}
 }

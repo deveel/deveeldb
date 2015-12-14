@@ -16,14 +16,15 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
 	/// Exposes the context of an event fired on a table.
 	/// </summary>
-	public sealed class TableEventContext {
-		internal TableEventContext(ITable table, TriggerEventType eventType, RowId oldRowId, Row newRow) {
+	public sealed class TableEvent : Event {
+		internal TableEvent(ITable table, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (table == null)
 				throw new ArgumentNullException("table");
 

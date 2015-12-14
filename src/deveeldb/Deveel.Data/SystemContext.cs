@@ -15,14 +15,10 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
-#if !PCL
-using Deveel.Data.Store.Journaled;
-#endif
 
 namespace Deveel.Data {
 	/// <summary>

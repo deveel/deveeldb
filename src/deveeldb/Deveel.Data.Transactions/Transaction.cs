@@ -113,7 +113,13 @@ namespace Deveel.Data.Transactions {
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return new KeyValuePair<string, object>[0];}
+			get { return new Dictionary<string, object> {
+				{ KnownEventMetadata.CommitId, CommitId },
+				{ KnownEventMetadata.IgnoreIdentifiersCase, this.IgnoreIdentifiersCase() },
+				{ KnownEventMetadata.IsolationLevel, Isolation },
+				{ KnownEventMetadata.CurrentSchema, this.CurrentSchema() },
+                { KnownEventMetadata.ReadOnlyTransaction, this.ReadOnly() }
+			};}
 		}
 			
 		IContext IEventSource.Context {
@@ -177,6 +183,8 @@ namespace Deveel.Data.Transactions {
 					var visibleTables = TableManager.GetVisibleTables().ToList();
 					var selected = TableManager.SelectedTables.ToArray();
 					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry, commitActions);
+
+
 				} finally {
 					Finish();
 				}
@@ -206,8 +214,8 @@ namespace Deveel.Data.Transactions {
 					if (Context != null)
 						Context.Dispose();
 
-				} catch (Exception) {
-					// TODO: report the error
+				} catch (Exception ex) {
+					this.OnError(ex);
 				}
 
 				Registry = null;

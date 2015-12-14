@@ -20,7 +20,6 @@ using System.IO;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
@@ -41,14 +40,14 @@ namespace Deveel.Data {
 			System = system;
 			Context = context;
 
+			Name = Context.DatabaseName();
+
 			DiscoverDataVersion();
 
 			TableComposite = new TableSourceComposite(this);
 
 			Context.RegisterInstance(this);
 			Context.RegisterInstance<ITableSourceComposite>(TableComposite);
-
-			Name = Context.DatabaseName();
 
 			Locker = new Locker(this);
 
@@ -99,8 +98,10 @@ namespace Deveel.Data {
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get {
-				// TODO: scan the store system to get information...
-				return new KeyValuePair<string, object>[0];
+				return new Dictionary<string, object> {
+					{ KnownEventMetadata.DatabaseName, Name },
+                    { KnownEventMetadata.SessionCount, Sessions.Count }
+				};
 			}
 		}
 

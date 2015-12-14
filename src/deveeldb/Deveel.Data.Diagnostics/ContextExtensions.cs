@@ -16,8 +16,6 @@
 
 using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Diagnostics {
 	public static class ContextExtensions {
 		public static void RegisterEvent(this IContext context, IEvent @event) {
@@ -31,5 +29,59 @@ namespace Deveel.Data.Diagnostics {
 				currentContext = currentContext.Parent;
 			}
 		}
+
+		public static void AttachRouter(this IContext context, IEventRouter router) {
+			var currentContext = context;
+			while (currentContext != null) {
+				if (currentContext is IEventScope) {
+					currentContext.RegisterInstance(router);
+					break;
+				}
+
+				currentContext = currentContext.Parent;
+			}
+		}
+
+		public static void Route<TEvent>(this IContext context, Action<TEvent> router)
+			where TEvent : class, IEvent {
+			context.Route(router, null);
+		}
+
+		public static void Route<TEvent>(this IContext context, Action<TEvent> router, Func<TEvent, bool> condition)
+			where TEvent : class, IEvent {
+			context.AttachRouter(new DelegateRouter<TEvent>(router, condition));
+		}
+
+		#region DelegatedRouter
+
+		class DelegateRouter<TEvent> : ThreadedQueue<TEvent>, IEventRouter where TEvent : class, IEvent {
+			private Func<TEvent, bool> condition;
+			private Action<TEvent> route;
+
+			public DelegateRouter(Action<TEvent> route, Func<TEvent, bool> condition) {
+				this.route = route;
+				this.condition = condition;
+			}
+
+			protected override void Consume(TEvent message) {
+				route(message);
+			}
+
+			public bool CanRoute(IEvent @event) {
+				if (!(@event is TEvent))
+					return false;
+
+				if (condition == null)
+					return true;
+
+				return condition((TEvent)@event);
+			}
+
+			public void RouteEvent(IEvent e) {
+				Enqueue((TEvent)e);
+			}
+		}
+
+		#endregion
 	}
 }

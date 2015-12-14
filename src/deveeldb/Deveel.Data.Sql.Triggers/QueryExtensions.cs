@@ -20,7 +20,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Triggers {
 	public static class QueryExtensions {
-		public static void FireTriggers(this IQuery context, TableEventContext tableEvent) {
+		public static void FireTriggers(this IQuery context, TableEvent tableEvent) {
 			var manager = context.Session.Transaction.GetTriggerManager();
 			if (manager == null)
 				return;

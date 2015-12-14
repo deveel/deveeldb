@@ -63,6 +63,18 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return DbObjectType.Trigger; }
 		}
 
+		private void OnTableCommit(TableCommitEvent commitEvent) {
+			if (tableModified) {
+				InvalidateTriggerCache();
+				tableModified = false;
+			} else if ((commitEvent.AddedRows != null &&
+			            commitEvent.AddedRows.Any()) ||
+			           (commitEvent.RemovedRows != null &&
+			            commitEvent.RemovedRows.Any())) {
+				InvalidateTriggerCache();
+			}
+		}
+
 		private void OnCommit(TableCommitInfo commitInfo) {
 			if (tableModified) {
 				InvalidateTriggerCache();
@@ -325,7 +337,7 @@ namespace Deveel.Data.Sql.Triggers {
 			return triggers.Select(x => new Trigger(x));
 		}
 
-		public void FireTriggers(IQuery context, TableEventContext tableEvent) {
+		public void FireTriggers(IQuery context, TableEvent tableEvent) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 

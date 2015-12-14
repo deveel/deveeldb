@@ -95,7 +95,9 @@ namespace Deveel.Data {
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
 			return new Dictionary<string, object> {
-				{ "[session]:user.name", User.Name },
+				{ KnownEventMetadata.UserName, User.Name },
+				{ KnownEventMetadata.LastCommandTime, LastCommandTime },
+				{ KnownEventMetadata.SessionStartTime, StartedOn },
 			};
 		}
 

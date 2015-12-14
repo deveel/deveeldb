@@ -32,8 +32,8 @@ namespace Deveel.Data.Diagnostics {
 #else
 		private List<Thread> threads;
 #endif
+		private bool started;
 		private bool route;
-
 		private AutoResetEvent reset;
 
 		private bool disposed;
@@ -47,7 +47,6 @@ namespace Deveel.Data.Diagnostics {
 #endif
 
 			messageQueue = new Queue<TMessage>();
-			Start();
 		}
 
 		~ThreadedQueue() {
@@ -59,6 +58,9 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		private void Start() {
+			if (started)
+				return;
+
 
 #if PCL
 			tasks = new List<Task>();
@@ -72,7 +74,7 @@ namespace Deveel.Data.Diagnostics {
 #else
 				var thread = new Thread(RouteMessages) {
 					IsBackground = true,
-					Priority = ThreadPriority.AboveNormal
+					Name = String.Format("{0}.QueueConsumer {1}", GetType().Name, i)
 				};
 
 				threads.Add(thread);
@@ -91,10 +93,15 @@ namespace Deveel.Data.Diagnostics {
 				thread.Start();
 			}
 #endif
+
+			started = true;
 		}
 
 		private void Stop() {
 			route = false;
+
+			if (!started)
+				return;
 
 #if PCL
 			cancellationTokenSource.Cancel(true);
@@ -114,15 +121,17 @@ namespace Deveel.Data.Diagnostics {
 				}
 			}
 #endif
+
+			started = false;
 		}
 
 		private void RouteMessages() {
 			while (route) {
+				reset.WaitOne();
+
 				TMessage message;
 
 				lock (((ICollection) messageQueue).SyncRoot) {
-					reset.WaitOne();
-
 					message = messageQueue.Dequeue();
 				}
 
@@ -132,14 +141,17 @@ namespace Deveel.Data.Diagnostics {
 
 		protected abstract void Consume(TMessage message);
 
-		protected virtual void Enqueue(TMessage message) {
-			lock (((ICollection) messageQueue).SyncRoot) {
-				if (!route)
-					return;
+		protected void Enqueue(TMessage message) {
+			Start();
 
+			if (!route)
+				return;
+
+			lock (((ICollection) messageQueue).SyncRoot) {
 				messageQueue.Enqueue(message);
-				reset.Set();
 			}
+
+			reset.Set();
 		}
 
 		public void Dispose() {

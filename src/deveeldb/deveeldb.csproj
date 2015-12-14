@@ -126,15 +126,26 @@
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\InformationEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\InformationLevel.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\KnownEventMetadata.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogEntry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerBase.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerSettings.cs" />
     <Compile Include="Deveel.Data.Diagnostics\PerformanceEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\QueryEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
@@ -170,8 +181,10 @@
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournaledStore.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreDataFactory.cs" />
+    <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
@@ -256,7 +269,6 @@
     <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TableEventException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventEventTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\UserSessionExtensions.cs" />
@@ -265,9 +277,6 @@
     <Compile Include="Deveel.Data.Sql\ExceptionHandler.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewManager.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\ISystemJournaledResource.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalRegistryInfo.cs" />
     <Compile Include="Deveel.Data.Store\FileStoreData.cs" />
     <Compile Include="Deveel.Data.Store\FileStream.cs" />
     <Compile Include="Deveel.Data.Store\IFile.cs" />
@@ -309,6 +318,7 @@
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
     <Compile Include="Deveel.Data\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data\SessionExtensions.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />
@@ -379,7 +389,6 @@
     <Compile Include="Deveel.Data.Diagnostics\IEventRouter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LogLevel.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\NotificationLevel.cs" />
     <Compile Include="Deveel.Data.Index\BlockIndex_T.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -543,7 +552,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TableEventContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
@@ -757,7 +766,6 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaInfo.cs" />
     <Compile Include="Deveel.Data.Sql\IGroupResolver.cs" />
     <Compile Include="Deveel.Data.Sql\IVariableResolver.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\EventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CompileErrorCodes.cs" />
@@ -834,16 +842,6 @@
     <Compile Include="Deveel.Data.Sql\SqlModelErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql\SqlQuery.cs" />
     <Compile Include="Deveel.Data.Sql.Views\View.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\BufferManager.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JounralFile.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\IBufferManager.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\IJournaledResource.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournaledResource.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalEntry.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalRegistry.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalFileCommand.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalFileInfo.cs" />
-    <Compile Include="Deveel.Data.Store.Journaled\JournalingSystem.cs" />
     <Compile Include="Deveel.Data.Store\AreaExtensions.cs" />
     <Compile Include="Deveel.Data.Store\AreaStream.cs" />
     <Compile Include="Deveel.Data.Store\DataStorageException.cs" />
