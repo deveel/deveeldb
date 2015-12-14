@@ -18,13 +18,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class GrantRoleStatementNode : SqlNode, IStatementNode {
+	class GrantRoleStatementNode : SqlStatementNode {
 		public IEnumerable<string> Grantees { get; private set; }
-				
-		public	 IEnumerable<string> Roles { get; private set; }
-		
-		public	bool WithAdmin { get; private set; }
+
+		public IEnumerable<string> Roles { get; private set; }
+
+		public bool WithAdmin { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName.Equals("role_list")) {
@@ -49,6 +51,14 @@ namespace Deveel.Data.Sql.Parser {
 		private void GetWithAdmin(ISqlNode node) {
 			if (node.ChildNodes.Any())
 				WithAdmin = true;
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			foreach (var grantee in Grantees) {
+				foreach (var role in Roles) {
+					builder.Statements.Add(new GrantRoleStatement(grantee, role, WithAdmin));
+				}
+			}
 		}
 	}
 }

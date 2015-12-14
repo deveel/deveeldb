@@ -17,9 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class SelectStatementNode : SqlNode, IStatementNode {
+	class SelectStatementNode : SqlStatementNode {
 		public SqlQueryExpressionNode QueryExpression { get; private set; }
 
 		/// <summary>
@@ -54,6 +58,33 @@ namespace Deveel.Data.Sql.Parser {
 			var child = node.ChildNodes.FirstOrDefault();
 			if (child != null)
 				Limit = (LimitNode) child;
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
+			if (QueryExpression.IntoClause != null) {
+				var refExp = ExpressionBuilder.Build(QueryExpression.IntoClause);
+				builder.Statements.Add(new SelectIntoStatement(queryExpression, refExp));
+			} else {
+				var orderBy = BuildOrderBy(OrderBy);
+				var statement = new SelectStatement(queryExpression, orderBy);
+				statement.Limit = BuildLimit(Limit);
+				builder.Statements.Add(statement);
+			}
+		}
+
+		private IEnumerable<SortColumn> BuildOrderBy(IEnumerable<OrderByNode> nodes) {
+			if (nodes == null)
+				return null;
+
+			return nodes.Select(node => new SortColumn(ExpressionBuilder.Build(node.Expression), node.Ascending));
+		}
+
+		private QueryLimit BuildLimit(LimitNode node) {
+			if (node == null)
+				return null;
+
+			return new QueryLimit(node.Offset, node.Count);
 		}
 	}
 }

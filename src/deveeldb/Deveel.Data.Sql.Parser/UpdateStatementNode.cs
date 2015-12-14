@@ -15,12 +15,14 @@
 //
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class UpdateStatementNode : SqlNode, IStatementNode {
-		internal UpdateStatementNode() {
-		}
-
+	class UpdateStatementNode : SqlStatementNode {
 		public SimpleUpdateNode SimpleUpdate { get; private set; }
 
 		public QueryUpdateNode QueryUpdate { get; private set; }
@@ -33,6 +35,31 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			if (SimpleUpdate != null) {
+				BuildSimpleUpdate(builder, SimpleUpdate);
+			} else if (QueryUpdate != null) {
+				BuildQueryUpdate(builder, QueryUpdate);
+			}
+		}
+
+		private void BuildSimpleUpdate(StatementBuilder builder, SimpleUpdateNode node) {
+			var whereExpression = ExpressionBuilder.Build(node.WhereExpression);
+			var assignments = UpdateAssignments(node.Columns);
+			builder.Statements.Add(new UpdateStatement(node.TableName, whereExpression, assignments));
+		}
+
+		private IEnumerable<SqlColumnAssignment> UpdateAssignments(IEnumerable<UpdateColumnNode> columns) {
+			if (columns == null)
+				return null;
+
+			return columns.Select(column => new SqlColumnAssignment(column.ColumnName, ExpressionBuilder.Build(column.Expression)));
+		}
+
+		private void BuildQueryUpdate(StatementBuilder builder, QueryUpdateNode node) {
+			throw new NotImplementedException();
 		}
 	}
 }

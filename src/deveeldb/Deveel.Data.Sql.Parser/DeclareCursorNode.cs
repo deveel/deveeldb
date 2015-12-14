@@ -18,8 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class DeclareCursorNode : SqlNode, IDeclareNode, IStatementNode {
+	class DeclareCursorNode : SqlStatementNode, IDeclareNode {
 		public string CursorName { get; private set; }
 
 		public IExpressionNode QueryExpression { get; private set; }
@@ -44,6 +48,26 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var parameters = new List<CursorParameter>();
+			if (Parameters != null) {
+				foreach (var parameterNode in Parameters) {
+					var dataType = builder.BuildDataType(parameterNode.ParameterType);
+					parameters.Add(new CursorParameter(parameterNode.ParameterName, dataType));
+				}
+			}
+
+			var flags = new CursorFlags();
+			if (Insensitive)
+				flags |= CursorFlags.Insensitive;
+			if (Scroll)
+				flags |= CursorFlags.Scroll;
+
+			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
+
+			builder.Statements.Add(new DeclareCursorStatement(CursorName, parameters.ToArray(), flags, queryExpression));
 		}
 	}
 }

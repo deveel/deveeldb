@@ -16,13 +16,19 @@
 
 using System;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class CloseCursorStatementNode : SqlNode, IStatementNode {
+	class CloseCursorStatementNode : SqlStatementNode {
 		public string CursorName { get; private set; }
 
 		protected override void OnNodeInit() {
 			CursorName = this.FindNode<IdentifierNode>().Text;
 			base.OnNodeInit();
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			builder.Statements.Add(new CloseStatement(CursorName));
 		}
 	}
 }

@@ -18,8 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class DropViewStatementNode : SqlNode, IStatementNode {
+	class DropViewStatementNode : SqlStatementNode {
 		public IEnumerable<string> ViewNames { get; private set; }
 
 		public bool IfExists { get; private set; }
@@ -31,6 +33,10 @@ namespace Deveel.Data.Sql.Parser {
 				IfExists = true;
 
 			base.OnNodeInit();
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			builder.Statements.Add(new DropViewStatement(ViewNames.ToArray(), IfExists));
 		}
 	}
 }

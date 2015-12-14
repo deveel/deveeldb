@@ -17,12 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class CreateViewNode : SqlNode, IStatementNode {
-		internal CreateViewNode() {
-		}
-
+	class CreateViewNode : SqlStatementNode {
 		public ObjectNameNode ViewName { get; private set; }
 
 		public bool ReplaceIfExists { get; private set; }
@@ -44,6 +45,12 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var queryExpression = (SqlQueryExpression)ExpressionBuilder.Build(QueryExpression);
+			var statement = new CreateViewStatement(ViewName.Name, ColumnNames, queryExpression);
+			builder.Statements.Add(statement);
 		}
 	}
 }

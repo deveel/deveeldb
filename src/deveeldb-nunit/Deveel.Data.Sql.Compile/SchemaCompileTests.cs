@@ -28,5 +28,27 @@ namespace Deveel.Data.Sql.Compile {
 			var schemaStatement = (CreateSchemaStatement) statement;
 			Assert.AreEqual("test_schema", schemaStatement.SchemaName);
 		}
+
+		[Test]
+		public void DropSchema() {
+			const string sql = "DROP SCHEMA test_schema";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+
+			Assert.IsInstanceOf<DropSchemaStatement>(statement);
+
+			var schemaStatement = (DropSchemaStatement) statement;
+			Assert.AreEqual("test_schema", schemaStatement.SchemaName);
+		}
 	}
 }

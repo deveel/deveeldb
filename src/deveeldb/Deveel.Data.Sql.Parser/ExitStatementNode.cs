@@ -16,8 +16,11 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class ExitStatementNode : SqlNode, IStatementNode {
+	class ExitStatementNode : SqlStatementNode {
 		public string Label { get; private set; }
 
 		public IExpressionNode WhenExpression { get; private set; }
@@ -30,6 +33,14 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			SqlExpression exp = null;
+			if (WhenExpression != null)
+				exp = ExpressionBuilder.Build(WhenExpression);
+
+			builder.Statements.Add(new LoopControlStatement(LoopControlType.Exit, Label, exp));
 		}
 	}
 }

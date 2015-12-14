@@ -18,14 +18,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class GrantStatementNode : SqlNode, IStatementNode {
+	class GrantStatementNode : SqlStatementNode {
 		public string ObjectName { get; private set; }
 
-		public IEnumerable<PrivilegeNode> Privileges { get; private set; } 
-		
+		public IEnumerable<PrivilegeNode> Privileges { get; private set; }
+
 		public IEnumerable<string> Grantees { get; private set; }
-		
+
 		public bool WithGrant { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -68,6 +71,24 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (isAll)
 				Privileges = new[] {PrivilegeNode.All};
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var objName = Sql.ObjectName.Parse(ObjectName);
+			foreach (var grantee in Grantees) {
+				foreach (var privilegeNode in Privileges) {
+					var privilege = ParsePrivilege(privilegeNode.Privilege);
+					builder.Statements.Add(new GrantPrivilegesStatement(grantee, privilege, WithGrant, objName, privilegeNode.Columns));
+				}
+			}
+		}
+
+		private static Privileges ParsePrivilege(string privName) {
+			try {
+				return (Privileges) Enum.Parse(typeof (Privileges), privName, true);
+			} catch (Exception) {
+				throw new InvalidOperationException(String.Format("Invalid privilege name '{0}' specified.", privName));
+			}
 		}
 	}
 }

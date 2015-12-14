@@ -18,16 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	class DataTypeBuilder {
-		public SqlType Build(ISqlNode sqlNode) {
-			return Build(null, sqlNode);
-		}
-
-		public SqlType Build(ITypeResolver resolver, ISqlNode sqlNode) {
+	static class DataTypeBuilder {
+		public static SqlType Build(ITypeResolver resolver, ISqlNode sqlNode) {
 			var node = sqlNode as DataTypeNode;
 			if (node == null)
 				throw new ArgumentException();
@@ -96,7 +91,7 @@ namespace Deveel.Data.Sql.Parser {
 			return type;
 		}
 
-		private DataTypeMeta[] BuildTypeMeta(Dictionary<string, string> metadata) {
+		private static DataTypeMeta[] BuildTypeMeta(Dictionary<string, string> metadata) {
 			return metadata.Select(x => new DataTypeMeta(x.Key, x.Value)).ToArray();
 		}
 	}

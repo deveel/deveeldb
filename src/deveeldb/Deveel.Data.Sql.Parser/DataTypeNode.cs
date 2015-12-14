@@ -115,7 +115,9 @@ namespace Deveel.Data.Sql.Parser {
 		public Dictionary<string, string> Metadata { get; private set; } 
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node.NodeName == "boolean_type") {
+			if (node.NodeName == "identity_type") {
+				TypeName = "IDENTITY";
+			} else if (node.NodeName == "boolean_type") {
 				GetBooleanType(node);
 			} else if (node.NodeName == "decimal_type") {
 				GetNumberType(node);

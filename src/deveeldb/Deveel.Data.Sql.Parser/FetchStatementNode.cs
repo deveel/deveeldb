@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class FetchStatementNode : SqlNode, IStatementNode {
+	class FetchStatementNode : SqlStatementNode {
 		public string Direction { get; private set; }
 
 		public string CursorName { get; private set; }
@@ -59,6 +62,34 @@ namespace Deveel.Data.Sql.Parser {
 					break;
 				}
 			}
+		}
+
+		private static bool TryParseDirection(string s, out FetchDirection direction) {
+#if PCL
+			return Enum.TryParse(s, true, out direction);
+#else
+			try {
+				direction = (FetchDirection) Enum.Parse(typeof (FetchDirection), s, true);
+				return true;
+			} catch (Exception) {
+				direction = new FetchDirection();
+				return false;
+			}
+#endif
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			FetchDirection direction;
+			if (!TryParseDirection(Direction, out direction))
+				throw new InvalidOperationException();
+
+			var statement = new FetchStatement(CursorName, direction);
+			if (Into != null)
+				statement.IntoReference = ExpressionBuilder.Build(Into);
+			if (Position != null)
+				statement.PositionExpression = ExpressionBuilder.Build(Position);
+
+			builder.Statements.Add(statement);
 		}
 	}
 }

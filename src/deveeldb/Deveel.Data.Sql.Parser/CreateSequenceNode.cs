@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
+
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class CreateSequenceNode : SqlNode, IStatementNode {
+	class CreateSequenceNode : SqlStatementNode {
 		public string SequenceName { get; private set; }
 
 		public IExpressionNode IncrementBy { get; private set; }
@@ -35,6 +38,26 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var seqName = ObjectName.Parse(SequenceName);
+			var statement = new CreateSequenceStatement(seqName);
+
+			if (IncrementBy != null)
+				statement.IncrementBy = ExpressionBuilder.Build(IncrementBy);
+			if (Cache != null)
+				statement.Cache = ExpressionBuilder.Build(Cache);
+			if (StartWith != null)
+				statement.StartWith = ExpressionBuilder.Build(StartWith);
+			if (MinValue != null)
+				statement.MinValue = ExpressionBuilder.Build(MinValue);
+			if (MaxValue != null)
+				statement.MaxValue = ExpressionBuilder.Build(MaxValue);
+
+			statement.Cycle = Cycle;
+
+			builder.Statements.Add(statement);
 		}
 	}
 }

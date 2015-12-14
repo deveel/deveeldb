@@ -18,20 +18,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Deveel.Data.Sql.Parser {
-	class CreateTableNode : SqlNode, IStatementNode {
-		internal CreateTableNode() {
-		}
+using Deveel.Data.Sql.Statements;
+using Deveel.Data.Types;
 
+namespace Deveel.Data.Sql.Parser {
+	class CreateTableNode : SqlStatementNode {
 		public ObjectNameNode TableName { get; private set; }
 
 		public bool IfNotExists { get; private set; }
 
 		public bool Temporary { get; private set; }
 
-		public IEnumerable<TableColumnNode> Columns { get; internal set; }
+		public IEnumerable<TableColumnNode> Columns { get; private set; }
 
-		public IEnumerable<TableConstraintNode> Constraints { get; internal set; }
+		public IEnumerable<TableConstraintNode> Constraints { get; private set; }
 
 		protected override void OnNodeInit() {
 			TableName = this.FindNode<ObjectNameNode>();
@@ -41,6 +41,63 @@ namespace Deveel.Data.Sql.Parser {
 			var elements = this.FindNodes<ITableElementNode>().ToList();
 			Columns = elements.OfType<TableColumnNode>();
 			Constraints = elements.OfType<TableConstraintNode>();
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			Build(builder.TypeResolver, builder.Statements);
+		}
+
+		public void Build(ITypeResolver typeResolver, ICollection<IStatement> statements) {
+			string idColumn = null;
+
+			var tableName = TableName;
+			var constraints = new List<SqlTableConstraint>();
+			var columns = new List<SqlTableColumn>();
+
+			foreach (var column in Columns) {
+				if (column.IsIdentity) {
+					if (!String.IsNullOrEmpty(idColumn))
+						throw new InvalidOperationException(String.Format("Table {0} defines already {1} as identity column.", TableName,
+							idColumn));
+
+					if (column.Default != null)
+						throw new InvalidOperationException(String.Format("The identity column {0} cannot have a DEFAULT constraint.",
+							idColumn));
+
+					idColumn = column.ColumnName.Text;
+				}
+
+				var columnInfo = column.BuildColumn(typeResolver, tableName.Name, constraints);
+
+				columns.Add(columnInfo);
+			}
+
+			//TODO: Optimization: merge same constraints
+
+			statements.Add(MakeCreateTable(tableName.Name, columns, IfNotExists, Temporary));
+
+			foreach (var constraint in Constraints) {
+				var constraintInfo = constraint.BuildConstraint();
+				statements.Add(new AlterTableStatement(ObjectName.Parse(tableName.Name), new AddConstraintAction(constraintInfo)));
+			}
+
+			foreach (var constraint in constraints) {
+				statements.Add(MakeAlterTableAddConstraint(tableName.Name, constraint));
+			}
+		}
+
+		private static SqlStatement MakeAlterTableAddConstraint(string tableName, SqlTableConstraint constraint) {
+			var action = new AddConstraintAction(constraint);
+
+			return new AlterTableStatement(ObjectName.Parse(tableName), action);
+		}
+
+		private static SqlStatement MakeCreateTable(string tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists,
+			bool temporary) {
+			var tree = new CreateTableStatement(tableName, columns.ToList());
+			tree.IfNotExists = ifNotExists;
+			tree.Temporary = temporary;
+			return tree;
 		}
 	}
 }

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	class AlterUserStatementNode : SqlNode, IStatementNode {
+	class AlterUserStatementNode : SqlStatementNode {
 		public string UserName { get; private set; }
 
 		public IEnumerable<IAlterUserActionNode> Actions { get; private set; }
@@ -31,6 +31,10 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			throw new NotImplementedException();
 		}
 	}
 }

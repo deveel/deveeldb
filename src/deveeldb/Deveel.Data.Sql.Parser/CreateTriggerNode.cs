@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Parser {
-	class CreateTriggerNode : SqlNode, IStatementNode {
+	class CreateTriggerNode : SqlStatementNode {
 		internal CreateTriggerNode() {
 		}
 
@@ -36,6 +36,10 @@ namespace Deveel.Data.Sql.Parser {
 
 		public bool IsAfter { get; private set; }
 
-		public IEnumerable<string> Events { get; private set; } 
+		public IEnumerable<string> Events { get; private set; }
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			throw new NotImplementedException();
+		}
 	}
 }

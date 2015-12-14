@@ -18,8 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class InsertStatementNode : SqlNode, IStatementNode {
+	class InsertStatementNode : SqlStatementNode {
 		public string TableName { get; private set; }
 
 		public IEnumerable<string> ColumnNames { get; private set; }
@@ -44,6 +47,36 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			if (ValuesInsert != null) {
+				var valueInsert = ValuesInsert;
+				var values =
+					valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
+				builder.Statements.Add(new InsertStatement(TableName, ColumnNames, values));
+			} else if (SetInsert != null) {
+				var assignments = SetInsert.Assignments;
+
+				var columnNames = new List<string>();
+				var values = new List<SqlExpression>();
+				foreach (var assignment in assignments) {
+					var columnName = assignment.ColumnName;
+					var value = ExpressionBuilder.Build(assignment.Value);
+
+					columnNames.Add(columnName);
+					values.Add(value);
+				}
+
+				builder.Statements.Add(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
+			} else if (QueryInsert != null) {
+				var queryInsert = QueryInsert;
+				var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;
+				if (queryExpression == null)
+					throw new SqlParseException();
+
+				builder.Statements.Add(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
+			}
 		}
 	}
 }

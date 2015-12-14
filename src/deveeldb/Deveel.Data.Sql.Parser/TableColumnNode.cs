@@ -17,11 +17,13 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
+using Deveel.Data.Types;
+
 namespace Deveel.Data.Sql.Parser {
 	class TableColumnNode : SqlNode, ITableElementNode {
-		internal TableColumnNode() {
-		}
-
 		public IdentifierNode ColumnName { get; private set; }
 
 		public DataTypeNode DataType { get; private set; }
@@ -39,6 +41,50 @@ namespace Deveel.Data.Sql.Parser {
 			IsIdentity = this.HasOptionalNode("column_identity_opt");
 
 			Constraints = this.FindNodes<ColumnConstraintNode>();
+		}
+
+		public SqlTableColumn BuildColumn(ITypeResolver typeResolver, string tableName, IList<SqlTableConstraint> constraints) {
+			var dataType = DataTypeBuilder.Build(typeResolver, DataType);
+
+			var columnInfo = new SqlTableColumn(ColumnName.Text, dataType);
+
+			if (Default != null)
+				columnInfo.DefaultExpression = ExpressionBuilder.Build(Default);
+
+			if (IsIdentity) {
+				columnInfo.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
+					new[] { SqlExpression.Constant(tableName) });
+				columnInfo.IsIdentity = true;
+			}
+
+			foreach (var constraint in Constraints) {
+				if (String.Equals(ConstraintTypeNames.Check, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					var exp = ExpressionBuilder.Build(constraint.CheckExpression);
+					constraints.Add(SqlTableConstraint.Check(null, exp));
+				} else if (String.Equals(ConstraintTypeNames.ForeignKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					var fTable = constraint.ReferencedTable.Name;
+					var fColumn = constraint.ReferencedColumn.Text;
+					var onDelete = ForeignKeyAction.NoAction;
+					var onUpdate = ForeignKeyAction.NoAction;
+					
+					if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
+						onDelete = StatementBuilder.GetForeignKeyAction(constraint.OnDeleteAction);
+					if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
+						onUpdate = StatementBuilder.GetForeignKeyAction(constraint.OnUpdateAction);
+
+					constraints.Add(SqlTableConstraint.ForeignKey(null, new[]{ColumnName.Text}, fTable, new[]{fColumn}, onDelete, onUpdate));
+				} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					constraints.Add(SqlTableConstraint.PrimaryKey(null, new[]{ColumnName.Text}));
+				} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					constraints.Add(SqlTableConstraint.UniqueKey(null, new[]{ColumnName.Text}));
+				} else if (String.Equals(ConstraintTypeNames.NotNull, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					columnInfo.IsNotNull = true;
+				} else if (String.Equals(ConstraintTypeNames.Null, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+					columnInfo.IsNotNull = false;
+				}
+			}
+
+			return columnInfo;
 		}
 	}
 }

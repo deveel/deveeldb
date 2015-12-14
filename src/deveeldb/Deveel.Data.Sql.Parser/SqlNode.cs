@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
+using Deveel.Data.Sql.Statements;
+
 using Irony.Ast;
 using Irony.Parsing;
 
@@ -59,6 +61,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// <seealso cref="Token"/>
 		/// <seealso cref="ISqlNode.Tokens"/>
 		protected IEnumerable<Token> Tokens { get; private set; }
+
 
 		void IAstNodeInit.Init(AstContext context, ParseTreeNode parseNode) {
 			NodeName = parseNode.Term == null ? GetType().Name : parseNode.Term.Name;

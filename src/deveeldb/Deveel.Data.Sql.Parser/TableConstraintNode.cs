@@ -18,6 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
+
 namespace Deveel.Data.Sql.Parser {
 	class TableConstraintNode : SqlNode, ITableElementNode {
 		private bool notSeen;
@@ -62,7 +65,7 @@ namespace Deveel.Data.Sql.Parser {
 		private void ReadConstraintDefinition(ISqlNode node) {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
-					var keyNode = (SqlKeyNode)childNode;
+					var keyNode = (SqlKeyNode) childNode;
 					if (String.Equals(keyNode.Text, "NULL", StringComparison.OrdinalIgnoreCase)) {
 						if (notSeen) {
 							ConstraintType = "NOT NULL";
@@ -82,7 +85,7 @@ namespace Deveel.Data.Sql.Parser {
 					}
 				} else if (childNode.NodeName == "column_list") {
 					ReadColumnList(childNode.ChildNodes);
-				}				
+				}
 			}
 		}
 
@@ -99,11 +102,42 @@ namespace Deveel.Data.Sql.Parser {
 		private void ReadColumnList(IEnumerable<ISqlNode> nodes) {
 			foreach (var node in nodes) {
 				if (node is IdentifierNode) {
-					columns.Add(((IdentifierNode)node).Text);
+					columns.Add(((IdentifierNode) node).Text);
 				} else {
 					ReadColumnList(node.ChildNodes);
 				}
 			}
+		}
+
+		public SqlTableConstraint BuildConstraint() {
+			if (String.Equals(ConstraintTypeNames.Check, ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+				var exp = ExpressionBuilder.Build(CheckExpression);
+				return new SqlTableConstraint(ConstraintName, Tables.ConstraintType.Check, Columns.ToArray()) {
+					CheckExpression = exp
+				};
+			}
+			if (String.Equals(ConstraintTypeNames.PrimaryKey, ConstraintType, StringComparison.OrdinalIgnoreCase))
+				return SqlTableConstraint.PrimaryKey(ConstraintName, Columns.ToArray());
+			if (String.Equals(ConstraintTypeNames.UniqueKey, ConstraintType, StringComparison.OrdinalIgnoreCase))
+				return SqlTableConstraint.UniqueKey(ConstraintName, Columns.ToArray());
+			if (String.Equals(ConstraintTypeNames.ForeignKey, ConstraintType, StringComparison.OrdinalIgnoreCase)) {
+				var fTable = ReferencedTableName.Name;
+				var fColumns = ReferencedColumns;
+				var onDelete = ForeignKeyAction.NoAction;
+				var onUpdate = ForeignKeyAction.NoAction;
+
+				if (!String.IsNullOrEmpty(OnDeleteAction))
+					onDelete = StatementBuilder.GetForeignKeyAction(OnDeleteAction);
+				if (!String.IsNullOrEmpty(OnUpdateAction))
+					onUpdate = StatementBuilder.GetForeignKeyAction(OnUpdateAction);
+
+				var fkey = SqlTableConstraint.ForeignKey(ConstraintName, Columns.ToArray(), fTable,
+					fColumns.ToArray(), onDelete, onUpdate);
+
+				return fkey;
+			}
+
+			throw new NotSupportedException();
 		}
 	}
 }

@@ -19,6 +19,7 @@ using System;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {
@@ -37,8 +38,12 @@ namespace Deveel.Data.Sql.Compile {
 					compileResult.Messages.Add(new SqlCompileMessage(CompileMessageLevel.Error, error.Message, location));
 				}
 
-				var builder = new StatementBuilder();
-				var statements = builder.Build(result.RootNode, sqlSource);
+				ITypeResolver typeResolver = null;
+				if (context.Context != null)
+					typeResolver = context.Context.TypeResolver();
+
+				var builder = new StatementBuilder(typeResolver);
+				var statements = builder.Build(result.RootNode);
 
 				foreach (var statement in statements) {
 					compileResult.Statements.Add(statement);

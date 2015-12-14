@@ -675,7 +675,7 @@ namespace Deveel.Data.Sql.Parser {
 								  Key("NO") + Key("ACTION");
 
 			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
-			tableConstraintNameOpt.Rule = Empty | CONSTRAINT + constraintName;
+			tableConstraintNameOpt.Rule = Empty | constraintName;
 			constraintName.Rule = Identifier;
 			defTableConstraint.Rule = PRIMARY + KEY + "(" + columnList + ")" |
 										UNIQUE + "(" + columnList + ")" |
@@ -726,9 +726,9 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal DropSchema() {
-			var dropSchema = new NonTerminal("drop_schema");
+			var dropSchema = new NonTerminal("drop_schema", typeof(DropSchemaStatementNode));
 
-			dropSchema.Rule = Key("DROP") + Key("SCHEMA") + ObjectName();
+			dropSchema.Rule = Key("DROP") + Key("SCHEMA") + Identifier;
 			return dropSchema;
 		}
 

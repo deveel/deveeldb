@@ -90,6 +90,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CursorCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />

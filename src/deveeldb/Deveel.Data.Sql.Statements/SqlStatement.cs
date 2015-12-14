@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Compile;
@@ -194,7 +195,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (result.HasErrors)
 					throw new SqlParseException();
 
-				var statements = result.Statements;
+				var statements = result.Statements.Cast<SqlStatement>();
 
 				foreach (var statement in statements) {
 					if (statement != null)

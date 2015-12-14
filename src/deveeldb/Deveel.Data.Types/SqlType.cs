@@ -348,8 +348,7 @@ namespace Deveel.Data.Types {
 				if (context == null && !node.IsPrimitive)
 					throw new NotSupportedException(String.Format("The type '{0}' is not primitive and no resolve context is provided.", node.TypeName));
 
-				var builder = new DataTypeBuilder();
-				return builder.Build(context.TypeResolver(), node);
+				return DataTypeBuilder.Build(context.TypeResolver(), node);
 			} catch (SqlParseException) {
 				throw new FormatException("Unable to parse the given string to a valid data type.");
 			}

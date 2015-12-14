@@ -46,5 +46,50 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotEmpty(result.Statements);
 			Assert.AreEqual(2, result.Statements.Count);
 		}
+
+		[Test]
+		public void AddColumnsAndContraints() {
+			const string sql = "ALTER TABLE test ADD COLUMN b INT NOT NULL ADD CONSTRAINT c UNIQUE(a, b)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			var firstStatement = result.Statements.ElementAt(0);
+			var secondStatement = result.Statements.ElementAt(1);
+
+			Assert.IsNotNull(firstStatement);
+			Assert.IsNotNull(secondStatement);
+
+			Assert.IsInstanceOf<AlterTableStatement>(firstStatement);
+			Assert.IsInstanceOf<AlterTableStatement>(secondStatement);
+
+			var alter1 = (AlterTableStatement) firstStatement;
+			var alter2 = (AlterTableStatement) secondStatement;
+
+			Assert.IsInstanceOf<AddColumnAction>(alter1.Action);
+			Assert.IsInstanceOf<AddConstraintAction>(alter2.Action);
+		}
+
+		[Test]
+		public void DropColumn() {
+			const string sql = "ALTER TABLE test DROP COLUMN b";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alter = (AlterTableStatement) statement;
+
+			Assert.IsInstanceOf<DropColumnAction>(alter.Action);
+		}
 	}
 }

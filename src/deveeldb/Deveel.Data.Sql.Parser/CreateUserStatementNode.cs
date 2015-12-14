@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class CreateUserStatementNode : SqlNode, IStatementNode {
+	class CreateUserStatementNode : SqlStatementNode {
 		public string UserName { get; private set; }
 
 		public IUserIdentificatorNode Identificator { get; private set; }
@@ -30,6 +32,16 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			if (Identificator is IdentifiedByPasswordNode) {
+				var passwordNode = (IdentifiedByPasswordNode)Identificator;
+				var password = ExpressionBuilder.Build(passwordNode.Password);
+				builder.Statements.Add(new CreateUserStatement(UserName, password));
+			} else {
+				throw new NotSupportedException();
+			}
 		}
 	}
 }

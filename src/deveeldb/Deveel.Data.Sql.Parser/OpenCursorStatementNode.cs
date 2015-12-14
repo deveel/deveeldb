@@ -19,9 +19,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Index;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class OpenCursorStatementNode : SqlNode, IStatementNode {
+	class OpenCursorStatementNode : SqlStatementNode {
 		public string CursorName { get; private set; }
 
 		public IEnumerable<IExpressionNode> Arguments { get; private set; }
@@ -49,6 +51,15 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			Arguments = args.AsEnumerable();
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var args = new List<SqlExpression>();
+			if (Arguments != null) {
+				args = Arguments.Select(ExpressionBuilder.Build).ToList();
+			}
+
+			builder.Statements.Add(new OpenStatement(CursorName, args.ToArray()));
 		}
 	}
 }
