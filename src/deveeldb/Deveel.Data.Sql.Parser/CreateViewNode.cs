@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "column_list_opt") {
-
+				GetColumnList(node);
 			} else if (node.NodeName == "or_replace_opt") {
 				if (node.ChildNodes.Any())
 					ReplaceIfExists = true;
@@ -45,6 +45,19 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		private void GetColumnList(ISqlNode node) {
+			var columnListNode = node.ChildNodes.FirstOrDefault();
+			if (columnListNode == null)
+				return;
+			
+			var columnNames = (columnListNode.ChildNodes.Where(childNode => childNode.NodeName.Equals("column_name"))
+				.Select(childNode => childNode.ChildNodes.FirstOrDefault())
+				.Where(columnName => columnName != null && columnName is IdentifierNode)
+				.Select(columnName => ((IdentifierNode) columnName).Text)).ToList();
+
+			ColumnNames = columnNames.AsEnumerable();
 		}
 
 		protected override void BuildStatement(StatementBuilder builder) {
