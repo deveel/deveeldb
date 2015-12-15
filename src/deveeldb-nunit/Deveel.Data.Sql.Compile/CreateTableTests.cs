@@ -111,5 +111,28 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNullOrEmpty(createTable.TableName);
 			Assert.AreEqual("test", createTable.TableName);
 		}
+
+		[Test]
+		public void WithColumnConstraints() {
+			const string sql = "CREATE TABLE test (id INT NOT NULL PRIMARY KEY)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+
+			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
+
+			var createTable = (CreateTableStatement) statement;
+
+			Assert.IsNotNullOrEmpty(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName);
+		}
 	}
 }

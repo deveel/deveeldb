@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
-		public void AddColumnsAndContraints() {
+		public void AddColumnsAndUniqeContraints() {
 			const string sql = "ALTER TABLE test ADD COLUMN b INT NOT NULL ADD CONSTRAINT c UNIQUE(a, b)";
 
 			var result = Compile(sql);
@@ -71,6 +71,27 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.IsInstanceOf<AddColumnAction>(alter1.Action);
 			Assert.IsInstanceOf<AddConstraintAction>(alter2.Action);
+		}
+
+		[Test]
+		public void AddPrimaryKeyContraint() {
+			const string sql = "ALTER TABLE test ADD CONSTRAINT c PRIMARY KEY(id)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alterStatement = (AlterTableStatement) statement;
+			
+			Assert.AreEqual("test", alterStatement.TableName.FullName);
+			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);			
 		}
 
 		[Test]

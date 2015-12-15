@@ -15,9 +15,12 @@
 //
 
 using System;
+using System.Linq;
+
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class DeclareVariableNode : SqlNode, IDeclareNode {
+	class DeclareVariableNode : SqlStatementNode, IDeclareNode {
 		public string VariableName { get; private set; }
 
 		public DataTypeNode Type { get; private set; }
@@ -28,6 +31,38 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IExpressionNode DefaultExpression { get; private set; }
 
-		public IExpressionNode AssignExpression { get; private set; }
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is IdentifierNode) {
+				VariableName = ((IdentifierNode) node).Text;
+			} else if (node is DataTypeNode) {
+				Type = (DataTypeNode)node;
+			}  else if (node.NodeName.Equals("constant_opt")) {
+				IsConstant = node.ChildNodes.Any();
+			} else if (node.NodeName.Equals("var_not_null_opt")) {
+				IsNotNull = node.ChildNodes.Any();
+			} else if (node.NodeName.Equals("var_default_opt")) {
+				GetDefaultExpression(node);
+			}
+
+			return base.OnChildNode(node);
+		}
+
+		private void GetDefaultExpression(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is IExpressionNode)
+					DefaultExpression = (IExpressionNode) childNode;
+			}
+		}
+
+		protected override void BuildStatement(StatementBuilder builder) {
+			var varType = DataTypeBuilder.Build(builder.TypeResolver, Type);
+			var statement = new DeclareVariableStatement(VariableName, varType);
+			if (DefaultExpression != null)
+				statement.DefaultExpression = ExpressionBuilder.Build(DefaultExpression);
+
+			statement.IsConstant = IsConstant;
+			statement.IsNotNull = IsConstant || IsNotNull;
+			builder.Statements.Add(statement);
+		}
 	}
 }

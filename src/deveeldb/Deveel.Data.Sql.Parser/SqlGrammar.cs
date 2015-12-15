@@ -68,24 +68,26 @@ namespace Deveel.Data.Sql.Parser {
 
 			sqlStatement.Rule = command + StatementEnd();
 
-			command.Rule = Create() |
-			               Alter() |
-			               Drop() |
-			               Declare() |
-						   Open() |
-						   Close() |
-						   Fetch() |
-			               Select() |
-						   CursorDeclaration() |
-			               Insert() |
-			               Update() |
-			               Delete() |
-			               Truncate() |
-			               Set() |
-			               Commit() |
-			               Rollback() |
-			               Grant() |
-			               Revoke();
+			command.Rule =
+				VariableDeclaration() |
+				Create() |
+				Alter() |
+				Drop() |
+				Declare() |
+				Open() |
+				Close() |
+				Fetch() |
+				Select() |
+				CursorDeclaration() |
+				Insert() |
+				Update() |
+				Delete() |
+				Truncate() |
+				Set() |
+				Commit() |
+				Rollback() |
+				Grant() |
+				Revoke();
 
 			return sqlStatement;
 		}
@@ -132,10 +134,10 @@ namespace Deveel.Data.Sql.Parser {
 			var varDefaultAssign = new NonTerminal("var_default_assign");
 
 			declareVariable.Rule = Identifier + constantOpt + DataType() + varNotNullOpt + varDefaultOpt;
-			constantOpt.Rule = Empty | CONSTANT;
-			varNotNullOpt.Rule = Empty | NOT + NULL;
+			constantOpt.Rule = Empty | Key("CONSTANT");
+			varNotNullOpt.Rule = Empty | Key("NOT") + Key("NULL");
 			varDefaultOpt.Rule = Empty | varDefaultAssign + SqlExpression();
-			varDefaultAssign.Rule = ":=" | DEFAULT;
+			varDefaultAssign.Rule = ":=" | Key("DEFAULT");
 
 			return declareVariable;
 		}
@@ -361,9 +363,9 @@ namespace Deveel.Data.Sql.Parser {
 			declareStatementOpt.Rule = Empty | DECLARE + declareSpecList;
 			declareSpecList.Rule = MakePlusRule(declareSpecList, declareSpec);
 			declareCommand.Rule = VariableDeclaration() |
-			                   ExceptionDeclaration() |
-			                   declarePragma |
-			                   CursorDeclaration();
+			                      ExceptionDeclaration() |
+			                      declarePragma |
+			                      CursorDeclaration();
 			declareSpec.Rule = declareCommand + StatementEnd();
 			declarePragma.Rule = Key("PRAGMA") + Key("EXCEPTION_INIT") + "(" + StringLiteral + "," + PositiveLiteral + ")";
 
@@ -677,9 +679,9 @@ namespace Deveel.Data.Sql.Parser {
 			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
 			tableConstraintNameOpt.Rule = Empty | constraintName;
 			constraintName.Rule = Identifier;
-			defTableConstraint.Rule = PRIMARY + KEY + "(" + columnList + ")" |
-										UNIQUE + "(" + columnList + ")" |
-										CHECK + "(" + SqlExpression() + ")" |
+			defTableConstraint.Rule = Key("PRIMARY") + Key("KEY") + "(" + columnList + ")" |
+										Key("UNIQUE") + "(" + columnList + ")" |
+										Key("CHECK") + "(" + SqlExpression() + ")" |
 										FOREIGN + KEY + "(" + columnList + ")" + REFERENCES + ObjectName() + "(" + columnList +
 										")" +
 										fkeyActionList;
