@@ -5,7 +5,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeclareVariableStatement : SqlPreparedStatement, IPreparable {
+	public sealed class DeclareVariableStatement : SqlStatement, IPreparable {
 		public DeclareVariableStatement(string variableName, SqlType variableType) {
 			if (String.IsNullOrEmpty(variableName))
 				throw new ArgumentNullException("variableName");

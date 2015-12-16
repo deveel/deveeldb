@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CreateUserStatement : SqlPreparedStatement, IPreparable {
+	public sealed class CreateUserStatement : SqlStatement, IPreparable {
 		public CreateUserStatement(string userName, SqlExpression password) {
 			if (password == null)
 				throw new ArgumentNullException("password");

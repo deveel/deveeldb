@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropViewStatement : SqlPreparableStatement {
+	public sealed class DropViewStatement : SqlStatement, IPreparableStatement {
 		public DropViewStatement(string[] viewNames) 
 			: this(viewNames, false) {
 		}
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var viewNameList = ViewNames.ToList();
 			var dropViews = new List<string>();
 
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			public ObjectName[] ViewNames { get; set; }
 
 			public bool IfExists { get; set; }
@@ -82,34 +82,6 @@ namespace Deveel.Data.Sql.Statements {
 				context.Request.Query.DropViews(ViewNames, IfExists);
 			}
 		}
-
-		#endregion
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
-		//		var namesLength = obj.ViewNames.Length;
-		//		writer.Write(namesLength);
-		//		for (int i = 0; i < namesLength; i++) {
-		//			ObjectName.Serialize(obj.ViewNames[i], writer);
-		//		}
-
-		//		writer.Write(obj.IfExists);
-		//	}
-
-		//	public override Prepared Deserialize(BinaryReader reader) {
-		//		var namesLength = reader.ReadInt32();
-		//		var viewNames = new ObjectName[namesLength];
-		//		for (int i = 0; i < namesLength; i++) {
-		//			viewNames[i] = ObjectName.Deserialize(reader);
-		//		}
-
-		//		var ifExists = reader.ReadBoolean();
-
-		//		return new Prepared(viewNames, ifExists);
-		//	}
-		//}
 
 		#endregion
 	}

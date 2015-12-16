@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectIntoStatement : SqlPreparableStatement {
+	public sealed class SelectIntoStatement : SqlStatement, IPreparableStatement {
 		public SelectIntoStatement(SqlQueryExpression queryExpression, SqlExpression reference) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
 
 			if (IsObjectReference) {
@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			internal Prepared(IQueryPlanNode queryPlan, ObjectName table)
 				: this(queryPlan) {
 				IsForTable = true;
@@ -151,55 +151,6 @@ namespace Deveel.Data.Sql.Statements {
 				return false;
 			}
 		}
-
-		#endregion
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
-		//		if (obj.IsForTable) {
-		//			writer.Write((byte)1);
-		//			ObjectName.Serialize(obj.Table, writer);
-		//		} else {
-		//			writer.Write((byte)2);
-		//			writer.Write(obj.VariableName);
-		//		}
-
-		//		var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
-		//		writer.Write(queryPlanTypeName);
-
-		//		QueryPlanSerializers.Serialize(obj.QueryPlan, writer);
-		//	}
-
-		//	public override Prepared Deserialize(BinaryReader reader) {
-		//		var intoType = reader.ReadByte();
-
-		//		ObjectName tableName = null;
-		//		string variableName = null;
-
-		//		if (intoType == 1) {
-		//			tableName = ObjectName.Deserialize(reader);
-		//		} else if (intoType == 2) {
-		//			variableName = reader.ReadString();
-		//		} else {
-		//			throw new NotSupportedException();
-		//		}
-
-		//		var queryPlanTypeName = reader.ReadString();
-		//		var queryPlanType = Type.GetType(queryPlanTypeName, true);
-
-		//		var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
-
-		//		if (intoType == 1)
-		//			return new Prepared(queryPlan, tableName);
-
-		//		if (intoType == 2)
-		//			return new Prepared(queryPlan, variableName);
-
-		//		throw new NotSupportedException();
-		//	}
-		//}
 
 		#endregion
 	}

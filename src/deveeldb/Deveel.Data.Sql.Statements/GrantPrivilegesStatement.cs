@@ -22,7 +22,7 @@ using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class GrantPrivilegesStatement : SqlPreparedStatement, IPreparableStatement {
+	public sealed class GrantPrivilegesStatement : SqlStatement, IPreparableStatement {
 		public GrantPrivilegesStatement(string grantee, Privileges privilege, ObjectName objName) 
 			: this(grantee, privilege, false, objName) {
 		}
@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 			data.SetValue("WithGrant", WithGrant);
 		}
 
-		IPreparedStatement IPreparableStatement.Prepare(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var objName = context.Query.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}

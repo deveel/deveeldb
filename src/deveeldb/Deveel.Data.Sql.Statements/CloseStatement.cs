@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Cursors;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CloseStatement : SqlPreparedStatement {
+	public sealed class CloseStatement : SqlStatement {
 		public CloseStatement(string cursorName) {
 			if (String.IsNullOrEmpty(cursorName))
 				throw new ArgumentNullException("cursorName");
@@ -43,19 +43,5 @@ namespace Deveel.Data.Sql.Statements {
 			data.SetValue("CursorName", CursorName);
 		}
 
-		#region Serializer
-
-		//internal class Serializer : ObjectBinarySerializer<CloseStatement> {
-		//	public override void Serialize(CloseStatement obj, BinaryWriter writer) {
-		//		writer.Write(obj.CursorName);
-		//	}
-
-		//	public override CloseStatement Deserialize(BinaryReader reader) {
-		//		var cursorName = reader.ReadString();
-		//		return new CloseStatement(cursorName);
-		//	}
-		//}
-
-		#endregion
 	}
 }

@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertSelectStatement : SqlPreparableStatement {
+	public sealed class InsertSelectStatement : SqlStatement, IPreparableStatement {
 		public InsertSelectStatement(string tableName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			TableName = tableName;
 			ColumnNames = columnNames;
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest request) {
+		IStatement IPreparableStatement.Prepare(IRequest request) {
 			var tableName = request.Query.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(ObjectName.Parse(TableName));
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region PreparedInsertStatement
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			internal Prepared(ObjectName tableName, string[] columnNames, IQueryPlanNode queryPlan) {
 				TableName = tableName;
 				ColumnNames = columnNames;
@@ -84,45 +84,6 @@ namespace Deveel.Data.Sql.Statements {
 				throw new NotImplementedException();
 			}
 		}
-
-		#endregion
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
-		//		ObjectName.Serialize(obj.TableName, writer);
-
-		//		var queryPlanTypeName = obj.QueryPlan.GetType().FullName;
-		//		writer.Write(queryPlanTypeName);
-
-		//		var colLength = obj.ColumnNames == null ? 0 : obj.ColumnNames.Length;
-		//		writer.Write(colLength);
-
-		//		if (obj.ColumnNames != null) {
-		//			for (int i = 0; i < colLength; i++) {
-		//				writer.Write(obj.ColumnNames[i]);
-		//			}
-		//		}
-		//	}
-
-		//	public override Prepared Deserialize(BinaryReader reader) {
-		//		var tableName = ObjectName.Deserialize(reader);
-
-		//		var queryPlanTypeName = reader.ReadString();
-		//		var queryPlanType = Type.GetType(queryPlanTypeName, true);
-
-		//		var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
-
-		//		var colLength = reader.ReadInt32();
-		//		var cols = new string[colLength];
-		//		for (int i = 0; i < colLength; i++) {
-		//			cols[i] = reader.ReadString();
-		//		}
-
-		//		return new Prepared(tableName, cols, queryPlan);
-		//	}
-		//}
 
 		#endregion
 	}

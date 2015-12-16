@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateSchemaStatement : SqlPreparedStatement {
+	public sealed class CreateSchemaStatement : SqlStatement {
 		public CreateSchemaStatement(string schemaName) {
 			if (String.IsNullOrEmpty(schemaName))
 				throw new ArgumentNullException("schemaName");

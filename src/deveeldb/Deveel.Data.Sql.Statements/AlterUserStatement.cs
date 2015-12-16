@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AlterUserStatement : SqlPreparedStatement, IPreparable {
+	public sealed class AlterUserStatement : SqlStatement, IPreparable {
 		public AlterUserStatement(string userName, IAlterUserAction alterAction) {
 			if (alterAction == null)
 				throw new ArgumentNullException("alterAction");
@@ -72,63 +72,5 @@ namespace Deveel.Data.Sql.Statements {
 				context.Request.Query.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}
 		}
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<AlterUserStatement> {
-		//	public override void Serialize(AlterUserStatement obj, BinaryWriter writer) {
-		//		writer.Write(obj.UserName);
-
-		//		var action = obj.AlterAction;
-
-		//		writer.Write((byte)action.ActionType);
-
-		//		if (action is SetPasswordAction) {
-		//			var setPassword = (SetPasswordAction) action;
-		//			SqlExpression.Serialize(setPassword.PasswordExpression, writer);
-		//		} else if (action is SetAccountStatusAction) {
-		//			var setAccount = (SetAccountStatusAction) action;
-		//			writer.Write((byte)setAccount.Status);
-		//		} else if (action is SetUserGroupsAction) {
-		//			var setGroups = (SetUserGroupsAction) action;
-		//			var groups = setGroups.Groups.ToArray();
-		//			writer.Write(groups.Length);
-		//			for (int i = 0; i < groups.Length; i++) {
-		//				SqlExpression.Serialize(groups[i], writer);
-		//			}
-		//		} else {
-		//			throw new NotSupportedException();
-		//		}
-		//	}
-
-		//	public override AlterUserStatement Deserialize(BinaryReader reader) {
-		//		var userName = reader.ReadString();
-
-		//		var actionType = (AlterUserActionType) reader.ReadByte();
-		//		IAlterUserAction action;
-
-		//		if (actionType == AlterUserActionType.SetPassword) {
-		//			var password = SqlExpression.Deserialize(reader);
-		//			action = new SetPasswordAction(password);
-		//		} else if (actionType == AlterUserActionType.SetGroups) {
-		//			var groupsLength = reader.ReadInt32();
-		//			var groups = new SqlExpression[groupsLength];
-		//			for (int i = 0; i < groupsLength; i++) {
-		//				groups[i] = SqlExpression.Deserialize(reader);
-		//			}
-
-		//			action = new SetUserGroupsAction(groups);
-		//		} else if (actionType == AlterUserActionType.SetAccountStatus) {
-		//			var status = (UserStatus) reader.ReadByte();
-		//			action = new SetAccountStatusAction(status);
-		//		} else {
-		//			throw new NotSupportedException();
-		//		}
-
-		//		return new AlterUserStatement(userName, action);
-		//	}
-		//}
-
-		#endregion
 	}
 }

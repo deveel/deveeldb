@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using Deveel.Data;
@@ -25,7 +24,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertStatement : SqlPreparableStatement {
+	public sealed class InsertStatement : SqlStatement, IPreparableStatement {
 		public InsertStatement(string tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
 			if (columnNames == null)
 				throw new ArgumentNullException("columnNames");
@@ -43,9 +42,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<string> ColumnNames { get; private set; } 
 
-		public IEnumerable<SqlExpression[]> Values { get; private set; } 
+		public IEnumerable<SqlExpression[]> Values { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
 
 			var table = context.Query.GetTable(tableName);
@@ -96,7 +95,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			internal Prepared(ObjectName tableName, IList<SqlAssignExpression[]> assignments) {
 				TableName = tableName;
 				Assignments = assignments;

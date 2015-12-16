@@ -3,7 +3,7 @@
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateSequenceStatement : SqlPreparableStatement, IPreparable {
+	public sealed class CreateSequenceStatement : SqlStatement, IPreparableStatement, IPreparable {
 		public CreateSequenceStatement(ObjectName sequenceName) {
 			if (sequenceName == null)
 				throw new ArgumentNullException("sequenceName");
@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Cycle { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest request) {
+		IStatement IPreparableStatement.Prepare(IRequest request) {
 			throw new NotImplementedException();
 		}
 

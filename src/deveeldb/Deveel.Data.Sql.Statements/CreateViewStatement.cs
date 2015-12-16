@@ -26,7 +26,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateViewStatement : SqlPreparableStatement {
+	public sealed class CreateViewStatement : SqlStatement, IPreparableStatement {
 		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var viewName = context.Query.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			internal Prepared(ObjectName viewName, SqlQueryExpression queryExpression, IQueryPlanNode queryPlan, bool replaceIfExists) {
 				ViewName = viewName;
 				QueryPlan = queryPlan;

@@ -19,10 +19,9 @@ using System;
 using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateQueryStatement : SqlPreparableStatement, IPreparable {
+	public sealed class UpdateQueryStatement : SqlStatement, IPreparable, IPreparableStatement {
 		public UpdateQueryStatement(string tableName, SqlQueryExpression sourceExpression, SqlExpression whereExpression) {
 			TableName = tableName;
 			SourceExpression = sourceExpression;
@@ -41,14 +40,14 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			throw new NotImplementedException();
 		}
 
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			private Prepared(ObjectData data) {
 				
 			}

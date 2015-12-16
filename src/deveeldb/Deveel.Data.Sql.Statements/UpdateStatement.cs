@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateStatement : SqlPreparableStatement {
+	public sealed class UpdateStatement : SqlStatement, IPreparableStatement {
 		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
 				throw new ArgumentNullException("wherExpression");
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
 			if (!context.Query.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		sealed class Prepared : SqlPreparedStatement {
+		sealed class Prepared : SqlStatement {
 			internal Prepared(ObjectName tableName, IQueryPlanNode queryPlan, SqlAssignExpression[] columns, int limit) {
 				TableName = tableName;
 				QueryPlan = queryPlan;

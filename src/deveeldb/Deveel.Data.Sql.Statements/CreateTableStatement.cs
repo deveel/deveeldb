@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// The statement object used to create a table in a database.
 	/// </summary>
-	public sealed class CreateTableStatement : SqlPreparableStatement {
+	public sealed class CreateTableStatement : SqlStatement, IPreparableStatement {
 		/// <summary>
 		/// 
 		/// </summary>
@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Temporary { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var tableInfo = CreateTableInfo(context);
 
 			return new Prepared(tableInfo, IfNotExists, Temporary);
@@ -98,7 +98,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		internal class Prepared : SqlPreparedStatement {
+		internal class Prepared : SqlStatement {
 			private Prepared(ObjectData data) {
 				TableInfo = data.GetValue<TableInfo>("TableInfo");
 				Temporary = data.GetBoolean("Temporary");

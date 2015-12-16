@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Statements {
-	public interface IStatement {
+	public interface IStatement : IExecutable {
 		SqlQuery SourceQuery { get; }
 	}
 }

@@ -59,6 +59,14 @@ namespace Deveel.Data.Sql.Statements {
 		/// <seealso cref="SourceQuery"/>
 		public bool IsFromQuery { get; private set; }
 
+		void IExecutable.Execute(ExecutionContext context) {
+			ExecuteStatement(context);
+		}
+
+		protected virtual void ExecuteStatement(ExecutionContext context) {
+			throw new NotSupportedException(String.Format("The statement '{0}' does not support execution", GetType().Name));
+		}
+
 		internal void SetSource(SqlQuery query) {
 			SourceQuery = query;
 			IsFromQuery = true;
@@ -73,40 +81,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected virtual void GetData(SerializeData data) {
 			
-		}
-
-		/// <summary>
-		/// Prepares this statement and returns an object that can be executed
-		/// within a given context.
-		/// </summary>
-		/// <param name="preparer">An object used to prepare the expressions contained in the statement.</param>
-		/// <param name="context">The execution context used to prepare the statement properties.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="SqlStatement"/> that represents the
-		/// prepared version of this statement and that will be executed in a later moment.
-		/// </returns>
-		/// <exception cref="StatementPrepareException">
-		/// Thrown if an error occurred while preparing the statement.
-		/// </exception>
-		public IExecutable Prepare(IExpressionPreparer preparer, IRequest context) {
-			IStatement prepared = this;
-
-			try {
-				if (preparer != null && prepared is IPreparable)
-					prepared = ((IPreparable)this).Prepare(preparer) as IStatement;
-
-				if (context != null && prepared is IPreparableStatement)
-					prepared = ((IPreparableStatement)prepared).Prepare(context);
-
-				if (prepared == null)
-					throw new InvalidOperationException("Unable to prepare the statement.");
-			} catch(StatementPrepareException) {
-				throw;
-			} catch (Exception ex) {
-				throw new StatementPrepareException(String.Format("An error occurred while preparing a statement of type '{0}'.", GetType()), ex);
-			}
-
-			return prepared as IExecutable;
 		}
 
 		/// <summary>
@@ -128,7 +102,7 @@ namespace Deveel.Data.Sql.Statements {
 			IExecutable prepared;
 
 			try {
-				prepared = Prepare(preparer, context);
+				prepared = this.Prepare(preparer, context);
 			} catch (Exception ex) {
 				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}
@@ -178,6 +152,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
+
+		
 
 		public static IEnumerable<SqlStatement> Parse(IContext context, SqlQuery query) {
 			if (query == null)

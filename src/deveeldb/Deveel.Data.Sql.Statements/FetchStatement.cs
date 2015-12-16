@@ -4,7 +4,7 @@ using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class FetchStatement : SqlPreparableStatement, IPreparable {
+	public sealed class FetchStatement : SqlStatement, IPreparableStatement, IPreparable {
 		public FetchStatement(string cursorName, FetchDirection direction) {
 			CursorName = cursorName;
 			Direction = direction;
@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override IPreparedStatement PrepareStatement(IRequest request) {
+		IStatement IPreparableStatement.Prepare(IRequest request) {
 			throw new NotImplementedException();
 		}
 	}

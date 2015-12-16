@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectStatement : SqlPreparableStatement {
+	public sealed class SelectStatement : SqlStatement, IPreparableStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));
 			return new Prepared(queryPlan);
 		}
@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			public Prepared(IQueryPlanNode queryPlan) {
 				QueryPlan = queryPlan;
 			}

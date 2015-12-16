@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropSchemaStatement : SqlPreparedStatement {
+	public sealed class DropSchemaStatement : SqlStatement {
 		public DropSchemaStatement(string schemaName) {
 			if (String.IsNullOrEmpty(schemaName))
 				throw new ArgumentNullException("schemaName");

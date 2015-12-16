@@ -22,7 +22,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropTableStatement : SqlPreparableStatement {
+	public sealed class DropTableStatement : SqlStatement, IPreparableStatement {
 		public DropTableStatement(string[] tableNames) 
 			: this(tableNames, false) {
 		}
@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest context) {
+		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var tableNameList = TableNames.ToList();
 			var dropTables = new List<string>();
 
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			public Prepared(ObjectName[] tableNames, bool ifExists) {
 				TableNames = tableNames;
 				IfExists = ifExists;
@@ -96,34 +96,6 @@ namespace Deveel.Data.Sql.Statements {
 				context.Request.Query.DropTables(TableNames, IfExists);
 			}
 		}
-
-		#endregion
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<Prepared> {
-		//	public override void Serialize(Prepared obj, BinaryWriter writer) {
-		//		var namesLength = obj.TableNames.Length;
-		//		writer.Write(namesLength);
-		//		for (int i = 0; i < namesLength; i++) {
-		//			ObjectName.Serialize(obj.TableNames[i], writer);
-		//		}
-
-		//		writer.Write(obj.IfExists);
-		//	}
-
-		//	public override Prepared Deserialize(BinaryReader reader) {
-		//		var namesLength = reader.ReadInt32();
-		//		var tableNames = new ObjectName[namesLength];
-		//		for (int i = 0; i < namesLength; i++) {
-		//			tableNames[i] = ObjectName.Deserialize(reader);
-		//		}
-
-		//		var ifExists = reader.ReadBoolean();
-
-		//		return new Prepared(tableNames, ifExists);
-		//	}
-		//}
 
 		#endregion
 	}

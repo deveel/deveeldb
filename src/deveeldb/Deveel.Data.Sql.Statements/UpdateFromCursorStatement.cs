@@ -7,7 +7,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateFromCursorStatement : SqlPreparableStatement {
+	public sealed class UpdateFromCursorStatement : SqlStatement, IPreparableStatement {
 		public UpdateFromCursorStatement(ObjectName tableName, string cursorName) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string CursorName { get; private set; }
 
-		protected override IPreparedStatement PrepareStatement(IRequest request) {
+		IStatement IPreparableStatement.Prepare(IRequest request) {
 			var cursor = request.FindCursor(CursorName);
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 		#region Prepared
 
 		[Serializable]
-		class Prepared : SqlPreparedStatement {
+		class Prepared : SqlStatement {
 			protected override void ExecuteStatement(ExecutionContext context) {
 				throw new NotImplementedException();
 			}
