@@ -47,20 +47,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void AlterTableAddColumn() {
-			const string sql = "ALTER TABLE test_table ADD COLUMN reserved BOOLEAN";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var list = statements.ToList();
-
-			Assert.AreEqual(1, list.Count);
-
-			var statement = list[0];
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<AlterTableStatement>(statement);
+			var tableName = ObjectName.Parse("APP.test_table");
+			var column = new SqlTableColumn("reserved", PrimitiveTypes.Boolean());
+			var statement = new AlterTableStatement(tableName, new AddColumnAction(column));
 
 			ITable result = null;
 			Assert.DoesNotThrow(() => result = statement.Execute(Query));

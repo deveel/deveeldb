@@ -27,50 +27,13 @@ namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class CreateTableStatementTests : ContextBasedTest {
 		[Test]
-		public void ParseSimpleCreate() {
-			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var list = statements.ToList();
-
-			Assert.AreEqual(1, list.Count);
-
-			var statement = list[0];
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
-
-			var createTable = (CreateTableStatement) statement;
-			Assert.AreEqual(2, createTable.Columns.Count);
-
-			var columns = createTable.Columns;
-
-			Assert.AreEqual("id", columns[0].ColumnName);
-			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.TypeCode);
-
-			Assert.AreEqual("name", columns[1].ColumnName);
-			Assert.IsInstanceOf<StringType>(columns[1].ColumnType);
-		}
-
-		[Test]
 		public void SimpleCreate() {
-			const string sql = "CREATE TABLE test (id INT, name VARCHAR)";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var list = statements.ToList();
-
-			Assert.AreEqual(1, list.Count);
-
-			var statement = list[0];
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
+			var tableName = ObjectName.Parse("APP.test");
+			var columns = new SqlTableColumn[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.VarChar()),  
+			};
+			var statement = new CreateTableStatement(tableName, columns);
 
 			ITable result = null;
 			Assert.DoesNotThrow(() => result = statement.Execute(Query));
@@ -80,20 +43,18 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void WithColumnDefault() {
-			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90)+22, date TIMESTAMP DEFAULT GetDate())";
+			var tableName = ObjectName.Parse("APP.test");
+			var columns = new SqlTableColumn[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.VarChar()) {
+					DefaultExpression = SqlExpression.Parse("((67 * 90) + 22)")
+				},
+				new SqlTableColumn("date", PrimitiveTypes.TimeStamp()) {
+					DefaultExpression = SqlExpression.Parse("GetDate()")
+				}
+			};
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var list = statements.ToList();
-
-			Assert.AreEqual(1, list.Count);
-
-			var statement = list[0];
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<CreateTableStatement>(statement);
+			var statement = new CreateTableStatement(tableName, columns);
 
 			ITable result = null;
 			Assert.DoesNotThrow(() => result = statement.Execute(Query));

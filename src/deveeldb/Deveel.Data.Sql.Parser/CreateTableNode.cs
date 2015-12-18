@@ -94,7 +94,8 @@ namespace Deveel.Data.Sql.Parser {
 
 		private static SqlStatement MakeCreateTable(string tableName, IEnumerable<SqlTableColumn> columns, bool ifNotExists,
 			bool temporary) {
-			var tree = new CreateTableStatement(tableName, columns.ToList());
+			var objTableName = ObjectName.Parse(tableName);
+			var tree = new CreateTableStatement(objTableName, columns.ToList());
 			tree.IfNotExists = ifNotExists;
 			tree.Temporary = temporary;
 			return tree;

@@ -25,8 +25,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var createTable = (CreateTableStatement) statement;
 
-			Assert.IsNotNullOrEmpty(createTable.TableName);
-			Assert.AreEqual("test", createTable.TableName);
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
 			Assert.IsFalse(createTable.Temporary);
 			Assert.IsFalse(createTable.IfNotExists);
 
@@ -54,8 +54,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var createTable = (CreateTableStatement) statement;
 
-			Assert.IsNotNullOrEmpty(createTable.TableName);
-			Assert.AreEqual("test", createTable.TableName);
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
 			Assert.IsFalse(createTable.Temporary);
 			Assert.IsFalse(createTable.IfNotExists);
 
@@ -81,8 +81,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var createTable = (CreateTableStatement) statement;
 
-			Assert.IsNotNullOrEmpty(createTable.TableName);
-			Assert.AreEqual("test", createTable.TableName);
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
 
 			Assert.AreEqual(1, createTable.Columns.Count);
 			Assert.IsNotNull(createTable.Columns[0].DefaultExpression);
@@ -108,8 +108,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var createTable = (CreateTableStatement) statement;
 
-			Assert.IsNotNullOrEmpty(createTable.TableName);
-			Assert.AreEqual("test", createTable.TableName);
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
 		}
 
 		[Test]
@@ -131,8 +131,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var createTable = (CreateTableStatement) statement;
 
-			Assert.IsNotNullOrEmpty(createTable.TableName);
-			Assert.AreEqual("test", createTable.TableName);
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
 		}
 	}
 }

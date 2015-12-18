@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// </summary>
 		/// <param name="tableName"></param>
 		/// <param name="columns"></param>
-		public CreateTableStatement(string tableName, IEnumerable<SqlTableColumn> columns) {
+		public CreateTableStatement(ObjectName tableName, IEnumerable<SqlTableColumn> columns) {
 			TableName = tableName;
 			Columns = new List<SqlTableColumn>();
 			if (columns != null) {
@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		public string TableName { get; private set; }
+		public ObjectName TableName { get; private set; }
 
 		public IList<SqlTableColumn> Columns { get; private set; }
 

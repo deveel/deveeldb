@@ -75,6 +75,34 @@ namespace Deveel.Data.Types {
 			return new StringType(sqlType, maxSize, encoding, locale);
 		}
 
+		public static StringType VarChar() {
+			return VarChar(StringType.DefaultMaxSize);
+		}
+
+		public static StringType VarChar(int maxSize) {
+			return VarChar(maxSize, Encoding.Unicode);
+		}
+
+		public static StringType VarChar(int maxSize, Encoding encoding) {
+			return VarChar(maxSize, encoding, null);
+		}
+
+		public static StringType VarChar(Encoding encoding) {
+			return VarChar(encoding, null);
+		}
+
+		public static StringType VarChar(CultureInfo locale) {
+			return VarChar(Encoding.Unicode, locale);
+		}
+
+		public static StringType VarChar(Encoding encoding, CultureInfo locale) {
+			return VarChar(StringType.DefaultMaxSize, encoding, locale);
+		}
+
+		public static StringType VarChar(int maxSize, Encoding encoding, CultureInfo locale) {
+			return String(SqlTypeCode.VarChar, maxSize, encoding, locale);
+		}
+
 		public static NumericType Numeric() {
 			return Numeric(-1);
 		}
