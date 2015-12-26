@@ -15,11 +15,12 @@
 //
 
 using System;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
 	class RollbackStatementNode : SqlStatementNode {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			throw new NotImplementedException();
+			builder.Objects.Add(new RollbackStatement());
 		}
 	}
 }
