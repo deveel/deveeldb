@@ -129,12 +129,14 @@
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
