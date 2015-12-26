@@ -135,7 +135,7 @@ namespace Deveel.Data.Sql.Tables {
 			return list;
 		}
 
-		private static DataObject MakeObject(this ITable table, int columnOffset, ISqlObject value) {
+		private static DataObject MakeObject(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			if (columnOffset < 0 || columnOffset >= table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(columnOffset).SelectNotEqual(value);
 		}
 
-		public static IEnumerable<int> SelectNotEqual(this ITable table, int columnOffset, ISqlObject value) {
+		public static IEnumerable<int> SelectNotEqual(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			return table.SelectNotEqual(columnOffset, table.MakeObject(columnOffset, value));
 		} 
 
@@ -200,7 +200,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(columnOffset).SelectGreater(value);
 		}
 
-		public static IEnumerable<int> SelectRowsGreater(this ITable table, int columnOffset, ISqlObject value) {
+		public static IEnumerable<int> SelectRowsGreater(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			return table.SelectRowsGreater(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
@@ -208,7 +208,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(columnOffset).SelectGreaterOrEqual(value);
 		}
 
-		public static IEnumerable<int> SelectRowsGreaterOrEqual(this ITable table, int columnOffset, ISqlObject value) {
+		public static IEnumerable<int> SelectRowsGreaterOrEqual(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			return table.SelectRowsGreaterOrEqual(columnOffset, table.MakeObject(columnOffset, value));
 		} 
 
@@ -216,7 +216,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(columnOffset).SelectLess(value);
 		}
 
-		public static IEnumerable<int> SelecRowsLess(this ITable table, int columnOffset, ISqlObject value) {
+		public static IEnumerable<int> SelecRowsLess(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			return table.SelecRowsLess(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
@@ -224,7 +224,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(columnOffset).SelectLessOrEqual(value);
 		}
 
-		public static IEnumerable<int> SelectRowsLessOrEqual(this ITable table, int columnOffset, ISqlObject value) {
+		public static IEnumerable<int> SelectRowsLessOrEqual(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			return table.SelectRowsLessOrEqual(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
@@ -1399,11 +1399,11 @@ namespace Deveel.Data.Sql.Tables {
 			return new VirtualTable(tabs, rowSets);
 		}
 
-		public static Dictionary<string, ISqlObject> ToDictionary(this ITable table) {
+		public static Dictionary<string, Objects.ISqlObject> ToDictionary(this ITable table) {
 			if (table.TableInfo.ColumnCount != 2)
 				throw new NotSupportedException("Table must have two columns.");
 
-			var map = new Dictionary<string, ISqlObject>();
+			var map = new Dictionary<string, Objects.ISqlObject>();
 			foreach (var row in table) {
 				var key = row.GetValue(0);
 				var value = row.GetValue(1);

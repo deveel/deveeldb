@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var parameters = new List<CursorParameter>();
 			if (Parameters != null) {
 				foreach (var parameterNode in Parameters) {
@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
 
-			builder.Statements.Add(new DeclareCursorStatement(CursorName, parameters.ToArray(), flags, queryExpression));
+			builder.Objects.Add(new DeclareCursorStatement(CursorName, parameters.ToArray(), flags, queryExpression));
 		}
 	}
 }

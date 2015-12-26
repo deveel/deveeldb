@@ -17,6 +17,9 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	class CommitStatementNode : SqlNode, IStatementNode {
+	class CommitStatementNode : SqlStatementNode {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			throw new NotImplementedException();
+		}
 	}
 }

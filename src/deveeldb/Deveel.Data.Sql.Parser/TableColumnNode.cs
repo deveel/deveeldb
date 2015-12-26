@@ -68,9 +68,9 @@ namespace Deveel.Data.Sql.Parser {
 					var onUpdate = ForeignKeyAction.NoAction;
 					
 					if (!String.IsNullOrEmpty(constraint.OnDeleteAction))
-						onDelete = StatementBuilder.GetForeignKeyAction(constraint.OnDeleteAction);
+						onDelete = SqlCodeObjectBuilder.GetForeignKeyAction(constraint.OnDeleteAction);
 					if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
-						onUpdate = StatementBuilder.GetForeignKeyAction(constraint.OnUpdateAction);
+						onUpdate = SqlCodeObjectBuilder.GetForeignKeyAction(constraint.OnUpdateAction);
 
 					constraints.Add(SqlTableConstraint.ForeignKey(null, new[]{ColumnName.Text}, fTable, new[]{fColumn}, onDelete, onUpdate));
 				} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {

@@ -127,9 +127,9 @@ namespace Deveel.Data.Sql.Parser {
 				var onUpdate = ForeignKeyAction.NoAction;
 
 				if (!String.IsNullOrEmpty(OnDeleteAction))
-					onDelete = StatementBuilder.GetForeignKeyAction(OnDeleteAction);
+					onDelete = SqlCodeObjectBuilder.GetForeignKeyAction(OnDeleteAction);
 				if (!String.IsNullOrEmpty(OnUpdateAction))
-					onUpdate = StatementBuilder.GetForeignKeyAction(OnUpdateAction);
+					onUpdate = SqlCodeObjectBuilder.GetForeignKeyAction(OnUpdateAction);
 
 				var fkey = SqlTableConstraint.ForeignKey(ConstraintName, Columns.ToArray(), fTable,
 					fColumns.ToArray(), onDelete, onUpdate);

@@ -17,8 +17,10 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class PlSqlBlockNode : SqlNode {
+	class PlSqlBlockNode : SqlNode, IRootNode {
 		public string Label { get; private set; }
 
 		public IEnumerable<IDeclareNode> Declarations { get; private set; }
@@ -37,6 +39,33 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		void ISqlVisitableNode.Accept(ISqlNodeVisitor visitor) {
+			if (visitor is SqlCodeObjectBuilder)
+				BuildBlock((SqlCodeObjectBuilder) visitor);
+		}
+
+		private void BuildBlock(SqlCodeObjectBuilder builder) {
+			var block = new PlSqlBlock {Label = Label};
+
+			if (Declarations != null) {
+				foreach (var declaration in Declarations) {
+					var declBuilder = new SqlCodeObjectBuilder(builder.TypeResolver);
+					var results = declBuilder.Build(declaration);
+					foreach (var result in results) {
+						// TODO: 
+					}
+				}
+			}
+
+			if (CodeBlock != null) {
+				foreach (var statement in CodeBlock.Statements) {
+					
+				}
+			}
+
+			builder.Objects.Add(block);
 		}
 	}
 }

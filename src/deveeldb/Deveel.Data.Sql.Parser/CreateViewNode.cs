@@ -60,10 +60,10 @@ namespace Deveel.Data.Sql.Parser {
 			ColumnNames = columnNames.AsEnumerable();
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var queryExpression = (SqlQueryExpression)ExpressionBuilder.Build(QueryExpression);
 			var statement = new CreateViewStatement(ViewName.Name, ColumnNames, queryExpression);
-			builder.Statements.Add(statement);
+			builder.Objects.Add(statement);
 		}
 	}
 }

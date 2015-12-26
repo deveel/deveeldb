@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var seqName = ObjectName.Parse(SequenceName);
 			var statement = new CreateSequenceStatement(seqName);
 
@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			statement.Cycle = Cycle;
 
-			builder.Statements.Add(statement);
+			builder.Objects.Add(statement);
 		}
 	}
 }

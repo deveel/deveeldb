@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	class ReturnStatementNode : SqlNode, IStatementNode {
+	class ReturnStatementNode : SqlStatementNode {
 		public IExpressionNode ReturnExpression { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -25,6 +25,10 @@ namespace Deveel.Data.Sql.Parser {
 				ReturnExpression = (IExpressionNode) node;
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			throw new NotImplementedException();
 		}
 	}
 }

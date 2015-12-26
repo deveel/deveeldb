@@ -17,6 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	interface IStatementNode : ISqlNode {
+	interface IStatementNode : IRootNode {
 	}
 }

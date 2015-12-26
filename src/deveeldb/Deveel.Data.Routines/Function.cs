@@ -17,9 +17,9 @@
 using System;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
+
+using ISqlObject = Deveel.Data.Sql.Objects.ISqlObject;
 
 namespace Deveel.Data.Routines {
 	/// <summary>

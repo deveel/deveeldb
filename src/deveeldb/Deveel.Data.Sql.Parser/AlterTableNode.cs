@@ -40,9 +40,9 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			if (CreateTable != null) {
-				var statements = new List<IStatement>();
+				var statements = new List<ISqlCodeObject>();
 				CreateTable.Build(builder.TypeResolver, statements);
 
 				foreach (var statement in statements) {
@@ -51,17 +51,16 @@ namespace Deveel.Data.Sql.Parser {
 				}
 
 				foreach (var statement in statements) {
-					builder.Statements.Add(statement);
+					builder.Objects.Add(statement);
 				}
 			} else if (Actions != null) {
 				foreach (var action in Actions) {
-					BuildAction(builder.TypeResolver, ObjectName.Parse(TableName), action, builder.Statements);
+					BuildAction(builder.TypeResolver, ObjectName.Parse(TableName), action, builder.Objects);
 				}
 			}
 		}
 
-		private static void BuildAction(ITypeResolver typeResolver, ObjectName tableName, IAlterActionNode action,
-			ICollection<IStatement> statements) {
+		private static void BuildAction(ITypeResolver typeResolver, ObjectName tableName, IAlterActionNode action, ICollection<ISqlCodeObject> statements) {
 			if (action is AddColumnNode) {
 				var column = ((AddColumnNode) action).Column;
 				var constraints = new List<SqlTableConstraint>();

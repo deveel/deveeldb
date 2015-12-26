@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	class GotoStatementNode : SqlNode, IStatementNode {
+	class GotoStatementNode : SqlStatementNode {
 		public string Label { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -25,6 +25,10 @@ namespace Deveel.Data.Sql.Parser {
 				Label = ((IdentifierNode) node).Text;
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			throw new NotImplementedException();
 		}
 	}
 }

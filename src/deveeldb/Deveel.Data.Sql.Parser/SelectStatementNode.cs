@@ -60,16 +60,16 @@ namespace Deveel.Data.Sql.Parser {
 				Limit = (LimitNode) child;
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
 			if (QueryExpression.IntoClause != null) {
 				var refExp = ExpressionBuilder.Build(QueryExpression.IntoClause);
-				builder.Statements.Add(new SelectIntoStatement(queryExpression, refExp));
+				builder.Objects.Add(new SelectIntoStatement(queryExpression, refExp));
 			} else {
 				var orderBy = BuildOrderBy(OrderBy);
 				var statement = new SelectStatement(queryExpression, orderBy);
 				statement.Limit = BuildLimit(Limit);
-				builder.Statements.Add(statement);
+				builder.Objects.Add(statement);
 			}
 		}
 

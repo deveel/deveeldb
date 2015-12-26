@@ -23,8 +23,6 @@ using System.Text;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Index;
-using Deveel.Data.Services;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -1360,7 +1358,7 @@ namespace Deveel.Data.Sql.Tables {
 					// NOTE: It's possible this call may need optimizing?
 					var type = TableInfo[columnOffset].ColumnType;
 
-					ISqlObject ob;
+					Objects.ISqlObject ob;
 					if (cellType == 1) {
 						// If standard object type
 						ob = type.DeserializeObject(stream);

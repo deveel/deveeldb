@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Parser {
 #endif
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			FetchDirection direction;
 			if (!TryParseDirection(Direction, out direction))
 				throw new InvalidOperationException();
@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (Position != null)
 				statement.PositionExpression = ExpressionBuilder.Build(Position);
 
-			builder.Statements.Add(statement);
+			builder.Objects.Add(statement);
 		}
 	}
 }

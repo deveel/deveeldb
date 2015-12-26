@@ -73,12 +73,12 @@ namespace Deveel.Data.Sql.Parser {
 				Privileges = new[] {PrivilegeNode.All};
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var objName = Sql.ObjectName.Parse(ObjectName);
 			foreach (var grantee in Grantees) {
 				foreach (var privilegeNode in Privileges) {
 					var privilege = ParsePrivilege(privilegeNode.Privilege);
-					builder.Statements.Add(new GrantPrivilegesStatement(grantee, privilege, WithGrant, objName, privilegeNode.Columns));
+					builder.Objects.Add(new GrantPrivilegesStatement(grantee, privilege, WithGrant, objName, privilegeNode.Columns));
 				}
 			}
 		}

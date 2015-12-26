@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql {
@@ -28,7 +27,7 @@ namespace Deveel.Data.Sql {
 			: this(sqlType, null) {
 		}
 
-		public QueryParameter(SqlType sqlType, ISqlObject value) 
+		public QueryParameter(SqlType sqlType, Objects.ISqlObject value) 
 			: this(Marker, sqlType, value) {
 		}
 
@@ -36,7 +35,7 @@ namespace Deveel.Data.Sql {
 			: this(name, sqlType, null) {
 		}
 
-		public QueryParameter(string name, SqlType sqlType, ISqlObject value) {
+		public QueryParameter(string name, SqlType sqlType, Objects.ISqlObject value) {
 			if (sqlType == null)
 				throw new ArgumentNullException("sqlType");
 
@@ -56,7 +55,7 @@ namespace Deveel.Data.Sql {
 		private QueryParameter(ObjectData data) {
 			Name = data.GetString("Name");
 			SqlType = data.GetValue<SqlType>("Type");
-			Value = data.GetValue<ISqlObject>("Value");
+			Value = data.GetValue<Objects.ISqlObject>("Value");
 			Direction = (QueryParameterDirection) data.GetInt32("Direction");
 		}
 
@@ -69,7 +68,7 @@ namespace Deveel.Data.Sql {
 
 		public QueryParameterDirection Direction { get; set; }
 
-		public ISqlObject Value { get; set; }
+		public Objects.ISqlObject Value { get; set; }
 
 		void ISerializable.GetData(SerializeData data) {
 			data.SetValue("Name", Name);

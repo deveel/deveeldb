@@ -53,10 +53,10 @@ namespace Deveel.Data.Sql.Parser {
 				WithAdmin = true;
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			foreach (var grantee in Grantees) {
 				foreach (var role in Roles) {
-					builder.Statements.Add(new GrantRoleStatement(grantee, role, WithAdmin));
+					builder.Objects.Add(new GrantRoleStatement(grantee, role, WithAdmin));
 				}
 			}
 		}

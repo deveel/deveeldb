@@ -33,17 +33,14 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm BLOB;
 		private KeyTerm BOOLEAN;
 		private KeyTerm BY;
-		private KeyTerm CACHE;
 		private KeyTerm CALL;
 		private KeyTerm CALLBACK;
 		private KeyTerm CASCADE;
 		private KeyTerm CASE;
 		private KeyTerm CAST;
 		private KeyTerm CHECK;
-		private KeyTerm CONSTANT;
 		private KeyTerm CONSTRAINT;
 		private KeyTerm CREATE;
-		private KeyTerm CYCLE;
 		private KeyTerm DECLARE;
 		private KeyTerm DEFAULT;
 		private KeyTerm DELETE;
@@ -51,7 +48,6 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm END;
 		private KeyTerm ELSE;
 		private KeyTerm ELSIF;
-		private KeyTerm EXCEPTION;
 		private KeyTerm EXECUTE;
 		private KeyTerm EXISTS;
 		private KeyTerm FOR;
@@ -60,12 +56,9 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm KEY;
 		private KeyTerm IDENTITY;
 		private KeyTerm IF;
-		private KeyTerm INCREMENT;
 		private KeyTerm INDEX;
 		private KeyTerm INSERT;
 		private KeyTerm LOCK;
-		private KeyTerm MAXVALUE;
-		private KeyTerm MINVALUE;
 		private KeyTerm NOT;
 		private KeyTerm NULL;
 		private KeyTerm ON;
@@ -75,10 +68,8 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm REFERENCES;
 		private KeyTerm REPLACE;
 		private KeyTerm ROW;
-		private KeyTerm SCHEMA;
 		private KeyTerm SEQUENCE;
 		private KeyTerm SET;
-		private KeyTerm START;
 		private KeyTerm TABLE;
 		private KeyTerm THEN;
 		private KeyTerm TRIGGER;
@@ -87,7 +78,6 @@ namespace Deveel.Data.Sql.Parser {
 		private KeyTerm UNIQUE;
 		private KeyTerm UNLOCK;
 		private KeyTerm VIEW;
-		private KeyTerm WITH;
 
 		#endregion
 
@@ -134,17 +124,14 @@ namespace Deveel.Data.Sql.Parser {
 			BLOB = ToTerm("BLOB");
 			BOOLEAN = ToTerm("BOOLEAN");
 			BY = ToTerm("BY");
-			CACHE = ToTerm("CACHE");
 			CALL = ToTerm("CALL");
 			CALLBACK = ToTerm("CALLBACK");
 			CASCADE = ToTerm("CASCADE");
 			CASE = ToTerm("CASE");
 			CAST = ToTerm("CAST");
 			CHECK = ToTerm("CHECK");
-			CONSTANT = ToTerm("CONSTANT");
 			CONSTRAINT = ToTerm("CONSTRAINT");
 			CREATE = ToTerm("CREATE");
-			CYCLE = ToTerm("CYCLE");
 			DECLARE = ToTerm("DECLARE");
 			DELETE = ToTerm("DELETE");
 			DEFAULT = ToTerm("DEFAULT");
@@ -152,7 +139,6 @@ namespace Deveel.Data.Sql.Parser {
 			END = ToTerm("END");
 			ELSE = ToTerm("ELSE");
 			ELSIF = ToTerm("ELSIF");
-			EXCEPTION = ToTerm("EXCEPTION");
 			EXECUTE = ToTerm("EXECUTE");
 			EXISTS = ToTerm("EXISTS");
 			FOR = ToTerm("FOR");
@@ -161,12 +147,9 @@ namespace Deveel.Data.Sql.Parser {
 			KEY = ToTerm("KEY");
 			IDENTITY = ToTerm("IDENTITY");
 			IF = ToTerm("IF");
-			INCREMENT = ToTerm("INCREMENT");
 			INDEX = ToTerm("INDEX");
 			INSERT = ToTerm("INSERT");
 			LOCK = ToTerm("LOCK");
-			MAXVALUE = ToTerm("MAXVALUE");
-			MINVALUE = ToTerm("MINVALUE");
 			NOT = ToTerm("NOT");
 			NULL = ToTerm("NULL");
 			ON = ToTerm("ON");
@@ -176,10 +159,8 @@ namespace Deveel.Data.Sql.Parser {
 			REPLACE = ToTerm("REPLACE");
 			REFERENCES = ToTerm("REFERENCES");
 			ROW = ToTerm("ROW");
-			SCHEMA = ToTerm("SCHEMA");
 			SEQUENCE = ToTerm("SEQUENCE");
 			SET = ToTerm("SET");
-			START = ToTerm("START");
 			TABLE = ToTerm("TABLE");
 			THEN = ToTerm("THEN");
 			TRIGGER = ToTerm("TRIGGER");
@@ -188,7 +169,6 @@ namespace Deveel.Data.Sql.Parser {
 			UNIQUE = ToTerm("UNIQUE");
 			UNLOCK = ToTerm("UNLOCK");
 			VIEW = ToTerm("VIEW");
-			WITH = ToTerm("WITH");
 		}
 	}
 }

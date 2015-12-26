@@ -33,12 +33,16 @@ namespace Deveel.Data.Sql.Parser {
 
 		private void Productions(NonTerminal root) {
 			// PL/SQL
+			root.Rule = SqlStatementList() + Eof |
+			            SqlBlockList() + Eof;
+		}
+
+		private NonTerminal SqlBlockList() {
 			var block = PlSqlBlock();
 			var blockList = new NonTerminal("block_list");
 			blockList.Rule = MakePlusRule(blockList, block);
 
-			root.Rule = SqlStatementList() + Eof | 
-				blockList + Eof;
+			return blockList;
 		}
 
 		private NonTerminal StatementEnd() {

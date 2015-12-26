@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var varType = DataTypeBuilder.Build(builder.TypeResolver, Type);
 			var statement = new DeclareVariableStatement(VariableName, varType);
 			if (DefaultExpression != null)
@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			statement.IsConstant = IsConstant;
 			statement.IsNotNull = IsConstant || IsNotNull;
-			builder.Statements.Add(statement);
+			builder.Objects.Add(statement);
 		}
 	}
 }

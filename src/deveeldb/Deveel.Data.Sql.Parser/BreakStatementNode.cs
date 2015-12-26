@@ -35,12 +35,12 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			SqlExpression exp = null;
 			if (WhenExpression != null)
 				exp = ExpressionBuilder.Build(WhenExpression);
 
-			builder.Statements.Add(new LoopControlStatement(LoopControlType.Break, Label, exp));
+			builder.Objects.Add(new LoopControlStatement(LoopControlType.Break, Label, exp));
 		}
 	}
 }

@@ -21,7 +21,7 @@ using System.Linq;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public class PlSqlBlock : IPreparable, IDisposable {
+	public class PlSqlBlock : ISqlCodeObject, IPreparable, IDisposable {
 		private ICollection<SqlStatement> statements;
 		private ICollection<ExceptionHandler> exceptionHandlers; 
 		 

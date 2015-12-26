@@ -17,6 +17,9 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	class RollbackStatementNode : SqlNode, IStatementNode {
+	class RollbackStatementNode : SqlStatementNode {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			throw new NotImplementedException();
+		}
 	}
 }

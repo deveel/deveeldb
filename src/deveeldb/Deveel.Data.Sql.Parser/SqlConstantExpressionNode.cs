@@ -28,10 +28,10 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		/// <summary>
-		/// Gets an immutable instance of <see cref="ISqlObject"/> that represents the
+		/// Gets an immutable instance of <see cref="Objects.ISqlObject"/> that represents the
 		/// constant value.
 		/// </summary>
-		public ISqlObject Value { get; private set; }
+		public Objects.ISqlObject Value { get; private set; }
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {

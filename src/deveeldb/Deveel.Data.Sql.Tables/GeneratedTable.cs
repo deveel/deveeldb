@@ -19,7 +19,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
-using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Tables {
 	abstract class GeneratedTable : ITable {
@@ -59,7 +58,7 @@ namespace Deveel.Data.Sql.Tables {
 			return new BlindSearchIndex(this, columnOffset);
 		}
 
-		protected DataObject GetColumnValue(int column, ISqlObject obj) {
+		protected DataObject GetColumnValue(int column, Objects.ISqlObject obj) {
 			var type = TableInfo[column].ColumnType;
 			return new DataObject(type, obj);
 		}

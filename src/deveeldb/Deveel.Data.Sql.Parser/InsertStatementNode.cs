@@ -49,12 +49,12 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(StatementBuilder builder) {
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			if (ValuesInsert != null) {
 				var valueInsert = ValuesInsert;
 				var values =
 					valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
-				builder.Statements.Add(new InsertStatement(TableName, ColumnNames, values));
+				builder.Objects.Add(new InsertStatement(TableName, ColumnNames, values));
 			} else if (SetInsert != null) {
 				var assignments = SetInsert.Assignments;
 
@@ -68,14 +68,14 @@ namespace Deveel.Data.Sql.Parser {
 					values.Add(value);
 				}
 
-				builder.Statements.Add(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
+				builder.Objects.Add(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
 			} else if (QueryInsert != null) {
 				var queryInsert = QueryInsert;
 				var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;
 				if (queryExpression == null)
 					throw new SqlParseException();
 
-				builder.Statements.Add(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
+				builder.Objects.Add(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
 			}
 		}
 	}

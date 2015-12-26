@@ -42,10 +42,10 @@ namespace Deveel.Data.Sql.Compile {
 				if (context.Context != null)
 					typeResolver = context.Context.TypeResolver();
 
-				var builder = new StatementBuilder(typeResolver);
-				var statements = builder.Build(result.RootNode);
+				var builder = new SqlCodeObjectBuilder(typeResolver);
+				var objects = builder.Build(result.RootNode);
 
-				foreach (var statement in statements) {
+				foreach (var statement in objects) {
 					compileResult.Statements.Add(statement);
 				}
 

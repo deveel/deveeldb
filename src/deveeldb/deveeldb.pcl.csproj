@@ -126,6 +126,8 @@
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
@@ -136,6 +138,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
+    <Compile Include="Deveel.Data.Sql\ISqlCodeObject.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
@@ -537,7 +540,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlReferenceExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlUnaryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlVariableRefExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\StatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\StringLiteralNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TableColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TableConstraintNode.cs" />

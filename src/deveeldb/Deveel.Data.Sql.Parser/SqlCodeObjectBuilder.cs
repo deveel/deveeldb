@@ -23,15 +23,15 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class StatementBuilder : ISqlNodeVisitor {
-		public StatementBuilder(ITypeResolver typeResolver) {
+	public sealed class SqlCodeObjectBuilder : ISqlNodeVisitor {
+		public SqlCodeObjectBuilder(ITypeResolver typeResolver) {
 			TypeResolver = typeResolver;
-			Statements = new List<IStatement>();
+			Objects = new List<ISqlCodeObject>();
 		}
 
 		public ITypeResolver  TypeResolver { get; private set; }
 
-		public ICollection<IStatement> Statements { get; private set; } 
+		public ICollection<ISqlCodeObject> Objects { get; private set; } 
 
 		void ISqlNodeVisitor.Visit(ISqlNode node) {
 			Visit(node);
@@ -57,9 +57,9 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		public IEnumerable<IStatement> Build(ISqlNode rootNode) {
+		public IEnumerable<ISqlCodeObject> Build(ISqlNode rootNode) {
 			Visit(rootNode);
-			return Statements.ToArray();
+			return Objects.ToArray();
 		}
 
 		internal static ForeignKeyAction GetForeignKeyAction(string actionName) {
