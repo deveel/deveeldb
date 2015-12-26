@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.IO;
 using System.Linq;
 
 using Deveel.Data.Security;
@@ -58,6 +57,17 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
+			var userName = context.Request.User().Name;
+
+			bool modifyOwnRecord = userName.Equals(UserName);
+			bool secureAccessPrivs = context.Request.Query.UserCanManageUsers();
+
+			if (!(modifyOwnRecord || secureAccessPrivs))
+				throw new MissingPrivilegesException(userName, new ObjectName(UserName), Privileges.Alter);
+
+			if (String.Equals(UserName, "public", StringComparison.OrdinalIgnoreCase))
+				throw new SecurityException("User 'public' is reserved.");
+
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
 				context.Request.Query.AlterUserPassword(UserName, password);

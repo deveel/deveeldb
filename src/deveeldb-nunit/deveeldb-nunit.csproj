@@ -94,6 +94,9 @@
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CursorCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareVariableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropTriggerTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />

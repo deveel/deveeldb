@@ -775,7 +775,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal DropTrigger() {
-			var dropTrigger = new NonTerminal("drop_trigger");
+			var dropTrigger = new NonTerminal("drop_trigger", typeof(DropTriggerStatementNode));
 			var dropProcedureTrigger = new NonTerminal("drop_procedure_trigger");
 			var dropCallbackTrigger = new NonTerminal("drop_callback_trigger");
 
@@ -787,15 +787,15 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal DropUser() {
 			var dropUser = new NonTerminal("drop_user", typeof(DropUserStatementNode));
-			var userNameList = new NonTerminal("users");
+			var userNameList = new NonTerminal("user_list");
 
-			dropUser.Rule = Key("DROP") + Key("USER") + Identifier;
+			dropUser.Rule = Key("DROP") + Key("USER") + userNameList;
 			userNameList.Rule = MakePlusRule(userNameList, Comma, Identifier);
 			return dropUser;
 		}
 
 		private NonTerminal DropType() {
-			var dropType = new NonTerminal("drop_type");
+			var dropType = new NonTerminal("drop_type", typeof(DropTypeStatementNode));
 			dropType.Rule = Key("DROP") + Key("TYPE") + ObjectName();
 			return dropType;
 		}
