@@ -125,6 +125,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DropUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
