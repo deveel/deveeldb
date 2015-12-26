@@ -786,8 +786,11 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal DropUser() {
-			var dropUser = new NonTerminal("drop_user");
+			var dropUser = new NonTerminal("drop_user", typeof(DropUserStatementNode));
+			var userNameList = new NonTerminal("users");
+
 			dropUser.Rule = Key("DROP") + Key("USER") + Identifier;
+			userNameList.Rule = MakePlusRule(userNameList, Comma, Identifier);
 			return dropUser;
 		}
 
