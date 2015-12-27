@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Parser {
 						throw new InvalidOperationException(String.Format("The identity column {0} cannot have a DEFAULT constraint.",
 							idColumn));
 
-					idColumn = column.ColumnName.Text;
+					idColumn = column.ColumnName;
 				}
 
 				var columnInfo = column.BuildColumn(typeResolver, tableName.Name, constraints);

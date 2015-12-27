@@ -24,7 +24,7 @@ using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class TableColumnNode : SqlNode, ITableElementNode {
-		public IdentifierNode ColumnName { get; private set; }
+		public string ColumnName { get; private set; }
 
 		public DataTypeNode DataType { get; private set; }
 
@@ -34,19 +34,38 @@ namespace Deveel.Data.Sql.Parser {
 
 		public bool IsIdentity { get; private set; }
 
-		protected override void OnNodeInit() {
-			ColumnName = this.FindNode<IdentifierNode>();
-			DataType = this.FindNode<DataTypeNode>();
-			Default = this.FindNode<IExpressionNode>();
-			IsIdentity = this.HasOptionalNode("column_identity_opt");
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node is IdentifierNode) {
+				ColumnName = ((IdentifierNode) node).Text;
+			} else if (node is DataTypeNode) {
+				DataType = ((DataTypeNode) node);
+			} else if (node.NodeName.Equals("column_default_or_identity_opt")) {
+				GetDefaultOrIdentity(node);
+			} else if (node.NodeName.Equals("column_constraint_list")) {
+				Constraints = node.FindNodes<ColumnConstraintNode>();
+			}
 
-			Constraints = this.FindNodes<ColumnConstraintNode>();
+			return base.OnChildNode(node);
+		}
+
+		private void GetDefaultOrIdentity(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					var keyNode = (SqlKeyNode) childNode;
+					if (keyNode.Text.Equals("IDENTITY", StringComparison.OrdinalIgnoreCase)) {
+						IsIdentity = true;
+						break;
+					}
+				} else if (childNode is IExpressionNode) {
+					Default = (IExpressionNode) childNode;
+				}
+			}
 		}
 
 		public SqlTableColumn BuildColumn(ITypeResolver typeResolver, string tableName, IList<SqlTableConstraint> constraints) {
 			var dataType = DataTypeBuilder.Build(typeResolver, DataType);
 
-			var columnInfo = new SqlTableColumn(ColumnName.Text, dataType);
+			var columnInfo = new SqlTableColumn(ColumnName, dataType);
 
 			if (Default != null)
 				columnInfo.DefaultExpression = ExpressionBuilder.Build(Default);
@@ -72,11 +91,11 @@ namespace Deveel.Data.Sql.Parser {
 					if (!String.IsNullOrEmpty(constraint.OnUpdateAction))
 						onUpdate = SqlCodeObjectBuilder.GetForeignKeyAction(constraint.OnUpdateAction);
 
-					constraints.Add(SqlTableConstraint.ForeignKey(null, new[]{ColumnName.Text}, fTable, new[]{fColumn}, onDelete, onUpdate));
+					constraints.Add(SqlTableConstraint.ForeignKey(null, new[]{ColumnName}, fTable, new[]{fColumn}, onDelete, onUpdate));
 				} else if (String.Equals(ConstraintTypeNames.PrimaryKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-					constraints.Add(SqlTableConstraint.PrimaryKey(null, new[]{ColumnName.Text}));
+					constraints.Add(SqlTableConstraint.PrimaryKey(null, new[]{ColumnName}));
 				} else if (String.Equals(ConstraintTypeNames.UniqueKey, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
-					constraints.Add(SqlTableConstraint.UniqueKey(null, new[]{ColumnName.Text}));
+					constraints.Add(SqlTableConstraint.UniqueKey(null, new[]{ColumnName}));
 				} else if (String.Equals(ConstraintTypeNames.NotNull, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {
 					columnInfo.IsNotNull = true;
 				} else if (String.Equals(ConstraintTypeNames.Null, constraint.ConstraintType, StringComparison.OrdinalIgnoreCase)) {

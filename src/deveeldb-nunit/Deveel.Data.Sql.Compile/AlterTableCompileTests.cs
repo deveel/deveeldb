@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
-	public class AlterTableCompileTests : CursorCompileTests {
+	public class AlterTableCompileTests : SqlCompileTestBase {
 		[Test]
 		public void AddColumn() {
 			const string sql = "ALTER TABLE test ADD COLUMN b INT NOT NULL";

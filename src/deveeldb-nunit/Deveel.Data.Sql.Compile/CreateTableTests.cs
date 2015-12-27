@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Types;
 
 using NUnit.Framework;
 
@@ -90,6 +92,43 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void WithColumnDefault_Advanced()
+		{
+			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90) + 22, date TIMESTAMP DEFAULT GetDate())";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
+
+			var createTable = (CreateTableStatement)statement;
+			Assert.AreEqual(3, createTable.Columns.Count);
+
+			var columns = createTable.Columns;
+
+			Assert.AreEqual("id", columns[0].ColumnName);
+			Assert.AreEqual(SqlTypeCode.Integer, columns[0].ColumnType.TypeCode);
+
+			Assert.AreEqual("name", columns[1].ColumnName);
+			Assert.IsInstanceOf<StringType>(columns[1].ColumnType);
+			Assert.IsTrue(columns[1].HasDefaultExpression);
+			Assert.IsInstanceOf<SqlBinaryExpression>(columns[1].DefaultExpression);
+
+			Assert.AreEqual("date", columns[2].ColumnName);
+			Assert.IsInstanceOf<DateType>(columns[2].ColumnType);
+			Assert.IsTrue(columns[1].HasDefaultExpression);
+			Assert.IsInstanceOf<SqlFunctionCallExpression>(columns[2].DefaultExpression);
+		}
+
+
+		[Test]
 		public void WithConstraints() {
 			const string sql = "CREATE TABLE test (id INT NOT NULL, UNIQUE(id))";
 
@@ -114,7 +153,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void WithColumnConstraints() {
-			const string sql = "CREATE TABLE test (id INT NOT NULL PRIMARY KEY)";
+			const string sql = "CREATE TABLE test (id INT NOT NULL PRIMARY KEY, name VARCHAR NOT NULL)";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);

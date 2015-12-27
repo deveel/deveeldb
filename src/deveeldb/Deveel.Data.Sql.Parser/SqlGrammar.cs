@@ -74,6 +74,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			command.Rule =
 				VariableDeclaration() |
+				CursorDeclaration() |
 				Create() |
 				Alter() |
 				Drop() |
@@ -82,7 +83,6 @@ namespace Deveel.Data.Sql.Parser {
 				Close() |
 				Fetch() |
 				Select() |
-				CursorDeclaration() |
 				Insert() |
 				Update() |
 				Delete() |
@@ -412,8 +412,7 @@ namespace Deveel.Data.Sql.Parser {
 			var columnOrConstraintList = new NonTerminal("column_or_constraint_list");
 			var columnOrConstraint = new NonTerminal("column_or_constraint");
 			var tableColumn = new NonTerminal("table_column", typeof (TableColumnNode));
-			var columnDefaultOpt = new NonTerminal("column_default_opt");
-			var columnIdentityOpt = new NonTerminal("column_identity_opt");
+			var columnDefaultOrIdentityOpt = new NonTerminal("column_default_or_identity_opt");
 			var columnConstraintList = new NonTerminal("column_constraint_list");
 			var columnConstraint = new NonTerminal("column_constraint", typeof (ColumnConstraintNode));
 			var columnConstraintRefOpt = new NonTerminal("column_constraint_ref_opt");
@@ -433,18 +432,17 @@ namespace Deveel.Data.Sql.Parser {
 
 			columnOrConstraint.Rule = tableColumn | tableConstraint;
 
-			tableColumn.Rule = Identifier + DataType() + columnConstraintList + columnDefaultOpt + columnIdentityOpt;
+			tableColumn.Rule = Identifier + DataType() + columnConstraintList + columnDefaultOrIdentityOpt;
 
 			columnConstraintList.Rule = MakeStarRule(columnConstraintList, columnConstraint);
-			columnConstraint.Rule = NULL |
-			                         NOT + NULL |
-			                         UNIQUE |
-			                         PRIMARY + KEY |
-			                         CHECK + SqlExpression() |
-			                         REFERENCES + ObjectName() + columnConstraintRefOpt + fkeyActionList;
+			columnConstraint.Rule = Key("NULL") |
+			                         Key("NOT") + Key("NULL") |
+			                         Key("UNIQUE") |
+			                         Key("PRIMARY") + Key("KEY") |
+			                         Key("CHECK") + SqlExpression() |
+			                         Key("REFERENCES") + ObjectName() + columnConstraintRefOpt + fkeyActionList;
 			columnConstraintRefOpt.Rule = Empty | "(" + Identifier + ")";
-			columnDefaultOpt.Rule = Empty | DEFAULT + SqlExpression();
-			columnIdentityOpt.Rule = Empty | IDENTITY;
+			columnDefaultOrIdentityOpt.Rule = Empty | Key("DEFAULT") + SqlExpression() | Key("IDENTITY");
 			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
 			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
 			fkeyActionType.Rule = Key("CASCADE") |
@@ -636,7 +634,7 @@ namespace Deveel.Data.Sql.Parser {
 			var alterColumn = new NonTerminal("alter_column", typeof(AlterColumnNode));
 			var dropDefault = new NonTerminal("drop_default", typeof(DropDefaultNode));
 			var columnDef = new NonTerminal("column_def", typeof(TableColumnNode));
-			var columnConstraintList = new NonTerminal("column_constraint_lst");
+			var columnConstraintList = new NonTerminal("column_constraint_list");
 			var columnDefaultOpt = new NonTerminal("column_default_opt");
 			var columnIdentityOpt = new NonTerminal("column_identity_opt");
 			var columnConstraint = new NonTerminal("column_constraint", typeof(ColumnConstraintNode));
@@ -996,7 +994,8 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal Set() {
 			var set = new NonTerminal("set_command");
-			set.Rule = SetTransaction() | SetVariable();
+			set.Rule = SetTransaction() |
+			           SetVariable();
 			return set;
 		}
 
@@ -1021,8 +1020,9 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal SetVariable() {
-			var varSet = new NonTerminal("var_set");
-			varSet.Rule = Identifier + "=" + SqlExpression();
+			var varSet = new NonTerminal("var_set", typeof(SetVariableStatementNode));
+
+			varSet.Rule = SqlExpression() + ":=" + SqlExpression();
 			return varSet;
 		}
 	}

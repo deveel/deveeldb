@@ -90,9 +90,14 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\FetchTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\OpenTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\TransactionEndTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\CursorCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTriggerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
