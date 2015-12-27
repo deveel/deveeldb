@@ -76,31 +76,14 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		[Test]
-		public void ParseSimpleUpdate() {
-			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1";
+		public void UpdateOneRow() {
+			var whereExp = SqlExpression.Parse("id = 2");
+			var assignments = new[] {
+				new SqlColumnAssignment("birth_date", SqlExpression.Constant(DataObject.Date(new SqlDateTime(1970, 01, 20)))) 
+			};
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<UpdateStatement>(statement);
-		}
-
-		[Test]
-		public void ParseSimpleUpdateWithLimit() {
-			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1 LIMIT 20";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<UpdateStatement>(statement);
+			var statement = new UpdateStatement("APP.test_table", whereExp, assignments);
+			Query.ExecuteStatement(statement);
 		}
 	}
 }

@@ -35,6 +35,7 @@ namespace Deveel.Data.Sql.Statements {
 			TableName = tableName;
 			WherExpression = wherExpression;
 			Assignments = assignments;
+			Limit = -1;
 		}
 
 		public string TableName { get; private set; }

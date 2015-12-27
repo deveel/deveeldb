@@ -107,6 +107,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\DropUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\DatabaseTests.cs" />
@@ -163,6 +164,7 @@
     <Compile Include="Deveel.Data\ObjectNameTest.cs" />
     <Compile Include="Deveel.Data\StringObjectTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="deveeldb-nunit.licenseheader" />

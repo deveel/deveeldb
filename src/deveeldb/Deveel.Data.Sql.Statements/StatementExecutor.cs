@@ -17,9 +17,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
-using Deveel.Data.Diagnostics;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Tables;

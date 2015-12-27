@@ -16,9 +16,7 @@
 
 using System;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Compile {

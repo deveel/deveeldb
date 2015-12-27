@@ -164,6 +164,7 @@
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\DeleteStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTriggerStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTypeStatementNode.cs" />
@@ -181,6 +182,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeleteStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropCallbackTriggersStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTriggerStatement.cs" />
@@ -188,6 +190,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />

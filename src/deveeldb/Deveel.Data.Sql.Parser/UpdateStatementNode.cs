@@ -47,7 +47,9 @@ namespace Deveel.Data.Sql.Parser {
 		private void BuildSimpleUpdate(SqlCodeObjectBuilder builder, SimpleUpdateNode node) {
 			var whereExpression = ExpressionBuilder.Build(node.WhereExpression);
 			var assignments = UpdateAssignments(node.Columns);
-			builder.Objects.Add(new UpdateStatement(node.TableName, whereExpression, assignments));
+			var statement = new UpdateStatement(node.TableName, whereExpression, assignments);
+			statement.Limit = node.Limit;
+			builder.Objects.Add(statement);
 		}
 
 		private IEnumerable<SqlColumnAssignment> UpdateAssignments(IEnumerable<UpdateColumnNode> columns) {
