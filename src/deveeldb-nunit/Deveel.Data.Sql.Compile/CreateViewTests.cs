@@ -47,5 +47,23 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(createView.QueryExpression);
 			Assert.IsFalse(createView.ReplaceIfExists);
 		}
+
+		[Test]
+		public void OrReplace() {
+			const string sql = "CREATE OR REPLACE VIEW text_view1 AS SELECT * FROM test_table WHERE a = 1";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsInstanceOf<CreateViewStatement>(statement);
+
+			var createView = (CreateViewStatement)statement;
+
+			Assert.IsTrue(createView.ReplaceIfExists);
+		}
 	}
 }

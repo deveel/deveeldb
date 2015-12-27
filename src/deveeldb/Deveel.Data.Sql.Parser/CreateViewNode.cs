@@ -63,6 +63,7 @@ namespace Deveel.Data.Sql.Parser {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			var queryExpression = (SqlQueryExpression)ExpressionBuilder.Build(QueryExpression);
 			var statement = new CreateViewStatement(ViewName.Name, ColumnNames, queryExpression);
+			statement.ReplaceIfExists = ReplaceIfExists;
 			builder.Objects.Add(statement);
 		}
 	}
