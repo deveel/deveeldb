@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Parser {
 			foreach (var grantee in Grantees) {
 				foreach (var privilegeNode in Privileges) {
 					var privilege = ParsePrivilege(privilegeNode.Privilege);
-					builder.Objects.Add(new GrantPrivilegesStatement(grantee, privilege, WithGrant, objName, privilegeNode.Columns));
+					builder.AddObject(new GrantPrivilegesStatement(grantee, privilege, WithGrant, objName, privilegeNode.Columns));
 				}
 			}
 		}

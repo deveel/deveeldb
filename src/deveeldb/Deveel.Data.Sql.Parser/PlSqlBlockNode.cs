@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Parser {
 				}
 			}
 
-			builder.Objects.Add(block);
+			builder.AddObject(block);
 		}
 	}
 }

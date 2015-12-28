@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Parser {
 				!(varRefExp is SqlReferenceExpression))
 				throw new NotSupportedException("Only simple references are supported now.");
 
-			builder.Objects.Add(new AssignVariableStatement(varRefExp, valueExp));
+			builder.AddObject(new AssignVariableStatement(varRefExp, valueExp));
 		}
 	}
 }

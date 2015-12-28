@@ -19,7 +19,7 @@ namespace Deveel.Data.Sql.Parser {
 				throw new InvalidOperationException();
 
 			var typeName = ObjectName.Parse(TypeName);
-			builder.Objects.Add(new DropTypeStatement(typeName));
+			builder.AddObject(new DropTypeStatement(typeName));
 		}
 	}
 }

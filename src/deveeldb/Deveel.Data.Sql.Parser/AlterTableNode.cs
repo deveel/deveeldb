@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Parser {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			if (CreateTable != null) {
 				var statements = new List<ISqlCodeObject>();
-				CreateTable.Build(builder.TypeResolver, statements);
+				CreateTable.Build(builder.TypeResolver, builder);
 
 				foreach (var statement in statements) {
 					if (statement is CreateTableStatement)
@@ -51,57 +51,57 @@ namespace Deveel.Data.Sql.Parser {
 				}
 
 				foreach (var statement in statements) {
-					builder.Objects.Add(statement);
+					builder.AddObject(statement);
 				}
 			} else if (Actions != null) {
 				foreach (var action in Actions) {
-					BuildAction(builder.TypeResolver, ObjectName.Parse(TableName), action, builder.Objects);
+					BuildAction(builder.TypeResolver, ObjectName.Parse(TableName), action, builder);
 				}
 			}
 		}
 
-		private static void BuildAction(ITypeResolver typeResolver, ObjectName tableName, IAlterActionNode action, ICollection<ISqlCodeObject> statements) {
+		private static void BuildAction(ITypeResolver typeResolver, ObjectName tableName, IAlterActionNode action, SqlCodeObjectBuilder builder) {
 			if (action is AddColumnNode) {
 				var column = ((AddColumnNode) action).Column;
 				var constraints = new List<SqlTableConstraint>();
 				var columnInfo = column.BuildColumn(typeResolver, tableName.FullName, constraints);
 
-				statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
+				builder.AddObject(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
 
 				foreach (var constraint in constraints) {
-					statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
+					builder.AddObject(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
 				}
 			} else if (action is AddConstraintNode) {
 				var constraint = ((AddConstraintNode) action).Constraint;
 
 				var constraintInfo = constraint.BuildConstraint();
-				statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraintInfo)));
+				builder.AddObject(new AlterTableStatement(tableName, new AddConstraintAction(constraintInfo)));
 			} else if (action is DropColumnNode) {
 				var columnName = ((DropColumnNode) action).ColumnName;
-				statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnName)));
+				builder.AddObject(new AlterTableStatement(tableName, new DropColumnAction(columnName)));
 			} else if (action is DropConstraintNode) {
 				var constraintName = ((DropConstraintNode) action).ConstraintName;
-				statements.Add(new AlterTableStatement(tableName, new DropConstraintAction(constraintName)));
+				builder.AddObject(new AlterTableStatement(tableName, new DropConstraintAction(constraintName)));
 			} else if (action is SetDefaultNode) {
 				var actionNode = ((SetDefaultNode) action);
 				var columnName = actionNode.ColumnName;
 				var expression = ExpressionBuilder.Build(actionNode.Expression);
-				statements.Add(new AlterTableStatement(tableName, new SetDefaultAction(columnName, expression)));
+				builder.AddObject(new AlterTableStatement(tableName, new SetDefaultAction(columnName, expression)));
 			} else if (action is DropDefaultNode) {
 				var columnName = ((DropDefaultNode) action).ColumnName;
-				statements.Add(new AlterTableStatement(tableName, new DropDefaultAction(columnName)));
+				builder.AddObject(new AlterTableStatement(tableName, new DropDefaultAction(columnName)));
 			} else if (action is AlterColumnNode) {
 				var column = ((AlterColumnNode) action).Column;
 				var constraints = new List<SqlTableConstraint>();
 				var columnInfo = column.BuildColumn(typeResolver, tableName.FullName, constraints);
 
 				// CHECK: Here we do a drop and add column: is there a better way on the back-end?
-				statements.Add(new AlterTableStatement(tableName, new DropColumnAction(columnInfo.ColumnName)));
+				builder.AddObject(new AlterTableStatement(tableName, new DropColumnAction(columnInfo.ColumnName)));
 
-				statements.Add(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
+				builder.AddObject(new AlterTableStatement(tableName, new AddColumnAction(columnInfo)));
 
 				foreach (var constraint in constraints) {
-					statements.Add(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
+					builder.AddObject(new AlterTableStatement(tableName, new AddConstraintAction(constraint)));
 				}
 			}
 		}

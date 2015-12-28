@@ -89,7 +89,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (Position != null)
 				statement.PositionExpression = ExpressionBuilder.Build(Position);
 
-			builder.Objects.Add(statement);
+			builder.AddObject(statement);
 		}
 	}
 }

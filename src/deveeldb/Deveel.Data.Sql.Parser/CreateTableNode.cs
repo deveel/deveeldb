@@ -44,10 +44,10 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			Build(builder.TypeResolver, builder.Objects);
+			Build(builder.TypeResolver, builder);
 		}
 
-		public void Build(ITypeResolver typeResolver, ICollection<ISqlCodeObject> objects) {
+		public void Build(ITypeResolver typeResolver, SqlCodeObjectBuilder builder) {
 			string idColumn = null;
 
 			var tableName = TableName;
@@ -74,15 +74,15 @@ namespace Deveel.Data.Sql.Parser {
 
 			//TODO: Optimization: merge same constraints
 
-			objects.Add(MakeCreateTable(tableName.Name, columns, IfNotExists, Temporary));
+			builder.AddObject(MakeCreateTable(tableName.Name, columns, IfNotExists, Temporary));
 
 			foreach (var constraint in Constraints) {
 				var constraintInfo = constraint.BuildConstraint();
-				objects.Add(new AlterTableStatement(ObjectName.Parse(tableName.Name), new AddConstraintAction(constraintInfo)));
+				builder.AddObject(new AlterTableStatement(ObjectName.Parse(tableName.Name), new AddConstraintAction(constraintInfo)));
 			}
 
 			foreach (var constraint in constraints) {
-				objects.Add(MakeAlterTableAddConstraint(tableName.Name, constraint));
+				builder.AddObject(MakeAlterTableAddConstraint(tableName.Name, constraint));
 			}
 		}
 

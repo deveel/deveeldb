@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			statement.Cycle = Cycle;
 
-			builder.Objects.Add(statement);
+			builder.AddObject(statement);
 		}
 	}
 }

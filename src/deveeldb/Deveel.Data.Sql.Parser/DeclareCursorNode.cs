@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
 
-			builder.Objects.Add(new DeclareCursorStatement(CursorName, parameters.ToArray(), flags, queryExpression));
+			builder.AddObject(new DeclareCursorStatement(CursorName, parameters.ToArray(), flags, queryExpression));
 		}
 	}
 }

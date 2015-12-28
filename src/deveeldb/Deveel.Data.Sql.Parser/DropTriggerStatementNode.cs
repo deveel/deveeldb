@@ -33,10 +33,10 @@ namespace Deveel.Data.Sql.Parser {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
 			if (CallbackTrigger) {
 				var tableName = ObjectName.Parse(TableName);
-				builder.Objects.Add(new DropCallbackTriggersStatement(tableName));
+				builder.AddObject(new DropCallbackTriggersStatement(tableName));
 			} else {
 				var triggerName = ObjectName.Parse(TriggerName);
-				builder.Objects.Add(new DropTriggerStatement(triggerName));
+				builder.AddObject(new DropTriggerStatement(triggerName));
 			}
 		}
 	}

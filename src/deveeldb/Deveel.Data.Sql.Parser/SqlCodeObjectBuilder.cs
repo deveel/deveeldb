@@ -18,23 +18,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	public sealed class SqlCodeObjectBuilder : ISqlNodeVisitor {
+		private readonly IList<ISqlCodeObject> objects;
+		 
 		public SqlCodeObjectBuilder(ITypeResolver typeResolver) {
 			TypeResolver = typeResolver;
-			Objects = new List<ISqlCodeObject>();
+			objects = new List<ISqlCodeObject>();
 		}
 
 		public ITypeResolver  TypeResolver { get; private set; }
 
-		public ICollection<ISqlCodeObject> Objects { get; private set; } 
+		public IEnumerable<ISqlCodeObject> Objects {
+			get {
+				lock (this) {
+					return objects.AsEnumerable();
+				}
+			}
+		}
 
 		void ISqlNodeVisitor.Visit(ISqlNode node) {
 			Visit(node);
+		}
+
+		internal void AddObject(ISqlCodeObject obj) {
+			lock (this) {
+				objects.Add(obj);
+			}
 		}
 
 		private void Visit(ISqlNode node) {

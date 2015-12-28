@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (Identificator is IdentifiedByPasswordNode) {
 				var passwordNode = (IdentifiedByPasswordNode)Identificator;
 				var password = ExpressionBuilder.Build(passwordNode.Password);
-				builder.Objects.Add(new CreateUserStatement(UserName, password));
+				builder.AddObject(new CreateUserStatement(UserName, password));
 			} else {
 				throw new NotSupportedException();
 			}

@@ -15,7 +15,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			builder.Objects.Add(new DropSchemaStatement(SchemaName));
+			builder.AddObject(new DropSchemaStatement(SchemaName));
 		}
 	}
 }

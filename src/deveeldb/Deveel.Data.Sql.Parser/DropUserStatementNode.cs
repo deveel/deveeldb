@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Parser {
 				throw new InvalidOperationException("None user was set to delete.");
 
 			foreach (var userName in UserNames) {
-				builder.Objects.Add(new DropUserStatement(userName));
+				builder.AddObject(new DropUserStatement(userName));
 			}
 		}
 	}

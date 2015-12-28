@@ -20,7 +20,7 @@ using Deveel.Data.Sql.Statements;
 namespace Deveel.Data.Sql.Parser {
 	class CommitStatementNode : SqlStatementNode {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			builder.Objects.Add(new CommitStatement());
+			builder.AddObject(new CommitStatement());
 		}
 	}
 }

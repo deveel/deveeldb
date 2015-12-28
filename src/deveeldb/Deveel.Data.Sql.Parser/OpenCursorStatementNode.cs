@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Parser {
 				args = Arguments.Select(ExpressionBuilder.Build).ToList();
 			}
 
-			builder.Objects.Add(new OpenStatement(CursorName, args.ToArray()));
+			builder.AddObject(new OpenStatement(CursorName, args.ToArray()));
 		}
 	}
 }

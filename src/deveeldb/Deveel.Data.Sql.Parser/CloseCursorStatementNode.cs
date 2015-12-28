@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			builder.Objects.Add(new CloseStatement(CursorName));
+			builder.AddObject(new CloseStatement(CursorName));
 		}
 	}
 }

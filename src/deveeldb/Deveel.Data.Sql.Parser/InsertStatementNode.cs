@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 				var valueInsert = ValuesInsert;
 				var values =
 					valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
-				builder.Objects.Add(new InsertStatement(TableName, ColumnNames, values));
+				builder.AddObject(new InsertStatement(TableName, ColumnNames, values));
 			} else if (SetInsert != null) {
 				var assignments = SetInsert.Assignments;
 
@@ -68,14 +68,14 @@ namespace Deveel.Data.Sql.Parser {
 					values.Add(value);
 				}
 
-				builder.Objects.Add(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
+				builder.AddObject(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
 			} else if (QueryInsert != null) {
 				var queryInsert = QueryInsert;
 				var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;
 				if (queryExpression == null)
 					throw new SqlParseException();
 
-				builder.Objects.Add(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
+				builder.AddObject(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
 			}
 		}
 	}

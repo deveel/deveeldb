@@ -64,12 +64,12 @@ namespace Deveel.Data.Sql.Parser {
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
 			if (QueryExpression.IntoClause != null) {
 				var refExp = ExpressionBuilder.Build(QueryExpression.IntoClause);
-				builder.Objects.Add(new SelectIntoStatement(queryExpression, refExp));
+				builder.AddObject(new SelectIntoStatement(queryExpression, refExp));
 			} else {
 				var orderBy = BuildOrderBy(OrderBy);
 				var statement = new SelectStatement(queryExpression, orderBy);
 				statement.Limit = BuildLimit(Limit);
-				builder.Objects.Add(statement);
+				builder.AddObject(statement);
 			}
 		}
 

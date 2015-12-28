@@ -20,7 +20,7 @@ using Deveel.Data.Sql.Statements;
 namespace Deveel.Data.Sql.Parser {
 	class RollbackStatementNode : SqlStatementNode {
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			builder.Objects.Add(new RollbackStatement());
+			builder.AddObject(new RollbackStatement());
 		}
 	}
 }

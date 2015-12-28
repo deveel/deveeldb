@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (FromCursor) {
 				var whereExp = ExpressionBuilder.Build(WhereExpression);
-				builder.Objects.Add(new DeleteStatement(tableName, whereExp, Limit));
+				builder.AddObject(new DeleteStatement(tableName, whereExp, Limit));
 			} else {
 				throw new NotSupportedException();
 			}

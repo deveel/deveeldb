@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			statement.IsConstant = IsConstant;
 			statement.IsNotNull = IsConstant || IsNotNull;
-			builder.Objects.Add(statement);
+			builder.AddObject(statement);
 		}
 	}
 }

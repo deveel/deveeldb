@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Parser {
 			var assignments = UpdateAssignments(node.Columns);
 			var statement = new UpdateStatement(node.TableName, whereExpression, assignments);
 			statement.Limit = node.Limit;
-			builder.Objects.Add(statement);
+			builder.AddObject(statement);
 		}
 
 		private IEnumerable<SqlColumnAssignment> UpdateAssignments(IEnumerable<UpdateColumnNode> columns) {

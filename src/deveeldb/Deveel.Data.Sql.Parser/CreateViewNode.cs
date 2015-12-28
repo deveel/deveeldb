@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Parser {
 			var queryExpression = (SqlQueryExpression)ExpressionBuilder.Build(QueryExpression);
 			var statement = new CreateViewStatement(ViewName.Name, ColumnNames, queryExpression);
 			statement.ReplaceIfExists = ReplaceIfExists;
-			builder.Objects.Add(statement);
+			builder.AddObject(statement);
 		}
 	}
 }

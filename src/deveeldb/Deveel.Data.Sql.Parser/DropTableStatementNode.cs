@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			builder.Objects.Add(new DropTableStatement(TableNames.ToArray(), IfExists));
+			builder.AddObject(new DropTableStatement(TableNames.ToArray(), IfExists));
 		}
 	}
 }
