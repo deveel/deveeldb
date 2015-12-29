@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Statements {
 	public static class QueryExtensions {
 		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
-			return StatementExecutor.Execute(query, sqlQuery);
+			return query.Execute(sqlQuery);
 		}
 
 		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource, params QueryParameter[] parameters) {

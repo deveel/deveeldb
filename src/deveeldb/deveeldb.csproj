@@ -565,7 +565,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
