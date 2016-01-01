@@ -957,10 +957,15 @@ namespace Deveel.Data.Sql.Parser {
 		private NonTerminal Delete() {
 			var deleteCommand = new NonTerminal("delete_command", typeof(DeleteStatementNode));
 			var whereOpt = new NonTerminal("where_opt");
-			var cursorDef = new NonTerminal("cursor_def");
+			var where = new NonTerminal("where");
+			var limitOpt = new NonTerminal("limit_opt");
+			var currentOf = new NonTerminal("current_of");
 
 			deleteCommand.Rule = Key("DELETE") + Key("FROM") + ObjectName() + whereOpt;
-			whereOpt.Rule = Empty | Key("WHERE") + SqlQueryExpression();
+			whereOpt.Rule = Empty | where | currentOf;
+			where.Rule = Key("WHERE") + SqlExpression() + limitOpt;
+			currentOf.Rule = Key("WHERE") + Key("CURRENT") + Key("OF") + Identifier;
+			limitOpt.Rule = Empty | Key("LIMIT") + PositiveLiteral;
 
 			return deleteCommand;
 		}
