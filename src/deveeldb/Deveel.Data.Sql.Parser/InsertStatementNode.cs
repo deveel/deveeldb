@@ -50,11 +50,13 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			var tableName = ObjectName.Parse(TableName);
+
 			if (ValuesInsert != null) {
 				var valueInsert = ValuesInsert;
 				var values =
 					valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
-				builder.AddObject(new InsertStatement(TableName, ColumnNames, values));
+				builder.AddObject(new InsertStatement(tableName, ColumnNames, values));
 			} else if (SetInsert != null) {
 				var assignments = SetInsert.Assignments;
 
@@ -68,7 +70,7 @@ namespace Deveel.Data.Sql.Parser {
 					values.Add(value);
 				}
 
-				builder.AddObject(new InsertStatement(TableName, columnNames.ToArray(), new[] {values.ToArray()}));
+				builder.AddObject(new InsertStatement(tableName, columnNames.ToArray(), new[] {values.ToArray()}));
 			} else if (QueryInsert != null) {
 				var queryInsert = QueryInsert;
 				var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;

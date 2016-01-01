@@ -18,19 +18,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class InsertStatement : SqlStatement, IPreparableStatement {
-		public InsertStatement(string tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
+		public InsertStatement(ObjectName tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
 			if (columnNames == null)
 				throw new ArgumentNullException("columnNames");
 			if (values == null)
 				throw new ArgumentNullException("values");
-			if (String.IsNullOrEmpty(tableName))
+			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
@@ -38,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 			Values = values;
 		}
 
-		public string TableName { get; private set; }
+		public ObjectName TableName { get; private set; }
 
 		public IEnumerable<string> ColumnNames { get; private set; } 
 
@@ -56,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var columnInfos = new List<ColumnInfo>();
 			foreach (var name in ColumnNames) {
-				var columnName = ObjectName.Parse(name);
+				var columnName = new ObjectName(tableName, name);
 				var colIndex = table.FindColumn(columnName);
 				if (colIndex < 0)
 					throw new InvalidOperationException(String.Format("Cannot find column '{0}' in table '{1}'", columnName, table.FullName));
