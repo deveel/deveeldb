@@ -14,8 +14,6 @@
 //    limitations under the License.
 //
 
-using System.ComponentModel;
-
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
@@ -601,9 +599,15 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal CreateType() {
-			var createType = new NonTerminal("create_type");
+			var createType = new NonTerminal("create_type", typeof(CreateTypeNode));
+			var typeAttrs = new NonTerminal("type_attributes");
+			var typeAttr = new NonTerminal("type_attribute", typeof(TypeAttributeNode));
+			var orReplaceOpt = new NonTerminal("or_replace");
 
-			createType.Rule = CREATE + OrReplace() + TYPE + ObjectName();
+			createType.Rule = Key("CREATE") + orReplaceOpt + Key("TYPE") + ObjectName() + "(" + typeAttrs + ")";
+			orReplaceOpt.Rule = Empty | Key("OR") + Key("REPLACE");
+			typeAttrs.Rule = MakePlusRule(typeAttrs, Comma, typeAttr);
+			typeAttr.Rule = Identifier + DataType();
 
 			return createType;
 		}

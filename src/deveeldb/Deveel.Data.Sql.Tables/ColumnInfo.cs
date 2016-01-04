@@ -186,20 +186,6 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public static void Serialize(ColumnInfo columnInfo, Stream stream, Encoding encoding) {
-			var writer = new BinaryWriter(stream, encoding);
-			Serialize(columnInfo, writer);
-		}
-
-		public static void Serialize(ColumnInfo columnInfo, Stream stream) {
-			Serialize(columnInfo, stream, Encoding.Unicode);
-		}
-
-		public static ColumnInfo Deserialize(Stream stream, ITypeResolver typeResolver) {
-			var reader = new BinaryReader(stream, Encoding.Unicode);
-			return Deserialize(reader, typeResolver);
-		}
-
 		public static ColumnInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
 			var version = reader.ReadInt32();
 			if (version != 3)

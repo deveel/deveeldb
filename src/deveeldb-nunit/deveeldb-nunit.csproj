@@ -92,8 +92,10 @@
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateSchemaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclareExceptionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\FetchTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />

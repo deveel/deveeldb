@@ -384,11 +384,6 @@ namespace Deveel.Data.Sql.Tables {
 			return columnNames.Select(IndexOfColumn).ToArray();
 		}
 
-		public static void Serialize(TableInfo tableInfo, Stream stream) {
-			var writer = new BinaryWriter(stream, Encoding.Unicode);
-			Serialize(tableInfo, writer);
-		}
-
 		public static void Serialize(TableInfo tableInfo, BinaryWriter writer) {
 			writer.Write(3);    // Version
 

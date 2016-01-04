@@ -16,8 +16,10 @@
 
 using System;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Parser {
-	class DeclareExceptionNode : SqlNode, IDeclareNode {
+	class DeclareExceptionNode : SqlStatementNode, IDeclareNode {
 		public string Name { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -25,6 +27,10 @@ namespace Deveel.Data.Sql.Parser {
 				Name = ((IdentifierNode) node).Text;
 
 			return base.OnChildNode(node);
+		}
+
+		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+			builder.AddObject(new DeclareExceptionStatement(Name));
 		}
 	}
 }

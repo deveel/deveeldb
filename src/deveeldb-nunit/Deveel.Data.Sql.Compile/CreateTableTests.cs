@@ -92,9 +92,9 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
-		public void WithColumnDefault_Advanced()
-		{
-			const string sql = "CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90) + 22, date TIMESTAMP DEFAULT GetDate())";
+		public void WithColumnDefault_Advanced() {
+			const string sql =
+				"CREATE TABLE test (id INT, name VARCHAR DEFAULT (67 * 90) + 22, date TIMESTAMP DEFAULT GetDate())";
 
 			var result = Compile(sql);
 
@@ -108,7 +108,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
 
-			var createTable = (CreateTableStatement)statement;
+			var createTable = (CreateTableStatement) statement;
 			Assert.AreEqual(3, createTable.Columns.Count);
 
 			var columns = createTable.Columns;
