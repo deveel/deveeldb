@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Parser {
 				if (queryExpression == null)
 					throw new SqlParseException();
 
-				builder.AddObject(new InsertSelectStatement(TableName, ColumnNames, queryExpression));
+				builder.AddObject(new InsertSelectStatement(tableName, ColumnNames, queryExpression));
 			}
 		}
 	}

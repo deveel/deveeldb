@@ -97,11 +97,11 @@ namespace Deveel.Data.Types {
 		}
 
 		public override bool IsComparable(SqlType type) {
-			return type is DateType;
+			return type is DateType || type is NullType;
 		}
 
 		public override bool CanCastTo(SqlType destType) {
-			return destType is StringType || destType is DateType;
+			return destType is StringType || destType is DateType || destType is NullType;
 		}
 
 		private SqlString ToString(SqlDateTime dateTime) {

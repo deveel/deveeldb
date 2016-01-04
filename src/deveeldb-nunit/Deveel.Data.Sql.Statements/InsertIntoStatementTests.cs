@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 		private void CreateTestTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUE_KEY",
+			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
 				new SqlExpression[] { SqlExpression.Reference(tableInfo.TableName) });
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
