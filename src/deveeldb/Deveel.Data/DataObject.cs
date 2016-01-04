@@ -920,28 +920,5 @@ namespace Deveel.Data {
 		public void SerializeValueTo(Stream stream, ISystemContext systemContext) {
 			Type.SerializeObject(stream, Value);
 		}
-
-		public static void Serialize(DataObject obj, BinaryWriter writer) {
-			if (Equals(obj, null)) {
-				writer.Write((byte)0);
-				return;
-			}
-
-			writer.Write((byte)1);
-			TypeSerializer.SerializeTo(writer, obj.Type);
-			obj.Type.SerializeObject(writer.BaseStream, obj.Value);
-		}
-
-		public static DataObject Deserialize(BinaryReader reader, ITypeResolver resolver) {
-			// TODO: this is messy and ugly: must review the whole object and type serialization logic...
-			var status = reader.ReadByte();
-			if (status == 0)
-				return null;
-
-			var type = TypeSerializer.Deserialize(reader.BaseStream, resolver);
-			var obj = type.DeserializeObject(reader.BaseStream);
-
-			return new DataObject(type, obj);
-		}
 	}
 }
