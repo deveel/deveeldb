@@ -15,18 +15,22 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class InsertStatement : SqlStatement, IPreparableStatement {
+		public InsertStatement(ObjectName tableName, IEnumerable<SqlExpression[]> values) 
+			: this(tableName, null, values) {
+		}
+
 		public InsertStatement(ObjectName tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
-			if (columnNames == null)
-				throw new ArgumentNullException("columnNames");
 			if (values == null)
 				throw new ArgumentNullException("values");
 			if (tableName == null)
@@ -44,17 +48,57 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<SqlExpression[]> Values { get; private set; }
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {
+			var values = Values.ToArray();
+
+			int firstLen = -1;
+			for (int n = 0; n < values.Length; ++n) {
+				var expList = (IList)values[n];
+				if (firstLen == -1 || firstLen == expList.Count) {
+					firstLen = expList.Count;
+				} else {
+					throw new InvalidOperationException("The insert data list varies in size.");
+				}
+			}
+
 			var tableName = context.Query.ResolveTableName(TableName);
 
 			var table = context.Query.GetTable(tableName);
 			if (table == null)
-				throw new InvalidOperationException();
+				throw new ObjectNotFoundException(TableName);
 
 			if (Values.Any(x => x.OfType<SqlQueryExpression>().Any()))
 				throw new InvalidOperationException("Cannot set a value from a query.");
 
+			var tableQueryInfo = context.Query.GetTableQueryInfo(tableName, null);
+			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
+
+			var columns = new string[0];
+			if (ColumnNames != null)
+				columns = ColumnNames.ToArray();
+
+			if (columns.Length == 0) {
+				columns = new string[table.TableInfo.ColumnCount];
+				for (int i = 0; i < columns.Length; i++) {
+					columns[i] = table.TableInfo[i].ColumnName;
+				}
+			}
+
+			var colIndices = new int[columns.Length];
+			var colResolved = new ObjectName[columns.Length];
+			for (int i = 0; i < columns.Length; ++i) {
+				var inVar = new ObjectName(columns[i]);
+				var col = ResolveColumn(fromTable, inVar);
+				int index = table.FindColumn(col);
+				if (index == -1)
+					throw new InvalidOperationException(String.Format("Cannot find column '{0}' in table '{1}'.", col, tableName));
+
+				colIndices[i] = index;
+				colResolved[i] = col;
+			}
+
+
 			var columnInfos = new List<ColumnInfo>();
-			foreach (var name in ColumnNames) {
+			foreach (var name in columns) {
 				var columnName = new ObjectName(tableName, name);
 				var colIndex = table.FindColumn(columnName);
 				if (colIndex < 0)
@@ -65,7 +109,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var assignments = new List<SqlAssignExpression[]>();
 
-			foreach (var valueSet in Values) {
+			foreach (var valueSet in values) {
 				var valueAssign = new SqlAssignExpression[valueSet.Length];
 
 				for (int i = 0; i < valueSet.Length; i++) {
@@ -90,6 +134,45 @@ namespace Deveel.Data.Sql.Statements {
 
 			return new Prepared(tableName, assignments);
 		}
+
+		private ObjectName ResolveColumn(IFromTableSource fromTable, ObjectName v) {
+			// Try and resolve against alias names first,
+			var list = new List<ObjectName>();
+
+			var tname = v.Parent;
+			string schemaName = null;
+			string tableName = null;
+			string columnName = v.Name;
+			if (tname != null) {
+				schemaName = tname.ParentName;
+				tableName = tname.Name;
+			}
+
+			int rcc = fromTable.ResolveColumnCount(null, schemaName, tableName, columnName);
+			if (rcc == 1) {
+				var matched = fromTable.ResolveColumn(null, schemaName, tableName, columnName);
+				list.Add(matched);
+			} else if (rcc > 1) {
+				throw new StatementException("Ambiguous column name (" + v + ")");
+			}
+
+			int totalMatches = list.Count;
+			if (totalMatches == 0)
+				throw new StatementException("Can't find column: " + v);
+
+			if (totalMatches == 1)
+				return list[0];
+
+			if (totalMatches > 1)
+				// if there more than one match, check if they all match the identical
+				// resource,
+				throw new StatementException("Ambiguous column name (" + v + ")");
+
+			// Should never reach here but we include this exception to keep the
+			// compiler happy.
+			throw new InvalidOperationException("Negative total matches");
+		}
+
 
 		#region Prepared
 
@@ -128,7 +211,13 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var insertCount = context.Request.Query.InsertIntoTable(TableName, Assignments);
+				int insertCount = 0;
+
+				foreach (var assignment in Assignments) {
+					context.Request.Query.InsertIntoTable(TableName, assignment);
+					insertCount++;
+				}
+
 				context.SetResult(insertCount);
 			}
 		}

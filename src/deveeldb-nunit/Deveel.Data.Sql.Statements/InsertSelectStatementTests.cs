@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 		[Test]
 		public void WithColumns() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT 'Antonello' AS first_name, 'Provenzano' AS last_name, NULL AS birth_date, NULL as active");
+			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT 'Antonello', 'Provenzano', NULL, NULL");
 			var columns = new[] {"first_name", "last_name", "birth_date", "active"};
 
 			var statement = new InsertSelectStatement(tableName, columns, query);
@@ -46,7 +46,17 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void WithNoColumns() {
-			
+			var tableName = ObjectName.Parse("APP.test_table");
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT 3, 'Antonello', 'Provenzano', NULL, NULL");
+
+			var statement = new InsertSelectStatement(tableName, query);
+
+			Query.ExecuteStatement(statement);
+
+			var table = Query.GetTable(tableName);
+
+			Assert.AreEqual(1, table.RowCount);
+
 		}
 	}
 }

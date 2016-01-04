@@ -25,6 +25,10 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class InsertSelectStatement : SqlStatement, IPreparableStatement {
+		public InsertSelectStatement(ObjectName tableName, SqlQueryExpression queryExpression) 
+			: this(tableName, null, queryExpression) {
+		}
+
 		public InsertSelectStatement(ObjectName tableName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
@@ -77,8 +81,6 @@ namespace Deveel.Data.Sql.Statements {
 				colResolved[i] = col;
 			}
 
-
-			// TODO: Verify the columns!!!
 
 			var queryPlan = request.Context.QueryPlanner().PlanQuery(new QueryInfo(request, QueryExpression));
 			return new Prepared(tableName, colResolved, colIndices, queryPlan);
@@ -169,9 +171,6 @@ namespace Deveel.Data.Sql.Statements {
 				if (result.ColumnCount() != ColumnIndices.Length) {
 					throw new InvalidOperationException("Number of columns in result does not match columns to insert.");
 				}
-
-				// Copy row list into an intermediate IntegerVector list.
-				// (A IRowEnumerator for a table being modified is undefined).
 
 				foreach (var insertRow in result) {
 					var newRow = insertTable.NewRow();
