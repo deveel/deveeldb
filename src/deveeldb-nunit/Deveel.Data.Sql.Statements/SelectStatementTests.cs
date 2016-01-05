@@ -14,10 +14,7 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -91,123 +88,22 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		[Test]
-		public void ParseWithFromClause() {
-			const string sql = "SELECT col1 AS a FROM table";
+		public void SelectAllColumns() {
+			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
+			var statement = new SelectStatement(query);
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			var selectStatement = (SelectStatement) statement;
-			Assert.IsNotNull(selectStatement.QueryExpression);
-			Assert.IsNull(selectStatement.OrderBy);
-		}
-
-		[Test]
-		public void ParseWithVariable() {
-			const string sql = "SELECT :a";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			var selectStatement = (SelectStatement)statement;
-			Assert.IsNotNull(selectStatement.QueryExpression);
-			Assert.IsNull(selectStatement.OrderBy);
-
-			Assert.IsNotNull(selectStatement.QueryExpression.SelectColumns);
-
-			var selectCols = selectStatement.QueryExpression.SelectColumns.ToList();
-			Assert.AreEqual(1, selectCols.Count);
-			Assert.IsInstanceOf<SqlVariableReferenceExpression>(selectCols[0].Expression);
-		}
-
-		[Test]
-		public void ParseWithFunction() {
-			const string sql = "SELECT user()";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			var selectStatement = (SelectStatement)statement;
-			Assert.IsNotNull(selectStatement.QueryExpression);
-			Assert.IsNull(selectStatement.OrderBy);
-
-			Assert.IsNotNull(selectStatement.QueryExpression.SelectColumns);
-
-			var selectCols = selectStatement.QueryExpression.SelectColumns.ToList();
-			Assert.AreEqual(1, selectCols.Count);
-			Assert.IsInstanceOf<SqlFunctionCallExpression>(selectCols[0].Expression);
-		}
-
-		[Test]
-		public void ParseWithOrderByClause() {
-			const string sql = "SELECT col1 AS a FROM table ORDER BY a ASC";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			var selectStatement = (SelectStatement)statement;
-			Assert.IsNotNull(selectStatement.QueryExpression);
-			Assert.IsNotNull(selectStatement.OrderBy);
-		}
-
-		[Test]
-		public void ExecuteSimpleSelect() {
-			const string sql = "SELECT * FROM test_table";
-
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(Query));
+			ITable result = statement.Execute(Query);
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
 
 		[Test]
-		public void ExecuteSimpleOrderedSelect() {
-			const string sql = "SELECT * FROM test_table ORDER BY birth_date DESC";
+		public void SimpleOrderedSelect() {
+			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
+			var sort = new[] {new SortColumn(SqlExpression.Reference(new ObjectName("birth_date")), false)};
+			var statement = new SelectStatement(query, sort);
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
-
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(Query));
+			var result = statement.Execute(Query);
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 
@@ -218,38 +114,23 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void SelectAliasedWithGroupedExpression() {
-			const string sql = "SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)";
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)");
+			var statement = new SelectStatement(query);
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
+			var result = statement.Execute(Query);
 
-			var statement = statements.FirstOrDefault();
-
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
 
 		[Test]
 		public void SelectFromAliased() {
-			const string sql = "SELECT * FROM test_table t0 WHERE t0.id = 1";
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table t0 WHERE t0.id = 1");
 
-			IEnumerable<SqlStatement> statements = null;
-			Assert.DoesNotThrow(() => statements = SqlStatement.Parse(sql));
-			Assert.IsNotNull(statements);
+			var statement = new SelectStatement(query);
 
-			var statement = statements.FirstOrDefault();
+			var result = statement.Execute(Query);
 
-			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SelectStatement>(statement);
-
-			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(Query));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}

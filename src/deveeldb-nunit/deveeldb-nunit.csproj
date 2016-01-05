@@ -101,6 +101,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\OpenTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SelectTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\TransactionEndTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />

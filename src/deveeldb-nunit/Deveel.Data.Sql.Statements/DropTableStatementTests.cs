@@ -50,9 +50,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void DropNonReferencedTable() {
-			const string sql = "DROP TABLE test_table2";
+			var tableName = ObjectName.Parse("APP.test_table2");
+			var statement = new DropTableStatement(tableName);
 
-			Assert.DoesNotThrow(() => Query.ExecuteQuery(sql));
+			statement.Execute(Query);
+
+			var exists = Query.TableExists(tableName);
+			Assert.IsFalse(exists);
 		}
 
 		[Test]

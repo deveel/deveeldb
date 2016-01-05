@@ -23,77 +23,55 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DropTableStatement : SqlStatement, IPreparableStatement {
-		public DropTableStatement(string[] tableNames) 
-			: this(tableNames, false) {
-		}
-
-		public DropTableStatement(string[] tableNames, bool ifExists) {
-			if (tableNames == null)
-				throw new ArgumentNullException("tableNames");
-			if (tableNames.Length == 0)
-				throw new ArgumentException("The table name list cannot be empty", "tableNames");
-
-			if (tableNames.Any(String.IsNullOrEmpty))
-				throw new ArgumentException("One of the specified table names is null.");
-
-			TableNames = tableNames;
-			IfExists = ifExists;
-		}
-
-		public DropTableStatement(string tableName)
+		public DropTableStatement(ObjectName tableName) 
 			: this(tableName, false) {
 		}
 
-		public DropTableStatement(string tableName, bool ifExists)
-			: this(new[] {tableName}, ifExists) {
+		public DropTableStatement(ObjectName tableName, bool ifExists) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableNames");
+
+			TableName = tableName;
+			IfExists = ifExists;
 		}
 
-		public string[] TableNames { get; private set; }
+		public ObjectName TableName { get; private set; }
 
 		public bool IfExists { get; set; }
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {
-			var tableNameList = TableNames.ToList();
-			var dropTables = new List<string>();
+			var tableName = context.Query.ResolveTableName(TableName);
+			if (!context.Query.TableExists(tableName))
+				throw new ObjectNotFoundException(TableName);
 
-			foreach (var tableName in tableNameList) {
-				if (dropTables.Contains(tableName, StringComparer.OrdinalIgnoreCase))
-					throw new StatementPrepareException(String.Format("Duplicated table name '{0}' in the list of tables to drop.",
-						tableName));
-
-				dropTables.Add(tableName);
-			}
-
-			var resolvedTableNames = dropTables.Select(context.Query.ResolveTableName);
-
-			return new Prepared(resolvedTableNames.ToArray(), IfExists);
+			return new Prepared(tableName, IfExists);
 		}
 
 		#region Prepared
 
 		[Serializable]
 		class Prepared : SqlStatement {
-			public Prepared(ObjectName[] tableNames, bool ifExists) {
-				TableNames = tableNames;
+			public Prepared(ObjectName tableName, bool ifExists) {
+				TableName = tableName;
 				IfExists = ifExists;
 			}
 
 			private Prepared(ObjectData data) {
-				TableNames = data.GetValue<ObjectName[]>("TableNames");
+				TableName = data.GetValue<ObjectName>("TableName");
 				IfExists = data.GetBoolean("IfExists");
 			}
 
-			public ObjectName[] TableNames { get; private set; }
+			public ObjectName TableName { get; private set; }
 
 			public bool IfExists { get; private set; }
 
 			protected override void GetData(SerializeData data) {
-				data.SetValue("TableNames", TableNames);
+				data.SetValue("TableName", TableName);
 				data.SetValue("IfExists", IfExists);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				context.Request.Query.DropTables(TableNames, IfExists);
+				context.Request.Query.DropTable(TableName, IfExists);
 			}
 		}
 
