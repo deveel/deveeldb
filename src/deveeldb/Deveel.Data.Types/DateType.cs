@@ -17,13 +17,19 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
+	[Serializable]
 	public sealed class DateType : SqlType {
 		public DateType(SqlTypeCode typeCode) 
 			: base("DATE", typeCode) {
 			AssertDateType(typeCode);
+		}
+
+		private DateType(ObjectData data)
+			: base(data) {
 		}
 
 		public static readonly string[] DateFormatSql = {

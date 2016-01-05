@@ -15,8 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;

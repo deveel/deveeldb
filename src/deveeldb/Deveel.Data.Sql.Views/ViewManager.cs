@@ -138,7 +138,24 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+
+			var schemaName = objName.ParentName;
+			var name = objName.Name;
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+			foreach (var row in table) {
+				var schemaValue = row.GetValue(0).Value.ToString();
+				var nameValue = row.GetValue(1).Value.ToString();
+
+				if (!String.Equals(name, nameValue, comparison) ||
+					!String.Equals(schemaName, schemaValue, comparison))
+					continue;
+
+				return new ObjectName(ObjectName.Parse(schemaValue), nameValue);
+			}
+
+			return objName;
 		}
 
 		public void DefineView(ViewInfo viewInfo) {

@@ -15,71 +15,84 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
+using Deveel.Data.Security;
 using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DropViewStatement : SqlStatement, IPreparableStatement {
-		public DropViewStatement(string[] viewNames) 
-			: this(viewNames, false) {
+		public DropViewStatement(ObjectName viewName) 
+			: this(viewName, false) {
 		}
 
-		public DropViewStatement(string[] viewNames, bool ifExists) {
-			ViewNames = viewNames;
+		public DropViewStatement(ObjectName viewName, bool ifExists) {
+			if (viewName == null)
+				throw new ArgumentNullException("viewName");
+
+			ViewName = viewName;
 			IfExists = ifExists;
 		}
 
-		public string[] ViewNames { get; private set; }
+		public ObjectName ViewName { get; private set; }
 
 		public bool IfExists { get; set; }
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {
-			var viewNameList = ViewNames.ToList();
-			var dropViews = new List<string>();
+			var viewName = context.Query.ResolveObjectName(DbObjectType.View, ViewName);
 
-			foreach (var tableName in viewNameList) {
-				if (dropViews.Contains(tableName, StringComparer.OrdinalIgnoreCase))
-					throw new StatementPrepareException(String.Format("Duplicated table name '{0}' in the list of tables to drop.",
-						tableName));
+			if (!IfExists &&
+				!context.Query.ViewExists(viewName))
+				throw new ObjectNotFoundException(ViewName);
 
-				dropViews.Add(tableName);
-			}
-
-			var resolvedNames = dropViews.Select(context.Query.ResolveObjectName);
-
-			return new Prepared(resolvedNames.ToArray(), IfExists);
+			return new Prepared(viewName, IfExists);
 		}
 
 		#region Prepared
 
 		[Serializable]
 		class Prepared : SqlStatement {
-			public ObjectName[] ViewNames { get; set; }
+			public ObjectName ViewName { get; set; }
 
 			public bool IfExists { get; set; }
 
-			public Prepared(ObjectName[] viewNames, bool ifExists) {
-				ViewNames = viewNames;
+			public Prepared(ObjectName viewName, bool ifExists) {
+				ViewName = viewName;
 				IfExists = ifExists;
 			}
 
 			private Prepared(ObjectData data) {
-				ViewNames = data.GetValue<ObjectName[]>("ViewNames");
+				ViewName = data.GetValue<ObjectName>("ViewName");
 				IfExists = data.GetBoolean("IfExists");
 			}
 
 			protected override void GetData(SerializeData data) {
-				data.SetValue("ViewNames", ViewNames);
+				data.SetValue("ViewName", ViewName);
 				data.SetValue("IfExists", IfExists);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				context.Request.Query.DropViews(ViewNames, IfExists);
+				if (!context.Request.Query.UserCanDropObject(DbObjectType.View, ViewName))
+					throw new MissingPrivilegesException(context.Request.Query.UserName(), ViewName, Privileges.Drop);
+
+				// If the 'only if exists' flag is false, we need to check tables to drop
+				// exist first.
+				if (!IfExists) {
+					// If view doesn't exist, throw an error
+					if (!context.Request.Query.ViewExists(ViewName)) {
+						throw new ObjectNotFoundException(ViewName,
+							String.Format("The view '{0}' does not exist and cannot be dropped.", ViewName));
+					}
+				}
+
+				// Does the table already exist?
+				if (context.Request.Query.ViewExists(ViewName)) {
+					// Drop table in the transaction
+					context.Request.Query.DropObject(DbObjectType.View, ViewName);
+
+					// Revoke all the grants on the table
+					context.Request.Query.RevokeAllGrantsOnView(ViewName);
+				}
 			}
 		}
 

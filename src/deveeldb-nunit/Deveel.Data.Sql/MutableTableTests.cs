@@ -12,10 +12,9 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 
-using Deveel.Data;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
@@ -61,20 +60,6 @@ namespace Deveel.Data.Sql {
 
 			Query.CreateTable(tableInfo);
 			return Query.GetMutableTable(tableName);
-		}
-
-		[Test]
-		public void SameSessionInsertInto() {
-			Assert.Inconclusive();
-		}
-
-		[Test]
-		public void SameSessionDeleteFrom() {
-			var queryExpression = SqlExpression.GreaterThan(SqlExpression.Reference(new ObjectName("order")), SqlExpression.Constant(2));
-
-			int deleteCount = -1;
-			Assert.DoesNotThrow(() => deleteCount = Query.DeleteFrom(ObjectName.Parse("APP.test_table"), queryExpression));
-			Assert.AreEqual(1, deleteCount);
 		}
 	}
 }

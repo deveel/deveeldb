@@ -62,18 +62,6 @@ namespace Deveel.Data.Sql.Views {
 			context.DefineView(viewInfo, replaceIfExists);
 		}
 
-		public static void DropView(this IQuery context, ObjectName viewName) {
-			DropView(context, viewName, false);
-		}
-
-		public static void DropView(this IQuery context, ObjectName viewName, bool ifExists) {
-			context.DropViews(new[] { viewName }, ifExists);
-		}
-
-		public static void DropViews(this IQuery context, IEnumerable<ObjectName> viewNames) {
-			DropViews(context, viewNames, false);
-		}
-
 		public static void DropViews(this IQuery context, IEnumerable<ObjectName> viewNames, bool onlyIfExists) {
 			var viewNameList = viewNames.ToList();
 			foreach (var tableName in viewNameList) {
