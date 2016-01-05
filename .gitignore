@@ -33,3 +33,5 @@
 /src/deveeldb.doc/obj/Release/*.cache
 /src/*.DotSettings
 *.tokens
+/src/deveeldb.schfb/Help/Working
+/src/deveeldb.schfb/Help/*.log

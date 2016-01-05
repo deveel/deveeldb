@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Topics>
+  <Topic id="b3b76557-bc23-4385-ab65-33aecc90ee6e" visible="True" isDefault="true" isSelected="true" title="DeveelDB Help" tocTitle="Table of Contents" linkText="http://db.deveel.org">
+    <HelpKeywords>
+      <HelpKeyword index="K" term="Welcome" />
+    </HelpKeywords>
+  </Topic>
+  <Topic id="d9d74fc5-bce9-4472-8d42-b331e99661d3" visible="True" isExpanded="true" title="Version History">
+    <HelpKeywords>
+      <HelpKeyword index="K" term="version, history" />
+    </HelpKeywords>
+    <Topic id="cca5a812-c432-47d6-9b2b-566de34911fc" visible="True" title="Version 1.0.0.0">
+      <HelpKeywords>
+        <HelpKeyword index="K" term="version, 1.0.0.0" />
+      </HelpKeywords>
+    </Topic>
+  </Topic>
+</Topics>
