@@ -12,11 +12,10 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
@@ -26,18 +25,50 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public sealed class InsertIntoStatementTests : ContextBasedTest {
-		private void CreateTestTable() {
+		protected override IQuery CreateQuery(ISession session) {
+			var query = base.CreateQuery(session);
+			CreateTestTable(query);
+			return query;
+		}
+
+		private void CreateTestTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUE_KEY",
+			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
 				new SqlExpression[] { SqlExpression.Reference(tableInfo.TableName) });
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			Query.CreateTable(tableInfo);
-			Query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.CreateTable(tableInfo);
+			query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+		}
+
+		[Test]
+		public void InsertTwoValues() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var columns = new [] { "first_name", "last_name", "active"};
+			var values = new List<SqlExpression[]> {
+				new[] {
+					SqlExpression.Constant("Antonello"),
+					SqlExpression.Constant("Provenzano"),
+					SqlExpression.Constant(true)
+				},
+				new [] {
+					SqlExpression.Constant("Mart"),
+					SqlExpression.Constant("Roosmaa"),
+					SqlExpression.Constant(false)
+				}
+			};
+
+			var statement = new InsertStatement(tableName, columns, values);
+			Query.ExecuteStatement(statement);
+
+			var table = Query.GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.RowCount);
 		}
 	}
 }

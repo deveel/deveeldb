@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<InsertStatement>(statement);
 
 			var insertStatement = (InsertStatement) statement;
-			Assert.AreEqual("test_table", insertStatement.TableName);
+			Assert.AreEqual("test_table", insertStatement.TableName.FullName);
 			Assert.AreEqual(3, insertStatement.ColumnNames.Count());
 			Assert.AreEqual(1, insertStatement.Values.Count());
 		}
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<InsertStatement>(statement);
 
 			var insertStatement = (InsertStatement) statement;
-			Assert.AreEqual("test_table", insertStatement.TableName);
+			Assert.AreEqual("test_table", insertStatement.TableName.FullName);
 			Assert.AreEqual(3, insertStatement.ColumnNames.Count());
 			Assert.AreEqual(2, insertStatement.Values.Count());
 		}
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<InsertStatement>(statement);
 
 			var insertStatement = (InsertStatement) statement;
-			Assert.AreEqual("test_table", insertStatement.TableName);
+			Assert.AreEqual("test_table", insertStatement.TableName.FullName);
 			Assert.AreEqual(3, insertStatement.ColumnNames.Count());
 			Assert.AreEqual(1, insertStatement.Values.Count());
 		}

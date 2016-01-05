@@ -10,11 +10,14 @@ namespace Deveel.Data.Sql.Statements {
 			: this(tableName, whereExpression, -1) {
 		}
 
-		public DeleteStatement(ObjectName tableName, SqlExpression whereExpression, int limit) {
+		public DeleteStatement(ObjectName tableName, SqlExpression whereExpression, long limit) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 			if (whereExpression == null)
 				throw new ArgumentNullException("whereExpression");
+
+			if (limit <= 0)
+				limit = -1;
 
 			TableName = tableName;
 			WhereExpression = whereExpression;
@@ -25,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression WhereExpression { get; private set; }
 
-		public int Limit { get; set; }
+		public long Limit { get; set; }
 
 		IStatement IPreparableStatement.Prepare(IRequest request) {
 			throw new NotImplementedException();

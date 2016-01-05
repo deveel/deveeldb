@@ -127,17 +127,5 @@ namespace Deveel.Data.Sql.Tables {
 
 			table.AddRow(row);
 		}
-
-		public static int InsertIntoTable(this IQuery context, ObjectName tableName, IEnumerable<SqlAssignExpression[]> assignments) {
-			int insertCount = 0;
-
-			foreach (var assignment in assignments) {
-				context.InsertIntoTable(tableName, assignment);
-				insertCount++;
-			}
-
-			return insertCount;
-		}
-
 	}
 }

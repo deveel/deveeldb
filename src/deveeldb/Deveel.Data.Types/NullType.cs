@@ -39,6 +39,15 @@ namespace Deveel.Data.Types {
 			: base(data) {
 		}
 
+		public override bool IsComparable(SqlType type) {
+			// NULL can be compared to any type, since any type is NULLABLE on SQL
+			return true;
+		}
+
+		internal override int ColumnSizeOf(ISqlObject obj) {
+			return 1;
+		}
+
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
