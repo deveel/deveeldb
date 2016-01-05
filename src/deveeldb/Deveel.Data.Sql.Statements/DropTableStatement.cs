@@ -41,7 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
-			if (!context.Query.TableExists(tableName))
+			if (!context.Query.TableExists(tableName) &&
+			    !IfExists)
 				throw new ObjectNotFoundException(TableName);
 
 			return new Prepared(tableName, IfExists);

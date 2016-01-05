@@ -14,7 +14,6 @@
 //    limitations under the License.
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
@@ -60,17 +59,36 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		[Test]
-		public void DropReferencedTable() {
-			const string sql = "DROP TABLE APP.test_table1";
+		public void DropIfExists_TableExists() {
+			var tableName = ObjectName.Parse("APP.test_table2");
+			var statement = new DropTableStatement(tableName, true);
 
-			Assert.Throws<StatementException>(() => Query.ExecuteQuery(sql));
+			statement.Execute(Query);
+
+			var exists = Query.TableExists(tableName);
+			Assert.IsFalse(exists);
 		}
 
 		[Test]
-		public void DropAllTables() {
-			const string sql = "DROP TABLE IF EXISTS APP.test_table1, test_table2";
+		public void DropIfExists_TableNotExists() {
+			var tableName = ObjectName.Parse("APP.test_table3");
+			var statement = new DropTableStatement(tableName, true);
 
-			Assert.DoesNotThrow(() => Query.ExecuteQuery(sql));
+			statement.Execute(Query);
+
+			var exists = Query.TableExists(tableName);
+			Assert.IsFalse(exists);
+		}
+
+		[Test]
+		public void DropReferencedTable() {
+			var tableName = ObjectName.Parse("APP.test_table1");
+			var statement = new DropTableStatement(tableName);
+
+			Assert.Throws<ConstraintViolationException>(() => statement.Execute(Query));
+
+			var exists = Query.TableExists(tableName);
+			Assert.IsTrue(exists);
 		}
 	}
 }
