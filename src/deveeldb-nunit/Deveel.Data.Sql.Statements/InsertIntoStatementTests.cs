@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Reference(tableInfo.TableName) });
+				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());

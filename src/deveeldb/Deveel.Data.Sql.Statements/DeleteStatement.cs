@@ -1,8 +1,10 @@
 ﻿using System;
 
+using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DeleteStatement : SqlStatement, IPreparableStatement {
@@ -31,7 +33,22 @@ namespace Deveel.Data.Sql.Statements {
 		public long Limit { get; set; }
 
 		IStatement IPreparableStatement.Prepare(IRequest request) {
-			throw new NotImplementedException();
+			var tableName = request.Query.ResolveTableName(TableName);
+
+			if (!request.Query.TableExists(tableName))
+				throw new ObjectNotFoundException(tableName);
+
+			var queryExp = new SqlQueryExpression(new SelectColumn[] {SelectColumn.Glob("*") });
+			queryExp.FromClause.AddTable(tableName.FullName);
+			queryExp.WhereExpression = WhereExpression;
+
+			var queryInfo = new QueryInfo(request, queryExp);
+			if (Limit > 0)
+				queryInfo.Limit = new QueryLimit(Limit);
+
+			var queryPlan = request.Query.Context.QueryPlanner().PlanQuery(queryInfo);
+
+			return new Prepared(tableName, queryPlan);
 		}
 
 		#region Prepared
@@ -59,7 +76,20 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				base.ExecuteStatement(context);
+				var deleteTable = context.Request.Query.GetMutableTable(TableName);
+
+				if (deleteTable == null)
+					throw new ObjectNotFoundException(TableName);
+
+				if (!context.Request.Query.UserCanSelectFromPlan(QueryPlan))
+					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Select);
+				if (!context.Request.Query.UserCanDeleteFromTable(TableName))
+					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Delete);
+				
+				var result = QueryPlan.Evaluate(context.Request);
+				var count = deleteTable.Delete(result);
+
+				context.SetResult(count);
 			}
 		}
 

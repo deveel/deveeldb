@@ -96,6 +96,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\CreateUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareExceptionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\FetchTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />
@@ -110,6 +111,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeleteStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatementTests.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\DatabaseTests.cs" />
