@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;

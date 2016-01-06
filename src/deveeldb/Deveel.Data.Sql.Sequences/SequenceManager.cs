@@ -555,7 +555,7 @@ namespace Deveel.Data.Sql.Sequences {
 			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
 			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
 
-			return seqi.SelectRowsEqual(2, DataObject.VarChar(sequenceName.Parent.FullName), 1, DataObject.VarChar(sequenceName.Name)).Any();
+			return seqi.SelectRowsEqual(1, DataObject.VarChar(sequenceName.Parent.FullName), 2, DataObject.VarChar(sequenceName.Name)).Any();
 		}
 
 
