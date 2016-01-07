@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8AE45834-7E6E-48A8-ADAC-EBDA38C511E2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>deveeldb-linq</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="IQToolkit, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="IQToolkit.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Linq\DeveelDbExecutor.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbFormatter.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbLanguage.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbMapping.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbProvider.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbTypeSystem.cs" />
+    <Compile Include="Deveel.Data.Linq\ProviderSettings.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryContext.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryException.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryTable.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraintAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnConstraints.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnNameAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\DefaultNamingRules.cs" />
+    <Compile Include="Deveel.Data.Mapping\ForeignKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\FunctionAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IMemberMappingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\INamedConstraint.cs" />
+    <Compile Include="Deveel.Data.Mapping\INamingConvention.cs" />
+    <Compile Include="Deveel.Data.Mapping\IRelationshipConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\ITypeMappingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\MappingContext.cs" />
+    <Compile Include="Deveel.Data.Mapping\MappingModel.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberMappingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\NotNullAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\PrimaryKeyAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\Relationship.cs" />
+    <Compile Include="Deveel.Data.Mapping\RelationshipConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\RelationshipType.cs" />
+    <Compile Include="Deveel.Data.Mapping\RuledNamingConvention.cs" />
+    <Compile Include="Deveel.Data.Mapping\TableAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapping.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMappingConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\UniqueAttribute.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.csproj">
+      <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>
+      <Name>deveeldb</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
+$(SolutionDir)..\util\ilrepack\ILRepack.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\IQToolkit.dll" "$(TargetDir)\IQToolkit.Data.dll"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
