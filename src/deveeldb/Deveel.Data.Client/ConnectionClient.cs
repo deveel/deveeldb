@@ -17,11 +17,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 using IsolationLevel = Deveel.Data.Transactions.IsolationLevel;
@@ -66,68 +66,98 @@ namespace Deveel.Data.Client {
 			throw new NotSupportedException();
 		}
 
+		private static bool IsInMemory(string source) {
+			return String.Equals(source, "In-Memory", StringComparison.OrdinalIgnoreCase) ||
+			       String.Equals(source, "Memory", StringComparison.OrdinalIgnoreCase);
+		}
+
+		private static bool IsJournaled(string source) {
+			return source.StartsWith("path=", StringComparison.OrdinalIgnoreCase) ||
+			       source.StartsWith("directory=", StringComparison.OrdinalIgnoreCase) ||
+			       source.Equals("journaled", StringComparison.OrdinalIgnoreCase);
+		}
+
+		private static bool IsSingleFile(string source) {
+			return source.StartsWith("file=", StringComparison.OrdinalIgnoreCase) ||
+			       source.Equals("file", StringComparison.OrdinalIgnoreCase);
+		}
+
+		private IDatabase CreateDatabase(IConfiguration configuration, IConfiguration dbConfig, string userName, string password, bool createIfNotExists) {
+			var builder = new SystemBuilder(configuration);
+			var system = builder.BuildSystem();
+
+			var databaseName = dbConfig.GetString("database.name");
+
+			IDatabase database;
+
+			if (!system.DatabaseExists(databaseName)) {
+				if (!createIfNotExists)
+					throw new DeveelDbException(String.Format("The database '{0}' does not exist and it is not set to be created.",
+						databaseName));
+				database = system.CreateDatabase(dbConfig, userName, password);
+			} else {
+				database = system.OpenDatabase(dbConfig);
+			}
+
+			return database;
+		}
+
+		private IConfiguration CreateDbConfig(DeveelDbConnectionStringBuilder settings) {
+			var config = new Configuration.Configuration();
+
+			var databaseName = settings.Database;
+			var dataSource = settings.DataSource;
+
+			var schema = settings.Schema;
+			if (String.IsNullOrEmpty(schema))
+				schema = "APP";
+
+			config.SetValue("database.name", databaseName);
+			config.SetValue("database.defaultSchema", schema);
+
+			if (IsInMemory(dataSource)) {
+				config.SetValue("database.storeType", "memory");
+			} else if (IsSingleFile(dataSource)) {
+				var index = dataSource.IndexOf('=');
+				var fileName = dataSource.Substring(index + 1);
+
+				config.SetValue("database.storeType", "file");
+				config.SetValue("database.path", fileName);
+			} else if (IsJournaled(dataSource)) {
+				var index = dataSource.IndexOf('=');
+
+				var path = dataSource.Substring(index + 1);
+				config.SetValue("database.storeType", "journaled");
+				config.SetValue("database.path", path);
+			}
+
+			foreach (KeyValuePair<string, object> pair in settings) {
+				var key = pair.Key;
+				var value = pair.Value;
+
+				// TODO: normalize the key and convert the value to set into the configuration
+				config.SetValue(key, value);
+			}
+
+			return config;
+		}
+
 		private IClientConnector CreateConnector() {
 			if (Connector != null)
 				return Connector;
 
-			IConfiguration configuration = null;
+			// TODO: Extract system config from the connection string
+			var sysConfig = new Configuration.Configuration();
+			var dbConfig = CreateDbConfig(Settings);
 
-			/*
-			TODO:
-			if (IsInMemory(Settings.DataSource) && controlDatabase == null) {
-				if (controlSystem == null)
-					controlSystem = CreateEmbeddedControlSystem();
+			var userName = Settings.UserName;
+			var password = Settings.Password;
+			var createIfNotExists = Settings.BootOrCreate || Settings.Create;
 
-				// TODO: handle the case the connection string does not specify a database name
-				var databaseName = Settings.Database;
-				if (String.IsNullOrEmpty(databaseName))
-					throw new InvalidOperationException();
+			var database = CreateDatabase(sysConfig, dbConfig, userName, password, createIfNotExists);
 
-				Configuration = new Configuration(controlSystem.Config);
-				Configuration.DatabaseName(databaseName);
-
-				var defaultSchema = Settings.Schema;
-				if (!String.IsNullOrEmpty(defaultSchema))
-					Configuration.DefaultSchema(defaultSchema);
-
-				controlDatabase = controlSystem.ControlDatabase(databaseName);
-			} else if (IsInFileSystem(Settings) && controlDatabase == null) {
-				if (controlSystem == null)
-					controlSystem = CreateEmbeddedControlSystem();
-
-				// TODO: handle the case the connection string does not specify a database name
-				var databaseName = Settings.Database;
-				if (String.IsNullOrEmpty(databaseName))
-					throw new InvalidOperationException();
-
-				Configuration = new Configuration(controlSystem.Config);
-				Configuration.StorageSystem(ConfigDefaultValues.FileStorageSystem);
-
-				var dbPath = settings.DataSource;
-				if (String.Equals(dbPath, "local", StringComparison.OrdinalIgnoreCase))
-					dbPath = settings.Path;
-				if (String.IsNullOrEmpty(dbPath))
-					dbPath = databaseName;
-
-				Configuration.DatabasePath(dbPath);
-
-				var defaultSchema = settings.Schema;
-				if (!String.IsNullOrEmpty(defaultSchema))
-					Configuration.DefaultSchema(defaultSchema);
-
-
-				controlDatabase = controlSystem.ControlDatabase(databaseName);
-			} else if (controlDatabase == null) {
-				return CreateNetworkConnector();
-			}
-
-			if (controlDatabase != null)
-				return CreateLocalDatabaseConnector(Configuration);
-
-			throw new InvalidOperationException("Unable to create a connector to the database");
-			*/
-
-			throw new NotImplementedException();
+			var handler = new SingleDatabaseHandler(database);
+			return new EmbeddedClientConnector(new EmbeddedServerConnector(handler));
 		}
 
 		private IMessage SendMessage(IMessage message) {

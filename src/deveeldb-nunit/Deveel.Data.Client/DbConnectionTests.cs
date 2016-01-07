@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.Data;
 
@@ -22,8 +23,26 @@ namespace Deveel.Data.Client {
 	public sealed class DbConnectionTests : ContextBasedTest {
 		[Test]
 		public void OpenForAdmin() {
-			IDbConnection connection = null;
-			Assert.DoesNotThrow(() => connection = Database.CreateDbConnection(AdminUserName, AdminPassword));
+			var connString = new DeveelDbConnectionStringBuilder {
+				UserName = AdminUserName,
+				Password = AdminPassword,
+				DataSource = "memory",
+				Database = DatabaseName,
+				Schema = "APP",
+				Create = true
+			};
+
+			var connection = new DeveelDbConnection(connString);
+			Assert.AreEqual(ConnectionState.Closed, connection.State);
+			Assert.DoesNotThrow(() => connection.Open());
+			Assert.AreEqual(ConnectionState.Open, connection.State);
+			Assert.DoesNotThrow(() => connection.Close());
+			Assert.AreEqual(ConnectionState.Closed, connection.State);
+		}
+
+		[Test]
+		public void OpenForAdmin_Embedded() {
+			var connection = Database.CreateDbConnection(AdminUserName, AdminPassword);
 			Assert.IsNotNull(connection);
 
 			Assert.AreEqual(ConnectionState.Closed, connection.State);
@@ -35,8 +54,7 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void QueryScalarForAdmin() {
-			IDbConnection connection = null;
-			Assert.DoesNotThrow(() => connection = Database.CreateDbConnection(AdminUserName, AdminPassword));
+			var connection = Database.CreateDbConnection(AdminUserName, AdminPassword);
 			Assert.IsNotNull(connection);
 
 			IDbCommand command = null;

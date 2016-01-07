@@ -27,6 +27,7 @@ namespace Deveel.Data.Client {
 	// TODO:
 	public sealed class DeveelDbConnection : DbConnection {
 		private DeveelDbConnectionStringBuilder connectionString;
+		private ConnectionClient client;
 
 		private ConnectionState state;
 		private ConnectionState oldState;
@@ -37,13 +38,37 @@ namespace Deveel.Data.Client {
 
 		private Dictionary<string, DeveelDbDataReader> openReaders; 
 
-		internal DeveelDbConnection(IClientConnector connector, DeveelDbConnectionStringBuilder settings) {
+		internal DeveelDbConnection(IClientConnector connector, DeveelDbConnectionStringBuilder settings)
+			: this(settings) {
 			Client = new ConnectionClient(connector,settings);
-			connectionString = settings;
+		}
+
+		public DeveelDbConnection()
+			: this((string)null) {
+		}
+
+		public DeveelDbConnection(DeveelDbConnectionStringBuilder connectionString) {
+			this.connectionString = connectionString;
 			RowCache = new LocalRowCache(this);
 		}
 
-		private ConnectionClient Client { get; set; }
+		public DeveelDbConnection(string connectionString)
+			: this(String.IsNullOrEmpty(connectionString) ? null : new DeveelDbConnectionStringBuilder(connectionString)) {
+		}
+
+		private ConnectionClient Client {
+			get {
+				if (client == null) {
+					if (Settings == null)
+						throw new DeveelDbException("The connection string is not set.");
+
+					client = new ConnectionClient(Settings);
+				}
+
+				return client;
+			}
+			set { client = value; }
+		}
 
 		internal LocalRowCache RowCache { get; private set; }
 

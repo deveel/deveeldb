@@ -20,7 +20,6 @@ using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Types;
 
