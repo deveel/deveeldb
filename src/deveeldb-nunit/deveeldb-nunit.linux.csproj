@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F583D8C8-97A2-4460-9C03-40E48A9A2B3A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Deveel.Data</RootNamespace>
+    <AssemblyName>deveeldb-nunit</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>deveeldb-nunit.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>X64</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="DryIoc">
+      <HintPath>..\packages\DryIoc.2.1.0.201512110\lib\net45\DryIoc.dll</HintPath>
+    </Reference>
+    <Reference Include="Deveel.Math">
+      <HintPath>..\packages\dmath.1.5.66.201512290\lib\net45\Deveel.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
+    <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateUserTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\FetchTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\OpenTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\TransactionEndTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclareVariableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropTriggerTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropUserTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
+    <Compile Include="Deveel.Data\ContextBasedTest.cs" />
+    <Compile Include="Deveel.Data\DatabaseTests.cs" />
+    <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
+    <Compile Include="Deveel.Data\SystemTests.cs" />
+    <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
+    <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GrantTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerTests.cs" />
+    <Compile Include="Deveel.Data.Sql\CreateTableTests.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
+    <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
+    <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Security\UserManagementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlBetweenEspressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlBinaryExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlCastExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlDateExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionParseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlQueryExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlUnaryExpressionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlBooleanTest.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlDateTimeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlLongStringTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlNumberTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTableStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTableStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropTableStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertIntoStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SelectStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\UpdateStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql\CursorTests.cs" />
+    <Compile Include="Deveel.Data.Sql\DropTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql\InsertTests.cs" />
+    <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql\MutableTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql\TableQueryTests.cs" />
+    <Compile Include="Deveel.Data.Sql\VariableTests.cs" />
+    <Compile Include="Deveel.Data.Store\SingleFileStoreTests.cs" />
+    <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
+    <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
+    <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
+    <Compile Include="Deveel.Data\NullObjectTest.cs" />
+    <Compile Include="Deveel.Data\NumericObjectTests.cs" />
+    <Compile Include="Deveel.Data\ObjectNameTest.cs" />
+    <Compile Include="Deveel.Data\StringObjectTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\VariableManagerTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="deveeldb-nunit.licenseheader" />
+    <None Include="deveeldb-nunit.snk" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Deveel.Data.Linq\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb\deveeldb.linux.csproj">
+      <Project>{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}</Project>
+      <Name>deveeldb.linux</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="BeforeBuild">
+    <Delete Files="../packages/repositories.config" />
+  </Target>
+</Project>
