@@ -74,6 +74,9 @@
     <Reference Include="Deveel.Math">
       <HintPath>..\packages\dmath.1.5.68\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
     </Reference>
+    <Reference Include="DryIoc">
+      <HintPath>..\packages\DryIoc.2.1.0.201512110\lib\net45\DryIoc.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
@@ -965,9 +968,10 @@
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDBClientFactory.cs" />
-    <Compile Include="DryIoc\Container.cs" />
-    <Compile Include="DryIoc\FactoryCompiler.cs" />
-    <Compile Include="DryIoc\AsyncExecutionFlowScopeContext.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Sql\Query.Objects.cs" />
