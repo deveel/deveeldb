@@ -18,10 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Transactions;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
-using Deveel.Data.Types;
+
+using IsolationLevel = System.Data.IsolationLevel;
 
 namespace Deveel.Data.Client {
 	// TODO:
@@ -86,6 +88,10 @@ namespace Deveel.Data.Client {
 			return new DeveelDbTransaction(this, isolationLevel, commitId);
 		}
 
+		public new DeveelDbTransaction BeginTransaction() {
+			return BeginTransaction(IsolationLevel.Unspecified);
+		}
+
 		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) {
 			return BeginTransaction(isolationLevel);
 		}
@@ -139,11 +145,17 @@ namespace Deveel.Data.Client {
 					Client.Authenticate();
 
 					serverVersion = Client.ServerVersion;
-				} catch (Exception) {
-					ChangeState(ConnectionState.Broken);
 
-					// TODO: throw a specialized exception
+					if (System.Transactions.Transaction.Current != null &&
+					    Settings.Enlist) {
+						EnlistTransaction(System.Transactions.Transaction.Current);
+					}
+				} catch (DeveelDbException) {
+					ChangeState(ConnectionState.Broken);
 					throw;
+				} catch (Exception ex) {
+					ChangeState(ConnectionState.Broken);
+					throw new DeveelDbException("Error while opening the connection", ex);
 				}
 
 				ChangeState(ConnectionState.Open);
@@ -298,6 +310,18 @@ namespace Deveel.Data.Client {
 			Client = null;
 
 			base.Dispose(disposing);
+		}
+
+		private DeveelDbEnlistment enlistment;
+
+		public override void EnlistTransaction(Transaction transaction) {
+			if (Transaction != null && transaction != null)
+				throw new ArgumentException();
+
+			if (enlistment != null && enlistment.Scope != transaction)
+				throw new ArgumentException();
+
+			enlistment = new DeveelDbEnlistment(this, transaction);
 		}
 	}
 }

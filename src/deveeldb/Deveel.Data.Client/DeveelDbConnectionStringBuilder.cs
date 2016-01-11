@@ -138,6 +138,7 @@ namespace Deveel.Data.Client {
 			keymaps["COMMITAUTO"] = AutoCommitKey;
 			keymaps["COMMIT-AUTO"] = AutoCommitKey;
 			keymaps["COMMIT"] = AutoCommitKey;
+			keymaps["ENLIST"] = EnlistKey;
 		}
 
 		private const string HostKey = "Host";
@@ -160,6 +161,7 @@ namespace Deveel.Data.Client {
 		private const string FetchSizeKey = "FetchSize";
 		private const string MaxFetchSizeKey = "MaxFetchSize";
 		private const string AutoCommitKey = "AutoCommit";
+		private const string EnlistKey = "Enlist";
 
 		private const string DefaultHost = "localhost";
 		private const int DefaultPort = 9157;
@@ -181,6 +183,7 @@ namespace Deveel.Data.Client {
 		private const int DefaultMaxFetchSize = 512;
 		private const int DefaultFetchSize = 32;
 		private const bool DefaultAutoCommit = true;
+		private const bool DefaultEnlist = false;
 
 		private static readonly Dictionary<string, object> defaults;
 		private static readonly Dictionary<string, string> keymaps;
@@ -205,6 +208,7 @@ namespace Deveel.Data.Client {
 		private int fetchSize;
 		private int maxFetchSize;
 		private bool autoCommit;
+		private bool enlist;
 
 		public override bool IsFixedSize {
 			get { return true; }
@@ -242,7 +246,8 @@ namespace Deveel.Data.Client {
 					StrictGetValueKey,
 					FetchSizeKey,
 					MaxFetchSizeKey,
-					AutoCommitKey
+					AutoCommitKey,
+					EnlistKey
 				};
 				return keys.AsReadOnly();
 			}
@@ -270,7 +275,8 @@ namespace Deveel.Data.Client {
 					strictGetValue,
 					fetchSize,
 					maxFetchSize,
-					autoCommit
+					autoCommit,
+					enlist
 				};
 				return list.AsReadOnly();
 			}
@@ -503,6 +509,16 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		[DisplayName("Enlist")]
+		[RefreshProperties(RefreshProperties.All)]
+		public bool Enlist {
+			get { return enlist; }
+			set {
+				base[EnlistKey] = value;
+				enlist = value;
+			}
+		}
+
 		private void InitToDefault() {
 			host = DefaultHost;
 			port = DefaultPort;
@@ -524,6 +540,7 @@ namespace Deveel.Data.Client {
 			fetchSize = DefaultFetchSize;
 			maxFetchSize = DefaultMaxFetchSize;
 			autoCommit = DefaultAutoCommit;
+			enlist = DefaultEnlist;
 		}
 
 		private void SetValue(string key, object value) {
@@ -710,6 +727,14 @@ namespace Deveel.Data.Client {
 						base.Remove(AutoCommitKey);
 					} else {
 						AutoCommit = ToBoolean(value);
+					}
+					break;
+				case EnlistKey:
+					if (value == null) {
+						enlist = DefaultEnlist;
+						base.Remove(EnlistKey);
+					} else {
+						Enlist = ToBoolean(value);
 					}
 					break;
 				default:

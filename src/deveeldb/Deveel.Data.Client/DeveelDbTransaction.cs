@@ -35,11 +35,6 @@ namespace Deveel.Data.Client {
 			connection.Transaction = this;
 		}
 
-		private void AssertNotFinished() {
-			if (finished)
-				throw new InvalidOperationException("The transaction was already finished.");
-		}
-
 
 		public override void Commit() {
 			if (connection == null ||
@@ -47,7 +42,7 @@ namespace Deveel.Data.Client {
 			     connection.State != ConnectionState.Executing))
 				throw new InvalidOperationException("The underlying connection must be opened.");
 
-			AssertNotFinished();
+			AssertOpen();
 
 			try {
 				Connection.CommitTransaction(CommitId);
@@ -63,7 +58,7 @@ namespace Deveel.Data.Client {
 			     connection.State != ConnectionState.Executing))
 				throw new InvalidOperationException("The underlying connection must be opened.");
 
-			AssertNotFinished();
+			AssertOpen();
 
 			try {
 				Connection.RollbackTransaction(CommitId);
@@ -96,6 +91,32 @@ namespace Deveel.Data.Client {
 			connection = null;
 
 			base.Dispose(disposing);
+		}
+
+		internal bool IsOpen(out DeveelDbException error) {
+			if (connection == null) {
+				error = new DeveelDbException("The transaction is not associated to any connection.");
+				return false;
+			}
+
+			if (connection.State != ConnectionState.Open) {
+				error = new DeveelDbException("The associated connection is not open.");
+				return false;
+			}
+
+			if (finished) {
+				error = new DeveelDbException("The transaction was already finished.");
+				return false;
+			}
+
+			error = null;
+			return true;
+		}
+
+		internal void AssertOpen() {
+			DeveelDbException error;
+			if (!IsOpen(out error))
+				throw error;
 		}
 	}
 }

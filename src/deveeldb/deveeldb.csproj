@@ -110,6 +110,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbEnlistment.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
