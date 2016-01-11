@@ -312,9 +312,6 @@
     <Compile Include="Deveel.Data.Transactions\TransactionContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Types\QueryExtensions.cs" />
-    <Compile Include="Deveel.Data.Util\BigArray.cs" />
-    <Compile Include="Deveel.Data.Util\BigArray_T.cs" />
-    <Compile Include="Deveel.Data.Util\IBigList.cs" />
     <Compile Include="Deveel.Data.Util\StreamExtensions.cs" />
     <Compile Include="Deveel.Data\ActiveSessionList.cs" />
     <Compile Include="Deveel.Data\Block.cs" />

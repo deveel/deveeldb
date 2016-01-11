@@ -199,8 +199,12 @@ namespace Deveel.Data.Sql.Expressions {
 			for (int i = 0; i < fromTables.Count; i++) {
 				var table = fromTables[i];
 				var preparedTable = (FromTable) ((IPreparable) table).Prepare(preparer);
-				var tableAlias = tableNames[i];
-				clause.tableNames.Insert(i, tableAlias);
+
+				if (i < tableNames.Count) {
+					var tableAlias = tableNames[i];
+					clause.tableNames.Insert(i, tableAlias);
+				}
+				
 				clause.fromTables.Insert(i, preparedTable);
 			}
 

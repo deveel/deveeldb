@@ -26,7 +26,8 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression Visit(SqlExpression expression) {
-			if (preparer.CanPrepare(expression))
+			if (preparer != null && 
+				preparer.CanPrepare(expression))
 				expression = preparer.Prepare(expression);
 
 			return base.Visit(expression);

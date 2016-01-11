@@ -15,6 +15,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
@@ -36,6 +38,35 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			return base.CreateAdminSession(database);
+		}
+
+		[Test]
+		public void InsensitiveSimpleCursor() {
+			const string cursorName = "c";
+			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM APP.test_table");
+			var statement = new DeclareCursorStatement(cursorName, query);
+
+			statement.Execute(Query);
+
+			var cursor = Query.FindCursor(cursorName);
+			Assert.IsNotNull(cursor);
+			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
+			Assert.IsEmpty(cursor.CursorInfo.Parameters);
+		}
+
+		[Test]
+		public void InsensitiveWithParams() {
+			const string cursorName = "c";
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table WHERE a = :a");
+			var parameters = new[] {new CursorParameter("a", PrimitiveTypes.Integer())};
+			var statement = new DeclareCursorStatement(cursorName, parameters, query);
+
+			statement.Execute(Query);
+
+			var cursor = Query.FindCursor(cursorName);
+			Assert.IsNotNull(cursor);
+			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
+			Assert.IsNotEmpty(cursor.CursorInfo.Parameters);
 		}
 	}
 }
