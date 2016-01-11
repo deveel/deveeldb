@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Serialization {
 	[TestFixture]
-	public abstract class SerializationTestBase {
+	public abstract class SerializationTestBase : ContextBasedTest {
 		protected T BinaryDeserialize<T>(Stream stream) where T : class {
 			var serializer = new BinarySerializer();
 			return serializer.Deserialize(stream, typeof (T)) as T;

@@ -95,13 +95,20 @@
     <Compile Include="Deveel.Data.Caching\TableCellCache.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionClient.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseExtensions.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbClientFactory.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbCommandBuilder.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
