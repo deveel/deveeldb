@@ -420,6 +420,13 @@ namespace Deveel.Data.Security {
 			return query.UserHasSecureAccess();
 		}
 
+		public static bool UserCanDropSchema(this IQuery query, string schemaName) {
+			if (query.UserCanDropObject(DbObjectType.Schema, new ObjectName(schemaName)))
+				return true;
+
+			return query.UserHasSecureAccess();
+		}
+
 		public static bool UserCanAlterTable(this IQuery query, ObjectName tableName) {
 			var schema = tableName.Parent;
 			if (schema == null)
