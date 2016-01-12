@@ -116,10 +116,12 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateUserStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropUserStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropViewStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatementTests.cs" />

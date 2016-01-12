@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
@@ -34,6 +35,14 @@ namespace Deveel.Data.Sql {
 		public bool HasResult { get; private set; }
 
 		public bool HasTermination { get; private set; }
+
+		public User User {
+			get { return Request.Query.User(); }
+		}
+
+		public IQuery Query {
+			get { return Request.Query; }
+		}
 
 		public void SetResult(ITable result) {
 			if (result != null) {

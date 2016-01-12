@@ -27,6 +27,13 @@ namespace Deveel.Data.Sql.Schemas {
 			context.CreateObject(new SchemaInfo(name, type));
 		}
 
+		public static void DropSchema(this IQuery context, string schemaName) {
+			if (!context.UserCanDropSchema(schemaName))
+				throw new MissingPrivilegesException(context.UserName(), new ObjectName(schemaName), Privileges.Drop);
+
+			context.DropObject(DbObjectType.Schema, new ObjectName(schemaName));
+		}
+
 		public static bool SchemaExists(this IQuery context, string name) {
 			return context.ObjectExists(DbObjectType.Schema, new ObjectName(name));
 		}
