@@ -53,8 +53,40 @@ namespace nunitadonet
 			Assert.IsNotNull (factory);
 		}
 
+		public int GetTablesCount()
+		{
+			var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
+			var providerName = cs.ProviderName;
+			var factory = DbProviderFactories.GetFactory(providerName); 			
+			Assert.IsNotNull (factory);
+			var connectionString = cs.ConnectionString;
+			using (var con = factory.CreateConnection ())
+			{
+				Assert.IsNotNull (con);
+				con.ConnectionString = connectionString;
+				con.Open ();
+				using (var cmd = con.CreateCommand())
+				{
+					Assert.IsNotNull (cmd);
+					cmd.CommandText = "SELECT COUNT * FROM INFORMATION_SCHEMA.TABLES;";
+					var cnt = cmd.ExecuteScalar ();
+					Assert.IsNotNull (cnt);
+					Assert.IsAssignableFrom<int>(cnt);
+					con.Close();
+					int count = (int)cnt;
+					return count;
+				}
+			}
+		}
 		[Test]
-		public void Test_RunSimpleDbCommand()
+		public void Test_CheckDatabaseIsEmpty()
+		{
+			int count = GetTablesCount ();
+			Assert.Equals (0, count);
+		}
+
+		[Test]
+		public void Test_ListAllTables()
 		{
 			var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
 			var providerName = cs.ProviderName;
