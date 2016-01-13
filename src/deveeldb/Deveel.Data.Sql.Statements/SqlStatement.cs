@@ -172,10 +172,16 @@ namespace Deveel.Data.Sql.Statements {
 				if (result.HasErrors)
 				{
 					var messages = new StringBuilder();
-					messages.AppendFormat("SqlParseException for {0}" + Environment.NewLine, query.Text);
+					messages.AppendFormat("SqlParseException for '{0}'" + Environment.NewLine, query.Text);
 					foreach (var m in result.Messages)
 					{
-						messages.AppendFormat("Level: {0}, Line: {1}, Column: {2}, Message: {3}" + Environment.NewLine, m.Level, m.Location.Line, m.Location.Column, m.Text);
+						messages.AppendFormat("Level: {0}", m.Level);
+						if (null != m.Location)
+						{
+							messages.AppendFormat(", Line: {0}, Column: {1}", m.Location.Line, m.Location.Column);
+						}
+						messages.AppendFormat(", Message: {0}", m.Text);
+						messages.AppendLine();
 					}
 					throw new SqlParseException(messages.ToString());
 				}
@@ -191,7 +197,10 @@ namespace Deveel.Data.Sql.Statements {
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {
-				throw new SqlParseException("The input string cannot be parsed into SQL Statements", ex);
+				var messages = new StringBuilder();
+				messages.AppendFormat ("The input string '{0}'" + Environment.NewLine, query.Text);
+				messages.AppendFormat (" cannot be parsed into SQL Statements, because of {0}" + Environment.NewLine, ex.ToString());
+				throw new SqlParseException(messages.ToString(), ex);
 			}
 		}
 	}
