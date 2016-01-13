@@ -31,6 +31,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>true</DelaySign>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
@@ -71,11 +73,11 @@
     <Reference Include="Irony">
       <HintPath>..\packages\deveel-irony.1.0.0.0\lib\net45\Irony.dll</HintPath>
     </Reference>
-    <Reference Include="Deveel.Math">
-      <HintPath>..\packages\dmath.1.5.68\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
-    </Reference>
     <Reference Include="DryIoc">
       <HintPath>..\packages\DryIoc.2.1.0.201512110\lib\net45\DryIoc.dll</HintPath>
+    </Reference>
+    <Reference Include="Deveel.Math">
+      <HintPath>..\packages\dmath.1.5.66.201512290\lib\net45\Deveel.Math.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -95,11 +97,18 @@
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Deveel.Data.Client\DeveelDbCommandBuilder.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnection.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbConnectionStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbDataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbEnlistment.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
@@ -161,6 +170,7 @@
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DeleteStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTriggerStatementNode.cs" />
@@ -170,6 +180,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
@@ -178,6 +189,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteCurrentStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteStatement.cs" />
@@ -968,10 +981,6 @@
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDBClientFactory.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Sql\Query.Objects.cs" />

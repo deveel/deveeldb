@@ -39,7 +39,12 @@ namespace Deveel.Data.Client {
 
 		public LocalRowCache(DeveelDbConnection connection) {
 			this.connection = connection;
-			rowCache = new SizeLimitedCache(connection.Settings.RowCacheSize);
+			if (connection.Settings != null) {
+				rowCache = new SizeLimitedCache (connection.Settings.RowCacheSize);
+			} else {
+				int defaultCacheSize = new DeveelDbConnectionStringBuilder ().RowCacheSize;
+				rowCache = new SizeLimitedCache (defaultCacheSize);
+			}
 		}
 
 		/// <summary>

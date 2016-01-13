@@ -23,6 +23,7 @@ using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
+using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -169,7 +170,21 @@ namespace Deveel.Data.Sql.Statements {
 				var compileContext = new SqlCompileContext(context, query.Text);
 				var result = compiler.Compile(compileContext);
 				if (result.HasErrors)
-					throw new SqlParseException();
+				{
+					var messages = new StringBuilder();
+					messages.AppendFormat("SqlParseException for '{0}'" + Environment.NewLine, query.Text);
+					foreach (var m in result.Messages)
+					{
+						messages.AppendFormat("Level: {0}", m.Level);
+						if (null != m.Location)
+						{
+							messages.AppendFormat(", Line: {0}, Column: {1}", m.Location.Line, m.Location.Column);
+						}
+						messages.AppendFormat(", Message: {0}", m.Text);
+						messages.AppendLine();
+					}
+					throw new SqlParseException(messages.ToString());
+				}
 
 				var statements = result.Statements.Cast<SqlStatement>();
 
@@ -182,7 +197,10 @@ namespace Deveel.Data.Sql.Statements {
 			} catch (SqlParseException) {
 				throw;
 			} catch (Exception ex) {
-				throw new SqlParseException("The input string cannot be parsed into SQL Statements", ex);
+				var messages = new StringBuilder();
+				messages.AppendFormat ("The input string '{0}'" + Environment.NewLine, query.Text);
+				messages.AppendFormat (" cannot be parsed into SQL Statements, because of {0}" + Environment.NewLine, ex.ToString());
+				throw new SqlParseException(messages.ToString(), ex);
 			}
 		}
 	}
