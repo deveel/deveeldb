@@ -84,9 +84,6 @@
     <Compile Include="Deveel.Data.Linq\TableQueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="BeforeBuild">
     <Delete Files="../packages/repositories.config" />
@@ -104,5 +101,8 @@
       <Project>{F583D8C8-97A2-4460-9C03-40E48A9A2B3A}</Project>
       <Name>deveeldb-nunit.linux</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
