@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
@@ -41,12 +42,27 @@ namespace Deveel.Data.Sql.Parser {
 
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			var idNode = (IdentifierNode) node;
+			if (node.NodeName.Equals("name_part")) {
+				node = node.ChildNodes.FirstOrDefault();
+			}
+
+			string text;
+			if (node is IdentifierNode) {
+				var idNode = (IdentifierNode) node;
+				text = idNode.Text;
+			} else if (node is SqlKeyNode) {
+				text = ((SqlKeyNode) node).Text;
+
+				if (!String.Equals(text, "*"))
+					throw new SqlParseException(String.Format("Invalid object name part '{0}' provided.", text));
+			} else {
+				throw new SqlParseException(String.Format("The node of type '{0}' is not allowed.", node.GetType()));
+			}
 
 			if (Name != null) {
-				Name = String.Format("{0}.{1}", Name, idNode.Text);
+				Name = String.Format("{0}.{1}", Name, text);
 			} else {
-				Name = idNode.Text;
+				Name = text;
 			}
 
 			return base.OnChildNode(node);

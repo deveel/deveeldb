@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Compile {
 		[Test]
 		public void ValueInsert_MultipleRows() {
 			const string sql = "INSERT INTO test_table (first_name, last_name, birth_date) " +
-			                   "VALUES ('Antonello', 'Provenzano', TOODATE('1980-06-04')), " +
+			                   "VALUES ('Antonello', 'Provenzano', TODATE('1980-06-04')), " +
 			                   "('Sebastiano', 'Provenzano', TODATE('1981-08-27'))";
 
 			var result = Compile(sql);

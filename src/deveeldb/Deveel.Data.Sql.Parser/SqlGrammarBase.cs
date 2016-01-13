@@ -123,7 +123,10 @@ namespace Deveel.Data.Sql.Parser {
 				return objectname;
 
 			objectname = new NonTerminal("object_name", typeof(ObjectNameNode));
-			objectname.Rule = MakePlusRule(objectname, Dot, Identifier);
+			var namePart = new NonTerminal("name_part");
+			objectname.Rule = MakePlusRule(objectname, Dot, namePart);
+			namePart.Rule = "*" | Identifier;
+
 			return objectname;
 		}
 
