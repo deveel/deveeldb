@@ -31,6 +31,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>true</DelaySign>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
@@ -71,11 +73,11 @@
     <Reference Include="Irony">
       <HintPath>..\packages\deveel-irony.1.0.0.0\lib\net45\Irony.dll</HintPath>
     </Reference>
-    <Reference Include="Deveel.Math">
-      <HintPath>..\packages\dmath.1.5.68\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
-    </Reference>
     <Reference Include="DryIoc">
       <HintPath>..\packages\DryIoc.2.1.0.201512110\lib\net45\DryIoc.dll</HintPath>
+    </Reference>
+    <Reference Include="Deveel.Math">
+      <HintPath>..\packages\dmath.1.5.66.201512290\lib\net45\Deveel.Math.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

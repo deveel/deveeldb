@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data.Common;
 using System.Collections.Generic;
 using System.Threading;
+using System.Reflection;
 
 namespace nunitadonet
 {
@@ -22,6 +23,21 @@ namespace nunitadonet
 		{
 			var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
 			var providerName = cs.ProviderName;
+
+			var table = DbProviderFactories.GetFactoryClasses(); // Name, Description, InvariantName, AssemblyQualifiedName
+			Assert.IsNotNull (table);
+
+			var Rows = table.Select (string.Format("InvariantName = '{0}'", providerName));
+			Assert.AreEqual (Rows.Length, 1);
+
+			var assemblyName = Rows [0] ["AssemblyQualifiedName"];
+			Assert.IsNotNullOrEmpty (assemblyName as string);
+
+			// see http://www.mono-project.com/docs/advanced/pinvoke/dllnotfoundexception/
+			// on how to view load info with MONO_LOG_LEVEL=debug /usr/bin/mono ...
+			var a = Assembly.Load ((string)assemblyName);
+			Assert.IsNotNull (a);
+
 			var factory = DbProviderFactories.GetFactory(providerName); 			
 			Assert.IsNotNull (factory);
 		}
@@ -42,7 +58,7 @@ namespace nunitadonet
 				using (var cmd = con.CreateCommand())
 				{
 					Assert.IsNotNull (cmd);
-					cmd.CommandText = "SHOW TABLES;";
+					cmd.CommandText = "SELECT * FROM INFORMATION_SCHEMA.TABLES;";
 					using (var reader = cmd.ExecuteReader())
 					{
 						int columnsCount = -1;
