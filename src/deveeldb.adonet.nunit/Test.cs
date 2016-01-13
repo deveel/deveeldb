@@ -68,7 +68,7 @@ namespace nunitadonet
 				using (var cmd = con.CreateCommand())
 				{
 					Assert.IsNotNull (cmd);
-					cmd.CommandText = "SELECT COUNT * FROM INFORMATION_SCHEMA.TABLES;";
+					cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES;";
 					var cnt = cmd.ExecuteScalar ();
 					Assert.IsNotNull (cnt);
 					Assert.IsAssignableFrom<int>(cnt);
@@ -78,11 +78,37 @@ namespace nunitadonet
 				}
 			}
 		}
+
 		[Test]
 		public void Test_CheckDatabaseIsEmpty()
 		{
 			int count = GetTablesCount ();
 			Assert.Equals (0, count);
+		}
+
+		[Test]
+		public void Test_CreateSchemaObjects()
+		{
+			int count = GetTablesCount ();
+			if (count == 0)
+			{
+				var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
+				var factory = DbProviderFactories.GetFactory(cs.ProviderName);
+				using (var con = factory.CreateConnection ())
+				{
+					Assert.IsNotNull (con);
+					con.ConnectionString = cs.ConnectionString;
+					con.Open ();
+					using (var cmd = con.CreateCommand())
+					{
+						Assert.IsNotNull (cmd);
+						cmd.CommandText = "CREATE TABLE mytable (myident INTEGER, mystamp DATETIME, mycontent VARCHAR(50));";
+						int affected = cmd.ExecuteNonQuery();
+						Assert.Equals (1, affected);
+						con.Close();
+					}
+				}
+			}
 		}
 
 		[Test]
