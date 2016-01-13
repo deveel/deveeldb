@@ -89,8 +89,8 @@ namespace nunitadonet
 		[Test]
 		public void Test_CreateSchemaObjects()
 		{
-			int count = GetTablesCount ();
-			if (count == 0)
+			//int count = GetTablesCount ();
+			//if (count == 0)
 			{
 				var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
 				var factory = DbProviderFactories.GetFactory(cs.ProviderName);

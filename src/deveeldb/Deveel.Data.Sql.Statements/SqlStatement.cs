@@ -23,6 +23,7 @@ using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
+using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -169,7 +170,15 @@ namespace Deveel.Data.Sql.Statements {
 				var compileContext = new SqlCompileContext(context, query.Text);
 				var result = compiler.Compile(compileContext);
 				if (result.HasErrors)
-					throw new SqlParseException();
+				{
+					var messages = new StringBuilder();
+					messages.AppendFormat("SqlParseException for {0}" + Environment.NewLine, query.Text);
+					foreach (var m in result.Messages)
+					{
+						messages.AppendFormat("Level: {0}, Line: {1}, Column: {2}, Message: {3}" + Environment.NewLine, m.Level, m.Location.Line, m.Location.Column, m.Text);
+					}
+					throw new SqlParseException(messages.ToString());
+				}
 
 				var statements = result.Statements.Cast<SqlStatement>();
 
