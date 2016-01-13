@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Deveel.Data</RootNamespace>
     <AssemblyName>deveeldb</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -63,21 +63,23 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DryIoc, Version=2.0.0.356, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0\lib\net35\DryIoc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="Deveel.Math, Version=1.5.64.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\dmath.1.5.64\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
-    <Reference Include="Irony">
-      <HintPath>..\..\..\ConnectionTest-AdoNet.git\packages\deveel-irony.1.0.0.0\lib\net45\Irony.dll</HintPath>
-    </Reference>
-    <Reference Include="Deveel.Math">
-      <HintPath>..\..\..\ConnectionTest-AdoNet.git\packages\dmath.1.5.66.201512290\lib\net45\Deveel.Math.dll</HintPath>
-    </Reference>
-    <Reference Include="DryIoc">
-      <HintPath>..\..\..\ConnectionTest-AdoNet.git\packages\DryIoc.2.1.0.201512110\lib\net45\DryIoc.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="Deveel.Data.Caching\TableCellCache.cs" />
     <Compile Include="Deveel.Data.Client\ConnectionClient.cs" />
     <Compile Include="Deveel.Data.Client\DatabaseExtensions.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbClientFactory.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbCommand.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -976,13 +979,12 @@
     <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
-    <Compile Include="Deveel.Data.Client\DeveelDBClientFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Sql\Query.Objects.cs" />
     <None Include="deveeldb.licenseheader" />
     <None Include="deveeldb.snk" />
-    <None Include="packages.config" />
+    <None Include="packages.deveeldb.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -990,6 +992,14 @@
     <PreBuildEvent>
     </PreBuildEvent>
   </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\ILRepack.MSBuild.Task.1.0.9\build\ILRepack.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.MSBuild.Task.1.0.9\build\ILRepack.MSBuild.Task.targets'))" />
+  </Target>
   <!--
   <Target Name="AfterBuild">
    <MakeDir Directories="$(SolutionDir)..\dist\$(PlatformName)"/>
@@ -1013,6 +1023,17 @@
    />
    </Target>
 -->
+  <PropertyGroup>
+    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)..\dist\$(PlatformName)" MKDIR "$(SolutionDir)..\dist\$(PlatformName)"
+$(SolutionDir)..\util\ilrepack\ILRepack.exe /internalize /targetplatform:v2 /xmldocs /out:"$(SolutionDir)..\dist\$(PlatformName)\$(TargetFileName)" "$(TargetPath)" "$(TargetDir)\irony.dll" "$(TargetDir)\Deveel.Math.dll" "$(TargetDir)\DryIoc.dll"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>
