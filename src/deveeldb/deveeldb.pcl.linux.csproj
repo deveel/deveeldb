@@ -125,6 +125,7 @@
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DeleteStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTriggerStatementNode.cs" />
@@ -135,10 +136,13 @@
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AssignVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteCurrentStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteStatement.cs" />
@@ -152,6 +156,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
     <Compile Include="Deveel.Data.Sql\ISqlCodeObject.cs" />
@@ -664,7 +669,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementExecutor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementPrepareException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateQueryStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
