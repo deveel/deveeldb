@@ -18,7 +18,15 @@ namespace nunitadonet
 			Assert.IsFalse(String.IsNullOrEmpty(value), "No App.Config found.");
 		}
 
-		[Test ()]
+		[Test]
+		public void Test_AssemblyQualifiedName()
+		{
+			Type t = typeof(Deveel.Data.Client.DeveelDbClientFactory);
+			string s = t.Assembly.FullName.ToString();
+			//Assert.AreEqual (s, "deveeldb, Version=2.0.0.16545, Culture=neutral, PublicKeyToken=null");
+		}
+
+		[Test]
 		public void Test_DbProviderFactories_GetFactory()
 		{
 			var cs = ConfigurationManager.ConnectionStrings["MyConnectionString"];
@@ -30,13 +38,16 @@ namespace nunitadonet
 			var Rows = table.Select (string.Format("InvariantName = '{0}'", providerName));
 			Assert.AreEqual (Rows.Length, 1);
 
-			var assemblyName = Rows [0] ["AssemblyQualifiedName"];
-			Assert.IsNotNullOrEmpty (assemblyName as string);
+			var assemblyQualifiedName = Rows [0] ["AssemblyQualifiedName"];
+			Assert.IsNotNullOrEmpty (assemblyQualifiedName as string);
+			Type t = typeof(Deveel.Data.Client.DeveelDbClientFactory);
+			string aqn = t.FullName + ", " + t.Assembly.FullName.ToString ();
+			//Assert.AreEqual (aqn, (string)assemblyQualifiedName);
 
 			// see http://www.mono-project.com/docs/advanced/pinvoke/dllnotfoundexception/
 			// on how to view load info with MONO_LOG_LEVEL=debug /usr/bin/mono ...
-			var a = Assembly.Load ((string)assemblyName);
-			Assert.IsNotNull (a);
+			Type providerType = Type.GetType((string)assemblyQualifiedName);
+			Assert.IsNotNull (providerType);
 
 			var factory = DbProviderFactories.GetFactory(providerName); 			
 			Assert.IsNotNull (factory);

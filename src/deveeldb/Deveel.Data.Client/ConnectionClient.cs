@@ -216,14 +216,17 @@ namespace Deveel.Data.Client {
 
 		public void Disconnect() {
 			try {
-				var response = SendMessage(new CloseRequest())
-					as AcknowledgeResponse;
+				if (Connector != null)
+				{
+					var response = SendMessage(new CloseRequest())
+						as AcknowledgeResponse;
 
-				if (response == null)
-					throw new InvalidOperationException();
+					if (response == null)
+						throw new InvalidOperationException();
 
-				if (!response.State)
-					throw new DeveelDbServerException("Unable to close the connection on the server.", -1, -1);
+					if (!response.State)
+						throw new DeveelDbServerException("Unable to close the connection on the server.", -1, -1);
+				}
 			} finally {
 				IsClosed = true;
 			}
