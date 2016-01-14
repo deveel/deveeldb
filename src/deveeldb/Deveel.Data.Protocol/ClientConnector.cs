@@ -20,6 +20,7 @@ using System.Runtime.Remoting;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Triggers;
+using System.Text;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ClientConnector : IClientConnector {
@@ -93,7 +94,18 @@ namespace Deveel.Data.Protocol {
 					throw new InvalidOperationException("Unable to obtain a response from the server.");
 
 				if (response.Error != null)
-					throw new ServerException(response.Error.ErrorMessage);
+				{
+					var sb = new StringBuilder();
+					if (null != response.Error) {
+						sb.Append (response.Error.ErrorMessage);
+						sb.AppendFormat (", ErrorCode: {0}", response.Error.ErrorCode);
+						sb.AppendFormat (", ErrorClass: {0}", response.Error.ErrorClass);
+					}
+					else
+						sb.Append ("response.Error == null");
+					// ServerError class is not an exception!!! so it have no stack trace...
+					throw new ServerException (sb.ToString());
+				}
 
 				var content = connector.OpenEnvelope(response);
 				connector.OnMessageReceived(content);

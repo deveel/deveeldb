@@ -25,6 +25,7 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
+using Deveel.Data.Types;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ServerConnector : IServerConnector {
@@ -314,7 +315,19 @@ namespace Deveel.Data.Protocol {
 			// Evaluate the sql Query.
 			var query = new SqlQuery(text);
 			if (parameters != null) {
-				// TODO: Download the Large-Objects and replace with a reference
+				foreach (var p in parameters) {
+					var c = p.SqlType.TypeCode;
+					switch (c)
+					{
+					case SqlTypeCode.Blob:
+					case SqlTypeCode.Clob:
+					case SqlTypeCode.LongVarBinary:
+					case SqlTypeCode.LongVarChar:
+					case SqlTypeCode.VarBinary:
+					case SqlTypeCode.VarChar:
+						throw new NotImplementedException ("TODO: Download the Large-Objects and replace with a reference");
+					}
+				}
 			}
 
 			var stopwatch = new Stopwatch();

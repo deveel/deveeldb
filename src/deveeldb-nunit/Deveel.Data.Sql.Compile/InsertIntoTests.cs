@@ -6,6 +6,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
@@ -13,7 +14,7 @@ namespace Deveel.Data.Sql.Compile {
 		[Test]
 		public void ValuesInsert_OneRow() {
 			const string sql = "INSERT INTO test_table (first_name, last_name, birth_date) " +
-			                   "VALUES ('Antonello', 'Provenzano', TOODATE('1980-06-04'))";
+			                   "VALUES ('Antonello', 'Provenzano', TODATE('1980-06-04'))";
 
 			var result = Compile(sql);
 

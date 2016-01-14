@@ -71,6 +71,27 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		[Test]
+		public void FunctionCallToDateTime() {
+			var exp = SqlExpression.FunctionCall("TODATE", new SqlExpression[]{SqlExpression.Constant(DataObject.String("2015-09-01"))} );
+			Assert.AreEqual(SqlExpressionType.FunctionCall, exp.ExpressionType);
+
+			var expReturnType = exp.ReturnType (null, null);
+			var dateType = SqlType.Resolve ("DATE");
+			Assert.IsTrue (dateType.IsComparable (expReturnType));
+
+			SqlExpression casted = null;
+			Assert.DoesNotThrow(() => casted = exp.Evaluate());
+			Assert.IsNotNull(casted);
+			Assert.IsInstanceOf<SqlConstantExpression>(casted);
+
+			var value = ((SqlConstantExpression)casted).Value;
+			Assert.IsNotNull(value.Value);
+			Assert.IsInstanceOf<DateType>(value.Type);
+			Assert.AreEqual(SqlTypeCode.Date, value.Type.TypeCode);
+			Assert.AreEqual(new SqlDateTime(2015, 09, 01), value.Value);
+		}
+
+		[Test]
 		public void CastStringToDate() {
 			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("2015-09-01")), PrimitiveTypes.Date());
 

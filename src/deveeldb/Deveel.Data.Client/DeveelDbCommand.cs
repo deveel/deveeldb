@@ -26,6 +26,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
 using SysParameterDirection = System.Data.ParameterDirection;
+using System.Text;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommand : DbCommand {
@@ -349,7 +350,13 @@ namespace Deveel.Data.Client {
 
 				return result.AffectedRows;
 			} catch (Exception ex) {
-				throw new DeveelDbException("An error occurred while executing the non-query command.", ex);
+				var message = new StringBuilder ();
+				message.Append ("An error occurred while executing the non-query command");
+				message.AppendLine ();
+				message.Append(this.ToStringWithParameters());
+				message.AppendLine ();
+				message.Append(ex.ToString());
+				throw new DeveelDbException(message.ToString(), ex);
 			} finally {
 				connection.EndState();
 			}
@@ -419,6 +426,19 @@ namespace Deveel.Data.Client {
 			results = null;
 
 			base.Dispose(disposing);
+		}
+
+		public string ToStringWithParameters()
+		{
+			int roughLengthEstimation = this.CommandText.Length + this.Parameters.Count * 64;
+			var sb = new StringBuilder(roughLengthEstimation);
+			sb.Append (this.CommandText + Environment.NewLine);
+			for (int pi = 0; pi < this.Parameters.Count; ++pi)
+			{
+				var p = this.Parameters [pi];
+				sb.AppendFormat ("ParameterName: {0},  Direction: {1}, DbType: {2}, Value: {3}" + Environment.NewLine, p.ParameterName, p.Direction, p.DbType, p.Value);
+			}
+			return sb.ToString ();
 		}
 	}
 }

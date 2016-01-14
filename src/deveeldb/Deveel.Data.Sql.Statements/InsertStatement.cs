@@ -23,6 +23,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
+using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class InsertStatement : SqlStatement, IPreparableStatement {
@@ -122,8 +123,13 @@ namespace Deveel.Data.Sql.Statements {
 
 					if (value != null) {
 						var expReturnType = value.ReturnType(context, null);
-						if (!columnInfo.ColumnType.IsComparable(expReturnType))
-							throw new InvalidOperationException();
+						if (!columnInfo.ColumnType.IsComparable (expReturnType))
+						{
+							var sb = new StringBuilder ();
+							sb.AppendFormat ("Unable to convert type {0} of {1} into type {2} of column {3}", expReturnType, value, columnInfo.ColumnType, columnInfo.FullColumnName.FullName);
+							var ioe = new InvalidOperationException (sb.ToString());
+							throw ioe;
+						}
 					}
 
 					valueAssign[i] = SqlExpression.Assign(SqlExpression.Reference(columnInfo.FullColumnName), value);
