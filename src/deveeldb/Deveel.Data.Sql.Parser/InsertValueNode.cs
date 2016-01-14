@@ -16,14 +16,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	class InsertValueNode : SqlNode {
+		private IList<IExpressionNode> values;
+		 
 		public IEnumerable<IExpressionNode> Values { get; private set;}
 
-		protected override void OnNodeInit() {
-			Values = this.FindNodes<IExpressionNode>();
-			base.OnNodeInit();
+		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName.Equals("sql_expression_list")) {
+				Values = node.ChildNodes.OfType<IExpressionNode>();
+			}
+
+			return base.OnChildNode(node);
 		}
 	}
 }

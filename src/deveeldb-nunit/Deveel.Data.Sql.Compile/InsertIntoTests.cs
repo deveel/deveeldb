@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
@@ -28,6 +29,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.AreEqual("test_table", insertStatement.TableName.FullName);
 			Assert.AreEqual(3, insertStatement.ColumnNames.Count());
 			Assert.AreEqual(1, insertStatement.Values.Count());
+
+			var firstRow = insertStatement.Values.ElementAt(0);
+			Assert.AreEqual(3, firstRow.Length);
+			Assert.IsInstanceOf<SqlFunctionCallExpression>(firstRow[2]);
 		}
 
 		[Test]

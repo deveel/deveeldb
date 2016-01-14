@@ -54,8 +54,9 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (ValuesInsert != null) {
 				var valueInsert = ValuesInsert;
-				var values =
-					valueInsert.Values.Select(setNode => setNode.Values.Select(ExpressionBuilder.Build).ToArray()).ToList();
+				var values = valueInsert.Values.Select(x => x.Values.Select(ExpressionBuilder.Build)
+					.ToArray())
+					.ToList();
 				builder.AddObject(new InsertStatement(tableName, ColumnNames, values));
 			} else if (SetInsert != null) {
 				var assignments = SetInsert.Assignments;
