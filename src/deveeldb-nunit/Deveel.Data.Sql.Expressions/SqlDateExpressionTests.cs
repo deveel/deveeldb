@@ -15,12 +15,32 @@
 using System;
 
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Types;
 
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public class SqlDateExpressionTests {
+		[Test]
+		public void StringToDate() {
+			var toDate = SqlExpression.FunctionCall("TODATE", new[] {SqlExpression.Constant(DataObject.String("2016-01-20"))});
+
+			var evaluated = toDate.Evaluate();
+
+			Assert.IsNotNull(evaluated);
+			Assert.IsInstanceOf<SqlConstantExpression>(evaluated);
+
+			var constExpr = (SqlConstantExpression) evaluated;
+			Assert.IsNotNull(constExpr.Value);
+			Assert.IsInstanceOf<DateType>(constExpr.Value.Type);
+
+			var date = (SqlDateTime) constExpr.Value.Value;
+			Assert.AreEqual(2016, date.Year);
+			Assert.AreEqual(1, date.Month);
+			Assert.AreEqual(20, date.Day);
+		}
+
 		[Test]
 		public void DateSmallerThanOtherDate() {
 			const string text = "TODATE('2013-03-01') < TODATE('2013-05-02')";
