@@ -26,6 +26,10 @@ namespace Deveel.Data.Sql.Expressions {
 		public void StringToDate() {
 			var toDate = SqlExpression.FunctionCall("TODATE", new[] {SqlExpression.Constant(DataObject.String("2016-01-20"))});
 
+			var returnType = toDate.ReturnType(null, null);
+
+			Assert.IsInstanceOf<DateType>(returnType);
+
 			var evaluated = toDate.Evaluate();
 
 			Assert.IsNotNull(evaluated);

@@ -30,8 +30,11 @@ namespace Deveel.Data.Sql.Expressions {
 		public ReturnTypeVisitor(IRequest query, IVariableResolver variableResolver) {
 			this.query = query;
 			this.variableResolver = variableResolver;
+		}
 
-			sqlType = PrimitiveTypes.Null();
+		private void SetType(SqlType type) {
+			if (sqlType == null)
+				sqlType = type;
 		}
 
 		public override SqlExpression VisitBinary(SqlBinaryExpression binaryEpression) {
@@ -41,11 +44,11 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.Multiply:
 				case SqlExpressionType.Modulo:
 				case SqlExpressionType.Divide:
-					sqlType = PrimitiveTypes.Numeric();
+					SetType(PrimitiveTypes.Numeric());
 					break;
 				default:
 					// we assume the expression type is already been check to be binary.
-					sqlType = PrimitiveTypes.Boolean();
+					SetType(PrimitiveTypes.Boolean());
 					break;
 
 			}
@@ -54,7 +57,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-			sqlType = constant.Value.Type;
+			SetType(constant.Value.Type);
 
 			return base.VisitConstant(constant);
 		}
@@ -63,14 +66,14 @@ namespace Deveel.Data.Sql.Expressions {
 			var invoke = new Invoke(expression.FunctioName, expression.Arguments);
 			var function = invoke.ResolveRoutine(query) as IFunction;
 			if (function != null)
-				sqlType = function.ReturnType(invoke, query, variableResolver);
+				SetType(function.ReturnType(invoke, query, variableResolver));
 
 			return base.VisitFunctionCall(expression);
 		}
 
 		public override SqlExpression VisitReference(SqlReferenceExpression reference) {
 			var name = reference.ReferenceName;
-			sqlType = variableResolver.ReturnType(name);
+			SetType(variableResolver.ReturnType(name));
 
 			return base.VisitReference(reference);
 		}
@@ -83,7 +86,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
-			sqlType = expression.QueryReference.ReturnType;
+			SetType(expression.QueryReference.ReturnType);
 			return expression;
 		}
 

@@ -121,13 +121,30 @@ namespace Deveel.Data.Routines {
 				.ReturnsNumeric());
 		}
 
+		private static SqlType IifReturnType(InvokeContext context) {
+			// It's impossible to know the return type of this function until runtime
+			// because either comparator could be returned.  We could assume that
+			// both branch expressions result in the same type of object but this
+			// currently is not enforced.
+
+			// Returns type of first argument
+			var t1 = ReturnType(context.Arguments[1], context);
+			// This is a hack for null values.  If the first parameter is null
+			// then return the type of the second parameter which hopefully isn't
+			// also null.
+			if (t1 is NullType) {
+				return ReturnType(context.Arguments[2], context);
+			}
+			return t1;
+		}
+
 		private void AddMiscFunctions() {
 			Register(config => config.Named("iif")
 				.WithBooleanParameter("condition")
 				.WithDynamicParameter("ifTrue")
 				.WithDynamicParameter("ifFalse")
 				.WhenExecute(context => SystemFunctions.Iif(context))
-				.ReturnsType(Function.DynamicType));
+				.ReturnsType(IifReturnType));
 
 			Register(config => config.Named("i_frule_convert")
 			.WithDynamicParameter("rule")
