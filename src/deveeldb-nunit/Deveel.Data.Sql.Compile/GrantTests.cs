@@ -18,21 +18,14 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(3, result.Statements.Count);
+			Assert.AreEqual(1, result.Statements.Count);
 
 			Assert.IsInstanceOf<GrantPrivilegesStatement>(result.Statements.ElementAt(0));
-			Assert.IsInstanceOf<GrantPrivilegesStatement>(result.Statements.ElementAt(1));
-			Assert.IsInstanceOf<GrantPrivilegesStatement>(result.Statements.ElementAt(2));
 
 			var first = (GrantPrivilegesStatement) result.Statements.ElementAt(0);
-			Assert.AreEqual(Privileges.Select, first.Privilege);
+			Assert.AreEqual(Privileges.Select | Privileges.Delete | Privileges.Update, first.Privilege);
 			Assert.AreEqual("test_user", first.Grantee);
 			Assert.AreEqual("test_table", first.ObjectName.ToString());
-
-			var second = (GrantPrivilegesStatement) result.Statements.ElementAt(1);
-			Assert.AreEqual(Privileges.Delete, second.Privilege);
-			Assert.AreEqual("test_user", second.Grantee);
-			Assert.AreEqual("test_table", second.ObjectName.ToString());
 		}
 
 		[Test]

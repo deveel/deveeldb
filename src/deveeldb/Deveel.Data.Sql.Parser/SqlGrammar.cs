@@ -894,21 +894,26 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal Revoke() {
 			var revoke = new NonTerminal("revoke");
-			var grantObject = new NonTerminal("grant_object");
-			var grantPriv = new NonTerminal("grant_priv");
+			var grantObject = new NonTerminal("grant_object", typeof(RevokeStatementNode));
+			var grantPriv = new NonTerminal("grant_priv", typeof(GrantRoleStatementNode));
 			var roleList = new NonTerminal("role_list");
-			var priv = new NonTerminal("priv");
+			var priv = new NonTerminal("priv", typeof(PrivilegeNode));
 			var privList = new NonTerminal("priv_list");
 			var objPriv = new NonTerminal("object_priv");
 			var privilegeOpt = new NonTerminal("privilege_opt");
 			var privilegesOpt = new NonTerminal("privileges_opt");
 			var distributionList = new NonTerminal("distribution_list");
+			var columnList = new NonTerminal("column_list");
+			var columnListOpt = new NonTerminal("column_list_opt");
+			var referencePriv = new NonTerminal("reference_priv");
+			var updatePriv = new NonTerminal("update_priv");
+			var selectPriv = new NonTerminal("select_priv");
 
 			revoke.Rule = grantObject | grantPriv;
 			grantPriv.Rule = Key("REVOKE") + roleList + Key("FROM") + distributionList;
 			roleList.Rule = MakePlusRule(roleList, Comma, Identifier);
 
-			grantObject.Rule = Key("REVOKE") + objPriv + Key("ON") + ObjectName() + Key("TO") + distributionList;
+			grantObject.Rule = Key("REVOKE") + objPriv + Key("ON") + ObjectName() + Key("FROM") + distributionList;
 			objPriv.Rule = Key("ALL") + privilegesOpt | privList;
 			privilegesOpt.Rule = Empty | Key("PRIVILEGES");
 			privilegeOpt.Rule = Empty | Key("PRIVILEGE");
@@ -922,6 +927,11 @@ namespace Deveel.Data.Sql.Parser {
 			            Key("UPDATE") + privilegeOpt |
 			            Key("REFERENCES") + privilegeOpt |
 			            Key("SELECT") + privilegeOpt;
+			updatePriv.Rule = Key("UPDATE") + privilegeOpt + columnListOpt;
+			referencePriv.Rule = Key("REFERENCES") + privilegeOpt + columnListOpt;
+			selectPriv.Rule = Key("SELECT") + columnListOpt;
+			columnListOpt.Rule = Empty | "(" + columnList + ")";
+			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
 			distributionList.Rule = MakePlusRule(distributionList, Comma, Identifier);
 
 			return revoke;
