@@ -4,6 +4,7 @@
 *.userprefs
 *.suo
 /src/packages
+**/packages/
 /dist
 /doc/Help/*
 *.log

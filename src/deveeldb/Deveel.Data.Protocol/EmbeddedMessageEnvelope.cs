@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Deveel.Data.Protocol {
 	public sealed class EmbeddedMessageEnvelope : IServerMessageEnvelope {
@@ -41,8 +42,12 @@ namespace Deveel.Data.Protocol {
 		public ServerError Error { get; private set; }
 
 		public void SetError(Exception error) {
+			var sb = new StringBuilder ();
+			sb.Append (error.Message);
+			sb.AppendLine ();
+			sb.Append (error.ToString());
 			// TODO: in another version there will be support for Class and Code of error
-			Error = new ServerError(-1, -1, error.Message);
+			Error = new ServerError(-1, -1, sb.ToString());
 		}
 
 		public static EmbeddedMessageEnvelope Create(int dispatchId, IMessage message) {
