@@ -1006,6 +1006,18 @@ namespace Deveel.Data.Sql.Parser {
 			return update;
 		}
 
+		private NonTerminal Show() {
+			var show = new NonTerminal("show_command", typeof(ShowStatementNode));
+			var tableTarget = new NonTerminal("table_target");
+			var target = new NonTerminal("target");
+
+			show.Rule = Key("SHOW") + target;
+			target.Rule = Key("SCHEMA") | Key("TABLES") | Key("SESSIONS") | Key("SESSION") | Key("STATUS") | Key("PRODUCT") | tableTarget;
+			tableTarget.Rule = Key("TABLE") + ObjectName();
+
+			return show;
+		}
+
 		private NonTerminal Truncate() {
 			var truncate = new NonTerminal("truncate_command");
 			truncate.Rule = Key("TRUNCATE") + ObjectName();
@@ -1020,7 +1032,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private NonTerminal SetTransaction() {
-			var set = new NonTerminal("set_transaction");
+			var set = new NonTerminal("set_transaction", typeof(SetTransactionVariableNode));
 			var access = new NonTerminal("access");
 			var accessType = new NonTerminal("access_type");
 			var isolationLevel = new NonTerminal("isolation_level");

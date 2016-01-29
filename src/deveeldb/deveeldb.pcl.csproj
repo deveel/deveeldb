@@ -133,7 +133,9 @@
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\RevokeStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
@@ -156,6 +158,10 @@
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
