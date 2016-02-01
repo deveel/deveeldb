@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -394,6 +395,33 @@ namespace Deveel.Data {
 				throw new DatabaseSystemException("An error occurred during database shutdown.", e);
 			} finally {
 				IsOpen = false;
+			}
+		}
+
+		public static IDatabase New(IConfiguration config, string adminName, string adminPassword) {
+			var dbName = config.GetString("database.name");
+			if (String.IsNullOrEmpty(dbName))
+				throw new ArgumentException("The database name is not specified in configuration");
+
+			return New(config, null, adminName, adminPassword);
+		}
+
+		public static IDatabase New(IConfiguration config, string dbName, string adminName, string adminPassword) {
+			if (config == null)
+				throw new ArgumentNullException("config");
+
+			if (String.IsNullOrEmpty(dbName))
+				throw new ArgumentNullException("dbName");
+
+			config.SetValue("database.name", dbName);
+
+			var builder = new SystemBuilder(config);
+			var system = builder.BuildSystem();
+			if (!system.DatabaseExists(dbName)) {
+
+				return system.CreateDatabase(config, adminName, adminPassword);
+			} else {
+				return system.OpenDatabase(config);
 			}
 		}
 
