@@ -17,9 +17,9 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = result.Statements.First();
+			var statement = result.CodeObjects.First();
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<DropUserStatement>(statement);
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(2, result.Statements.Count);
+			Assert.AreEqual(2, result.CodeObjects.Count);
 		}
 	}
 }

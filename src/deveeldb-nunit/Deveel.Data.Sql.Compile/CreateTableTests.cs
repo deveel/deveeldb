@@ -18,9 +18,9 @@ namespace Deveel.Data.Sql.Compile {
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			var statement = (CreateTableStatement) result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
@@ -47,9 +47,9 @@ namespace Deveel.Data.Sql.Compile {
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			var statement = (CreateTableStatement) result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
@@ -74,9 +74,9 @@ namespace Deveel.Data.Sql.Compile {
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			var statement = (CreateTableStatement) result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
@@ -101,9 +101,9 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = result.Statements.ElementAt(0);
+			var statement = result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
@@ -135,12 +135,12 @@ namespace Deveel.Data.Sql.Compile {
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
-			Assert.AreEqual(2, result.Statements.Count);
+			Assert.AreEqual(2, result.CodeObjects.Count);
 
-			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
-			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+			Assert.IsInstanceOf<CreateTableStatement>(result.CodeObjects.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.CodeObjects.ElementAt(1));
 
-			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			var statement = (CreateTableStatement) result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);
@@ -158,12 +158,12 @@ namespace Deveel.Data.Sql.Compile {
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
-			Assert.AreEqual(2, result.Statements.Count);
+			Assert.AreEqual(2, result.CodeObjects.Count);
 
-			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
-			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+			Assert.IsInstanceOf<CreateTableStatement>(result.CodeObjects.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.CodeObjects.ElementAt(1));
 
-			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			var statement = (CreateTableStatement) result.CodeObjects.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CreateTableStatement>(statement);

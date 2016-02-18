@@ -58,6 +58,8 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (node is SequenceOfStatementsNode)
 				VisitSequenceOfStatements((SequenceOfStatementsNode) node);
+			if (node is SequenceOfBlocksNode)
+				VisitSequenceOfBlocks((SequenceOfBlocksNode) node);
 		}		
 
 		internal SqlType BuildDataType(DataTypeNode node) {
@@ -67,6 +69,12 @@ namespace Deveel.Data.Sql.Parser {
 		private void VisitSequenceOfStatements(SequenceOfStatementsNode node) {
 			foreach (var statementNode in node.Statements) {
 				Visit(statementNode);
+			}
+		}
+
+		private void VisitSequenceOfBlocks(SequenceOfBlocksNode node) {
+			foreach (var blockNode in node.BlockNodes) {
+				Visit(blockNode);
 			}
 		}
 

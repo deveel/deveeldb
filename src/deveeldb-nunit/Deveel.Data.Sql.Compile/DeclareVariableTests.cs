@@ -17,10 +17,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
-			Assert.IsInstanceOf<DeclareVariableStatement>(result.Statements.First());
+			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsInstanceOf<DeclareVariableStatement>(result.CodeObjects.First());
 
-			var statement = (DeclareVariableStatement) result.Statements.First();
+			var statement = (DeclareVariableStatement) result.CodeObjects.First();
 			Assert.AreEqual("a", statement.VariableName);
 			Assert.AreEqual(false, statement.IsNotNull);
 			Assert.AreEqual(false, statement.IsConstant);
@@ -35,10 +35,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
-			Assert.IsInstanceOf<DeclareVariableStatement>(result.Statements.First());
+			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsInstanceOf<DeclareVariableStatement>(result.CodeObjects.First());
 
-			var statement = (DeclareVariableStatement)result.Statements.First();
+			var statement = (DeclareVariableStatement)result.CodeObjects.First();
 			Assert.AreEqual("a", statement.VariableName);
 			Assert.AreEqual(true, statement.IsNotNull);
 			Assert.AreEqual(true, statement.IsConstant);
@@ -53,10 +53,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
-			Assert.IsInstanceOf<DeclareVariableStatement>(result.Statements.First());
+			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsInstanceOf<DeclareVariableStatement>(result.CodeObjects.First());
 
-			var statement = (DeclareVariableStatement)result.Statements.First();
+			var statement = (DeclareVariableStatement)result.CodeObjects.First();
 			Assert.AreEqual("a", statement.VariableName);
 			Assert.IsInstanceOf<NumericType>(statement.VariableType);
 		}

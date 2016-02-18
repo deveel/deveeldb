@@ -133,6 +133,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\RevokeStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SequenceOfBlocksNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />

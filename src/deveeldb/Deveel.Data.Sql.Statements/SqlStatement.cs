@@ -186,7 +186,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new SqlParseException(messages.ToString());
 				}
 
-				var statements = result.Statements.Cast<SqlStatement>();
+				var statements = result.CodeObjects.Cast<SqlStatement>();
 
 				foreach (var statement in statements) {
 					if (statement != null)

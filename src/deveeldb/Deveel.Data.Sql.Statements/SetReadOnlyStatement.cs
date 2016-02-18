@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -21,6 +22,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void GetData(SerializeData data) {
 			data.SetValue("Status", Status);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			context.Query.Context.SessionContext.TransactionContext.ReadOnly(Status);
 		}
 	}
 }

@@ -18,11 +18,11 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			Assert.IsInstanceOf<GrantPrivilegesStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<GrantPrivilegesStatement>(result.CodeObjects.ElementAt(0));
 
-			var first = (GrantPrivilegesStatement) result.Statements.ElementAt(0);
+			var first = (GrantPrivilegesStatement) result.CodeObjects.ElementAt(0);
 			Assert.AreEqual(Privileges.Select | Privileges.Delete | Privileges.Update, first.Privilege);
 			Assert.AreEqual("test_user", first.Grantee);
 			Assert.AreEqual("test_table", first.ObjectName.ToString());
@@ -37,16 +37,16 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.AreEqual(2, result.Statements.Count);
+			Assert.AreEqual(2, result.CodeObjects.Count);
 
-			Assert.IsInstanceOf<GrantRoleStatement>(result.Statements.ElementAt(0));
-			Assert.IsInstanceOf<GrantRoleStatement>(result.Statements.ElementAt(1));
+			Assert.IsInstanceOf<GrantRoleStatement>(result.CodeObjects.ElementAt(0));
+			Assert.IsInstanceOf<GrantRoleStatement>(result.CodeObjects.ElementAt(1));
 
-			var first = (GrantRoleStatement) result.Statements.ElementAt(0);
+			var first = (GrantRoleStatement) result.CodeObjects.ElementAt(0);
 			Assert.AreEqual("admin", first.Role);
 			Assert.AreEqual("test_user", first.UserName);
 
-			var second = (GrantRoleStatement)result.Statements.ElementAt(1);
+			var second = (GrantRoleStatement)result.CodeObjects.ElementAt(1);
 			Assert.AreEqual("data_reader", second.Role);
 			Assert.AreEqual("test_user", second.UserName);
 		}

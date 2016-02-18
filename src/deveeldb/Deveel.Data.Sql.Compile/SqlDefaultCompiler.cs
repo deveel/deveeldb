@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Compile {
 				var objects = builder.Build(result.RootNode);
 
 				foreach (var statement in objects) {
-					compileResult.Statements.Add(statement);
+					compileResult.CodeObjects.Add(statement);
 				}
 
 			} catch (SqlParseException ex) {

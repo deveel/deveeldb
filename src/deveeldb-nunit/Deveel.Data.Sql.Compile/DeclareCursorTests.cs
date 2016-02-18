@@ -16,10 +16,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.Statements);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.IsNotEmpty(result.CodeObjects);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = result.Statements.FirstOrDefault();
+			var statement = result.CodeObjects.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<DeclareCursorStatement>(statement);
@@ -40,10 +40,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.Statements);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.IsNotEmpty(result.CodeObjects);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = result.Statements.FirstOrDefault();
+			var statement = result.CodeObjects.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<DeclareCursorStatement>(statement);
@@ -64,10 +64,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.Statements);
-			Assert.AreEqual(1, result.Statements.Count);
+			Assert.IsNotEmpty(result.CodeObjects);
+			Assert.AreEqual(1, result.CodeObjects.Count);
 
-			var statement = result.Statements.FirstOrDefault();
+			var statement = result.CodeObjects.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<DeclareCursorStatement>(statement);

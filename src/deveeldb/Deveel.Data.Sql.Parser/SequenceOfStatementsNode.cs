@@ -30,18 +30,30 @@ namespace Deveel.Data.Sql.Parser {
 			get { return statementNodes.AsEnumerable(); }
 		}
 
-		protected override ISqlNode OnChildNode(ISqlNode node) {
-			ReadStatements(node.ChildNodes);
-			return base.OnChildNode(node);
+		protected override void OnNodeInit() {
+			ReadStatements(ChildNodes);
+			base.OnNodeInit();
+		}
+
+		private IStatementNode FirstInTree(ISqlNode node) {
+			var stmtNode = node.ChildNodes.OfType<IStatementNode>().FirstOrDefault();
+			if (stmtNode != null)
+				return stmtNode;
+
+			foreach (var childNode in node.ChildNodes) {
+				stmtNode = FirstInTree(childNode);
+				if (stmtNode != null)
+					return stmtNode;
+			}
+
+			return null;
 		}
 
 		private void ReadStatements(IEnumerable<ISqlNode> nodes) {
 			foreach (var node in nodes) {
-				if (node is IStatementNode) {
-					statementNodes.Add(node as IStatementNode);
-				} else {
-					ReadStatements(node.ChildNodes);
-				}
+				var statementNode = FirstInTree(node);
+				if (statementNode != null)
+					statementNodes.Add(statementNode);
 			}
 		}
 	}
