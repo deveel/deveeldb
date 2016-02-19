@@ -15,16 +15,19 @@
 //
 
 using System;
+using System.Linq;
 
 namespace Deveel.Data.Sql.Parser {
 	class SetAccountStatusNode : SqlNode, IAlterUserActionNode {
 		public string Status { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
-			if (node is SqlKeyNode &&
-				(node.NodeName.Equals("LOCK", StringComparison.OrdinalIgnoreCase) ||
-				node.NodeName.Equals("UNLOCK", StringComparison.OrdinalIgnoreCase))) {
-				Status = node.NodeName;
+			if (node.NodeName.Equals("account_status")) {
+				var statusNode = node.ChildNodes.FirstOrDefault();
+				if (statusNode != null &&
+				    statusNode is SqlKeyNode) {
+					Status = ((SqlKeyNode) statusNode).Text;
+				}
 			}
 
 			return base.OnChildNode(node);

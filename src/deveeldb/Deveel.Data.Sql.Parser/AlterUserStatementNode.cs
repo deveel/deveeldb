@@ -16,6 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
 	class AlterUserStatementNode : SqlStatementNode {
@@ -34,7 +38,40 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
-			throw new NotImplementedException();
+			var userName = UserName;
+
+			foreach (var actionNode in Actions) {
+				IAlterUserAction action;
+
+				if (actionNode is SetPasswordNode) {
+					var password = ExpressionBuilder.Build(((SetPasswordNode) actionNode).Password);
+					action  = new SetPasswordAction(password);
+				} else if (actionNode is SetAccountStatusNode) {
+					var statusText = ((SetAccountStatusNode) actionNode).Status;
+					var userStatus = ParseUserStatus(statusText);
+					action = new SetAccountStatusAction(userStatus);
+				} else if (actionNode is SetGroupsNode) {
+					var groupNames = ((SetGroupsNode) actionNode).Groups.Select(ExpressionBuilder.Build);
+					action = new SetUserGroupsAction(groupNames);
+				} else {
+					throw new NotSupportedException(String.Format("The action of type '{0}' is not supported.", actionNode.GetType()));
+				}
+				
+				builder.AddObject(new AlterUserStatement(userName, action));
+			}
+		}
+
+		private UserStatus ParseUserStatus(string statusText) {
+			if (String.Equals(statusText, "LOCK", StringComparison.OrdinalIgnoreCase))
+				return UserStatus.Locked;
+			if (String.Equals(statusText, "UNLOCK", StringComparison.OrdinalIgnoreCase))
+				return UserStatus.Unlocked;
+
+			try {
+				return (UserStatus) Enum.Parse(typeof (UserStatus), statusText, true);
+			} catch (Exception ex) {
+				throw new FormatException(String.Format("The string '{0}' is not a valid user status.", statusText), ex);
+			}
 		}
 	}
 }
