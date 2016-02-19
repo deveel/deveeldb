@@ -19,6 +19,26 @@ DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The sys
 
 Although the core project is thought to be embedded in applications, the modular architecture allows extensions to other uses, such as providing databases through networks: an application is already included in the solution.
 
+Getting It
+============
+
+The stage of the version 2.0 is not stable yet, so we are not providing any stable build on nuget.org. Anyway, the binaries of the project daily builds of *DeveelDB* can be obtained through the dedicated NuGet feed on MyGet (http://myget.org): the configuration of the sources depends on the environment used to build your project (referer to NuGet Documentation for further information: http://docs.nuget.org/consume/package-restore).
+
+**NuGet v3**
+
+https://www.myget.org/F/deveeldb/api/v3/index.json
+
+**NuGet v2**
+
+https://www.myget.org/F/deveeldb/api/v2
+
+
+The feed contains these versions of the library:
+- *deveeldb-anycpu*: this is the generic build, that is suited to be used by any CPU architeture
+- *deveeldb-x86*: a version of the library built specificaly for the x86 (32-bit) architecture
+- *deveeldb-x64*: the build specificaly oriented to the x64 (64-bit) architecture
+
+
 License
 ============
 
