@@ -69,7 +69,6 @@ namespace Deveel.Data.Sql.Compile {
 			var setStatus = (SetAccountStatusAction)alterUser.AlterAction;
 
 			Assert.AreEqual(UserStatus.Locked, setStatus.Status);
-
 		}
 	}
 }

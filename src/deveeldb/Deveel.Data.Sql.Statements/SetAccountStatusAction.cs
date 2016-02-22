@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.IO;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;

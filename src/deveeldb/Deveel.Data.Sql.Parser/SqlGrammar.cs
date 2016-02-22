@@ -80,6 +80,7 @@ namespace Deveel.Data.Sql.Parser {
 				Close() |
 				Fetch() |
 				Select() |
+				Show() |
 				Insert() |
 				Update() |
 				Delete() |
@@ -374,7 +375,7 @@ namespace Deveel.Data.Sql.Parser {
 			exceptionHandlerList.Rule = MakePlusRule(exceptionHandlerList, exceptionHandler);
 			exceptionHandler.Rule = Key("WHEN") + handledExceptions + Key("THEN") + plsqlStatementList;
 			handledExceptions.Rule = Key("OTHERS") | exceptionNames;
-			exceptionNames.Rule = MakePlusRule(exceptionNames, OR, Identifier);
+			exceptionNames.Rule = MakePlusRule(exceptionNames, Key("OR"), Identifier);
 
 			plsqlStatementList.Rule = MakeStarRule(plsqlStatementList, PlSqlStatement());
 
@@ -452,8 +453,8 @@ namespace Deveel.Data.Sql.Parser {
 			var defTableConstraint = new NonTerminal("def_table_constraint");
 			var columnList = new NonTerminal("column_list");
 
-			createTable.Rule = CREATE + temporaryOpt + TABLE + ifNotExistsOpt + ObjectName() + "(" + columnOrConstraintList + ")";
-			ifNotExistsOpt.Rule = Empty | IF + NOT + EXISTS;
+			createTable.Rule = Key("CREATE") + temporaryOpt + Key("TABLE") + ifNotExistsOpt + ObjectName() + "(" + columnOrConstraintList + ")";
+			ifNotExistsOpt.Rule = Empty | Key("IF") + Key("NOT") + Key("EXISTS");
 			temporaryOpt.Rule = Empty | Key("TEMPORARY");
 			columnOrConstraintList.Rule = MakePlusRule(columnOrConstraintList, Comma, columnOrConstraint);
 
@@ -471,21 +472,21 @@ namespace Deveel.Data.Sql.Parser {
 			columnConstraintRefOpt.Rule = Empty | "(" + Identifier + ")";
 			columnDefaultOrIdentityOpt.Rule = Empty | Key("DEFAULT") + SqlExpression() | Key("IDENTITY");
 			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
-			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
+			fkeyAction.Rule = Key("ON") + Key("DELETE") + fkeyActionType | Key("ON") + Key("UPDATE") + fkeyActionType;
 			fkeyActionType.Rule = Key("CASCADE") |
 			                      Key("SET") + Key("NULL") |
 			                      Key("SET") + Key("DEFAULT") |
 			                      Key("NO") + Key("ACTION");
 
 			tableConstraint.Rule = tableConstraintNameOpt + defTableConstraint;
-			tableConstraintNameOpt.Rule = Empty | CONSTRAINT + constraintName;
+			tableConstraintNameOpt.Rule = Empty | Key("CONSTRAINT") + constraintName;
 			constraintName.Rule = Identifier;
-			defTableConstraint.Rule = PRIMARY + KEY + "(" + columnList + ")" |
-			                            UNIQUE + "(" + columnList + ")" |
-			                            CHECK + "(" + SqlExpression() + ")" |
-			                            FOREIGN + KEY + "(" + columnList + ")" + REFERENCES + ObjectName() + "(" + columnList +
-			                            ")" +
-			                            fkeyActionList;
+			defTableConstraint.Rule = Key("PRIMARY") + Key("KEY") + "(" + columnList + ")" |
+			                          Key("UNIQUE") + "(" + columnList + ")" |
+			                          Key("CHECK") + "(" + SqlExpression() + ")" |
+			                          Key("FOREIGN") + Key("KEY") + "(" + columnList + ")" +
+			                          Key("REFERENCES") + ObjectName() + "(" + columnList + ")" +
+			                          fkeyActionList;
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
 
 			return createTable;
@@ -500,7 +501,7 @@ namespace Deveel.Data.Sql.Parser {
 			columnName.Rule = Identifier;
 			columnList.Rule = MakeStarRule(columnList, Comma, columnName);
 			columnListOpt.Rule = Empty | "(" + columnList + ")";
-			createView.Rule = CREATE + OrReplace() + VIEW + ObjectName() + columnListOpt + "AS" + SqlQueryExpression();
+			createView.Rule = Key("CREATE") + OrReplace() + Key("VIEW") + ObjectName() + columnListOpt + Key("AS") + SqlQueryExpression();
 			return createView;
 		}
 
@@ -520,9 +521,9 @@ namespace Deveel.Data.Sql.Parser {
 			identifiedByAuth.Rule = Key("BY") + StringLiteral;
 
 			setAccountLockOpt.Rule = Empty |
-			                         SET + ACCOUNT + LOCK |
-			                         SET + ACCOUNT + UNLOCK;
-			setGroupsOpt.Rule = Empty | SET + GROUPS + StringLiteral;
+			                         Key("SET") + Key("ACCOUNT") + Key("LOCK") |
+			                         Key("SET") + Key("ACCOUNT") + Key("UNLOCK");
+			setGroupsOpt.Rule = Empty | Key("SET") + Key("GROUPS") + StringLiteral;
 
 			return createUser;
 		}
@@ -536,7 +537,7 @@ namespace Deveel.Data.Sql.Parser {
 			columnName.Rule = Identifier;
 			columnList.Rule = MakePlusRule(columnList, Comma, columnName);
 
-			createIndex.Rule = CREATE + INDEX + ObjectName() + ON + ObjectName() + "(" + columnList + ")";
+			createIndex.Rule = Key("CREATE") + Key("INDEX") + ObjectName() + Key("ON") + ObjectName() + "(" + columnList + ")";
 
 			return createIndex;
 		}
@@ -611,7 +612,7 @@ namespace Deveel.Data.Sql.Parser {
 			                                Key("FOR") + Key("EACH") + Key("ROW") + triggerBody;
 			triggerSync.Rule = beforeOrAfter + triggerEvents + Key("ON") + ObjectName();
 			beforeOrAfter.Rule = Key("BEFORE") | Key("AFTER");
-			triggerEvents.Rule = MakePlusRule(triggerEvents, OR, triggerEvent);
+			triggerEvents.Rule = MakePlusRule(triggerEvents, Key("OR"), triggerEvent);
 			triggerEvent.Rule = Key("INSERT") | Key("UPDATE") | Key("DELETE");
 			triggerRefOpt.Rule = Empty | Key("REFERENCING") + triggerRefList;
 			triggerRefList.Rule = MakePlusRule(triggerRefList, triggerRef);
@@ -705,7 +706,8 @@ namespace Deveel.Data.Sql.Parser {
 			columnDefaultOpt.Rule = Empty | Key("DEFAULT") + SqlExpression();
 			columnIdentityOpt.Rule = Empty | Key("IDENTITY");
 			fkeyActionList.Rule = MakeStarRule(fkeyActionList, fkeyAction);
-			fkeyAction.Rule = ON + DELETE + fkeyActionType | ON + UPDATE + fkeyActionType;
+			fkeyAction.Rule = Key("ON") + Key("DELETE") + fkeyActionType |
+			                  Key("ON") + Key("UPDATE") + fkeyActionType;
 			fkeyActionType.Rule = Key("CASCADE") |
 								  Key("SET") + Key("NULL") |
 								  Key("SET") + Key("DEFAULT") |
@@ -715,11 +717,11 @@ namespace Deveel.Data.Sql.Parser {
 			tableConstraintNameOpt.Rule = Empty | constraintName;
 			constraintName.Rule = Identifier;
 			defTableConstraint.Rule = Key("PRIMARY") + Key("KEY") + "(" + columnList + ")" |
-										Key("UNIQUE") + "(" + columnList + ")" |
-										Key("CHECK") + "(" + SqlExpression() + ")" |
-										FOREIGN + KEY + "(" + columnList + ")" + REFERENCES + ObjectName() + "(" + columnList +
-										")" +
-										fkeyActionList;
+			                          Key("UNIQUE") + "(" + columnList + ")" |
+			                          Key("CHECK") + "(" + SqlExpression() + ")" |
+			                          Key("FOREIGN") + Key("KEY") + "(" + columnList + ")" +
+			                          Key("REFERENCES") + ObjectName() + "(" + columnList + ")" +
+			                          fkeyActionList;
 			columnList.Rule = MakePlusRule(columnList, Comma, Identifier);
 
 			return alterTable;
@@ -1037,12 +1039,16 @@ namespace Deveel.Data.Sql.Parser {
 
 		private NonTerminal Show() {
 			var show = new NonTerminal("show_command", typeof(ShowStatementNode));
-			var tableTarget = new NonTerminal("table_target");
 			var target = new NonTerminal("target");
 
 			show.Rule = Key("SHOW") + target;
-			target.Rule = Key("SCHEMA") | Key("TABLES") | Key("SESSIONS") | Key("SESSION") | Key("STATUS") | Key("PRODUCT") | tableTarget;
-			tableTarget.Rule = Key("TABLE") + ObjectName();
+			target.Rule = Key("SCHEMA") |
+			              Key("TABLES") |
+			              Key("SESSIONS") |
+			              Key("SESSION") |
+			              Key("STATUS") |
+			              Key("PRODUCT") |
+			              Key("TABLE") + ObjectName();
 
 			return show;
 		}

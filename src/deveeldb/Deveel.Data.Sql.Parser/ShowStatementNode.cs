@@ -9,7 +9,22 @@ namespace Deveel.Data.Sql.Parser {
 		public string TableName { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
+			if (node.NodeName.Equals("target")) {
+				GetShow(node);
+			}
+
 			return base.OnChildNode(node);
+		}
+
+		private void GetShow(ISqlNode node) {
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					var keyNode = (SqlKeyNode) childNode;
+					Target = keyNode.Text;
+				} else if (childNode is ObjectNameNode) {
+					TableName = ((ObjectNameNode) childNode).Name;
+				}
+			}
 		}
 
 		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
@@ -26,6 +41,9 @@ namespace Deveel.Data.Sql.Parser {
 			if (String.Equals(s, "OPEN SESSIONS", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(s, "SESSIONS", StringComparison.OrdinalIgnoreCase))
 				return ShowTarget.OpenSessions;
+			if (String.Equals(s, "TABLES", StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(s, "SCHEMA TABLES", StringComparison.OrdinalIgnoreCase))
+				return ShowTarget.SchemaTables;
 
 			try {
 				return (ShowTarget) Enum.Parse(typeof (ShowTarget), s, true);

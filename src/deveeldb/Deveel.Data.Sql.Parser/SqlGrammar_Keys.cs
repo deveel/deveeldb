@@ -17,37 +17,8 @@
 using System;
 using System.Collections.Generic;
 
-using Irony.Parsing;
-
 namespace Deveel.Data.Sql.Parser {
 	partial class SqlGrammar {
-		#region Keywords
-
-		private KeyTerm ACCOUNT;
-		private KeyTerm CHECK;
-		private KeyTerm CONSTRAINT;
-		private KeyTerm CREATE;
-		private KeyTerm DELETE;
-		private KeyTerm EXISTS;
-		private KeyTerm FOREIGN;
-		private KeyTerm GROUPS;
-		private KeyTerm KEY;
-		private KeyTerm IF;
-		private KeyTerm INDEX;
-		private KeyTerm LOCK;
-		private KeyTerm NOT;
-		private KeyTerm ON;
-		private KeyTerm OR;
-		private KeyTerm PRIMARY;
-		private KeyTerm REFERENCES;
-		private KeyTerm SET;
-		private KeyTerm TABLE;
-		private KeyTerm UPDATE;
-		private KeyTerm UNIQUE;
-		private KeyTerm UNLOCK;
-		private KeyTerm VIEW;
-
-		#endregion
 
 		protected override void ReservedWords() {
 			var reserved = new List<string> {
@@ -79,32 +50,6 @@ namespace Deveel.Data.Sql.Parser {
 			};
 
 			MarkReservedWords(reserved.ToArray());
-		}
-
-		protected override void Keywords() {
-			ACCOUNT = ToTerm("ACCOUNT");
-			CHECK = ToTerm("CHECK");
-			CONSTRAINT = ToTerm("CONSTRAINT");
-			CREATE = ToTerm("CREATE");
-			DELETE = ToTerm("DELETE");
-			EXISTS = ToTerm("EXISTS");
-			FOREIGN = ToTerm("FOREIGN");
-			GROUPS = ToTerm("GROUPS");
-			KEY = ToTerm("KEY");
-			IF = ToTerm("IF");
-			INDEX = ToTerm("INDEX");
-			LOCK = ToTerm("LOCK");
-			NOT = ToTerm("NOT");
-			ON = ToTerm("ON");
-			OR = ToTerm("OR");
-			PRIMARY = ToTerm("PRIMARY");
-			REFERENCES = ToTerm("REFERENCES");
-			SET = ToTerm("SET");
-			TABLE = ToTerm("TABLE");
-			UPDATE = ToTerm("UPDATE");
-			UNIQUE = ToTerm("UNIQUE");
-			UNLOCK = ToTerm("UNLOCK");
-			VIEW = ToTerm("VIEW");
 		}
 	}
 }
