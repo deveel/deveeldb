@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectStatement : SqlStatement, IPreparableStatement {
+	public sealed class SelectStatement : SqlStatement, IPreparableStatement, IPlSqlStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}

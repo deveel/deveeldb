@@ -206,6 +206,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />

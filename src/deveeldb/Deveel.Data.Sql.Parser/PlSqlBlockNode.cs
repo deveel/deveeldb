@@ -60,8 +60,14 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			if (CodeBlock != null) {
-				foreach (var statement in CodeBlock.Statements) {
-					
+				var subBuilder = new SqlCodeObjectBuilder(builder.TypeResolver);
+
+				foreach (var statementNode in CodeBlock.Statements) {
+					var objects = subBuilder.Build(statementNode);
+
+					foreach (var obj in objects) {
+						block.AddChild(obj);
+					}
 				}
 			}
 

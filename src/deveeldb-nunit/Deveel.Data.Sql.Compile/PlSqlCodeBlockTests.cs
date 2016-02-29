@@ -24,5 +24,43 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<PlSqlBlock>(obj);
 		}
+
+		[Test]
+		public void SelectInBlock() {
+			const string sql = @"BEGIN
+							SELECT * FROM test WHERE a = 90 AND
+													 b > 12.922
+						END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.CodeObjects.Count);
+
+			var obj = result.CodeObjects.ElementAt(0);
+
+			Assert.IsNotNull(obj);
+			Assert.IsInstanceOf<PlSqlBlock>(obj);
+
+			var block = (PlSqlBlock) obj;
+
+			Assert.AreEqual(1, block.ChildObjects.Count());
+			Assert.AreEqual(0, block.ExceptionHandlers.Count());
+			Assert.IsNull(block.Label);
+
+			var statement = block.ChildObjects.ElementAt(0);
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+		}
+
+		[Test]
+		public void DeclarationsBeforeBlock() {
+			const string sql = @"DECLARE a INT := 23
+								BEGIN
+									SELECT * FROM test WHERE a < test.a
+								END";
+		}
 	}
 }

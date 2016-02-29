@@ -38,7 +38,9 @@ namespace Deveel.Data.Sql.Parser {
 			var statements = new List<IStatementNode>();
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode.NodeName.Equals("plsql_statement")) {
-					statements.AddRange(childNode.ChildNodes.OfType<IStatementNode>());
+					var statementNode = childNode.FindNode<IStatementNode>();
+					if (statementNode != null)
+						statements.Add(statementNode);
 				}
 			}
 

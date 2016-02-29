@@ -74,10 +74,13 @@ namespace Deveel.Data {
 		private void InitStorageSystem() {
 			try {
 				var storageTypeName = Configuration.GetString("database.storageSystem", DefaultStorageSystemNames.Heap);
+				if (String.IsNullOrEmpty(storageTypeName))
+					throw new DatabaseConfigurationException("No storage system was configured for this database.");
+
 				StoreSystem = this.ResolveService<IStoreSystem>(storageTypeName);
 
 				if (StoreSystem == null)
-					throw new DatabaseConfigurationException("The storage system for the database was not set.");
+					throw new DatabaseConfigurationException(String.Format("The storage system '{0}' for the database was not set.", storageTypeName));
 			} catch(DatabaseConfigurationException) {
 				throw;
 			} catch (Exception ex) {

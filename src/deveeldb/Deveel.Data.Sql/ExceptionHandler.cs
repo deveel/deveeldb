@@ -28,16 +28,20 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentNullException("handled");
 
 			Handled = handled;
-			Statements = new List<SqlStatement>();
+			Statements = new List<IStatement>();
 		}
 
 		public HandledExceptions Handled { get; private set; }
 
-		public ICollection<SqlStatement> Statements { get; private set; }
+		public ICollection<IStatement> Statements { get; private set; }
 
 		public bool Handles(string exceptionName) {
 			return Handled.ExceptionNames.Any(x => String.Equals(x, exceptionName, StringComparison.OrdinalIgnoreCase)) || 
 				Handled.IsForOthers;
+		}
+
+		public void Handle(ExecutionContext context) {
+			throw new NotImplementedException();
 		}
 
 		private ExceptionHandler PrepareExpressions(IExpressionPreparer preparer) {

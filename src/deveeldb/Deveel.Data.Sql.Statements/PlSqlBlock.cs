@@ -22,11 +22,13 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public class PlSqlBlock : ISqlCodeObject, IPreparable, IDisposable {
-		private ICollection<SqlStatement> statements;
-		private ICollection<ExceptionHandler> exceptionHandlers; 
-		 
+		private ICollection<ISqlCodeObject> objects;
+		private ICollection<IStatement> declarations; 
+		private ICollection<ExceptionHandler> exceptionHandlers;
+
 		public PlSqlBlock() {
-			statements = new List<SqlStatement>();
+			objects = new List<ISqlCodeObject>();
+			declarations = new List<IStatement>();
 			exceptionHandlers = new List<ExceptionHandler>();
 		}
 
@@ -36,30 +38,36 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string Label { get; set; }
 
-		public IEnumerable<SqlStatement> Statements {
-			get { return statements.AsEnumerable(); }
-		}
+		public IEnumerable<IStatement> Declarations {
+			get { return declarations.AsEnumerable(); }
+		} 
 
 		public IEnumerable<ExceptionHandler> ExceptionHandlers {
 			get { return exceptionHandlers.AsEnumerable(); }
 		}
 
-		public void AddStatement(SqlStatement statement) {
-			// TODO: make further checks, such as if a labeled statement with
-			//       the same label already exists
-			statements.Add(statement);
+		public IEnumerable<ISqlCodeObject> ChildObjects {
+			get { return objects.AsEnumerable(); }
 		}
+
+		public void AddChild(ISqlCodeObject obj) {
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+
+			if (obj is IStatement) {
+				if (!(obj is IPlSqlStatement))
+					throw new ArgumentException(String.Format("The statement of type '{0}' is not allowed in a PL/SQL block.", obj.GetType()));
+			}
+
+			objects.Add(obj);
+		}
+
 
 		public void AddExceptionHandler(ExceptionHandler handler) {
 			// TODO: make further checks here ...
 			exceptionHandlers.Add(handler);
 		}
 
-		/*
-		protected virtual BlockExecuteContext CreateExecuteContext() {
-			throw new NotImplementedException();
-		}
-		*/
 
 		protected virtual PlSqlBlock Prepare(IExpressionPreparer preparer) {
 			throw new NotImplementedException();
@@ -69,6 +77,10 @@ namespace Deveel.Data.Sql.Statements {
 			return Prepare(preparer);
 		}
 
+		public void Execute(ExecutionContext context) {
+			
+		}
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -76,13 +88,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (statements != null)
-					statements.Clear();
+				if (objects != null)
+					objects.Clear();
 				if (exceptionHandlers != null)
 					exceptionHandlers.Clear();
 			}
 
-			statements = null;
+			objects = null;
 			exceptionHandlers = null;
 		}
 	}
