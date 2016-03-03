@@ -17,6 +17,6 @@
 using System;
 
 namespace Deveel.Data.Sql.Statements {
-	public interface IStatement : ISqlCodeObject, IExecutable {
+	public interface IStatement : ISqlCodeObject {
 	}
 }

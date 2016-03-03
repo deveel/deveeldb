@@ -225,7 +225,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (loopStatement != null)
 				return loopStatement;
 
-			loopStatement = new NonTerminal("loop_statement");
+			loopStatement = new NonTerminal("loop_statement", typeof(LoopStatementNode));
 			var loopLabelOpt = new NonTerminal("loop_label_opt");
 			var loopHeadOpt = new NonTerminal("loop_head_opt");
 			var loopHead = new NonTerminal("loop_head");
@@ -238,12 +238,7 @@ namespace Deveel.Data.Sql.Parser {
 			var loopBodyList = new NonTerminal("loop_body_list");
 			var loopBody = new NonTerminal("loop_body");
 			var loopControlStatement = new NonTerminal("loop_control_statement");
-			var whenOpt = new NonTerminal("when_opt");
-			var labelOpt = new NonTerminal("label_opt");
 			var plsqlStatementList = new NonTerminal("plsql_statement_list");
-
-			labelOpt.Rule = Empty | Identifier;
-			whenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
 
 			loopStatement.Rule = loopLabelOpt + loopHeadOpt + Key("LOOP") + loopBodyList + Key("LOOP") + Key("END");
 			loopLabelOpt.Rule = Empty | Identifier;

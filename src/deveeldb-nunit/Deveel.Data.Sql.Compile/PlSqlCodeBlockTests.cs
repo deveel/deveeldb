@@ -46,11 +46,11 @@ namespace Deveel.Data.Sql.Compile {
 
 			var block = (PlSqlBlock) obj;
 
-			Assert.AreEqual(1, block.ChildObjects.Count());
+			Assert.AreEqual(1, block.Objects.Count);
 			Assert.AreEqual(0, block.ExceptionHandlers.Count());
 			Assert.IsNull(block.Label);
 
-			var statement = block.ChildObjects.ElementAt(0);
+			var statement = block.Objects.ElementAt(0);
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<SelectStatement>(statement);
 		}

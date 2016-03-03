@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class LoopControlStatement : SqlStatement, IPreparable {
+	public class LoopControlStatement : SqlStatement, IPreparable {
 		public LoopControlStatement(LoopControlType controlType) 
 			: this(controlType, (SqlExpression) null) {
 		}

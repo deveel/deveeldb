@@ -121,6 +121,7 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ISerializable.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializeData.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\DropUserStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\LoopStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\RevokeStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SequenceOfBlocksNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
@@ -141,10 +143,14 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AssignVariableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CodeBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CursorForLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareVariableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteCurrentStatement.cs" />
@@ -154,9 +160,13 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropUserStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ExitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ForLoop.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IDeclarationStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
@@ -166,6 +176,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\WhileLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
     <Compile Include="Deveel.Data.Sql\ISqlCodeObject.cs" />

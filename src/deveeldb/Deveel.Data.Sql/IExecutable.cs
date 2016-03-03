@@ -17,7 +17,7 @@
 using System;
 
 namespace Deveel.Data.Sql {
-	public interface IExecutable {
+	interface IExecutable {
 		void Execute(ExecutionContext context);
 	}
 }

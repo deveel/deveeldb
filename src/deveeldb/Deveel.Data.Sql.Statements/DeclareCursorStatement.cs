@@ -16,19 +16,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DeclareCursorStatement : SqlStatement {
+	public sealed class DeclareCursorStatement : SqlStatement, IDeclarationStatement {
 		public DeclareCursorStatement(string cursorName, SqlQueryExpression queryExpression) 
 			: this(cursorName, null, queryExpression) {
 		}

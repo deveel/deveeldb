@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
 	[Serializable]
-	public abstract class SqlStatement : IStatement, ISerializable {
+	public abstract class SqlStatement : IStatement, IExecutable, ISerializable {
 		protected SqlStatement() {
 			
 		}
@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Statements {
 			IExecutable prepared;
 
 			try {
-				prepared = this.Prepare(preparer, context);
+				prepared = this.Prepare(preparer, context) as IExecutable;
 			} catch (Exception ex) {
 				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
 			}

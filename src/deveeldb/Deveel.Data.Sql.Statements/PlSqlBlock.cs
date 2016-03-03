@@ -16,86 +16,106 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public class PlSqlBlock : ISqlCodeObject, IPreparable, IDisposable {
-		private ICollection<ISqlCodeObject> objects;
-		private ICollection<IStatement> declarations; 
-		private ICollection<ExceptionHandler> exceptionHandlers;
-
+	[Serializable]
+	public class PlSqlBlock : CodeBlock, ISqlCodeObject, IPreparable {
 		public PlSqlBlock() {
-			objects = new List<ISqlCodeObject>();
-			declarations = new List<IStatement>();
-			exceptionHandlers = new List<ExceptionHandler>();
+			Declarations = new DeclarationCollection();
+			ExceptionHandlers = new ExceptionHandlerCollection();
+		}
+
+		protected PlSqlBlock(ObjectData data)
+			: base(data) {
 		}
 
 		~PlSqlBlock() {
 			Dispose(false);
 		}
 
-		public string Label { get; set; }
+		public ICollection<IStatement> Declarations { get; private set; } 
 
-		public IEnumerable<IStatement> Declarations {
-			get { return declarations.AsEnumerable(); }
-		} 
-
-		public IEnumerable<ExceptionHandler> ExceptionHandlers {
-			get { return exceptionHandlers.AsEnumerable(); }
-		}
-
-		public IEnumerable<ISqlCodeObject> ChildObjects {
-			get { return objects.AsEnumerable(); }
-		}
-
-		public void AddChild(ISqlCodeObject obj) {
-			if (obj == null)
-				throw new ArgumentNullException("obj");
-
-			if (obj is IStatement) {
-				if (!(obj is IPlSqlStatement))
-					throw new ArgumentException(String.Format("The statement of type '{0}' is not allowed in a PL/SQL block.", obj.GetType()));
-			}
-
-			objects.Add(obj);
-		}
-
-
-		public void AddExceptionHandler(ExceptionHandler handler) {
-			// TODO: make further checks here ...
-			exceptionHandlers.Add(handler);
-		}
-
+		public ICollection<ExceptionHandler> ExceptionHandlers { get; private set; }
 
 		protected virtual PlSqlBlock Prepare(IExpressionPreparer preparer) {
 			throw new NotImplementedException();
+		}
+
+		protected override void GetData(SerializeData data) {
 		}
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			return Prepare(preparer);
 		}
 
-		public void Execute(ExecutionContext context) {
+		protected override void Execute(ExecutionContext context) {
 			
 		}
 
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing) {
+		protected override void Dispose(bool disposing) {
 			if (disposing) {
-				if (objects != null)
-					objects.Clear();
-				if (exceptionHandlers != null)
-					exceptionHandlers.Clear();
+				if (Declarations != null)
+					Declarations.Clear();
+
+				if (ExceptionHandlers != null)
+					ExceptionHandlers.Clear();
 			}
 
-			objects = null;
-			exceptionHandlers = null;
+			Declarations = null;
+			ExceptionHandlers = null;
 		}
+
+		#region DeclarationCollection
+
+		class DeclarationCollection : Collection<IStatement> {
+			private static void AssertDeclaration(IStatement statement) {
+				if (!(statement is IDeclarationStatement))
+					throw new ArgumentException(String.Format("The statement of type '{0}' is not a declaration.", statement.GetType()));
+			}
+
+			protected override void InsertItem(int index, IStatement item) {
+				AssertDeclaration(item);
+				base.InsertItem(index, item);
+			}
+
+			protected override void SetItem(int index, IStatement item) {
+				AssertDeclaration(item);
+				base.SetItem(index, item);
+			}
+		}
+
+		#endregion
+
+		#region ExceptionHandlerCollection
+
+		class ExceptionHandlerCollection : Collection<ExceptionHandler> {
+			private void AssertNotHandled(HandledExceptions handled) {
+				foreach (var handler in base.Items) {
+					if (handler.Handled.IsForOthers &&
+						handled.IsForOthers)
+						throw new ArgumentException("The OTHERS exception handler is already defined in the block.");
+					foreach (var exceptionName in handled.ExceptionNames) {
+						if (handler.Handles(exceptionName))
+							throw new ArgumentException(String.Format("Trying to add a handler for exception '{0}' that is already handled.", exceptionName));
+					}
+				}
+			}
+			
+			protected override void InsertItem(int index, ExceptionHandler item) {
+				AssertNotHandled(item.Handled);
+				base.InsertItem(index, item);
+			}
+
+			protected override void SetItem(int index, ExceptionHandler item) {
+				AssertNotHandled(item.Handled);
+				base.SetItem(index, item);
+			}
+		}
+
+		#endregion
 	}
 }

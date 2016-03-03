@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public static class RequestExtensions {
-		public static ITable ExecuteStatement(this IRequest request, IStatement statement) {
+		public static ITable ExecuteStatement(this IRequest request, ISqlCodeObject statement) {
 			var results = request.ExecuteStatements(statement);
 			return results[0];
 		}
 
-		public static ITable[] ExecuteStatements(this IRequest request, params IStatement[] statements) {
+		public static ITable[] ExecuteStatements(this IRequest request, params ISqlCodeObject[] statements) {
+			return ExecuteStatements(request, null, statements);
+		}
+
+		public static ITable[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer, params ISqlCodeObject[] statements) {
 			if (statements == null)
 				throw new ArgumentNullException("statements");
 			if (statements.Length == 0)
@@ -26,9 +32,14 @@ namespace Deveel.Data.Sql.Statements {
 				var context = new ExecutionContext(request);
 
 				if (statement is IPreparableStatement)
-					statement = ((IPreparableStatement) statement).Prepare(request);
+					statement = ((IPreparableStatement) statement).Prepare(preparer, request);
 
-				statement.Execute(context);
+				var executable = statement as IExecutable;
+
+				if (executable == null)
+					throw new InvalidOperationException();
+
+				executable.Execute(context);
 
 				ITable result;
 				if (context.HasResult) {
@@ -48,55 +59,18 @@ namespace Deveel.Data.Sql.Statements {
 				throw new ArgumentNullException("query");
 
 			var sqlSouce = query.Text;
+			var compiler = request.Context.SqlCompiler();
 
-			// TODO: find it from the cache...
+			var compileResult = compiler.Compile(new SqlCompileContext(request.Context, sqlSouce));
 
-			var statements = SqlStatement.Parse(sqlSouce);
-
-			// TODO: set it in cache ...
+			if (compileResult.HasErrors) {
+				// TODO: throw a specialized exception...
+				throw new InvalidOperationException();
+			}
 
 			var preparer = new QueryPreparer(query);
 
-			bool statementSeen = false;
-
-			var results = new List<ITable>();
-			foreach (var statement in statements) {
-
-				// TODO: query.RegisterQuery(statement);
-
-				// TODO: Invoke diagnostics for the preparation...
-
-				var prepared = statement.Prepare(preparer, request);
-
-				ITable result;
-
-				try {
-					var exeContext = new ExecutionContext(request);
-					prepared.Execute(exeContext);
-					if (exeContext.HasResult) {
-						result = exeContext.Result;
-					} else {
-						result = FunctionTable.ResultTable(request, 0);
-					}
-				} catch (StatementException ex) {
-					request.OnError(ex);
-					throw;
-				} catch (Exception ex) {
-					var sex = new StatementException("An unhanded error occurred while executing the statement.", ex);
-					request.OnError(sex);
-					throw sex;
-				} finally {
-					statementSeen = true;
-				}
-
-				results.Add(result);
-			}
-
-			if (!statementSeen)
-				throw new SqlParseException("The input query was not parsed in any statements that could be executed.");
-
-			return results.ToArray();
-
+			return request.ExecuteStatements(preparer, compileResult.CodeObjects.ToArray());
 		}
 
 		#region QueryPreparer

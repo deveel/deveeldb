@@ -4,7 +4,7 @@ using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DeclareExceptionStatement : SqlStatement {
+	public sealed class DeclareExceptionStatement : SqlStatement, IDeclarationStatement {
 		public DeclareExceptionStatement(string exceptionName) {
 			if (String.IsNullOrEmpty(exceptionName))
 				throw new ArgumentNullException("exceptionName");

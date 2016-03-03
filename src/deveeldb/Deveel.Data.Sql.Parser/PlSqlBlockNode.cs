@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql.Parser {
 					var objects = subBuilder.Build(statementNode);
 
 					foreach (var obj in objects) {
-						block.AddChild(obj);
+						block.Objects.Add(obj);
 					}
 				}
 			}
