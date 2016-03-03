@@ -18,6 +18,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Index {
 	///<summary>
 	/// An implementation of <see cref="BlockIndexBase{T}"/> that stores 
@@ -271,7 +273,7 @@ namespace Deveel.Data.Index {
 
 				while (low <= high) {
 					int mid = (low + high)/2;
-					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+					int cmp = comparer.CompareValue(arr[mid], (Field) key);
 
 					if (cmp < 0)
 						low = mid + 1;
@@ -292,7 +294,7 @@ namespace Deveel.Data.Index {
 				while (low <= high) {
 					if (high - low <= 2) {
 						for (int i = low; i <= high; ++i) {
-							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
+							int cmp1 = comparer.CompareValue(arr[i], (Field) key);
 							if (cmp1 == 0)
 								return i;
 
@@ -304,7 +306,7 @@ namespace Deveel.Data.Index {
 					}
 
 					int mid = (low + high)/2;
-					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+					int cmp = comparer.CompareValue(arr[mid], (Field) key);
 
 					if (cmp < 0) {
 						low = mid + 1;
@@ -328,7 +330,7 @@ namespace Deveel.Data.Index {
 
 					if (high - low <= 2) {
 						for (int i = high; i >= low; --i) {
-							int cmp1 = comparer.CompareValue(arr[i], (DataObject) key);
+							int cmp1 = comparer.CompareValue(arr[i], (Field) key);
 							if (cmp1 == 0)
 								return i;
 							if (cmp1 < 0)
@@ -338,7 +340,7 @@ namespace Deveel.Data.Index {
 					}
 
 					int mid = (low + high)/2;
-					int cmp = comparer.CompareValue(arr[mid], (DataObject) key);
+					int cmp = comparer.CompareValue(arr[mid], (Field) key);
 
 					if (cmp < 0) {
 						low = mid + 1;

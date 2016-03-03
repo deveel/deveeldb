@@ -36,7 +36,7 @@ namespace Deveel.Data.Index {
 				throw new ArgumentException("Cannot mutate a read-only index.");
 		}
 
-		private int HighestSearch(DataObject ob, IList<int> list, int lower, int higher) {
+		private int HighestSearch(Field ob, IList<int> list, int lower, int higher) {
 			if ((higher - lower) <= 5) {
 				// Start from the bottom up until we find the highest val
 				for (var i = higher; i >= lower; --i) {
@@ -123,8 +123,8 @@ namespace Deveel.Data.Index {
 			private readonly byte[] upperFlags;
 
 			// The TObject objects to check against.
-			private readonly DataObject[] lowerCells;
-			private readonly DataObject[] upperCells;
+			private readonly Field[] lowerCells;
+			private readonly Field[] upperCells;
 
 			private const byte NoCheck = 0;
 			private const byte CheckLesserOrGreater = 1;
@@ -136,8 +136,8 @@ namespace Deveel.Data.Index {
 				int size = ranges.Length;
 				lowerFlags = new byte[size];
 				upperFlags = new byte[size];
-				lowerCells = new DataObject[size];
-				upperCells = new DataObject[size];
+				lowerCells = new Field[size];
+				upperCells = new Field[size];
 				for (int i = 0; i < ranges.Length; ++i) {
 					SetupRange(i, ranges[i]);
 				}
@@ -154,7 +154,7 @@ namespace Deveel.Data.Index {
 			/// </summary>
 			/// <param name="ob"></param>
 			/// <returns></returns>
-			private DataObject ResolveCell(DataObject ob) {
+			private Field ResolveCell(Field ob) {
 				if (ob.Equals(IndexRange.FirstInSet)) {
 					ResolveSortedSet();
 					return scheme.GetValue(sortedSet.First());

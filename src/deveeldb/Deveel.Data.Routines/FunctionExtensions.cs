@@ -35,7 +35,7 @@ namespace Deveel.Data.Routines {
 		/// <param name="resolver"></param>
 		/// <param name="query"></param>
 		/// <returns></returns>
-		public static DataObject Execute(this IFunction function, Invoke request, IGroupResolver group,
+		public static Field Execute(this IFunction function, Invoke request, IGroupResolver group,
 			IVariableResolver resolver,
 			IRequest query) {
 			var execContext = new InvokeContext(request, function, resolver, group, query);

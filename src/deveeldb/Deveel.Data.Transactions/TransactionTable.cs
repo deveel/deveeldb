@@ -147,7 +147,7 @@ namespace Deveel.Data.Transactions {
 			indexRebuilds[column] = rebuildIndex;
 		}
 
-		public DataObject GetValue(long rowNumber, int columnOffset) {
+		public Field GetValue(long rowNumber, int columnOffset) {
 			AssertNotDisposed();
 
 			return TableSource.GetValue((int) rowNumber, columnOffset);
@@ -348,7 +348,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		private void ExecuteUpdateReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, DataObject[] newKey,
+		private void ExecuteUpdateReferentialAction(ConstraintInfo constraint, Field[] originalKey, Field[] newKey,
 			IQuery context) {
 			var updateRule = constraint.OnUpdate;
 			if (updateRule == ForeignKeyAction.NoAction &&
@@ -464,7 +464,7 @@ namespace Deveel.Data.Transactions {
 									// What was the key before it was updated/deleted
 									var cols = tableInfo.IndexOfColumns(constraint.ForeignColumnNames).ToArray();
 
-									var originalKey = new DataObject[cols.Length];
+									var originalKey = new Field[cols.Length];
 									int nullCount = 0;
 									for (int p = 0; p < cols.Length; ++p) {
 										originalKey[p] = GetValue(rowNum, cols[p]);
@@ -484,7 +484,7 @@ namespace Deveel.Data.Transactions {
 											// It must be an update, so first see if the change caused any
 											// of the keys to change.
 											bool keyChanged = false;
-											var keyUpdatedTo = new DataObject[cols.Length];
+											var keyUpdatedTo = new Field[cols.Length];
 											for (int p = 0; p < cols.Length; ++p) {
 												keyUpdatedTo[p] = GetValue(rowIndexAdd, cols[p]);
 												if (originalKey[p].CompareTo(keyUpdatedTo[p]) != 0) {
@@ -543,7 +543,7 @@ namespace Deveel.Data.Transactions {
 		}
 
 
-		private void ExecuteDeleteReferentialAction(ConstraintInfo constraint, DataObject[] originalKey, IQuery context) {
+		private void ExecuteDeleteReferentialAction(ConstraintInfo constraint, Field[] originalKey, IQuery context) {
 			var deleteRule = constraint.OnDelete;
 			if (deleteRule == ForeignKeyAction.NoAction &&
 			    constraint.Deferred != ConstraintDeferrability.InitiallyImmediate) {

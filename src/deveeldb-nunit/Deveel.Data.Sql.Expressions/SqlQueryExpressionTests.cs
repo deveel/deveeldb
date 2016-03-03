@@ -48,24 +48,24 @@ namespace Deveel.Data.Sql.Expressions {
 		private void AddTestData() {
 			var table = Query.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
-			row.SetValue("first_name", DataObject.String("John"));
-			row.SetValue("last_name", DataObject.String("Doe"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1977, 01, 01)));
-			row.SetValue("active", DataObject.Boolean(false));
+			row.SetValue("first_name", Field.String("John"));
+			row.SetValue("last_name", Field.String("Doe"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1977, 01, 01)));
+			row.SetValue("active", Field.Boolean(false));
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("first_name", DataObject.String("Jane"));
-			row.SetValue("last_name", DataObject.String("Doe"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1978, 11, 01)));
-			row.SetValue("active", DataObject.Boolean(true));
+			row.SetValue("first_name", Field.String("Jane"));
+			row.SetValue("last_name", Field.String("Doe"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1978, 11, 01)));
+			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("first_name", DataObject.String("Roger"));
-			row.SetValue("last_name", DataObject.String("Rabbit"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1985, 05, 05)));
-			row.SetValue("active", DataObject.Boolean(true));
+			row.SetValue("first_name", Field.String("Roger"));
+			row.SetValue("last_name", Field.String("Rabbit"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
+			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 		}
 
@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Expressions {
 				new SqlQueryExpression(new[] {new SelectColumn(SqlExpression.Reference(new ObjectName("first_name")))});
 			expression.FromClause.AddTable("test_table");
 
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(Query, null));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<QueryType>(result.Type);

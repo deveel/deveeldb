@@ -239,7 +239,7 @@ namespace Deveel.Data.Transactions {
 				rd.SetValue(4, expression.ToString());
 				rd.SetValue(5, (short) deferrability);
 				if (colCount > 6) {
-					rd.SetValue(6, DataObject.Binary(new SqlBinary(binExp)));
+					rd.SetValue(6, Field.Binary(new SqlBinary(binExp)));
 				}
 
 				t.AddRow(rd);
@@ -372,7 +372,7 @@ namespace Deveel.Data.Transactions {
 			int keySize = col1Indexes.Length;
 
 			// Get the data from table1
-			var keyValue = new DataObject[keySize];
+			var keyValue = new Field[keySize];
 			int nullCount = 0;
 			for (int n = 0; n < keySize; ++n) {
 				keyValue[n] = t1.GetValue(rowIndex, col1Indexes[n]);
@@ -636,8 +636,8 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list indexes where column 3 = table name
 			//                            and column 2 = schema name
-			var objTableName = DataObject.String(tableName.Name);
-			var objSchema = DataObject.String(tableName.Parent.Name);
+			var objTableName = Field.String(tableName.Name);
+			var objSchema = Field.String(tableName.Parent.Name);
 			var data = t.SelectRowsEqual(3, objTableName, 2, objSchema).ToList();
 
 			var groups = new ConstraintInfo[data.Count];
@@ -693,8 +693,8 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list indexes where column 5 = ref table name
 			//                            and column 4 = ref schema name
-			var objRefTableName = DataObject.String(refTableName.Name);
-			var objRefSchema = DataObject.String(refTableName.Parent.Name);
+			var objRefTableName = Field.String(refTableName.Name);
+			var objRefSchema = Field.String(refTableName.Parent.Name);
 			var data = t.SelectRowsEqual(5, objRefTableName, 4, objRefSchema).ToArray();
 
 			var groups = new ConstraintInfo[data.Length];
@@ -750,8 +750,8 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list indexes where column 3 = table name
 			//                            and column 2 = schema name
-			var objTableName = DataObject.String(tableName.Name);
-			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var objTableName = Field.String(tableName.Name);
+			var objSchemaName = Field.String(tableName.Parent.Name);
 			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 
 			var constraints = new ConstraintInfo[data.Count];
@@ -780,8 +780,8 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list indexes where column 3 = table name
 			//                            and column 2 = schema name
-			var objTableName = DataObject.String(tableName.Name);
-			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var objTableName = Field.String(tableName.Name);
+			var objSchemaName = Field.String(tableName.Parent.Name);
 			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 
 			if (data.Count > 1)
@@ -831,8 +831,8 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list indexes where column 3 = table name
 			//                            and column 2 = schema name
-			var objTableName = DataObject.String(tableName.Name);
-			var objSchemaName = DataObject.String(tableName.Parent.Name);
+			var objTableName = Field.String(tableName.Name);
+			var objSchemaName = Field.String(tableName.Parent.Name);
 			var data = t.SelectRowsEqual(3, objTableName, 2, objSchemaName).ToList();
 			var checks = new ConstraintInfo[data.Count];
 
@@ -915,11 +915,11 @@ namespace Deveel.Data.Transactions {
 			if (constraintName != null) {
 				// Returns the list of indexes where column 1 = constraint name
 				//                               and column 2 = schema name
-				data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(tableName.ParentName));
+				data = t.SelectRowsEqual(1, Field.String(constraintName), 2, Field.String(tableName.ParentName));
 			} else {
 				// Returns the list of indexes where column 3 = table name
 				//                               and column 2 = schema name
-				data = t.SelectRowsEqual(3, DataObject.String(tableName.Name), 2, DataObject.String(tableName.ParentName));
+				data = t.SelectRowsEqual(3, Field.String(tableName.Name), 2, Field.String(tableName.ParentName));
 			}
 
 			var resultList = data.ToList();
@@ -951,7 +951,7 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list of indexes where column 1 = constraint name
 			//                               and column 2 = schema name
-			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+			var data = t.SelectRowsEqual(1, Field.String(constraintName), 2, Field.String(table.ParentName));
 
 			var resultList = data.ToList();
 			if (resultList.Count > 1)
@@ -980,7 +980,7 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list of indexes where column 1 = constraint name
 			//                               and column 2 = schema name
-			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+			var data = t.SelectRowsEqual(1, Field.String(constraintName), 2, Field.String(table.ParentName));
 			var resultList = data.ToList();
 			if (resultList.Count > 1)
 				throw new InvalidOperationException("Assertion failed: multiple check constraint name: " + constraintName);
@@ -1001,7 +1001,7 @@ namespace Deveel.Data.Transactions {
 
 			// Returns the list of indexes where column 1 = constraint name
 			//                               and column 2 = schema name
-			var data = t.SelectRowsEqual(1, DataObject.String(constraintName), 2, DataObject.String(table.ParentName));
+			var data = t.SelectRowsEqual(1, Field.String(constraintName), 2, Field.String(table.ParentName));
 			var resultList = data.ToList();
 
 			if (resultList.Count > 1)
@@ -1050,7 +1050,7 @@ namespace Deveel.Data.Transactions {
 				get { return rowIndex; }
 			}
 
-			public DataObject Resolve(ObjectName variable) {
+			public Field Resolve(ObjectName variable) {
 				int colIndex = FindColumnName(variable);
 				return table.GetValue(rowIndex, colIndex);
 			}

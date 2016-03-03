@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -27,7 +28,7 @@ namespace Deveel.Data {
 	public class NumericObjectTests {
 		[Test]
 		public void Integer_Create() {
-			var obj = DataObject.Integer(33);
+			var obj = Field.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
 			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
@@ -36,7 +37,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void BigInt_Create() {
-			var obj = DataObject.BigInt(8399902L);
+			var obj = Field.BigInt(8399902L);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
 			Assert.AreEqual(SqlTypeCode.BigInt, obj.Type.TypeCode);
@@ -45,8 +46,8 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Integer_Compare_Equal() {
-			var obj1 = DataObject.Integer(33);
-			var obj2 = DataObject.Integer(33);
+			var obj1 = Field.Integer(33);
+			var obj2 = Field.Integer(33);
 
 			Assert.IsNotNull(obj1);
 			Assert.IsNotNull(obj2);
@@ -63,8 +64,8 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Integer_Compare_NotEqual() {
-			var obj1 = DataObject.Integer(33);
-			var obj2 = DataObject.Integer(87);
+			var obj1 = Field.Integer(33);
+			var obj2 = Field.Integer(87);
 
 			Assert.IsNotNull(obj1);
 			Assert.IsNotNull(obj2);
@@ -81,13 +82,13 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Integer_Convert_ToDouble() {
-			var obj = DataObject.Integer(33);
+			var obj = Field.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
 			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(33, obj);
 
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = obj.CastTo(PrimitiveTypes.Numeric(SqlTypeCode.Double)));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<NumericType>(result.Type);
@@ -96,13 +97,13 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Integer_Convert_ToVarChar() {
-			var obj = DataObject.Integer(33);
+			var obj = Field.Integer(33);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
 			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(33, obj);
 
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = obj.AsVarChar());
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<StringType>(result.Type);
@@ -111,13 +112,13 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Integer_Convert_ToBoolean() {
-			var obj = DataObject.Integer(1);
+			var obj = Field.Integer(1);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<NumericType>(obj.Type);
 			Assert.AreEqual(SqlTypeCode.Integer, obj.Type.TypeCode);
 			Assert.AreEqual(1, obj);
 
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = obj.AsBoolean());
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<BooleanType>(result.Type);

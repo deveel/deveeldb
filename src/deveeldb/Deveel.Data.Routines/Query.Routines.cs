@@ -88,19 +88,19 @@ namespace Deveel.Data.Routines {
 			return routine.RoutineInfo;
 		}
 
-		public static DataObject InvokeSystemFunction(this IQuery query, string functionName,
+		public static Field InvokeSystemFunction(this IQuery query, string functionName,
 			params SqlExpression[] args) {
 			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
 			var invoke = new Invoke(resolvedName, args);
 			return query.InvokeFunction(invoke);
 		}
 
-		public static DataObject InvokeFunction(this IQuery query, Invoke invoke) {
+		public static Field InvokeFunction(this IQuery query, Invoke invoke) {
 			var result = invoke.Execute(query);
 			return result.ReturnValue;
 		}
 
-		public static DataObject InvokeFunction(this IQuery query, ObjectName functionName,
+		public static Field InvokeFunction(this IQuery query, ObjectName functionName,
 			params SqlExpression[] args) {
 			return query.InvokeFunction(new Invoke(functionName, args));
 		}

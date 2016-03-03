@@ -69,11 +69,11 @@ namespace Deveel.Data.Index {
 			get { return DefaultIndexTypes.InsertSearch; }
 		}
 
-		protected override DataObject First {
+		protected override Field First {
 			get { return GetValue(list[0]); }
 		}
 
-		protected override DataObject Last {
+		protected override Field Last {
 			get { return GetValue(list[list.Count - 1]); }
 		}
 
@@ -122,11 +122,11 @@ namespace Deveel.Data.Index {
 			return new InsertSearchIndex(table, this, readOnly);
 		}
 
-		protected override int SearchFirst(DataObject value) {
+		protected override int SearchFirst(Field value) {
 			return list.SearchFirst(value, comparer);
 		}
 
-		protected override int SearchLast(DataObject value) {
+		protected override int SearchLast(Field value) {
 			return list.SearchLast(value, comparer);
 		}
 
@@ -144,13 +144,13 @@ namespace Deveel.Data.Index {
 				this.columnIndex = columnIndex;
 			}
 
-			private int InternalCompare(int index, DataObject value) {
+			private int InternalCompare(int index, Field value) {
 				var cell = columnIndex.GetValue(index);
 				var cmp =  cell.CompareTo(value);
 				return cmp;
 			}
 
-			public int CompareValue(int index, DataObject val) {
+			public int CompareValue(int index, Field val) {
 				return InternalCompare(index, val);
 			}
 

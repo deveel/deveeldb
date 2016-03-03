@@ -18,6 +18,7 @@ using System;
 using System.IO;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -132,7 +133,7 @@ namespace Deveel.Data.Types {
 			return new SqlDateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, 0, dateTime.Offset);
 		}
 
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			if (destType == null)
 				throw new ArgumentNullException("destType");
 
@@ -162,7 +163,7 @@ namespace Deveel.Data.Types {
 						sqlType.ToString().ToUpperInvariant(), TypeCode.ToString().ToUpperInvariant()));
 			}
 
-			return new DataObject(destType, casted);
+			return new Field(destType, casted);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

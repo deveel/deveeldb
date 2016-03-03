@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Variables {
 			get { return Expression != null; }
 		}
 
-		public DataObject Value { get; private set; }
+		public Field Value { get; private set; }
 
 		public bool IsConstant {
 			get { return VariableInfo.IsConstant; }
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Variables {
 			SetValue(value);
 		}
 
-		public void SetValue(DataObject value) {
+		public void SetValue(Field value) {
 			if (IsConstant)
 				throw new InvalidOperationException();
 

@@ -29,13 +29,13 @@ namespace Deveel.Data.Sql.Query {
 
 		public ObjectName Name { get; private set; }
 
-		public DataObject Value { get; private set; }
+		public Field Value { get; private set; }
 
 		public SqlType ReturnType {
 			get { return Value == null ? null : Value.Type; }
 		}
 
-		public DataObject Evaluate(IVariableResolver resolver) {
+		public Field Evaluate(IVariableResolver resolver) {
 			Value = resolver.Resolve(Name);
 			return Value;
 		}

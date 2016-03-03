@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql.Tables {
 			return ColumnIndices[column].GetSubset(table, originalColumn);
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			int tableNum = ColumnTable[columnOffset];
 			var parentTable = ReferenceTables[tableNum];
 
@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			if (outerRows[tableNum] == null)
 				// Special case, handling outer entries (NULL)
-				return new DataObject(TableInfo[columnOffset].ColumnType, null);
+				return new Field(TableInfo[columnOffset].ColumnType, null);
 
 			rowNumber = outerRows[tableNum][(int)rowNumber];
 			return parentTable.GetValue(rowNumber, ColumnFilter[columnOffset]);

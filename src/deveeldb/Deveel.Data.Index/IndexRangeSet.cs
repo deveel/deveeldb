@@ -32,7 +32,7 @@ namespace Deveel.Data.Index {
 			this.ranges = new List<IndexRange>(ranges);
 		}
 
-		private static IndexRange IntersectOn(IndexRange range, SqlExpressionType op, DataObject value, bool nullCheck) {
+		private static IndexRange IntersectOn(IndexRange range, SqlExpressionType op, Field value, bool nullCheck) {
 			var start = range.StartValue;
 			var startPosition = range.StartOffset;
 			var end = range.EndValue;
@@ -75,7 +75,7 @@ namespace Deveel.Data.Index {
 
 				// If start is first in set, then we have to change it to after NULL
 				if (nullCheck && start.Equals(IndexRange.FirstInSet)) {
-					start = DataObject.Null();
+					start = Field.Null();
 					startPosition = RangeFieldOffset.AfterLastValue;
 				}
 
@@ -206,7 +206,7 @@ namespace Deveel.Data.Index {
 			return new IndexRange(startPosition1, start1, endPosition1, end1);
 		}
 
-		public IndexRangeSet Intersect(SqlExpressionType op, DataObject value) {
+		public IndexRangeSet Intersect(SqlExpressionType op, Field value) {
 			lock (this) {
 				int sz = ranges.Count;
 				var list = ranges.GetRange(0, sz);

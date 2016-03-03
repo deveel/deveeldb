@@ -29,18 +29,18 @@ namespace Deveel.Data.Sql.Statements {
 
 			var table = query.GetMutableTable(tableName);
 			var row = table.NewRow();
-			row.SetValue("first_name", DataObject.String("Antonello"));
-			row.SetValue("last_name", DataObject.String("Provenzano"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1980, 06, 04)));
-			row.SetValue("active", DataObject.BooleanTrue);
+			row.SetValue("first_name", Field.String("Antonello"));
+			row.SetValue("last_name", Field.String("Provenzano"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1980, 06, 04)));
+			row.SetValue("active", Field.BooleanTrue);
 			row.SetDefault(query);
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("first_name", DataObject.String("Sebastiano"));
-			row.SetValue("last_name", DataObject.String("Provenzano"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1981, 08, 26)));
-			row.SetValue("active", DataObject.BooleanFalse);
+			row.SetValue("first_name", Field.String("Sebastiano"));
+			row.SetValue("last_name", Field.String("Provenzano"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1981, 08, 26)));
+			row.SetValue("active", Field.BooleanFalse);
 			row.SetDefault(query);
 			table.AddRow(row);
 		}

@@ -35,22 +35,22 @@ namespace Deveel.Data.Sql {
 			var table = Query.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
 
 			var row = table.NewRow();
-			row["person_id"] = DataObject.Integer(1);
-			row["name"] = DataObject.String("Antonello Provenzano");
-			row["age"] = DataObject.Integer(34);
+			row["person_id"] = Field.Integer(1);
+			row["name"] = Field.String("Antonello Provenzano");
+			row["age"] = Field.Integer(34);
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row["person_id"] = DataObject.Integer(3);
-			row["name"] = DataObject.String("John Doe");
-			row["age"] = DataObject.Integer(56);
+			row["person_id"] = Field.Integer(3);
+			row["name"] = Field.String("John Doe");
+			row["age"] = Field.Integer(56);
 			table.AddRow(row);
 
 			table = Query.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
 			row = table.NewRow();
-			row["person_id"] = DataObject.Integer(1);
-			row["code"] = DataObject.String("123456");
-			row["registered"] = DataObject.Date(new SqlDateTime(2014, 01, 12));
+			row["person_id"] = Field.Integer(1);
+			row["code"] = Field.String("123456");
+			row["registered"] = Field.Date(new SqlDateTime(2014, 01, 12));
 			table.AddRow(row);
 		}
 

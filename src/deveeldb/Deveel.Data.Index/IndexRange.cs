@@ -17,6 +17,7 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -39,12 +40,12 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// 
 		/// </summary>
-		public static readonly DataObject FirstInSet = new DataObject(PrimitiveTypes.Null(), new SqlString("FirstInSet"));
+		public static readonly Field FirstInSet = new Field(PrimitiveTypes.Null(), new SqlString("FirstInSet"));
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public static readonly DataObject LastInSet = new DataObject(PrimitiveTypes.Null(), new SqlString("LastInSet"));
+		public static readonly Field LastInSet = new Field(PrimitiveTypes.Null(), new SqlString("LastInSet"));
 
 		/// <summary>
 		/// Constructs the range given a start and an end location
@@ -53,7 +54,7 @@ namespace Deveel.Data.Index {
 		/// <param name="firstValue">The first value of the range</param>
 		/// <param name="lastOffset">The offset within the range of the last value.</param>
 		/// <param name="endValue">The last value of the range.</param>
-		public IndexRange(RangeFieldOffset startOffset, DataObject firstValue, RangeFieldOffset lastOffset, DataObject endValue)
+		public IndexRange(RangeFieldOffset startOffset, Field firstValue, RangeFieldOffset lastOffset, Field endValue)
 			: this(false) {
 			StartOffset = startOffset;
 			StartValue = firstValue;
@@ -77,7 +78,7 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// The entire range of values in an index (not including <c>NULL</c>)
 		/// </summary>
-		public static readonly IndexRange FullRangeNotNull = new IndexRange(RangeFieldOffset.AfterLastValue, DataObject.Null(),
+		public static readonly IndexRange FullRangeNotNull = new IndexRange(RangeFieldOffset.AfterLastValue, Field.Null(),
 			RangeFieldOffset.LastValue, LastInSet);
 
 		public static readonly IndexRange Null = new IndexRange(true);
@@ -90,7 +91,7 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// Gets the first value of the range.
 		/// </summary>
-		public DataObject StartValue { get; private set; }
+		public Field StartValue { get; private set; }
 
 		/// <summary>
 		/// Gets the offset of the last value of the range.
@@ -100,7 +101,7 @@ namespace Deveel.Data.Index {
 		/// <summary>
 		/// Gets the last value of the range.
 		/// </summary>
-		public DataObject EndValue { get; private set; }
+		public Field EndValue { get; private set; }
 
 		/// <inheritdoc/>
 		public override bool Equals(object obj) {

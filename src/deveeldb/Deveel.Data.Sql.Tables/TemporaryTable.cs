@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Tables {
 	public class TemporaryTable : BaseDataTable {
 		private readonly TableInfo tableInfo;
 		private int rowCount;
-		private List<DataObject[]> rows;
+		private List<Field[]> rows;
 
 		public TemporaryTable(TableInfo tableInfo)
 			: this((IDatabaseContext)null, tableInfo) {
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Tables {
 		public TemporaryTable(IContext context, TableInfo tableInfo)
 			: base(context) {
 			this.tableInfo = tableInfo.AsReadOnly();
-			rows = new List<DataObject[]>();
+			rows = new List<Field[]>();
 		}
 
 		public TemporaryTable(string name, TableInfo sourceTableInfo)
@@ -71,12 +71,12 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public int NewRow() {
-			rows.Add(new DataObject[ColumnCount]);
+			rows.Add(new Field[ColumnCount]);
 			++rowCount;
 			return rowCount - 1;
 		}
 
-		public int NewRow(DataObject[] row) {
+		public int NewRow(Field[] row) {
 			if (row == null)
 				throw new ArgumentNullException("row");
 			if (row.Length != ColumnCount)
@@ -90,7 +90,7 @@ namespace Deveel.Data.Sql.Tables {
 			return rowNumber;
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			if (rowNumber >= rows.Count)
 				throw new ArgumentOutOfRangeException("rowNumber");
 			if (columnOffset < 0 || columnOffset > ColumnCount)
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Tables {
 			return row[columnOffset];
 		}
 
-		public void SetValue(long rowNumber, int columnOffset, DataObject value) {
+		public void SetValue(long rowNumber, int columnOffset, Field value) {
 			if (rowNumber < 0 || rowNumber >= rows.Count)
 				throw new ArgumentOutOfRangeException("rowNumber");
 			if (columnOffset < 0 || columnOffset >= ColumnCount)
@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Tables {
 			row[columnOffset] = value;
 		}
 
-		public void SetValue(int columnOffset, DataObject value) {
+		public void SetValue(int columnOffset, Field value) {
 			SetValue(rowCount - 1, columnOffset, value);
 		}
 

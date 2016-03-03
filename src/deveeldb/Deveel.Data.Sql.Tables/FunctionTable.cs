@@ -141,14 +141,14 @@ namespace Deveel.Data.Sql.Tables {
 			return Context.ResolveService<ITableCellCache>();
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			// [ FUNCTION TABLE CACHING NOW USES THE GLOBAL CELL CACHING MECHANISM ]
 			// Check if in the cache,
 			var cache = TableCellCache();
 
 			// Is the column worth caching, and is caching enabled?
 			if (expInfo[columnOffset] == 0 && cache != null) {
-				DataObject cell;
+				Field cell;
 				if (cache.TryGetValue(context.Query.Session.Transaction.Database.Name, uniqueId, (int)rowNumber, columnOffset, out cell))
 					// In the cache so return the cell.
 					return cell;
@@ -162,7 +162,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		}
 
-		private DataObject CalcValue(int row, int column, ITableCellCache cache) {
+		private Field CalcValue(int row, int column, ITableCellCache cache) {
 			var resolver = varResolver.ForRow(row);
 
 			if (groupResolver != null) {
@@ -233,7 +233,7 @@ namespace Deveel.Data.Sql.Tables {
 			var size = groupLinks.Count;
 
 			int toTakeInGroup = -1;
-			DataObject max = null;
+			Field max = null;
 
 			for (int i = 0; i < size; ++i) {
 				int row = groupLinks[i];
@@ -409,12 +409,12 @@ namespace Deveel.Data.Sql.Tables {
 			return new SubsetColumnTable(table, new[]{0}, new []{new ObjectName("result") });
 		}
 
-		public static ITable ResultTable(IRequest context, DataObject value) {
+		public static ITable ResultTable(IRequest context, Field value) {
 			return ResultTable(context, SqlExpression.Constant(value));
 		}
 
 		public static ITable ResultTable(IRequest context, int value) {
-			return ResultTable(context, DataObject.Integer(value));
+			return ResultTable(context, Field.Integer(value));
 		}
 
 		#region TableGroupResolver
@@ -453,7 +453,7 @@ namespace Deveel.Data.Sql.Tables {
 				}
 			}
 
-			public DataObject Resolve(ObjectName variable, int setIndex) {
+			public Field Resolve(ObjectName variable, int setIndex) {
 				int colIndex = Table.ReferenceTable.FindColumn(variable);
 				if (colIndex == -1)
 					throw new InvalidOperationException(String.Format("Column {0} not found in table {1}.", variable, Table.TableName));
@@ -510,7 +510,7 @@ namespace Deveel.Data.Sql.Tables {
 					this.rowIndex = rowIndex;
 				}
 
-				public DataObject Resolve(ObjectName variable) {
+				public Field Resolve(ObjectName variable) {
 					if (rowIndex < 0)
 						throw new InvalidOperationException();
 

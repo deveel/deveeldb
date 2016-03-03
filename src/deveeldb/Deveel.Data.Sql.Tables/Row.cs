@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Tables {
 	/// <seealso cref="RowId"/>
 	public sealed class Row : IDbObject {
 		private RowVariableResolver variableResolver;
-		private Dictionary<int, DataObject> values;
+		private Dictionary<int, Field> values;
 
 		/// <summary>
 		/// Constructs a new row object for the table given,
@@ -114,12 +114,12 @@ namespace Deveel.Data.Sql.Tables {
 		/// <param name="columnOffset">The zero-based column offset identifying the
 		/// value to get from the table.</param>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// Returns a <see cref="Field"/> that encapsulates the type and value
 		/// of the cell stored in the database.
 		/// </returns>
 		/// <seealso cref="GetValue(int)"/>
-		/// <seealso cref="SetValue(int, DataObject)"/>
-		public DataObject this[int columnOffset] {
+		/// <seealso cref="SetValue(int, Field)"/>
+		public Field this[int columnOffset] {
 			get { return GetValue(columnOffset); }
 			set { SetValue(columnOffset, value); }
 		}
@@ -129,12 +129,12 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <param name="columnName">The name of the column in the table.</param>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// Returns a <see cref="Field"/> that encapsulates the type and value
 		/// of the cell stored in the database.
 		/// </returns>
 		/// <seealso cref="GetValue(string)"/>
-		/// <seealso cref="SetValue(string, DataObject)"/>
-		public DataObject this[string columnName] {
+		/// <seealso cref="SetValue(string, Field)"/>
+		public Field this[string columnName] {
 			get { return GetValue(columnName); }
 			set { SetValue(columnName, value); }
 		}
@@ -188,7 +188,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// it is called: that means the 
 		/// </remarks>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// Returns a <see cref="Field"/> that encapsulates the type and value
 		/// of the cell stored in the database.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException">
@@ -200,7 +200,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// in the underlying table.
 		/// </exception>
 		/// <seealso cref="TableInfo.ColumnCount"/>
-		public DataObject GetValue(int columnOffset) {
+		public Field GetValue(int columnOffset) {
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
@@ -209,17 +209,17 @@ namespace Deveel.Data.Sql.Tables {
 					throw new InvalidOperationException("Row was not established to any table.");
 
 				var colCount = Table.TableInfo.ColumnCount;
-				values = new Dictionary<int, DataObject>(colCount);
+				values = new Dictionary<int, Field>(colCount);
 
 				for (int i = 0; i < colCount; i++) {
 					values[i] = Table.GetValue(RowId.RowNumber, i);
 				}
 			}
 
-			DataObject value;
+			Field value;
 			if (!values.TryGetValue(columnOffset, out value)) {
 				var columnType = Table.TableInfo[columnOffset].ColumnType;
-				return DataObject.Null(columnType);
+				return Field.Null(columnType);
 			}
 
 			return value;
@@ -232,7 +232,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// value to get from the table.</param>
 		/// <param name="value">The value to set to the cell.</param>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// Returns a <see cref="Field"/> that encapsulates the type and value
 		/// of the cell stored in the database.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException">
@@ -244,14 +244,14 @@ namespace Deveel.Data.Sql.Tables {
 		/// in the underlying table.
 		/// </exception>
 		/// <seealso cref="TableInfo.ColumnCount"/>
-		public void SetValue(int columnOffset, DataObject value) {
+		public void SetValue(int columnOffset, Field value) {
 			var colCount = Table.TableInfo.ColumnCount;
 
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			if (values == null)
-				values = new Dictionary<int, DataObject>(colCount);
+				values = new Dictionary<int, Field>(colCount);
 
 			var column = Table.TableInfo[columnOffset];
 			var columnType = column.ColumnType;
@@ -272,7 +272,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <param name="columnName">The name of the column corresponding to
 		/// the cell to get.</param>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> that encapsulates the type and value
+		/// Returns a <see cref="Field"/> that encapsulates the type and value
 		/// of the cell stored in the database.
 		/// </returns>
 		/// <exception cref="ArgumentNullException">
@@ -282,7 +282,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// If no column with the given name was found in the parent table.
 		/// </exception>
 		/// <seealso cref="GetValue(int)"/>
-		public DataObject GetValue(string columnName) {
+		public Field GetValue(string columnName) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
 
@@ -293,7 +293,7 @@ namespace Deveel.Data.Sql.Tables {
 			return GetValue(offset);
 		}
 
-		public void SetValue(string columnName, DataObject value) {
+		public void SetValue(string columnName, Field value) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
 
@@ -305,19 +305,19 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public void SetValue(int columnIndex, string value) {
-			SetValue(columnIndex, DataObject.String(value));
+			SetValue(columnIndex, Field.String(value));
 		}
 
 		public void SetValue(int columnIndex, int value) {
-			SetValue(columnIndex, DataObject.Integer(value));
+			SetValue(columnIndex, Field.Integer(value));
 		}
 
 		public void SetValue(int columnIndex, long value) {
-			SetValue(columnIndex, DataObject.BigInt(value));
+			SetValue(columnIndex, Field.BigInt(value));
 		}
 
 		public void SetValue(int columnIndex, short value) {
-			SetValue(columnIndex, DataObject.SmallInt(value));
+			SetValue(columnIndex, Field.SmallInt(value));
 		}
 
 		public void SetValue(int columnIndex, float value) {
@@ -325,36 +325,36 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public void SetValue(int columnIndex, double value) {
-			SetValue(columnIndex, DataObject.Number(new SqlNumber(value)));
+			SetValue(columnIndex, Field.Number(new SqlNumber(value)));
 		}
 
 		public void SetValue(int columnIndex, SqlNumber value) {
-			SetValue(columnIndex, DataObject.Number(value));
+			SetValue(columnIndex, Field.Number(value));
 		}
 
 		public void SetValue(int columnIndex, bool value) {
-			SetValue(columnIndex, DataObject.Boolean(value));
+			SetValue(columnIndex, Field.Boolean(value));
 		}
 
 		public void SetValue(int columnIndex, byte[] bytes) {
-			SetValue(columnIndex, DataObject.Binary(bytes));
+			SetValue(columnIndex, Field.Binary(bytes));
 		}
 
 		public void SetValue(int columnIndex, SqlBinary binary) {
-			SetValue(columnIndex, DataObject.Binary(binary));
+			SetValue(columnIndex, Field.Binary(binary));
 		}
 
 		/// <summary>
 		/// Sets the value of a cell of the row at the given offset to <c>NULL</c>.
 		/// </summary>
 		/// <param name="columnOffset">The zero based offset of the column.</param>
-		/// <seealso cref="SetValue(int, DataObject)"/>
+		/// <seealso cref="SetValue(int, Field)"/>
 		public void SetNull(int columnOffset) {
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var columnType = Table.TableInfo[columnOffset].ColumnType;
-			SetValue(columnOffset, new DataObject(columnType, null));
+			SetValue(columnOffset, new Field(columnType, null));
 		}
 
 		/// <summary>
@@ -398,7 +398,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		private DataObject Evaluate(SqlExpression expression, IQuery queryContext) {
+		private Field Evaluate(SqlExpression expression, IQuery queryContext) {
 			var ignoreCase = queryContext.IgnoreIdentifiersCase();
 			// Resolve any variables to the table_def for this expression.
 			expression = Table.TableInfo.ResolveColumns(ignoreCase, expression);
@@ -447,14 +447,14 @@ namespace Deveel.Data.Sql.Tables {
 				get { return assignmentCount; }
 			}
 
-			public DataObject Resolve(ObjectName columnName) {
+			public Field Resolve(ObjectName columnName) {
 				string colName = columnName.Name;
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);
 				if (colIndex == -1)
 					throw new InvalidOperationException(String.Format("Column '{0}' could not be found in table '{1}'", colName, row.Table.FullName));
 
-				DataObject value;
+				Field value;
 				if (!row.values.TryGetValue(colIndex, out value))
 					throw new InvalidOperationException("Column " + colName + " hasn't been set yet.");
 
@@ -490,7 +490,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// row number corresponding and populates this row
 		/// with those values, making it ready to be accessed.
 		/// </summary>
-		/// <seealso cref="SetValue(int, DataObject)"/>
+		/// <seealso cref="SetValue(int, Field)"/>
 		public void SetFromTable() {
 			for (int i = 0; i < Table.TableInfo.ColumnCount; i++) {
 				SetValue(i, Table.GetValue(RowId.RowNumber, i));

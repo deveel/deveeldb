@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -155,7 +156,7 @@ namespace Deveel.Data.Types {
 		}
 
 		/// <summary>
-		/// Converts the given <see cref="DataObject">object value</see> to a
+		/// Converts the given <see cref="Field">object value</see> to a
 		/// <see cref="SqlType"/> specified.
 		/// </summary>
 		/// <param name="value">The value to convert.</param>
@@ -174,10 +175,10 @@ namespace Deveel.Data.Types {
 		/// </para>
 		/// </remarks>
 		/// <returns>
-		/// Returns an instance of <see cref="DataObject"/> that is the result
+		/// Returns an instance of <see cref="Field"/> that is the result
 		/// of the conversion from this data-type to the other type given.
 		/// </returns>
-		public virtual DataObject CastTo(DataObject value, SqlType destType) {
+		public virtual Field CastTo(Field value, SqlType destType) {
 			if (Equals(destType))
 				return value;
 
@@ -290,7 +291,7 @@ namespace Deveel.Data.Types {
 		/// <param name="otherType">The other type to verify.</param>
 		/// <remarks>
 		/// This is very important for operations and functions, when
-		/// operating on <see cref="DataObject">objects</see> with comparable
+		/// operating on <see cref="Field">objects</see> with comparable
 		/// but different data-types, to ensure the result of the operation
 		/// will be capable to handle the final value.
 		/// <para>

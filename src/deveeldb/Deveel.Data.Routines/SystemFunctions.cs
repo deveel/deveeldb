@@ -32,64 +32,64 @@ namespace Deveel.Data.Routines {
 
 		public static FunctionProvider Provider { get; private set; }
 
-		public static DataObject Or(DataObject ob1, DataObject ob2) {
+		public static Field Or(Field ob1, Field ob2) {
 			return ob1 != null ? (ob2.IsNull ? ob1 : (!ob1.IsNull ? ob1.Or(ob2) : ob2)) : ob2;
 		}
 
-		public static DataObject User(IRequest query) {
-			return DataObject.String(query.User().Name);
+		public static Field User(IRequest query) {
+			return Field.String(query.User().Name);
 		}
 
 
-		public static DataObject ToDate(DataObject obj) {
+		public static Field ToDate(Field obj) {
 			return obj.CastTo(PrimitiveTypes.Date());
 		}
 
-		public static DataObject ToDate(SqlString value) {
-			return ToDate(DataObject.String(value));
+		public static Field ToDate(SqlString value) {
+			return ToDate(Field.String(value));
 		}
 
-		public static DataObject ToDateTime(DataObject obj) {
+		public static Field ToDateTime(Field obj) {
 			return obj.CastTo(PrimitiveTypes.DateTime());
 		}
 
-		public static DataObject ToDateTime(SqlString value) {
-			return ToDateTime(DataObject.String(value));
+		public static Field ToDateTime(SqlString value) {
+			return ToDateTime(Field.String(value));
 		}
 
-		public static DataObject ToTimeStamp(DataObject obj) {
+		public static Field ToTimeStamp(Field obj) {
 			return obj.CastTo(PrimitiveTypes.TimeStamp());
 		}
 
-		public static DataObject ToTimeStamp(SqlString value) {
-			return ToTimeStamp(DataObject.String(value));
+		public static Field ToTimeStamp(SqlString value) {
+			return ToTimeStamp(Field.String(value));
 		}
 
-		public static DataObject Cast(DataObject value, SqlType destType) {
+		public static Field Cast(Field value, SqlType destType) {
 			return value.CastTo(destType);
 		}
 
-		public static DataObject Cast(IQuery query, DataObject value, SqlString typeString) {
+		public static Field Cast(IQuery query, Field value, SqlString typeString) {
 			var destType = SqlType.Parse(query.Context, typeString.ToString());
 			return Cast(value, destType);
 		}
 
-		public static DataObject ToNumber(DataObject value) {
+		public static Field ToNumber(Field value) {
 			return value.CastTo(PrimitiveTypes.Numeric());
 		}
 
-		public static DataObject ToString(DataObject value) {
+		public static Field ToString(Field value) {
 			return value.CastTo(PrimitiveTypes.String());
 		}
 
-		public static DataObject ToBinary(DataObject value) {
+		public static Field ToBinary(Field value) {
 			return value.CastTo(PrimitiveTypes.Binary());
 		}
 
-		public static DataObject UniqueKey(IRequest query, DataObject tableName) {
+		public static Field UniqueKey(IRequest query, Field tableName) {
 			var tableNameString = (SqlString)tableName.Value;
 			var value = UniqueKey(query, tableNameString);
-			return DataObject.Number(value);
+			return Field.Number(value);
 		}
 
 		public static SqlNumber UniqueKey(IRequest query, SqlString tableName) {
@@ -98,10 +98,10 @@ namespace Deveel.Data.Routines {
 			return query.Query.GetNextValue(resolvedName);
 		}
 
-		public static DataObject CurrentValue(IRequest query, DataObject tableName) {
+		public static Field CurrentValue(IRequest query, Field tableName) {
 			var tableNameString = (SqlString)tableName.Value;
 			var value = CurrentValue(query, tableNameString);
-			return DataObject.Number(value);
+			return Field.Number(value);
 		}
 
 		public static SqlNumber CurrentValue(IRequest query, SqlString tableName) {
@@ -111,15 +111,15 @@ namespace Deveel.Data.Routines {
 		}
 
 		internal static InvokeResult Iif(InvokeContext context) {
-			var result = DataObject.Null();
+			var result = Field.Null();
 
 			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);
 
 			var condition = context.Arguments[0].EvaluateToConstant(evalContext);
 			if (condition.Type is BooleanType) {
-				if (condition.Equals(DataObject.BooleanTrue)) {
+				if (condition.Equals(Field.BooleanTrue)) {
 					result = context.Arguments[1].EvaluateToConstant(evalContext);
-				} else if (condition.Equals(DataObject.BooleanFalse)) {
+				} else if (condition.Equals(Field.BooleanFalse)) {
 					result = context.Arguments[2].EvaluateToConstant(evalContext);
 				}
 			}
@@ -127,7 +127,7 @@ namespace Deveel.Data.Routines {
 			return context.Result(result);
 		}
 
-		internal static DataObject FRuleConvert(DataObject obj) {
+		internal static Field FRuleConvert(Field obj) {
 			if (obj.Type is StringType) {
 				String str = null;
 				if (!obj.IsNull) {
@@ -149,7 +149,7 @@ namespace Deveel.Data.Routines {
 				}
 
 				// Return the correct enumeration
-				return DataObject.Integer(v);
+				return Field.Integer(v);
 			}
 			if (obj.Type is NumericType) {
 				var code = ((SqlNumber)obj.AsBigInt().Value).ToInt32();
@@ -166,7 +166,7 @@ namespace Deveel.Data.Routines {
 					throw new InvalidOperationException("Unrecognised foreign key rule: " + code);
 				}
 
-				return DataObject.String(v);
+				return Field.String(v);
 			}
 
 			throw new InvalidOperationException("Unsupported type in function argument");

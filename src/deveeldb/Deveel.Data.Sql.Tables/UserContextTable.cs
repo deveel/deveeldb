@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Tables {
 		protected override void SetupIndexes(Type indexType) {
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			return Table.GetValue(rowNumber, columnOffset);
 		}
 

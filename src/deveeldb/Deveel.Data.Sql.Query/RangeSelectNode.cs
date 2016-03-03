@@ -133,7 +133,7 @@ namespace Deveel.Data.Sql.Query {
 				// null.
 				var fieldType = field.ColumnType;
 				if (!value.Type.IsComparable(fieldType))
-					value = DataObject.Null(fieldType);
+					value = Field.Null(fieldType);
 
 				// Intersect this in the range set
 				indexRangeSet = indexRangeSet.Intersect(op, value);

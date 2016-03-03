@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Expressions {
 	public class SqlDateExpressionTests {
 		[Test]
 		public void StringToDate() {
-			var toDate = SqlExpression.FunctionCall("TODATE", new[] {SqlExpression.Constant(DataObject.String("2016-01-20"))});
+			var toDate = SqlExpression.FunctionCall("TODATE", new[] {SqlExpression.Constant(Field.String("2016-01-20"))});
 
 			var returnType = toDate.ReturnType(null, null);
 

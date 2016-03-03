@@ -191,15 +191,15 @@ namespace Deveel.Data.Sql.Parser {
 
 		private static SqlExpression VisitConstantExpression(SqlConstantExpressionNode expressionNode) {
 			var sqlValue = expressionNode.Value;
-			DataObject obj;
+			Field obj;
 			if (sqlValue is SqlString) {
-				obj = DataObject.VarChar((SqlString) sqlValue);
+				obj = Field.VarChar((SqlString) sqlValue);
 			} else if (sqlValue is SqlBoolean) {
-				obj = DataObject.Boolean((SqlBoolean) sqlValue);
+				obj = Field.Boolean((SqlBoolean) sqlValue);
 			} else if (sqlValue is SqlNumber) {
-				obj = DataObject.Number((SqlNumber) sqlValue);
+				obj = Field.Number((SqlNumber) sqlValue);
 			} else if (sqlValue is SqlNull) { 
-				obj = DataObject.Null();
+				obj = Field.Null();
 			} else {
 				throw new NotSupportedException("Constant value not supported.");
 			}

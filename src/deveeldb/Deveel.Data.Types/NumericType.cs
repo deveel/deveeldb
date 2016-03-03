@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
@@ -218,7 +219,7 @@ namespace Deveel.Data.Types {
 			       destType.TypeCode != SqlTypeCode.Object;
 		}
 
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			var n = (SqlNumber) value.Value;
 			var sqlType = destType.TypeCode;
 			ISqlObject casted;
@@ -281,7 +282,7 @@ namespace Deveel.Data.Types {
 					throw new InvalidCastException();
 			}
 
-			return new DataObject(destType, casted);
+			return new Field(destType, casted);
 		}
 
 		public override string ToString() {

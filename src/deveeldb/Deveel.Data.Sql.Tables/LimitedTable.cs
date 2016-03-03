@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Tables {
 			get { return NormalizeCount(base.RowCount); }
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			if (rowNumber >= RowCount)
 				throw new ArgumentOutOfRangeException("rowNumber");
 

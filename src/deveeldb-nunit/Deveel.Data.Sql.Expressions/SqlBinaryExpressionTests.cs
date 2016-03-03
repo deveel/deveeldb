@@ -25,8 +25,8 @@ namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlBinaryExpressionTests {
 		[Test]
 		public void NumericAndNumericAdd() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566, 10)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(8991.67, 10)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(4566, 10)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(8991.67, 10)));
 			var addExp = SqlExpression.Add(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -47,8 +47,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericAddToString() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566, 10)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(8991.67, 10)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(4566, 10)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(8991.67, 10)));
 			var addExp = SqlExpression.Add(exp1, exp2);
 
 			string s = null;
@@ -60,8 +60,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericAndBooleanAdd() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(4566)));
-			var exp2 = SqlExpression.Constant(DataObject.Boolean(true));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(4566)));
+			var exp2 = SqlExpression.Constant(Field.Boolean(true));
 			var addExp = SqlExpression.Add(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -81,8 +81,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void StringAndStringAdd() {
-			var exp1 = SqlExpression.Constant(DataObject.String("The quick brown fox "));
-			var exp2 = SqlExpression.Constant(DataObject.VarChar("jumps over the lazy dog"));
+			var exp1 = SqlExpression.Constant(Field.String("The quick brown fox "));
+			var exp2 = SqlExpression.Constant(Field.VarChar("jumps over the lazy dog"));
 			var addExp = SqlExpression.Add(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -99,8 +99,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericAndNumericSubtract() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(879987.47, 10)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(2577.14, 10)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(879987.47, 10)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(2577.14, 10)));
 			var subtractExp = SqlExpression.Subtract(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -121,8 +121,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericAndBooleanSubtract() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(325778.32)));
-			var exp2 = SqlExpression.Constant(DataObject.Boolean(true));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(325778.32)));
+			var exp2 = SqlExpression.Constant(Field.Boolean(true));
 			var subtractExp = SqlExpression.Subtract(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -139,8 +139,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericMultiply() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(56894.09)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(456)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(56894.09)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(456)));
 			var mulExp = SqlExpression.Multiply(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -160,8 +160,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericDivide() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(49021.022)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(78.34)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(49021.022)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(78.34)));
 			var divExp = SqlExpression.Divide(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -181,8 +181,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericModulo() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(892771.0623)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(9012)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(892771.0623)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(9012)));
 			var modExp = SqlExpression.Modulo(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -204,8 +204,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(12345, 2345, false)]
 		[TestCase(123456.789, 123456.7, false)]
 		public void NumericEqualTo(double a, double b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var eqExp = SqlExpression.Equal(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -227,8 +227,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(12345, 123456, true)]
 		[TestCase(564255.23899, 564255.23, true)]
 		public void NumericNotEqualTo(double a, double b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var eqExp = SqlExpression.NotEqual(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -250,8 +250,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(8764556.9011, 8764556.901145, false)]
 		[TestCase(244591, 24620, true)]
 		public void NumericGreaterThan(double a, double b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var grExp = SqlExpression.GreaterThan(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -273,8 +273,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(625.99e23, 12, false)]
 		[TestCase(19283.9991e68, 19283.9991e69, true)]
 		public void NumericSmallerThan(double a, double b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var ltExp = SqlExpression.SmallerThan(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -294,8 +294,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[TestCase(458849, 5526, 464375)]
 		public void NumericOr(long a, long b, long expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var orExp = SqlExpression.Or(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -317,8 +317,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(true, false, true)]
 		[TestCase(false, false, false)]
 		public void BooleanOr(bool a, bool b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Boolean(new SqlBoolean(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Boolean(new SqlBoolean(b)));
+			var exp1 = SqlExpression.Constant(Field.Boolean(new SqlBoolean(a)));
+			var exp2 = SqlExpression.Constant(Field.Boolean(new SqlBoolean(b)));
 			var orExp = SqlExpression.Or(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -341,8 +341,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(true, false, false)]
 		[TestCase(false, false, false)]
 		public void BooleanAnd(bool a, bool b, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Boolean(new SqlBoolean(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Boolean(new SqlBoolean(b)));
+			var exp1 = SqlExpression.Constant(Field.Boolean(new SqlBoolean(a)));
+			var exp2 = SqlExpression.Constant(Field.Boolean(new SqlBoolean(b)));
 			var andExp = SqlExpression.And(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -363,8 +363,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[TestCase(567488, 90021, 653157)]
 		public void NumericXOr(double a, double b, double expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Double(a));
-			var exp2 = SqlExpression.Constant(DataObject.Double(b));
+			var exp1 = SqlExpression.Constant(Field.Double(a));
+			var exp2 = SqlExpression.Constant(Field.Double(b));
 			var xorExp = SqlExpression.XOr(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -384,8 +384,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[TestCase(6574493, 13324, 4108)]
 		public void NumericAnd(long a, long b, long expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
-			var exp2 = SqlExpression.Constant(DataObject.Number(new SqlNumber(b)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
+			var exp2 = SqlExpression.Constant(Field.Number(new SqlNumber(b)));
 			var orExp = SqlExpression.And(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -405,8 +405,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericIsNullTrue() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(SqlNumber.Null));
-			var exp2 = SqlExpression.Constant(DataObject.Null());
+			var exp1 = SqlExpression.Constant(Field.Number(SqlNumber.Null));
+			var exp2 = SqlExpression.Constant(Field.Null());
 			var orExp = SqlExpression.Is(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -426,8 +426,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void NumericIsNullFalse() {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(747748)));
-			var exp2 = SqlExpression.Constant(DataObject.Null());
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(747748)));
+			var exp2 = SqlExpression.Constant(Field.Null());
 			var orExp = SqlExpression.Is(exp1, exp2);
 
 			SqlExpression resultExp = null;
@@ -454,8 +454,8 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase("Antonello", "Antonello_", false)]
 		[TestCase("Antonello Provenzano", "Antonello%", true)]
 		public void StringLikesPattern(string input, string patern, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.String(patern));
-			var exp2 = SqlExpression.Constant(DataObject.String(input));
+			var exp1 = SqlExpression.Constant(Field.String(patern));
+			var exp2 = SqlExpression.Constant(Field.String(input));
 			var likeExp = SqlExpression.Like(exp1, exp2);
 
 			SqlExpression resultExp = null;

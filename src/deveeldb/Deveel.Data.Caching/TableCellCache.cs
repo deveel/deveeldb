@@ -17,6 +17,7 @@
 using System;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
 	public sealed class TableCellCache : ITableCellCache, IDisposable {
@@ -91,7 +92,7 @@ namespace Deveel.Data.Caching {
 
 					// If there is an existing object here, remove it from the cache and
 					// update the current_cache_size.
-					var removedCell = (DataObject)cache.Remove(key);
+					var removedCell = (Field)cache.Remove(key);
 					if (!Equals(removedCell, null)) {
 						size -= AmountMemory(removedCell);
 					}
@@ -111,15 +112,15 @@ namespace Deveel.Data.Caching {
 			lock (this) {
 				var cell = cache.Remove(new CacheKey(database, tableId, (int)rowNumber, (short)columnOffset));
 				if (cell != null)
-					size -= AmountMemory((DataObject) cell);
+					size -= AmountMemory((Field) cell);
 			}
 		}
 
-		private static int AmountMemory(DataObject value) {
+		private static int AmountMemory(Field value) {
 			return 16 + value.CacheUsage;
 		}
 
-		public bool TryGetValue(CellKey key, out DataObject value) {
+		public bool TryGetValue(CellKey key, out Field value) {
 			lock (this) {
 				var database = key.Database;
 				var tableKey = key.RowId.TableId;
@@ -132,7 +133,7 @@ namespace Deveel.Data.Caching {
 					return false;
 				}
 
-				value = (DataObject) obj;
+				value = (Field) obj;
 				return true;
 			}
 		}
@@ -190,7 +191,7 @@ namespace Deveel.Data.Caching {
 				base.OnWipingNode(ob);
 
 				// Update our memory indicator accordingly.
-				var value = (DataObject)ob;
+				var value = (Field)ob;
 				tableCache.ReduceCacheSize(AmountMemory(value));
 			}
 

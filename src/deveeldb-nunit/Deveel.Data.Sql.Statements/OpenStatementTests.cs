@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 		// TODO: Open a cursor should create a context in which to inject the arguments
 		//[Test]
 		//public void OpenWithArguments() {
-		//	var args = new SqlExpression[] {SqlExpression.Constant(DataObject.Integer(22))};
+		//	var args = new SqlExpression[] {SqlExpression.Constant(Field.Integer(22))};
 		//	var statement = new OpenStatement("c2", args);
 
 		//	statement.Execute(Query);

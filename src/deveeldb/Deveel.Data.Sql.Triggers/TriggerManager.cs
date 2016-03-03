@@ -126,9 +126,9 @@ namespace Deveel.Data.Sql.Triggers {
 			using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, nameColumn, SqlExpressionType.Equal,
-						SqlExpression.Constant(DataObject.String(name)));
+						SqlExpression.Constant(Field.String(name)));
 					return t.ExhaustiveSelect(context,
-						SqlExpression.Equal(SqlExpression.Reference(schemaColumn), SqlExpression.Constant(DataObject.String(schema))));
+						SqlExpression.Equal(SqlExpression.Reference(schemaColumn), SqlExpression.Constant(Field.String(schema))));
 				}
 			}
 		}
@@ -148,7 +148,7 @@ namespace Deveel.Data.Sql.Triggers {
 			using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
-						SqlExpression.Constant(DataObject.String(fullTableName)));
+						SqlExpression.Constant(Field.String(fullTableName)));
 
 					result = t.ExhaustiveSelect(context,
 						SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
@@ -263,13 +263,13 @@ namespace Deveel.Data.Sql.Triggers {
 				// Insert the entry into the trigger table,
 				var table = transaction.GetMutableTable(SystemSchema.TriggerTableName);
 				var row = table.NewRow();
-				row.SetValue(0, DataObject.String(schema));
-				row.SetValue(1, DataObject.String(name));
-				row.SetValue(2, DataObject.Integer(type));
-				row.SetValue(3, DataObject.String(onTable));
-				row.SetValue(4, DataObject.Integer(action));
-				row.SetValue(5, DataObject.String(procedureName));
-				row.SetValue(6, DataObject.Binary(binArgs));
+				row.SetValue(0, Field.String(schema));
+				row.SetValue(1, Field.String(name));
+				row.SetValue(2, Field.Integer(type));
+				row.SetValue(3, Field.String(onTable));
+				row.SetValue(4, Field.Integer(action));
+				row.SetValue(5, Field.String(procedureName));
+				row.SetValue(6, Field.Binary(binArgs));
 				table.AddRow(row);
 
 				InvalidateTriggerCache();
@@ -434,21 +434,21 @@ namespace Deveel.Data.Sql.Triggers {
 					get { return tableInfo; }
 				}
 
-				public DataObject Type { get; set; }
+				public Field Type { get; set; }
 
-				public DataObject TableName { get; set; }
+				public Field TableName { get; set; }
 
-				public DataObject Routine { get; set; }
+				public Field Routine { get; set; }
 
-				public DataObject Arguments { get; set; }
+				public Field Arguments { get; set; }
 
-				public DataObject Owner { get; set; }
+				public Field Owner { get; set; }
 
 				public override int RowCount {
 					get { return 1; }
 				}
 
-				public override DataObject GetValue(long rowNumber, int columnOffset) {
+				public override Field GetValue(long rowNumber, int columnOffset) {
 					if (rowNumber > 0)
 						throw new ArgumentOutOfRangeException("rowNumber");
 

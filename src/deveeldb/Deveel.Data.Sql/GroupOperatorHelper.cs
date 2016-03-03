@@ -16,22 +16,21 @@
 
 using System;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Types;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	static class GroupOperatorHelper {
-		private static bool IsTrue(DataObject b) {
+		private static bool IsTrue(Field b) {
 			return (!b.IsNull &&
 					b.Type is BooleanType &&
 					b.Value.Equals(SqlBoolean.True));
 		}
 
-		public static DataObject EvaluateAny(SqlExpressionType plainType, DataObject ob1, DataObject ob2, EvaluateContext context) {
+		public static Field EvaluateAny(SqlExpressionType plainType, Field ob1, Field ob2, EvaluateContext context) {
 			if (ob2.Type is QueryType) {
 				// The sub-query plan
 				var plan = ((SqlQueryObject)ob2.Value).QueryPlan;
@@ -60,7 +59,7 @@ namespace Deveel.Data {
 			if (ob2.Type is ArrayType) {
 				var expList = (SqlArray)ob2.Value;
 				// Assume there are no matches
-				var retVal = DataObject.BooleanFalse;
+				var retVal = Field.BooleanFalse;
 				foreach (var exp in expList) {
 					var expItem = exp.Evaluate(context);
 					if (expItem.ExpressionType != SqlExpressionType.Constant)
@@ -70,10 +69,10 @@ namespace Deveel.Data {
 
 					// If null value, return null if there isn't otherwise a match found.
 					if (evalItem.Value.IsNull) {
-						retVal = DataObject.BooleanNull;
+						retVal = Field.BooleanNull;
 					} else if (IsTrue(Evaluate(ob1, plainType, evalItem.Value, context))) {
 						// If there is a match, the ANY set test is true
-						return DataObject.BooleanTrue;
+						return Field.BooleanTrue;
 					}
 				}
 				// No matches, so return either false or NULL.  If there are no matches
@@ -85,7 +84,7 @@ namespace Deveel.Data {
 			throw new InvalidOperationException("Unknown RHS of ANY.");
 		}
 
-		public static DataObject EvaluateAll(SqlExpressionType plainType, DataObject ob1, DataObject ob2,
+		public static Field EvaluateAll(SqlExpressionType plainType, Field ob1, Field ob2,
 			EvaluateContext context) {
 			if (ob2.Type is QueryType) {
 				// The sub-query plan
@@ -108,13 +107,13 @@ namespace Deveel.Data {
 				var t = planObj.QueryPlan.Evaluate(context.Request);
 
 				var revPlainOp = plainType.Reverse();
-				return DataObject.Boolean(t.AllRowsMatchColumnValue(0, revPlainOp, ob1));
+				return Field.Boolean(t.AllRowsMatchColumnValue(0, revPlainOp, ob1));
 			}
 			if (ob2.Type is ArrayType) {
 				var expList = (SqlArray) ob2.Value;
 
 				// Assume true unless otherwise found to be false or NULL.
-				DataObject retVal = DataObject.BooleanTrue;
+				Field retVal = Field.BooleanTrue;
 				foreach (var exp in expList) {
 					var expItem = exp.Evaluate(context);
 
@@ -126,10 +125,10 @@ namespace Deveel.Data {
 					// If there is a null item, we return null if not otherwise found to
 					// be false.
 					if (evalItem.Value.IsNull) {
-						retVal = DataObject.BooleanNull;
+						retVal = Field.BooleanNull;
 					} else if (!IsTrue(Evaluate(ob1, plainType, evalItem.Value, context))) {
 						// If it doesn't match return false
-						return DataObject.BooleanFalse;
+						return Field.BooleanFalse;
 					}
 				}
 
@@ -141,7 +140,7 @@ namespace Deveel.Data {
 			throw new InvalidOperationException("Unknown RHS of ALL.");
 		}
 
-		private static DataObject Evaluate(DataObject left, SqlExpressionType binaryType, DataObject right, EvaluateContext context) {
+		private static Field Evaluate(Field left, SqlExpressionType binaryType, Field right, EvaluateContext context) {
 			if (binaryType.IsAll())
 				return left.Any(binaryType.SubQueryPlainType(), right, context);
 			if (binaryType.IsAny())

@@ -653,7 +653,7 @@ namespace Deveel.Data.Sql.Query {
 				var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 				queryFrom.Parent = parent;
 				var plan = planner.PlanQuery(context, queryExpression, queryFrom, null, null);
-				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(new CachePointNode(plan))));
+				return SqlExpression.Constant(new Field(new QueryType(), new SqlQueryObject(new CachePointNode(plan))));
 			}
 		}
 

@@ -15,6 +15,7 @@
 using System;
 
 using Deveel.Data;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -45,7 +46,7 @@ namespace Deveel.Data.Routines {
 			Assert.DoesNotThrow(() => factory2 = new Factory2());
 
 			IFunction function = null;
-			var args = new DataObject[] {DataObject.BigInt(2), DataObject.Number(new SqlNumber(54))};
+			var args = new Field[] {Field.BigInt(2), Field.Number(new SqlNumber(54))};
 			Assert.DoesNotThrow(() => function = factory2.ResolveFunction("add2", args));
 			Assert.IsNotNull(function);
 
@@ -69,7 +70,7 @@ namespace Deveel.Data.Routines {
 			protected override void OnInit() {
 				Register(config => config.Named("user2")
 					.ReturnsType(PrimitiveTypes.String())
-					.WhenExecute(context => context.Result(DataObject.String(context.Request.User().Name))));
+					.WhenExecute(context => context.Result(Field.String(context.Request.User().Name))));
 			}
 		}
 

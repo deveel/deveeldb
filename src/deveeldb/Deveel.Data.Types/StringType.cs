@@ -20,6 +20,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Text;
@@ -325,13 +326,13 @@ namespace Deveel.Data.Types {
 		}
 
 		/// <inheritdoc/>
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			string str = value.Value.ToString();
 			var sqlType = destType.TypeCode;
 			ISqlObject castedValue;
 
 			if (value.IsNull)
-				return DataObject.Null(destType);
+				return Field.Null(destType);
 
 			switch (sqlType) {
 				case (SqlTypeCode.Bit):
@@ -413,7 +414,7 @@ namespace Deveel.Data.Types {
 					throw new InvalidCastException();
 			}
 
-			return new DataObject(destType, castedValue);
+			return new Field(destType, castedValue);
 		}
 
 		public override int Compare(ISqlObject x, ISqlObject y) {

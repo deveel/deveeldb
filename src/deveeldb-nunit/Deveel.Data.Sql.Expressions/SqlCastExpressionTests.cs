@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Expressions {
 	public class SqlCastExpressionTests {
 		[Test]
 		public void CastStringToInteger() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("1234")), PrimitiveTypes.Integer());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("1234")), PrimitiveTypes.Integer());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToNumber() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("12.3e4")), PrimitiveTypes.Numeric());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("12.3e4")), PrimitiveTypes.Numeric());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToDateTime() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("2015-09-01")), PrimitiveTypes.DateTime());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("2015-09-01")), PrimitiveTypes.DateTime());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToDate() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("2015-09-01")), PrimitiveTypes.Date());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("2015-09-01")), PrimitiveTypes.Date());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToTime() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("22:13:01")), PrimitiveTypes.Time());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("22:13:01")), PrimitiveTypes.Time());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -111,7 +111,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToBooleanTrue() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("true")), PrimitiveTypes.Boolean());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("true")), PrimitiveTypes.Boolean());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -127,7 +127,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastStringToBooleanFalse() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.String("false")), PrimitiveTypes.Boolean());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("false")), PrimitiveTypes.Boolean());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -143,7 +143,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastBooleanFalseToString() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.Boolean(false)), PrimitiveTypes.String());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.Boolean(false)), PrimitiveTypes.String());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -159,7 +159,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastBooleanTrueToString() {
-			var exp = SqlExpression.Cast(SqlExpression.Constant(DataObject.Boolean(true)), PrimitiveTypes.String());
+			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.Boolean(true)), PrimitiveTypes.String());
 
 			SqlExpression casted = null;
 			Assert.DoesNotThrow(() => casted = exp.Evaluate());
@@ -175,7 +175,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		[Test]
 		public void CastDateToString() {
-			var date = DataObject.Date(new SqlDateTime(2015, 02, 03));
+			var date = Field.Date(new SqlDateTime(2015, 02, 03));
 			var exp = SqlExpression.Cast(SqlExpression.Constant(date), PrimitiveTypes.String());
 
 			SqlExpression casted = null;

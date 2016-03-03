@@ -126,7 +126,7 @@ namespace Deveel.Data.Sql.Tables {
 			return GetRawTableInfo(rootInfo);
 		}
 
-		public abstract DataObject GetValue(long rowNumber, int columnOffset);
+		public abstract Field GetValue(long rowNumber, int columnOffset);
 
 		public ColumnIndex GetIndex(int columnOffset) {
 			return GetIndex(columnOffset, columnOffset, this);
@@ -194,7 +194,7 @@ namespace Deveel.Data.Sql.Tables {
 				return colIndex;
 			}
 
-			public DataObject Resolve(ObjectName columnName) {
+			public Field Resolve(ObjectName columnName) {
 				return table.GetValue(rowIndex, FindColumnName(columnName));
 			}
 

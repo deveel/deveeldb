@@ -127,7 +127,7 @@ namespace Deveel.Data.Protocol {
 			rowIndexMap = null;
 		}
 
-		public DataObject GetValue(int rowIndex, int columnIndex) {
+		public Field GetValue(int rowIndex, int columnIndex) {
 			if (locked <= 0)
 				throw new Exception("Table roots not locked!");
 

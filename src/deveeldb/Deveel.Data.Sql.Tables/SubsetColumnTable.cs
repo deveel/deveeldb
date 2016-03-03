@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql.Tables {
 			return base.ResolveRows(columnMap[column], rowSet, ancestor);
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			return Parent.GetValue(rowNumber, columnMap[columnOffset]);
 		}
 

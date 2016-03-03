@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -96,7 +97,7 @@ namespace Deveel.Data.Types {
 			return b == 1;
 		}
 
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			var sqlType = destType.TypeCode;
 			var binary = ((ISqlBinary) value.Value);
 
@@ -111,7 +112,7 @@ namespace Deveel.Data.Types {
 					throw new InvalidCastException();
 			}
 
-			return new DataObject(destType, casted);
+			return new Field(destType, casted);
 		}
 
 		internal override int ColumnSizeOf(ISqlObject obj) {

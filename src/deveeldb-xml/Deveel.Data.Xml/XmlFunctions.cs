@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -12,23 +13,23 @@ namespace Deveel.Data.Xml {
 			get { return new XmlFunctionProvider(); }
 		}
 
-		private static string GetXPath(DataObject xpath) {
+		private static string GetXPath(Field xpath) {
 			if (!(xpath.Type is StringType))
 				throw new ArgumentException();
 
 			return xpath.AsVarChar().Value.ToString();
 		}
 
-		private static SqlXmlNode GetXmlNode(DataObject node) {
+		private static SqlXmlNode GetXmlNode(Field node) {
 			if (!(node.Type is XmlNodeType))
 				throw new ArgumentException();
 
 			return node.Value as SqlXmlNode;
 		}
 
-		public static DataObject XmlType(DataObject obj) {
+		public static Field XmlType(Field obj) {
 			if (obj.IsNull)
-				return new DataObject(XmlNodeType.XmlType, SqlNull.Value);
+				return new Field(XmlNodeType.XmlType, SqlNull.Value);
 
 			var value = obj.Value;
 			SqlXmlNode xmlNode;
@@ -41,7 +42,7 @@ namespace Deveel.Data.Xml {
 				throw new NotSupportedException();
 			}
 
-			return new DataObject(XmlNodeType.XmlType, xmlNode);
+			return new Field(XmlNodeType.XmlType, xmlNode);
 		}
 
 		public static SqlXmlNode XmlType(ISqlBinary binary) {
@@ -98,9 +99,9 @@ namespace Deveel.Data.Xml {
 			return new SqlXmlNode(bytes);
 		}
 
-		public static DataObject AppendChild(DataObject obj, DataObject xpath, DataObject value) {
+		public static Field AppendChild(Field obj, Field xpath, Field value) {
 			var result = AppendChild(GetXmlNode(obj), GetXPath(xpath), GetXmlNode(value));
-			return new DataObject(XmlNodeType.XmlType, result);
+			return new Field(XmlNodeType.XmlType, result);
 		}
 
 
@@ -108,16 +109,16 @@ namespace Deveel.Data.Xml {
 			return node.AppendChild(xpath, value);
 		}
 
-		public static DataObject Extract(DataObject obj, DataObject xpath) {
+		public static Field Extract(Field obj, Field xpath) {
 			var result = Extract(GetXmlNode(obj), GetXPath(xpath));
-			return new DataObject(XmlNodeType.XmlType, result);
+			return new Field(XmlNodeType.XmlType, result);
 		}
 
 		public static SqlXmlNode Extract(SqlXmlNode node, string xpath) {
 			return node.Extract(xpath);
 		}
 
-		public static DataObject ExtractValue(DataObject obj, DataObject xpath) {
+		public static Field ExtractValue(Field obj, Field xpath) {
 			var result = ExtractValue(GetXmlNode(obj), GetXPath(xpath));
 
 			SqlType resultType = PrimitiveTypes.String();
@@ -128,31 +129,31 @@ namespace Deveel.Data.Xml {
 
 			// TODO: Support more types
 
-			return new DataObject(resultType, result);
+			return new Field(resultType, result);
 		}
 
 		public static ISqlObject ExtractValue(SqlXmlNode node, string xpath) {
 			return node.ExtractValue(xpath);
 		}
 
-		public static DataObject Delete(DataObject obj, DataObject xpath) {
+		public static Field Delete(Field obj, Field xpath) {
 			var result = Delete(GetXmlNode(obj), GetXPath(xpath));
-			return new DataObject(XmlNodeType.XmlType, result);
+			return new Field(XmlNodeType.XmlType, result);
 		}
 
 		public static SqlXmlNode Delete(SqlXmlNode node, string xpath) {
 			return node.Delete(xpath);
 		}
 
-		public static DataObject Exists(DataObject obj, DataObject xpath) {
+		public static Field Exists(Field obj, Field xpath) {
 			return Exists(obj, GetXPath(xpath));
 		}
 
-		public static DataObject Exists(DataObject obj, string xpath) {
+		public static Field Exists(Field obj, string xpath) {
 			throw new NotImplementedException();
 		}
 
-		public static DataObject InsertChild(DataObject obj, DataObject xpath, DataObject child, DataObject value) {
+		public static Field InsertChild(Field obj, Field xpath, Field child, Field value) {
 			throw new NotImplementedException();
 		}
 
@@ -160,21 +161,21 @@ namespace Deveel.Data.Xml {
 			return node.InsertChild(xpath, child, value);
 		}
 
-		public static DataObject InsertBefore(DataObject obj, DataObject xpath, DataObject value) {
+		public static Field InsertBefore(Field obj, Field xpath, Field value) {
 			return InsertBefore(obj, GetXPath(xpath), value);
 		}
 
-		public static DataObject InsertBefore(DataObject obj, string xpath, DataObject value) {
+		public static Field InsertBefore(Field obj, string xpath, Field value) {
 			throw new NotImplementedException();
 		}
 
-		public static SqlXmlNode Update(SqlXmlNode node, string xpath, DataObject value) {
+		public static SqlXmlNode Update(SqlXmlNode node, string xpath, Field value) {
 			return node.Update(xpath, value.Value);
 		}
 
-		public static DataObject Update(DataObject obj, DataObject xpath, DataObject value) {
+		public static Field Update(Field obj, Field xpath, Field value) {
 			var result = Update(GetXmlNode(obj), GetXPath(xpath), value);
-			return new DataObject(XmlNodeType.XmlType, result);
+			return new Field(XmlNodeType.XmlType, result);
 		}
 	}
 }

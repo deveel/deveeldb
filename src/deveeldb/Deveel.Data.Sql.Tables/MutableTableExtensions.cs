@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Tables {
 			return removeCount;
 		}
 
-		public static bool Delete(this IMutableTable table, int columnOffset, DataObject value) {
+		public static bool Delete(this IMutableTable table, int columnOffset, Field value) {
 			var list = table.SelectRowsEqual(columnOffset, value).ToArray();
 			if (list.Length == 0)
 				return false;

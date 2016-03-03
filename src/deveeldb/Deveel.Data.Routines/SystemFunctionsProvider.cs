@@ -36,13 +36,13 @@ namespace Deveel.Data.Routines {
 			return base.NormalizeName(functionName);
 		}
 
-		private InvokeResult Simple(InvokeContext context, Func<DataObject[], DataObject> func) {
+		private InvokeResult Simple(InvokeContext context, Func<Field[], Field> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated);
 			return context.Result(value);
 		}
 
-		private InvokeResult Binary(InvokeContext context, Func<DataObject, DataObject, DataObject> func) {
+		private InvokeResult Binary(InvokeContext context, Func<Field, Field, Field> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated[0], evaluated[1]);
 			return context.Result(value);			
@@ -177,10 +177,10 @@ namespace Deveel.Data.Routines {
 					throw new Exception("'count' can only be used as an aggregate function.");
 
 				int size = context.GroupResolver.Count;
-				DataObject result;
+				Field result;
 				// if, count(*)
 				if (size == 0 || context.Invoke.IsGlobArgument) {
-					result = DataObject.Integer(size);
+					result = Field.Integer(size);
 				} else {
 					// Otherwise we need to count the number of non-null entries in the
 					// columns list(s).
@@ -195,7 +195,7 @@ namespace Deveel.Data.Routines {
 						}
 					}
 
-					result = DataObject.Integer(totalCount);
+					result = Field.Integer(totalCount);
 				}
 
 				return context.Result(result);

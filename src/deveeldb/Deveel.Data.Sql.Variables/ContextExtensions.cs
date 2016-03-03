@@ -144,7 +144,7 @@ namespace Deveel.Data.Sql.Variables {
 				this.context = context;
 			}
 
-			public DataObject Resolve(ObjectName variableName) {
+			public Field Resolve(ObjectName variableName) {
 				var variable = context.FindVariable(variableName.Name);
 				if (variable == null)
 					return null;

@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 using NUnit.Framework;
@@ -24,7 +25,7 @@ namespace Deveel.Data {
 	public class BooleanObjectTest {
 		[Test]
 		public void Create_True() {
-			var obj = DataObject.Boolean(true);
+			var obj = Field.Boolean(true);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.AreEqual(true, (bool)obj.AsBoolean());
@@ -32,12 +33,12 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Convert_True_ToNumber() {
-			var obj = DataObject.Boolean(true);
+			var obj = Field.Boolean(true);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.AreEqual(true, (bool)obj.AsBoolean());
 
-			DataObject numObj = null;
+			Field numObj = null;
 			Assert.DoesNotThrow(() => numObj = obj.AsInteger());
 			Assert.IsNotNull(numObj);
 			Assert.AreEqual(1, (int) numObj);
@@ -45,7 +46,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Create_False() {
-			var obj = DataObject.Boolean(false);
+			var obj = Field.Boolean(false);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.AreEqual(false, (bool)obj.AsBoolean());
@@ -53,12 +54,12 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Convert_False_ToNumber() {
-			var obj = DataObject.Boolean(false);
+			var obj = Field.Boolean(false);
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.AreEqual(false, (bool)obj.AsBoolean());
 
-			DataObject numObj = null;
+			Field numObj = null;
 			Assert.DoesNotThrow(() => numObj = obj.AsInteger());
 			Assert.IsNotNull(numObj);
 			Assert.AreEqual(0, (int) numObj);
@@ -66,7 +67,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Create_Null() {
-			var obj = DataObject.BooleanNull;
+			var obj = Field.BooleanNull;
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.IsTrue(obj.IsNull);
@@ -75,12 +76,12 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Convert_Null_ToNumber() {
-			var obj = DataObject.BooleanNull;
+			var obj = Field.BooleanNull;
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlBoolean>(obj.Value);
 			Assert.AreEqual(SqlNull.Value, obj.AsBoolean().Value);
 
-			DataObject numObj = null;
+			Field numObj = null;
 			Assert.DoesNotThrow(() => numObj = obj.AsInteger());
 			Assert.IsNotNull(numObj);
 			Assert.IsTrue(numObj.IsNull);

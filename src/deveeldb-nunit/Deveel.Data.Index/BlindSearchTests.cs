@@ -53,16 +53,16 @@ namespace Deveel.Data.Index {
 		}
 
 		private void AddRow(TemporaryTable tmpTable, long id, string name, DateTimeOffset date) {
-			var row = new DataObject[3];
-			row[0] = DataObject.BigInt(id);
-			row[1] = DataObject.String(name);
-			row[2] = DataObject.Date(date);
+			var row = new Field[3];
+			row[0] = Field.BigInt(id);
+			row[1] = Field.String(name);
+			row[2] = Field.Date(date);
 			tmpTable.NewRow(row);
 		}
 
 		[Test]
 		public void SelectEqualOneColumn() {
-			var name = DataObject.String("test1");
+			var name = Field.String("test1");
 			var result = table.SelectRowsEqual(1, name);
 
 			Assert.IsNotNull(result);
@@ -74,8 +74,8 @@ namespace Deveel.Data.Index {
 
 		[Test]
 		public void SelectEqualTwoColumns() {
-			var name = DataObject.String("test1");
-			var id = DataObject.BigInt(1);
+			var name = Field.String("test1");
+			var id = Field.BigInt(1);
 
 			var result = table.SelectRowsEqual(1, name, 0, id);
 			Assert.IsNotNull(result);
@@ -87,7 +87,7 @@ namespace Deveel.Data.Index {
 
 		[Test]
 		public void SelectGreater() {
-			var id = DataObject.BigInt(1);
+			var id = Field.BigInt(1);
 
 			var result = table.SelectRowsGreater(0, id);
 

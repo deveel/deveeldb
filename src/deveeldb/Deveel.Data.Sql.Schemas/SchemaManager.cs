@@ -123,17 +123,17 @@ namespace Deveel.Data.Sql.Schemas {
 			var tableName = SystemSchema.SchemaInfoTableName;
 			var t = Transaction.GetMutableTable(tableName);
 
-			var nameObj = DataObject.String(schemaInfo.Name);
+			var nameObj = Field.String(schemaInfo.Name);
 
 			if (t.Exists(1, nameObj))
 				throw new DatabaseSystemException(String.Format("Schema '{0}' already defined in the database.", schemaInfo.Name));
 
 			var row = t.NewRow();
 			var uniqueId = Transaction.NextTableId(tableName);
-			row.SetValue(0, DataObject.Number(uniqueId));
-			row.SetValue(1, DataObject.String(schemaInfo.Name));
-			row.SetValue(2, DataObject.String(schemaInfo.Type));
-			row.SetValue(3, DataObject.String(schemaInfo.Culture));
+			row.SetValue(0, Field.Number(uniqueId));
+			row.SetValue(1, Field.String(schemaInfo.Name));
+			row.SetValue(2, Field.String(schemaInfo.Type));
+			row.SetValue(3, Field.String(schemaInfo.Culture));
 
 			t.AddRow(row);
 		}
@@ -142,7 +142,7 @@ namespace Deveel.Data.Sql.Schemas {
 			var tableName = SystemSchema.SchemaInfoTableName;
 			var t = Transaction.GetMutableTable(tableName);
 
-			var nameObj = DataObject.String(name);
+			var nameObj = Field.String(name);
 
 			return t.Exists(1, nameObj);
 		}
@@ -152,7 +152,7 @@ namespace Deveel.Data.Sql.Schemas {
 			var t = Transaction.GetMutableTable(tableName);
 
 			// Drop a single entry from dt where column 1 = name
-			var nameObj = DataObject.String(name);
+			var nameObj = Field.String(name);
 			return t.Delete(1, nameObj);
 		}
 

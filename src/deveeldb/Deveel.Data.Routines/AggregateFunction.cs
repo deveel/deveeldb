@@ -27,9 +27,9 @@ namespace Deveel.Data.Routines {
 			: base(name, parameters, returnType, FunctionType.Aggregate) {
 		}
 
-		protected abstract DataObject Evaluate(DataObject value1, DataObject value2, IRequest query, IGroupResolver group);
+		protected abstract Field Evaluate(Field value1, Field value2, IRequest query, IGroupResolver group);
 
-		protected virtual DataObject PostEvaluate(DataObject result, IRequest query, IGroupResolver group) {
+		protected virtual Field PostEvaluate(Field result, IRequest query, IGroupResolver group) {
 			// By default, do nothing....
 			return result;
 		}
@@ -43,15 +43,15 @@ namespace Deveel.Data.Routines {
 			if (group == null)
 				throw new Exception(String.Format("'{0}' can only be used as an aggregate function.", FunctionName));
 
-			DataObject result = null;
+			Field result = null;
 			// All aggregates functions return 'null' if group size is 0
 			int size = group.Count;
 			if (size == 0) {
 				// Return a NULL of the return type
-				return context.Result(DataObject.Null(ReturnType(context)));
+				return context.Result(Field.Null(ReturnType(context)));
 			}
 
-			DataObject val;
+			Field val;
 			ObjectName v = context.Arguments[0].AsReferenceName();
 			// If the aggregate parameter is a simple variable, then use optimal
 			// routine,

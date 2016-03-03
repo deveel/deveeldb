@@ -85,7 +85,7 @@ namespace Deveel.Data.Security {
 			// It's most likely this will reduce the search by the most so we do
 			// it first.
 			t1 = t1.SimpleSelect(queryContext, paramCol, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.String(objectName.FullName)));
+				SqlExpression.Constant(Field.String(objectName.FullName)));
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
@@ -93,7 +93,7 @@ namespace Deveel.Data.Security {
 
 			// Expression: ("grantee_col" = username)
 			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(DataObject.String(user)));
+				SqlExpression.Constant(Field.String(user)));
 
 			// Expression: ("object_col" = object AND
 			//              "grantee_col" = username)
@@ -101,16 +101,16 @@ namespace Deveel.Data.Security {
 			var expr =
 				SqlExpression.And(
 					SqlExpression.Equal(SqlExpression.Reference(objectCol),
-						SqlExpression.Constant(DataObject.BigInt((int)objectType))), userCheck);
+						SqlExpression.Constant(Field.BigInt((int)objectType))), userCheck);
 
 			// Are we only searching for grant options?
 			var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-				SqlExpression.Constant(DataObject.Boolean(withOption)));
+				SqlExpression.Constant(Field.Boolean(withOption)));
 			expr = SqlExpression.And(expr, grantOptionCheck);
 
 			// Make sure the granter matches up also
 			var granterCheck = SqlExpression.Equal(SqlExpression.Reference(granterCol),
-				SqlExpression.Constant(DataObject.String(revoker)));
+				SqlExpression.Constant(Field.String(revoker)));
 			expr = SqlExpression.And(expr, granterCheck);
 
 			t1 = t1.ExhaustiveSelect(queryContext, expr);
@@ -200,7 +200,7 @@ namespace Deveel.Data.Security {
 			// It's most likely this will reduce the search by the most so we do
 			// it first.
 			t1 = t1.SimpleSelect(QueryContext, paramCol, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.String(objectName.FullName)));
+				SqlExpression.Constant(Field.String(objectName.FullName)));
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
@@ -208,7 +208,7 @@ namespace Deveel.Data.Security {
 
 			// Expression: ("grantee_col" = username)
 			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(DataObject.String(user)));
+				SqlExpression.Constant(Field.String(user)));
 
 			// Expression: ("object_col" = object AND
 			//              "grantee_col" = username)
@@ -216,16 +216,16 @@ namespace Deveel.Data.Security {
 			var expr =
 				SqlExpression.And(
 					SqlExpression.Equal(SqlExpression.Reference(objectCol),
-						SqlExpression.Constant(DataObject.BigInt((int)objectType))), userCheck);
+						SqlExpression.Constant(Field.BigInt((int)objectType))), userCheck);
 
 			// Are we only searching for grant options?
 			var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-				SqlExpression.Constant(DataObject.Boolean(withOption)));
+				SqlExpression.Constant(Field.Boolean(withOption)));
 			expr = SqlExpression.And(expr, grantOptionCheck);
 
 			// Make sure the granter matches up also
 			var granterCheck = SqlExpression.Equal(SqlExpression.Reference(granterCol),
-				SqlExpression.Constant(DataObject.String(revoker)));
+				SqlExpression.Constant(Field.String(revoker)));
 			expr = SqlExpression.And(expr, granterCheck);
 
 			t1 = t1.ExhaustiveSelect(QueryContext, expr);
@@ -247,29 +247,29 @@ namespace Deveel.Data.Security {
 			// All that match the given object parameter
 			// It's most likely this will reduce the search by the most so we do
 			// it first.
-			t1 = t1.SimpleSelect(queryContext, paramCol, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(objectName.FullName)));
+			t1 = t1.SimpleSelect(queryContext, paramCol, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(objectName.FullName)));
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
 			// username, and that match the object type.
 
 			// Expression: ("grantee_col" = username OR "grantee_col" = 'public')
-			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol), SqlExpression.Constant(DataObject.String(grantee)));
+			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol), SqlExpression.Constant(Field.String(grantee)));
 			if (withPublic) {
 				userCheck = SqlExpression.Or(userCheck, SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-					SqlExpression.Constant(DataObject.String(User.PublicName))));
+					SqlExpression.Constant(Field.String(User.PublicName))));
 			}
 
 			// Expression: ("object_col" = object AND
 			//              ("grantee_col" = username OR "grantee_col" = 'public'))
 			// All that match the given username or public and given object
 			var expr = SqlExpression.And(SqlExpression.Equal(SqlExpression.Reference(objectCol),
-				SqlExpression.Constant(DataObject.BigInt((int)objectType))), userCheck);
+				SqlExpression.Constant(Field.BigInt((int)objectType))), userCheck);
 
 			// Are we only searching for grant options?
 			if (withOption) {
 				var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-					SqlExpression.Constant(DataObject.BooleanTrue));
+					SqlExpression.Constant(Field.BooleanTrue));
 				expr = SqlExpression.And(expr, grantOptionCheck);
 			}
 

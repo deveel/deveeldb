@@ -11,7 +11,7 @@ namespace Deveel.Data.Sql.Statements {
 		[Test]
 		public void WithSimplePassword() {
 			const string userName = "tester";
-			var password = SqlExpression.Constant(DataObject.VarChar("12345"));
+			var password = SqlExpression.Constant(Field.VarChar("12345"));
 			var statement = new CreateUserStatement(userName, password);
 
 			statement.Execute(Query);

@@ -456,7 +456,7 @@ namespace Deveel.Data.Transactions {
 					readOnly = flag;
 				}
 
-				public override DataObject GetValue(long rowNumber, int columnOffset) {
+				public override Field GetValue(long rowNumber, int columnOffset) {
 					if (rowNumber < 0 || rowNumber >= 1)
 						throw new ArgumentOutOfRangeException("rowNumber");
 
@@ -571,7 +571,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		private static IsolationLevel ParseIsolationLevel(DataObject value) {
+		private static IsolationLevel ParseIsolationLevel(Field value) {
 			var s = value.Value.ToString();
 			if (String.Equals(s, "serializable", StringComparison.OrdinalIgnoreCase))
 				return IsolationLevel.Serializable;
@@ -585,7 +585,7 @@ namespace Deveel.Data.Transactions {
 			return IsolationLevel.Unspecified;
 		}
 
-		private static bool ParseBoolean(DataObject value) {
+		private static bool ParseBoolean(Field value) {
 			if (value.Type is BooleanType)
 				return value;
 			if (value.Type is StringType) {
@@ -624,13 +624,13 @@ namespace Deveel.Data.Transactions {
 		
 		private Variable MakeStringVariable(string name, string value) {
 			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.String(), false));
-			variable.SetValue(DataObject.String(value));
+			variable.SetValue(Field.String(value));
 			return variable;
 		}
 
 		private Variable MakeBooleanVariable(string name, bool value) {
 			var variable = new Variable(new VariableInfo(name, PrimitiveTypes.Boolean(), false));
-			variable.SetValue(DataObject.Boolean(value));
+			variable.SetValue(Field.Boolean(value));
 			return variable;
 		}
 

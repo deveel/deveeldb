@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Index {
 	/// <summary>
 	/// A comparer that is used within <see cref="IIndex{T}"/> to 
@@ -40,7 +42,7 @@ namespace Deveel.Data.Index {
 		/// or &lt; 0 if the value pointed to by index 1 is less than 'val'.  If the
 		/// indexed value is equal to 'val', it returns 0.
 		/// </returns>
-		int CompareValue(T index, DataObject value);
+		int CompareValue(T index, Field value);
 
 		/// <summary>
 		/// Comnpares two values referenced by the indices given.

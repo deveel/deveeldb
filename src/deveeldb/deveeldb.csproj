@@ -366,7 +366,7 @@
     <Compile Include="Deveel.Data\DatabaseContext.cs" />
     <Compile Include="Deveel.Data\DatabaseContextExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystem.cs" />
-    <Compile Include="Deveel.Data\GroupOperatorHelper.cs" />
+    <Compile Include="Deveel.Data.Sql\GroupOperatorHelper.cs" />
     <Compile Include="Deveel.Data\IBlock.cs" />
     <Compile Include="Deveel.Data\IBlockContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
@@ -988,7 +988,7 @@
     <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
-    <Compile Include="Deveel.Data\DataObject.cs">
+    <Compile Include="Deveel.Data.Sql\Field.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Deveel.Data.Sql\ObjectName.cs" />

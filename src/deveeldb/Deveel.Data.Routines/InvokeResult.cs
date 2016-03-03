@@ -18,24 +18,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Represents the result of the execution of a routine.
 	/// </summary>
 	public sealed class InvokeResult {
-		private Dictionary<string, DataObject> outputValues;
+		private Dictionary<string, Field> outputValues;
 
-		private InvokeResult(InvokeContext context, DataObject returnValue, bool hasReturn) {
+		private InvokeResult(InvokeContext context, Field returnValue, bool hasReturn) {
 			Context = context;
 			ReturnValue = returnValue;
 			HasReturnValue = hasReturn;
 		}
 
 		internal InvokeResult(InvokeContext context) 
-			: this(context, DataObject.Null(), false) {
+			: this(context, Field.Null(), false) {
 		}
 
-		internal InvokeResult(InvokeContext context, DataObject returnValue)
+		internal InvokeResult(InvokeContext context, Field returnValue)
 			: this(context, returnValue, true) {
 		}
 
@@ -50,13 +52,13 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// This is set to <see cref="DataObject.Null()"/> by default: the property
+		/// This is set to <see cref="Field.Null()"/> by default: the property
 		/// <see cref="HasReturnValue"/> assess a return value was really provided 
 		/// by the routine (if the routine is a function).
 		/// </para>
 		/// </remarks>
 		/// <seealso cref="HasReturnValue"/>
-		public DataObject ReturnValue { get; private set; }
+		public Field ReturnValue { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if the function has a <see cref="ReturnValue"/>.
@@ -80,21 +82,21 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Gets a dictionary of the <c>OUT</c> parameters emitted byt the routine.
 		/// </summary>
-		public IDictionary<string, DataObject> OutputParameters {
+		public IDictionary<string, Field> OutputParameters {
 			get {
 				if (outputValues == null)
-					return new Dictionary<string, DataObject>();
+					return new Dictionary<string, Field>();
 
 				return outputValues.ToDictionary(x => x.Key, y => y.Value);
 			}
 		}  
 
-		internal void SetOutputParameter(string name, DataObject value) {
+		internal void SetOutputParameter(string name, Field value) {
 			if (Context.RoutineType != RoutineType.Procedure)
 				throw new Exception("Cannot set an output parameter value for a function.");
 
 			if (outputValues == null)
-				outputValues = new Dictionary<string, DataObject>();
+				outputValues = new Dictionary<string, Field>();
 
 			outputValues[name] = value;
 		}

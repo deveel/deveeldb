@@ -30,10 +30,10 @@ namespace Deveel.Data.Sql {
 		private ITable table;
 
 		private void AddRow(TemporaryTable tmpTable, long id, string name, DateTimeOffset date) {
-			var row = new DataObject[3];
-			row[0] = DataObject.BigInt(id);
-			row[1] = DataObject.String(name);
-			row[2] = DataObject.Date(date);
+			var row = new Field[3];
+			row[0] = Field.BigInt(id);
+			row[1] = Field.String(name);
+			row[2] = Field.Date(date);
 			tmpTable.NewRow(row);
 		}
 
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql {
 		[TestCase(1, 0)]
 		[TestCase(3, 2)]
 		public void SelectRowsWhereStaticId(int id, int expectedRow) {
-			var result = table.SelectRows(0, SqlExpressionType.Equal, DataObject.BigInt(id));
+			var result = table.SelectRows(0, SqlExpressionType.Equal, Field.BigInt(id));
 			var list = result.ToList();
 
 			Assert.IsNotEmpty(list);
@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql {
 		[TestCase("test2", 1)]
 		[TestCase("test3", 2)]
 		public void SelectRowsWhereStaticName(string name, int expectedRow) {
-			var result = table.SelectRows(1, SqlExpressionType.Equal, DataObject.VarChar(name));
+			var result = table.SelectRows(1, SqlExpressionType.Equal, Field.VarChar(name));
 			var list = result.ToList();
 
 			Assert.IsNotEmpty(list);

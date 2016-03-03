@@ -95,7 +95,7 @@ namespace Deveel.Data.Sql.Statements {
 					return expression;
 
 				var value = parameter.SqlType.CreateFrom(parameter.Value);
-				var obj = new DataObject(parameter.SqlType, value);
+				var obj = new Field(parameter.SqlType, value);
 
 				return SqlExpression.Constant(obj);
 			}

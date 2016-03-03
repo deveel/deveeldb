@@ -25,11 +25,11 @@ using NUnit.Framework;
 namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class SystemFunctionTests : ContextBasedTest {
-		private DataObject InvokeFunction(string name) {
+		private Field InvokeFunction(string name) {
 			return Query.InvokeSystemFunction(name);
 		}
 
-		private DataObject InvokeFunction(string name, DataObject arg) {
+		private Field InvokeFunction(string name, Field arg) {
 			return Query.InvokeSystemFunction(name, SqlExpression.Constant(arg));
 		}
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void InvokeUserFunction() {
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = InvokeFunction("user"));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.Value.ToString());
@@ -61,8 +61,8 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void InvokeIntegerToString() {
-			var value = DataObject.Integer(455366);
-			DataObject result = null;
+			var value = Field.Integer(455366);
+			Field result = null;
 			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<StringType>(result.Type);
@@ -73,8 +73,8 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void InvokeDateToString() {
-			var value = DataObject.Date(new SqlDateTime(2015, 02, 10));
-			DataObject result = null;
+			var value = Field.Date(new SqlDateTime(2015, 02, 10));
+			Field result = null;
 			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<StringType>(result.Type);
@@ -85,8 +85,8 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void InvokeTimeStampToString_NoFormat() {
-			var value = DataObject.TimeStamp(new SqlDateTime(2015, 02, 10, 17, 15, 01,00));
-			DataObject result = null;
+			var value = Field.TimeStamp(new SqlDateTime(2015, 02, 10, 17, 15, 01,00));
+			Field result = null;
 			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<StringType>(result.Type);

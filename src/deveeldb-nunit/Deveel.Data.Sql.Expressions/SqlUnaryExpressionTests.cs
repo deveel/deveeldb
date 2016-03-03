@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(4637377, 4637377)]
 		[TestCase(-1929934, -1929934)]
 		public void NumericPlus(double a, double expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
 			var plusExp = SqlExpression.UnaryPlus(exp1);
 
 			SqlExpression resultExp = null;
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(884920009.9948, -884920009.9948)]
 		[TestCase(-92338.122, 92338.122)]
 		public void NumericNegate(double a, double expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Number(new SqlNumber(a)));
+			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(a)));
 			var negExp = SqlExpression.Negate(exp1);
 
 			SqlExpression resultExp = null;
@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Expressions {
 		[TestCase(true, false)]
 		[TestCase(false, true)]
 		public void BooleanNegate(bool a, bool expected) {
-			var exp1 = SqlExpression.Constant(DataObject.Boolean(a));
+			var exp1 = SqlExpression.Constant(Field.Boolean(a));
 			var negExp = SqlExpression.Negate(exp1);
 
 			SqlExpression resultExp = null;

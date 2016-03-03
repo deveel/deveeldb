@@ -197,7 +197,7 @@ namespace Deveel.Data.Sql.Tables {
 			return parentTable.GetResolvedColumnName(columnFilter[column]);
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			int tableNum = columnTable[columnOffset];
 			var parentTable = referenceList[tableNum];
 			rowNumber = ResolveRowForTable((int)rowNumber, tableNum);

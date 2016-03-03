@@ -52,15 +52,15 @@ namespace Deveel.Data.Sql.Tables {
 
 		public abstract int RowCount { get; }
 
-		public abstract DataObject GetValue(long rowNumber, int columnOffset);
+		public abstract Field GetValue(long rowNumber, int columnOffset);
 
 		public virtual ColumnIndex GetIndex(int columnOffset) {
 			return new BlindSearchIndex(this, columnOffset);
 		}
 
-		protected DataObject GetColumnValue(int column, Objects.ISqlObject obj) {
+		protected Field GetColumnValue(int column, Objects.ISqlObject obj) {
 			var type = TableInfo[column].ColumnType;
-			return new DataObject(type, obj);
+			return new Field(type, obj);
 		}
 
 		public void Dispose() {

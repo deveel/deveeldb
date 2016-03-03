@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Constant(result);
 		}
 
-		private DataObject EvaluateBinary(DataObject left, SqlExpressionType binaryType, DataObject right) {
+		private Field EvaluateBinary(Field left, SqlExpressionType binaryType, Field right) {
 			if (binaryType.IsAll())
 				return left.Any(binaryType.SubQueryPlainType(), right, context);
 			if (binaryType.IsAny())
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Expressions {
 		//		var plan = obj.QueryPlan;
 		//		var result = plan.Evaluate(context.QueryContext);
 
-		//		return SqlExpression.Constant(new DataObject(new TabularType(), SqlTabular.From(result)));
+		//		return SqlExpression.Constant(new Field(new TabularType(), SqlTabular.From(result)));
 		//	} catch (ExpressionEvaluateException) {
 		//		throw;
 		//	} catch (Exception ex) {
@@ -186,7 +186,7 @@ namespace Deveel.Data.Sql.Expressions {
 				// TODO: if we don't have a return value (PROCEDURES) what should w return?
 				var result = invoke.Execute(request, variableResolver, groupResolver);
 				if (!result.HasReturnValue)
-					return SqlExpression.Constant(DataObject.Null());
+					return SqlExpression.Constant(Field.Null());
 
 				return SqlExpression.Constant(result.ReturnValue);
 			} catch (ExpressionEvaluateException) {
@@ -203,7 +203,7 @@ namespace Deveel.Data.Sql.Expressions {
 			try {
 				var planner = context.Request.Context.QueryPlanner();
 				var plan = planner.PlanQuery(new QueryInfo(context.Request, query));
-				return SqlExpression.Constant(new DataObject(new QueryType(), new SqlQueryObject(plan)));
+				return SqlExpression.Constant(new Field(new QueryType(), new SqlQueryObject(plan)));
 			} catch (ExpressionEvaluateException) {
 				throw;
 			} catch (Exception ex) {
@@ -236,7 +236,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Constant(result);
 		}
 
-		private DataObject EvaluateUnary(DataObject operand, SqlExpressionType unaryType) {
+		private Field EvaluateUnary(Field operand, SqlExpressionType unaryType) {
 			switch (unaryType) {
 				case SqlExpressionType.UnaryPlus:
 					return operand.Plus();
@@ -291,7 +291,7 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 
 			if (list == null)
-				return SqlExpression.Constant(new DataObject(new ArrayType(-1), SqlArray.Null));
+				return SqlExpression.Constant(new Field(new ArrayType(-1), SqlArray.Null));
 
 			// This is not an array, but a subquery
 			if (list.Length == 1 &&
@@ -299,7 +299,7 @@ namespace Deveel.Data.Sql.Expressions {
 				((SqlConstantExpression)list[0]).Value.Type is QueryType)
 				return list[0];
 
-			return SqlExpression.Constant(new DataObject(new ArrayType(list.Length), new SqlArray(list)));
+			return SqlExpression.Constant(new Field(new ArrayType(list.Length), new SqlArray(list)));
 		}
 
 		public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
@@ -313,7 +313,7 @@ namespace Deveel.Data.Sql.Expressions {
 			
 			var variable = context.Request.FindVariable(refName);
 			if (variable == null)
-				return SqlExpression.Constant(DataObject.Null());
+				return SqlExpression.Constant(Field.Null());
 
 			return SqlExpression.Constant(variable.Value);
 		}

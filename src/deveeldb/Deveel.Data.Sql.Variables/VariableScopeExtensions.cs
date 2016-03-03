@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Variables {
 			return scope.VariableManager.GetVariable(variableName);
 		}
 
-		public static Variable SetVariable(this IVariableScope scope, string variableName, DataObject value) {
+		public static Variable SetVariable(this IVariableScope scope, string variableName, Field value) {
 			var variable = scope.GetVariable(variableName);
 			if (variable == null)
 				variable = scope.DefineVariable(variableName, value.Type);
@@ -55,11 +55,11 @@ namespace Deveel.Data.Sql.Variables {
 		}
 
 		public static void SetBooleanVariable(this IVariableScope transaction, string name, bool value) {
-			transaction.SetVariable(name, DataObject.Boolean(value));
+			transaction.SetVariable(name, Field.Boolean(value));
 		}
 
 		public static void SetStringVariable(this IVariableScope transaction, string name, string value) {
-			transaction.SetVariable(name, DataObject.String(value));
+			transaction.SetVariable(name, Field.String(value));
 		}
 
 		public static bool GetBooleanVariable(this IVariableScope transaction, string name) {

@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Caching {
 	public sealed class CachedCell {
-		internal CachedCell(CellKey key, DataObject value) {
+		internal CachedCell(CellKey key, Field value) {
 			Key = key;
 			Value = value;
 		}
@@ -44,7 +44,7 @@ namespace Deveel.Data.Caching {
 			get { return Key.ColumnOffset; }
 		}
 
-		public DataObject Value { get; private set; }
+		public Field Value { get; private set; }
 
 		public string Database {
 			get { return Key.Database; }

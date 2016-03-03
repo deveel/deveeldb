@@ -16,11 +16,13 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Caching {
 	public interface ITableCellCache {
 		void Set(CachedCell cell);
 
-		bool TryGetValue(CellKey key, out DataObject value);
+		bool TryGetValue(CellKey key, out Field value);
 
 		void Remove(CellKey key);
 

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -72,7 +73,7 @@ namespace Deveel.Data.Security {
 			// Add to the key 'user' table
 			var table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
 			var row = table.NewRow();
-			row[0] = DataObject.String(userName);
+			row[0] = Field.String(userName);
 			table.AddRow(row);
 
 			var method = userInfo.Identification.Method;
@@ -149,7 +150,7 @@ namespace Deveel.Data.Security {
 			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(DataObject.String(userName)));
+			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(userName)));
 			int sz = t.RowCount;
 			var groups = new string[sz];
 			var rowEnum = t.GetEnumerator();
@@ -194,7 +195,7 @@ namespace Deveel.Data.Security {
 
 
 		public bool DropUser(string userName) {
-			var userExpr = SqlExpression.Constant(DataObject.String(userName));
+			var userExpr = SqlExpression.Constant(Field.String(userName));
 
 			RemoveUserFromAllGroups(userName);
 
@@ -217,7 +218,7 @@ namespace Deveel.Data.Security {
 		}
 
 		private void RemoveUserFromAllGroups(string username) {
-			var userExpr = SqlExpression.Constant(DataObject.String(username));
+			var userExpr = SqlExpression.Constant(Field.String(username));
 
 			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
@@ -233,7 +234,7 @@ namespace Deveel.Data.Security {
 		public void AlterUser(UserInfo userInfo, string identifier) {
 			var userName = userInfo.Name;
 
-			var userExpr = SqlExpression.Constant(DataObject.String(userName));
+			var userExpr = SqlExpression.Constant(Field.String(userName));
 
 			// Delete the current username from the 'password' table
 			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);

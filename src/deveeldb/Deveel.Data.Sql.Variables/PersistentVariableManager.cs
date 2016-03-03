@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Variables {
 			throw new NotImplementedException();
 		}
 
-		DataObject IVariableResolver.Resolve(ObjectName variable) {
+		Field IVariableResolver.Resolve(ObjectName variable) {
 			if (!VariableExists(variable.Name))
 				return null;
 

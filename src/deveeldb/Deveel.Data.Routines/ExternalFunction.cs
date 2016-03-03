@@ -17,6 +17,7 @@
 using System;
 using System.Reflection;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 namespace Deveel.Data.Routines {
@@ -48,11 +49,11 @@ namespace Deveel.Data.Routines {
 			}
 		}
 
-		private DataObject ConvertValue(object value, SqlType sqlType) {
+		private Field ConvertValue(object value, SqlType sqlType) {
 			throw new NotImplementedException();
 		}
 
-		private object[] ConvertArguments(MethodInfo methodInfo, DataObject[] args) {
+		private object[] ConvertArguments(MethodInfo methodInfo, Field[] args) {
 			var methodParams = methodInfo.GetParameters();
 
 			if (methodParams.Length != args.Length)

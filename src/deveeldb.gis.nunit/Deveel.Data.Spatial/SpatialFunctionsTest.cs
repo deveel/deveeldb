@@ -3,6 +3,7 @@
 using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Services;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
@@ -16,7 +17,7 @@ namespace Deveel.Data.Spatial {
 			container.UseSpatial();
 		}
 
-		private DataObject ParseAndInvoke(string text) {
+		private Field ParseAndInvoke(string text) {
 			var exp = SqlExpression.Parse(text);
 			Assert.IsInstanceOf<SqlFunctionCallExpression>(exp);
 

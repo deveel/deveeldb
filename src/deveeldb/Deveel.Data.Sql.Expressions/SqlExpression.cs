@@ -253,10 +253,10 @@ namespace Deveel.Data.Sql.Expressions {
 		#region Primary
 
 		public static SqlConstantExpression Constant(object value) {
-			return Constant(DataObject.Create(value));
+			return Constant(Field.Create(value));
 		}
 
-		public static SqlConstantExpression Constant(DataObject value) {
+		public static SqlConstantExpression Constant(Field value) {
 			return new SqlConstantExpression(value);
 		}
 

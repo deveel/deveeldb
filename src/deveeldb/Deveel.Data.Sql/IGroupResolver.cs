@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql {
 		/// and 9.  Return types must be either a String, BigDecimal or Boolean.
 		/// </remarks>
 		/// <returns></returns>
-		DataObject Resolve(ObjectName variable, int setIndex);
+		Field Resolve(ObjectName variable, int setIndex);
 
 		/// <summary>
 		/// Returns a <see cref="IVariableResolver"/> that can be used to 

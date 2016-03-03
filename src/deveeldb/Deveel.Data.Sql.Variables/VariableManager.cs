@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql.Variables {
 			return variables.Remove(name);
 		}
 
-		DataObject IVariableResolver.Resolve(ObjectName variableName) {
+		Field IVariableResolver.Resolve(ObjectName variableName) {
 			Variable variable;
 			if (!variables.TryGetValue(variableName.Name, out variable))
 				return null;

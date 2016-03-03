@@ -30,11 +30,11 @@ namespace Deveel.Data.Index {
 			get { return Table.RowCount; }
 		}
 
-		protected virtual DataObject First {
+		protected virtual Field First {
 			get { return GetValue(0); }
 		}
 
-		protected virtual DataObject Last {
+		protected virtual Field Last {
 			get { return GetValue(Count - 1); }
 		}
 
@@ -54,9 +54,9 @@ namespace Deveel.Data.Index {
 		protected override void Dispose(bool disposing) {
 		}
 
-		protected abstract int SearchFirst(DataObject value);
+		protected abstract int SearchFirst(Field value);
 
-		protected abstract int SearchLast(DataObject value);
+		protected abstract int SearchLast(Field value);
 
 		protected virtual IEnumerable<int> AddRange(int start, int end, IEnumerable<int> input) {
 			var list = new List<int>((end - start) + 2);
@@ -108,9 +108,9 @@ namespace Deveel.Data.Index {
 			return list;
 		}
 
-		private int PositionOfRangePoint(RangeFieldOffset position, DataObject val) {
+		private int PositionOfRangePoint(RangeFieldOffset position, Field val) {
 			int p;
-			DataObject cell;
+			Field cell;
 
 			switch (position) {
 

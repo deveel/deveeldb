@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		DataObject Resolve(ObjectName variable);
+		Field Resolve(ObjectName variable);
 
 		/// <summary>
 		/// Returns the <see cref="SqlType"/> of object the given variable is.

@@ -59,11 +59,11 @@ namespace Deveel.Data.Routines {
 			return ResolveFunction(resolver, null, name, args);
 		}
 
-		public static IFunction ResolveFunction(this FunctionProvider resolver, string name, params DataObject[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, string name, params Field[] args) {
 			return ResolveFunction(resolver, null, name, args);
 		}
 
-		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery context, string name, params DataObject[] args) {
+		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery context, string name, params Field[] args) {
 			var exps = new SqlExpression[0];
 			if (args != null && args.Length > 0) {
 				exps = new SqlExpression[args.Length];

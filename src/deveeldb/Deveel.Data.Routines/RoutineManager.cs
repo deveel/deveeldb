@@ -48,10 +48,10 @@ namespace Deveel.Data.Routines {
 			using (var session = new SystemSession(transaction)) {
 				using (var context = session.CreateQuery()) {
 					var t = table.SimpleSelect(context, namev, SqlExpressionType.Equal,
-						SqlExpression.Constant(DataObject.String(routineName.Name)));
+						SqlExpression.Constant(Field.String(routineName.Name)));
 					t = t.ExhaustiveSelect(context,
 						SqlExpression.Equal(SqlExpression.Reference(schemav),
-							SqlExpression.Constant(DataObject.String(routineName.ParentName))));
+							SqlExpression.Constant(Field.String(routineName.ParentName))));
 
 					// This should be at most 1 row in size
 					if (t.RowCount > 1)
@@ -253,9 +253,9 @@ namespace Deveel.Data.Routines {
 				};
 			}
 
-			private DataObject GetParameterTypes(string schema, string name) {
+			private Field GetParameterTypes(string schema, string name) {
 				var table = Transaction.GetTable(SystemSchema.RoutineParameterTableName);
-				var rows = table.SelectRowsEqual(1, DataObject.String(name), 0, DataObject.String(schema));
+				var rows = table.SelectRowsEqual(1, Field.String(name), 0, Field.String(schema));
 				var types = new List<string>();
 
 				foreach (var rowIndex in rows) {
@@ -269,10 +269,10 @@ namespace Deveel.Data.Routines {
 				}
 
 				var args = String.Join(", ", types.ToArray());
-				return DataObject.String(args);
+				return Field.String(args);
 			}
 
-			private string BuildParameterString(DataObject argName, DataObject argType, DataObject inOut) {
+			private string BuildParameterString(Field argName, Field argType, Field inOut) {
 				var sb = new StringBuilder();
 				sb.Append(argName.ToString());
 				sb.Append(" ");
@@ -299,21 +299,21 @@ namespace Deveel.Data.Routines {
 					get { return tableInfo; }
 				}
 
-				public DataObject Type { get; set; }
+				public Field Type { get; set; }
 
-				public DataObject Location { get; set; }
+				public Field Location { get; set; }
 
-				public DataObject ReturnType { get; set; }
+				public Field ReturnType { get; set; }
 
-				public DataObject ParameterTypes { get; set; }
+				public Field ParameterTypes { get; set; }
 
-				public DataObject Owner { get; set; }
+				public Field Owner { get; set; }
 
 				public override int RowCount {
 					get { return 1; }
 				}
 
-				public override DataObject GetValue(long rowNumber, int columnOffset) {
+				public override Field GetValue(long rowNumber, int columnOffset) {
 					if (rowNumber < 0 || rowNumber >= 1)
 						throw new ArgumentOutOfRangeException("rowNumber");
 

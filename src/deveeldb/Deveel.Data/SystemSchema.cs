@@ -473,7 +473,7 @@ namespace Deveel.Data {
 				}
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				if (rowNumber < 0 || rowNumber >= tableInfoObjects.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
@@ -481,15 +481,15 @@ namespace Deveel.Data {
 
 				switch (columnOffset) {
 					case 0:
-						return DataObject.String(tableInfo.Catalog);
+						return Field.String(tableInfo.Catalog);
 					case 1:
-						return DataObject.String(tableInfo.Schema);
+						return Field.String(tableInfo.Schema);
 					case 2:
-						return DataObject.String(tableInfo.Name);
+						return Field.String(tableInfo.Name);
 					case 3:
-						return DataObject.String(tableInfo.Type);
+						return Field.String(tableInfo.Type);
 					case 4:
-						return DataObject.String(tableInfo.Comments);
+						return Field.String(tableInfo.Comments);
 					default:
 						throw new ArgumentOutOfRangeException("columnOffset");
 				}
@@ -552,7 +552,7 @@ namespace Deveel.Data {
 				return colCount;
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				// All the tables
 				var tableManager = transaction.GetTableManager();
 				var list = tableManager.GetTableNames();
@@ -672,7 +672,7 @@ namespace Deveel.Data {
 				AddType("TYPE", "TYPE", SqlTypeCode.Type, 9, null, null, false);
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				// TODO: handle also the user-types here?
 
 				if (rowNumber < 0 || rowNumber >= sqlTypes.Count)
@@ -764,7 +764,7 @@ namespace Deveel.Data {
 				get { return transaction.Database.Sessions.Count; }
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				if (rowNumber < 0 || rowNumber >= transaction.Database.Sessions.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
@@ -835,7 +835,7 @@ namespace Deveel.Data {
 				keyValuePairs.Add(new SqlString(productInfo.Company));
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				switch (columnOffset) {
 					case 0:  // var
 						return GetColumnValue(columnOffset, keyValuePairs[(int)rowNumber * 2]);
@@ -867,7 +867,7 @@ namespace Deveel.Data {
 				get { throw new NotImplementedException(); }
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				throw new NotImplementedException();
 			}
 
@@ -904,16 +904,16 @@ namespace Deveel.Data {
 				get { return privBits.Count; }
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				if (rowNumber < 0 || rowNumber >= privBits.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
 				var pair = privBits[(int) rowNumber];
 				switch (columnOffset) {
 					case 0:
-						return DataObject.Integer(pair.Value);
+						return Field.Integer(pair.Value);
 					case 1:
-						return DataObject.VarChar(pair.Key);
+						return Field.VarChar(pair.Key);
 					default:
 						throw new ArgumentOutOfRangeException("columnOffset");
 				}
@@ -937,7 +937,7 @@ namespace Deveel.Data {
 				get { throw new NotImplementedException(); }
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				throw new NotImplementedException();
 			}
 		}
@@ -959,7 +959,7 @@ namespace Deveel.Data {
 				get { throw new NotImplementedException(); }
 			}
 
-			public override DataObject GetValue(long rowNumber, int columnOffset) {
+			public override Field GetValue(long rowNumber, int columnOffset) {
 				throw new NotImplementedException();
 			}
 		}

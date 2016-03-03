@@ -50,27 +50,27 @@ namespace Deveel.Data.Sql.Statements {
 		private void AddTestData(IQuery context) {
 			var table = context.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(0));
-			row.SetValue("first_name", DataObject.String("John"));
-			row.SetValue("last_name", DataObject.String("Doe"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1977, 01, 01)));
-			row.SetValue("active", DataObject.Boolean(false));
+			row.SetValue("id", Field.Integer(0));
+			row.SetValue("first_name", Field.String("John"));
+			row.SetValue("last_name", Field.String("Doe"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1977, 01, 01)));
+			row.SetValue("active", Field.Boolean(false));
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(1));
-			row.SetValue("first_name", DataObject.String("Jane"));
-			row.SetValue("last_name", DataObject.String("Doe"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1978, 11, 01)));
-			row.SetValue("active", DataObject.Boolean(true));
+			row.SetValue("id", Field.Integer(1));
+			row.SetValue("first_name", Field.String("Jane"));
+			row.SetValue("last_name", Field.String("Doe"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1978, 11, 01)));
+			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 
 			row = table.NewRow();
-			row.SetValue("id", DataObject.Integer(2));
-			row.SetValue("first_name", DataObject.String("Roger"));
-			row.SetValue("last_name", DataObject.String("Rabbit"));
-			row.SetValue("birth_date", DataObject.Date(new SqlDateTime(1985, 05, 05)));
-			row.SetValue("active", DataObject.Boolean(true));
+			row.SetValue("id", Field.Integer(2));
+			row.SetValue("first_name", Field.String("Roger"));
+			row.SetValue("last_name", Field.String("Rabbit"));
+			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
+			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 		}
 
@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void UpdateOneRow() {
 			var whereExp = SqlExpression.Parse("id = 2");
 			var assignments = new[] {
-				new SqlColumnAssignment("birth_date", SqlExpression.Constant(DataObject.Date(new SqlDateTime(1970, 01, 20)))) 
+				new SqlColumnAssignment("birth_date", SqlExpression.Constant(Field.Date(new SqlDateTime(1970, 01, 20)))) 
 			};
 
 			var statement = new UpdateStatement("APP.test_table", whereExp, assignments);

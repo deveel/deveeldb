@@ -34,57 +34,57 @@ namespace Deveel.Data.Sql.Tables {
 	public static class TableQueryExtensions {
 		#region Get Value
 
-		public static DataObject GetValue(this ITable table, int rowIndex, ObjectName columnName) {
+		public static Field GetValue(this ITable table, int rowIndex, ObjectName columnName) {
 			return table.GetValue(rowIndex, table.IndexOfColumn(columnName));
 		}
 
-		public static DataObject GetValue(this ITable table, int rowIndex, string columnName) {
+		public static Field GetValue(this ITable table, int rowIndex, string columnName) {
 			return table.GetValue(rowIndex, table.ResolveColumnName(columnName));
 		}
 
-		public static DataObject GetLastValue(this ITable table, int columnOffset) {
+		public static Field GetLastValue(this ITable table, int columnOffset) {
 			var rows = table.SelectLast(columnOffset).ToList();
 			return rows.Count > 0 ? table.GetValue(rows[0], columnOffset) : null;
 		}
 
-		public static DataObject GetLastValue(this ITable table, string columnName) {
+		public static Field GetLastValue(this ITable table, string columnName) {
 			return table.GetLastValue(table.IndexOfColumn(columnName));
 		}
 
-		public static DataObject[] GetLastValues(this ITable table, int[] columnOffsets) {
+		public static Field[] GetLastValues(this ITable table, int[] columnOffsets) {
 			if (columnOffsets.Length > 1)
 				throw new ArgumentException("Multi-column gets not supported.");
 
 			return new[] {table.GetLastValue(columnOffsets[0])};
 		}
 
-		public static DataObject GetFirstValue(this ITable table, int columnOffset) {
+		public static Field GetFirstValue(this ITable table, int columnOffset) {
 			var rows = table.SelectFirst(columnOffset).ToList();
 			return rows.Count > 0 ? table.GetValue(rows[0], columnOffset) : null;
 		}
 
-		public static DataObject GetFirstValue(this ITable table, string columnName) {
+		public static Field GetFirstValue(this ITable table, string columnName) {
 			return table.GetFirstValue(table.IndexOfColumn(columnName));
 		}
 
-		public static DataObject[] GetFirstValues(this ITable table, int[] columnOffsets) {
+		public static Field[] GetFirstValues(this ITable table, int[] columnOffsets) {
 			if (columnOffsets.Length > 1)
 				throw new ArgumentException("Multi-column gets not supported.");
 
 			return new[] {table.GetFirstValue(columnOffsets[0])};
 		}
 
-		public static DataObject GetSingleValue(this ITable table, int columnOffset) {
+		public static Field GetSingleValue(this ITable table, int columnOffset) {
 			IList<int> rows = table.SelectFirst(columnOffset).ToList();
 			int sz = rows.Count;
 			return sz == table.RowCount && sz > 0 ? table.GetValue(rows[0], columnOffset) : null;
 		}
 
-		public static DataObject GetSingleValue(this ITable table, string columnName) {
+		public static Field GetSingleValue(this ITable table, string columnName) {
 			return table.GetSingleValue(table.IndexOfColumn(columnName));
 		}
 
-		public static DataObject[] GetSingleValues(this ITable table, int[] columnOffsets) {
+		public static Field[] GetSingleValues(this ITable table, int[] columnOffsets) {
 			if (columnOffsets.Length > 1)
 				throw new ArgumentException("Multi-column gets not supported.");
 
@@ -101,7 +101,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		#endregion
 
-		public static IEnumerable<int> FindKeys(this ITable table, int[] columnOffsets, DataObject[] keyValue) {
+		public static IEnumerable<int> FindKeys(this ITable table, int[] columnOffsets, Field[] keyValue) {
 			int keySize = keyValue.Length;
 
 			// Now command table 2 to determine if the key values are present.
@@ -135,12 +135,12 @@ namespace Deveel.Data.Sql.Tables {
 			return list;
 		}
 
-		private static DataObject MakeObject(this ITable table, int columnOffset, Objects.ISqlObject value) {
+		private static Field MakeObject(this ITable table, int columnOffset, Objects.ISqlObject value) {
 			if (columnOffset < 0 || columnOffset >= table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var columnType = table.TableInfo[columnOffset].ColumnType;
-			return new DataObject(columnType, value);
+			return new Field(columnType, value);
 		}
 
 		public static int IndexOfColumn(this ITable table, string columnName) {
@@ -163,15 +163,15 @@ namespace Deveel.Data.Sql.Tables {
 
 		#region Select Rows
 
-		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex, DataObject value) {
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex, Field value) {
 			return table.GetIndex(columnIndex).SelectEqual(value);
 		}
 
-		public static IEnumerable<int> SelectRowsEqual(this ITable table, string columnName, DataObject value) {
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, string columnName, Field value) {
 			return table.SelectRowsEqual(table.IndexOfColumn(columnName), value);
 		}
 
-		public static IEnumerable<int> SelectNotEqual(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelectNotEqual(this ITable table, int columnOffset, Field value) {
 			return table.GetIndex(columnOffset).SelectNotEqual(value);
 		}
 
@@ -179,7 +179,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.SelectNotEqual(columnOffset, table.MakeObject(columnOffset, value));
 		} 
 
-		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex1, DataObject value1, int columnIndex2, DataObject value2) {
+		public static IEnumerable<int> SelectRowsEqual(this ITable table, int columnIndex1, Field value1, int columnIndex2, Field value2) {
 			var result = new List<int>();
 
 			var index1 = table.GetIndex(columnIndex1).SelectEqual(value1);
@@ -196,7 +196,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(column).SelectRange(ranges);
 		}
 
-		public static IEnumerable<int> SelectRowsGreater(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelectRowsGreater(this ITable table, int columnOffset, Field value) {
 			return table.GetIndex(columnOffset).SelectGreater(value);
 		}
 
@@ -204,7 +204,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.SelectRowsGreater(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
-		public static IEnumerable<int> SelectRowsGreaterOrEqual(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelectRowsGreaterOrEqual(this ITable table, int columnOffset, Field value) {
 			return table.GetIndex(columnOffset).SelectGreaterOrEqual(value);
 		}
 
@@ -212,7 +212,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.SelectRowsGreaterOrEqual(columnOffset, table.MakeObject(columnOffset, value));
 		} 
 
-		public static IEnumerable<int> SelecRowsLess(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelecRowsLess(this ITable table, int columnOffset, Field value) {
 			return table.GetIndex(columnOffset).SelectLess(value);
 		}
 
@@ -220,7 +220,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.SelecRowsLess(columnOffset, table.MakeObject(columnOffset, value));
 		}
 
-		public static IEnumerable<int> SelectRowsLessOrEqual(this ITable table, int columnOffset, DataObject value) {
+		public static IEnumerable<int> SelectRowsLessOrEqual(this ITable table, int columnOffset, Field value) {
 			return table.GetIndex(columnOffset).SelectLessOrEqual(value);
 		}
 
@@ -270,14 +270,14 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public static IEnumerable<int> SelectRows(this ITable table, int[] columnOffsets, SqlExpressionType op,
-			DataObject[] values) {
+			Field[] values) {
 			if (columnOffsets.Length > 1)
 				throw new NotSupportedException("Multi-column selects not supported yet.");
 
 			return SelectRows(table, columnOffsets[0], op, values[0]);
 		}
 
-		public static IEnumerable<int> SelectRowsBetween(this ITable table, int column, DataObject minCell, DataObject maxCell) {
+		public static IEnumerable<int> SelectRowsBetween(this ITable table, int column, Field minCell, Field maxCell) {
 			// Check all the tables are comparable
 			var colType = table.TableInfo[column].ColumnType;
 			if (!minCell.Type.IsComparable(colType) ||
@@ -289,7 +289,7 @@ namespace Deveel.Data.Sql.Tables {
 			return table.GetIndex(column).SelectBetween(minCell, maxCell);
 		}
 
-		public static IEnumerable<int> SelectRows(this ITable table, int column, SqlExpressionType op, DataObject value) {
+		public static IEnumerable<int> SelectRows(this ITable table, int column, SqlExpressionType op, Field value) {
 			// If the cell is of an incompatible type, return no results,
 			var colType = table.TableInfo[column].ColumnType;
 			if (!value.Type.IsComparable(colType)) {
@@ -336,7 +336,7 @@ namespace Deveel.Data.Sql.Tables {
 			// First handle the case that the column has an index that supports text search
 			var index = table.GetIndex(column);
 			if (index != null && index.HandlesTextSearch)
-				return index.SelectLike(DataObject.String(pattern));
+				return index.SelectLike(Field.String(pattern));
 
 			var colStringType = (StringType)colType;
 
@@ -382,7 +382,7 @@ namespace Deveel.Data.Sql.Tables {
 				// If the pattern has no 'wildcards' then just perform an EQUALS
 				// operation on the column and return the results.
 
-				var cell = new DataObject(colType, new SqlString(pattern));
+				var cell = new Field(colType, new SqlString(pattern));
 				return SelectRows(table, column, SqlExpressionType.Equal, cell);
 			}
 
@@ -412,8 +412,8 @@ namespace Deveel.Data.Sql.Tables {
 
 				postPattern = pattern.Substring(i);
 
-				var cellLower = new DataObject(colType, new SqlString(lowerBounds));
-				var cellUpper = new DataObject(colType, new SqlString(upperBounds));
+				var cellLower = new Field(colType, new SqlString(lowerBounds));
+				var cellUpper = new Field(colType, new SqlString(upperBounds));
 
 				// Select rows between these two points.
 
@@ -460,12 +460,12 @@ namespace Deveel.Data.Sql.Tables {
 
 		#region Select
 
-		public static ITable SelectEqual(this ITable table, int columnIndex, DataObject value) {
+		public static ITable SelectEqual(this ITable table, int columnIndex, Field value) {
 			return table.AsVirtual(() => table.SelectRowsEqual(columnIndex, value));
 		}
 
 
-		public static ITable SelectEqual(this ITable table, string columnName, DataObject value) {
+		public static ITable SelectEqual(this ITable table, string columnName, Field value) {
 			return table.AsVirtual(() => table.SelectRowsEqual(columnName, value));
 		}
 
@@ -617,7 +617,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 
-		public static IEnumerable<int> SelectFromPattern(this ITable table, int column, SqlExpressionType op, DataObject ob) {
+		public static IEnumerable<int> SelectFromPattern(this ITable table, int column, SqlExpressionType op, Field ob) {
 			if (ob.IsNull)
 				return new List<int>();
 
@@ -632,7 +632,7 @@ namespace Deveel.Data.Sql.Tables {
 
 				var likeSet = (List<int>)table.Search(column, ob.ToString());
 				// Don't include NULL values
-				var nullCell = DataObject.Null(ob.Type);
+				var nullCell = Field.Null(ob.Type);
 				IList<int> originalSet = table.SelectRows(column, SqlExpressionType.IsNot, nullCell).ToList();
 				int listSize = System.Math.Max(4, (originalSet.Count - likeSet.Count) + 4);
 				List<int> resultSet = new List<int>(listSize);
@@ -744,7 +744,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		#region Sub-Query
 
-		public static bool AllRowsMatchColumnValue(this ITable table, int columnOffset, SqlExpressionType op, DataObject value) {
+		public static bool AllRowsMatchColumnValue(this ITable table, int columnOffset, SqlExpressionType op, Field value) {
 			var rows = table.SelectRows(columnOffset, op, value);
 			return rows.Count() == table.RowCount;
 		}
@@ -1369,11 +1369,11 @@ namespace Deveel.Data.Sql.Tables {
 
 		#endregion
 
-		public static bool Exists(this ITable table, int columnOffset, DataObject value) {
+		public static bool Exists(this ITable table, int columnOffset, Field value) {
 			return table.SelectRowsEqual(columnOffset, value).Any();
 		}
 
-		public static bool Exists(this ITable table, int columnOffset1, DataObject value1, int columnOffset2, DataObject value2) {
+		public static bool Exists(this ITable table, int columnOffset1, Field value1, int columnOffset2, Field value2) {
 			return table.SelectRowsEqual(columnOffset1, value1, columnOffset2, value2).Any();
 		}
 

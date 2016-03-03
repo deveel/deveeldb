@@ -121,7 +121,7 @@ namespace Deveel.Data.Sql.Tables {
 			return rowSet;
 		}
 
-		public override DataObject GetValue(long rowNumber, int columnOffset) {
+		public override Field GetValue(long rowNumber, int columnOffset) {
 			for (int i = 0; i < rowIndexes.Length; ++i) {
 				var list = rowIndexes[i];
 				int sz = list.Count;

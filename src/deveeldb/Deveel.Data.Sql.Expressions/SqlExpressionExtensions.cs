@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <param name="expression">The expression to evaluate.</param>
 		/// <param name="context">The context used to evaluate the expression.</param>
 		/// <returns>
-		/// Returns a <see cref="DataObject"/> is the result of the
+		/// Returns a <see cref="Field"/> is the result of the
 		/// <see cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
 		/// is a <see cref="SqlConstantExpression"/>.
 		/// </returns>
@@ -72,7 +72,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <seealso cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
 		/// <seealso cref="SqlConstantExpression"/>
 		/// <seealso cref="SqlConstantExpression.Value"/>
-		public static DataObject EvaluateToConstant(this SqlExpression expression, EvaluateContext context) {
+		public static Field EvaluateToConstant(this SqlExpression expression, EvaluateContext context) {
 			var evalExp = expression.Evaluate(context);
 			if (evalExp == null)
 				throw new InvalidOperationException();
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return constantExp.Value;
 		}
 
-		public static DataObject EvaluateToConstant(this SqlExpression expression, IRequest request, IVariableResolver variableResolver) {
+		public static Field EvaluateToConstant(this SqlExpression expression, IRequest request, IVariableResolver variableResolver) {
 			return expression.EvaluateToConstant(new EvaluateContext(request, variableResolver));
 		}
 

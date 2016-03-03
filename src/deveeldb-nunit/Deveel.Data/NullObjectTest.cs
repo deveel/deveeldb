@@ -14,6 +14,7 @@
 //    limitations under the License.
 using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Types;
 
 using NUnit;
@@ -24,17 +25,17 @@ namespace Deveel.Data {
 	public class NullObjectTest {
 		[Test]
 		public void NullObjectEqualsDbNull() {
-			DataObject obj = null;
+			Field obj = null;
 			Assert.AreEqual(DBNull.Value, (DBNull)obj);
 			Assert.IsTrue(obj == DBNull.Value);
 		}
 
 		[Test]
 		public void NullObjectEqualsNull() {
-			DataObject obj = null;
+			Field obj = null;
 			Assert.AreEqual(null, obj);
 
-			DataObject result = null;
+			Field result = null;
 			Assert.DoesNotThrow(() => result = obj == null);
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<BooleanType>(result.Type);

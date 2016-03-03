@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -21,18 +22,18 @@ namespace Deveel.Data.Spatial {
 			return geometry;
 		}
 
-		public static DataObject FromWkb(DataObject source) {
+		public static Field FromWkb(Field source) {
 			var input = (SqlBinary) source.Value;
 			var result = FromWkb(input);
-			return new DataObject(SpatialType.Geometry(), result);
+			return new Field(SpatialType.Geometry(), result);
 		}
 
-		public static DataObject ToWkb(DataObject geometry) {
+		public static Field ToWkb(Field geometry) {
 			if (geometry.IsNull)
-				return DataObject.Null(PrimitiveTypes.String());
+				return Field.Null(PrimitiveTypes.String());
 
 			var g = (SqlGeometry)geometry.Value;
-			return DataObject.Binary(ToWkb(g));
+			return Field.Binary(ToWkb(g));
 		}
 
 		public static SqlBinary ToWkb(SqlGeometry geometry) {
@@ -42,10 +43,10 @@ namespace Deveel.Data.Spatial {
 			return geometry.ToWellKnownBytes();
 		}
 
-		public static DataObject FromWkt(IRequest context, DataObject source) {
+		public static Field FromWkt(IRequest context, Field source) {
 			var input = (SqlString) source.Value;
 			var result = FromWkt(input);
-			return new DataObject(SpatialType.Geometry(), result);
+			return new Field(SpatialType.Geometry(), result);
 		}
 
 		public static SqlGeometry FromWkt(SqlString source) {
@@ -63,18 +64,18 @@ namespace Deveel.Data.Spatial {
 			return geometry.ToWellKnownText();
 		}
 
-		public static DataObject ToWkt(DataObject geometry) {
+		public static Field ToWkt(Field geometry) {
 			if (geometry.IsNull)
-				return DataObject.Null(PrimitiveTypes.String());
+				return Field.Null(PrimitiveTypes.String());
 
 			var g = (SqlGeometry) geometry.Value;
-			return DataObject.String(ToWkt(g));
+			return Field.String(ToWkt(g));
 		}
 
-		public static DataObject Envelope(DataObject geometry) {
+		public static Field Envelope(Field geometry) {
 			var input = (SqlGeometry) geometry.Value;
 			var envelope = Envelope(input);
-			return new DataObject(SpatialType.Geometry(), envelope);
+			return new Field(SpatialType.Geometry(), envelope);
 		}
 
 		public static SqlGeometry Envelope(SqlGeometry geometry) {
@@ -84,11 +85,11 @@ namespace Deveel.Data.Spatial {
 			return geometry.Envelope;
 		}
 
-		public static DataObject Distance(DataObject geometry, DataObject other) {
+		public static Field Distance(Field geometry, Field other) {
 			var input = (SqlGeometry)geometry.Value;
 			var otherGeometry = (SqlGeometry) other.Value;
 			var result = Distance(input, otherGeometry);
-			return DataObject.Number(result);
+			return Field.Number(result);
 		}
 
 		public static SqlNumber Distance(SqlGeometry geometry, SqlGeometry other) {
@@ -105,17 +106,17 @@ namespace Deveel.Data.Spatial {
 			return geometry.Contains(other);
 		}
 
-		public static DataObject Contains(DataObject geometry, DataObject other) {
+		public static Field Contains(Field geometry, Field other) {
 			var g1 = (SqlGeometry) geometry.Value;
 			var g2 = (SqlGeometry) other.Value;
 			var result = Contains(g1, g2);
-			return DataObject.Boolean(result);
+			return Field.Boolean(result);
 		}
 
-		public static DataObject Area(DataObject geometry) {
+		public static Field Area(Field geometry) {
 			var input = (SqlGeometry) geometry.Value;
 			var result = Area(input);
-			return DataObject.Number(result);
+			return Field.Number(result);
 		}
 
 		public static SqlNumber Area(SqlGeometry geometry) {
@@ -125,10 +126,10 @@ namespace Deveel.Data.Spatial {
 			return geometry.Area;
 		}
 
-		public static DataObject Boundary(DataObject geometry) {
+		public static Field Boundary(Field geometry) {
 			var input = (SqlGeometry) geometry.Value;
 			var result = input.Boundary;
-			return new DataObject(SpatialType.Geometry(), result);
+			return new Field(SpatialType.Geometry(), result);
 		}
 	}
 }

@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql.Views {
 			using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
 				using (var query =session.CreateQuery()) {
 					var t = table.SimpleSelect(query, namev, SqlExpressionType.Equal,
-						SqlExpression.Constant(DataObject.String(viewName.Name)));
+						SqlExpression.Constant(Field.String(viewName.Name)));
 					t = t.ExhaustiveSelect(query,
 						SqlExpression.Equal(SqlExpression.Reference(schemav), SqlExpression.Constant(viewName.ParentName)));
 
@@ -174,7 +174,7 @@ namespace Deveel.Data.Sql.Views {
 			rdat.SetValue(0, dataTableInfo.SchemaName.Name);
 			rdat.SetValue(1, dataTableInfo.Name);
 			rdat.SetValue(2, query.ToString());
-			rdat.SetValue(3, DataObject.Binary(viewInfoData));
+			rdat.SetValue(3, Field.Binary(viewInfoData));
 
 			// Find the entry from the view that equals this name
 			var t = FindViewEntry(viewName);

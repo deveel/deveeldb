@@ -19,6 +19,7 @@ using System.Globalization;
 using System.IO;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Types {
@@ -88,12 +89,12 @@ namespace Deveel.Data.Types {
 				   destType is BooleanType;
 		}
 
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			var bValue = ((SqlBoolean) value.Value);
 			if (destType is StringType) {
 				var s = Convert.ToString(bValue);
 				// TODO: Provide a method in StringType to build a string specific to the type
-				return new DataObject(destType, new SqlString(s));
+				return new Field(destType, new SqlString(s));
 			}
 			if (destType is NumericType) {
 				SqlNumber num;
@@ -105,11 +106,11 @@ namespace Deveel.Data.Types {
 					num = SqlNumber.Zero;
 				}
 
-				return new DataObject(destType, num);
+				return new Field(destType, num);
 			}
 			if (destType is BinaryType) {
 				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]), CultureInfo.InvariantCulture);
-				return new DataObject(destType, new SqlBinary(bytes));
+				return new Field(destType, new SqlBinary(bytes));
 			}
 			if (destType is BooleanType)
 				return value;

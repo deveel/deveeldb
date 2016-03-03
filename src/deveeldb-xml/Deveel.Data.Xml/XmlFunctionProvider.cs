@@ -19,7 +19,7 @@ namespace Deveel.Data.Xml {
 			return base.NormalizeName(functionName);
 		}
 
-		private static InvokeResult Simple(InvokeContext context, Func<DataObject[], DataObject> func) {
+		private static InvokeResult Simple(InvokeContext context, Func<Field[], Field> func) {
 			var args = context.EvaluatedArguments;
 			var funcResult = func(args);
 			return context.Result(funcResult);

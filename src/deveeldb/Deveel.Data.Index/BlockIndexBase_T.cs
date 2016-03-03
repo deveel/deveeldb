@@ -18,6 +18,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Index {
 	/// <summary>
 	/// An implementation of an index of values that are stored across an array of blocks.
@@ -299,11 +301,11 @@ namespace Deveel.Data.Index {
 				var block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (comparer.CompareValue(block.Bottom, (DataObject) key) > 0) {
+				if (comparer.CompareValue(block.Bottom, (Field) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (comparer.CompareValue(block.Top, (DataObject) key) < 0) {
+				else if (comparer.CompareValue(block.Top, (Field) key) < 0) {
 					low = mid + 1;
 				}
 					// Must be inside this block then!
@@ -335,8 +337,8 @@ namespace Deveel.Data.Index {
 				if (high - low <= 2) {
 					for (int i = high; i >= low; --i) {
 						var block1 = Blocks[i];
-						if (comparer.CompareValue(block1.Bottom, (DataObject) key) <= 0) {
-							if (comparer.CompareValue(block1.Top, (DataObject) key) >= 0)
+						if (comparer.CompareValue(block1.Bottom, (Field) key) <= 0) {
+							if (comparer.CompareValue(block1.Top, (Field) key) >= 0)
 								return i;
 							return -(i + 1) - 1;
 						}
@@ -348,11 +350,11 @@ namespace Deveel.Data.Index {
 				var block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (comparer.CompareValue(block.Bottom, (DataObject) key) > 0) {
+				if (comparer.CompareValue(block.Bottom, (Field) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (comparer.CompareValue(block.Top, (DataObject) key) < 0) {
+				else if (comparer.CompareValue(block.Top, (Field) key) < 0) {
 					low = mid + 1;
 				}
 					// Equal, so highest must be someplace between mid and high.
@@ -389,8 +391,8 @@ namespace Deveel.Data.Index {
 				if (high - low <= 2) {
 					for (int i = low; i <= high; ++i) {
 						var block1 = Blocks[i];
-						if (c.CompareValue(block1.Top, (DataObject) key) >= 0) {
-							if (c.CompareValue(block1.Bottom, (DataObject) key) <= 0)
+						if (c.CompareValue(block1.Top, (Field) key) >= 0) {
+							if (c.CompareValue(block1.Bottom, (Field) key) <= 0)
 								return i;
 							return -(i + 1);
 						}
@@ -402,11 +404,11 @@ namespace Deveel.Data.Index {
 				var block = Blocks[mid];
 
 				// Is what we are searching for lower than the bottom value?
-				if (c.CompareValue(block.Bottom, (DataObject) key) > 0) {
+				if (c.CompareValue(block.Bottom, (Field) key) > 0) {
 					high = mid - 1;
 				}
 					// No, then is it greater than the highest value?
-				else if (c.CompareValue(block.Top, (DataObject) key) < 0) {
+				else if (c.CompareValue(block.Top, (Field) key) < 0) {
 					low = mid + 1;
 				}
 					// Equal, so highest must be someplace between mid and high.

@@ -26,8 +26,8 @@ namespace Deveel.Data.Routines {
 	/// Encapsulates the 
 	/// </summary>
 	public sealed class InvokeContext : IDisposable {
-		private DataObject[] evaluatedArgs;
-		private Dictionary<string, DataObject> output; 
+		private Field[] evaluatedArgs;
+		private Dictionary<string, Field> output; 
 
 		internal InvokeContext(Invoke invoke, IRoutine routine, IVariableResolver resolver, IGroupResolver group, IRequest request) {
 			if (invoke == null)
@@ -83,10 +83,10 @@ namespace Deveel.Data.Routines {
 
 		public IRequest Request { get; private set; }
 
-		public DataObject[] EvaluatedArguments {
+		public Field[] EvaluatedArguments {
 			get {
 				if (evaluatedArgs == null) {
-					evaluatedArgs = new DataObject[Arguments.Length];
+					evaluatedArgs = new Field[Arguments.Length];
 					for (int i = 0; i < Arguments.Length; i++) {
 						evaluatedArgs[i] = Arguments[i].EvaluateToConstant(Request, VariableResolver);
 					}
@@ -123,10 +123,10 @@ namespace Deveel.Data.Routines {
 			return true;
 		}
 
-		public bool TryGetArgument(string argName, out DataObject value) {
+		public bool TryGetArgument(string argName, out Field value) {
 			SqlExpression exp;
 			if (!TryGetArgument(argName, out exp)) {
-				value = DataObject.Null();
+				value = Field.Null();
 				return false;
 			}
 
@@ -138,7 +138,7 @@ namespace Deveel.Data.Routines {
 			throw new NotImplementedException();
 		}
 
-		public InvokeResult Result(DataObject value) {
+		public InvokeResult Result(Field value) {
 			if (Routine.Type != RoutineType.Function)
 				throw new InvalidOperationException("The routine is not a function.");
 
@@ -156,7 +156,7 @@ namespace Deveel.Data.Routines {
 			return Routine.RoutineInfo.Parameters.FirstOrDefault(x => x.Name.Equals(name, StringComparison.Ordinal));
 		}
 
-		public void SetOutput(string argName, DataObject value) {
+		public void SetOutput(string argName, Field value) {
 			var parameter = GetParameter(argName);
 			if (parameter == null)
 				throw new InvalidOperationException(String.Format("Routine {0} has none parameter named '{1}'.", Routine.FullName, argName));
@@ -174,7 +174,7 @@ namespace Deveel.Data.Routines {
 				throw new ArgumentException();
 
 			if (output == null)
-				output = new Dictionary<string, DataObject>();
+				output = new Dictionary<string, Field>();
 
 			output[argName] = value;
 		}

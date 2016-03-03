@@ -31,13 +31,13 @@ namespace Deveel.Data.Sql.Expressions {
 	/// </remarks>
 	[Serializable]
 	public sealed class SqlConstantExpression : SqlExpression {
-		internal SqlConstantExpression(DataObject value) {
+		internal SqlConstantExpression(Field value) {
 			Value = value;
 		}
 
 		private SqlConstantExpression(ObjectData data)
 			: base(data) {
-			Value = data.GetValue<DataObject>("Value");
+			Value = data.GetValue<Field>("Value");
 		}
 
 		/// <summary>
@@ -60,10 +60,10 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the constant value of the expression.
 		/// </summary>
-		public DataObject Value { get; private set; }
+		public Field Value { get; private set; }
 
 		protected override void GetData(SerializeData data) {
-			data.SetValue("Value", typeof(DataObject), Value);
+			data.SetValue("Value", typeof(Field), Value);
 		}
 	}
 }

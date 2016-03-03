@@ -57,7 +57,7 @@ namespace Deveel.Data.Index {
 
 		public abstract string IndexType { get; }
 
-		protected DataObject GetValue(long row) {
+		protected Field GetValue(long row) {
 			return Table.GetValue(row, ColumnOffset);
 		}
 
@@ -97,7 +97,7 @@ namespace Deveel.Data.Index {
 				// an array in memory that contains all values in the set and we sort
 				// it.  This requires use of memory from the heap but is faster than
 				// the no heap use method.
-				var subsetList = new List<DataObject>(rowSetLength);
+				var subsetList = new List<Field>(rowSetLength);
 				foreach (long row in rowSet) {
 					subsetList.Add(GetValue(row));
 				}
@@ -173,11 +173,11 @@ namespace Deveel.Data.Index {
 		///<returns></returns>
 		public IEnumerable<int> SelectAllNonNull() {
 			return SelectRange(new IndexRange(
-						 RangeFieldOffset.AfterLastValue, DataObject.Null(),
+						 RangeFieldOffset.AfterLastValue, Field.Null(),
 						 RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<int> SelectEqual(DataObject ob) {
+		public IEnumerable<int> SelectEqual(Field ob) {
 			if (ob.IsNull)
 				return new List<int>(0);
 
@@ -186,14 +186,14 @@ namespace Deveel.Data.Index {
 								 RangeFieldOffset.LastValue, ob));
 		}
 
-		public IEnumerable<int> SelectNotEqual(DataObject ob) {
+		public IEnumerable<int> SelectNotEqual(Field ob) {
 			if (ob.IsNull) {
 				return new List<int>(0);
 			}
 			return SelectRange(new IndexRange[]
 			                   	{
 			                   		new IndexRange(
-			                   			RangeFieldOffset.AfterLastValue, DataObject.Null(),
+			                   			RangeFieldOffset.AfterLastValue, Field.Null(),
 			                   			RangeFieldOffset.BeforeFirstValue, ob)
 			                   		, new IndexRange(
 			                   		  	RangeFieldOffset.AfterLastValue, ob,
@@ -201,7 +201,7 @@ namespace Deveel.Data.Index {
 			                   	});
 		}
 
-		public IEnumerable<int> SelectGreater(DataObject ob) {
+		public IEnumerable<int> SelectGreater(Field ob) {
 			if (ob.IsNull)
 				return new List<int>(0);
 
@@ -210,16 +210,16 @@ namespace Deveel.Data.Index {
 					   RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<int> SelectLess(DataObject ob) {
+		public IEnumerable<int> SelectLess(Field ob) {
 			if (ob.IsNull)
 				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
-					   RangeFieldOffset.AfterLastValue, DataObject.Null(),
+					   RangeFieldOffset.AfterLastValue, Field.Null(),
 					   RangeFieldOffset.BeforeFirstValue, ob));
 		}
 
-		public IEnumerable<int> SelectGreaterOrEqual(DataObject ob) {
+		public IEnumerable<int> SelectGreaterOrEqual(Field ob) {
 			if (ob.IsNull)
 				return new List<int>(0);
 
@@ -228,16 +228,16 @@ namespace Deveel.Data.Index {
 					   RangeFieldOffset.LastValue, IndexRange.LastInSet));
 		}
 
-		public IEnumerable<int> SelectLessOrEqual(DataObject ob) {
+		public IEnumerable<int> SelectLessOrEqual(Field ob) {
 			if (ob.IsNull)
 				return new List<int>(0);
 
 			return SelectRange(new IndexRange(
-					   RangeFieldOffset.AfterLastValue, DataObject.Null(),
+					   RangeFieldOffset.AfterLastValue, Field.Null(),
 					   RangeFieldOffset.LastValue, ob));
 		}
 
-		public IEnumerable<int> SelectBetween(DataObject ob1, DataObject ob2) {
+		public IEnumerable<int> SelectBetween(Field ob1, Field ob2) {
 			if (ob1.IsNull || ob2.IsNull)
 				return new List<int>(0);
 
@@ -246,7 +246,7 @@ namespace Deveel.Data.Index {
 					   RangeFieldOffset.BeforeFirstValue, ob2));
 		}
 
-		public IEnumerable<int> SelectLike(DataObject value) {
+		public IEnumerable<int> SelectLike(Field value) {
 			if (value.IsNull)
 				return new List<int>(0);
 
@@ -256,7 +256,7 @@ namespace Deveel.Data.Index {
 			return SearchText(value);
 		}
 
-		protected virtual IEnumerable<int> SearchText(DataObject value) {
+		protected virtual IEnumerable<int> SearchText(Field value) {
 			throw new NotSupportedException("The column index does not support text search.");
 		}
 
@@ -302,7 +302,7 @@ namespace Deveel.Data.Index {
 				this.rowSet = rowSet;
 			}
 
-			public int CompareValue(int index, DataObject val) {
+			public int CompareValue(int index, Field val) {
 				var cell = scheme.GetValue(rowSet.ElementAt((int)index));
 				return cell.CompareTo(val);
 			}
@@ -317,13 +317,13 @@ namespace Deveel.Data.Index {
 		#region SubsetIndexComparer
 
 		private class SubsetIndexComparer : IIndexComparer<int> {
-			private readonly DataObject[] subsetList;
+			private readonly Field[] subsetList;
 
-			public SubsetIndexComparer(DataObject[] subsetList) {
+			public SubsetIndexComparer(Field[] subsetList) {
 				this.subsetList = subsetList;
 			}
 
-			public int CompareValue(int index, DataObject val) {
+			public int CompareValue(int index, Field val) {
 				var cell = subsetList[index];
 				return cell.CompareTo(val);
 			}

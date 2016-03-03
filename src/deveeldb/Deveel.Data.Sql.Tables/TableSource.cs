@@ -1289,7 +1289,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public DataObject GetValue(int rowIndex, int columnOffset) {
+		public Field GetValue(int rowIndex, int columnOffset) {
 			// NOTES:
 			// This is called *A LOT*.  It's a key part of the 20% of the program
 			// that's run 80% of the time.
@@ -1306,7 +1306,7 @@ namespace Deveel.Data.Sql.Tables {
 			// revise the low level data storage so only sectors can be compressed.
 
 			// First check if this is within the cache before we continue.
-			DataObject cell;
+			Field cell;
 			if (CellCaching) {
 				if (CellCache.TryGetValue(Database.Name, TableId, rowIndex, columnOffset, out cell))
 					return cell;
@@ -1382,7 +1382,7 @@ namespace Deveel.Data.Sql.Tables {
 					}
 
 					// Wrap it around a TObject
-					cell = new DataObject(type, ob);
+					cell = new Field(type, ob);
 
 					// And close the reader.
 #if PCL
@@ -1486,7 +1486,7 @@ namespace Deveel.Data.Sql.Tables {
 				}
 			}
 
-			public DataObject GetValue(long rowNumber, int columnOffset) {
+			public Field GetValue(long rowNumber, int columnOffset) {
 				return source.GetValue((int)rowNumber, columnOffset);
 			}
 

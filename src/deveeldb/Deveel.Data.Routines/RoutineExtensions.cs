@@ -62,7 +62,7 @@ namespace Deveel.Data.Routines {
 			return routine.Execute(executeContext);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, DataObject[] args) {
+		public static InvokeResult Execute(this IRoutine routine, Field[] args) {
 			var exps = new SqlExpression[0];
 			if (args != null && args.Length > 0) {
 				exps = new SqlExpression[args.Length];

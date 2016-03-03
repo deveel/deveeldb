@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <param name="columnOffset">The zero-based offset of the 
 		/// column of the cell to return.</param>
 		/// <returns>
-		/// Returns an instance of <see cref="DataObject"/> that is
+		/// Returns an instance of <see cref="Field"/> that is
 		/// contained in the cell located by the row and column
 		/// coordinates provided.
 		/// </returns>
@@ -70,7 +70,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// defined in the table metadata.
 		/// </exception>
 		/// <seealso cref="Tables.TableInfo.IndexOfColumn(string)"/>
-		DataObject GetValue(long rowNumber, int columnOffset);
+		Field GetValue(long rowNumber, int columnOffset);
 
 		/// <summary>
 		/// Gets an index for given column that can be used to select

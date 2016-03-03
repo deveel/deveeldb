@@ -2,6 +2,7 @@
 using System.IO;
 using System.Xml;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Types;
 
@@ -45,10 +46,10 @@ namespace Deveel.Data.Xml {
 			       destType is BinaryType;
 		}
 
-		public override DataObject CastTo(DataObject value, SqlType destType) {
+		public override Field CastTo(Field value, SqlType destType) {
 			var xmlNode = value.Value as SqlXmlNode;
 			if (xmlNode == null)
-				return DataObject.Null(this);
+				return Field.Null(this);
 
 			var destTypeCode = destType.TypeCode;
 			switch (destTypeCode) {
@@ -56,12 +57,12 @@ namespace Deveel.Data.Xml {
 				case SqlTypeCode.VarChar:
 				case SqlTypeCode.LongVarChar:
 					// TODO: more advanced casting...
-					return DataObject.String(xmlNode.ToSqlString());
+					return Field.String(xmlNode.ToSqlString());
 				case SqlTypeCode.Binary:
 				case SqlTypeCode.LongVarBinary:
 				case SqlTypeCode.VarBinary:
 					// TODO: more advanced casting...
-					return DataObject.Binary(xmlNode.ToSqlBinary());
+					return Field.Binary(xmlNode.ToSqlBinary());
 				default:
 					throw new InvalidCastException(String.Format("Cannot cast XML node to type '{0}'.", destType));
 			}

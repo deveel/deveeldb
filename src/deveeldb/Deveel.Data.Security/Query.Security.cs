@@ -288,10 +288,10 @@ namespace Deveel.Data.Security {
 			var objectNameColumn = grantTable.GetResolvedColumnName(2);
 			// All that match the given object
 			var t1 = grantTable.SimpleSelect(query, objectTypeColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.Integer((int)objectType)));
+				SqlExpression.Constant(Field.Integer((int)objectType)));
 			// All that match the given parameter
 			t1 = t1.SimpleSelect(query, objectNameColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(DataObject.String(objectName.FullName)));
+				SqlExpression.Constant(Field.String(objectName.FullName)));
 
 			// Remove these rows from the table
 			grantTable.Delete(t1);
