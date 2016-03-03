@@ -14,6 +14,7 @@
 //    limitations under the License.
 //
 
+
 namespace Deveel.Data.Sql.Triggers {
 	/// <summary>
 	/// Enumerates the types of triggers, that can be volatile

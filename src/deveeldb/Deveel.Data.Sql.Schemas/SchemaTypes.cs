@@ -14,6 +14,7 @@
 //    limitations under the License.
 //
 
+
 namespace Deveel.Data.Sql {
 	public static class SchemaTypes {
 		public const string Default = "DEFAULT";

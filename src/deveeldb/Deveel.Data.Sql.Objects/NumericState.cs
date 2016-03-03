@@ -14,6 +14,7 @@
 //    limitations under the License.
 //
 
+
 namespace Deveel.Data.Sql.Objects {
 	/// <summary>
 	/// Lists all the possible special states of a number.

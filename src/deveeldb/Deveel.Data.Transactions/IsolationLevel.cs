@@ -14,6 +14,7 @@
 //    limitations under the License.
 //
 
+
 namespace Deveel.Data.Transactions {
 	public enum IsolationLevel {
 		Unspecified = 0,
