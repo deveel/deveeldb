@@ -22,7 +22,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
 	public sealed class QueryType : SqlType {
 		public QueryType()

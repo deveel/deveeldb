@@ -16,18 +16,15 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
-namespace Deveel.Data.Types {
-	public sealed class ColumnType : SqlType {
-		public ColumnType(ObjectName columnName)
-			: base(String.Format("{0}%TYPE", columnName), SqlTypeCode.ColumnType) {
-			if (columnName == null)
-				throw new ArgumentNullException("columnName");
-
-			ColumnName = columnName;
+namespace Deveel.Data.Sql.Types {
+	public sealed class UserTypeMember {
+		public UserTypeMember(string memberName, SqlType memberType) {
+			MemberName = memberName;
+			MemberType = memberType;
 		}
 
-		public ObjectName ColumnName { get; private set; }
+		public string MemberName { get; private set; }
+
+		public SqlType MemberType { get; private set; }
 	}
 }

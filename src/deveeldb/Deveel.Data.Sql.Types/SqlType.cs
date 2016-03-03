@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	/// <summary>
 	/// Defines the properties of a specific SQL Type and handles the
 	/// <see cref="ISqlObject">values compatible</see>.
@@ -317,7 +317,7 @@ namespace Deveel.Data.Types {
 		/// </remarks>
 		/// <returns>
 		/// </returns>
-		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
+		/// <seealso cref="PrimitiveTypes.IsPrimitive(SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(string s) {
 			return Parse(null, s);
@@ -334,7 +334,7 @@ namespace Deveel.Data.Types {
 		/// </remarks>
 		/// <returns>
 		/// </returns>
-		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
+		/// <seealso cref="PrimitiveTypes.IsPrimitive(SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(IContext context, string s) {
 			var sqlCompiler = SqlParsers.DataType;

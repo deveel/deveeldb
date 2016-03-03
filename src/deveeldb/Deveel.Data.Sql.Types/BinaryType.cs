@@ -23,7 +23,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
 	public sealed class BinaryType : SqlType, ISizeableType {
 		public const int DefaultMaxSize = Int16.MaxValue;

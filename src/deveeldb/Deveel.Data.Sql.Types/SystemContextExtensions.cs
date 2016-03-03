@@ -16,8 +16,20 @@
 
 using System;
 
-namespace Deveel.Data.Types {
-	public interface ISizeableType {
-		int Size { get; }
+using Deveel.Data.Services;
+
+namespace Deveel.Data.Sql.Types {
+	public static class SystemContextExtensions {
+		public static SqlType ResolveType(this ISystemContext context, string typeName, params DataTypeMeta[] meta) {
+			var resolvers = context.ResolveAllServices<ITypeResolver>();
+			var resolveContext = new TypeResolveContext(SqlTypeCode.Type, typeName, meta);
+			foreach (var typeResolver in resolvers) {
+				var type = typeResolver.ResolveType(resolveContext);
+				if (type != null)
+					return type;
+			}
+
+			return null;
+		}
 	}
 }

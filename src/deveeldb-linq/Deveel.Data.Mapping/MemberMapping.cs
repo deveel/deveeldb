@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
 	public sealed class MemberMapping {

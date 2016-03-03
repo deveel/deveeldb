@@ -16,17 +16,27 @@
 
 using System;
 
-namespace Deveel.Data.Types {
-	static class TypeResolver {
-		public static SqlType Resolve(SqlTypeCode typeCode, string typeName, DataTypeMeta[] metadata, ITypeResolver resolver) {
-			if (PrimitiveTypes.IsPrimitive(typeCode))
-				return PrimitiveTypes.Resolve(typeCode, typeName, metadata);
+using Deveel.Data.Sql.Objects;
 
-			if (resolver == null)
-				throw new NotSupportedException(String.Format("Cannot resolve type '{0}' without context.", typeName));
+namespace Deveel.Data.Sql.Types {
+	public sealed class ArrayType : SqlType, ISizeableType {
+		public ArrayType(int length) 
+			: base("ARRAY", SqlTypeCode.Array) {
+			Length = length;
+		}
 
-			var resolveCcontext = new TypeResolveContext(typeCode, typeName, metadata);
-			return resolver.ResolveType(resolveCcontext);
+		public int Length { get; private set; }
+
+		int ISizeableType.Size {
+			get { return Length; }
+		}
+
+		public override Type GetObjectType() {
+			return typeof(SqlArray);
+		}
+
+		public override Type GetRuntimeType() {
+			return typeof(object[]);
 		}
 	}
 }

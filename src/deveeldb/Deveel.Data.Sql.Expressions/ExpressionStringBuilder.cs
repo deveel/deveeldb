@@ -20,7 +20,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ExpressionStringBuilder : SqlExpressionVisitor {

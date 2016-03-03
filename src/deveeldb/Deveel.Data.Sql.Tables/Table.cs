@@ -20,7 +20,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Index;
 using Deveel.Data.Transactions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	public abstract class Table : IQueryTable, ILockable {

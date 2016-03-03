@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
 	public sealed class MemberMappingConfiguration<T> : IMemberMappingConfiguration where T : class {

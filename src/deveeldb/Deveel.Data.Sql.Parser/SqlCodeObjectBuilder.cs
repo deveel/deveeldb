@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	public sealed class SqlCodeObjectBuilder : ISqlNodeVisitor {

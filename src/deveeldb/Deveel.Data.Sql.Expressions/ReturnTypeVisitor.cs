@@ -18,7 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Routines;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ReturnTypeVisitor : SqlExpressionVisitor {

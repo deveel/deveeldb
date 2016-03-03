@@ -18,7 +18,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameter : DbParameter, IDbDataParameter {

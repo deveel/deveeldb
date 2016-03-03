@@ -18,7 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Variables {
 	public sealed class Variable : IDbObject, IEquatable<Variable> {

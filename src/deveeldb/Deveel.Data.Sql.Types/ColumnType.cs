@@ -16,26 +16,18 @@
 
 using System;
 
-namespace Deveel.Data.Types {
-	public sealed class DataTypeMeta {
-		public DataTypeMeta(string name, string value) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
+using Deveel.Data.Sql;
 
-			Name = name;
-			Value = value;
+namespace Deveel.Data.Sql.Types {
+	public sealed class ColumnType : SqlType {
+		public ColumnType(ObjectName columnName)
+			: base(String.Format("{0}%TYPE", columnName), SqlTypeCode.ColumnType) {
+			if (columnName == null)
+				throw new ArgumentNullException("columnName");
+
+			ColumnName = columnName;
 		}
 
-		public string Name { get; private set; }
-
-		public string Value { get; private set; }
-
-		public int ToInt32() {
-			return Convert.ToInt32(Value);
-		}
-
-		public long ToInt64() {
-			return Convert.ToInt64(Value);
-		}
+		public ObjectName ColumnName { get; private set; }
 	}
 }

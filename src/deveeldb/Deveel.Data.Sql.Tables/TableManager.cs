@@ -21,7 +21,7 @@ using System.Linq;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Transactions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	public sealed class TableManager : IObjectManager {

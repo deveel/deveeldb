@@ -21,7 +21,7 @@ using System.Text;
 
 using Deveel.Data.Serialization;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	static class TypeSerializer {
 		public static void SerializeTo(BinaryWriter writer, SqlType type) {
 			writer.Write((byte) type.TypeCode);

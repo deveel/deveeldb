@@ -5,7 +5,7 @@ using Deveel.Data.Spatial;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[TestFixture]
 	public sealed class DataTypeParseTests : ContextBasedTest {
 		protected override void RegisterServices(ServiceContainer container) {

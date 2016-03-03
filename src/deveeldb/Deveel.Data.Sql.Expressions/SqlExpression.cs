@@ -19,7 +19,7 @@ using System.IO;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>

@@ -16,7 +16,7 @@ using System;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[TestFixture]
 	public sealed class DataTypeParseTests : ContextBasedTest {
 		[Test]

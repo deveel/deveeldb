@@ -20,7 +20,7 @@ using System.Text;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	/// <summary>

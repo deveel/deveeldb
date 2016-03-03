@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	/// <summary>
 	/// Enumerates the codes of all SQL types handled by the system.
 	/// </summary>

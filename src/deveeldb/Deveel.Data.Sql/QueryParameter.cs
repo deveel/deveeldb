@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.Serialization;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql {
 	// TODO: Make it disposable?

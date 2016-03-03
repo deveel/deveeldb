@@ -18,7 +18,7 @@ using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 

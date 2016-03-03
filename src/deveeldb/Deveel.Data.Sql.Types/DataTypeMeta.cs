@@ -16,27 +16,26 @@
 
 using System;
 
-using Deveel.Data.Sql.Objects;
+namespace Deveel.Data.Sql.Types {
+	public sealed class DataTypeMeta {
+		public DataTypeMeta(string name, string value) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
 
-namespace Deveel.Data.Types {
-	public sealed class ArrayType : SqlType, ISizeableType {
-		public ArrayType(int length) 
-			: base("ARRAY", SqlTypeCode.Array) {
-			Length = length;
+			Name = name;
+			Value = value;
 		}
 
-		public int Length { get; private set; }
+		public string Name { get; private set; }
 
-		int ISizeableType.Size {
-			get { return Length; }
+		public string Value { get; private set; }
+
+		public int ToInt32() {
+			return Convert.ToInt32(Value);
 		}
 
-		public override Type GetObjectType() {
-			return typeof(SqlArray);
-		}
-
-		public override Type GetRuntimeType() {
-			return typeof(object[]);
+		public long ToInt64() {
+			return Convert.ToInt64(Value);
 		}
 	}
 }

@@ -16,15 +16,13 @@
 
 using System;
 
-namespace Deveel.Data.Types {
-	public sealed class UserTypeMember {
-		public UserTypeMember(string memberName, SqlType memberType) {
-			MemberName = memberName;
-			MemberType = memberType;
+using Deveel.Data.Sql;
+
+namespace Deveel.Data.Sql.Types {
+	public static class QueryExtensions {
+		public static UserType GetUserType(this IQuery context, ObjectName typeName) {
+			return context.GetObject(DbObjectType.Type, typeName) as UserType;
 		}
 
-		public string MemberName { get; private set; }
-
-		public SqlType MemberType { get; private set; }
 	}
 }

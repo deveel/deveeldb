@@ -19,7 +19,7 @@ using Deveel.Data.Sql.Objects;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[TestFixture]
 	[Category("Booleans")]
 	[Category("Data Types")]

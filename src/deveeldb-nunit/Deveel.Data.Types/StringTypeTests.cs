@@ -19,7 +19,7 @@ using System.Text;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[TestFixture]
 	[Category("Data Types")]
 	public class StringTypeTests {

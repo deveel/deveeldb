@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 using Deveel.Data.Sql.Statements;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class LoopStatementNode : SqlStatementNode {

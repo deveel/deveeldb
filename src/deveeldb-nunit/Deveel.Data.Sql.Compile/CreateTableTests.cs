@@ -4,7 +4,7 @@ using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 

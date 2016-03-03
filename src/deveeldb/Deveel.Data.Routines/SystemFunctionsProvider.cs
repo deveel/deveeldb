@@ -21,7 +21,7 @@ using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {

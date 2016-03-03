@@ -17,7 +17,7 @@
 using System;
 using System.IO;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorParameter {

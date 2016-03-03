@@ -4,7 +4,7 @@ using System.Xml;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Xml {
 	public sealed class XmlNodeType : SqlType {

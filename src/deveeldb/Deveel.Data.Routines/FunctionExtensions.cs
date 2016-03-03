@@ -18,7 +18,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	/// <summary>

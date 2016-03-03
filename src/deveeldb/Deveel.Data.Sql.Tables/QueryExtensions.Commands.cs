@@ -21,7 +21,7 @@ using System.Linq;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	public static partial class QueryExtensions {

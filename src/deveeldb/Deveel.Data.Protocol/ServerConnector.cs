@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ServerConnector : IServerConnector {

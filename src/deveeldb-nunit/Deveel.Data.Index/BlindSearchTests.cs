@@ -20,7 +20,7 @@ using System.Linq;
 using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 

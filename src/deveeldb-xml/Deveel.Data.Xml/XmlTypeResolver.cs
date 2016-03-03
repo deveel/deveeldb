@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Xml {
 	public sealed class XmlTypeResolver : ITypeResolver {

@@ -30,7 +30,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>

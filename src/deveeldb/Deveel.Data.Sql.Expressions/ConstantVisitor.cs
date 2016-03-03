@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
 	class ConstantVisitor : SqlExpressionVisitor {

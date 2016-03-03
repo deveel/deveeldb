@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 		/// Gets a boolean value indicating if the data type found is a primitive.
 		/// </summary>
 		/// <seealso cref="SqlType.IsPrimitive"/>
-		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Types.SqlTypeCode)"/>
+		/// <seealso cref="PrimitiveTypes.IsPrimitive(Deveel.Data.Sql.Types.SqlTypeCode)"/>
 		public bool IsPrimitive { get; private set; }
 
 		/// <summary>

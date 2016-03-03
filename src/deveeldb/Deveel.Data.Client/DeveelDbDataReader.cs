@@ -22,7 +22,7 @@ using System.Globalization;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using SysDataTable = System.Data.DataTable;
 using SysDataRow = System.Data.DataRow;

@@ -4,7 +4,7 @@ using Deveel.Data;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Fluid;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Spatial {
 	public sealed class SpatialFunctionProvider : FunctionProvider {

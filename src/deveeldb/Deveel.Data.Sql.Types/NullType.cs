@@ -20,7 +20,7 @@ using System.IO;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	/// <summary>
 	/// A data type that represents the <c>NULL</c> value of a given
 	/// SQL data type.

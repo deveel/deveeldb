@@ -5,7 +5,7 @@ using System.Text;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Xml {
 	public static class XmlFunctions {

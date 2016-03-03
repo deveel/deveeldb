@@ -2,7 +2,7 @@
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Variables;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class DeclareVariableStatement : SqlStatement, IPreparable, IDeclarationStatement {

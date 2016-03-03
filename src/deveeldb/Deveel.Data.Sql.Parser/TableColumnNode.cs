@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Parser {
 	class TableColumnNode : SqlNode, ITableElementNode {

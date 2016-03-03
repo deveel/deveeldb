@@ -20,7 +20,7 @@ using System.Text;
 
 using Deveel.Data.Sql;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	/// <summary>
 	/// Provides some helper functions for resolving and creating
 	/// <see cref="SqlType"/> instances that are primitive to the

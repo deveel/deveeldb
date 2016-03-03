@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Index {
 	public sealed class ColumnIndexContext {

@@ -19,7 +19,7 @@ using System.Text;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Index {
 	/// <summary>

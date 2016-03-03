@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.Sql.Parser;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {

@@ -16,18 +16,17 @@
 
 using System;
 
-using Deveel.Data.Sql;
+namespace Deveel.Data.Sql.Types {
+	static class TypeResolver {
+		public static SqlType Resolve(SqlTypeCode typeCode, string typeName, DataTypeMeta[] metadata, ITypeResolver resolver) {
+			if (PrimitiveTypes.IsPrimitive(typeCode))
+				return PrimitiveTypes.Resolve(typeCode, typeName, metadata);
 
-namespace Deveel.Data.Types {
-	public sealed class RowType : SqlType {
-		public RowType(ObjectName tableName) 
-			: base(String.Format("{0}%ROWTYPE", tableName), SqlTypeCode.RowType) {
-			if (tableName == null)
-				throw new ArgumentNullException("tableName");
+			if (resolver == null)
+				throw new NotSupportedException(String.Format("Cannot resolve type '{0}' without context.", typeName));
 
-			TableName = tableName;
+			var resolveCcontext = new TypeResolveContext(typeCode, typeName, metadata);
+			return resolver.ResolveType(resolveCcontext);
 		}
-
-		public ObjectName TableName { get; private set; }
 	}
 }

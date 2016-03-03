@@ -19,7 +19,7 @@ using System.IO;
 
 using Deveel.Data.Sql.Objects;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	public sealed class IntervalType : SqlType {
 		public IntervalType(SqlTypeCode typeCode) 
 			: base(GetTypeString(typeCode), typeCode) {

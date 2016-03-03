@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
 	interface IMemberMappingConfiguration {

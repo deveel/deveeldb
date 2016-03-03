@@ -20,7 +20,7 @@ using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	public sealed class TypeManager : IObjectManager, ITypeResolver {
 		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;

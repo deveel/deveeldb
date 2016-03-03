@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	public sealed class TypeResolveContext {
 		private Dictionary<string, DataTypeMeta> meta;
 

@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 using Deveel.Data.Text;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
 	public sealed class StringType : SqlType, ISizeableType {
 		private CompareInfo collator;

@@ -18,7 +18,7 @@ using System;
 
 using Deveel.Data.Services;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	public static class ContextExtensions {
 		public static SqlType ResolveType(this IContext context, string typeName, params DataTypeMeta[] meta) {
 			if (PrimitiveTypes.IsPrimitive(typeName))

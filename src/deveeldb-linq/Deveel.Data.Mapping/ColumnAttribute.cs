@@ -1,7 +1,7 @@
 using System;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

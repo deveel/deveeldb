@@ -21,7 +21,7 @@ using System.Linq;
 using Deveel.Data.Caching;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	class FunctionTable : BaseDataTable {

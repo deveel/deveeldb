@@ -21,7 +21,7 @@ using Deveel.Data;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
 using SqlString = Deveel.Data.Sql.Objects.SqlString;

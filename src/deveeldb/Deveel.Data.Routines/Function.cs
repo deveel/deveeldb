@@ -17,7 +17,7 @@
 using System;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using ISqlObject = Deveel.Data.Sql.Objects.ISqlObject;
 

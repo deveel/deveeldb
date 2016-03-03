@@ -18,11 +18,16 @@ using System;
 
 using Deveel.Data.Sql;
 
-namespace Deveel.Data.Types {
-	public static class QueryExtensions {
-		public static UserType GetUserType(this IQuery context, ObjectName typeName) {
-			return context.GetObject(DbObjectType.Type, typeName) as UserType;
+namespace Deveel.Data.Sql.Types {
+	public sealed class RowType : SqlType {
+		public RowType(ObjectName tableName) 
+			: base(String.Format("{0}%ROWTYPE", tableName), SqlTypeCode.RowType) {
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
+
+			TableName = tableName;
 		}
 
+		public ObjectName TableName { get; private set; }
 	}
 }

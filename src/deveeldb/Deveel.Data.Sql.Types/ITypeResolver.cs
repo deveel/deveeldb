@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	public interface ITypeResolver {
 		SqlType ResolveType(TypeResolveContext context);
 	}

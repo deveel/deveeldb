@@ -23,7 +23,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbParameterCollection : DbParameterCollection {

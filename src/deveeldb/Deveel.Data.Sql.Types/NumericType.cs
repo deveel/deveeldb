@@ -23,7 +23,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
-namespace Deveel.Data.Types {
+namespace Deveel.Data.Sql.Types {
 	[Serializable]
 	public sealed class NumericType : SqlType, ISizeableType {
 		public NumericType(SqlTypeCode typeCode, int size, byte scale) 

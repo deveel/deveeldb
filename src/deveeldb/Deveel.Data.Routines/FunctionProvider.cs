@@ -21,7 +21,7 @@ using System.Linq.Expressions;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Fluid;
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 using DryIoc;
 
