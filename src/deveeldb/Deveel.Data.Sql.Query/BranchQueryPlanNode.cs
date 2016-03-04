@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -34,9 +35,9 @@ namespace Deveel.Data.Sql.Query {
 			Right = right;
 		}
 
-		protected BranchQueryPlanNode(ObjectData data) {
-			Left = data.GetValue<IQueryPlanNode>("Left");
-			Right = data.GetValue<IQueryPlanNode>("Right");
+		protected BranchQueryPlanNode(SerializationInfo info, StreamingContext context) {
+			Left = (IQueryPlanNode)info.GetValue("Left", typeof(IQueryPlanNode));
+			Right = (IQueryPlanNode)info.GetValue("Right", typeof(IQueryPlanNode));
 		}
 
 		/// <summary>
@@ -51,14 +52,14 @@ namespace Deveel.Data.Sql.Query {
 
 		public abstract ITable Evaluate(IRequest context);
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Left", Left);
-			data.SetValue("Right", Right);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Left", Left, typeof(IQueryPlanNode));
+			info.AddValue("Right", Right, typeof(IQueryPlanNode));
 
-			GetData(data);
+			GetData(info, context);
 		}
 
-		protected virtual void GetData(SerializeData data) {
+		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
 		}
 	}
 }

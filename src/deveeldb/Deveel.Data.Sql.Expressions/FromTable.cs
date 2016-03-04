@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -71,11 +70,11 @@ namespace Deveel.Data.Sql.Expressions {
 			IsSubQuery = query != null;
 		}
 
-		private FromTable(ObjectData data) {
-			Name = data.GetString("Name");
-			SubQuery = data.GetValue<SqlQueryExpression>("SubQuery");
-			Alias = data.GetString("Alias");
-			IsSubQuery = data.HasValue("SubQuery");
+		private FromTable(SerializationInfo info, StreamingContext context) {
+			Name = info.GetString("Name");
+			SubQuery = (SqlQueryExpression) info.GetValue("SubQuery", typeof(SqlQueryExpression));
+			Alias = info.GetString("Alias");
+			IsSubQuery = SubQuery != null;
 		}
 
 		///<summary>
@@ -111,10 +110,10 @@ namespace Deveel.Data.Sql.Expressions {
 			return new FromTable(Name, subQuery, Alias);
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Name", Name);
-			data.SetValue("SubQuery", SubQuery);
-			data.SetValue("Alias", Alias);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", Name);
+			info.AddValue("SubQuery", SubQuery);
+			info.AddValue("Alias", Alias);
 		}
 
 		//public static void Serialize(FromTable table, BinaryWriter writer) {

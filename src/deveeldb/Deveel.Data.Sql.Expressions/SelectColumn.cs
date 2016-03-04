@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -55,9 +54,9 @@ namespace Deveel.Data.Sql.Expressions {
 			: this(expression, null) {
 		}
 
-		private SelectColumn(ObjectData data) {
-			Expression = data.GetValue<SqlExpression>("Expression");
-			Alias = data.GetString("Alias");
+		private SelectColumn(SerializationInfo info, StreamingContext context) {
+			Expression = (SqlExpression)info.GetValue("Expression", typeof(SqlExpression));
+			Alias = info.GetString("Alias");
 		}
 
 		/// <summary>
@@ -115,9 +114,9 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		internal ObjectName ResolvedName { get; set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Expression", Expression);
-			data.SetValue("Alias", Alias);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Expression", Expression, typeof(SqlExpression));
+			info.AddValue("Alias", Alias);
 		}
 
 		/// <inheritdoc/>

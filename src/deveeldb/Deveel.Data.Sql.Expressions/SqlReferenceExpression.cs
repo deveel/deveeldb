@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -29,9 +28,9 @@ namespace Deveel.Data.Sql.Expressions {
 			ReferenceName = name;
 		}
 
-		private SqlReferenceExpression(ObjectData data)
-			: base(data) {
-			ReferenceName = data.GetValue<ObjectName>("Reference");
+		private SqlReferenceExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ReferenceName = (ObjectName)info.GetValue("Reference", typeof(ObjectName));
 		}
 
 		public override bool CanEvaluate {
@@ -48,8 +47,8 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return SqlExpressionType.Reference; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Reference", ReferenceName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Reference", ReferenceName, typeof(ObjectName));
 		}
 	}
 }

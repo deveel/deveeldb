@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
@@ -26,9 +25,9 @@ namespace Deveel.Data.Sql.Expressions {
 			Expressions = expressions;
 		}
 
-		private SqlTupleExpression(ObjectData data)
-			: base(data) {
-			Expressions = data.GetValue<SqlExpression[]>("Expressions");
+		private SqlTupleExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Expressions = (SqlExpression[])info.GetValue("Expressions", typeof(SqlExpression[]));
 		}
 
 		public SqlExpression[] Expressions { get; private set; }
@@ -37,8 +36,8 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return SqlExpressionType.Tuple; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Expressions", Expressions);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Expressions", Expressions, typeof(SqlExpression[]));
 		}
 	}
 }

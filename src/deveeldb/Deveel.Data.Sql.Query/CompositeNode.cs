@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -39,10 +38,10 @@ namespace Deveel.Data.Sql.Query {
 			All = allOp;
 		}
 
-		private CompositeNode(ObjectData data)
-			: base(data) {
-			CompositeFunction = (CompositeFunction) data.GetInt32("Function");
-			All = data.GetBoolean("All");
+		private CompositeNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			CompositeFunction = (CompositeFunction) info.GetInt32("Function");
+			All = info.GetBoolean("All");
 		}
 
 		/// <summary>
@@ -64,9 +63,9 @@ namespace Deveel.Data.Sql.Query {
 			return leftResult.Composite(rightResult, CompositeFunction, All);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Function", (int)CompositeFunction);
-			data.SetValue("All", All);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Function", (int)CompositeFunction);
+			info.AddValue("All", All);
 		}
 	}
 }

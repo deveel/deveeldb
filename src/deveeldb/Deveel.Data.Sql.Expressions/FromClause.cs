@@ -19,8 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -37,10 +36,10 @@ namespace Deveel.Data.Sql.Expressions {
 			tableNames = new List<string>();
 		}
 
-		private FromClause(ObjectData data) {
-			var tableNames = data.GetValue<string[]>("TableNames");
-			var fromTables = data.GetValue<FromTable[]>("FromTables");
-			var joinParts = data.GetValue<JoinPart[]>("JoinParts");
+		private FromClause(SerializationInfo info, StreamingContext context) {
+			var tableNames = (string[])info.GetValue("TableNames", typeof(string[]));
+			var fromTables = (FromTable[]) info.GetValue("FromTables", typeof(FromTable[]));
+			var joinParts = (JoinPart[])info.GetValue("JoinParts", typeof(JoinPart[]));
 
 			this.tableNames = new List<string>();
 			this.fromTables = new List<FromTable>();
@@ -212,13 +211,13 @@ namespace Deveel.Data.Sql.Expressions {
 			return clause;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 			if (tableNames != null)
-				data.SetValue("TableNames", tableNames.ToArray());
+				info.AddValue("TableNames", tableNames.ToArray());
 			if (fromTables != null)
-				data.SetValue("FromTables", fromTables.ToArray());
+				info.AddValue("FromTables", fromTables.ToArray());
 			if (joinParts != null)
-				data.SetValue("JoinParts", joinParts.ToArray());
+				info.AddValue("JoinParts", joinParts.ToArray());
 		}
 
 		//public static void Serialize(FromClause clause, BinaryWriter writer) {

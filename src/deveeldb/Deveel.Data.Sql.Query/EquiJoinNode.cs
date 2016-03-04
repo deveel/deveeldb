@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -30,10 +29,10 @@ namespace Deveel.Data.Sql.Query {
 			RightColumns = rightColumns;
 		}
 
-		private EquiJoinNode(ObjectData data)
-			: base(data) {
-			LeftColumns = data.GetValue<ObjectName[]>("LeftColumns");
-			RightColumns = data.GetValue<ObjectName[]>("RightColumns");
+		private EquiJoinNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			LeftColumns = (ObjectName[])info.GetValue("LeftColumns", typeof(ObjectName[]));
+			RightColumns = (ObjectName[]) info.GetValue("RightColumns", typeof(ObjectName[]));
 		}
 
 		public ObjectName[] LeftColumns { get; private set; }
@@ -49,9 +48,9 @@ namespace Deveel.Data.Sql.Query {
 			return leftResult.EquiJoin(context, rightResult, LeftColumns, RightColumns);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("LeftColumns", LeftColumns);
-			data.SetValue("RightColumns", RightColumns);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("LeftColumns", LeftColumns);
+			info.AddValue("RightColumns", RightColumns);
 		}
 	}
 }

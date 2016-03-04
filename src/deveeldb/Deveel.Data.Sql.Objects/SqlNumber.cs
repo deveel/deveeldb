@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Objects {
@@ -94,14 +94,14 @@ namespace Deveel.Data.Sql.Objects {
 			: this(new BigDecimal(value, new MathContext(precision))) {
 		}
 
-		private SqlNumber(ObjectData data)
+		private SqlNumber(SerializationInfo info, StreamingContext context)
 			: this() {
-			var state = (NumericState) data.GetByte("State");
+			var state = (NumericState) info.GetByte("State");
 
 			if (state == NumericState.None) {
-				var bytes = data.GetValue<byte[]>("Bytes");
-				var scale = data.GetInt32("Scale");
-				var precision = data.GetInt32("Precision");
+				var bytes = (byte[]) info.GetValue("Bytes", typeof(byte[]));
+				var scale = info.GetInt32("Scale");
+				var precision = info.GetInt32("Precision");
 
 				innerValue = new BigDecimal(new BigInteger(bytes), scale, new MathContext(precision));
 			}
@@ -135,17 +135,17 @@ namespace Deveel.Data.Sql.Objects {
 			get { return State == NumericState.None ? innerValue.Sign : 0; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("State", (byte)State);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("State", (byte)State);
 
 			if (State == NumericState.None) {
 				var bytes = innerValue.UnscaledValue.ToByteArray();
 				var scale = innerValue.Scale;
 				var precision = innerValue.Precision;
 
-				data.SetValue("Bytes", bytes);
-				data.SetValue("Scale", scale);
-				data.SetValue("Precision", precision);
+				info.AddValue("Bytes", bytes);
+				info.AddValue("Scale", scale);
+				info.AddValue("Precision", precision);
 			}
 		}
 

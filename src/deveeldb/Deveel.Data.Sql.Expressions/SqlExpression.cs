@@ -17,8 +17,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Types;
 
@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Expressions {
 		internal SqlExpression() {
 		}
 
-		internal SqlExpression(ObjectData data) {
+		internal SqlExpression(SerializationInfo info, StreamingContext context) {
 		}
 
 		/// <summary>
@@ -138,11 +138,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.Visit(this);
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			GetData(data);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			GetData(info, context);
 		}
 
-		protected virtual void GetData(SerializeData data) {
+		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
 		}
 
 		/// <summary>

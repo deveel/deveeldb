@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -39,10 +38,10 @@ namespace Deveel.Data.Sql.Query {
 			Names = nameList;
 		}
 
-		private CreateFunctionsNode(ObjectData data)
-			: base(data) {
-			Functions = data.GetValue<SqlExpression[]>("Functions");
-			Names = data.GetValue<string[]>("Names");
+		private CreateFunctionsNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Functions = (SqlExpression[])info.GetValue("Functions", typeof(SqlExpression[]));
+			Names = (string[])info.GetValue("Names", typeof(string[]));
 		}
 
 		/// <summary>
@@ -62,9 +61,9 @@ namespace Deveel.Data.Sql.Query {
 			return funTable.MergeWith(null);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Functions", Functions);
-			data.SetValue("Names", Names);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Functions", Functions);
+			info.AddValue("Names", Names);
 		}
 	}
 }

@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -32,10 +31,10 @@ namespace Deveel.Data.Sql.Expressions {
 			Operand = operand;
 		}
 
-		private SqlUnaryExpression(ObjectData data)
-			: base(data) {
-			Operand = data.GetValue<SqlExpression>("Operand");
-			expressionType = (SqlExpressionType) data.GetInt32("Operator");
+		private SqlUnaryExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Operand = (SqlExpression)info.GetValue("Operand", typeof(SqlExpression));
+			expressionType = (SqlExpressionType) info.GetInt32("Operator");
 		}
 
 		/// <summary>
@@ -53,9 +52,9 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return true; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Operand", Operand);
-			data.SetValue("Operator", (int)expressionType);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Operand", Operand);
+			info.AddValue("Operator", (int)expressionType);
 		}
 	}
 }

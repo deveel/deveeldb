@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -34,9 +33,9 @@ namespace Deveel.Data.Sql.Query {
 			Expression = expression;
 		}
 
-		private ConstantSelectNode(ObjectData data)
-			: base(data) {
-			Expression = data.GetValue<SqlExpression>("Expression");
+		private ConstantSelectNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Expression = (SqlExpression)info.GetValue("Expression", typeof(SqlExpression));
 		}
 
 		public SqlExpression Expression { get; private set; }
@@ -57,8 +56,8 @@ namespace Deveel.Data.Sql.Query {
 			return Child.Evaluate(context);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Expression", Expression);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Expression", Expression, typeof(SqlExpression));
 		}
 	}
 }

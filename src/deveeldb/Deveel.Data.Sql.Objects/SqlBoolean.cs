@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Objects {
 	/// <summary>
@@ -81,10 +80,9 @@ namespace Deveel.Data.Sql.Objects {
 			this.value = value;
 		}
 
-		private SqlBoolean(ObjectData data)
+		private SqlBoolean(SerializationInfo info, StreamingContext context)
 			: this() {
-			if (data.HasValue("Value"))
-				value = data.GetByte("Value");
+			value = (byte?) info.GetValue("Value", typeof (byte?));
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -94,9 +92,8 @@ namespace Deveel.Data.Sql.Objects {
 			return CompareTo((ISqlObject) obj);
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			if (value != null)
-				data.SetValue("Value", value.Value);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Value", value, typeof(byte?));
 		}
 
 		/// <inheritdoc/>
