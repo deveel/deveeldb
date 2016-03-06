@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
@@ -58,10 +59,10 @@ namespace Deveel.Data.Sql.Statements {
 				ReplaceIfExists = replaceIfExists;
 			}
 
-			private Prepared(ObjectData data) {
-				TypeName = data.GetValue<ObjectName>("TypeName");
-				Members = data.GetValue<UserTypeMember[]>("Members");
-				ReplaceIfExists = data.GetBoolean("Replace");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TypeName = (ObjectName) info.GetValue("TypeName", typeof(ObjectName));
+				Members = (UserTypeMember[]) info.GetValue("Members", typeof(UserTypeMember[]));
+				ReplaceIfExists = info.GetBoolean("Replace");
 			}
 
 			public ObjectName TypeName { get; private set; }
@@ -70,10 +71,10 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool ReplaceIfExists { get; set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TypeName", TypeName);
-				data.SetValue("Members", Members);
-				data.SetValue("Replace", ReplaceIfExists);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TypeName", TypeName);
+				info.AddValue("Members", Members);
+				info.AddValue("Replace", ReplaceIfExists);
 			}
 		}
 

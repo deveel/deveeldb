@@ -19,6 +19,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Types;
 
@@ -565,13 +566,13 @@ namespace Deveel.Data.Sql.Expressions {
 		#endregion
 
 		internal static void Serialize(SqlExpression expression, BinaryWriter writer) {
-			var serializer = new BinarySerializer();
+			var serializer = new BinaryFormatter();
 			serializer.Serialize(writer, expression);
 		}
 
 		internal static SqlExpression Deserialize(BinaryReader reader) {
-			var serializer = new BinarySerializer();
-			return (SqlExpression) serializer.Deserialize(reader, typeof(SqlExpression));
+			var serializer = new BinaryFormatter();
+			return (SqlExpression) serializer.Deserialize(reader);
 		}
 	}
 }

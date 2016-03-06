@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -52,9 +53,9 @@ namespace Deveel.Data.Sql.Query {
 			MarkerName = markerName;
 		}
 
-		private LeftOuterJoinNode(ObjectData data)
-			: base(data) {
-			MarkerName = data.GetString("Marker");
+		private LeftOuterJoinNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MarkerName = info.GetString("Marker");
 		}
 
 		public string MarkerName { get; private set; }
@@ -77,8 +78,8 @@ namespace Deveel.Data.Sql.Query {
 			return outerTable;
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Marker", MarkerName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Marker", MarkerName);
 		}
 	}
 }

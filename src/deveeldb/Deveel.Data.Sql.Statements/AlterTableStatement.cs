@@ -18,9 +18,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -37,9 +37,9 @@ namespace Deveel.Data.Sql.Statements {
 			Action = action;
 		}
 
-		private AlterTableStatement(ObjectData data) {
-			TableName = data.GetValue<ObjectName>("TableName");
-			Action = data.GetValue<IAlterTableAction>("Action");
+		private AlterTableStatement(SerializationInfo info, StreamingContext context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+			Action = (IAlterTableAction)info.GetValue("Action", typeof(IAlterTableAction));
 		}
 
 		public ObjectName TableName { get; private set; }
@@ -76,9 +76,9 @@ namespace Deveel.Data.Sql.Statements {
 			return col1.Equals(col2, comparison);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("TableName", TableName);
-			data.SetValue("Action", Action);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("Action", Action);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

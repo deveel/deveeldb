@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Query {
 			: base(left, right) {
 		}
 
-		private LogicalUnionNode(ObjectData data)
-			: base(data) {
+		private LogicalUnionNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public override ITable Evaluate(IRequest context) {

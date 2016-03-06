@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -31,10 +32,10 @@ namespace Deveel.Data.Sql.Query {
 			SubQueryType = subQueryType;
 		}
 
-		private NonCorrelatedAnyAllNode(ObjectData data)
-			: base(data) {
-			LeftColumnNames = data.GetValue<ObjectName[]>("LeftColumns");
-			SubQueryType = (SqlExpressionType) data.GetInt32("SubQueryType");
+		private NonCorrelatedAnyAllNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			LeftColumnNames = (ObjectName[])info.GetValue("LeftColumns", typeof(ObjectName[]));
+			SubQueryType = (SqlExpressionType) info.GetInt32("SubQueryType");
 		}
 
 		public ObjectName[] LeftColumnNames { get; private set; }
@@ -52,9 +53,9 @@ namespace Deveel.Data.Sql.Query {
 			return leftResult.SelectAnyAllNonCorrelated(LeftColumnNames, SubQueryType, rightResult);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("LeftColumns", LeftColumnNames);
-			data.SetValue("SubQueryType", (int)SubQueryType);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("LeftColumns", LeftColumnNames, typeof(ObjectName[]));
+			info.AddValue("SubQueryType", (int)SubQueryType);
 		}
 	}
 }

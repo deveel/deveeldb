@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
@@ -29,10 +30,10 @@ namespace Deveel.Data.Sql.Query {
 			AliasColumnNames = aliasColumnNames;
 		}
 
-		private SubsetNode(ObjectData data)
-			: base(data) {
-			OriginalColumnNames = data.GetValue<ObjectName[]>("OriginalColumns");
-			AliasColumnNames = data.GetValue<ObjectName[]>("AliasColumns");
+		private SubsetNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			OriginalColumnNames = (ObjectName[]) info.GetValue("OriginalColumns", typeof(ObjectName[]));
+			AliasColumnNames = (ObjectName[]) info.GetValue("AliasColumns", typeof(ObjectName[]));
 		}
 
 		public ObjectName[] OriginalColumnNames { get; private set; }
@@ -53,9 +54,9 @@ namespace Deveel.Data.Sql.Query {
 			AliasColumnNames = aliases;
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("OriginalColumns", OriginalColumnNames);
-			data.SetValue("AliasColumns", AliasColumnNames);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("OriginalColumns", OriginalColumnNames);
+			info.AddValue("AliasColumns", AliasColumnNames);
 		}
 	}
 }

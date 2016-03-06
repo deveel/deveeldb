@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -35,12 +36,12 @@ namespace Deveel.Data.Sql.Query {
 			Names = names;
 		}
 
-		private GroupNode(ObjectData data)
-			: base(data) {
-			ColumnNames = data.GetValue<ObjectName[]>("Columns");
-			GroupMaxColumn = data.GetValue<ObjectName>("GroupMax");
-			Functions = data.GetValue<SqlExpression[]>("Functions");
-			Names = data.GetValue<string[]>("Names");
+		private GroupNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ColumnNames = (ObjectName[]) info.GetValue("Columns", typeof(ObjectName[]));
+			GroupMaxColumn = (ObjectName)info.GetValue("GroupMax", typeof(ObjectName));
+			Functions = (SqlExpression[])info.GetValue("Functions", typeof(SqlExpression[]));
+			Names = (string[]) info.GetValue("Names", typeof(string[]));
 		}
 
 		public ObjectName[] ColumnNames { get; private set; }
@@ -51,11 +52,11 @@ namespace Deveel.Data.Sql.Query {
 
 		public string[] Names { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Columns", ColumnNames);
-			data.SetValue("GroupMax", GroupMaxColumn);
-			data.SetValue("Functions", Functions);
-			data.SetValue("Names", Names);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Columns", ColumnNames, typeof(ObjectName[]));
+			info.AddValue("GroupMax", GroupMaxColumn, typeof(ObjectName));
+			info.AddValue("Functions", Functions, typeof(SqlExpression[]));
+			info.AddValue("Names", Names, typeof(string[]));
 		}
 
 		public override ITable Evaluate(IRequest context) {

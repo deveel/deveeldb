@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -34,14 +35,14 @@ namespace Deveel.Data.Sql.Statements {
 			SchemaName = schemaName;
 		}
 
-		private CreateSchemaStatement(ObjectData data) {
-			SchemaName = data.GetString("SchemaName");
+		private CreateSchemaStatement(SerializationInfo info, StreamingContext context) {
+			SchemaName = info.GetString("SchemaName");
 		}
 
 		public string SchemaName { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("SchemaName", SchemaName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("SchemaName", SchemaName);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

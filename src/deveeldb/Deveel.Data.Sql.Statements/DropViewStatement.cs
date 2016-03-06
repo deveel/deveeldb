@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -62,14 +63,14 @@ namespace Deveel.Data.Sql.Statements {
 				IfExists = ifExists;
 			}
 
-			private Prepared(ObjectData data) {
-				ViewName = data.GetValue<ObjectName>("ViewName");
-				IfExists = data.GetBoolean("IfExists");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				ViewName = (ObjectName) info.GetValue("ViewName", typeof(ObjectName));
+				IfExists = info.GetBoolean("IfExists");
 			}
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("ViewName", ViewName);
-				data.SetValue("IfExists", IfExists);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("ViewName", ViewName);
+				info.AddValue("IfExists", IfExists);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

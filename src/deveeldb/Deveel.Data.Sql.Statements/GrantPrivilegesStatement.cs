@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -44,12 +45,12 @@ namespace Deveel.Data.Sql.Statements {
 			WithGrant = withGrant;
 		}
 
-		private GrantPrivilegesStatement(ObjectData data) {
-			ObjectName = data.GetValue<ObjectName>("ObjectName");
-			Grantee = data.GetString("Grantee");
-			Privilege = (Privileges) data.GetInt32("Privilege");
-			Columns = data.GetValue<string[]>("Columns");
-			WithGrant = data.GetBoolean("WithGrant");
+		private GrantPrivilegesStatement(SerializationInfo info, StreamingContext context) {
+			ObjectName = (ObjectName) info.GetValue("ObjectName", typeof(ObjectName));
+			Grantee = info.GetString("Grantee");
+			Privilege = (Privileges) info.GetInt32("Privilege");
+			Columns = (string[]) info.GetValue("Columns", typeof(string[]));
+			WithGrant = info.GetBoolean("WithGrant");
 		}
 
 		public IEnumerable<string> Columns { get; private set; }
@@ -62,12 +63,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool WithGrant { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("ObjectName", ObjectName);
-			data.SetValue("Grantee", Grantee);
-			data.SetValue("Privilege", (int)Privilege);
-			data.SetValue("Columns", Columns);
-			data.SetValue("WithGrant", WithGrant);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ObjectName", ObjectName);
+			info.AddValue("Grantee", Grantee);
+			info.AddValue("Privilege", (int)Privilege);
+			info.AddValue("Columns", Columns);
+			info.AddValue("WithGrant", WithGrant);
 		}
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {

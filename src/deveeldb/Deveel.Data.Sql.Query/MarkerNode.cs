@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -36,9 +37,9 @@ namespace Deveel.Data.Sql.Query {
 			MarkName = markName;
 		}
 
-		private MarkerNode(ObjectData data)
-			: base(data) {
-			MarkName = data.GetString("Marker");
+		private MarkerNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MarkName = info.GetString("Marker");
 		}
 
 		public override ITable Evaluate(IRequest context) {
@@ -49,8 +50,8 @@ namespace Deveel.Data.Sql.Query {
 
 		public string MarkName { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Marker", MarkName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Marker", MarkName);
 		}
 	}
 }

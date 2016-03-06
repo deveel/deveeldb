@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
@@ -30,9 +29,9 @@ namespace Deveel.Data.Sql.Query {
 			AliasName = aliasName;
 		}
 
-		private FetchViewNode(ObjectData data) {
-			ViewName = data.GetValue<ObjectName>("ViewName");
-			AliasName = data.GetValue<ObjectName>("AliasName");
+		private FetchViewNode(SerializationInfo info, StreamingContext context) {
+			ViewName = (ObjectName)info.GetValue("ViewName", typeof(ObjectName));
+			AliasName = (ObjectName) info.GetValue("AliasName", typeof(ObjectName));
 		}
 
 		public ObjectName ViewName { get; private set; }
@@ -50,9 +49,9 @@ namespace Deveel.Data.Sql.Query {
 			return AliasName != null ? new ReferenceTable(t, AliasName) : t;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("ViewName", ViewName);
-			data.SetValue("AliasName", AliasName);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ViewName", ViewName); 
+			info.AddValue("AliasName", AliasName);
 		}
 	}
 }

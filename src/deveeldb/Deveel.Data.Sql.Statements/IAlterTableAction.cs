@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	public interface IAlterTableAction : ISerializable {

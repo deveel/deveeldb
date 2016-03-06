@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -25,13 +24,14 @@ namespace Deveel.Data.Sql.Statements {
 		public DropPrimaryKeyAction() {
 		}
 
-		private DropPrimaryKeyAction(ObjectData data) {
+		private DropPrimaryKeyAction(SerializationInfo info, StreamingContext context) {
 		}
+
 		AlterTableActionType IAlterTableAction.ActionType {
 			get { return AlterTableActionType.DropPrimaryKey; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 		}
 	}
 }

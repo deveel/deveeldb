@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -29,8 +28,8 @@ namespace Deveel.Data.Sql.Statements {
 			TypeName = typeName;
 		}
 
-		private DropTypeStatement(ObjectData data) {
-			TypeName = data.GetValue<ObjectName>("TypeName");
+		private DropTypeStatement(SerializationInfo info, StreamingContext context) {
+			TypeName = (ObjectName) info.GetValue("TypeName", typeof(ObjectName));
 		}
 
 		public ObjectName TypeName { get; private set; }
@@ -39,8 +38,8 @@ namespace Deveel.Data.Sql.Statements {
 			base.ExecuteStatement(context);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("TypeName", TypeName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TypeName", TypeName);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 
@@ -29,9 +30,9 @@ namespace Deveel.Data.Sql.Statements {
 			TableName = tableName;
 		}
 
-		private DropCallbackTriggersStatement(ObjectData data)
-			: base(data) {
-			TableName = data.GetValue<ObjectName>("TableName");
+		private DropCallbackTriggersStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
 		}
 
 		public ObjectName TableName { get; private set; }
@@ -40,8 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 			base.ExecuteStatement(context);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("TableName", TableName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TableName", TableName);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -34,18 +35,18 @@ namespace Deveel.Data.Sql.Statements {
 			Password = password;
 		}
 
-		private CreateUserStatement(ObjectData data) {
-			UserName = data.GetString("UserName");
-			Password = data.GetValue<SqlExpression>("Password");
+		private CreateUserStatement(SerializationInfo info, StreamingContext context) {
+			UserName = info.GetString("UserName");
+			Password = (SqlExpression) info.GetValue("Password", typeof(SqlExpression));
 		}
 
 		public string UserName { get; private set; }
 
 		public SqlExpression Password { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("UserName", UserName);
-			data.SetValue("Password", Password);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("UserName", UserName);
+			info.AddValue("Password", Password);
 		}
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {

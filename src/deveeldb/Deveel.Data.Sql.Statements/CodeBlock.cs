@@ -18,8 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -28,9 +27,9 @@ namespace Deveel.Data.Sql.Statements {
 			Objects = new SqlObjectCollection(this);
 		}
 
-		internal CodeBlock(ObjectData data) {
-			Label = data.GetString("Label");
-			Objects = DeserializeObjects(data);
+		internal CodeBlock(SerializationInfo info, StreamingContext context) {
+			Label = info.GetString("Label");
+			Objects = DeserializeObjects(info);
 		}
 
 		~CodeBlock() {
@@ -41,14 +40,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ICollection<ISqlCodeObject> Objects { get; private set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Label", Label);
-			SerializeObjects(data);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Label", Label);
+			SerializeObjects(info);
 
-			GetData(data);
+			GetData(info, context);
 		}
 
-		private void SerializeObjects(SerializeData data) {
+		private void SerializeObjects(SerializationInfo info) {
 			throw new NotImplementedException();
 		}
 
@@ -64,11 +63,11 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		protected virtual void GetData(SerializeData data) {
+		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
 			
 		}
 
-		private ICollection<ISqlCodeObject> DeserializeObjects(ObjectData data) {
+		private ICollection<ISqlCodeObject> DeserializeObjects(SerializationInfo info) {
 			throw new NotImplementedException();
 		}
 

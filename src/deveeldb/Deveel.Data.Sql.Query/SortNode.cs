@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -54,10 +55,10 @@ namespace Deveel.Data.Sql.Query {
 			Ascending = ascending;
 		}
 
-		private SortNode(ObjectData data)
-			: base(data) {
-			ColumnNames = data.GetValue<ObjectName[]>("Columns");
-			Ascending = data.GetValue<bool[]>("Ascending");
+		private SortNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ColumnNames = (ObjectName[])info.GetValue("Columns", typeof(ObjectName[]));
+			Ascending = (bool[]) info.GetValue("Ascending", typeof(bool[]));
 		}
 
 		public ObjectName[] ColumnNames { get; private set; }
@@ -69,9 +70,9 @@ namespace Deveel.Data.Sql.Query {
 			return t.OrderBy(ColumnNames, Ascending);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Columns", ColumnNames);
-			data.SetValue("Ascending", Ascending);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Columns", ColumnNames);
+			info.AddValue("Ascending", Ascending);
 		}
 	}
 }

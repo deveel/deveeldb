@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -137,11 +138,11 @@ namespace Deveel.Data.Sql.Statements {
 				ColumnIndices = columnIndices;
 			}
 
-			private Prepared(ObjectData data) {
-				TableName = data.GetValue<ObjectName>("TableName");
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
-				ColumnNames = data.GetValue<ObjectName[]>("ColumnNames");
-				ColumnIndices = data.GetValue<int[]>("ColumnIndices");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
+				ColumnNames = (ObjectName[]) info.GetValue("ColumnNames", typeof(ObjectName[]));
+				ColumnIndices = (int[]) info.GetValue("ColumnIndices", typeof(int[]));
 			}
 
 			public ObjectName TableName { get; private set; }
@@ -152,11 +153,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			public ObjectName[] ColumnNames { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableName", TableName);
-				data.SetValue("QueryPlan", QueryPlan);
-				data.SetValue("ColumnNames", ColumnNames);
-				data.SetValue("ColumnIndices", ColumnIndices);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableName", TableName);
+				info.AddValue("QueryPlan", QueryPlan);
+				info.AddValue("ColumnNames", ColumnNames);
+				info.AddValue("ColumnIndices", ColumnIndices);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

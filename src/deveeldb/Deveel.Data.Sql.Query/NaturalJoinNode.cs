@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -36,8 +37,8 @@ namespace Deveel.Data.Sql.Query {
 			: base(left, right) {
 		}
 
-		private NaturalJoinNode(ObjectData data)
-			: base(data) {
+		private NaturalJoinNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public override ITable Evaluate(IRequest context) {

@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -30,8 +30,8 @@ namespace Deveel.Data.Sql.Statements {
 			Constraint = constraint;
 		}
 
-		private AddConstraintAction(ObjectData data) {
-			Constraint = data.GetValue<SqlTableConstraint>("Constraint");
+		private AddConstraintAction(SerializationInfo info, StreamingContext context) {
+			Constraint = (SqlTableConstraint) info.GetValue("Constraint", typeof(SqlTableConstraint));
 		}
 
 		public SqlTableConstraint Constraint { get; private set; }
@@ -45,8 +45,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterTableActionType.AddConstraint; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Constraint", Constraint);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Constraint", Constraint);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -33,8 +34,8 @@ namespace Deveel.Data.Sql.Statements {
 			UserName = userName;
 		}
 
-		private DropUserStatement(ObjectData data) {
-			UserName = data.GetString("UserName");
+		private DropUserStatement(SerializationInfo info, StreamingContext context) {
+			UserName = info.GetString("UserName");
 		}
 
 		public string UserName { get; private set; }
@@ -50,8 +51,8 @@ namespace Deveel.Data.Sql.Statements {
 			context.Request.Query.DeleteUser(UserName);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("UserName", UserName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("UserName", UserName);
 		}
 	}
 }
