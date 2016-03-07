@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
@@ -37,11 +38,33 @@ namespace Deveel.Data.Sql.Statements {
 			OrderBy = orderBy;
 		}
 
+		private SelectStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			QueryExpression = (SqlQueryExpression) info.GetValue("Query", typeof (SqlQueryExpression));
+			Limit = (QueryLimit) info.GetValue("Limit", typeof (QueryLimit));
+
+			var orderBy = (SortColumn[]) info.GetValue("OrderBy", typeof (SortColumn[]));
+			if (orderBy != null)
+				OrderBy = new List<SortColumn>(orderBy);
+		}
+
 		public SqlQueryExpression QueryExpression { get; private set; }
 
 		public IEnumerable<SortColumn> OrderBy { get; set; }
 
 		public QueryLimit Limit { get; set; }
+
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Query", QueryExpression);
+			info.AddValue("Limit", Limit);
+
+			if (OrderBy != null) {
+				var orderBy = OrderBy.ToArray();
+				info.AddValue("OrderBy", orderBy);
+			} else {
+				info.AddValue("OrderBy", null);
+			}
+		}
 
 		IStatement IPreparableStatement.Prepare(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));

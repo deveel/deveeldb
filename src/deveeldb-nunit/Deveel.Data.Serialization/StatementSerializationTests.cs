@@ -13,12 +13,12 @@ namespace Deveel.Data.Serialization {
 			var expression = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM table WHERE a = 1");
 			var statement = new SelectStatement(expression);
 
-			Serialize(statement);
-		}
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsInstanceOf<SelectStatement>(deserialized);
 
-		[Test]
-		public void DeserializeSelect() {
-			
+				Assert.IsNotNull(deserialized.QueryExpression);
+			});
 		}
 	}
 }

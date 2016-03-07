@@ -16,3 +16,5 @@
 *.tokens
 /src/deveeldb.schfb/Help/*
 *.zip
+.idea
+*.iml
