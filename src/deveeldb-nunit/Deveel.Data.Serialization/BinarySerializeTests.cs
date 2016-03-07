@@ -14,6 +14,7 @@
 //    limitations under the License.
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql;
 
@@ -37,7 +38,7 @@ namespace Deveel.Data.Serialization {
 
 			object graph = null;
 			using (var memoryStream = new MemoryStream(bytes)) {
-				graph = serializer.Deserialize(memoryStream, typeof(TestClass));
+				graph = serializer.Deserialize(memoryStream);
 			}
 
 			Assert.IsNotNull(graph);
@@ -63,7 +64,7 @@ namespace Deveel.Data.Serialization {
 
 			object graph = null;
 			using (var memoryStream = new MemoryStream(bytes)) {
-				graph = serializer.Deserialize(memoryStream, typeof(ObjectName));
+				graph = serializer.Deserialize(memoryStream);
 			}
 
 			Assert.IsNotNull(graph);
@@ -89,7 +90,7 @@ namespace Deveel.Data.Serialization {
 
 			object graph = null;
 			using (var memoryStream = new MemoryStream(bytes)) {
-				graph = serializer.Deserialize(memoryStream, typeof(TestClass2));
+				graph = serializer.Deserialize(memoryStream);
 			}
 
 			Assert.IsNotNull(graph);
@@ -106,18 +107,18 @@ namespace Deveel.Data.Serialization {
 			public TestClass() {	
 			}
 
-			private TestClass(ObjectData graph) {
-				Value = graph.GetString("value");
-				Parent = graph.GetValue<TestClass>("parent");
+			private TestClass(SerializationInfo info, StreamingContext context) {
+				Value = info.GetString("value");
+				Parent = (TestClass) info.GetValue("parent", typeof(TestClass));
 			}
 
 			public string Value { get; set; }
 
 			public TestClass Parent { get; set; }
 
-			public void GetData(SerializeData graph) {
-				graph.SetValue("value", Value);
-				graph.SetValue("parent", Parent);
+			public void GetObjectData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("value", Value);
+				info.AddValue("parent", Parent);
 			}
 		}
 

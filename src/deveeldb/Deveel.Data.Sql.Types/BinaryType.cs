@@ -18,10 +18,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Types {
@@ -39,9 +38,9 @@ namespace Deveel.Data.Sql.Types {
 			AssertIsBinary(typeCode);
 		}
 
-		private BinaryType(ObjectData data)
-			: base(data) {
-			MaxSize = data.GetInt32("MaxSize");
+		private BinaryType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MaxSize = info.GetInt32("MaxSize");
 		}
 
 		int ISizeableType.Size {
@@ -63,8 +62,8 @@ namespace Deveel.Data.Sql.Types {
 				throw new ArgumentException(String.Format("The SQL type {0} is not a BINARY", sqlType));
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("MaxSize", MaxSize);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("MaxSize", MaxSize);
 		}
 
 		public override bool IsCacheable(ISqlObject value) {

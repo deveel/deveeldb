@@ -17,12 +17,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class SelectStatement : SqlStatement, IPreparableStatement, IPlSqlStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
@@ -55,14 +56,14 @@ namespace Deveel.Data.Sql.Statements {
 				QueryPlan = queryPlan;
 			}
 
-			private Prepared(ObjectData data) {
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
 			}
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("QueryPlan", QueryPlan);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("QueryPlan", QueryPlan);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

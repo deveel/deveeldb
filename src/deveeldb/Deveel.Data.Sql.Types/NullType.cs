@@ -17,8 +17,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Types {
@@ -36,8 +36,8 @@ namespace Deveel.Data.Sql.Types {
 			: base("NULL", typeCode) {
 		}
 
-		private NullType(ObjectData data)
-			: base(data) {
+		private NullType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public override bool IsComparable(SqlType type) {

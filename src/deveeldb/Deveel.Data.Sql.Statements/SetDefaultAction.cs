@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -28,9 +28,9 @@ namespace Deveel.Data.Sql.Statements {
 			DefaultExpression = defaultExpression;
 		}
 
-		private SetDefaultAction(ObjectData data) {
-			ColumnName = data.GetString("ColumnName");
-			DefaultExpression = data.GetValue<SqlExpression>("Default");
+		private SetDefaultAction(SerializationInfo info, StreamingContext context) {
+			ColumnName = info.GetString("ColumnName");
+			DefaultExpression = (SqlExpression) info.GetValue("Default", typeof(SqlExpression));
 		}
 
 		public string ColumnName { get; private set; }
@@ -49,9 +49,9 @@ namespace Deveel.Data.Sql.Statements {
 			return new SetDefaultAction(ColumnName, defaultExp);
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("ColumnName", ColumnName);
-			data.SetValue("Default", DefaultExpression);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ColumnName", ColumnName);
+			info.AddValue("Default", DefaultExpression);
 		}
 	}
 }

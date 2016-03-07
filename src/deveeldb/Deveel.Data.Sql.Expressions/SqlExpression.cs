@@ -566,12 +566,12 @@ namespace Deveel.Data.Sql.Expressions {
 		#endregion
 
 		internal static void Serialize(SqlExpression expression, BinaryWriter writer) {
-			var serializer = new BinaryFormatter();
+			var serializer = new BinarySerializer();
 			serializer.Serialize(writer, expression);
 		}
 
 		internal static SqlExpression Deserialize(BinaryReader reader) {
-			var serializer = new BinaryFormatter();
+			var serializer = new BinarySerializer();
 			return (SqlExpression) serializer.Deserialize(reader);
 		}
 	}

@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Serialization;
@@ -30,8 +31,8 @@ namespace Deveel.Data.Sql.Types {
 			: base("QUERY", SqlTypeCode.QueryPlan) {
 		}
 
-		private QueryType(ObjectData data)
-			: base(data) {
+		private QueryType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public override bool IsIndexable {
@@ -57,7 +58,7 @@ namespace Deveel.Data.Sql.Types {
 
 		private static IQueryPlanNode DeserializePlan(Type nodeType, BinaryReader reader) {
 			var serializer = new BinarySerializer();
-			return (IQueryPlanNode) serializer.Deserialize(reader, nodeType);
+			return (IQueryPlanNode) serializer.Deserialize(reader);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

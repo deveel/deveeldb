@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Deveel.Data.Serialization {
@@ -30,21 +31,24 @@ namespace Deveel.Data.Serialization {
 
 		public Encoding Encoding { get; set; }
 
-		public object Deserialize(Stream stream, Type graphType) {
+		public object Deserialize(Stream stream) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 			if (!stream.CanRead)
 				throw new ArgumentException("The input stream cannot be read.", "stream");
 
 			var reader = new BinaryReader(stream, Encoding);
-			return Deserialize(reader, graphType);
+			return Deserialize(reader);
 		}
 
-		public object Deserialize(BinaryReader reader, Type graphType) {
+		public object Deserialize(BinaryReader reader) {
 			if (reader == null)
 				throw new ArgumentNullException("reader");
+
+			var graphType = ReadType(reader);
+
 			if (graphType == null)
-				throw new ArgumentNullException("graphType");
+				throw new InvalidOperationException("No type found in the graph stream");
 
 			if (!Attribute.IsDefined(graphType, typeof (SerializableAttribute)))
 				throw new ArgumentException(String.Format("The type '{0}' is not marked as serializable.", graphType));
@@ -56,9 +60,17 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private object DeserializeType(BinaryReader reader, Type graphType) {
-			var ctor = GetDefaultConstructor(graphType);
-			if (ctor == null)
-				throw new NotSupportedException(String.Format("The type '{0}' does not specify any default empty constructor.", graphType));
+			object obj;
+
+			if (graphType.IsValueType) {
+				obj = Activator.CreateInstance(graphType);
+			} else {
+				var ctor = GetDefaultConstructor(graphType);
+				if (ctor == null)
+					throw new NotSupportedException(String.Format("The type '{0}' does not specify any default empty constructor.", graphType));
+
+				obj = ctor.Invoke(new object[0]);
+			}
 
 			var fields = graphType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.Where(member => !member.IsDefined(typeof (NonSerializedAttribute), false));
@@ -71,8 +83,6 @@ namespace Deveel.Data.Serialization {
 
 			var values = new Dictionary<string, object>();
 			ReadValues(reader, Encoding, values);
-
-			var obj = ctor.Invoke(new object[0]);
 
 			foreach (var member in members) {
 				var memberName = member.Name;
@@ -113,8 +123,21 @@ namespace Deveel.Data.Serialization {
 			var values = new Dictionary<string, object>();
 			ReadValues(reader, Encoding, values);
 
-			var graph = new ObjectData(graphType, values);
-			return ctor.Invoke(new object[] {graph});
+			var info = new SerializationInfo(graphType, new FormatterConverter());
+			foreach (var value in values) {
+				var key = value.Key;
+				var objValue = value.Value;
+
+				Type valueType = typeof (object);
+				if (objValue != null)
+					valueType = objValue.GetType();
+
+				info.AddValue(key, objValue, valueType);
+			}
+
+			var context = new StreamingContext(StreamingContextStates.All);
+
+			return ctor.Invoke(new object[] {info, context});
 		}
 
 		private static void ReadValues(BinaryReader reader, Encoding encoding, IDictionary<string, object> values) {
@@ -168,12 +191,11 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private static object ReadObject(BinaryReader reader, Encoding encoding) {
-			var objType = ReadType(reader);
 			var serializer = new BinarySerializer {
 				Encoding = encoding
 			};
 
-			return serializer.Deserialize(reader, objType);
+			return serializer.Deserialize(reader);
 		}
 
 		private static Array ReadArray(BinaryReader reader, Encoding encoding) {
@@ -191,7 +213,9 @@ namespace Deveel.Data.Serialization {
 			var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			foreach (var ctor in ctors) {
 				var paramTypes = ctor.GetParameters().Select(x => x.ParameterType).ToArray();
-				if (paramTypes.Length == 1 && paramTypes[0] == typeof(ObjectData))
+				if (paramTypes.Length == 2 && 
+					paramTypes[0] == typeof(SerializationInfo) && 
+					paramTypes[1] == typeof(StreamingContext))
 					return ctor;
 			}
 
@@ -203,7 +227,7 @@ namespace Deveel.Data.Serialization {
 				throw new ArgumentNullException("stream");
 
 			if (!stream.CanWrite)
-				throw new ArgumentException("The serialization stream is not writeable.");
+				throw new ArgumentException("The serialization stream is not writable.");
 
 			var writer = new BinaryWriter(stream, Encoding);
 			Serialize(writer, obj);
@@ -220,18 +244,19 @@ namespace Deveel.Data.Serialization {
 			if (!Attribute.IsDefined(objType, typeof(SerializableAttribute)))
 				throw new ArgumentException(String.Format("The type '{0} is not serializable", objType.FullName));
 
-			var graph = new SerializeData(objType);
+			var graph = new SerializationInfo(objType, new FormatterConverter());
+			var context = new StreamingContext(StreamingContextStates.All);
 
 			if (typeof (ISerializable).IsAssignableFrom(objType)) {
-				((ISerializable) obj).GetData(graph);
+				((ISerializable) obj).GetObjectData(graph, context);
 			} else {
 				GetObjectValues(objType, obj, graph);
 			}
 
-			SerializeGraph(writer, Encoding, graph);
+			SerializeGraph(writer, Encoding, objType, graph);
 		}
 
-		private static void GetObjectValues(Type objType, object obj, SerializeData graph) {
+		private static void GetObjectValues(Type objType, object obj, SerializationInfo graph) {
 			var fields = objType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
 				.Where(x => !x.IsDefined(typeof (NonSerializedAttribute), false) && !x.Name.EndsWith("_BackingField"));
 			var properties = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
@@ -256,24 +281,36 @@ namespace Deveel.Data.Serialization {
 					throw new NotSupportedException();
 				}
 
-				graph.SetValue(memberName, memberType, value);
+				graph.AddValue(memberName, value, memberType);
 			}
 		}
 
-		private static void SerializeGraph(BinaryWriter writer, Encoding encoding, SerializeData graph) {
-			var values = graph.Values.ToDictionary(x => x.Key, x => x.Value);
-			var count = values.Count;
+		private static void SerializeGraph(BinaryWriter writer, Encoding encoding, Type graphType, SerializationInfo graph) {
+			var fullName = graphType.AssemblyQualifiedName;
+
+			writer.Write(fullName);
+
+			var count = graph.MemberCount;
 
 			writer.Write(count);
 
-			foreach (var pair in values) {
-				var key = pair.Key;
+			var en = graph.GetEnumerator();
+			while (en.MoveNext()) {
+				var key = en.Name;
 				var keyLength = key.Length;
 
 				writer.Write(keyLength);
 				writer.Write(key.ToCharArray());
 
-				SerializeValue(writer, encoding, pair.Value.Key, pair.Value.Value);
+				var value = en.Value;
+				var objType = en.ObjectType;
+
+				if ((objType.IsAbstract ||
+				     objType.IsInterface) &&
+				    value != null)
+					objType = value.GetType();
+
+				SerializeValue(writer, encoding, objType, value);
 			}
 		}
 
@@ -318,17 +355,13 @@ namespace Deveel.Data.Serialization {
 			return null;
 		}
 
-		private static void SerializeValue(BinaryWriter writer, Encoding encoding, Type type, object value) {
-			var typeCode = GetTypeCode(type);
-			if (typeCode == null)
-				throw new NotSupportedException(String.Format("The type '{0}' is not supported.", type));
-
+		private static void WriteValueHead(BinaryWriter writer, byte typeCode, Type type, object value) {
 			var nullCheck = value == null;
 
-			writer.Write(typeCode.Value);
+			writer.Write(typeCode);
 			writer.Write(nullCheck);
 
-			if (value == null)
+			if (nullCheck)
 				return;
 
 			if (typeCode == ArrayType) {
@@ -337,18 +370,31 @@ namespace Deveel.Data.Serialization {
 
 				var array = (Array) value;
 				var arrayLength = array.Length;
-				var arrayType = type.GetElementType();
 
 				writer.Write(arrayLength);
+			}
+		}
+
+		private static void SerializeValue(BinaryWriter writer, Encoding encoding, Type type, object value) {
+			var typeCode = GetTypeCode(type);
+			if (typeCode == null)
+				throw new NotSupportedException(String.Format("The type '{0}' is not supported.", type));
+
+			WriteValueHead(writer, typeCode.Value, type, value);
+
+			if (value == null)
+				return;
+
+			if (typeCode == ArrayType) {
+				var array = (Array) value;
+				var arrayLength = array.Length;
+				var arrayType = type.GetElementType();
 
 				for (int i = 0; i < arrayLength; i++) {
 					var element = array.GetValue(i);
 					SerializeValue(writer, encoding, arrayType, element);
 				}
 			} else if (typeCode == ObjectType) {
-				var realType = value.GetType();
-				writer.Write(realType.FullName);
-
 				var serializer = new BinarySerializer {Encoding = encoding};
 				serializer.Serialize(writer, value);
 			} else if (typeCode == BooleanType) {

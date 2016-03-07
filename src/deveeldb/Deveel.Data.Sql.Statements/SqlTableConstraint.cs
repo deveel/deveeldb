@@ -17,8 +17,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
@@ -35,15 +35,15 @@ namespace Deveel.Data.Sql.Statements {
 			Columns = columns;
 		}
 
-		private SqlTableConstraint(ObjectData data) {
-			ConstraintName = data.GetString("Name");
-			ConstraintType = (ConstraintType) data.GetInt32("Type");
-			Columns = data.GetValue<string[]>("Columns");
-			CheckExpression = data.GetValue<SqlExpression>("Check");
-			ReferenceTable = data.GetString("ReferenceTable");
-			ReferenceColumns = data.GetValue<string[]>("ReferenceColumns");
-			OnDelete = (ForeignKeyAction) data.GetInt32("OnDelete");
-			OnUpdate = (ForeignKeyAction) data.GetInt32("OnUpdate");
+		private SqlTableConstraint(SerializationInfo info, StreamingContext context) {
+			ConstraintName = info.GetString("Name");
+			ConstraintType = (ConstraintType) info.GetInt32("Type");
+			Columns = (string[]) info.GetValue("Columns", typeof(string[]));
+			CheckExpression = (SqlExpression) info.GetValue("Check", typeof(SqlExpression));
+			ReferenceTable = info.GetString("ReferenceTable");
+			ReferenceColumns = (string[]) info.GetValue("ReferenceColumns", typeof(string[]));
+			OnDelete = (ForeignKeyAction) info.GetInt32("OnDelete");
+			OnUpdate = (ForeignKeyAction) info.GetInt32("OnUpdate");
 		}
 
 		public string ConstraintName { get; private set; }
@@ -98,23 +98,15 @@ namespace Deveel.Data.Sql.Statements {
 			};
 		}
 
-		public static void Serialize(SqlTableConstraint constraint, BinaryWriter writer) {
-			throw new NotImplementedException();
-		}
-
-		public static SqlTableConstraint Deserialize(BinaryReader reader) {
-			throw new NotImplementedException();
-		}
-
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Name", ConstraintName);
-			data.SetValue("Type", (int)ConstraintType);
-			data.SetValue("Columns", Columns);
-			data.SetValue("ReferenceTable", ReferenceTable);
-			data.SetValue("ReferenceColumns", ReferenceColumns);
-			data.SetValue("Check", CheckExpression);
-			data.SetValue("OnDelete", (int)OnDelete);
-			data.SetValue("OnUpdate", (int)OnUpdate);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", ConstraintName);
+			info.AddValue("Type", (int)ConstraintType);
+			info.AddValue("Columns", Columns);
+			info.AddValue("ReferenceTable", ReferenceTable);
+			info.AddValue("ReferenceColumns", ReferenceColumns);
+			info.AddValue("Check", CheckExpression);
+			info.AddValue("OnDelete", (int)OnDelete);
+			info.AddValue("OnUpdate", (int)OnUpdate);
 		}
 	}
 }

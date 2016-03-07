@@ -17,8 +17,8 @@
 
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
@@ -34,9 +34,9 @@ namespace Deveel.Data.Sql.Statements {
 			Arguments = arguments;
 		}
 
-		private OpenStatement(ObjectData data) {
-			CursorName = data.GetString("CursorName");
-			Arguments = data.GetValue<SqlExpression[]>("Arguments");
+		private OpenStatement(SerializationInfo info, StreamingContext context) {
+			CursorName = info.GetString("CursorName");
+			Arguments = (SqlExpression[]) info.GetValue("Arguments", typeof(SqlExpression[]));
 		}
 
 		public string CursorName { get; private set; }
@@ -76,9 +76,9 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("CursorName", CursorName);
-			data.SetValue("Arguments", Arguments);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("CursorName", CursorName);
+			info.AddValue("Arguments", Arguments);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

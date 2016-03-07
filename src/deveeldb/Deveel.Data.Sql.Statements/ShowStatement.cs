@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
@@ -55,18 +56,18 @@ namespace Deveel.Data.Sql.Statements {
 				TableName = tableName;
 			}
 
-			private Prepared(ObjectData data) {
-				TableName = data.GetValue<ObjectName>("TableName");
-				Target = (ShowTarget) data.GetInt32("Target");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				Target = (ShowTarget) info.GetInt32("Target");
 			}
 
 			public ObjectName TableName { get; private set; }
 
 			public ShowTarget Target { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableName", TableName);
-				data.SetValue("Target", (int)Target);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableName", TableName);
+				info.AddValue("Target", (int)Target);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

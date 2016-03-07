@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -215,27 +216,25 @@ namespace Deveel.Data.Sql.Triggers {
 				Arguments = args;
 			}
 
-			private TriggerArgument(ObjectData data) {
-				Arguments = data.GetValue<SqlExpression[]>("Arguments");
+			private TriggerArgument(SerializationInfo info, StreamingContext context) {
+				Arguments = (SqlExpression[]) info.GetValue("Arguments", typeof (SqlExpression[]));
 			}
 
 			public SqlExpression[] Arguments { get; private set; }
 
-			void ISerializable.GetData(SerializeData data) {
-				data.SetValue("Arguments", Arguments);
+			void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("Arguments", Arguments);
 			}
 		}
 
 		private static byte[] SerializeArguments(TriggerArgument args) {
 			using (var stream = new MemoryStream()) {
-				using (var writer = new BinaryWriter(stream)) {
-					var serializer = new BinarySerializer();
-					serializer.Serialize(writer, args);
+				var serializer = new BinarySerializer();
+				serializer.Serialize(stream, args);
 
-					writer.Flush();
+				stream.Flush();
 
-					return stream.ToArray();
-				}
+				return stream.ToArray();
 			}
 		}
 

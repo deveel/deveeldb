@@ -16,9 +16,8 @@
 
 
 using System;
-using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -31,8 +30,8 @@ namespace Deveel.Data.Sql.Statements {
 			PasswordExpression = passwordExpression;
 		}
 
-		private SetPasswordAction(ObjectData data) {
-			PasswordExpression = data.GetValue<SqlExpression>("Password");
+		private SetPasswordAction(SerializationInfo info, StreamingContext context) {
+			PasswordExpression = (SqlExpression) info.GetValue("Password", typeof(SqlExpression));
 		}
 
 		public AlterUserActionType ActionType {
@@ -46,8 +45,8 @@ namespace Deveel.Data.Sql.Statements {
 			return new SetPasswordAction(preparedExp);
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Password", PasswordExpression);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Password", PasswordExpression);
 		}
 
 		//public static void Serialize(SetPasswordAction action, BinaryWriter writer) {

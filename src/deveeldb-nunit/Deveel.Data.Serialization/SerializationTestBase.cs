@@ -8,7 +8,7 @@ namespace Deveel.Data.Serialization {
 	public abstract class SerializationTestBase : ContextBasedTest {
 		protected T BinaryDeserialize<T>(Stream stream) where T : class {
 			var serializer = new BinarySerializer();
-			return serializer.Deserialize(stream, typeof (T)) as T;
+			return serializer.Deserialize(stream) as T;
 		}
 
 		protected Stream Serialize<T>(T obj) where T : class {

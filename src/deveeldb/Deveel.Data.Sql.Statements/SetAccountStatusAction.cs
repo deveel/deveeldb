@@ -16,9 +16,9 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Statements {
 			Status = status;
 		}
 
-		private SetAccountStatusAction(ObjectData data) {
-			Status = (UserStatus) data.GetInt32("Status");
+		private SetAccountStatusAction(SerializationInfo info, StreamingContext context) {
+			Status = (UserStatus) info.GetInt32("Status");
 		}
 
 		public UserStatus Status { get; private set; }
@@ -37,8 +37,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterUserActionType.SetAccountStatus; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Status", (int) Status);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Status", (int) Status);
 		}
 
 		//public static void Serialize(SetAccountStatusAction action, BinaryWriter writer) {

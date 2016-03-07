@@ -168,12 +168,7 @@
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
-    <Compile Include="Deveel.Data.Serialization\BinaryCommon.cs" />
-    <Compile Include="Deveel.Data.Serialization\BinaryElementType.cs" />
-    <Compile Include="Deveel.Data.Serialization\BinaryFormatter.cs" />
-    <Compile Include="Deveel.Data.Serialization\BinaryTypeCode.cs" />
-    <Compile Include="Deveel.Data.Serialization\ObjectReader.cs" />
-    <Compile Include="Deveel.Data.Serialization\TypeTag.cs" />
+    <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\IObjectRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />

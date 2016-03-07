@@ -17,8 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
@@ -84,11 +84,11 @@ namespace Deveel.Data.Sql.Statements {
 				Limit = limit;
 			}
 
-			private Prepared(ObjectData data) {
-				TableName = data.GetValue<ObjectName>("TableName");
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
-				Columns = data.GetValue<SqlAssignExpression[]>("Columns");
-				Limit = data.GetInt32("Limit");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
+				Columns = (SqlAssignExpression[]) info.GetValue("Columns", typeof(SqlAssignExpression[]));
+				Limit = info.GetInt32("Limit");
 			}
 
 			public ObjectName TableName { get; private set; }
@@ -104,11 +104,11 @@ namespace Deveel.Data.Sql.Statements {
 				context.SetResult(updateCount);
 			}
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableName", TableName);
-				data.SetValue("QueryPlan", QueryPlan);
-				data.SetValue("Columns", Columns);
-				data.SetValue("Limit", Limit);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableName", TableName);
+				info.AddValue("QueryPlan", QueryPlan);
+				info.AddValue("Columns", Columns);
+				info.AddValue("Limit", Limit);
 			}
 		}
 

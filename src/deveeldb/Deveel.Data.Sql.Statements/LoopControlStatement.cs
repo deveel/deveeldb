@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -41,10 +42,10 @@ namespace Deveel.Data.Sql.Statements {
 			ControlType = controlType;
 		}
 
-		private LoopControlStatement(ObjectData data) {
-			Label = data.GetString("ControlType");
-			ControlType = (LoopControlType) data.GetInt32("ControlType");
-			WhenExpression = data.GetValue<SqlExpression>("WhenExpression");
+		private LoopControlStatement(SerializationInfo info, StreamingContext context) {
+			Label = info.GetString("Label");
+			ControlType = (LoopControlType)info.GetInt32("ControlType");
+			WhenExpression = (SqlExpression) info.GetValue("WhenExpression", typeof (SqlExpression));
 		}
 
 		public LoopControlType ControlType { get; private set; }
@@ -66,10 +67,10 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Label", Label);
-			data.SetValue("WhenExpression", WhenExpression);
-			data.SetValue("ControlType", (int)ControlType);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Label", Label);
+			info.AddValue("WhenExpression", WhenExpression);
+			info.AddValue("ControlType", (int)ControlType);
 		}
 	}
 }

@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -83,11 +84,11 @@ namespace Deveel.Data.Sql.Statements {
 				QueryPlan = queryPlan;
 			}
 
-			private Prepared(ObjectData data) {
-				IsForTable = data.GetBoolean("IsForTable");
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
-				Table = data.GetValue<ObjectName>("Table");
-				VariableName = data.GetString("VariableName");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				IsForTable = info.GetBoolean("IsForTable");
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
+				Table = (ObjectName) info.GetValue("Table", typeof(ObjectName));
+				VariableName = info.GetString("VariableName");
 			}
 
 			public bool IsForTable { get; private set; }
@@ -98,11 +99,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string VariableName { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("IsForTable", IsForTable);
-				data.SetValue("QueryPlan", QueryPlan);
-				data.SetValue("Table", Table);
-				data.SetValue("VariableName", VariableName);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("IsForTable", IsForTable);
+				info.AddValue("QueryPlan", QueryPlan);
+				info.AddValue("Table", Table);
+				info.AddValue("VariableName", VariableName);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
