@@ -16,14 +16,14 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
 	[Serializable]
 	class SingleRowTableNode : IQueryPlanNode {
-		private SingleRowTableNode(ObjectData data) {
+		private SingleRowTableNode(SerializationInfo info, StreamingContext context) {
 		}
 
 		public SingleRowTableNode() {
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Query {
 			return context.Query.Session.Transaction.Database.SingleRowTable;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 		}
 	}
 }

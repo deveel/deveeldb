@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -27,14 +27,14 @@ namespace Deveel.Data.Sql.Statements {
 			IsolationLevel = isolationLevel;
 		}
 
-		private SetIsolationLevelStatement(ObjectData data) {
-			IsolationLevel = (IsolationLevel) data.GetValue<int>("IsolationLevel");
+		private SetIsolationLevelStatement(SerializationInfo info, StreamingContext context) {
+			IsolationLevel = (IsolationLevel) info.GetInt32("IsolationLevel");
 		}
 
 		public IsolationLevel IsolationLevel { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("IsolationLevel", (int)IsolationLevel);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("IsolationLevel", (int)IsolationLevel);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

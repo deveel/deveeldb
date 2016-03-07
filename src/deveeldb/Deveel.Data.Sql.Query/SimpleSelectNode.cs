@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -39,11 +40,11 @@ namespace Deveel.Data.Sql.Query {
 			Expression = expression;
 		}
 
-		private SimpleSelectNode(ObjectData data)
-			: base(data) {
-			ColumnName = data.GetValue<ObjectName>("Column");
-			OperatorType = (SqlExpressionType) data.GetInt32("Operator");
-			Expression = data.GetValue<SqlExpression>("Expression");
+		private SimpleSelectNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ColumnName = (ObjectName) info.GetValue("Column", typeof(ObjectName));
+			OperatorType = (SqlExpressionType) info.GetInt32("Operator");
+			Expression = (SqlExpression) info.GetValue("Expression", typeof(SqlExpression));
 		}
 
 		public ObjectName ColumnName { get; private set; }
@@ -52,10 +53,10 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlExpression Expression { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Column", ColumnName);
-			data.SetValue("Operator", (int)OperatorType);
-			data.SetValue("Expression", Expression);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Column", ColumnName);
+			info.AddValue("Operator", (int)OperatorType);
+			info.AddValue("Expression", Expression);
 		}
 
 		public override ITable Evaluate(IRequest context) {

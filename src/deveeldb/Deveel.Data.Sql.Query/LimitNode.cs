@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
@@ -33,10 +34,10 @@ namespace Deveel.Data.Sql.Query {
 			Count = count;
 		}
 
-		private LimitNode(ObjectData data)
-			: base(data) {
-			Offset = data.GetInt64("Offset");
-			Count = data.GetInt64("Count");
+		private LimitNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Offset = info.GetInt64("Offset");
+			Count = info.GetInt64("Count");
 		}
 
 		public override ITable Evaluate(IRequest context) {
@@ -44,9 +45,9 @@ namespace Deveel.Data.Sql.Query {
 			return new LimitedTable(table, Offset, Count);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Offset", Offset);
-			data.SetValue("Count", Count);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Offset", Offset);
+			info.AddValue("Count", Count);
 		}
 	}
 }

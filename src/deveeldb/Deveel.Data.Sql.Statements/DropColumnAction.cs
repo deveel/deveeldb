@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -26,8 +25,8 @@ namespace Deveel.Data.Sql.Statements {
 			ColumnName = columnName;
 		}
 
-		private DropColumnAction(ObjectData data) {
-			ColumnName = data.GetString("Column");
+		private DropColumnAction(SerializationInfo info, StreamingContext context) {
+			ColumnName = info.GetString("Column");
 		}
 
 		public string ColumnName { get; private set; }
@@ -36,8 +35,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterTableActionType.DropColumn; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Column", ColumnName);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Column", ColumnName);
 		}
 	}
 }

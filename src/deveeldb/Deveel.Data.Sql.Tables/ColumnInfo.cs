@@ -17,9 +17,8 @@
 
 using System;
 using System.IO;
-using System.Text;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
@@ -56,12 +55,12 @@ namespace Deveel.Data.Sql.Tables {
 			ColumnName = columnName;
 		}
 
-		private ColumnInfo(ObjectData data) {
-			ColumnName = data.GetString("ColumnName");
-			ColumnType = data.GetValue<SqlType>("ColumnType");
-			IsNotNull = data.GetBoolean("IsNotNull");
-			DefaultExpression = data.GetValue<SqlExpression>("Default");
-			IndexType = data.GetString("IndexType");
+		private ColumnInfo(SerializationInfo info, StreamingContext context) {
+			ColumnName = info.GetString("ColumnName");
+			ColumnType = (SqlType) info.GetValue("ColumnType", typeof(SqlType));
+			IsNotNull = info.GetBoolean("IsNotNull");
+			DefaultExpression = (SqlExpression) info.GetValue("Default", typeof(SqlExpression));
+			IndexType = info.GetString("IndexType");
 		}
 
 		/// <summary>
@@ -162,12 +161,12 @@ namespace Deveel.Data.Sql.Tables {
 		public string IndexType { get; internal set; }
 
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("ColumnName", ColumnName);
-			data.SetValue("ColumnType", ColumnType);
-			data.SetValue("IsNotNull", IsNotNull);
-			data.SetValue("Default", DefaultExpression);
-			data.SetValue("IndexType", IndexType);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ColumnName", ColumnName);
+			info.AddValue("ColumnType", ColumnType);
+			info.AddValue("IsNotNull", IsNotNull);
+			info.AddValue("Default", DefaultExpression);
+			info.AddValue("IndexType", IndexType);
 		}
 
 

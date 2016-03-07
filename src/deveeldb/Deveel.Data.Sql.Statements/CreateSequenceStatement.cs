@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -69,8 +70,8 @@ namespace Deveel.Data.Sql.Statements {
 				SequenceName = sequenceName;
 			}
 
-			private Prepared(ObjectData data) {
-				SequenceName = data.GetValue<ObjectName>("SequenceName");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				SequenceName = (ObjectName) info.GetValue("SequenceName", typeof(ObjectName));
 			}
 
 			public ObjectName SequenceName { get; private set; }
@@ -87,8 +88,8 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool Cycle { get; set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("SequenceName", SequenceName);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("SequenceName", SequenceName);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

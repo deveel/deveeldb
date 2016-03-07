@@ -16,8 +16,7 @@
 
 
 using System;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
@@ -29,9 +28,9 @@ namespace Deveel.Data.Sql.Expressions {
 			VariableName = variableName;
 		}
 
-		private SqlVariableReferenceExpression(ObjectData data)
-			: base(data) {
-			VariableName = data.GetString("Variable");
+		private SqlVariableReferenceExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			VariableName = info.GetString("Variable");
 		}
 
 		public override SqlExpressionType ExpressionType {
@@ -44,8 +43,8 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return true; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Variable", VariableName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Variable", VariableName);
 		}
 	}
 }

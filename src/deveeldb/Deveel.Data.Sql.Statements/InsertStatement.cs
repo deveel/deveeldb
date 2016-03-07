@@ -19,6 +19,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -190,12 +191,12 @@ namespace Deveel.Data.Sql.Statements {
 				Assignments = assignments;
 			}
 
-			private Prepared(ObjectData data) {
-				TableName = data.GetValue<ObjectName>("TableName");
-				int setCount = data.GetInt32("SetCount");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				int setCount = info.GetInt32("SetCount");
 				var assignmenets = new SqlAssignExpression[setCount][];
 				for (int i = 0; i < setCount; i++) {
-					assignmenets[i] = data.GetValue<SqlAssignExpression[]>(String.Format("Assign[{0}]", i));
+					assignmenets[i] = (SqlAssignExpression[]) info.GetValue(String.Format("Assign[{0}]", i), typeof(SqlAssignExpression[]));
 				}
 
 				Assignments = assignmenets;
@@ -205,15 +206,15 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IList<SqlAssignExpression[]> Assignments { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableName", TableName);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableName", TableName);
 
 				int setCount = Assignments.Count;
-				data.SetValue("SetCount", setCount);
+				info.AddValue("SetCount", setCount);
 
 				for (int i = 0; i < setCount; i++) {
 					var set = Assignments[i];
-					data.SetValue(String.Format("Assign[{0}]", i), set);
+					info.AddValue(String.Format("Assign[{0}]", i), set);
 				}
 			}
 

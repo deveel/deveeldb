@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Serialization;
@@ -39,11 +40,10 @@ namespace Deveel.Data.Sql.Views {
 			QueryPlan = queryPlan;
 		}
 
-		private ViewInfo(ObjectData data) {
-			TableInfo = data.GetValue<TableInfo>("TableInfo");
-			QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
-			QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
-
+		private ViewInfo(SerializationInfo info, StreamingContext context) {
+			TableInfo = (TableInfo) info.GetValue("TableInfo", typeof (TableInfo));
+			QueryExpression = (SqlQueryExpression) info.GetValue("QueryExpression", typeof (SqlQueryExpression));
+			QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof (IQueryPlanNode));
 		}
 
 		public TableInfo TableInfo { get; private set; }
@@ -64,10 +64,10 @@ namespace Deveel.Data.Sql.Views {
 			get { return ViewName; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("TableInfo", TableInfo);
-			data.SetValue("QueryPlan", QueryPlan);
-			data.SetValue("QueryExpression", QueryExpression);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TableInfo", TableInfo);
+			info.AddValue("QueryPlan", QueryPlan);
+			info.AddValue("QueryExpression", QueryExpression);
 		}
 
 		public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Views {
 
 		public static ViewInfo Deserialize(Stream stream) {
 			var serializer = new BinarySerializer();
-			return (ViewInfo) serializer.Deserialize(stream, typeof (ViewInfo));
+			return (ViewInfo) serializer.Deserialize(stream);
 		}
 
 		//public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
@@ -112,11 +112,9 @@ namespace Deveel.Data.Sql.Views {
 
 		public SqlBinary AsBinary() {
 			using (var stream = new MemoryStream()) {
-				using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-					var serializer = new BinarySerializer();
-					serializer.Serialize(writer, this);
-					writer.Flush();
-				}
+				var serializer = new BinarySerializer();
+				serializer.Serialize(stream, this);
+				stream.Flush();
 
 				var data = stream.ToArray();
 				return new SqlBinary(data);

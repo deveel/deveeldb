@@ -17,9 +17,9 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
@@ -63,9 +63,9 @@ namespace Deveel.Data.Sql {
 			Value = value;
 		}
 
-		private Field(ObjectData data) {
-			Type = data.GetValue<SqlType>("Type");
-			Value = data.GetValue<ISqlObject>("Value");
+		private Field(SerializationInfo info, StreamingContext context) {
+			Type = (SqlType)info.GetValue("Type", typeof(SqlType));
+			Value = (ISqlObject) info.GetValue("Value", typeof(ISqlObject));
 		}
 
 		/// <summary>
@@ -106,9 +106,9 @@ namespace Deveel.Data.Sql {
 			get { return Type.ColumnSizeOf(Value); }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Type", Type);
-			data.SetValue("Value", Value);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Type", Type, typeof(SqlType));
+			info.AddValue("Value", Value, typeof(ISqlObject));
 		}
 
 		/// <summary>

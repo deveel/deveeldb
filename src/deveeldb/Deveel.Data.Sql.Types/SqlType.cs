@@ -19,9 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -57,9 +56,9 @@ namespace Deveel.Data.Sql.Types {
 			Name = name;
 		}
 
-		protected SqlType(ObjectData data) {
-			Name = data.GetString("Name");
-			TypeCode = (SqlTypeCode) data.GetInt32("TypeCode");
+		protected SqlType(SerializationInfo info, StreamingContext context) {
+			Name = info.GetString("Name");
+			TypeCode = (SqlTypeCode) info.GetInt32("TypeCode");
 		}
 
 		/// <summary>
@@ -277,12 +276,14 @@ namespace Deveel.Data.Sql.Types {
 			return SqlNull.Value;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Name", Name);
-			data.SetValue("TypeCode", (int) TypeCode);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", Name);
+			info.AddValue("TypeCode", (int) TypeCode);
+
+			GetData(info, context);
 		}
 
-		protected virtual void GetData(SerializeData data) {
+		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
 		}
 
 		/// <summary>

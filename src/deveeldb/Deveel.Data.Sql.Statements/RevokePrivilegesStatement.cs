@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -70,11 +71,11 @@ namespace Deveel.Data.Sql.Statements {
 				GrantOption = grantOption;
 			}
 
-			private Prepared(ObjectData data) {
-				Grantee = data.GetString("Grantee");
-				Privileges = (Privileges) data.GetInt32("Privileges");
-				ObjectName = data.GetValue<ObjectName>("ObjectName");
-				GrantOption = data.GetBoolean("GrantOption");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				Grantee = info.GetString("Grantee");
+				Privileges = (Privileges) info.GetInt32("Privileges");
+				ObjectName = (ObjectName) info.GetValue("ObjectName", typeof(ObjectName));
+				GrantOption = info.GetBoolean("GrantOption");
 			}
 
 			public string Grantee { get; private set; }
@@ -87,11 +88,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool GrantOption { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("Grantee", Grantee);
-				data.SetValue("Privileges", (int)Privileges);
-				data.SetValue("ObjectName", ObjectName);
-				data.SetValue("GrantOption", GrantOption);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("Grantee", Grantee);
+				info.AddValue("Privileges", (int)Privileges);
+				info.AddValue("ObjectName", ObjectName);
+				info.AddValue("GrantOption", GrantOption);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

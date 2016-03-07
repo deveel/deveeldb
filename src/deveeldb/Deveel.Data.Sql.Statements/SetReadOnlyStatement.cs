@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -31,14 +31,14 @@ namespace Deveel.Data.Sql.Statements {
 			Status = status;
 		}
 
-		private SetReadOnlyStatement(ObjectData data) {
-			Status = data.GetBoolean("Status");
+		private SetReadOnlyStatement(SerializationInfo info, StreamingContext context) {
+			Status = info.GetBoolean("Status");
 		}
 
 		public bool Status { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Status", Status);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Status", Status);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

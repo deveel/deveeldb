@@ -18,6 +18,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Serialization;
@@ -44,19 +45,17 @@ namespace Deveel.Data.Sql.Types {
 			Encoding = encoding;
 		}
 
-		private StringType(ObjectData data)
-			: base(data) {
-			MaxSize = data.GetInt32("MaxSize");
+		private StringType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MaxSize = info.GetInt32("MaxSize");
 
-			if (data.HasValue("Locale")) {
-				var locale = data.GetString("Locale");
+			var locale = info.GetString("Locale");
+			if (!String.IsNullOrEmpty(locale))
 				Locale = new CultureInfo(locale);
-			}
 
-			if (data.HasValue("Encoding")) {
-				var encoding = data.GetString("Encoding");
+			var encoding = info.GetString("Encoding");
+			if (!String.IsNullOrEmpty(encoding))
 				Encoding = Encoding.GetEncoding(encoding);
-			}
 		}
 
 		private static void AssertIsString(SqlTypeCode sqlType) {
@@ -103,12 +102,20 @@ namespace Deveel.Data.Sql.Types {
 
 		public Encoding Encoding { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("MaxSize", MaxSize);
-			if (Locale != null)
-				data.SetValue("Locale", Locale.Name);
-			if (Encoding != null)
-				data.SetValue("Encoding", Encoding.WebName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("MaxSize", MaxSize);
+
+			if (Locale != null) {
+				info.AddValue("Locale", Locale.Name);
+			} else {
+				info.AddValue("Locale", null);
+			}
+
+			if (Encoding != null) {
+				info.AddValue("Encoding", Encoding.WebName);
+			} else {
+				info.AddValue("Encoding", null);
+			}
 		}
 
 		public override bool IsCacheable(ISqlObject value) {

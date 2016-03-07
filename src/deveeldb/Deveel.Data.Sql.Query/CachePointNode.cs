@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -36,9 +35,9 @@ namespace Deveel.Data.Sql.Query {
 			Id = id;
 		}
 
-		private CachePointNode(ObjectData data)
-			: base(data) {
-			Id = data.GetInt32("Id");
+		private CachePointNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Id = info.GetInt32("Id");
 		}
 
 		private static long NewId() {
@@ -64,8 +63,8 @@ namespace Deveel.Data.Sql.Query {
 			return childTable;
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Id", Id);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Id", Id);
 		}
 	}
 }

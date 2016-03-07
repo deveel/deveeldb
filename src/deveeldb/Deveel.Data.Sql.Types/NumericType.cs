@@ -17,10 +17,9 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
@@ -42,10 +41,10 @@ namespace Deveel.Data.Sql.Types {
 			: this(typeCode, size, 0) {
 		}
 
-		private NumericType(ObjectData data)
-			: base(data) {
-			Size = data.GetInt32("Size");
-			Scale = data.GetByte("Scale");
+		private NumericType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Size = info.GetInt32("Size");
+			Scale = info.GetByte("Scale");
 		}
 
 		public int Size { get; private set; }
@@ -56,9 +55,9 @@ namespace Deveel.Data.Sql.Types {
 			get { return true; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Size", Size);
-			data.SetValue("Scale", Scale);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Size", Size);
+			info.AddValue("Scale", Scale);
 		}
 
 		public override bool Equals(object obj) {

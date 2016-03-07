@@ -21,12 +21,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
 	/// <summary>
@@ -69,18 +69,18 @@ namespace Deveel.Data.Sql.Tables {
 			columnsCache = new Dictionary<ObjectName, int>();
 		}
 
-		private TableInfo(ObjectData data) {
-			TableName = data.GetValue<ObjectName>("TableName");
-			Id = data.GetInt32("TableId");
-			IsPermanent = data.GetBoolean("Permanent");
-			IsReadOnly = data.GetBoolean("ReaDOnly");
+		private TableInfo(SerializationInfo info, StreamingContext context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+			Id = info.GetInt32("TableId");
+			IsPermanent = info.GetBoolean("Permanent");
+			IsReadOnly = info.GetBoolean("ReadOnly");
 
 			columns = new List<ColumnInfo>();
-			var columnInfo = data.GetValue<ColumnInfo[]>("Columns");
+			var columnInfo = (ColumnInfo[]) info.GetValue("Columns", typeof(ColumnInfo[]));
 			if (columnInfo != null) {
-				foreach (var info in columnInfo) {
-					info.TableInfo = this;
-					columns.Add(info);
+				foreach (var colInfo in columnInfo) {
+					colInfo.TableInfo = this;
+					columns.Add(colInfo);
 				}
 			}
 
@@ -193,12 +193,17 @@ namespace Deveel.Data.Sql.Tables {
 			IsPermanent = true;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("TableName", TableName);
-			data.SetValue("TableId", Id);
-			data.SetValue("ReadOnly", IsReadOnly);
-			data.SetValue("Permanent", IsPermanent);
-			data.SetValue("Columns", columns.ToArray());
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("TableId", Id);
+			info.AddValue("ReadOnly", IsReadOnly);
+			info.AddValue("Permanent", IsPermanent);
+
+			if (columns != null) {
+				info.AddValue("Columns", columns.ToArray());
+			} else {
+				info.AddValue("Columns", null);
+			}
 		}
 
 		internal void AddColumnSafe(ColumnInfo column) {

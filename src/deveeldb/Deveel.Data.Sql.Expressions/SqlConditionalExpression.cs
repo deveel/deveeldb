@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 
@@ -33,11 +34,11 @@ namespace Deveel.Data.Sql.Expressions {
 			FalseExpression = falsExpression;
 		}
 
-		private SqlConditionalExpression(ObjectData data)
-			: base(data) {
-			TestExpression = data.GetValue<SqlExpression>("Test");
-			TrueExpression = data.GetValue<SqlExpression>("True");
-			FalseExpression = data.GetValue<SqlExpression>("False");
+		private SqlConditionalExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TestExpression = (SqlExpression)info.GetValue("Test", typeof(SqlExpression));
+			TrueExpression = (SqlExpression)info.GetValue("True", typeof(SqlExpression));
+			FalseExpression = (SqlExpression)info.GetValue("False", typeof(SqlExpression));
 		}
 
 		public SqlExpression TestExpression { get; private set; }
@@ -54,10 +55,10 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return true; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Test", TestExpression);
-			data.SetValue("True", TrueExpression);
-			data.SetValue("False", FalseExpression);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Test", TestExpression, typeof(SqlExpression));
+			info.AddValue("True", TrueExpression, typeof(SqlExpression));
+			info.AddValue("False", FalseExpression, typeof(SqlExpression));
 		}
 	}
 }

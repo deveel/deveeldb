@@ -18,9 +18,8 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Types {
@@ -31,8 +30,8 @@ namespace Deveel.Data.Sql.Types {
 			AssertIsBoolean(typeCode);
 		}
 
-		private BooleanType(ObjectData data)
-			: base(data) {
+		private BooleanType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		private static void AssertIsBoolean(SqlTypeCode sqlType) {

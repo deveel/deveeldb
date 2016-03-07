@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
@@ -50,13 +51,14 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
-		private DeclareCursorStatement(ObjectData data) {
-			CursorName = data.GetString("CursorName");
-			QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
-			Flags = (CursorFlags) data.GetInt32("Flags");
+		private DeclareCursorStatement(SerializationInfo info, StreamingContext context) {
+			CursorName = info.GetString("CursorName");
+			QueryExpression = (SqlQueryExpression) info.GetValue("QueryExpression", typeof(SqlQueryExpression));
+			Flags = (CursorFlags) info.GetInt32("Flags");
 
-			if (data.HasValue("Parameters")) {
-				var parameters = data.GetValue<CursorParameter[]>("Parameters");
+			var parameters = (CursorParameter[]) info.GetValue("Parameters", typeof(CursorParameter[]));
+
+			if (parameters != null) {
 				Parameters = new List<CursorParameter>(parameters);
 			}
 		}
@@ -69,14 +71,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<CursorParameter> Parameters { get; set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("CursorName", CursorName);
-			data.SetValue("QueryExpression", QueryExpression);
-			data.SetValue("Flags", (int)Flags);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("CursorName", CursorName);
+			info.AddValue("QueryExpression", QueryExpression);
+			info.AddValue("Flags", (int)Flags);
 
 			if (Parameters != null) {
 				var parameters = Parameters.ToArray();
-				data.SetValue("Parameters", parameters);
+				info.AddValue("Parameters", parameters);
 			}
 		}
 

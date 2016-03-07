@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -36,9 +36,9 @@ namespace Deveel.Data.Sql.Expressions {
 			Value = value;
 		}
 
-		private SqlConstantExpression(ObjectData data)
-			: base(data) {
-			Value = data.GetValue<Field>("Value");
+		private SqlConstantExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Value = (Field)info.GetValue("Value", typeof(Field));
 		}
 
 		/// <summary>
@@ -63,8 +63,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		public Field Value { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Value", typeof(Field), Value);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Value", Value, typeof(Field));
 		}
 	}
 }

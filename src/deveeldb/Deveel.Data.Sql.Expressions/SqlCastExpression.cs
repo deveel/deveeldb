@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
@@ -40,9 +41,9 @@ namespace Deveel.Data.Sql.Expressions {
 			Value = value;
 		}
 
-		private SqlCastExpression(ObjectData data) {
-			Value = data.GetValue<SqlExpression>("Value");
-			SqlType = data.GetValue<SqlType>("Type");
+		private SqlCastExpression(SerializationInfo info, StreamingContext context) {
+			Value = (SqlExpression)info.GetValue("Value", typeof(SqlExpression));
+			SqlType = (SqlType)info.GetValue("Type", typeof(SqlType));
 		}
 
 		/// <summary>
@@ -53,7 +54,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the destination type of the conversion
 		/// </summary>
-		/// <seealso cref="SqlType.CastTo"/>
+		/// <seealso cref="SqlType.CastTo(Field, SqlType)"/>
 		/// <seealso cref="SqlType.CanCastTo"/>
 		public SqlType SqlType { get; private set; }
 
@@ -67,9 +68,9 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return true; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Value", Value);
-			data.SetValue("Type", SqlType);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Value", Value, typeof(SqlExpression));
+			info.AddValue("Type", SqlType, typeof(SqlType));
 		}
 	}
 }

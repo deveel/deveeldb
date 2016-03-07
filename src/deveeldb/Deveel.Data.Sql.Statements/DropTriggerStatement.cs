@@ -16,6 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
+
 using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
@@ -28,9 +30,9 @@ namespace Deveel.Data.Sql.Statements {
 			TriggerName = triggerName;
 		}
 
-		private DropTriggerStatement(ObjectData data)
-			: base(data) {
-			TriggerName = data.GetValue<ObjectName>("TriggerName");
+		private DropTriggerStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TriggerName = (ObjectName) info.GetValue("TriggerName", typeof(ObjectName));
 		}
 
 		public ObjectName TriggerName { get; private set; }
@@ -39,8 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 			base.ExecuteStatement(context);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("TriggerName", TriggerName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("TriggerName", TriggerName);
 		}
 	}
 }

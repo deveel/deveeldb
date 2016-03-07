@@ -16,9 +16,8 @@
 
 
 using System;
-using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
@@ -35,12 +34,12 @@ namespace Deveel.Data.Sql.Statements {
 			ColumnType = columnType;
 		}
 
-		private SqlTableColumn(ObjectData data) {
-			ColumnName = data.GetString("ColumnName");
-			ColumnType = data.GetValue<SqlType>("ColumnType");
-			IsIdentity = data.GetBoolean("IsIdentity");
-			IsNotNull = data.GetBoolean("IsNotNull");
-			DefaultExpression = data.GetValue<SqlExpression>("Default");
+		private SqlTableColumn(SerializationInfo info, StreamingContext context) {
+			ColumnName = info.GetString("ColumnName");
+			ColumnType = (SqlType) info.GetValue("ColumnType", typeof(SqlType));
+			IsIdentity = info.GetBoolean("IsIdentity");
+			IsNotNull = info.GetBoolean("IsNotNull");
+			DefaultExpression = (SqlExpression) info.GetValue("Default", typeof(SqlExpression));
 		}
 
 		public string ColumnName { get; private set; }
@@ -88,12 +87,12 @@ namespace Deveel.Data.Sql.Statements {
 		//	SqlExpression.Serialize(column.DefaultExpression, writer);
 		//}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("ColumnName", ColumnName);
-			data.SetValue("ColumnType", ColumnType);
-			data.SetValue("IsNotNull", IsNotNull);
-			data.SetValue("IsIdentity", IsIdentity);
-			data.SetValue("Default", DefaultExpression);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("ColumnName", ColumnName);
+			info.AddValue("ColumnType", ColumnType);
+			info.AddValue("IsNotNull", IsNotNull);
+			info.AddValue("IsIdentity", IsIdentity);
+			info.AddValue("Default", DefaultExpression);
 		}
 	}
 }

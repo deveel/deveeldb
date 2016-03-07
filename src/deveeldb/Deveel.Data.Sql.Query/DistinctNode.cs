@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Query {
@@ -28,9 +28,9 @@ namespace Deveel.Data.Sql.Query {
 			ColumnNames = columnNames;
 		}
 
-		private DistinctNode(ObjectData data)
-			: base(data) {
-			ColumnNames = data.GetValue<ObjectName[]>("Columns");
+		private DistinctNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ColumnNames = (ObjectName[]) info.GetValue("Columns", typeof(ObjectName[]));
 		}
 
 		public ObjectName[] ColumnNames { get; private set; }
@@ -40,8 +40,8 @@ namespace Deveel.Data.Sql.Query {
 			return table.DistinctBy(ColumnNames);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Columns", ColumnNames);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Columns", ColumnNames);
 		}
 	}
 }

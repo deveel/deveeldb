@@ -16,8 +16,9 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql {
@@ -53,11 +54,11 @@ namespace Deveel.Data.Sql {
 			Direction = QueryParameterDirection.In;
 		}
 
-		private QueryParameter(ObjectData data) {
-			Name = data.GetString("Name");
-			SqlType = data.GetValue<SqlType>("Type");
-			Value = data.GetValue<Objects.ISqlObject>("Value");
-			Direction = (QueryParameterDirection) data.GetInt32("Direction");
+		private QueryParameter(SerializationInfo info, StreamingContext context) {
+			Name = info.GetString("Name");
+			SqlType = (SqlType)info.GetValue("Type", typeof(SqlType));
+			Value = (ISqlObject) info.GetValue("Value", typeof(ISqlCodeObject));
+			Direction = (QueryParameterDirection) info.GetInt32("Direction");
 		}
 
 		public const char NamePrefix = ':';
@@ -71,11 +72,11 @@ namespace Deveel.Data.Sql {
 
 		public Objects.ISqlObject Value { get; set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Name", Name);
-			data.SetValue("Type", SqlType);
-			data.SetValue("Direction", Direction);
-			data.SetValue("Value", Value);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", Name);
+			info.AddValue("Type", SqlType, typeof(SqlType));
+			info.AddValue("Direction", Direction);
+			info.AddValue("Value", Value, typeof(ISqlObject));
 		}
 	}
 }

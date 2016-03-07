@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -105,11 +106,11 @@ namespace Deveel.Data.Sql.Statements {
 				QueryExpression = queryExpression;
 			}
 
-			private Prepared(ObjectData data) {
-				ViewName = data.GetValue<ObjectName>("Name");
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
-				ReplaceIfExists = data.GetBoolean("ReplaceIfExists");
-				QueryExpression = data.GetValue<SqlQueryExpression>("QueryExpression");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				ViewName = (ObjectName) info.GetValue("Name", typeof(ObjectName));
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
+				ReplaceIfExists = info.GetBoolean("ReplaceIfExists");
+				QueryExpression = (SqlQueryExpression) info.GetValue("QueryExpression", typeof(SqlQueryExpression));
 			}
 
 			public ObjectName ViewName { get; private set; }
@@ -120,11 +121,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			public SqlQueryExpression QueryExpression { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("Name", ViewName);
-				data.SetValue("QueryPlan", QueryPlan);
-				data.SetValue("QueryExpression", QueryExpression);
-				data.SetValue("ReplaceIfExists", ReplaceIfExists);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("Name", ViewName);
+				info.AddValue("QueryPlan", QueryPlan);
+				info.AddValue("QueryExpression", QueryExpression);
+				info.AddValue("ReplaceIfExists", ReplaceIfExists);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

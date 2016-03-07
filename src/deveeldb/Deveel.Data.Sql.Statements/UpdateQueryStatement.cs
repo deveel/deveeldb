@@ -16,9 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -49,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Serializable]
 		class Prepared : SqlStatement {
-			private Prepared(ObjectData data) {
+			private Prepared(SerializationInfo info, StreamingContext context) {
 				
 			}
 
@@ -57,8 +56,8 @@ namespace Deveel.Data.Sql.Statements {
 				throw new NotImplementedException();
 			}
 
-			protected override void GetData(SerializeData data) {
-				base.GetData(data);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				base.GetData(info, context);
 			}
 		}
 

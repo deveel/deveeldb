@@ -17,8 +17,7 @@
 
 using System;
 using System.IO;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
@@ -41,11 +40,11 @@ namespace Deveel.Data.Sql.Expressions {
 			SubQuery = subQuery;
 		}
 
-		private JoinPart(ObjectData data) {
-			TableName = data.GetValue<ObjectName>("Table");
-			SubQuery = data.GetValue<SqlQueryExpression>("SubQuery");
-			JoinType = (JoinType) data.GetInt32("JoinType");
-			OnExpression = data.GetValue<SqlExpression>("On");
+		private JoinPart(SerializationInfo info, StreamingContext context) {
+			TableName = (ObjectName)info.GetValue("Table", typeof(ObjectName));
+			SubQuery = (SqlQueryExpression)info.GetValue("SubQuery", typeof(SqlQueryExpression));
+			JoinType = (JoinType)info.GetInt32("JoinType");
+			OnExpression = (SqlExpression) info.GetValue("On", typeof(SqlExpression));
 		}
 
 		public JoinType JoinType { get; private set; }
@@ -56,11 +55,11 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression OnExpression { get; private set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Table", TableName);
-			data.SetValue("SubQuery", SubQuery);
-			data.SetValue("JoinType", (int)JoinType);
-			data.SetValue("On", OnExpression);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Table", TableName, typeof(ObjectName));
+			info.AddValue("SubQuery", SubQuery, typeof(SqlQueryExpression));
+			info.AddValue("JoinType", (int)JoinType);
+			info.AddValue("On", OnExpression, typeof(SqlExpression));
 		}
 
 		//public static void Serialize(JoinPart joinPart, BinaryWriter writer) {

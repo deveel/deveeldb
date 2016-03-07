@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 
@@ -29,14 +30,14 @@ namespace Deveel.Data.Sql.Statements {
 			ExceptionName = exceptionName;
 		}
 
-		private DeclareExceptionStatement(ObjectData data) {
-			ExceptionName = data.GetString("Exception");
+		private DeclareExceptionStatement(SerializationInfo info, StreamingContext context) {
+			ExceptionName = info.GetString("Exception");
 		}
 
 		public string ExceptionName { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Exception", ExceptionName);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Exception", ExceptionName);
 		}
 	}
 }

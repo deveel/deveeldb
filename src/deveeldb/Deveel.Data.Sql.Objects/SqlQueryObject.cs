@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Objects {
@@ -29,8 +29,8 @@ namespace Deveel.Data.Sql.Objects {
 			QueryPlan = queryPlan;
 		}
 
-		private SqlQueryObject(ObjectData data) {
-			QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+		private SqlQueryObject(SerializationInfo info, StreamingContext context) {
+			QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
 		}
 
 		public IQueryPlanNode QueryPlan { get; private set; }
@@ -51,8 +51,8 @@ namespace Deveel.Data.Sql.Objects {
 			return false;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("QueryPlan", QueryPlan);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("QueryPlan", QueryPlan);
 		}
 	}
 }

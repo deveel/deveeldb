@@ -19,8 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
-using Deveel.Data.Serialization;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql {
 	[Serializable]
@@ -35,13 +34,13 @@ namespace Deveel.Data.Sql {
 			Parameters = new QueryParameterCollection(this);
 		}
 
-		private SqlQuery(ObjectData data) {
-			Text = data.GetString("Text");
-			ParameterStyle = (QueryParameterStyle) data.GetInt32("ParameterStyle");
+		private SqlQuery(SerializationInfo info, StreamingContext context) {
+			Text = info.GetString("Text");
+			ParameterStyle = (QueryParameterStyle) info.GetInt32("ParameterStyle");
 
 			Parameters = new QueryParameterCollection(this);
 
-			var parameters = data.GetValue<QueryParameter[]>("Parameters");
+			var parameters = (QueryParameter[]) info.GetValue("Parameters", typeof(QueryParameter[]));
 			if (parameters != null) {
 				foreach (var parameter in parameters) {
 					Parameters.Add(parameter);
@@ -55,13 +54,13 @@ namespace Deveel.Data.Sql {
 
 		public QueryParameterStyle ParameterStyle { get; private set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Text", Text);
-			data.SetValue("ParameterStyle", (int)ParameterStyle);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Text", Text);
+			info.AddValue("ParameterStyle", (int)ParameterStyle);
 
 			var parameters = Parameters.ToArray();
 			if (parameters.Length > 0)
-				data.SetValue("Parameters", parameters);
+				info.AddValue("Parameters", parameters, typeof(QueryParameter[]));
 		}
 
 		internal void ChangeStyle(QueryParameterStyle style) {

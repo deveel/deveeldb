@@ -18,9 +18,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
-
-using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -89,9 +88,9 @@ namespace Deveel.Data.Sql {
 			Parent = parent;
 		}
 
-		private ObjectName(ObjectData graph) {
-			Name = graph.GetString("Name");
-			Parent = graph.GetValue<ObjectName>("Parent");
+		private ObjectName(SerializationInfo info, StreamingContext context) {
+			Name = info.GetString("Name");
+			Parent = (ObjectName)info.GetValue("Parent", typeof(ObjectName));
 		}
 
 		/// <summary>
@@ -234,9 +233,9 @@ namespace Deveel.Data.Sql {
 			return sb.ToString();
 		}
 
-		void ISerializable.GetData(SerializeData graph) {
-			graph.SetValue("Name", Name);
-			graph.SetValue("Parent", Parent);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", Name);
+			info.AddValue("Parent", Parent, typeof(ObjectName));
 		}
 
 		public override bool Equals(object obj) {

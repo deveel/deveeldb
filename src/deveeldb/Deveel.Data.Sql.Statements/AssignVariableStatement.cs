@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -37,19 +38,19 @@ namespace Deveel.Data.Sql.Statements {
 			ValueExpression = valueExpression;
 		}
 
-		private AssignVariableStatement(ObjectData data)
-			: base(data) {
-			VariableReference = data.GetValue<SqlExpression>("Variable");
-			ValueExpression = data.GetValue<SqlExpression>("Value");
+		private AssignVariableStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			VariableReference = (SqlExpression)info.GetValue("Variable", typeof(SqlExpression));
+			ValueExpression = (SqlExpression)info.GetValue("Value", typeof(SqlExpression));
 		}
 
 		public SqlExpression VariableReference { get; private set; }
 
 		public SqlExpression ValueExpression { get; private set; }
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Variable", VariableReference);
-			data.SetValue("Value", ValueExpression);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Variable", VariableReference);
+			info.AddValue("Value", ValueExpression);
 		}
 	}
 }

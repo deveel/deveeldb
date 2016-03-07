@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 
@@ -29,22 +30,20 @@ namespace Deveel.Data.Sql.Expressions {
 			FromClause = new FromClause();
 		}
 
-		private SqlQueryExpression(ObjectData data) {
-			if (data.HasValue("Columns"))
-				SelectColumns = data.GetValue<SelectColumn[]>("Columns");
+		private SqlQueryExpression(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			SelectColumns = (SelectColumn[]) info.GetValue("Columns", typeof (SelectColumn[]));
 
-			Distinct = data.GetBoolean("Distinct");
-			FromClause = data.GetValue<FromClause>("From");
-			WhereExpression = data.GetValue<SqlExpression>("Where");
-			HavingExpression = data.GetValue<SqlExpression>("Having");
-			GroupBy = data.GetValue<SqlExpression[]>("GroupBy");
-			GroupMax = data.GetValue<ObjectName>("GroupMax");
-			NextComposite = data.GetValue<SqlQueryExpression>("NextComposite");
+			Distinct = info.GetBoolean("Distinct");
+			FromClause = (FromClause)info.GetValue("From", typeof(FromClause));
+			WhereExpression = (SqlExpression)info.GetValue("Where", typeof(SqlExpression));
+			HavingExpression = (SqlExpression) info.GetValue("Having", typeof(SqlExpression));
+			GroupBy = (SqlExpression[])info.GetValue("GroupBy", typeof(SqlExpression[]));
+			GroupMax = (ObjectName) info.GetValue("GroupMax", typeof(ObjectName));
+			NextComposite = (SqlQueryExpression) info.GetValue("NextComposite", typeof (SqlQueryExpression));
 
-			if (data.HasValue("CompositeFunction"))
-				CompositeFunction = (CompositeFunction) data.GetInt32("CompositeFunction");
-
-			IsCompositeAll = data.GetBoolean("CompositeAll");
+			CompositeFunction = (CompositeFunction) info.GetInt32("CompositeFunction");
+			IsCompositeAll = info.GetBoolean("CompositeAll");
 		}
 
 		public IEnumerable<SelectColumn> SelectColumns { get; private set; }
@@ -75,22 +74,28 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public bool Distinct { get; set; }
 
-		protected override void GetData(SerializeData data) {
-			if (SelectColumns != null)
-				data.SetValue("Columns", SelectColumns.ToArray());
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			if (SelectColumns != null) {
+				info.AddValue("Columns", SelectColumns.ToArray());
+			} else {
+				info.AddValue("Columns", null, typeof(SelectColumn[]));
+			}
 
-			data.SetValue("Distinct", Distinct);
-			data.SetValue("From", FromClause);
-			data.SetValue("Where", WhereExpression);
-			data.SetValue("Having", HavingExpression);
+			info.AddValue("Distinct", Distinct);
+			info.AddValue("From", FromClause, typeof(FromClause));
+			info.AddValue("Where", WhereExpression, typeof(SqlExpression));
+			info.AddValue("Having", HavingExpression, typeof(SqlExpression));
 
-			if (GroupBy != null)
-				data.SetValue("GroupBy", GroupBy.ToArray());
+			if (GroupBy != null) {
+				info.AddValue("GroupBy", GroupBy.ToArray());
+			} else {
+				info.AddValue("GroupBy", null, typeof(SqlExpression[]));
+			}
 
-			data.SetValue("GroupMax", GroupMax);
-			data.SetValue("NextComposite", NextComposite);
-			data.SetValue("CompositeFunction", (int)CompositeFunction);
-			data.SetValue("CompositeAll", IsCompositeAll);
+			info.AddValue("GroupMax", GroupMax, typeof(ObjectName));
+			info.AddValue("NextComposite", NextComposite, typeof(SqlQueryExpression));
+			info.AddValue("CompositeFunction", (int)CompositeFunction);
+			info.AddValue("CompositeAll", IsCompositeAll);
 		}
 	}
 }

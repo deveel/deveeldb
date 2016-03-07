@@ -18,8 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
@@ -36,9 +36,9 @@ namespace Deveel.Data.Sql.Statements {
 			
 		}
 
-		protected SqlStatement(ObjectData data) {
-			SourceQuery = data.GetValue<SqlQuery>("SourceQuery");
-			IsFromQuery = data.GetBoolean("IsFromQuery");
+		protected SqlStatement(SerializationInfo info, StreamingContext context) {
+			SourceQuery = (SqlQuery) info.GetValue("SourceQuery", typeof(SqlQuery));
+			IsFromQuery = info.GetBoolean("IsFromQuery");
 		}
 
 		/// <summary>
@@ -74,14 +74,14 @@ namespace Deveel.Data.Sql.Statements {
 			IsFromQuery = true;
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("SourceQuery", SourceQuery);
-			data.SetValue("IsFromQuery", IsFromQuery);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("SourceQuery", SourceQuery);
+			info.AddValue("IsFromQuery", IsFromQuery);
 
-			GetData(data);
+			GetData(info, context);
 		}
 
-		protected virtual void GetData(SerializeData data) {
+		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
 			
 		}
 

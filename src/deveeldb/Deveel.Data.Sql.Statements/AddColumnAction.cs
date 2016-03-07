@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -30,8 +31,8 @@ namespace Deveel.Data.Sql.Statements {
 			Column = column;
 		}
 
-		private AddColumnAction(ObjectData data) {
-			Column = data.GetValue<SqlTableColumn>("Column");
+		private AddColumnAction(SerializationInfo info, StreamingContext context) {
+			Column = (SqlTableColumn) info.GetValue("Column", typeof(SqlTableColumn));
 		}
 
 		public SqlTableColumn Column { get; private set; }
@@ -52,8 +53,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterTableActionType.AddColumn; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Column", Column);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Column", Column);
 		}
 	}
 }

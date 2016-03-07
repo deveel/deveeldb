@@ -19,9 +19,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Objects {
@@ -98,9 +98,9 @@ namespace Deveel.Data.Sql.Objects {
 			: this(bytes, 0, bytes == null ? 0 : bytes.Length) {
 		}
 
-		private SqlString(ObjectData data)
+		private SqlString(SerializationInfo info, StreamingContext context)
 			: this() {
-			source = data.GetValue<byte[]>("Source");
+			source = (byte[]) info.GetValue("Source", typeof(byte[]));
 		}
 
 		private static char[] GetChars(byte[] bytes, int offset, int length) {
@@ -176,8 +176,8 @@ namespace Deveel.Data.Sql.Objects {
 
 		public long Length { get; private set; }
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Source", source);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Source", source, typeof(byte[]));
 		}
 
 		public string ToString(Encoding encoding) {

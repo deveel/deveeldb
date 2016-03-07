@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -77,19 +78,19 @@ namespace Deveel.Data.Sql.Statements {
 				QueryPlan = queryPlan;
 			}
 
-			private Prepared(ObjectData data)
-				: base(data) {
-				TableName = data.GetValue<ObjectName>("TableName");
-				QueryPlan = data.GetValue<IQueryPlanNode>("QueryPlan");
+			private Prepared(SerializationInfo info, StreamingContext context)
+				: base(info, context) {
+				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				QueryPlan = (IQueryPlanNode) info.GetValue("QueryPlan", typeof(IQueryPlanNode));
 			}
 
 			public ObjectName TableName { get; private set; }
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableName", TableName);
-				data.SetValue("QueryPlan", QueryPlan);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableName", TableName);
+				info.AddValue("QueryPlan", QueryPlan);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {

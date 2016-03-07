@@ -17,9 +17,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Types {
@@ -30,8 +29,8 @@ namespace Deveel.Data.Sql.Types {
 			AssertDateType(typeCode);
 		}
 
-		private DateType(ObjectData data)
-			: base(data) {
+		private DateType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public static readonly string[] DateFormatSql = {

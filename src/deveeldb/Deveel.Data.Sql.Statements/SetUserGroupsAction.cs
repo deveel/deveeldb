@@ -17,8 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -31,8 +31,8 @@ namespace Deveel.Data.Sql.Statements {
 			Groups = groups;
 		}
 
-		private SetUserGroupsAction(ObjectData data) {
-			Groups = data.GetValue<SqlExpression[]>("Groups");
+		private SetUserGroupsAction(SerializationInfo info, StreamingContext context) {
+			Groups = (SqlExpression[]) info.GetValue("Groups", typeof(SqlExpression[]));
 		}
 
 		public IEnumerable<SqlExpression> Groups { get; private set; }
@@ -41,8 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 			get { return AlterUserActionType.SetGroups; }
 		}
 
-		void ISerializable.GetData(SerializeData data) {
-			data.SetValue("Groups", Groups);
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Groups", Groups);
 		}
 	}
 }

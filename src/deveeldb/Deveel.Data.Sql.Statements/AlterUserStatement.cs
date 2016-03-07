@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -35,9 +36,9 @@ namespace Deveel.Data.Sql.Statements {
 			AlterAction = alterAction;
 		}
 
-		private AlterUserStatement(ObjectData data) {
-			UserName = data.GetString("UserName");
-			AlterAction = data.GetValue<IAlterUserAction>("Action");
+		private AlterUserStatement(SerializationInfo info, StreamingContext context) {
+			UserName = info.GetString("UserName");
+			AlterAction = (IAlterUserAction) info.GetValue("Action", typeof(IAlterUserAction));
 		}
 
 		public string UserName { get; private set; }
@@ -52,9 +53,9 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterUserStatement(UserName, action);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("UserName", UserName);
-			data.SetValue("Action", AlterAction);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("UserName", UserName);
+			info.AddValue("Action", AlterAction);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

@@ -18,20 +18,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class PlSqlBlock : CodeBlock, ISqlCodeObject, IPreparable {
+	public class PlSqlBlock : CodeBlock, IPreparable {
 		public PlSqlBlock() {
 			Declarations = new DeclarationCollection();
 			ExceptionHandlers = new ExceptionHandlerCollection();
 		}
 
-		protected PlSqlBlock(ObjectData data)
-			: base(data) {
+		protected PlSqlBlock(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		~PlSqlBlock() {
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override void GetData(SerializeData data) {
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
 		}
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {

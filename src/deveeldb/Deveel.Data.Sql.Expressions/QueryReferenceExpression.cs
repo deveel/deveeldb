@@ -16,8 +16,8 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Expressions {
 			QueryReference = reference;
 		}
 
-		private QueryReferenceExpression(ObjectData data) {
-			QueryReference = data.GetValue<QueryReference>("Reference");
+		private QueryReferenceExpression(SerializationInfo info, StreamingContext context) {
+			QueryReference = (QueryReference) info.GetValue("Reference", typeof(QueryReference));
 		}
 
 		public QueryReference QueryReference { get; private set; }
@@ -37,8 +37,8 @@ namespace Deveel.Data.Sql.Expressions {
 			get { return SqlExpressionType.Reference; }
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("Reference", QueryReference);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Reference", QueryReference, typeof(QueryReference));
 		}
 	}
 }

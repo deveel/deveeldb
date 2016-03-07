@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 using Deveel.Data.Serialization;
@@ -100,10 +101,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Serializable]
 		internal class Prepared : SqlStatement {
-			private Prepared(ObjectData data) {
-				TableInfo = data.GetValue<TableInfo>("TableInfo");
-				Temporary = data.GetBoolean("Temporary");
-				IfNotExists = data.GetBoolean("IfNotExists");
+			private Prepared(SerializationInfo info, StreamingContext context) {
+				TableInfo = (TableInfo) info.GetValue("TableInfo", typeof(TableInfo));
+				Temporary = info.GetBoolean("Temporary");
+				IfNotExists = info.GetBoolean("IfNotExists");
 			}
 
 			public TableInfo TableInfo { get; private set; }
@@ -126,10 +127,10 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			protected override void GetData(SerializeData data) {
-				data.SetValue("TableInfo", typeof(TableInfo), TableInfo);
-				data.SetValue("Temporary", Temporary);
-				data.SetValue("IfNotExists", IfNotExists);
+			protected override void GetData(SerializationInfo info, StreamingContext context) {
+				info.AddValue("TableInfo", TableInfo, typeof(TableInfo));
+				info.AddValue("Temporary", Temporary);
+				info.AddValue("IfNotExists", IfNotExists);
 			}
 		}
 

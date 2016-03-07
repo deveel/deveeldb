@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data;
 using Deveel.Data.Serialization;
@@ -32,11 +33,11 @@ namespace Deveel.Data.Sql.Query {
 			RightExpression = rightExpression;
 		}
 
-		private JoinNode(ObjectData data)
-			: base(data) {
-			LeftColumnName = data.GetValue<ObjectName>("LeftColumn");
-			Operator = (SqlExpressionType) data.GetInt32("Operator");
-			RightExpression = data.GetValue<SqlExpression>("RightExpression");
+		private JoinNode(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			LeftColumnName = (ObjectName)info.GetValue("LeftColumn", typeof(ObjectName));
+			Operator = (SqlExpressionType)info.GetInt32("Operator");
+			RightExpression = (SqlExpression) info.GetValue("RightExpression", typeof(SqlExpression));
 		}
 
 		public ObjectName LeftColumnName { get; private set; }
@@ -54,10 +55,10 @@ namespace Deveel.Data.Sql.Query {
 			return leftResult.Join(context, rightResult, LeftColumnName, Operator, RightExpression);
 		}
 
-		protected override void GetData(SerializeData data) {
-			data.SetValue("LeftColumn", LeftColumnName);
-			data.SetValue("Operator", (int)Operator);
-			data.SetValue("RightExpression", RightExpression);
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("LeftColumn", LeftColumnName);
+			info.AddValue("Operator", (int)Operator);
+			info.AddValue("RightExpression", RightExpression);
 		}
 	}
 }
