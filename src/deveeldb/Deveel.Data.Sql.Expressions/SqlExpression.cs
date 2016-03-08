@@ -218,7 +218,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// the given SQL string parsed.
 		/// </returns>
 		public static SqlExpression Parse(string s) {
-			return Parse(s, null);
+			return Parse(s, new ExpressionParser());
 		}
 
 		/// <summary>
@@ -231,22 +231,21 @@ namespace Deveel.Data.Sql.Expressions {
 		/// the given SQL string parsed.
 		/// </returns>
 		public static SqlExpression Parse(string s, ISystemContext context) {
+			// TODO: Get the expression compiler from the context
+			var parser = context.ResolveService<IExpressionParser>();
+
+			if (parser == null)
+				parser = new ExpressionParser();
+
+			return Parse(s, parser);
+		}
+
+		private static SqlExpression Parse(string s, IExpressionParser parser) {
 			try {
-				// TODO: Get the expression compiler from the context
-				var compiler = SqlParsers.Expression;
-				var result = compiler.Parse(s);
-
-				if (result.HasErrors)
-					throw new SqlParseException();
-
-				var expNode = result.RootNode as IExpressionNode;
-				if (expNode == null)
-					throw new SqlExpressionException(ExpressionErrorCodes.CannotParse, "The parse of the text did not result into an expression.");
-
-				return ExpressionBuilder.Build(expNode);
-			} catch (SqlParseException ex) {
+				return parser.Parse(s);
+			} catch (Exception ex) {
 				throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
-					"Could not parse input expression: see inner exception for details.", ex);
+"Could not parse input expression: see inner exception for details.", ex);
 			}
 		}
 
@@ -574,5 +573,26 @@ namespace Deveel.Data.Sql.Expressions {
 			var serializer = new BinarySerializer();
 			return (SqlExpression) serializer.Deserialize(reader);
 		}
+
+		#region ExpressionParser
+
+		class ExpressionParser : IExpressionParser {
+			public SqlExpression Parse(string s) {
+				var compiler = SqlParsers.Expression;
+				var result = compiler.Parse(s);
+
+				if (result.HasErrors)
+					throw new SqlParseException();
+
+				var expNode = result.RootNode as IExpressionNode;
+				if (expNode == null)
+					throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
+						"The parse of the text did not result into an expression.");
+
+				return ExpressionBuilder.Build(expNode);
+			}
+		}
+
+		#endregion
 	}
 }

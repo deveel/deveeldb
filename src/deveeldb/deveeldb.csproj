@@ -170,6 +170,7 @@
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\IObjectRef.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlBinary.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\ISqlObject.cs" />

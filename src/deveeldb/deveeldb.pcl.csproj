@@ -121,6 +121,7 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
@@ -713,7 +714,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\IAlterUserAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IParentExecutable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />

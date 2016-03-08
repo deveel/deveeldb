@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Statements {
 		public static ITable ExecuteCreateView(this IQuery query, string viewName, IEnumerable<string> columnNames,
 			SqlQueryExpression queryExpression) {
 			var statement = new CreateViewStatement(viewName, columnNames, queryExpression);
-			return statement.Execute(query);
+			return query.ExecuteStatement(statement);
 		}
 
 		#endregion
