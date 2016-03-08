@@ -263,6 +263,13 @@ namespace Deveel.Data.Sql.Tables {
 						value.Type, columnType, column.FullColumnName));
 			}
 
+			if (!value.Type.Equals(columnType)) {
+				if (!value.Type.CanCastTo(columnType))
+					throw new ArgumentException(String.Format("The value of type {0} cannot be casted to column type {1}.", value.Type, columnType));
+
+				value = value.CastTo(columnType);
+			}
+
 			values[columnOffset] = value;
 		}
 

@@ -489,7 +489,8 @@ namespace Deveel.Data.Sql {
 			if (Type.Equals(destType))
 				return this;
 
-			return Type.CastTo(this, destType);
+			var casted = Type.CastTo(Value, destType);
+			return new Field(destType, casted);
 		}
 
 		/// <summary>

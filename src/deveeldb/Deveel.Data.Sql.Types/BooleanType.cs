@@ -89,12 +89,12 @@ namespace Deveel.Data.Sql.Types {
 				   destType is BooleanType;
 		}
 
-		public override Field CastTo(Field value, SqlType destType) {
-			var bValue = ((SqlBoolean) value.Value);
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			var bValue = ((SqlBoolean) value);
 			if (destType is StringType) {
 				var s = Convert.ToString(bValue);
 				// TODO: Provide a method in StringType to build a string specific to the type
-				return new Field(destType, new SqlString(s));
+				return new SqlString(s);
 			}
 			if (destType is NumericType) {
 				SqlNumber num;
@@ -106,11 +106,11 @@ namespace Deveel.Data.Sql.Types {
 					num = SqlNumber.Zero;
 				}
 
-				return new Field(destType, num);
+				return num;
 			}
 			if (destType is BinaryType) {
 				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]), CultureInfo.InvariantCulture);
-				return new Field(destType, new SqlBinary(bytes));
+				return new SqlBinary(bytes);
 			}
 			if (destType is BooleanType)
 				return value;

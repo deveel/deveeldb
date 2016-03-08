@@ -97,9 +97,9 @@ namespace Deveel.Data.Sql.Types {
 			return b == 1;
 		}
 
-		public override Field CastTo(Field value, SqlType destType) {
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
 			var sqlType = destType.TypeCode;
-			var binary = ((ISqlBinary) value.Value);
+			var binary = ((ISqlBinary) value);
 
 			ISqlObject casted;
 
@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Types {
 					throw new InvalidCastException();
 			}
 
-			return new Field(destType, casted);
+			return casted;
 		}
 
 		internal override int ColumnSizeOf(ISqlObject obj) {

@@ -32,7 +32,7 @@ namespace Deveel.Data.Index {
 	/// concrete value from the set or it may be a flag that represents the 
 	/// start or end of the list.
 	/// <para>
-	/// Note that the the start value may not compare less than the end value.
+	/// Note that the start value may not compare less than the end value.
 	/// For example, start can not be <see cref="RangeFieldOffset.LastValue"/> 
 	/// and end can not be  <see cref="RangeFieldOffset.FirstValue"/>.
 	/// </para>

@@ -133,11 +133,11 @@ namespace Deveel.Data.Sql.Types {
 			return new SqlDateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, 0, dateTime.Offset);
 		}
 
-		public override Field CastTo(Field value, SqlType destType) {
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
 			if (destType == null)
 				throw new ArgumentNullException("destType");
 
-			var date = (SqlDateTime) value.Value;
+			var date = (SqlDateTime) value;
 			var sqlType = destType.TypeCode;
 
 			ISqlObject casted;
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Types {
 						sqlType.ToString().ToUpperInvariant(), TypeCode.ToString().ToUpperInvariant()));
 			}
 
-			return new Field(destType, casted);
+			return casted;
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {

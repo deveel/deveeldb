@@ -178,7 +178,7 @@ namespace Deveel.Data.Sql.Types {
 		/// Returns an instance of <see cref="Field"/> that is the result
 		/// of the conversion from this data-type to the other type given.
 		/// </returns>
-		public virtual Field CastTo(Field value, SqlType destType) {
+		public virtual ISqlObject CastTo(ISqlObject value, SqlType destType) {
 			if (Equals(destType))
 				return value;
 

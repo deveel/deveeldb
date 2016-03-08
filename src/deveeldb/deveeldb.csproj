@@ -243,6 +243,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\ISqlCodeObject.cs" />
@@ -964,7 +965,6 @@
     <Compile Include="Deveel.Data.Sql.Types\IntervalType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\ISizeableType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\ITypeResolver.cs" />
-    <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NumericType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\PrimitiveTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Types\QueryType.cs" />

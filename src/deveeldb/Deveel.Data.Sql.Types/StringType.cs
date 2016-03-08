@@ -334,13 +334,13 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		/// <inheritdoc/>
-		public override Field CastTo(Field value, SqlType destType) {
-			string str = value.Value.ToString();
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			string str = value.ToString();
 			var sqlType = destType.TypeCode;
 			ISqlObject castedValue;
 
 			if (value.IsNull)
-				return Field.Null(destType);
+				return SqlNull.Value;
 
 			switch (sqlType) {
 				case (SqlTypeCode.Bit):
@@ -422,7 +422,7 @@ namespace Deveel.Data.Sql.Types {
 					throw new InvalidCastException();
 			}
 
-			return new Field(destType, castedValue);
+			return castedValue;
 		}
 
 		public override int Compare(ISqlObject x, ISqlObject y) {

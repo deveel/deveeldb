@@ -45,6 +45,14 @@ namespace Deveel.Data.Sql.Types {
 			return true;
 		}
 
+		public override bool CanCastTo(SqlType destType) {
+			return true;
+		}
+
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			return SqlNull.Value;
+		}
+
 		internal override int ColumnSizeOf(ISqlObject obj) {
 			return 1;
 		}

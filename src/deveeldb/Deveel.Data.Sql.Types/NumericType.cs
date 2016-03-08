@@ -219,8 +219,8 @@ namespace Deveel.Data.Sql.Types {
 			       destType.TypeCode != SqlTypeCode.Object;
 		}
 
-		public override Field CastTo(Field value, SqlType destType) {
-			var n = (SqlNumber) value.Value;
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			var n = (SqlNumber) value;
 			var sqlType = destType.TypeCode;
 			ISqlObject casted;
 
@@ -282,7 +282,7 @@ namespace Deveel.Data.Sql.Types {
 					throw new InvalidCastException();
 			}
 
-			return new Field(destType, casted);
+			return casted;
 		}
 
 		public override string ToString() {
