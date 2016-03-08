@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Status { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Status", Status);
 		}
 

@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression Password { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("UserName", UserName);
 			info.AddValue("Password", Password);
 		}

@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 			context.Request.Query.DeleteUser(UserName);
 		}
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("UserName", UserName);
 		}
 	}

@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string SchemaName { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("SchemaName", SchemaName);
 		}
 

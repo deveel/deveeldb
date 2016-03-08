@@ -18,13 +18,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.Serialization;
-
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class PlSqlBlock : CodeBlock, IPreparable {
+	public class PlSqlBlock : CodeBlock {
 		public PlSqlBlock() {
 			Declarations = new DeclarationCollection();
 			ExceptionHandlers = new ExceptionHandlerCollection();
@@ -42,19 +41,36 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ICollection<ExceptionHandler> ExceptionHandlers { get; private set; }
 
-		protected virtual PlSqlBlock Prepare(IExpressionPreparer preparer) {
-			throw new NotImplementedException();
-		}
-
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
-		}
-
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			return Prepare(preparer);
+		protected override void GetData(SerializationInfo info) {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			
+			if (Declarations != null) {
+				foreach (var declaration in Declarations) {
+					declaration.Execute(context);
+				}
+			}
+
+			try {
+				base.ExecuteStatement(context);
+			} catch (SqlErrorException ex) {
+				FireHandler(context, ex);
+			} catch (Exception ex) {
+				FireOthersHandler(context, ex);
+			}
+		}
+
+		private void FireOthersHandler(ExecutionContext context, Exception error) {
+			var handler = ExceptionHandlers.FirstOrDefault(x => x.Handled.IsForOthers);
+			if (handler == null)
+				throw error;
+
+			handler.Handle(context);
+		}
+
+		private void FireHandler(ExecutionContext context, SqlErrorException error) {
+			// TODO: find the named exception and if none found...
+			FireOthersHandler(context, error);
 		}
 
 		protected override void Dispose(bool disposing) {
@@ -68,6 +84,48 @@ namespace Deveel.Data.Sql.Statements {
 
 			Declarations = null;
 			ExceptionHandlers = null;
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			if (!String.IsNullOrEmpty(Label)) {
+				builder.Append("<<{0}>>", Label);
+				builder.AppendLine();
+			}
+
+			if (Declarations != null) {
+				builder.AppendLine("DECLARE");
+				builder.Indent();
+
+				foreach (var declaration in Declarations.OfType<IDeclarationStatement>()) {
+					declaration.AppendDeclarationTo(builder);
+					builder.AppendLine();
+				}
+
+				builder.DeIndent();
+			}
+
+			builder.AppendLine("BEGIN");
+			builder.Indent();
+
+			foreach (var statement in Statements) {
+				statement.Append(builder);
+				builder.AppendLine();
+			}
+			
+			builder.DeIndent();
+
+			if (ExceptionHandlers != null) {
+				builder.AppendLine("EXCEPTION");
+				builder.Indent();
+
+				foreach (var handler in ExceptionHandlers) {
+					handler.PrintTo(builder);
+				}
+
+				builder.DeIndent();
+			}
+
+			builder.AppendLine("END");
 		}
 
 		#region DeclarationCollection

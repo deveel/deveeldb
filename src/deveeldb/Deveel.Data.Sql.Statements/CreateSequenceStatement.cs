@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool Cycle { get; set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("SequenceName", SequenceName);
 			}
 

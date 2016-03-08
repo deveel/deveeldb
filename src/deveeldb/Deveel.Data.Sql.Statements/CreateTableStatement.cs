@@ -127,7 +127,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableInfo", TableInfo, typeof(TableInfo));
 				info.AddValue("Temporary", Temporary);
 				info.AddValue("IfNotExists", IfNotExists);

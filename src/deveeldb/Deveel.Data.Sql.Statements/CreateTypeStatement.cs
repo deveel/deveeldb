@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool ReplaceIfExists { get; set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TypeName", TypeName);
 				info.AddValue("Members", Members);
 				info.AddValue("Replace", ReplaceIfExists);

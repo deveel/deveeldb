@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Statements {
 			return col1.Equals(col2, comparison);
 		}
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("TableName", TableName);
 			info.AddValue("Action", Action);
 		}

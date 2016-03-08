@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -31,9 +32,9 @@ namespace Deveel.Data.Sql.Statements {
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
 	[Serializable]
+	[DebuggerDisplay("{ToString()}")]
 	public abstract class SqlStatement : IPreparable, ISerializable {
 		protected SqlStatement() {
-			
 		}
 
 		protected SqlStatement(SerializationInfo info, StreamingContext context) {
@@ -80,10 +81,10 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("SourceQuery", SourceQuery);
 			info.AddValue("IsFromQuery", IsFromQuery);
 
-			GetData(info, context);
+			GetData(info);
 		}
 
-		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
+		protected virtual void GetData(SerializationInfo info) {
 			
 		}
 
@@ -211,6 +212,20 @@ namespace Deveel.Data.Sql.Statements {
 				messages.AppendFormat (" cannot be parsed into SQL Statements, because of {0}" + Environment.NewLine, ex.ToString());
 				throw new SqlParseException(messages.ToString(), ex);
 			}
+		}
+
+		public override string ToString() {
+			var builder = new SqlStringBuilder();
+			AppendTo(builder);
+			return builder.ToString();
+		}
+
+		internal void Append(SqlStringBuilder builder) {
+			AppendTo(builder);
+		}
+
+		protected virtual void AppendTo(SqlStringBuilder builder) {
+			builder.Append(GetType().FullName);
 		}
 	}
 }

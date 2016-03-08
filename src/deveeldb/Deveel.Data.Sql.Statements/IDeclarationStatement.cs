@@ -19,5 +19,6 @@ using System;
 
 namespace Deveel.Data.Sql.Statements {
 	interface IDeclarationStatement {
+		void AppendDeclarationTo(SqlStringBuilder builder);
 	}
 }

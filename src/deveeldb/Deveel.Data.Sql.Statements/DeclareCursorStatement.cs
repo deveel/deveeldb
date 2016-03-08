@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
@@ -71,7 +70,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<CursorParameter> Parameters { get; set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("CursorName", CursorName);
 			info.AddValue("QueryExpression", QueryExpression);
 			info.AddValue("Flags", (int)Flags);
@@ -91,6 +90,42 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			context.Request.Query.DeclareCursor(cursorInfo);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("DECLARE ");
+			(this as IDeclarationStatement).AppendDeclarationTo(builder);
+		}
+
+		void IDeclarationStatement.AppendDeclarationTo(SqlStringBuilder builder) {
+			// TODO: Flags ...
+
+			builder.Append(CursorName);
+
+			if (Parameters != null) {
+				var pars = Parameters.ToArray();
+
+				builder.Append(" (");
+
+				for (int i = 0; i < pars.Length; i++) {
+					var p = pars[i];
+
+					builder.Append(p);
+
+					if (i < pars.Length - 1)
+						builder.Append(", ");
+				}
+
+				builder.Append(")");
+			}
+
+			builder.AppendLine();
+			builder.Indent();
+
+			builder.Append(" IS ");
+			builder.Append(QueryExpression);
+
+			builder.DeIndent();
 		}
 
 		#region Serializer

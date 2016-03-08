@@ -55,5 +55,27 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			throw new NotImplementedException();
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("DECLARE ");
+			(this as IDeclarationStatement).AppendDeclarationTo(builder);
+		}
+
+		void IDeclarationStatement.AppendDeclarationTo(SqlStringBuilder builder) {
+			if (IsConstant)
+				builder.Append("CONSTANT ");
+
+			builder.Append(VariableName);
+			builder.Append(" ");
+			builder.Append(VariableType);
+
+			if (IsNotNull)
+				builder.Append(" NOT NULL");
+
+			if (DefaultExpression != null) {
+				builder.Append(" := ");
+				builder.Append(DefaultExpression);
+			}
+		}
 	}
 }

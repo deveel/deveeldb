@@ -48,8 +48,8 @@ namespace Deveel.Data.Sql.Statements {
 				throw new NotImplementedException();
 			}
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
-				base.GetData(info, context);
+			protected override void GetData(SerializationInfo info) {
+				base.GetData(info);
 			}
 		}
 

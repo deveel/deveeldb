@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string CursorName { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableName", TableName);
 				info.AddValue("CursorName", CursorName);
 			}

@@ -104,7 +104,7 @@ namespace Deveel.Data.Sql.Statements {
 				context.SetResult(updateCount);
 			}
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableName", TableName);
 				info.AddValue("QueryPlan", QueryPlan);
 				info.AddValue("Columns", Columns);

@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool GrantOption { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("Grantee", Grantee);
 				info.AddValue("Privileges", (int)Privileges);
 				info.AddValue("ObjectName", ObjectName);

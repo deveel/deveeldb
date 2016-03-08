@@ -153,7 +153,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public ObjectName[] ColumnNames { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableName", TableName);
 				info.AddValue("QueryPlan", QueryPlan);
 				info.AddValue("ColumnNames", ColumnNames);

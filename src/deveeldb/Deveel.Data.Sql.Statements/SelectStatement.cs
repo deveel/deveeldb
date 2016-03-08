@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Query", QueryExpression);
 			info.AddValue("Limit", Limit);
 
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("QueryPlan", QueryPlan);
 			}
 

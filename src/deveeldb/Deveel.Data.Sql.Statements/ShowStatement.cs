@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public ShowTarget Target { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableName", TableName);
 				info.AddValue("Target", (int)Target);
 			}

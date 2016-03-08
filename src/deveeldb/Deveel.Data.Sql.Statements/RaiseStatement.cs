@@ -35,12 +35,17 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ExceptionName { get; set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("ExceptionName", ExceptionName);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			throw new NotImplementedException();
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("RAISE ");
+			builder.Append(ExceptionName);
 		}
 	}
 }

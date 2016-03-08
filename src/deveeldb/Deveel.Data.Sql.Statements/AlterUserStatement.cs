@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterUserStatement(UserName, action);
 		}
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("UserName", UserName);
 			info.AddValue("Action", AlterAction);
 		}

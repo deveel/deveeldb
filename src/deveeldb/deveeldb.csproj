@@ -240,6 +240,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />

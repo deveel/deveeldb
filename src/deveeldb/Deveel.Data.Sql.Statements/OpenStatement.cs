@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("CursorName", CursorName);
 			info.AddValue("Arguments", Arguments);
 		}

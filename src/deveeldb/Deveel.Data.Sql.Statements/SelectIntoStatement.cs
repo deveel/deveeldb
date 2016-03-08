@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public string VariableName { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("IsForTable", IsForTable);
 				info.AddValue("QueryPlan", QueryPlan);
 				info.AddValue("Table", Table);

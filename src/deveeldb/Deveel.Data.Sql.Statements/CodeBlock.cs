@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ICollection<SqlStatement> Statements { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Label", Label);
 			SerializeObjects(info);
 		}
@@ -51,13 +51,30 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			foreach (var obj in ((CodeBlock) this).Statements) {
+			foreach (var obj in Statements) {
 				obj.Execute(context);
 			}
 		}
 
 		private ICollection<SqlStatement> DeserializeObjects(SerializationInfo info) {
 			throw new NotImplementedException();
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			if (!String.IsNullOrEmpty(Label)) {
+				builder.Append("<<{0}>>", Label);
+				builder.AppendLine();
+			}
+
+			builder.AppendLine("BEGIN");
+			builder.Indent();
+
+			foreach (var statement in Statements) {
+				statement.Append(builder);
+			}
+
+			builder.DeIndent();
+			builder.AppendLine("END");
 		}
 
 		protected virtual void Dispose(bool disposing) {

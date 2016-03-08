@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Statements {
 				IfExists = info.GetBoolean("IfExists");
 			}
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("ViewName", ViewName);
 				info.AddValue("IfExists", IfExists);
 			}

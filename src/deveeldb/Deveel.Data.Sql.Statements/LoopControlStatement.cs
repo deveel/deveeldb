@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Label", Label);
 			info.AddValue("WhenExpression", WhenExpression);
 			info.AddValue("ControlType", (int)ControlType);

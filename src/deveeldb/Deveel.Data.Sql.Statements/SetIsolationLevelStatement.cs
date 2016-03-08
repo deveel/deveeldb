@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IsolationLevel IsolationLevel { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("IsolationLevel", (int)IsolationLevel);
 		}
 

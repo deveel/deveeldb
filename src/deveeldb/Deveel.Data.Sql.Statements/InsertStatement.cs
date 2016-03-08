@@ -205,7 +205,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IList<SqlAssignExpression[]> Assignments { get; private set; }
 
-			protected override void GetData(SerializationInfo info, StreamingContext context) {
+			protected override void GetData(SerializationInfo info) {
 				info.AddValue("TableName", TableName);
 
 				int setCount = Assignments.Count;

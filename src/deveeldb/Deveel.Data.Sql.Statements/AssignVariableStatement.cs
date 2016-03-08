@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression ValueExpression { get; private set; }
 
-		protected override void GetData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Variable", VariableReference);
 			info.AddValue("Value", ValueExpression);
 		}
