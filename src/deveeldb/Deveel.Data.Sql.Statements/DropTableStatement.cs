@@ -18,11 +18,10 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropTableStatement : SqlStatement, IPreparableStatement {
+	public sealed class DropTableStatement : SqlStatement {
 		public DropTableStatement(ObjectName tableName) 
 			: this(tableName, false) {
 		}
@@ -39,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
 			if (!context.Query.TableExists(tableName) &&
 			    !IfExists)

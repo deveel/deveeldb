@@ -20,14 +20,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateViewStatement : SqlStatement, IPreparableStatement {
+	public sealed class CreateViewStatement : SqlStatement {
 		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
@@ -51,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var viewName = context.Query.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);

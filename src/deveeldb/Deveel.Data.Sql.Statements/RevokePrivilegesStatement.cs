@@ -25,7 +25,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class RevokePrivilegesStatement : SqlStatement, IPreparableStatement {
+	public sealed class RevokePrivilegesStatement : SqlStatement {
 		public RevokePrivilegesStatement(string grantee, Privileges privileges, bool grantOption, ObjectName objectName, IEnumerable<string> columns) {
 			if (String.IsNullOrEmpty(grantee))
 				throw new ArgumentNullException("grantee");
@@ -49,8 +49,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool GrantOption { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			var objectName = request.Query.ResolveTableName(ObjectName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var objectName = context.Query.ResolveTableName(ObjectName);
 
 			if (objectName == null)
 				throw new ObjectNotFoundException(ObjectName);

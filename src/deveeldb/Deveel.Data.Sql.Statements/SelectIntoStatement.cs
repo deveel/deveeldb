@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectIntoStatement : SqlStatement, IPreparableStatement {
+	public sealed class SelectIntoStatement : SqlStatement {
 		public SelectIntoStatement(SqlQueryExpression queryExpression, SqlExpression reference) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 			get { return Reference.ExpressionType == SqlExpressionType.Reference; }
 		}
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
 
 			if (IsObjectReference) {

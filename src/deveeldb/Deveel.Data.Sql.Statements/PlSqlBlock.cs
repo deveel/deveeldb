@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 			Dispose(false);
 		}
 
-		public ICollection<IStatement> Declarations { get; private set; } 
+		public ICollection<SqlStatement> Declarations { get; private set; } 
 
 		public ICollection<ExceptionHandler> ExceptionHandlers { get; private set; }
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 			return Prepare(preparer);
 		}
 
-		protected override void Execute(ExecutionContext context) {
+		protected override void ExecuteStatement(ExecutionContext context) {
 			
 		}
 
@@ -72,18 +72,18 @@ namespace Deveel.Data.Sql.Statements {
 
 		#region DeclarationCollection
 
-		class DeclarationCollection : Collection<IStatement> {
-			private static void AssertDeclaration(IStatement statement) {
+		class DeclarationCollection : Collection<SqlStatement> {
+			private static void AssertDeclaration(SqlStatement statement) {
 				if (!(statement is IDeclarationStatement))
 					throw new ArgumentException(String.Format("The statement of type '{0}' is not a declaration.", statement.GetType()));
 			}
 
-			protected override void InsertItem(int index, IStatement item) {
+			protected override void InsertItem(int index, SqlStatement item) {
 				AssertDeclaration(item);
 				base.InsertItem(index, item);
 			}
 
-			protected override void SetItem(int index, IStatement item) {
+			protected override void SetItem(int index, SqlStatement item) {
 				AssertDeclaration(item);
 				base.SetItem(index, item);
 			}

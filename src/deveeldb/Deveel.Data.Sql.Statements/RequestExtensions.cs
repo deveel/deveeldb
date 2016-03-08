@@ -27,16 +27,16 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public static class RequestExtensions {
-		public static ITable ExecuteStatement(this IRequest request, ISqlCodeObject statement) {
+		public static ITable ExecuteStatement(this IRequest request, SqlStatement statement) {
 			var results = request.ExecuteStatements(statement);
 			return results[0];
 		}
 
-		public static ITable[] ExecuteStatements(this IRequest request, params ISqlCodeObject[] statements) {
+		public static ITable[] ExecuteStatements(this IRequest request, params SqlStatement[] statements) {
 			return ExecuteStatements(request, null, statements);
 		}
 
-		public static ITable[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer, params ISqlCodeObject[] statements) {
+		public static ITable[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer, params SqlStatement[] statements) {
 			if (statements == null)
 				throw new ArgumentNullException("statements");
 			if (statements.Length == 0)
@@ -48,15 +48,9 @@ namespace Deveel.Data.Sql.Statements {
 
 				var context = new ExecutionContext(request);
 
-				if (statement is IPreparableStatement)
-					statement = ((IPreparableStatement) statement).Prepare(preparer, request);
+				statement = statement.Prepare(request, preparer);
 
-				var executable = statement as IExecutable;
-
-				if (executable == null)
-					throw new InvalidOperationException();
-
-				executable.Execute(context);
+				statement.Execute(context);
 
 				ITable result;
 				if (context.HasResult) {
@@ -87,7 +81,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var preparer = new QueryPreparer(query);
 
-			return request.ExecuteStatements(preparer, compileResult.CodeObjects.ToArray());
+			return request.ExecuteStatements(preparer, compileResult.Statements.ToArray());
 		}
 
 		#region QueryPreparer

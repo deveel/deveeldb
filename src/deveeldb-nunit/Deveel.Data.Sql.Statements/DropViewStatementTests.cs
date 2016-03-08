@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 			var viewName = ObjectName.Parse("APP.test_view1");
 			var statement = new DropViewStatement(viewName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.ViewExists(viewName);
 			Assert.IsFalse(exists);
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 			var viewName = ObjectName.Parse("APP.test_view1");
 			var statement = new DropViewStatement(viewName, true);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.ViewExists(viewName);
 			Assert.IsFalse(exists);
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 			var viewName = ObjectName.Parse("APP.test_view2");
 			var statement = new DropViewStatement(viewName, true);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.ViewExists(viewName);
 			Assert.IsFalse(exists);

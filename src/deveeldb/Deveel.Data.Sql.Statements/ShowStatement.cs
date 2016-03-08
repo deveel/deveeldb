@@ -18,11 +18,10 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class ShowStatement : SqlStatement, IPreparableStatement {
+	public sealed class ShowStatement : SqlStatement {
 		public ShowStatement(ShowTarget target) {
 			Target = target;
 		}
@@ -35,12 +34,12 @@ namespace Deveel.Data.Sql.Statements {
 			base.ExecuteStatement(context);
 		}
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			ObjectName tableName = null;
 
 			if (Target == ShowTarget.Table &&
 			    TableName != null) {
-				tableName = request.Query.ResolveTableName(TableName);
+				tableName = context.Query.ResolveTableName(TableName);
 			}
 
 			return new Prepared(Target, tableName);

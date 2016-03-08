@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			if (SimpleUpdate != null) {
 				BuildSimpleUpdate(builder, SimpleUpdate);
 			} else if (QueryUpdate != null) {
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		private void BuildSimpleUpdate(SqlCodeObjectBuilder builder, SimpleUpdateNode node) {
+		private void BuildSimpleUpdate(SqlStatementBuilder builder, SimpleUpdateNode node) {
 			var whereExpression = ExpressionBuilder.Build(node.WhereExpression);
 			var assignments = UpdateAssignments(node.Columns);
 			var statement = new UpdateStatement(node.TableName, whereExpression, assignments);
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Parser {
 			return columns.Select(column => new SqlColumnAssignment(column.ColumnName, ExpressionBuilder.Build(column.Expression)));
 		}
 
-		private void BuildQueryUpdate(SqlCodeObjectBuilder builder, QueryUpdateNode node) {
+		private void BuildQueryUpdate(SqlStatementBuilder builder, QueryUpdateNode node) {
 			throw new NotImplementedException();
 		}
 	}

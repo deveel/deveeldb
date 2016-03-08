@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class OpenStatement : SqlStatement, IPreparable, IPreparableStatement {
+	public sealed class OpenStatement : SqlStatement, IPreparable {
 		public OpenStatement(string cursorName) 
 			: this(cursorName, new SqlExpression[] {}) {
 		}
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 			return new OpenStatement(CursorName, args);
 		}
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			SqlExpression[] args = Arguments;
 
 			var cursor = context.Query.FindCursor(CursorName);

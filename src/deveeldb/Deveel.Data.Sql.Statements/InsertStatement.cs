@@ -21,14 +21,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertStatement : SqlStatement, IPreparableStatement {
+	public sealed class InsertStatement : SqlStatement {
 		public InsertStatement(ObjectName tableName, IEnumerable<SqlExpression[]> values) 
 			: this(tableName, null, values) {
 		}
@@ -50,7 +49,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var values = Values.ToArray();
 
 			int firstLen = -1;

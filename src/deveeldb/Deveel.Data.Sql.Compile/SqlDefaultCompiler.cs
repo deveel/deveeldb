@@ -41,11 +41,11 @@ namespace Deveel.Data.Sql.Compile {
 				if (context.Context != null)
 					typeResolver = context.Context.TypeResolver();
 
-				var builder = new SqlCodeObjectBuilder(typeResolver);
-				var objects = builder.Build(result.RootNode);
+				var builder = new SqlStatementBuilder(typeResolver);
+				var statements = builder.Build(result.RootNode);
 
-				foreach (var statement in objects) {
-					compileResult.CodeObjects.Add(statement);
+				foreach (var statement in statements) {
+					compileResult.Statements.Add(statement);
 				}
 
 			} catch (SqlParseException ex) {

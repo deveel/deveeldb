@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Parser {
 			Arguments = args.AsEnumerable();
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var args = new List<SqlExpression>();
 			if (Arguments != null) {
 				args = Arguments.Select(ExpressionBuilder.Build).ToList();

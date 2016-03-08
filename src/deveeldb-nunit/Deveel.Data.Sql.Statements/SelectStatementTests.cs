@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql.Statements {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
 			var statement = new SelectStatement(query);
 
-			ITable result = statement.Execute(Query);
+			ITable result = Query.ExecuteStatement(statement);
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Statements {
 			var sort = new[] {new SortColumn(SqlExpression.Reference(new ObjectName("birth_date")), false)};
 			var statement = new SelectStatement(query, sort);
 
-			var result = statement.Execute(Query);
+			var result = Query.ExecuteStatement(statement);
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 
@@ -117,7 +117,7 @@ namespace Deveel.Data.Sql.Statements {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)");
 			var statement = new SelectStatement(query);
 
-			var result = statement.Execute(Query);
+			var result = Query.ExecuteStatement(statement);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
@@ -129,7 +129,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var statement = new SelectStatement(query);
 
-			var result = statement.Execute(Query);
+			var result = Query.ExecuteStatement(statement);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);

@@ -22,13 +22,13 @@ using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Diagnostics {
 	public sealed class StatementEvent : Event {
-		public StatementEvent(IStatement statement) {
+		public StatementEvent(SqlStatement statement) {
 			if (statement == null)
 				throw new ArgumentNullException("statement");
 
 			Statement = statement;
 		}
 
-		public IStatement Statement { get; private set; }
+		public SqlStatement Statement { get; private set; }
 	}
 }

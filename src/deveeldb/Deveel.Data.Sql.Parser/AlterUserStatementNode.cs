@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var userName = UserName;
 
 			foreach (var actionNode in Actions) {

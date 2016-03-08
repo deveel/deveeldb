@@ -24,7 +24,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateTypeStatement : SqlStatement, IPreparableStatement {
+	public sealed class CreateTypeStatement : SqlStatement {
 		public CreateTypeStatement(ObjectName typeName, IEnumerable<UserTypeMember> members) {
 			if (typeName == null)
 				throw new ArgumentNullException("typeName");
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<UserTypeMember> Members { get; private set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			// TODO: resolve the type name
 			return new Prepared(TypeName, Members.ToArray(), ReplaceIfExists);
 		}

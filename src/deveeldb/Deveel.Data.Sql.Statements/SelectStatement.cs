@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class SelectStatement : SqlStatement, IPreparableStatement, IPlSqlStatement {
+	public sealed class SelectStatement : SqlStatement, IPlSqlStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
 			: this(queryExpression, null) {
 		}
@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));
 			return new Prepared(queryPlan);
 		}

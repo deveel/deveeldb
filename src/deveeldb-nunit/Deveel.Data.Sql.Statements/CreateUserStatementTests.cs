@@ -14,7 +14,7 @@ namespace Deveel.Data.Sql.Statements {
 			var password = SqlExpression.Constant(Field.VarChar("12345"));
 			var statement = new CreateUserStatement(userName, password);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.UserExists(userName);
 			Assert.IsTrue(exists);

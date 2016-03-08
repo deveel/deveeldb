@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 				WithAdmin = true;
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			foreach (var grantee in Grantees) {
 				foreach (var role in Roles) {
 					builder.AddObject(new GrantRoleStatement(grantee, role, WithAdmin));

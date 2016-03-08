@@ -29,12 +29,12 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentNullException("handled");
 
 			Handled = handled;
-			Statements = new List<IStatement>();
+			Statements = new List<SqlStatement>();
 		}
 
 		public HandledExceptions Handled { get; private set; }
 
-		public ICollection<IStatement> Statements { get; private set; }
+		public ICollection<SqlStatement> Statements { get; private set; }
 
 		public bool Handles(string exceptionName) {
 			return Handled.ExceptionNames.Any(x => String.Equals(x, exceptionName, StringComparison.OrdinalIgnoreCase)) || 

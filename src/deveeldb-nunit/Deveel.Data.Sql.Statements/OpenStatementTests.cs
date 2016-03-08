@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void OpenSimple() {
 			var statement = new OpenStatement("c1");
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var cursor = Query.FindCursor("c1");
 			Assert.IsNotNull(cursor);

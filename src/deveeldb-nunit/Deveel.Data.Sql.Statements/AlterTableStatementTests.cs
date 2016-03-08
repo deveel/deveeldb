@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new AlterTableStatement(tableName, new AddColumnAction(column));
 
 			ITable result = null;
-			Assert.DoesNotThrow(() => result = statement.Execute(Query));
+			Assert.DoesNotThrow(() => result = Query.ExecuteStatement(statement));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);

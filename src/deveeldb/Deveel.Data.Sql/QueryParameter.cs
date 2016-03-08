@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql {
 		private QueryParameter(SerializationInfo info, StreamingContext context) {
 			Name = info.GetString("Name");
 			SqlType = (SqlType)info.GetValue("Type", typeof(SqlType));
-			Value = (ISqlObject) info.GetValue("Value", typeof(ISqlCodeObject));
+			Value = (ISqlObject) info.GetValue("Value", typeof(ISqlObject));
 			Direction = (QueryParameterDirection) info.GetInt32("Direction");
 		}
 

@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var objName = Sql.ObjectName.Parse(ObjectName);
 			foreach (var grantee in Grantees) {
 				var grantPrivilege = Security.Privileges.None;

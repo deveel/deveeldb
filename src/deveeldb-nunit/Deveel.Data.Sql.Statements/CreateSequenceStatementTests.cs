@@ -12,7 +12,7 @@ namespace Deveel.Data.Sql.Statements {
 			var seqName = ObjectName.Parse("APP.test_seq1");
 			var statement = new CreateSequenceStatement(seqName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.ObjectExists(DbObjectType.Sequence, seqName);
 
@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Statements {
 				StartWith = SqlExpression.Constant(2)
 			};
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.ObjectExists(DbObjectType.Sequence, seqName);
 

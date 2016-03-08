@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var tableName = ObjectName.Parse(TableName);
 
 			if (ValuesInsert != null) {

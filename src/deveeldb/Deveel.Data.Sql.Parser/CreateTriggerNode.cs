@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<string> Events { get; private set; }
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			throw new NotImplementedException();
 		}
 	}

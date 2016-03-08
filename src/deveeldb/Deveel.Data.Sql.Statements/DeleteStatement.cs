@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeleteStatement : SqlStatement, IPreparableStatement {
+	public sealed class DeleteStatement : SqlStatement {
 		public DeleteStatement(ObjectName tableName, SqlExpression whereExpression) 
 			: this(tableName, whereExpression, -1) {
 		}
@@ -50,21 +50,21 @@ namespace Deveel.Data.Sql.Statements {
 
 		public long Limit { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			var tableName = request.Query.ResolveTableName(TableName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var tableName = context.Query.ResolveTableName(TableName);
 
-			if (!request.Query.TableExists(tableName))
+			if (!context.Query.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExp = new SqlQueryExpression(new SelectColumn[] {SelectColumn.Glob("*") });
 			queryExp.FromClause.AddTable(tableName.FullName);
 			queryExp.WhereExpression = WhereExpression;
 
-			var queryInfo = new QueryInfo(request, queryExp);
+			var queryInfo = new QueryInfo(context, queryExp);
 			if (Limit > 0)
 				queryInfo.Limit = new QueryLimit(Limit);
 
-			var queryPlan = request.Query.Context.QueryPlanner().PlanQuery(queryInfo);
+			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(queryInfo);
 
 			return new Prepared(tableName, queryPlan);
 		}

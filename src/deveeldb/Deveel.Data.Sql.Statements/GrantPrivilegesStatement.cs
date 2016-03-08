@@ -20,11 +20,10 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class GrantPrivilegesStatement : SqlStatement, IPreparableStatement {
+	public sealed class GrantPrivilegesStatement : SqlStatement {
 		public GrantPrivilegesStatement(string grantee, Privileges privilege, ObjectName objName) 
 			: this(grantee, privilege, false, objName) {
 		}
@@ -71,7 +70,7 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("WithGrant", WithGrant);
 		}
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var objName = context.Query.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}

@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void DropExisting() {
 			var statement = new DropUserStatement(UserName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.UserExists(UserName);
 			Assert.IsFalse(exists);

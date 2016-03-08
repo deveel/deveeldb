@@ -19,14 +19,13 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CreateSequenceStatement : SqlStatement, IPreparableStatement {
+	public sealed class CreateSequenceStatement : SqlStatement {
 		public CreateSequenceStatement(ObjectName sequenceName) {
 			if (sequenceName == null)
 				throw new ArgumentNullException("sequenceName");
@@ -48,8 +47,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Cycle { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			var schemaName = request.Query.ResolveSchemaName(SequenceName.ParentName);
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			// TODO:
+			return base.PrepareExpressions(preparer);
+		}
+
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var schemaName = context.Query.ResolveSchemaName(SequenceName.ParentName);
 			var seqName = new ObjectName(schemaName, SequenceName.Name);
 
 			return new Prepared(seqName) {

@@ -44,11 +44,11 @@ namespace Deveel.Data.Sql.Parser {
 			Constraints = elements.OfType<TableConstraintNode>();
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			Build(builder.TypeResolver, builder);
 		}
 
-		public void Build(ITypeResolver typeResolver, SqlCodeObjectBuilder builder) {
+		public void Build(ITypeResolver typeResolver, SqlStatementBuilder builder) {
 			string idColumn = null;
 
 			var tableName = TableName;

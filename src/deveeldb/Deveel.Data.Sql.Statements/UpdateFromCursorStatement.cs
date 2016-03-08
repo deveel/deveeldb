@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateFromCursorStatement : SqlStatement, IPreparableStatement {
+	public sealed class UpdateFromCursorStatement : SqlStatement {
 		public UpdateFromCursorStatement(ObjectName tableName, string cursorName) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
@@ -39,23 +39,23 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string CursorName { get; private set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			var cursor = request.FindCursor(CursorName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var cursor = context.FindCursor(CursorName);
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 
-			var tableName = request.Query.ResolveTableName(TableName);
+			var tableName = context.Query.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
-			var table = request.Query.GetMutableTable(tableName);
+			var table = context.Query.GetMutableTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 
 			var columns = table.TableInfo.Select(x => new ObjectName(tableName, x.ColumnName));
 
 			var queryExpression = cursor.QueryExpression;
-			var queryFrom = QueryExpressionFrom.Create(request, queryExpression);
+			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
 			
 			var assignments = new List<SqlColumnAssignment>();
 			foreach (var column in columns) {

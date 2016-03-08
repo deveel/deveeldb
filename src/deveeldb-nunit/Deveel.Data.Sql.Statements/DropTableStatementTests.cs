@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableName = ObjectName.Parse("APP.test_table2");
 			var statement = new DropTableStatement(tableName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.TableExists(tableName);
 			Assert.IsFalse(exists);
@@ -63,7 +63,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableName = ObjectName.Parse("APP.test_table2");
 			var statement = new DropTableStatement(tableName, true);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.TableExists(tableName);
 			Assert.IsFalse(exists);
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableName = ObjectName.Parse("APP.test_table3");
 			var statement = new DropTableStatement(tableName, true);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.TableExists(tableName);
 			Assert.IsFalse(exists);
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableName = ObjectName.Parse("APP.test_table1");
 			var statement = new DropTableStatement(tableName);
 
-			Assert.Throws<ConstraintViolationException>(() => statement.Execute(Query));
+			Assert.Throws<ConstraintViolationException>(() => Query.ExecuteStatement(statement));
 
 			var exists = Query.TableExists(tableName);
 			Assert.IsTrue(exists);

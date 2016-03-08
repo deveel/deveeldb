@@ -19,7 +19,7 @@ namespace Deveel.Data.Sql.Statements {
 		public void DropEmptySchema() {
 			var statement = new DropSchemaStatement(SchemaName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.SchemaExists(SchemaName);
 			Assert.IsFalse(exists);

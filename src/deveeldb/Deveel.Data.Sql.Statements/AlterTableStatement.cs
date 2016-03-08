@@ -26,7 +26,7 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AlterTableStatement : SqlStatement, IPreparableStatement, IPreparable {
+	public sealed class AlterTableStatement : SqlStatement {
 		public AlterTableStatement(ObjectName tableName, IAlterTableAction action) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
@@ -46,12 +46,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Query.ResolveTableName(TableName);
 			return new AlterTableStatement(tableName, Action);
 		}
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var action = Action;
 			if (action is IPreparable)
 				action = (IAlterTableAction)(action as IPreparable).Prepare(preparer);

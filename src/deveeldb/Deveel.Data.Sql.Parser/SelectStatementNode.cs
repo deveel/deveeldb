@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Parser {
 				Limit = (LimitNode) child;
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
 			if (QueryExpression.IntoClause != null) {
 				var refExp = ExpressionBuilder.Build(QueryExpression.IntoClause);

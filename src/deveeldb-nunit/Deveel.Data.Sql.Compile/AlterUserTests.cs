@@ -19,10 +19,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.CodeObjects);
-			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
 
-			var statement = result.CodeObjects.ElementAt(0);
+			var statement = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<AlterUserStatement>(statement);
@@ -52,10 +52,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.CodeObjects);
-			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
 
-			var statement = result.CodeObjects.ElementAt(0);
+			var statement = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<AlterUserStatement>(statement);

@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Statements {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM APP.test_table");
 			var statement = new DeclareCursorStatement(cursorName, query);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var cursor = Query.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Statements {
 			var parameters = new[] {new CursorParameter("a", PrimitiveTypes.Integer())};
 			var statement = new DeclareCursorStatement(cursorName, parameters, query);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var cursor = Query.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);

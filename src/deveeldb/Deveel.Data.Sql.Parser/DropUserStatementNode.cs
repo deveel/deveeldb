@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			if (UserNames == null)
 				throw new InvalidOperationException("None user was set to delete.");
 

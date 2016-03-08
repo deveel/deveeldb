@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class FetchStatement : SqlStatement, IPreparableStatement, IPreparable {
+	public sealed class FetchStatement : SqlStatement {
 		public FetchStatement(string cursorName, FetchDirection direction) {
 			CursorName = cursorName;
 			Direction = direction;
@@ -34,13 +34,5 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlExpression PositionExpression { get; set; }
 
 		public SqlExpression IntoReference { get; set; }
-
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			throw new NotImplementedException();
-		}
-
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			throw new NotImplementedException();
-		}
 	}
 }

@@ -95,7 +95,7 @@ namespace Deveel.Data.Sql.Parser {
 #endif
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			FetchDirection direction;
 			if (!TryParseDirection(Direction, out direction))
 				throw new InvalidOperationException();

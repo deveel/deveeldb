@@ -30,11 +30,11 @@ namespace Deveel.Data.Sql.Statements {
 		protected virtual void AfterLoop(ExecutionContext context) {
 		}
 
-		protected override void Execute(ExecutionContext context) {
+		protected override void ExecuteStatement(ExecutionContext context) {
 			BeforeLoop(context);
 
 			while (Loop(context)) {
-				base.Execute(context);
+				base.ExecuteStatement(context);
 			}
 
 			AfterLoop(context);

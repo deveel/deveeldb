@@ -43,16 +43,16 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		void ISqlVisitableNode.Accept(ISqlNodeVisitor visitor) {
-			if (visitor is SqlCodeObjectBuilder)
-				BuildBlock((SqlCodeObjectBuilder) visitor);
+			if (visitor is SqlStatementBuilder)
+				BuildBlock((SqlStatementBuilder) visitor);
 		}
 
-		private void BuildBlock(SqlCodeObjectBuilder builder) {
+		private void BuildBlock(SqlStatementBuilder builder) {
 			var block = new PlSqlBlock {Label = Label};
 
 			if (Declarations != null) {
 				foreach (var declaration in Declarations) {
-					var declBuilder = new SqlCodeObjectBuilder(builder.TypeResolver);
+					var declBuilder = new SqlStatementBuilder(builder.TypeResolver);
 					var results = declBuilder.Build(declaration);
 					foreach (var result in results) {
 						// TODO: 
@@ -61,13 +61,13 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			if (CodeBlock != null) {
-				var subBuilder = new SqlCodeObjectBuilder(builder.TypeResolver);
+				var subBuilder = new SqlStatementBuilder(builder.TypeResolver);
 
 				foreach (var statementNode in CodeBlock.Statements) {
 					var objects = subBuilder.Build(statementNode);
 
 					foreach (var obj in objects) {
-						block.Objects.Add(obj);
+						block.Statements.Add(obj);
 					}
 				}
 			}

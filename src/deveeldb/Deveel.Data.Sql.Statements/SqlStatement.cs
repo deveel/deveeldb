@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// Represents the foundation class of SQL statements to be executed.
 	/// </summary>
 	[Serializable]
-	public abstract class SqlStatement : IStatement, IExecutable, ISerializable {
+	public abstract class SqlStatement : IPreparable, ISerializable {
 		protected SqlStatement() {
 			
 		}
@@ -61,7 +61,9 @@ namespace Deveel.Data.Sql.Statements {
 		/// <seealso cref="SourceQuery"/>
 		public bool IsFromQuery { get; private set; }
 
-		void IExecutable.Execute(ExecutionContext context) {
+		public SqlStatement Parent { get; internal set; }
+
+		internal void Execute(ExecutionContext context) {
 			ExecuteStatement(context);
 		}
 
@@ -85,6 +87,19 @@ namespace Deveel.Data.Sql.Statements {
 			
 		}
 
+		object IPreparable.Prepare(IExpressionPreparer preparer) {
+			return PrepareExpressions(preparer);
+		}
+
+		protected virtual SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			return this;
+		}
+
+
+		protected virtual SqlStatement PrepareStatement(IRequest context) {
+			return this;
+		}
+
 		/// <summary>
 		/// Prepares and evaluates this statement into a tabular result.
 		/// </summary>
@@ -96,28 +111,21 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="StatementPrepareException">
 		/// Thrown if an error occurred while preparing the statement.
 		/// </exception>
-		public ITable Execute(IRequest context) {
-			return PrepareAndExecute(null, context);
-		}
-
-		private ITable PrepareAndExecute(IExpressionPreparer preparer, IRequest context) {
-			IExecutable prepared;
-
-			try {
-				prepared = this.Prepare(preparer, context) as IExecutable;
-			} catch (Exception ex) {
-				throw new InvalidOperationException("Unable to prepare the statement for execution.", ex);
-			}
-
-			if (prepared == null)
-				throw new InvalidOperationException();
-
+		internal ITable Execute(IRequest context) {
 			var exeContext = new ExecutionContext(context);
-			prepared.Execute(exeContext);
+			Execute(exeContext);
 			if (!exeContext.HasResult)
 				return FunctionTable.ResultTable(context, 0);
 
 			return exeContext.Result;
+		}
+
+		internal SqlStatement Prepare(IRequest context, IExpressionPreparer preparer) {
+			var prepared = PrepareExpressions(preparer);
+			if (prepared == null)
+				throw new InvalidOperationException();
+
+			return prepared.PrepareStatement(context);
 		}
 
 		/// <summary>
@@ -187,7 +195,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new SqlParseException(messages.ToString());
 				}
 
-				var statements = result.CodeObjects.Cast<SqlStatement>();
+				var statements = result.Statements.Cast<SqlStatement>();
 
 				foreach (var statement in statements) {
 					if (statement != null)

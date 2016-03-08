@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Parser {
 			Value = String.Join(" ", keys);
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			if (VariableName.Equals(IsolationLevelVariable)) {
 				var isolationLevel = ParseIsolationLevel(Value);
 				builder.AddObject(new SetIsolationLevelStatement(isolationLevel));

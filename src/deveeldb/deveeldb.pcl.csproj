@@ -137,7 +137,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlCodeObjectBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlStatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AssignVariableStatement.cs" />
@@ -163,7 +163,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\ForLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IDeclarationStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IPreparableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopBlock.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
@@ -172,7 +171,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StatementExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoop.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
@@ -206,7 +204,6 @@
     <Compile Include="Deveel.Data.Sql.Types\UserTypeMember.cs" />
     <Compile Include="Deveel.Data.Sql\Field.cs" />
     <Compile Include="Deveel.Data.Sql\GroupOperatorHelper.cs" />
-    <Compile Include="Deveel.Data.Sql\ISqlCodeObject.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
@@ -717,7 +714,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IParentExecutable.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\IStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />

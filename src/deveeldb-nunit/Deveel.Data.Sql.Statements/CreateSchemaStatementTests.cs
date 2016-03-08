@@ -12,7 +12,7 @@ namespace Deveel.Data.Sql.Statements {
 			const string schemaName = "Sch1";
 			var statement = new CreateSchemaStatement(schemaName);
 
-			statement.Execute(Query);
+			Query.ExecuteStatement(statement);
 
 			var exists = Query.SchemaExists(schemaName);
 

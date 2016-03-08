@@ -17,10 +17,10 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
 
-			Assert.IsNotEmpty(result.CodeObjects);
-			Assert.AreEqual(1, result.CodeObjects.Count);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
 
-			var statement = result.CodeObjects.FirstOrDefault();
+			var statement = result.Statements.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<CloseStatement>(statement);

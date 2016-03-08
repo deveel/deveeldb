@@ -21,7 +21,7 @@ using System.Runtime.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateQueryStatement : SqlStatement, IPreparable, IPreparableStatement {
+	public sealed class UpdateQueryStatement : SqlStatement, IPreparable {
 		public UpdateQueryStatement(string tableName, SqlQueryExpression sourceExpression, SqlExpression whereExpression) {
 			TableName = tableName;
 			SourceExpression = sourceExpression;
@@ -35,14 +35,6 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlQueryExpression SourceExpression { get; private set; }
 
 		public int Limit { get; set; }
-
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			throw new NotImplementedException();
-		}
-
-		IStatement IPreparableStatement.Prepare(IRequest context) {
-			throw new NotImplementedException();
-		}
 
 		#region Prepared
 

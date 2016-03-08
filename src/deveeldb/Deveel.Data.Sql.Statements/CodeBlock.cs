@@ -22,14 +22,15 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public abstract class CodeBlock : ISerializable, ISqlCodeObject, IExecutable, IDisposable {
+	public abstract class CodeBlock : SqlStatement, IDisposable {
 		internal CodeBlock() {
-			Objects = new SqlObjectCollection(this);
+			Statements = new StatementCollection(this);
 		}
 
-		internal CodeBlock(SerializationInfo info, StreamingContext context) {
+		internal CodeBlock(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 			Label = info.GetString("Label");
-			Objects = DeserializeObjects(info);
+			Statements = DeserializeObjects(info);
 		}
 
 		~CodeBlock() {
@@ -38,46 +39,34 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string Label { get; set; }
 
-		public ICollection<ISqlCodeObject> Objects { get; private set; }
+		public ICollection<SqlStatement> Statements { get; private set; }
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Label", Label);
 			SerializeObjects(info);
-
-			GetData(info, context);
 		}
 
 		private void SerializeObjects(SerializationInfo info) {
 			throw new NotImplementedException();
 		}
 
-		void IExecutable.Execute(ExecutionContext context) {
-			Execute(context);
-		}
-
-		protected virtual void Execute(ExecutionContext context) {
-			foreach (var obj in Objects) {
-				if (obj is IExecutable) {
-					(obj as IExecutable).Execute(context);
-				}
+		protected override void ExecuteStatement(ExecutionContext context) {
+			foreach (var obj in ((CodeBlock) this).Statements) {
+				obj.Execute(context);
 			}
 		}
 
-		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
-			
-		}
-
-		private ICollection<ISqlCodeObject> DeserializeObjects(SerializationInfo info) {
+		private ICollection<SqlStatement> DeserializeObjects(SerializationInfo info) {
 			throw new NotImplementedException();
 		}
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (Objects != null)
-					Objects.Clear();
+				if (Statements != null)
+					Statements.Clear();
 			}
 
-			Objects = null;
+			Statements = null;
 		}
 
 		void IDisposable.Dispose() {
@@ -85,45 +74,59 @@ namespace Deveel.Data.Sql.Statements {
 			GC.SuppressFinalize(this);
 		}
 
-		private void AssertPlSqlStatement(ISqlCodeObject obj) {
-			if (obj is IStatement &&
-				!(obj is IPlSqlStatement)) {
+		private void AssertPlSqlStatement(SqlStatement obj) {
+			if (!(obj is IPlSqlStatement)) {
 				throw new ArgumentException(String.Format("The statement of type '{0}' cannot be inserted into a PL/SQL block.",
 					obj.GetType()));
 			}
 		}
 
-		private void AssertNotLoopControl(ISqlCodeObject obj) {
+		private void AssertNotLoopControl(SqlStatement obj) {
 			if (obj is LoopControlStatement) {
-				//TODO: Check the tree and see if we are in a loop context...
+				var statement = obj.Parent;
+				while (statement != null) {
+					if (statement is LoopBlock)
+						return;
+
+					statement = statement.Parent;
+				}
+
+				throw new ArgumentException("A loop control statement cannot be contained in a non-loop block");
 			}
 		}
 
-		private void AssertAllowedObject(ISqlCodeObject obj) {
+		private void AssertAllowedObject(SqlStatement obj) {
 			AssertPlSqlStatement(obj);
 			AssertNotLoopControl(obj);
 		}
 
-		#region SqlObjectCollection
+		#region StatementCollection
 
-		class SqlObjectCollection : Collection<ISqlCodeObject> {
+		class StatementCollection : Collection<SqlStatement> {
 			private readonly CodeBlock block;
 
-			public SqlObjectCollection(CodeBlock block) {
+			public StatementCollection(CodeBlock block) {
 				this.block = block;
 			}
 
-			private void AssertPlSqlObject(ISqlCodeObject obj) {
+			private void AssertPlSqlObject(SqlStatement obj) {
+				if (obj.Parent != null)
+					throw new ArgumentException("The statement has already a parent");
+
 				block.AssertAllowedObject(obj);
 			}
 
-			protected override void InsertItem(int index, ISqlCodeObject item) {
+			protected override void InsertItem(int index, SqlStatement item) {
 				AssertPlSqlObject(item);
+
+				item.Parent = block;
 				base.InsertItem(index, item);
 			}
 
-			protected override void SetItem(int index, ISqlCodeObject item) {
+			protected override void SetItem(int index, SqlStatement item) {
 				AssertPlSqlObject(item);
+
+				item.Parent = block;
 				base.SetItem(index, item);
 			}
 		}

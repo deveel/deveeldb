@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Parser {
 			base.OnNodeInit();
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			foreach (var tableName in TableNames) {
 				var name = ObjectName.Parse(tableName);
 				builder.AddObject(new DropTableStatement(name, IfExists));

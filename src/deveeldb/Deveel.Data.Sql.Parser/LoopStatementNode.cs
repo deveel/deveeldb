@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public string LoopType { get; private set; }
 		 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			LoopBlock loop;
 
 			if (LoopType == BasicLoopType) {
@@ -71,17 +71,17 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private void SetObjectsTo(LoopBlock loop, ITypeResolver typeResolver) {
-			var objects = new List<ISqlCodeObject>();
+			var objects = new List<SqlStatement>();
 			if (Nodes != null) {
 				foreach (var statement in Nodes) {
-					var subBuilder = new SqlCodeObjectBuilder(typeResolver);
+					var subBuilder = new SqlStatementBuilder(typeResolver);
 					var sqlCodeObjects = subBuilder.Build(statement);
 					objects.AddRange(sqlCodeObjects);
 				}
 			}
 
 			foreach (var obj in objects) {
-				loop.Objects.Add(obj);
+				loop.Statements.Add(obj);
 			}
 		}
 	}

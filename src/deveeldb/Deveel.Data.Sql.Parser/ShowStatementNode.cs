@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var target = ParseTarget(Target);
 			var statement = new ShowStatement(target);
 

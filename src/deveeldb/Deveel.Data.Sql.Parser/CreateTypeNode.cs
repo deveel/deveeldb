@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		public IEnumerable<TypeAttributeNode> Attributes { get; private set; } 
 
-		protected override void BuildStatement(SqlCodeObjectBuilder builder) {
+		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var typeName = ObjectName.Parse(TypeName);
 			var members = Attributes.Select(x => {
 				var type = DataTypeBuilder.Build(builder.TypeResolver, x.Type);

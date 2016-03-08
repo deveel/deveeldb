@@ -19,21 +19,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class SqlCodeObjectBuilder : ISqlNodeVisitor {
-		private readonly IList<ISqlCodeObject> objects;
+	public sealed class SqlStatementBuilder : ISqlNodeVisitor {
+		private readonly IList<SqlStatement> objects;
 		 
-		public SqlCodeObjectBuilder(ITypeResolver typeResolver) {
+		public SqlStatementBuilder(ITypeResolver typeResolver) {
 			TypeResolver = typeResolver;
-			objects = new List<ISqlCodeObject>();
+			objects = new List<SqlStatement>();
 		}
 
 		public ITypeResolver  TypeResolver { get; private set; }
 
-		public IEnumerable<ISqlCodeObject> Objects {
+		public IEnumerable<SqlStatement> Objects {
 			get {
 				lock (this) {
 					return objects.AsEnumerable();
@@ -45,7 +46,7 @@ namespace Deveel.Data.Sql.Parser {
 			Visit(node);
 		}
 
-		internal void AddObject(ISqlCodeObject obj) {
+		internal void AddObject(SqlStatement obj) {
 			lock (this) {
 				objects.Add(obj);
 			}
@@ -79,7 +80,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 		}
 
-		public IEnumerable<ISqlCodeObject> Build(ISqlNode rootNode) {
+		public IEnumerable<SqlStatement> Build(ISqlNode rootNode) {
 			Visit(rootNode);
 			return Objects.ToArray();
 		}

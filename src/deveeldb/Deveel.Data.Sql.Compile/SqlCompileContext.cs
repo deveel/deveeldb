@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Sql.Types;
-
 namespace Deveel.Data.Sql.Compile {
     public sealed class SqlCompileContext {
 	    public SqlCompileContext(string sourceText) 

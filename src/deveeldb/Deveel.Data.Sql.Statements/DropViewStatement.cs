@@ -23,7 +23,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DropViewStatement : SqlStatement, IPreparableStatement {
+	public sealed class DropViewStatement : SqlStatement {
 		public DropViewStatement(ObjectName viewName) 
 			: this(viewName, false) {
 		}
@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IfExists { get; set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest context) {
+		protected override SqlStatement PrepareStatement(IRequest context) {
 			var viewName = context.Query.ResolveObjectName(DbObjectType.View, ViewName);
 
 			if (!IfExists &&

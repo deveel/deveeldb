@@ -26,7 +26,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertSelectStatement : SqlStatement, IPreparableStatement {
+	public sealed class InsertSelectStatement : SqlStatement {
 		public InsertSelectStatement(ObjectName tableName, SqlQueryExpression queryExpression) 
 			: this(tableName, null, queryExpression) {
 		}
@@ -48,8 +48,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlQueryExpression QueryExpression { get; private set; }
 
-		IStatement IPreparableStatement.Prepare(IRequest request) {
-			var tableName = request.Query.ResolveTableName(TableName);
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var tableName = context.Query.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
@@ -57,11 +57,11 @@ namespace Deveel.Data.Sql.Statements {
 			if (ColumnNames != null)
 				columns = ColumnNames.ToArray();
 
-			ITableQueryInfo tableQueryInfo = request.Query.GetTableQueryInfo(tableName, null);
-			var fromTable = new FromTableDirectSource(request.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
+			ITableQueryInfo tableQueryInfo = context.Query.GetTableQueryInfo(tableName, null);
+			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
 
 			// Get the table we are inserting to
-			var insertTable = request.Query.GetTable(tableName);
+			var insertTable = context.Query.GetTable(tableName);
 
 			if (columns.Length == 0) {
 				columns = new string[insertTable.TableInfo.ColumnCount];
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 
-			var queryPlan = request.Context.QueryPlanner().PlanQuery(new QueryInfo(request, QueryExpression));
+			var queryPlan = context.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
 			return new Prepared(tableName, colResolved, colIndices, queryPlan);
 		}
 
