@@ -22,18 +22,18 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public abstract class CodeBlock : SqlStatement, IDisposable {
-		internal CodeBlock() {
+	public abstract class CodeBlockStatement : SqlStatement, IDisposable {
+		internal CodeBlockStatement() {
 			Statements = new StatementCollection(this);
 		}
 
-		internal CodeBlock(SerializationInfo info, StreamingContext context)
+		internal CodeBlockStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
 			Label = info.GetString("Label");
 			Statements = DeserializeObjects(info);
 		}
 
-		~CodeBlock() {
+		~CodeBlockStatement() {
 			Dispose(false);
 		}
 
@@ -102,7 +102,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (obj is LoopControlStatement) {
 				var statement = obj.Parent;
 				while (statement != null) {
-					if (statement is LoopBlock)
+					if (statement is LoopStatement)
 						return;
 
 					statement = statement.Parent;
@@ -120,9 +120,9 @@ namespace Deveel.Data.Sql.Statements {
 		#region StatementCollection
 
 		class StatementCollection : Collection<SqlStatement> {
-			private readonly CodeBlock block;
+			private readonly CodeBlockStatement block;
 
-			public StatementCollection(CodeBlock block) {
+			public StatementCollection(CodeBlockStatement block) {
 				this.block = block;
 			}
 

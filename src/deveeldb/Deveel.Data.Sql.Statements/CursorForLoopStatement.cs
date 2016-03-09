@@ -19,8 +19,8 @@ using System;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CursorForLoop : LoopBlock {
-		public CursorForLoop(string indexName, string cursorName) {
+	public sealed class CursorForLoopStatement : LoopStatement {
+		public CursorForLoopStatement(string indexName, string cursorName) {
 			if (String.IsNullOrEmpty(indexName))
 				throw new ArgumentNullException("indexName");
 			if (String.IsNullOrEmpty(cursorName))

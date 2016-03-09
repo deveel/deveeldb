@@ -21,8 +21,8 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class ForLoop : LoopBlock {
-		public ForLoop(string indexName, SqlExpression lowerBound, SqlExpression upperBound) {
+	public sealed class ForLoopStatement : LoopStatement {
+		public ForLoopStatement(string indexName, SqlExpression lowerBound, SqlExpression upperBound) {
 			if (String.IsNullOrEmpty(indexName))
 				throw new ArgumentNullException("indexName");
 			if (lowerBound == null)

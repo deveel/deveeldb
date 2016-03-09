@@ -17,27 +17,23 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
+
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class LoopBlock : CodeBlock {
-		protected virtual bool Loop(ExecutionContext context) {
-			return true;
+	public sealed class WhileLoopStatement : LoopStatement {
+		public WhileLoopStatement(SqlExpression conditionExpression) {
+			if (conditionExpression == null)
+				throw new ArgumentNullException("conditionExpression");
+
+			ConditionExpression = conditionExpression;
 		}
 
-		protected virtual void BeforeLoop(ExecutionContext context) {
-		}
+		public SqlExpression ConditionExpression { get; private set; }
 
-		protected virtual void AfterLoop(ExecutionContext context) {
-		}
-
-		protected override void ExecuteStatement(ExecutionContext context) {
-			BeforeLoop(context);
-
-			while (Loop(context)) {
-				base.ExecuteStatement(context);
-			}
-
-			AfterLoop(context);
+		protected override bool Loop(ExecutionContext context) {
+			// TODO: evaluate the condition against the context and return a boolean
+			return base.Loop(context);
 		}
 	}
 }

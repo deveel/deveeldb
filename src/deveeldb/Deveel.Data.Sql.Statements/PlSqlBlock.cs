@@ -23,7 +23,7 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class PlSqlBlock : CodeBlock {
+	public class PlSqlBlock : CodeBlockStatement {
 		public PlSqlBlock() {
 			Declarations = new DeclarationCollection();
 			ExceptionHandlers = new ExceptionHandlerCollection();

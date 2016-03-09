@@ -49,6 +49,7 @@ namespace Deveel.Data.Sql {
 			if (result != null) {
 				Result = result;
 				HasResult = true;
+				HasTermination = true;
 			}
 		}
 

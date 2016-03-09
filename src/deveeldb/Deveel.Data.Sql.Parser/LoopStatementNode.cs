@@ -47,21 +47,21 @@ namespace Deveel.Data.Sql.Parser {
 		public string LoopType { get; private set; }
 		 
 		protected override void BuildStatement(SqlStatementBuilder builder) {
-			LoopBlock loop;
+			LoopStatement loop;
 
 			if (LoopType == BasicLoopType) {
-				loop = new LoopBlock();
+				loop = new LoopStatement();
 			} else if (LoopType == ForLoopType) {
 				var lowerBound = ExpressionBuilder.Build(ForLowerBound);
 				var upperBound = ExpressionBuilder.Build(ForUpperBound);
 
-				loop = new ForLoop(ForIndexName, lowerBound, upperBound);
+				loop = new ForLoopStatement(ForIndexName, lowerBound, upperBound);
 			} else if (LoopType == CursorForType) {
-				loop = new CursorForLoop(ForIndexName, ForCursorName);
+				loop = new CursorForLoopStatement(ForIndexName, ForCursorName);
 			} else if (LoopType == WhileLoopType) {
 				var condition = ExpressionBuilder.Build(WhileCondition);
 
-				loop = new WhileLoop(condition);
+				loop = new WhileLoopStatement(condition);
 			} else {
 				throw new InvalidOperationException();
 			}
@@ -70,7 +70,7 @@ namespace Deveel.Data.Sql.Parser {
 			builder.AddObject(loop);
 		}
 
-		private void SetObjectsTo(LoopBlock loop, ITypeResolver typeResolver) {
+		private void SetObjectsTo(LoopStatement loop, ITypeResolver typeResolver) {
 			var objects = new List<SqlStatement>();
 			if (Nodes != null) {
 				foreach (var statement in Nodes) {
