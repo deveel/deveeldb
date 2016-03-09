@@ -48,6 +48,11 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
 			Query.CreateTable(tableInfo);
+
+			if (TestContext.CurrentContext.Test.Name == "DropConstraint") {
+				Query.AddForeignKey(tableInfo.TableName, new string[] {"person_id"}, ObjectName.Parse("APP.test_table"),
+					new[] {"id"}, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
+			}
 		}
 
 		[Test]
@@ -116,7 +121,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		[Test]
-		public void AddConstraint() {
+		public void AddForeignKeyConstraint() {
 			var tableName = ObjectName.Parse("APP.test_table2");
 			var constraint = new SqlTableConstraint("FK_1", ConstraintType.ForeignKey, new[] {"person_id"}) {
 				ReferenceTable = "APP.test_table",
@@ -144,6 +149,63 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual("APP.test_table", fkey.ForeignTable.FullName);
 			Assert.IsNotNull(fkey.ForeignColumnNames);
 			Assert.IsNotEmpty(fkey.ForeignColumnNames);
+		}
+
+		[Test]
+		public void DropColumn() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var action = new DropColumnAction("active");
+			var statement = new AlterTableStatement(tableName, action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var testTable = Query.GetTable(new ObjectName("test_table"));
+
+			Assert.IsNotNull(testTable);
+
+			Assert.AreEqual(-1, testTable.TableInfo.IndexOfColumn("active"));
+		}
+
+		[Test]
+		public void DropConstraint() {
+			var tableName = ObjectName.Parse("APP.test_table2");
+			var action = new DropConstraintAction("FK_1");
+			var statement = new AlterTableStatement(tableName, action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var fkeys = Query.GetTableForeignKeys(tableName);
+
+			Assert.IsNotNull(fkeys);
+			Assert.IsEmpty(fkeys);
+		}
+
+		[Test]
+		public void DropPrimary() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var action = new DropPrimaryKeyAction();
+			var statement = new AlterTableStatement(tableName, action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var pkey = Query.GetTablePrimaryKey(tableName);
+
+			Assert.IsNull(pkey);
 		}
 	}
 }
