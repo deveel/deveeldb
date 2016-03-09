@@ -721,7 +721,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\PreparationRequiredException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />

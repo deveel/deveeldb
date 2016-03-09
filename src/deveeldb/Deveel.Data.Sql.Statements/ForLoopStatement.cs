@@ -62,5 +62,30 @@ namespace Deveel.Data.Sql.Statements {
 			// TODO: Evaluate the index and check it is contained within upper and lower bounds
 			return base.Loop(context);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			if (!String.IsNullOrEmpty(Label)) {
+				builder.Append("<<{0}>>", Label);
+				builder.AppendLine();
+			}
+
+			builder.Append("FOR {0} ", IndexName);
+
+			if (Reverse)
+				builder.Append("REVERSE");
+
+			builder.Append("IN {0}...{1}", LowerBound, UpperBound);
+
+			builder.AppendLine("LOOP");
+			builder.Indent();
+
+			foreach (var statement in Statements) {
+				statement.Append(builder);
+				builder.AppendLine();
+			}
+
+			builder.DeIndent();
+			builder.AppendLine("END LOOP");
+		}
 	}
 }
