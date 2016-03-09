@@ -183,6 +183,16 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
+		public ColumnInfo this[string columnName] {
+			get {
+				var index = IndexOfColumn(columnName);
+				if (index < 0)
+					return null;
+
+				return this[index];
+			}
+		}
+
 		private void AssertNotReadOnly() {
 			if (IsReadOnly)
 				throw new InvalidOperationException();

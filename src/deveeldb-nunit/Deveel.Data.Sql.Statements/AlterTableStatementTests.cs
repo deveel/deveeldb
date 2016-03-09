@@ -14,8 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -63,5 +61,29 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
 		}
+
+		[Test]
+		public void SetDefaultToColumn() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var action = new SetDefaultAction("active", SqlExpression.Constant(Field.Boolean(false)));
+			var statement = new AlterTableStatement(tableName,  action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var testTable = Query.GetTable(new ObjectName("test_table"));
+
+			Assert.IsNotNull(testTable);
+
+			var column = testTable.TableInfo["active"];
+			Assert.IsNotNull(column);
+			Assert.IsTrue(column.HasDefaultExpression);
+			Assert.IsNotNull(column.DefaultExpression);
+		}
+
 	}
 }
