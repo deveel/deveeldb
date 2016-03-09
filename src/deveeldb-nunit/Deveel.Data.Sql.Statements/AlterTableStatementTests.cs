@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -41,10 +42,16 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.CreateTable(tableInfo);
 			Query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+
+			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
+			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
+
+			Query.CreateTable(tableInfo);
 		}
 
 		[Test]
-		public void AlterTableAddColumn() {
+		public void AddColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var column = new SqlTableColumn("reserved", PrimitiveTypes.Boolean());
 			var statement = new AlterTableStatement(tableName, new AddColumnAction(column));
@@ -85,5 +92,58 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.IsNotNull(column.DefaultExpression);
 		}
 
+		[Test]
+		public void DropDefaultFromColumn() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var action = new DropDefaultAction("id");
+			var statement = new AlterTableStatement(tableName, action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var testTable = Query.GetTable(new ObjectName("test_table"));
+
+			Assert.IsNotNull(testTable);
+
+			var column = testTable.TableInfo["id"];
+			Assert.IsNotNull(column);
+			Assert.IsFalse(column.HasDefaultExpression);
+			Assert.IsNull(column.DefaultExpression);
+		}
+
+		[Test]
+		public void AddConstraint() {
+			var tableName = ObjectName.Parse("APP.test_table2");
+			var constraint = new SqlTableConstraint("FK_1", ConstraintType.ForeignKey, new[] {"person_id"}) {
+				ReferenceTable = "APP.test_table",
+				ReferenceColumns = new[] {"id"}
+			};
+
+			var action = new AddConstraintAction(constraint);
+			var statement = new AlterTableStatement(tableName, action);
+
+			var result = Query.ExecuteStatement(statement);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+			Assert.AreEqual(1, result.TableInfo.ColumnCount);
+			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
+
+			var fkeys = Query.GetTableForeignKeys(tableName);
+
+			Assert.IsNotNull(fkeys);
+			Assert.IsNotEmpty(fkeys);
+
+			var fkey = fkeys.FirstOrDefault(x => x.ConstraintName == "FK_1");
+			Assert.IsNotNull(fkey);
+			Assert.IsNotNull(fkey.ForeignTable);
+			Assert.AreEqual("APP.test_table", fkey.ForeignTable.FullName);
+			Assert.IsNotNull(fkey.ForeignColumnNames);
+			Assert.IsNotEmpty(fkey.ForeignColumnNames);
+		}
 	}
 }

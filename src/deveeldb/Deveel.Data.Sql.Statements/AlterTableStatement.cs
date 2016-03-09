@@ -208,7 +208,7 @@ namespace Deveel.Data.Sql.Statements {
 					refCols = referencedChecker.CheckColumns(constraint.ReferenceColumns);
 				}
 
-				var newConstraint = new ConstraintInfo(constraint.ConstraintType, TableName, columnNames.ToArray());
+				var newConstraint = new ConstraintInfo(constraint.ConstraintName, constraint.ConstraintType, TableName, columnNames.ToArray());
 				if (foreignConstraint) {
 					newConstraint.ForeignTable = refTname;
 					newConstraint.ForeignColumnNames = refCols.ToArray();

@@ -195,7 +195,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CheckConstraintViolations(this ISession session, ObjectName tableName) {
-			throw new NotImplementedException();
+			session.Transaction.CheckAllConstraintViolations(tableName);
 		}
 
 		#endregion

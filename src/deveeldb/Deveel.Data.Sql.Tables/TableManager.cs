@@ -712,7 +712,26 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public void AssertConstraints(ObjectName tableName) {
-			throw new NotImplementedException();
+			var table = Transaction.GetTable(tableName);
+
+			// Get all the rows in the table
+			int[] rows = table.Select(row => row.RowId.RowNumber).ToArray();
+
+			// Check the constraints of all the rows in the table.
+			Transaction.CheckAddConstraintViolations(table, rows, ConstraintDeferrability.InitiallyImmediate);
+
+			// Add that we altered this table in the journal
+			var master = FindVisibleTable(tableName, false);
+			if (master == null)
+				throw new InvalidOperationException("Table '" + tableName + "' doesn't exist.");
+
+			// Log in the journal that this transaction touched the table_id.
+			int tableId = master.TableId;
+
+			Transaction.Registry.RegisterEvent(new TableAccessEvent(tableId, tableName));
+
+			// Log in the journal that we dropped this table.
+			Transaction.Registry.RegisterEvent(new TableConstraintAlteredEvent(tableId));
 		}
 
 		public void AddInternalTables(ITableContainer container) {

@@ -584,8 +584,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public static
-			void CheckRemoveConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices,
+		public static void CheckRemoveConstraintViolations(this ITransaction transaction, ITable table, int[] rowIndices,
 				ConstraintDeferrability deferred) {
 			// Quick exit case
 			if (rowIndices == null || rowIndices.Length == 0)
@@ -629,6 +628,10 @@ namespace Deveel.Data.Transactions {
 					}
 				}
 			}
+		}
+
+		public static void CheckAllConstraintViolations(this ITransaction transaction, ObjectName tableName) {
+			transaction.GetTableManager().AssertConstraints(tableName);
 		}
 
 		public static ConstraintInfo[] QueryTableForeignKeys(this ITransaction transaction, ObjectName tableName) {

@@ -93,11 +93,12 @@ namespace Deveel.Data.Sql.Statements {
 				string foundColumn = null;
 
 				foreach (var columnInfo in tableInfo) {
-					if (foundColumn != null)
-						throw new InvalidOperationException(String.Format("Column name '{0}' caused an ambiguous match in table.", columnName));
+					if (String.Equals(columnInfo.ColumnName, columnName, comparison)) {
+						if (foundColumn != null)
+							throw new InvalidOperationException(String.Format("Column name '{0}' caused an ambiguous match in table.", columnName));
 
-					if (String.Equals(columnInfo.ColumnName, columnName, comparison))
 						foundColumn = columnInfo.ColumnName;
+					}
 				}
 
 				return foundColumn;
