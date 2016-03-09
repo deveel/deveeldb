@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateFromCursorStatement : SqlStatement {
+	public sealed class UpdateFromCursorStatement : SqlStatement, IPlSqlStatement {
 		public UpdateFromCursorStatement(ObjectName tableName, string cursorName) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");

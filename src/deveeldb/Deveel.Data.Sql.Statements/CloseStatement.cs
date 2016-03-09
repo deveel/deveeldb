@@ -18,12 +18,11 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Cursors;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CloseStatement : SqlStatement {
+	public sealed class CloseStatement : SqlStatement, IPlSqlStatement {
 		public CloseStatement(string cursorName) {
 			if (String.IsNullOrEmpty(cursorName))
 				throw new ArgumentNullException("cursorName");

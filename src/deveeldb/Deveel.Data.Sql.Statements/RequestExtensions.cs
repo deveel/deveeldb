@@ -16,13 +16,10 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
@@ -40,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (statements == null)
 				throw new ArgumentNullException("statements");
 			if (statements.Length == 0)
-				throw new ArgumentException();
+				throw new ArgumentException("No statements provided for execution", "statements");
 
 			var results = new ITable[statements.Length];
 			for (int i = 0; i < statements.Length; i++) {
@@ -48,9 +45,12 @@ namespace Deveel.Data.Sql.Statements {
 
 				var context = new ExecutionContext(request);
 
-				statement = statement.Prepare(request, preparer);
+				var prepared = statement.Prepare(request, preparer);
 
-				statement.Execute(context);
+				if (prepared == null)
+					throw new InvalidOperationException(String.Format("The preparation of the statement '{0}' returned a null instance", statement.GetType()));
+
+				prepared.Execute(context);
 
 				ITable result;
 				if (context.HasResult) {

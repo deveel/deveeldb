@@ -22,7 +22,7 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public abstract class CodeBlockStatement : SqlStatement, IDisposable {
+	public abstract class CodeBlockStatement : SqlStatement {
 		internal CodeBlockStatement() {
 			Statements = new StatementCollection(this);
 		}
@@ -31,10 +31,6 @@ namespace Deveel.Data.Sql.Statements {
 			: base(info, context) {
 			Label = info.GetString("Label");
 			Statements = DeserializeObjects(info);
-		}
-
-		~CodeBlockStatement() {
-			Dispose(false);
 		}
 
 		public string Label { get; set; }
@@ -50,10 +46,17 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotImplementedException();
 		}
 
-		protected override void ExecuteStatement(ExecutionContext context) {
+		protected virtual void ExecuteBlock(ExecutionContext context) {
 			foreach (var obj in Statements) {
 				obj.Execute(context);
 			}
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			var block = new Block(context.Request);
+			var blockContext = new ExecutionContext(block);
+
+			ExecuteBlock(blockContext);
 		}
 
 		private ICollection<SqlStatement> DeserializeObjects(SerializationInfo info) {
@@ -75,20 +78,6 @@ namespace Deveel.Data.Sql.Statements {
 
 			builder.DeIndent();
 			builder.AppendLine("END");
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				if (Statements != null)
-					Statements.Clear();
-			}
-
-			Statements = null;
-		}
-
-		void IDisposable.Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 
 		private void AssertPlSqlStatement(SqlStatement obj) {

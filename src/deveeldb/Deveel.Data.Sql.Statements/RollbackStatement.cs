@@ -18,7 +18,8 @@
 using System;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class RollbackStatement : SqlStatement {
+	[Serializable]
+	public sealed class RollbackStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Request.Query.Rollback();
 		}

@@ -19,13 +19,12 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeleteStatement : SqlStatement {
+	public sealed class DeleteStatement : SqlStatement, IPlSqlStatement {
 		public DeleteStatement(ObjectName tableName, SqlExpression whereExpression) 
 			: this(tableName, whereExpression, -1) {
 		}

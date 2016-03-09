@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateStatement : SqlStatement {
+	public sealed class UpdateStatement : SqlStatement, IPlSqlStatement {
 		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
 				throw new ArgumentNullException("wherExpression");

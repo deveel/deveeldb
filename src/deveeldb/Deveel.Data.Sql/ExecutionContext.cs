@@ -37,6 +37,12 @@ namespace Deveel.Data.Sql {
 
 		public bool HasTermination { get; private set; }
 
+		public string Exception { get; private set; }
+
+		public bool IsInException {
+			get { return !String.IsNullOrEmpty(Exception); }
+		}
+
 		public User User {
 			get { return Request.Query.User(); }
 		}
@@ -55,6 +61,16 @@ namespace Deveel.Data.Sql {
 
 		public void SetResult(int value) {
 			SetResult(FunctionTable.ResultTable(Request, value));
+		}
+
+		public void RaiseException(string exceptionName) {
+			if (String.IsNullOrEmpty(exceptionName))
+				throw new ArgumentNullException("exceptionName");
+
+			if (!String.IsNullOrEmpty(Exception))
+				throw new InvalidOperationException("An exception was already arose and not handled");
+
+			Exception = exceptionName;
 		}
 
 		public void Terminate() {

@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (WhenExpression != null)
 				exp = ExpressionBuilder.Build(WhenExpression);
 
-			builder.AddObject(new LoopControlStatement(LoopControlType.Exit, Label, exp));
+			builder.AddObject(new ExitStatement(Label, exp));
 		}
 	}
 }

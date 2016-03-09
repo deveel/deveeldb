@@ -27,7 +27,7 @@ using Deveel.Data.Sql.Tables;
 using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertStatement : SqlStatement {
+	public sealed class InsertStatement : SqlStatement, IPlSqlStatement {
 		public InsertStatement(ObjectName tableName, IEnumerable<SqlExpression[]> values) 
 			: this(tableName, null, values) {
 		}

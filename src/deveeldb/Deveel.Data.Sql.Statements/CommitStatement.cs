@@ -16,12 +16,10 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class CommitStatement : SqlStatement {
+	[Serializable]
+	public sealed class CommitStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Request.Query.Commit();
 		}

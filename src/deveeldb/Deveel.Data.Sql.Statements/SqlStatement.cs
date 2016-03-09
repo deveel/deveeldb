@@ -27,6 +27,8 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using System.Text;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
 	/// Represents the foundation class of SQL statements to be executed.
@@ -65,7 +67,16 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlStatement Parent { get; internal set; }
 
 		internal void Execute(ExecutionContext context) {
-			ExecuteStatement(context);
+			try {
+				context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+
+				ExecuteStatement(context);
+
+				context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
+			} catch (Exception ex) {
+				context.Request.OnError(ex);
+				throw;
+			}
 		}
 
 		protected virtual void ExecuteStatement(ExecutionContext context) {
@@ -101,32 +112,24 @@ namespace Deveel.Data.Sql.Statements {
 			return this;
 		}
 
-		/// <summary>
-		/// Prepares and evaluates this statement into a tabular result.
-		/// </summary>
-		/// <param name="context">The context used to prepare and evaluate the statement.</param>
-		/// <returns>
-		/// Returns a <see cref="ITable"/> object that contains the values resulting from the
-		/// evaluation of the statement.
-		/// </returns>
-		/// <exception cref="StatementPrepareException">
-		/// Thrown if an error occurred while preparing the statement.
-		/// </exception>
-		internal ITable Execute(IRequest context) {
-			var exeContext = new ExecutionContext(context);
-			Execute(exeContext);
-			if (!exeContext.HasResult)
-				return FunctionTable.ResultTable(context, 0);
-
-			return exeContext.Result;
-		}
 
 		internal SqlStatement Prepare(IRequest context, IExpressionPreparer preparer) {
-			var prepared = PrepareExpressions(preparer);
-			if (prepared == null)
-				throw new InvalidOperationException();
+			try {
+				context.OnEvent(new StatementEvent(this, StatementEventType.BeforePrepare));
 
-			return prepared.PrepareStatement(context);
+				var prepared = PrepareExpressions(preparer);
+				if (prepared == null)
+					throw new InvalidOperationException();
+
+				prepared = prepared.PrepareStatement(context);
+
+				context.OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
+
+				return prepared;
+			} catch (Exception ex) {
+				context.OnError(ex);
+				throw;
+			}
 		}
 
 		/// <summary>

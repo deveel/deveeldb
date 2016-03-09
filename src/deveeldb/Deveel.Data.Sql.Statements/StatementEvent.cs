@@ -18,17 +18,26 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Sql.Statements;
+using Deveel.Data.Diagnostics;
 
-namespace Deveel.Data.Diagnostics {
+namespace Deveel.Data.Sql.Statements {
 	public sealed class StatementEvent : Event {
-		public StatementEvent(SqlStatement statement) {
+		public StatementEvent(SqlStatement statement, StatementEventType eventType) {
 			if (statement == null)
 				throw new ArgumentNullException("statement");
 
 			Statement = statement;
+			EventType = eventType;
 		}
 
 		public SqlStatement Statement { get; private set; }
+
+		public StatementEventType EventType { get; private set; }
+
+		protected override void GetEventData(Dictionary<string, object> data) {
+			data["statement.queryText"] = Statement.SourceQuery != null ? Statement.SourceQuery.Text : null;
+			data["statement.sql"] = Statement.ToString();
+			data["statement.eventType"] = EventType.ToString();
+		}
 	}
 }

@@ -111,7 +111,6 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
@@ -162,9 +161,11 @@
     <Compile Include="Deveel.Data.Sql.Statements\ExitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ForLoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GoToStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IDeclarationStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
@@ -173,6 +174,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
@@ -818,7 +821,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\NaturallyJoinedTable.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectName.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\OuterTable.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlock.cs" />
     <Compile Include="Deveel.Data.Sql\Query.Objects.cs" />
     <Compile Include="Deveel.Data.Sql\QueryLimit.cs" />
     <Compile Include="Deveel.Data.Sql\QueryParameter.cs" />

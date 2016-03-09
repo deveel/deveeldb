@@ -18,12 +18,11 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class LoopControlStatement : SqlStatement, IPreparable {
+	public class LoopControlStatement : SqlStatement, IPlSqlStatement {
 		public LoopControlStatement(LoopControlType controlType) 
 			: this(controlType, (SqlExpression) null) {
 		}
@@ -54,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression WhenExpression { get; set; }
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var label = Label;
 			var whenExp = WhenExpression;
 			if (whenExp != null)
@@ -64,6 +63,12 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
+			if (WhenExpression != null) {
+				var eval = WhenExpression.EvaluateToConstant(context.Query, null);
+				if (!eval.AsBoolean())
+					return;
+			}
+
 			throw new NotImplementedException();
 		}
 
@@ -71,6 +76,19 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("Label", Label);
 			info.AddValue("WhenExpression", WhenExpression);
 			info.AddValue("ControlType", (int)ControlType);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var type = ControlType.ToString().ToUpperInvariant();
+			builder.Append(type);
+
+			if (!String.IsNullOrEmpty(Label))
+				builder.Append(" '{0}'", Label);
+
+			if (WhenExpression != null) {
+				builder.Append(" WHEN ");
+				builder.Append(WhenExpression.ToString());
+			}
 		}
 	}
 }

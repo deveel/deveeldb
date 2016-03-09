@@ -23,18 +23,14 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class PlSqlBlock : CodeBlockStatement {
-		public PlSqlBlock() {
+	public class PlSqlBlockStatement : CodeBlockStatement {
+		public PlSqlBlockStatement() {
 			Declarations = new DeclarationCollection();
 			ExceptionHandlers = new ExceptionHandlerCollection();
 		}
 
-		protected PlSqlBlock(SerializationInfo info, StreamingContext context)
+		protected PlSqlBlockStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
-		}
-
-		~PlSqlBlock() {
-			Dispose(false);
 		}
 
 		public ICollection<SqlStatement> Declarations { get; private set; } 
@@ -53,11 +49,22 @@ namespace Deveel.Data.Sql.Statements {
 
 			try {
 				base.ExecuteStatement(context);
+
+				if (context.IsInException)
+					FireHandler(context, context.Exception);
 			} catch (SqlErrorException ex) {
 				FireHandler(context, ex);
 			} catch (Exception ex) {
 				FireOthersHandler(context, ex);
 			}
+		}
+
+		private void FireHandler(ExecutionContext context, string exception) {
+			var handler = ExceptionHandlers.FirstOrDefault(x => x.Handles(exception));
+			if (handler == null)
+				throw new InvalidOperationException(String.Format("Exception '{0}' is not handled in this context.", exception));
+
+			handler.Handle(context);
 		}
 
 		private void FireOthersHandler(ExecutionContext context, Exception error) {
@@ -71,19 +78,6 @@ namespace Deveel.Data.Sql.Statements {
 		private void FireHandler(ExecutionContext context, SqlErrorException error) {
 			// TODO: find the named exception and if none found...
 			FireOthersHandler(context, error);
-		}
-
-		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				if (Declarations != null)
-					Declarations.Clear();
-
-				if (ExceptionHandlers != null)
-					ExceptionHandlers.Clear();
-			}
-
-			Declarations = null;
-			ExceptionHandlers = null;
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

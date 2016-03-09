@@ -18,10 +18,8 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeleteCurrentStatement : SqlStatement {
+	public sealed class DeleteCurrentStatement : SqlStatement, IPlSqlStatement {
 		public DeleteCurrentStatement(ObjectName tableName, string cursorName) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");

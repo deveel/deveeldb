@@ -18,11 +18,10 @@
 using System;
 
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class DeclareVariableStatement : SqlStatement, IPreparable, IDeclarationStatement {
+	public sealed class DeclareVariableStatement : SqlStatement, IDeclarationStatement {
 		public DeclareVariableStatement(string variableName, SqlType variableType) {
 			if (String.IsNullOrEmpty(variableName))
 				throw new ArgumentNullException("variableName");
@@ -43,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool IsNotNull { get; set; }
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var statement = new DeclareVariableStatement(VariableName, VariableType);
 			if (DefaultExpression != null)
 				statement.DefaultExpression = DefaultExpression.Prepare(preparer);

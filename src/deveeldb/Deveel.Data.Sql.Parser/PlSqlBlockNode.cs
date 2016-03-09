@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private void BuildBlock(SqlStatementBuilder builder) {
-			var block = new PlSqlBlock {Label = Label};
+			var block = new PlSqlBlockStatement {Label = Label};
 
 			if (Declarations != null) {
 				foreach (var declaration in Declarations) {

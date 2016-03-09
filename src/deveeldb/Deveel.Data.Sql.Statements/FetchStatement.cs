@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class FetchStatement : SqlStatement {
+	public sealed class FetchStatement : SqlStatement, IPlSqlStatement {
 		public FetchStatement(string cursorName, FetchDirection direction) {
 			CursorName = cursorName;
 			Direction = direction;

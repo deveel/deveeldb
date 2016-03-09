@@ -20,13 +20,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class InsertSelectStatement : SqlStatement {
+	public sealed class InsertSelectStatement : SqlStatement, IPlSqlStatement {
 		public InsertSelectStatement(ObjectName tableName, SqlQueryExpression queryExpression) 
 			: this(tableName, null, queryExpression) {
 		}

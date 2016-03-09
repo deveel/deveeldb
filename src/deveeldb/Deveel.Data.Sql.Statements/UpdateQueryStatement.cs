@@ -21,7 +21,7 @@ using System.Runtime.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class UpdateQueryStatement : SqlStatement, IPreparable {
+	public sealed class UpdateQueryStatement : SqlStatement {
 		public UpdateQueryStatement(string tableName, SqlQueryExpression sourceExpression, SqlExpression whereExpression) {
 			TableName = tableName;
 			SourceExpression = sourceExpression;

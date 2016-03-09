@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class OpenStatement : SqlStatement, IPreparable {
+	public sealed class OpenStatement : SqlStatement, IPlSqlStatement {
 		public OpenStatement(string cursorName) 
 			: this(cursorName, new SqlExpression[] {}) {
 		}
@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression[] Arguments { get; set; }
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			SqlExpression[] args = null;
 			if (Arguments != null) {
 				args = (SqlExpression[])Arguments.Clone();

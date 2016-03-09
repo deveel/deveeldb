@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Compile {
 			var obj = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(obj);
-			Assert.IsInstanceOf<PlSqlBlock>(obj);
+			Assert.IsInstanceOf<PlSqlBlockStatement>(obj);
 		}
 
 		[Test]
@@ -42,9 +42,9 @@ namespace Deveel.Data.Sql.Compile {
 			var obj = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(obj);
-			Assert.IsInstanceOf<PlSqlBlock>(obj);
+			Assert.IsInstanceOf<PlSqlBlockStatement>(obj);
 
-			var block = (PlSqlBlock) obj;
+			var block = (PlSqlBlockStatement) obj;
 
 			Assert.AreEqual(1, block.Statements.Count);
 			Assert.AreEqual(0, block.ExceptionHandlers.Count());

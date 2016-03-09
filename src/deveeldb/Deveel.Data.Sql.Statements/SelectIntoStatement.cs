@@ -16,16 +16,14 @@
 
 
 using System;
-using System.IO;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
-	public sealed class SelectIntoStatement : SqlStatement {
+	public sealed class SelectIntoStatement : SqlStatement, IPlSqlStatement {
 		public SelectIntoStatement(SqlQueryExpression queryExpression, SqlExpression reference) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");

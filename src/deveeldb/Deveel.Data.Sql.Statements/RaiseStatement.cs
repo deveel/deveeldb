@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class RaiseStatement : SqlStatement {
+	public sealed class RaiseStatement : SqlStatement, IPlSqlStatement {
 		public RaiseStatement() 
 			: this((string) null) {
 		}

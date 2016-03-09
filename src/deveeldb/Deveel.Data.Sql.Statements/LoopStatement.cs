@@ -19,7 +19,7 @@ using System;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public class LoopStatement : CodeBlockStatement {
+	public class LoopStatement : CodeBlockStatement, IPlSqlStatement {
 		protected virtual bool Loop(ExecutionContext context) {
 			return !context.HasTermination;
 		}
