@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public static bool CloseCursor(this IRequest query, string cursorName) {
-			return query.Context.CloseCursor(cursorName);
+			return query.Context.CloseCursor(query, cursorName);
 		}
 
 	}

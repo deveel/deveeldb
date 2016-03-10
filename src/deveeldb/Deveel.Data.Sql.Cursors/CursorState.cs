@@ -39,11 +39,26 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public SqlExpression[] OpenArguments { get; private set; }
 
+		public bool IsClosed {
+			get { return Status == CursorStatus.Closed; }
+		}
+
+		public bool IsOpen {
+			get { return Status == CursorStatus.Open; }
+		}
+
+		public bool IsFetching {
+			get { return Status == CursorStatus.Fetching; }
+		}
+
 		internal ITable Result { get; private set; }
 
 		private int CurrentOffset { get; set; }
 
-		internal void Open(ITable result, SqlExpression[] args) {
+		internal IDbObject[] References { get; private set; }
+
+		internal void Open(IDbObject[] refs, ITable result, SqlExpression[] args) {
+			References = refs;
 			Status = CursorStatus.Open;
 			Result = result;
 			OpenArguments = args;
@@ -95,6 +110,7 @@ namespace Deveel.Data.Sql.Cursors {
 					Result.Dispose();
 			}
 
+			References = null;
 			Result = null;
 			Cursor = null;
 			Status = CursorStatus.Disposed;

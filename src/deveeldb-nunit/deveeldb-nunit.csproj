@@ -142,7 +142,6 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareCursorStatementTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />

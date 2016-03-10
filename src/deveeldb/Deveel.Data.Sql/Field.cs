@@ -682,6 +682,9 @@ namespace Deveel.Data.Sql {
 				return String(s);
 			}
 
+			if (value == null)
+				return Null();
+
 			throw new NotSupportedException("Cannot build an object from the given value.");
 		}
 

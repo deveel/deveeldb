@@ -68,11 +68,7 @@ namespace Deveel.Data {
 		}
 
 		public static IDbObject GetObject(this ISession session, DbObjectType objectType, ObjectName objectName, AccessType accessType) {
-			var obj = session.Transaction.GetObject(objectType, objectName);
-			if (obj != null)
-				session.Access(obj, accessType);
-
-			return obj;
+			return session.Transaction.GetObject(objectType, objectName);
 		}
 
 		public static void CreateObject(this ISession session, IObjectInfo objectInfo) {

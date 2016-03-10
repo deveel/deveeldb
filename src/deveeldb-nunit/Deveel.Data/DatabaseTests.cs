@@ -64,5 +64,13 @@ namespace Deveel.Data {
 		public void AuthenticateAdmin() {
 			Assert.DoesNotThrow(() => database.Authenticate(TestAdminUser, TestAdminPass));
 		}
+
+		[Test]
+		public void SimpleCreate() {
+			var db = Database.New(TestDbName, TestAdminUser, TestAdminPass);
+
+			Assert.IsNotNull(db);
+			Assert.IsTrue(db.Exists);
+		}
 	}
 }

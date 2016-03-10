@@ -73,9 +73,12 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
-			return transaction.GetObjectManagers()
-				.Select(manager => manager.GetObject(objName))
-				.FirstOrDefault(obj => obj != null);
+			foreach (var manager in transaction.GetObjectManagers()) {
+				if (manager.ObjectExists(objName))
+					return manager.GetObject(objName);
+			}
+
+			return null;
 		}
 
 		public static IDbObject GetObject(this ITransaction transaction, DbObjectType objType, ObjectName objName) {
@@ -481,12 +484,12 @@ namespace Deveel.Data.Transactions {
 
 		#region Locks
 
-		public static LockHandle LockTables(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode) {
-			var tables = tableNames.Select(transaction.GetTable).OfType<ILockable>();
-			return transaction.Database.Locker.Lock(tables.ToArray(), accessType, mode);
+		public static LockHandle Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode) {
+			var lockables = tableNames.Select(transaction.FindObject).OfType<ILockable>();
+			return transaction.Database.Locker.Lock(lockables.ToArray(), accessType, mode);
 		}
 
-		public static bool IsTableLocked(this ITransaction transaction, ITable table) {
+		public static bool IsLocked(this ITransaction transaction, ITable table) {
 			var lockable = table as ILockable;
 			if (lockable == null)
 				return false;

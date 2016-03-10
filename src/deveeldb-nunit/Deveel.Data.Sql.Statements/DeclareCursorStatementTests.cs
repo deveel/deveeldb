@@ -25,19 +25,12 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Statements {
 	[TestFixture]
 	public class DeclareCursorStatementTests : ContextBasedTest {
-		protected override ISession CreateAdminSession(IDatabase database) {
-			using (var session = base.CreateAdminSession(database)) {
-				using (var query = session.CreateQuery()) {
-					var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-					tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
+		protected override void OnSetUp(string testName) {
+			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-					query.CreateTable(tableInfo, false, false);
-					query.Commit();
-				}
-			}
-
-			return base.CreateAdminSession(database);
+			Query.CreateTable(tableInfo, false, false);
 		}
 
 		[Test]

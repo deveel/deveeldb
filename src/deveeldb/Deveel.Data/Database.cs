@@ -407,6 +407,10 @@ namespace Deveel.Data {
 			return New(config, null, adminName, adminPassword);
 		}
 
+		public static IDatabase New(string dbName, string adminName, string adminPassword) {
+			return New(new Configuration.Configuration(), dbName, adminName, adminPassword);
+		}
+
 		public static IDatabase New(IConfiguration config, string dbName, string adminName, string adminPassword) {
 			if (config == null)
 				throw new ArgumentNullException("config");
