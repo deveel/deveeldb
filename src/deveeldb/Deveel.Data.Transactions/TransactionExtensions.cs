@@ -161,7 +161,16 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, string objectName) {
-			return transaction.ResolveObjectName(transaction.CurrentSchema(), objectName);
+			var parsed = ObjectName.Parse(objectName);
+			string schema;
+			if (parsed.Parent != null) {
+				schema = parsed.ParentName;
+				objectName = parsed.Name;
+			} else {
+				schema = transaction.CurrentSchema();
+			}
+
+			return transaction.ResolveObjectName(schema, objectName);
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {

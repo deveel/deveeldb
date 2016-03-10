@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Test]
 		public void GrantSelectToUserOnTable() {
-			var statement = new GrantPrivilegesStatement("test_user", Privileges.Select, new ObjectName("APP.test_table"));
+			var statement = new GrantPrivilegesStatement("test_user", Privileges.Select, ObjectName.Parse("APP.test_table"));
 
 			var result = Query.ExecuteStatement(statement);
 
