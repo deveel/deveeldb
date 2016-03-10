@@ -37,7 +37,8 @@ namespace Deveel.Data.Sql.Statements {
 		public string CursorName { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			context.Request.Query.CloseCursor(CursorName);
+			if (!context.Request.Query.CloseCursor(CursorName))
+				throw new ObjectNotFoundException(new ObjectName(CursorName));
 		}
 
 		protected override void GetData(SerializationInfo info) {

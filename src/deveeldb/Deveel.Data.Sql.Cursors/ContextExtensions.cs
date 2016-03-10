@@ -108,12 +108,12 @@ namespace Deveel.Data.Sql.Cursors {
 			return false;
 		}
 
-		public static bool CloseCursor(this IContext context, string cursorName) {
+		public static bool CloseCursor(this IContext context, IRequest request, string cursorName) {
 			var cursor = context.FindCursor(cursorName);
 			if (cursor == null)
 				return false;
 
-			cursor.Close();
+			cursor.Close(request);
 			return true;
 		}
 
@@ -122,8 +122,8 @@ namespace Deveel.Data.Sql.Cursors {
 			if (cursor == null)
 				return false;
 
-			// TODO: support the evaluate in context (and not just IQueryContext)
-			throw new NotImplementedException();
+			cursor.Open(request, args);
+			return true;
 		}
 	}
 }

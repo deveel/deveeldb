@@ -41,6 +41,7 @@ namespace Deveel.Data.Transactions {
 
 		public void Acquire(Lock @lock) {
 			lock (this) {
+				Lockable.Acquired(@lock);
 				locks.Add(@lock);
 			}
 		}

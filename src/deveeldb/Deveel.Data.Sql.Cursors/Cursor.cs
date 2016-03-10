@@ -22,6 +22,7 @@ using System.Linq;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class Cursor : IDbObject, IDisposable {
@@ -88,10 +89,15 @@ namespace Deveel.Data.Sql.Cursors {
 			return result;
 		}
 
-		private ITable Evaluate(IRequest context, SqlExpression[] args) {
+		private ITable Evaluate(IRequest context, SqlExpression[] args, out IList<IDbObject> refs) {
 			try {
 				var prepared = PrepareQuery(args);
 				var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, prepared));
+				var refNames = queryPlan.DiscoverTableNames();
+
+				refs = refNames.Select(x => context.Query.FindObject(x)).ToArray();
+				context.Query.Session.Access(refs, AccessType.Read);
+
 				return queryPlan.Evaluate(context);
 			} catch (Exception) {
 
@@ -103,17 +109,25 @@ namespace Deveel.Data.Sql.Cursors {
 			lock (this) {
 				AssertNotDisposed();
 
+				IList<IDbObject> refs = new List<IDbObject>();
+
 				ITable result = null;
 				if (CursorInfo.IsInsensitive)
-					result = Evaluate(context, args);
+					result = Evaluate(context, args, out refs);
 
-				State.Open(result, args);
+				State.Open(refs.ToArray(), result, args);
 			}
 		}
 
-		public void Close() {
+		public void Close(IRequest context) {
 			lock (this) {
 				AssertNotDisposed();
+
+				if (State.IsClosed)
+					return;
+
+				context.Query.Session.Exit(State.References, AccessType.Read);
+
 				State.Close();
 			}
 		}
@@ -127,13 +141,16 @@ namespace Deveel.Data.Sql.Cursors {
 				throw new ArgumentException(String.Format("Cursor '{0}' is not SCROLL: can fetch only NEXT value.", CursorInfo.CursorName));
 
 			var table = State.Result;
-			if (!CursorInfo.IsInsensitive)
-				table = Evaluate(context.Request, State.OpenArguments);
+			if (!CursorInfo.IsInsensitive) {
+				IList<IDbObject> refs;
+				table = Evaluate(context.Request, State.OpenArguments, out refs);
+			}
 
 			var fetchRow = State.FetchRowFrom(table, context.Direction, context.Offset);
 
 			if (context.IsGlobalReference) {
 				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;
+
 				FetchIntoReference(context.Request, fetchRow, reference);
 			} else if (context.IsVariableReference) {
 				var varName = ((SqlVariableReferenceExpression) context.Reference).VariableName;
@@ -142,6 +159,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		private void FetchIntoVatiable(IRequest request, Row row, string varName) {
+
 			throw new NotImplementedException();
 		}
 
@@ -153,7 +171,22 @@ namespace Deveel.Data.Sql.Cursors {
 			if (table == null)
 				throw new ObjectNotFoundException(reference);
 
-			throw new NotImplementedException();
+			try {
+				request.Query.Session.Access(table, AccessType.Write);
+
+				var newRow = table.NewRow();
+
+				for (int i = 0; i < row.ColumnCount; i++) {
+					var sourceValue = row.GetValue(i);
+					newRow.SetValue(i, sourceValue);
+				}
+
+				newRow.SetDefault(request.Query);
+				table.AddRow(newRow);
+			} finally {
+				request.Query.Session.Exit(new []{table}, AccessType.Write);
+			}
+
 		}
 
 		public void Dispose() {
