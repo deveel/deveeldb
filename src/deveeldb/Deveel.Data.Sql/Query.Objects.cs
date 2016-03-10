@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql {
 			query.Session.AlterObject(objectInfo);
 		}
 
-		public static ObjectName ResolveObjectName(this IQuery query, string name) {
+		public static ObjectName ResolveObjectName(this IQuery query, string name)	{
 			if (query.Context.CursorExists(name))
 				return new ObjectName(name);
 			if (query.Context.VariableExists(name))

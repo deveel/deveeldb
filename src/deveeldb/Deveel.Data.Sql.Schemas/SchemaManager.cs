@@ -16,7 +16,9 @@
 
 
 using System;
+using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
@@ -161,7 +163,30 @@ namespace Deveel.Data.Sql.Schemas {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
 
-			throw new NotImplementedException();
+			var tableName = SystemSchema.SchemaInfoTableName;
+			var t = Transaction.GetMutableTable(tableName);
+
+			var nameObj = Field.String(name);
+
+			var rows = t.SelectRows(1, SqlExpressionType.Equal, nameObj).ToArray();
+			if (rows.Length == 0)
+				return null;
+
+			if (rows.Length > 1)
+				throw new InvalidOperationException();
+
+			var row = rows[0];
+
+			var schemaName = t.GetValue(row, 1).Value.ToString();
+			var schemaType = t.GetValue(row, 2).Value.ToString();
+			var culture = t.GetValue(row, 3);
+
+			var schemaInfo = new SchemaInfo(schemaName, schemaType);
+
+			if (!culture.IsNull)
+				schemaInfo.Culture = culture.Value.ToString();
+
+			return new Schema(schemaInfo);
 		}
 	}
 }
