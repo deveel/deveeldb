@@ -162,7 +162,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+			// TODO: implement!!!
+			return null;
 		}
 
 		public IRoutine ResolveRoutine(Invoke request, IQuery context) {

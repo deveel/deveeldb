@@ -691,7 +691,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 
 			// No matches so return the original object.
-			return objName;
+			return null;
 		}
 
 		public bool DropTable(ObjectName tableName) {

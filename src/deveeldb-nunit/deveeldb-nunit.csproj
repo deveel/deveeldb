@@ -133,6 +133,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\GrantStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\DatabaseTests.cs" />
@@ -144,7 +145,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerTests.cs" />
-    <Compile Include="Deveel.Data.Sql\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
@@ -199,9 +199,7 @@
       <Name>deveeldb</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Linq\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

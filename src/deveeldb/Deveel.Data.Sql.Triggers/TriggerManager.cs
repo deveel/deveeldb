@@ -207,7 +207,8 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+			// TODO: implement!!!
+			return null;
 		}
 
 		[Serializable]

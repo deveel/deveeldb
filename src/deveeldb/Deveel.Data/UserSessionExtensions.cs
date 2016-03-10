@@ -100,7 +100,7 @@ namespace Deveel.Data {
 		}
 
 		public static ObjectName ResolveObjectName(this ISession session, string name) {
-			return session.ResolveObjectName(new ObjectName(new ObjectName(session.CurrentSchema), name));
+			return session.Transaction.ResolveObjectName(name);
 		}
 
 		public static ObjectName ResolveObjectName(this ISession session, DbObjectType objectType, ObjectName objectName) {
@@ -117,7 +117,7 @@ namespace Deveel.Data {
 
 
 		public static ObjectName ResolveTableName(this ISession session, ObjectName tableName) {
-			return session.Transaction.ResolveTableName(tableName);
+			return session.Transaction.ResolveObjectName(DbObjectType.Table, tableName);
 		}
 
 		public static ITable GetTable(this ISession session, ObjectName tableName) {

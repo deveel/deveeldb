@@ -65,7 +65,8 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+			// TODO: Implement!!!
+			return null;
 		}
 
 		SqlType ITypeResolver.ResolveType(TypeResolveContext context) {

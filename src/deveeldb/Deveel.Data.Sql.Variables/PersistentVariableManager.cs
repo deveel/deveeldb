@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Variables {
 				throw new ArgumentNullException("objName");
 
 			if (objName.Parent != null)
-				throw new ArgumentException();
+				return false;
 
 			return VariableExists(objName.Name);
 		}
@@ -110,7 +110,8 @@ namespace Deveel.Data.Sql.Variables {
 		}
 
 		private bool VariableExists(string name, bool ignoreCase) {
-			throw new NotImplementedException();
+			// TODO: Implement it!
+			return false;
 		}
 
 		Field IVariableResolver.Resolve(ObjectName variable) {

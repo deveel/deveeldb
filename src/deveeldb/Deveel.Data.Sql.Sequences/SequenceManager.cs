@@ -489,7 +489,8 @@ namespace Deveel.Data.Sql.Sequences {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			throw new NotImplementedException();
+			// TODO: Implement!!!
+			return null;
 		}
 
 		public bool DropSequence(ObjectName sequenceName) {

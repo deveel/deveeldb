@@ -154,27 +154,7 @@ namespace Deveel.Data.Transactions {
 
 			var objName = new ObjectName(new ObjectName(schemaName), objectName);
 
-			// Special case for OLD and NEW tables
-			if (String.Compare(objectName, "OLD", StringComparison.OrdinalIgnoreCase) == 0)
-				return SystemSchema.OldTriggerTableName;
-			if (String.Compare(objectName, "NEW", StringComparison.OrdinalIgnoreCase) == 0)
-				return SystemSchema.NewTriggerTableName;
-
-			bool found = false;
-
-			foreach (var manager in transaction.GetObjectManagers()) {
-				if (manager.ObjectExists(objName)) {
-					if (found)
-						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match.", objectName));
- 
-					found = true;
-				}
-			}
-
-			if (!found)
-				throw new ObjectNotFoundException(objectName);
-
-			return objName;
+			return transaction.ResolveObjectName(objName);
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, string objectName) {
@@ -186,15 +166,45 @@ namespace Deveel.Data.Transactions {
 			if (manager == null)
 				return objectName;
 
-			return manager.ResolveName(objectName, transaction.IgnoreIdentifiersCase());
+			if (objectName.Parent == null) {
+				var currentSchema = transaction.CurrentSchema();
+				objectName = new ObjectName(new ObjectName(currentSchema), objectName.Name);
+			}
+
+			var resolved = manager.ResolveName(objectName, transaction.IgnoreIdentifiersCase());
+			if (resolved == null)
+				resolved = objectName;
+
+			return resolved;
 		}
 
 		public static ObjectName ResolveObjectName(this ITransaction transaction, ObjectName objectName) {
+			var name = objectName.Name;
+
+			// Special case for OLD and NEW tables
+			if (String.Compare(name, "OLD", StringComparison.OrdinalIgnoreCase) == 0)
+				return SystemSchema.OldTriggerTableName;
+			if (String.Compare(name, "NEW", StringComparison.OrdinalIgnoreCase) == 0)
+				return SystemSchema.NewTriggerTableName;
+
 			var ignoreCase = transaction.IgnoreIdentifiersCase();
 
-			return transaction.GetObjectManagers()
-				.Select(manager => manager.ResolveName(objectName, ignoreCase))
-				.FirstOrDefault(resolved => resolved != null);
+			ObjectName found = null;
+			foreach (var manager in transaction.GetObjectManagers()) {
+				var resolved = manager.ResolveName(objectName, ignoreCase);
+
+				if (resolved != null) {
+					if (found != null)
+						throw new ArgumentException(String.Format("The name '{0}' is an ambiguous match", objectName));
+
+					found = resolved;
+				}
+			}
+
+			if (found == null)
+				return objectName;
+
+			return found;
 		}
 
 		#endregion

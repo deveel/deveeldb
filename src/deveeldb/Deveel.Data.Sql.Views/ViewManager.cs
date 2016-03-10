@@ -156,7 +156,7 @@ namespace Deveel.Data.Sql.Views {
 				return new ObjectName(ObjectName.Parse(schemaValue), nameValue);
 			}
 
-			return objName;
+			return null;
 		}
 
 		public void DefineView(ViewInfo viewInfo) {
