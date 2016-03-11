@@ -14,6 +14,8 @@
 //    limitations under the License.
 using System;
 
+using Deveel.Data.Sql.Statements;
+
 using NUnit.Framework;
 
 namespace Deveel.Data.Security {

@@ -14,6 +14,7 @@
 //    limitations under the License.
 using System;
 
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 

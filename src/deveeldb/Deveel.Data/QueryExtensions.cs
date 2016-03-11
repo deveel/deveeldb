@@ -67,12 +67,12 @@ namespace Deveel.Data {
 			return query.Context.ParameterStyle();
 		}
 
-		public static void Commit(this IQuery query) {
-			query.Session.Commit();
-		}
+		//public static void Commit(this IQuery query) {
+		//	query.Session.Commit();
+		//}
 
-		public static void Rollback(this IQuery query) {
-			query.Session.Rollback();
-		}
+		//public static void Rollback(this IQuery query) {
+		//	query.Session.Rollback();
+		//}
 	}
 }

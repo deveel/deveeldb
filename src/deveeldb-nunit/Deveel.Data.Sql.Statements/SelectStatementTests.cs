@@ -83,8 +83,6 @@ namespace Deveel.Data.Sql.Statements {
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
-
-			context.Commit();
 		}
 
 		[Test]

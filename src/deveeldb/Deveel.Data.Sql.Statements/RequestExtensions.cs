@@ -24,6 +24,8 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public static class RequestExtensions {
+		#region ExecuteStaement
+
 		public static ITable ExecuteStatement(this IRequest request, SqlStatement statement) {
 			var results = request.ExecuteStatements(statement);
 			return results[0];
@@ -83,6 +85,20 @@ namespace Deveel.Data.Sql.Statements {
 
 			return request.ExecuteStatements(preparer, compileResult.Statements.ToArray());
 		}
+
+		#endregion
+
+		#region Commit
+
+		public static void Commit(this IRequest request) {
+			request.ExecuteStatement(new CommitStatement());
+		}
+
+		public static void Rollback(this IRequest request) {
+			request.ExecuteStatement(new RollbackStatement());
+		}
+
+		#endregion
 
 		#region QueryPreparer
 
