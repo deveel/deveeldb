@@ -22,6 +22,7 @@ using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -90,6 +91,11 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
+				var refNames = QueryPlan.DiscoverTableNames();
+				var refs = refNames.Select(x => context.Query.FindObject(x));
+
+				context.Query.Session.Access(refs, AccessType.Read);
+
 				var result = QueryPlan.Evaluate(context.Request);
 				context.SetResult(result);
 			}

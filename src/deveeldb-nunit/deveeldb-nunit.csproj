@@ -134,6 +134,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\GrantStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertSelectStatementTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatementTests.cs" />
+    <Compile Include="Deveel.Data.Sql\BooleanFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
