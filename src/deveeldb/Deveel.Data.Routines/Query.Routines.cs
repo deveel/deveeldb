@@ -62,7 +62,7 @@ namespace Deveel.Data.Routines {
 		public static IRoutine ResolveUserRoutine(this IQuery query, Invoke invoke) {
 			var routine = query.Session.ResolveRoutine(invoke);
 			if (routine != null &&
-				!query.UserCanExecute(routine.Type, invoke))
+				!query.Session.SystemAccess.UserCanExecute(routine.Type, invoke, query))
 				throw new InvalidOperationException();
 
 			return routine;

@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (Target == ShowTarget.Table &&
 			    TableName != null) {
-				tableName = context.Query.ResolveTableName(TableName);
+				tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
 			}
 
 			return new Prepared(Target, tableName);

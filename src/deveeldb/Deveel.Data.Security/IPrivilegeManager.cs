@@ -31,6 +31,8 @@ namespace Deveel.Data.Security {
 
 		void RevokeFromGroup(string groupName, Grant grant);
 
+		void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName);
+
 		Privileges GetGroupPrivileges(string groupName, DbObjectType objectType, ObjectName objectName);
 	}
 }

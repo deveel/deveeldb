@@ -22,8 +22,8 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
 			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
-			query.CreateTable(tableInfo1);
-			query.AddPrimaryKey(tn1, "id");
+			query.Session.SystemAccess.CreateTable(tableInfo1);
+			query.Session.SystemAccess.AddPrimaryKey(tn1, "id");
 
 			var exp = SqlExpression.Parse("SELECT * FROM APP.test_table1");
 			query.ExecuteCreateView("APP.test_view1", (SqlQueryExpression) exp);
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.ViewExists(viewName);
+			var exists = Query.Session.SystemAccess.ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.ViewExists(viewName);
+			var exists = Query.Session.SystemAccess.ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.ViewExists(viewName);
+			var exists = Query.Session.SystemAccess.ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 

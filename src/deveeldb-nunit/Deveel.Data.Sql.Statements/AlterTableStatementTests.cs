@@ -40,17 +40,17 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			Query.CreateTable(tableInfo);
-			Query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			Query.Session.SystemAccess.CreateTable(tableInfo);
+			Query.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			Query.CreateTable(tableInfo);
+			Query.Session.SystemAccess.CreateTable(tableInfo);
 
 			if (TestContext.CurrentContext.Test.Name == "DropConstraint") {
-				Query.AddForeignKey(tableInfo.TableName, new string[] {"person_id"}, ObjectName.Parse("APP.test_table"),
+				Query.Session.SystemAccess.AddForeignKey(tableInfo.TableName, new string[] {"person_id"}, ObjectName.Parse("APP.test_table"),
 					new[] {"id"}, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
 		}
@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0,  ((SqlNumber) result.GetValue(0,0).Value).ToInt32());
 
-			var testTable = Query.GetTable(new ObjectName("test_table"));
+			var testTable = Query.IsolatedAccess.GetTable(new ObjectName("test_table"));
 
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.GetTable(new ObjectName("test_table"));
+			var testTable = Query.IsolatedAccess.GetTable(new ObjectName("test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.GetTable(new ObjectName("test_table"));
+			var testTable = Query.IsolatedAccess.GetTable(new ObjectName("test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -138,7 +138,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var fkeys = Query.GetTableForeignKeys(tableName);
+			var fkeys = Query.Session.SystemAccess.QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsNotEmpty(fkeys);
@@ -164,7 +164,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.GetTable(new ObjectName("test_table"));
+			var testTable = Query.IsolatedAccess.GetTable(new ObjectName("test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -184,7 +184,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var fkeys = Query.GetTableForeignKeys(tableName);
+			var fkeys = Query.Session.SystemAccess.QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsEmpty(fkeys);
@@ -203,7 +203,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var pkey = Query.GetTablePrimaryKey(tableName);
+			var pkey = Query.Session.SystemAccess.QueryTablePrimaryKey(tableName);
 
 			Assert.IsNull(pkey);
 		}

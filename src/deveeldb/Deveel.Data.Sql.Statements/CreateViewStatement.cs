@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool ReplaceIfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Query.ResolveTableName(ViewName);
+			var viewName = context.Query.Session.SystemAccess.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql.Statements {
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-				context.Request.Query.DefineView(viewInfo, ReplaceIfExists);
+				context.Request.Query.Session.SystemAccess.DefineView(viewInfo, ReplaceIfExists);
 			}
 		}
 

@@ -80,11 +80,11 @@ namespace Deveel.Data.Routines {
 			container.RegisterInstance(function, serviceKey: functionName,reuse:Reuse.Singleton);
 		}
 
-		IRoutine IRoutineResolver.ResolveRoutine(Invoke request, IQuery query) {
-			return ResolveFunction(request, query);
+		IRoutine IRoutineResolver.ResolveRoutine(Invoke invoke, IRequest request) {
+			return ResolveFunction(invoke, request);
 		}
 
-		public IFunction ResolveFunction(Invoke invoke, IQuery query) {
+		public IFunction ResolveFunction(Invoke invoke, IRequest request) {
 			var name = NormalizeName(invoke.RoutineName);
 
 			if (name == null ||
@@ -98,7 +98,7 @@ namespace Deveel.Data.Routines {
 			if (functions.Length == 1)
 				return functions[0];
 
-			return functions.FirstOrDefault(x => x.RoutineInfo.MatchesInvoke(invoke, query));
+			return functions.FirstOrDefault(x => x.RoutineInfo.MatchesInvoke(invoke, request));
 		}
 
 		#region DelegateFunction

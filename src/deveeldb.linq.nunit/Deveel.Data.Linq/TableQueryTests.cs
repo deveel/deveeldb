@@ -37,12 +37,12 @@ namespace Deveel.Data.Linq {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			context.CreateTable(tableInfo);
-			context.AddPrimaryKey(tableInfo.TableName, "id", "PK_PEOPLE_TABLE");
+			context.Session.SystemAccess.CreateTable(tableInfo);
+			context.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_PEOPLE_TABLE");
 		}
 
 		private void AddTestData(IQuery context) {
-			var table = context.GetMutableTable(ObjectName.Parse("APP.people"));
+			var table = context.IsolatedAccess.GetMutableTable(ObjectName.Parse("APP.people"));
 			var row = table.NewRow();
 
 			// row.SetValue("id", Field.Integer(0));

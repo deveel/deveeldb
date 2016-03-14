@@ -48,12 +48,12 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			context.CreateTable(tableInfo);
-			context.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			context.Session.SystemAccess.CreateTable(tableInfo);
+			context.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private void AddTestData(IQuery context) {
-			var table = context.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = context.IsolatedAccess.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 
 			// row.SetValue("id", Field.Integer(0));

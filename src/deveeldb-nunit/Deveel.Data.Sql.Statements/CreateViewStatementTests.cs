@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 					tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 					tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-					query.CreateTable(tableInfo, false, false);
+					query.Session.SystemAccess.CreateTable(tableInfo, false, false);
 					query.Commit();
 				}
 			}

@@ -7,7 +7,7 @@ namespace Deveel.Data.Sql {
 	public class ObjectNameTests : ContextBasedTest {
 		[Test]
 		public void ResolveSchemaName() {
-			var resolved = Query.ResolveObjectName("APP");
+			var resolved = Query.IsolatedAccess.ResolveObjectName("APP");
 
 			Assert.IsNotNull(resolved);
 			Assert.IsNull(resolved.Parent);

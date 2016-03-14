@@ -338,7 +338,7 @@ namespace Deveel.Data.Sql.Triggers {
 			return triggers.Select(x => new Trigger(x));
 		}
 
-		public void FireTriggers(IQuery context, TableEvent tableEvent) {
+		public void FireTriggers(IRequest context, TableEvent tableEvent) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 

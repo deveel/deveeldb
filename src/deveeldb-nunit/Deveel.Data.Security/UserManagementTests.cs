@@ -24,7 +24,7 @@ namespace Deveel.Data.Security {
 			if (testName != "CreateUser") {
 				using (var session = base.CreateAdminSession(database)) {
 					using (var query = session.CreateQuery()) {
-						query.CreateUser("tester", "123456789");
+						query.Session.SystemAccess.CreateUser("tester", "123456789");
 						query.Commit();
 					}
 				}
@@ -35,13 +35,13 @@ namespace Deveel.Data.Security {
 		[Test]
 		public void CreateUser() {
 			User user = null;
-			Assert.DoesNotThrow(() => user = Query.CreateUser("tester", "123456"));
+			Assert.DoesNotThrow(() => user = Query.Session.SystemAccess.CreateUser("tester", "123456"));
 			Assert.IsNotNull(user);
 
 			Assert.AreEqual("tester", user.Name);
 
 			bool exists = false;
-			Assert.DoesNotThrow(() => exists = Query.UserExists("tester"));
+			Assert.DoesNotThrow(() => exists = Query.Session.SystemAccess.UserExists("tester"));
 			Assert.IsTrue(exists);
 		}
 
@@ -65,50 +65,50 @@ namespace Deveel.Data.Security {
 		[Test]
 		public void CreateExistingUser() {
 			bool exists = false;
-			Assert.DoesNotThrow(() => exists = Query.UserExists("tester"));
+			Assert.DoesNotThrow(() => exists = Query.Session.SystemAccess.UserExists("tester"));
 			Assert.IsTrue(exists);
 
-			Assert.Throws<SecurityException>(() => Query.CreateUser("tester", "123456789"));
+			Assert.Throws<SecurityException>(() => Query.Session.SystemAccess.CreateUser("tester", "123456789"));
 		}
 
 		[Test]
 		public void DropUser() {
-			Assert.DoesNotThrow(() => Query.DeleteUser("tester"));
+			Assert.DoesNotThrow(() => Query.Session.SystemAccess.DeleteUser("tester"));
 
 			bool exists = false;
-			Assert.DoesNotThrow(() => Query.UserExists("tester"));
+			Assert.DoesNotThrow(() => Query.Session.SystemAccess.UserExists("tester"));
 			Assert.IsFalse(exists);
 		}
 
 		[Test]
 		public void AdminChangesUserPassword() {
-			Assert.DoesNotThrow(() => Query.AlterUserPassword("tester", "0123456789"));
+			Assert.DoesNotThrow(() => Query.Session.SystemAccess.AlterUserPassword("tester", "0123456789"));
 		}
 
 		[Test]
 		public void SetUserGroups() {
-			Assert.DoesNotThrow(() => Query.AddUserToGroup("tester", "test_group"));
-			Assert.DoesNotThrow(() => Query.AddUserToGroup("tester", SystemGroups.UserManagerGroup));
+			Assert.DoesNotThrow(() => Query.Session.SystemAccess.AddUserToGroup("tester", "test_group"));
+			Assert.DoesNotThrow(() => Query.Session.SystemAccess.AddUserToGroup("tester", SystemGroups.UserManagerGroup));
 
 			User user = null;
-			Assert.DoesNotThrow(() => user = Query.GetUser("tester"));
+			Assert.DoesNotThrow(() => user = Query.Session.SystemAccess.GetUser("tester"));
 			Assert.IsNotNull(user);
 
 			string[] userGroups = null;
-			Assert.DoesNotThrow(() => userGroups = Query.GetGroupsUserBelongsTo(user.Name));
+			Assert.DoesNotThrow(() => userGroups = Query.Session.SystemAccess.GetGroupsUserBelongsTo(user.Name));
 			Assert.IsNotNull(userGroups);
 			Assert.Contains("test_group", userGroups);
 			Assert.Contains(SystemGroups.UserManagerGroup, userGroups);
 
-			Assert.IsTrue(Query.UserBelongsToGroup("tester", "test_group"));
+			Assert.IsTrue(Query.Session.SystemAccess.UserBelongsToGroup("tester", "test_group"));
 		}
 
 		[Test]
 		public void LockUser() {
-			Query.SetUserStatus("tester", UserStatus.Locked);
+			Query.Session.SystemAccess.SetUserStatus("tester", UserStatus.Locked);
 
 			UserStatus status = new UserStatus();
-			Assert.DoesNotThrow(() => status = Query.GetUserStatus("tester"));
+			Assert.DoesNotThrow(() => status = Query.Session.SystemAccess.GetUserStatus("tester"));
 			Assert.AreEqual(UserStatus.Locked, status);
 		}
 	}

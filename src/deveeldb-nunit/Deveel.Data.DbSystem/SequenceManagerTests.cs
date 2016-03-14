@@ -32,7 +32,7 @@ namespace Deveel.Data {
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {
 				var seqInfo = new SequenceInfo(testSequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
-				query.CreateObject(seqInfo);
+				query.IsolatedAccess.CreateObject(seqInfo);
 			}
 
 			return query;

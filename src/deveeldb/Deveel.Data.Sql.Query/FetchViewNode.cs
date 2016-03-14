@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Query {
 		public ObjectName AliasName { get; private set; }
 
 		private IQueryPlanNode CreateChildNode(IRequest context) {
-			return context.Query.GetViewQueryPlan(ViewName);
+			return context.Query.Session.SystemAccess.GetViewQueryPlan(ViewName);
 		}
 
 		public ITable Evaluate(IRequest context) {

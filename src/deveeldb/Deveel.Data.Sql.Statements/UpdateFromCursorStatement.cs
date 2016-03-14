@@ -44,11 +44,11 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 
-			var tableName = context.Query.ResolveTableName(TableName);
+			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
-			var table = context.Query.GetMutableTable(tableName);
+			var table = context.IsolatedAccess.GetMutableTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 

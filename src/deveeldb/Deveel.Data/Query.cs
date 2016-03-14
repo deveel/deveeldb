@@ -18,9 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
@@ -39,6 +37,8 @@ namespace Deveel.Data {
 			Context.RegisterInstance<IQuery>(this);
 
 			StartedOn = DateTimeOffset.UtcNow;
+
+			IsolatedAccess = new IsolatedAccess(this);
 
 			metadata = GetMetadata();
 		}
@@ -73,10 +73,8 @@ namespace Deveel.Data {
 		public DateTimeOffset StartedOn { get; private set; }
 
 		public SqlQuery SourceQuery { get; private set; }
-
-		public bool HasSourceQuery {
-			get { return SourceQuery != null; }
-		}
+		
+		public IsolatedAccess IsolatedAccess { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);

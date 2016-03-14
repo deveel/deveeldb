@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Query {
 		}
 
 		public ITable Evaluate(IRequest context) {
-			var t = context.Query.GetTable(TableName);
+			var t = context.IsolatedAccess.GetTable(TableName);
 			return AliasName != null ? new ReferenceTable(t, AliasName) : t;
 		}
 	}

@@ -39,6 +39,8 @@ namespace Deveel.Data {
 			Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
 			StartedOn = DateTimeOffset.UtcNow;
+
+			SystemAccess = new SystemAccess(this);
 		}
 
 		public void Dispose() {
@@ -48,6 +50,8 @@ namespace Deveel.Data {
 		public string CurrentSchema { get; private set; }
 
 		public DateTimeOffset StartedOn { get; private set; }
+
+		public SystemAccess SystemAccess { get; private set; }
 
 		public DateTimeOffset? LastCommandTime {
 			get { return null; }

@@ -95,8 +95,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber UniqueKey(IRequest query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = query.Query.ResolveTableName(tableNameString);
-			return query.Query.GetNextValue(resolvedName);
+			var resolvedName = query.Query.Session.SystemAccess.ResolveTableName(tableNameString);
+			return query.Query.Session.SystemAccess.GetNextValue(resolvedName);
 		}
 
 		public static Field CurrentValue(IRequest query, Field tableName) {
@@ -107,8 +107,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber CurrentValue(IRequest query, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = query.Query.ResolveTableName(tableNameString);
-			return query.Query.GetCurrentValue(resolvedName);
+			var resolvedName = query.Query.Session.SystemAccess.ResolveTableName(tableNameString);
+			return query.Query.Session.SystemAccess.GetCurrentValue(resolvedName);
 		}
 
 		internal static InvokeResult Iif(InvokeContext context) {

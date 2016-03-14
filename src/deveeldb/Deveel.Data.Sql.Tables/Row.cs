@@ -505,7 +505,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQuery context) {
+		public void EvaluateAssignment(SqlAssignExpression assignExpression, IRequest context) {
 			var colRef = (SqlReferenceExpression) assignExpression.ReferenceExpression;
 			var valueExp = assignExpression.ValueExpression;
 			var value = valueExp.EvaluateToConstant(context, VariableResolver);

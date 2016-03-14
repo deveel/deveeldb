@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public static ColumnChecker Default(IRequest context, ObjectName tableName) {
-			var table = context.Query.GetTable(tableName);
+			var table = context.IsolatedAccess.GetTable(tableName);
 			if (table == null)
 				throw new InvalidOperationException(String.Format("Table '{0}' not found in the context.", tableName));
 

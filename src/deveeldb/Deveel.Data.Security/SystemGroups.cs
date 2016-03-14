@@ -56,10 +56,10 @@ namespace Deveel.Data.Security {
 		public const string UserManagerGroup = "user_manager";
 
 		public static void Create(IQuery context) {
-			context.CreateUserGroup(SecureGroup);
-			context.CreateUserGroup(UserManagerGroup);
-			context.CreateUserGroup(SchemaManagerGroup);
-			context.CreateUserGroup(LockGroup);
+			context.IsolatedAccess.SystemAccess.CreateUserGroup(SecureGroup);
+			context.IsolatedAccess.SystemAccess.CreateUserGroup(UserManagerGroup);
+			context.IsolatedAccess.SystemAccess.CreateUserGroup(SchemaManagerGroup);
+			context.IsolatedAccess.SystemAccess.CreateUserGroup(LockGroup);
 		}
 
 		public static bool IsSystemGroup(string groupName) {

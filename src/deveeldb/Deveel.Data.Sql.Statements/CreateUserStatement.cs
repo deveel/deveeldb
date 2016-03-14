@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Statements {
 			var evaluated = Password.EvaluateToConstant(context.Request, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
 
-			context.Request.Query.CreateUser(UserName, passwordText);
+			context.Request.Query.Session.SystemAccess.CreateUser(UserName, passwordText);
 		}
 
 		#region PreparedSerializer

@@ -50,7 +50,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool UserExists(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.UserTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserTableName);
 			var c1 = table.GetResolvedColumnName(0);
 
 			// All password where UserName = %username%
@@ -72,7 +72,7 @@ namespace Deveel.Data.Security {
 				throw new SecurityException(String.Format("User '{0}' is already registered.", userName));
 
 			// Add to the key 'user' table
-			var table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserTableName);
 			var row = table.NewRow();
 			row[0] = Field.String(userName);
 			table.AddRow(row);
@@ -83,7 +83,7 @@ namespace Deveel.Data.Security {
 			if (method != "plain")
 				throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
 
-			table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.PasswordTableName);
 			row = table.NewRow();
 			row.SetValue(0, userName);
 			row.SetValue(1, method);
@@ -148,7 +148,7 @@ namespace Deveel.Data.Security {
 		}
 
 		private string[] QueryUserGroups(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			// All 'user_group' where UserName = %username%
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(userName)));
@@ -207,12 +207,12 @@ namespace Deveel.Data.Security {
 			//var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 			//table.Delete(t);
 
-			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.PasswordTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 			table.Delete(t);
 
-			table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
+			table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserTableName);
 			c1 = table.GetResolvedColumnName(0);
 			t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 			return table.Delete(t) > 0;
@@ -221,7 +221,7 @@ namespace Deveel.Data.Security {
 		private void RemoveUserFromAllGroups(string username) {
 			var userExpr = SqlExpression.Constant(Field.String(username));
 
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 
@@ -238,7 +238,7 @@ namespace Deveel.Data.Security {
 			var userExpr = SqlExpression.Constant(Field.String(userName));
 
 			// Delete the current username from the 'password' table
-			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.PasswordTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 			if (t.RowCount != 1)
@@ -255,7 +255,7 @@ namespace Deveel.Data.Security {
 				throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
 
 			// Add the new username
-			table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
+			table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.PasswordTableName);
 			var row = table.NewRow();
 			row.SetValue(0, userName);
 			row.SetValue(1, method);
@@ -267,7 +267,7 @@ namespace Deveel.Data.Security {
 
 		public void SetUserStatus(string userName, UserStatus status) {
 			// Internally we implement this by adding the user to the #locked group.
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 			// All 'user_group' where UserName = %username%
@@ -300,7 +300,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public UserInfo GetUser(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.PasswordTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.PasswordTableName);
 			var unameColumn = table.GetResolvedColumnName(0);
 			var methodColumn = table.GetResolvedColumnName(1);
 			var methodArgsColumn = table.GetResolvedColumnName(2);
@@ -323,7 +323,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool CheckIdentifier(string userName, string identifier) {
-			var table = QueryContext.GetTable(SystemSchema.PasswordTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.PasswordTableName);
 			var unameColumn = table.GetResolvedColumnName(0);
 			var idColumn = table.GetResolvedColumnName(3);
 
@@ -344,7 +344,7 @@ namespace Deveel.Data.Security {
 			if (c == '$' || c == '%' || c == '@')
 				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", groupName));
 
-			var table = QueryContext.GetMutableTable(SystemSchema.GroupsTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.GroupsTableName);
 
 			var row = table.NewRow();
 			row.SetValue(0, groupName);
@@ -353,7 +353,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool DropUserGroup(string groupName) {
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 
 			// All password where name = %groupName%
@@ -369,7 +369,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool UserGroupExists(string groupName) {
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 
 			// All password where name = %groupName%
@@ -388,7 +388,7 @@ namespace Deveel.Data.Security {
 				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", groupName, c), "groupName");
 
 			if (!IsUserInGroup(userName, groupName)) {
-				var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+				var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGroupTableName);
 				var row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, groupName);
@@ -400,7 +400,7 @@ namespace Deveel.Data.Security {
 		public bool IsUserGroupAdmin(string userName, string groupName) {
 			// This is a special query that needs to access the lowest level of ITable, skipping
 			// other security controls
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 
@@ -418,7 +418,7 @@ namespace Deveel.Data.Security {
 		public bool RemoveUserFromGroup(string userName, string groupName) {
 			// This is a special query that needs to access the lowest level of ITable, skipping
 			// other security controls
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 
@@ -447,7 +447,7 @@ namespace Deveel.Data.Security {
 
 			// This is a special query that needs to access the lowest level of ITable, skipping
 			// other security controls
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
+			var table = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserGroupTableName);
 			var c1 = table.GetResolvedColumnName(0);
 			var c2 = table.GetResolvedColumnName(1);
 

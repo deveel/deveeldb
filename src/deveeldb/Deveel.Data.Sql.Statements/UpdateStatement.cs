@@ -48,8 +48,8 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
-			if (!context.Query.TableExists(tableName))
+			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
+			if (!context.Query.Session.SystemAccess.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExpression = new SqlQueryExpression(new[]{SelectColumn.Glob("*") });
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Statements {
 			public int Limit { get; private set; }
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var updateCount = context.Request.Query.UpdateTable(TableName, QueryPlan, Columns, Limit);
+				var updateCount = context.Request.Query.Session.SystemAccess.UpdateTable(context.Request, TableName, QueryPlan, Columns, Limit);
 				context.SetResult(updateCount);
 			}
 

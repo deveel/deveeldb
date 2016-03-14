@@ -50,9 +50,9 @@ namespace Deveel.Data.Sql.Statements {
 		public long Limit { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
+			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
 
-			if (!context.Query.TableExists(tableName))
+			if (!context.Query.Session.SystemAccess.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExp = new SqlQueryExpression(new SelectColumn[] {SelectColumn.Glob("*") });
@@ -93,14 +93,14 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var deleteTable = context.Request.Query.GetMutableTable(TableName);
+				var deleteTable = context.Request.IsolatedAccess.GetMutableTable(TableName);
 
 				if (deleteTable == null)
 					throw new ObjectNotFoundException(TableName);
 
-				if (!context.Request.Query.UserCanSelectFromPlan(QueryPlan))
+				if (!context.Request.Query.Session.SystemAccess.UserCanSelectFromPlan(QueryPlan))
 					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Select);
-				if (!context.Request.Query.UserCanDeleteFromTable(TableName))
+				if (!context.Request.Query.Session.SystemAccess.UserCanDeleteFromTable(TableName))
 					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Delete);
 				
 				var result = QueryPlan.Evaluate(context.Request);

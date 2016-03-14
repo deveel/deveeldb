@@ -13,7 +13,7 @@ namespace Deveel.Data.Sql.Statements {
 	public sealed class GrantStatementTests : ContextBasedTest {
 		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
-			query.CreateUser("test_user", "12345");
+			query.Session.SystemAccess.CreateUser("test_user", "12345");
 
 			CreateTestTable(query);
 
@@ -30,14 +30,14 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.CreateTable(tableInfo);
-			query.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.SystemAccess.CreateTable(tableInfo);
+			query.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			query.CreateTable(tableInfo);
+			query.Session.SystemAccess.CreateTable(tableInfo);
 		}
 
 

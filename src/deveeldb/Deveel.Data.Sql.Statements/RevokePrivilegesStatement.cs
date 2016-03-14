@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool GrantOption { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var objectName = context.Query.ResolveTableName(ObjectName);
+			var objectName = context.Query.Session.SystemAccess.ResolveTableName(ObjectName);
 
 			if (objectName == null)
 				throw new ObjectNotFoundException(ObjectName);

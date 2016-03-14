@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
+using Deveel.Data.Sql.Schemas;
+using Deveel.Data.Sql.Sequences;
+using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Views;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class SystemAccess : IDisposable {
@@ -21,7 +30,7 @@ namespace Deveel.Data {
 
 		public ISession Session { get; private set; }
 
-		public IUserManager UserManager {
+		private IUserManager UserManager {
 			get {
 				if (userManager == null)
 					userManager = Session.Context.ResolveService<IUserManager>();
@@ -30,7 +39,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IPrivilegeManager PrivilegeManager {
+		private IPrivilegeManager PrivilegeManager {
 			get {
 				if (privilegeManager == null)
 					privilegeManager = Session.Context.ResolveService<IPrivilegeManager>();
@@ -38,6 +47,528 @@ namespace Deveel.Data {
 				return privilegeManager;
 			}
 		}
+
+		#region Objects
+
+		public  IDbObject GetObject(DbObjectType objectType, ObjectName objectName) {
+			return GetObject(objectType, objectName, AccessType.ReadWrite);
+		}
+
+		public IDbObject GetObject(DbObjectType objectType, ObjectName objectName, AccessType accessType) {
+			return Session.Transaction.GetObject(objectType, objectName);
+		}
+
+		public void CreateObject(IObjectInfo objectInfo) {
+			// TODO: throw a specialized exception
+			if (!UserCanCreateObject(objectInfo.ObjectType, objectInfo.FullName))
+				throw new InvalidOperationException();
+
+			Session.Transaction.CreateObject(objectInfo);
+		}
+
+		public void AlterObject(IObjectInfo objectInfo) {
+			if (!UserCanAlterObject(objectInfo.ObjectType, objectInfo.FullName))
+				throw new MissingPrivilegesException(Session.User.Name, objectInfo.FullName, Privileges.Alter);
+
+			Session.Transaction.AlterObject(objectInfo);
+		}
+
+		public bool ObjectExists(ObjectName objectName) {
+			return Session.Transaction.ObjectExists(objectName);
+		}
+
+		public bool ObjectExists(DbObjectType objectType, ObjectName objectName) {
+			return Session.Transaction.ObjectExists(objectType, objectName);
+		}
+
+		public IDbObject FindObject(ObjectName objectName) {
+			return Session.Transaction.FindObject(objectName);
+		}
+
+		public void DropObject(DbObjectType objectType, ObjectName objectName) {
+			if (!Session.SystemAccess.UserCanDropObject(objectType, objectName))
+				throw new MissingPrivilegesException(Session.User.Name, objectName, Privileges.Drop);
+
+			Session.Transaction.DropObject(objectType, objectName);
+		}
+
+		public ObjectName ResolveObjectName(string name) {
+			return Session.Transaction.ResolveObjectName(name);
+		}
+
+		public ObjectName ResolveObjectName(DbObjectType objectType, ObjectName objectName) {
+			return Session.Transaction.ResolveObjectName(objectType, objectName);
+		}
+
+		public ObjectName ResolveObjectName(ObjectName objectName) {
+			return Session.Transaction.ResolveObjectName(objectName);
+		}
+
+		#endregion
+
+		#region Schemata
+
+		public void CreateSchema(string name, string type) {
+			if (!UserCanCreateSchema())
+				throw new InvalidOperationException();      // TODO: throw a specialized exception
+
+			CreateObject(new SchemaInfo(name, type));
+		}
+
+		public void DropSchema(string schemaName) {
+			if (!UserCanDropSchema(schemaName))
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(schemaName), Privileges.Drop);
+
+			DropObject(DbObjectType.Schema, new ObjectName(schemaName));
+		}
+
+		public bool SchemaExists(string name) {
+			return ObjectExists(DbObjectType.Schema, new ObjectName(name));
+		}
+
+		public ObjectName ResolveSchemaName(string name) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+
+			return ResolveObjectName(DbObjectType.Schema, new ObjectName(name));
+		}
+
+		#endregion
+
+		#region Tables
+
+
+		public ObjectName ResolveTableName(ObjectName tableName) {
+			return Session.Transaction.ResolveObjectName(DbObjectType.Table, tableName);
+		}
+
+		public TableInfo GetTableInfo(ObjectName tableName) {
+			return Session.Transaction.GetTableInfo(tableName);
+		}
+
+		public string GetTableType(ObjectName tableName) {
+			return Session.Transaction.GetTableType(tableName);
+		}
+
+		public void CreateTable(TableInfo tableInfo) {
+			CreateTable(tableInfo, false);
+		}
+
+		public void CreateTable(TableInfo tableInfo, bool temporary) {
+			Session.Transaction.CreateTable(tableInfo, temporary);
+		}
+
+		#region Constraints
+
+		public void AddPrimaryKey(ObjectName tableName, string column) {
+			AddPrimaryKey(tableName, column, null);
+		}
+
+		public void AddPrimaryKey(ObjectName tableName, string column, string constraintName) {
+			AddPrimaryKey(tableName, new []{column}, constraintName);
+		}
+
+		public void AddPrimaryKey(ObjectName tableName, string[] columns, string constraintName) {
+			AddPrimaryKey(tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public void AddPrimaryKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+			if (!UserCanAlterTable(tableName))
+				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Alter);
+
+			Session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
+		}
+
+		public void AddForeignKey(ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, String constraintName) {
+			AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public void AddForeignKey(ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns,
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
+			Session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		public void AddUniqueKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
+			Session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
+		}
+
+		public void AddCheck(ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
+			string constraintName) {
+			Session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
+		}
+
+		public void DropAllTableConstraints(ObjectName tableName) {
+			Session.Transaction.DropAllTableConstraints(tableName);
+		}
+
+		public int DropTableConstraint(ObjectName tableName, string constraintName) {
+			return Session.Transaction.DropTableConstraint(tableName, constraintName);
+		}
+
+		public bool DropTablePrimaryKey(ObjectName tableName, string constraintName) {
+			return Session.Transaction.DropTablePrimaryKey(tableName, constraintName);
+		}
+
+		public ObjectName[] QueryTablesRelationallyLinkedTo(ObjectName tableName) {
+			return Session.Transaction.QueryTablesRelationallyLinkedTo(tableName);
+		}
+
+		public ConstraintInfo[] QueryTableCheckExpressions(ObjectName tableName) {
+			return Session.Transaction.QueryTableCheckExpressions(tableName);
+		}
+
+		public ConstraintInfo QueryTablePrimaryKey(ObjectName tableName) {
+			return Session.Transaction.QueryTablePrimaryKey(tableName);
+		}
+
+		public ConstraintInfo[] QueryTableUniqueKeys(ObjectName tableName) {
+			return Session.Transaction.QueryTableUniqueKeys(tableName);
+		}
+
+		public ConstraintInfo[] QueryTableImportedForeignKeys(ObjectName refTableName) {
+			return Session.Transaction.QueryTableImportedForeignKeys(refTableName);
+		}
+
+		public ConstraintInfo[] QueryTableForeignKeys(ObjectName tableName) {
+			return Session.Transaction.QueryTableForeignKeys(tableName);
+		}
+
+		public void CheckConstraintViolations(ObjectName tableName) {
+			Session.Transaction.CheckAllConstraintViolations(tableName);
+		}
+
+		public ObjectName ResolveTableName(string name) {
+			var schema = Session.CurrentSchema;
+			if (String.IsNullOrEmpty(schema))
+				throw new InvalidOperationException("Default schema not specified in the query.");
+
+			var objSchemaName = ResolveSchemaName(schema);
+			if (objSchemaName == null)
+				throw new InvalidOperationException(
+					String.Format("The default schema of the session '{0}' is not defined in the database.", schema));
+
+			var objName = ObjectName.Parse(name);
+			if (objName.Parent == null)
+				objName = new ObjectName(objSchemaName, objName.Name);
+
+			return ResolveTableName(objName);
+		}
+
+		public bool TableExists(ObjectName tableName) {
+			return ObjectExists(DbObjectType.Table, tableName);
+		}
+
+		// TODO: Move this to statement
+		public void CreateTable(TableInfo tableInfo, bool onlyIfNotExists, bool temporary) {
+			if (tableInfo == null)
+				throw new ArgumentNullException("tableInfo");
+
+			var tableName = tableInfo.TableName;
+			var creator = Session.User.Name;
+
+			if (!UserCanCreateTable(tableName))
+				throw new MissingPrivilegesException(creator, tableName, Privileges.Create);
+
+			if (TableExists(tableName)) {
+				if (!onlyIfNotExists)
+					throw new InvalidOperationException(
+						String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
+
+				return;
+			}
+
+			CreateTable(tableInfo, temporary);
+			GrantToUserOnTable(tableInfo.TableName, creator, Privileges.TableAll);
+		}
+
+		public void CreateSystemTable(TableInfo tableInfo) {
+			if (tableInfo == null)
+				throw new ArgumentNullException("tableInfo");
+
+			var tableName = tableInfo.TableName;
+
+			if (!UserCanCreateTable(tableName))
+				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
+
+			CreateTable(tableInfo, false);
+		}
+
+		// TODO: Move this to statement
+		public int UpdateTable(IRequest context, ObjectName tableName, IQueryPlanNode queryPlan, IEnumerable<SqlAssignExpression> assignments, int limit) {
+			var columnNames = assignments.Select(x => x.ReferenceExpression)
+				.Cast<SqlReferenceExpression>()
+				.Select(x => x.ReferenceName.Name).ToArray();
+
+			if (!UserCanUpdateTable(tableName, columnNames))
+				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Update);
+
+			if (!UserCanSelectFromPlan(queryPlan))
+				throw new InvalidOperationException();
+
+			var table = context.IsolatedAccess.GetMutableTable(tableName);
+			if (table == null)
+				throw new ObjectNotFoundException(tableName);
+
+			var updateSet = queryPlan.Evaluate(context);
+			return table.Update(context, updateSet, assignments, limit);
+		}
+
+		// TODO: Move this to statement
+
+		public void InsertIntoTable(IRequest context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
+			var columnNames =
+				assignments.Select(x => x.ReferenceExpression)
+					.Cast<SqlReferenceExpression>()
+					.Select(x => x.ReferenceName.Name).ToArray();
+			if (!UserCanInsertIntoTable(tableName, columnNames))
+				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Insert);
+
+			var table = context.IsolatedAccess.GetMutableTable(tableName);
+			if (table == null)
+				throw new ObjectNotFoundException(tableName);
+
+			var row = table.NewRow();
+			foreach (var expression in assignments) {
+				row.EvaluateAssignment(expression, context);
+			}
+
+			table.AddRow(row);
+		}
+
+		// TODO: Move this to statement
+		public void DropTables(IEnumerable<ObjectName> tableNames, bool onlyIfExists) {
+			var tableNameList = tableNames.ToList();
+			foreach (var tableName in tableNameList) {
+				if (!UserCanDropObject(DbObjectType.Table, tableName))
+					throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Drop);
+			}
+
+			// Check there are no referential links to any tables being dropped
+			foreach (var tableName in tableNameList) {
+				var refs = QueryTableImportedForeignKeys(tableName);
+
+				foreach (var reference in refs) {
+					// If the key table isn't being dropped then error
+					if (!tableNameList.Contains(reference.TableName)) {
+						throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
+							String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
+								reference.ConstraintName, tableName, reference.TableName));
+					}
+				}
+			}
+
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!onlyIfExists) {
+				// For each table to drop.
+				foreach (var tableName in tableNameList) {
+					// If table doesn't exist, throw an error
+					if (!TableExists(tableName)) {
+						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
+							tableName));
+					}
+				}
+			}
+
+			foreach (var tname in tableNameList) {
+				// Does the table already exist?
+				if (TableExists(tname)) {
+					// Drop table in the transaction
+					DropObject(DbObjectType.Table, tname);
+
+					// Revoke all the grants on the table
+					RevokeAllGrantsOnTable(tname);
+
+					// Drop all constraints from the schema
+					DropAllTableConstraints(tname);
+				}
+			}
+		}
+
+		public void AlterTable(TableInfo tableInfo) {
+			AlterObject(tableInfo);
+		}
+
+		#endregion
+
+		#endregion
+
+		#region Sequences
+
+		public ISequence GetSequence(ObjectName sequenceName) {
+			return GetObject(DbObjectType.Sequence, sequenceName, AccessType.Read) as ISequence;
+		}
+
+		/// <summary>
+		/// Increments the sequence and returns the computed value.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="sequenceName">The name of the sequence to increment and
+		/// whose incremented value must be returned.</param>
+		/// <returns>
+		/// Returns a <see cref="SqlNumber"/> that represents the result of
+		/// the increment operation over the sequence identified by the given name.
+		/// </returns>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		public SqlNumber GetNextValue(ObjectName sequenceName) {
+			var sequence = GetSequence(sequenceName);
+			if (sequence == null)
+				throw new InvalidOperationException(String.Format("Sequence {0} was not found.", sequenceName));
+
+			return sequence.NextValue();
+		}
+
+		/// <summary>
+		/// Gets the current value of the sequence.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="sequenceName">The name of the sequence whose current value
+		/// must be obtained.</param>
+		/// <returns>
+		/// Returns a <see cref="SqlNumber"/> that represents the current value
+		/// of the sequence identified by the given name.
+		/// </returns>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		public SqlNumber GetCurrentValue(ObjectName sequenceName) {
+			var sequence = GetSequence(sequenceName);
+			if (sequence == null)
+				throw new InvalidOperationException(String.Format("Sequence {0} was not found.", sequenceName));
+
+			return sequence.GetCurrentValue();
+		}
+
+		/// <summary>
+		/// Sets the current value of the sequence, overriding the increment
+		/// mechanism in place.
+		/// </summary>
+		/// <param name="sequenceName">The name of the sequence whose current state
+		/// to be set.</param>
+		/// <param name="value">The numeric value to set.</param>
+		/// <exception cref="ObjectNotFoundException">
+		/// If none sequence was found for the given <paramref name="sequenceName"/>.
+		/// </exception>
+		public void SetCurrentValue(ObjectName sequenceName, SqlNumber value) {
+			var sequence = GetSequence(sequenceName);
+			if (sequence == null)
+				throw new InvalidOperationException(String.Format("Sequence {0} was not found.", sequenceName));
+
+			sequence.SetValue(value);
+		}
+
+		#endregion
+
+		#region Views
+
+		public bool ViewExists(ObjectName viewName) {
+			return ObjectExists(DbObjectType.View, viewName);
+		}
+
+		public void DefineView(ViewInfo viewInfo, bool replaceIfExists) {
+			var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
+			foreach (var tableName in tablesInPlan) {
+				if (!UserCanSelectFromTable(tableName))
+					throw new InvalidAccessException(Session.User.Name, tableName);
+			}
+
+			if (ViewExists(viewInfo.ViewName)) {
+				if (!replaceIfExists)
+					throw new InvalidOperationException(
+						String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
+
+				DropObject(DbObjectType.View, viewInfo.ViewName);
+			}
+
+			CreateObject(viewInfo);
+
+			// The initial grants for a view is to give the user who created it
+			// full access.
+			GrantToUserOnTable(viewInfo.ViewName, Session.User.Name, Privileges.TableAll);
+		}
+
+		public void DefineView(ObjectName viewName, IQueryPlanNode queryPlan, bool replaceIfExists, IQuery query) {
+			// We have to execute the plan to get the TableInfo that represents the
+			// result of the view execution.
+			var table = queryPlan.Evaluate(query);
+			var tableInfo = table.TableInfo.Alias(viewName);
+
+			var viewInfo = new ViewInfo(tableInfo, null, queryPlan);
+			DefineView(viewInfo, replaceIfExists);
+		}
+
+		public void DropViews(IEnumerable<ObjectName> viewNames, bool onlyIfExists) {
+			var viewNameList = viewNames.ToList();
+			foreach (var tableName in viewNameList) {
+				if (!UserCanDropObject(DbObjectType.View, tableName))
+					throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Drop);
+			}
+
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!onlyIfExists) {
+				// For each table to drop.
+				foreach (var viewName in viewNameList) {
+					// If view doesn't exist, throw an error
+					if (!ViewExists(viewName)) {
+						throw new ObjectNotFoundException(viewName, String.Format("The view '{0}' does not exist and cannot be dropped.", viewName));
+					}
+				}
+			}
+
+			foreach (var viewName in viewNameList) {
+				// Does the table already exist?
+				if (ViewExists(viewName)) {
+					// Drop table in the transaction
+					DropObject(DbObjectType.Table, viewName);
+
+					// Revoke all the grants on the table
+					RevokeAllGrantsOnView(viewName);
+				}
+			}
+		}
+
+		public View GetView(ObjectName viewName) {
+			return GetObject(DbObjectType.View, viewName, AccessType.Read) as View;
+		}
+
+		public IQueryPlanNode GetViewQueryPlan(ObjectName viewName) {
+			var view = GetView(viewName);
+			return view == null ? null : view.QueryPlan;
+		}
+
+		#endregion
+
+		#region Triggers
+
+		public void FireTriggers(IRequest context, TableEvent tableEvent) {
+			var manager = Session.Transaction.GetTriggerManager();
+			if (manager == null)
+				return;
+
+			manager.FireTriggers(context, tableEvent);
+		}
+
+		public void CreateTrigger(TriggerInfo triggerInfo) {
+			CreateObject(triggerInfo);
+		}
+
+		public void CreateCallbackTrigger(ObjectName triggerName, TriggerEventType eventType) {
+			// TODO: Create it in the session context
+			CreateTrigger(new TriggerInfo(triggerName, eventType));
+		}
+
+		public bool TriggerExists(ObjectName triggerName) {
+			// TODO: verify the callback triggers
+			return ObjectExists(DbObjectType.Trigger, triggerName);
+		}
+
+		#endregion
 
 		#region Security
 
@@ -51,6 +582,170 @@ namespace Deveel.Data {
 		}
 
 		#endregion
+
+		#region User Management
+
+		public  User GetUser(string userName) {
+			if (Session.User.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))
+				return new User(userName);
+
+			if (!UserCanAccessUsers())
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Select,
+					String.Format("The user '{0}' has not enough rights to access other users information.", Session.User.Name));
+
+			if (!UserManager.UserExists(userName))
+				return null;
+
+			return new User(userName);
+		}
+
+		public void SetUserStatus(string username, UserStatus status) {
+			if (!UserCanManageUsers())
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(username), Privileges.Alter,
+					String.Format("User '{0}' cannot change the status of user '{1}'", Session.User.Name, username));
+
+			UserManager.SetUserStatus(username, status);
+		}
+
+		public UserStatus GetUserStatus(string userName) {
+			if (!Session.User.Name.Equals(userName) &&
+				!UserCanAccessUsers())
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Select,
+					String.Format("The user '{0}' has not enough rights to access other users information.", Session.User.Name));
+
+			return UserManager.GetUserStatus(userName);
+		}
+
+		public void SetUserGroups(string userName, string[] groups) {
+			if (!UserCanManageUsers())
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Alter,
+					String.Format("The user '{0}' has not enough rights to modify other users information.", Session.User.Name));
+
+			// TODO: Check if the user exists?
+
+			var userGroups = UserManager.GetUserGroups(userName);
+			foreach (var userGroup in userGroups) {
+				UserManager.RemoveUserFromGroup(userName, userGroup);
+			}
+
+			foreach (var userGroup in groups) {
+				UserManager.AddUserToGroup(userName, userGroup, false);
+			}
+		}
+
+		public bool UserExists(string userName) {
+			return UserManager.UserExists(userName);
+		}
+
+		public void CreatePublicUser() {
+			if (!Session.User.IsSystem)
+				throw new InvalidOperationException("The @PUBLIC user can be created only by the SYSTEM");
+
+			var userName = User.PublicName;
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(userName, userId);
+
+			UserManager.CreateUser(userInfo, "####");
+		}
+
+		public User CreateUser(string userName, string password) {
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
+			if (String.IsNullOrEmpty(password))
+				throw new ArgumentNullException("password");
+
+			if (!UserCanCreateUsers())
+				throw new MissingPrivilegesException(userName, new ObjectName(userName), Privileges.Create,
+					String.Format("User '{0}' cannot create users.", Session.User.Name));
+
+			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
+				throw new ArgumentException(
+					String.Format("User name '{0}' is reserved and cannot be registered.", User.PublicName), "userName");
+
+			if (userName.Length <= 1)
+				throw new ArgumentException("User name must be at least one character.");
+			if (password.Length <= 1)
+				throw new ArgumentException("The password must be at least one character.");
+
+			var c = userName[0];
+			if (c == '#' || c == '@' || c == '$' || c == '&')
+				throw new ArgumentException(
+					String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
+
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(userName, userId);
+
+			UserManager.CreateUser(userInfo, password);
+
+			return new User(userName);
+		}
+
+		public void AlterUserPassword(string username, string password) {
+			if (!UserCanAlterUser(username))
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(username), Privileges.Alter);
+
+			var userId = UserIdentification.PlainText;
+			var userInfo = new UserInfo(username, userId);
+
+			UserManager.AlterUser(userInfo, password);
+		}
+
+		public bool DeleteUser(string userName) {
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
+
+			if (!UserCanDropUser(userName))
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Drop);
+
+			return UserManager.DropUser(userName);
+		}
+
+		/// <summary>
+		/// Authenticates the specified user using the provided credentials.
+		/// </summary>
+		/// <param name="queryContext">The query query.</param>
+		/// <param name="username">The name of the user to authenticate.</param>
+		/// <param name="password">The password used to authenticate the user.</param>
+		/// <returns></returns>
+		/// <exception cref="System.ArgumentNullException">
+		/// If either <paramref name="username"/> or <paramref name="password"/> are
+		/// <c>null</c> or empty.
+		/// </exception>
+		/// <exception cref="SecurityException">
+		/// If the authentication was not successful for the credentials provided.
+		/// </exception>
+		/// <exception cref="System.NotImplementedException">The external authentication mechanism is not implemented yet</exception>
+		public User Authenticate(string username, string password) {
+			try {
+				if (String.IsNullOrEmpty(username))
+					throw new ArgumentNullException("username");
+				if (String.IsNullOrEmpty(password))
+					throw new ArgumentNullException("password");
+
+				var userInfo = UserManager.GetUser(username);
+
+				if (userInfo == null)
+					return null;
+
+				var userId = userInfo.Identification;
+
+				if (userId.Method != "plain")
+					throw new NotImplementedException();
+
+				if (!UserManager.CheckIdentifier(username, password))
+					return null;
+
+				// Successfully authenticated...
+				return new User(username);
+			} catch (SecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new SecurityException("Could not authenticate user.", ex);
+			}
+		}
+
+		#endregion
+
 
 		#region Privilege Query
 
@@ -203,6 +898,13 @@ namespace Deveel.Data {
 				UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
 		}
 
+		public bool UserCanAccessUsers() {
+			if (Session.User.IsSystem)
+				return true;
+
+			return UserCanAccessUsers(Session.User.Name);
+		}
+
 		public bool UserCanAccessUsers(string userName) {
 			return UserHasSecureAccess(userName) ||
 			       UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
@@ -225,6 +927,10 @@ namespace Deveel.Data {
 				return true;
 
 			return UserHasSecureAccess(userName);
+		}
+
+		public bool UserCanCreateSchema() {
+			return UserCanCreateSchema(Session.User.Name);
 		}
 
 		public bool UserCanCreateSchema(string userName) {
@@ -261,11 +967,19 @@ namespace Deveel.Data {
 			return UserHasSecureAccess(userName);
 		}
 
+		public bool UserCanDropSchema(string schemaName) {
+			return UserCanDropSchema(Session.User.Name, schemaName);
+		}
+
 		public bool UserCanDropSchema(string userName, string schemaName) {
 			if (UserCanDropObject(userName, DbObjectType.Schema, new ObjectName(schemaName)))
 				return true;
 
 			return UserHasSecureAccess(userName);
+		}
+
+		public bool UserCanAlterTable(ObjectName tableName) {
+			return UserCanAlterTable(Session.User.Name, tableName);
 		}
 
 		public bool UserCanAlterTable(string userName, ObjectName tableName) {
@@ -284,9 +998,17 @@ namespace Deveel.Data {
 			return UserHasTablePrivilege(userName, tableName, Privileges.References);
 		}
 
+		public bool UserCanSelectFromPlan(IQueryPlanNode queryPlan) {
+			return UserCanSelectFromPlan(Session.User.Name, queryPlan);
+		}
+
 		public bool UserCanSelectFromPlan(string userName, IQueryPlanNode queryPlan) {
 			var selectedTables = queryPlan.DiscoverTableNames();
 			return selectedTables.All(tableName => UserCanSelectFromTable(userName, tableName));
+		}
+
+		public bool UserCanSelectFromTable(ObjectName tableName, params string[] columnNames) {
+			return UserCanSelectFromTable(Session.User.Name, tableName, columnNames);
 		}
 
 		public bool UserCanSelectFromTable(string userName, ObjectName tableName, params string[] columnNames) {
@@ -297,12 +1019,20 @@ namespace Deveel.Data {
 			return UserHasTablePrivilege(userName, tableName, Privileges.Select);
 		}
 
+		public bool UserCanUpdateTable(ObjectName tableName, params string[] columnNames) {
+			return UserCanUpdateTable(Session.User.Name, tableName, columnNames);
+		}
+
 		public bool UserCanUpdateTable(string userName, ObjectName tableName, params string[] columnNames) {
 			// TODO: Column-level select will be implemented in the future
 			if (columnNames != null && columnNames.Length > 0)
 				throw new NotSupportedException();
 
 			return UserHasTablePrivilege(userName, tableName, Privileges.Update);
+		}
+
+		public bool UserCanInsertIntoTable(ObjectName tableName, params string[] columnNames) {
+			return UserCanInsertIntoTable(Session.User.Name, tableName, columnNames);
 		}
 
 		public bool UserCanInsertIntoTable(string userName, ObjectName tableName, params string[] columnNames) {
@@ -313,13 +1043,13 @@ namespace Deveel.Data {
 			return UserHasTablePrivilege(userName, tableName, Privileges.Insert);
 		}
 
-		public bool UserCanExecute(RoutineType routineType, Invoke invoke, IQuery query) {
-			return UserCanExecute(Session.User.Name, routineType, invoke, query);
+		public bool UserCanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+			return UserCanExecute(Session.User.Name, routineType, invoke, request);
 		}
 
-		public bool UserCanExecute(string userName, RoutineType routineType, Invoke invoke, IQuery query) {
+		public bool UserCanExecute(string userName, RoutineType routineType, Invoke invoke, IRequest request) {
 			if (routineType == RoutineType.Function &&
-				IsSystemFunction(invoke, query)) {
+				IsSystemFunction(invoke, request)) {
 				return true;
 			}
 
@@ -329,20 +1059,27 @@ namespace Deveel.Data {
 			return UserHasPrivilege(userName, DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
 		}
 
-		public bool UserCanExecuteFunction(Invoke invoke, IQuery query) {
-			return UserCanExecuteFunction(Session.User.Name, invoke, query);
+		public bool UserCanExecuteFunction(Invoke invoke, IRequest request) {
+			return UserCanExecuteFunction(Session.User.Name, invoke, request);
 		}
 
-		public bool UserCanExecuteFunction(string userName, Invoke invoke, IQuery query) {
-			return UserCanExecute(userName, RoutineType.Function, invoke, query);
+		public bool UserCanExecuteFunction(string userName, Invoke invoke, IRequest request) {
+			return UserCanExecute(userName, RoutineType.Function, invoke, request);
 		}
 
-		public bool UserCanExecuteProcedure(Invoke invoke, IQuery query) {
-			return UserCanExecuteProcedure(Session.User.Name, invoke, query);
+		public bool UserCanExecuteProcedure(Invoke invoke, IRequest request) {
+			return UserCanExecuteProcedure(Session.User.Name, invoke, request);
 		}
 
-		public bool UserCanExecuteProcedure(string userName, Invoke invoke, IQuery query) {
-			return UserCanExecute(userName, RoutineType.Procedure, invoke, query);
+		public bool UserCanExecuteProcedure(string userName, Invoke invoke, IRequest request) {
+			return UserCanExecute(userName, RoutineType.Procedure, invoke, request);
+		}
+
+		public bool UserCanCreateObject(DbObjectType objectType, ObjectName objectName) {
+			if (Session.User.IsSystem)
+				return true;
+
+			return UserCanCreateObject(Session.User.Name, objectType, objectName);
 		}
 
 		public bool UserCanCreateObject(string userName, DbObjectType objectType, ObjectName objectName) {
@@ -397,12 +1134,97 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region User Grants Management
+
+		public void AddUserToGroup(string username, string group, bool asAdmin = false) {
+			if (String.IsNullOrEmpty(@group))
+				throw new ArgumentNullException("group");
+			if (String.IsNullOrEmpty(username))
+				throw new ArgumentNullException("username");
+
+			if (!UserCanAddToGroup(group))
+				throw new SecurityException();
+
+			UserManager.AddUserToGroup(username, group, asAdmin);
+		}
+
+		public void GrantToUserOn(ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+			var obj = FindObject(objectName);
+			if (obj == null)
+				throw new ObjectNotFoundException(objectName);
+
+			GrantToUserOn(obj.ObjectType, obj.FullName, grantee, privileges, withOption);
+		}
+
+		public void GrantToUserOn(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+			if (IsSystemUser(grantee))       // The @SYSTEM user does not need any other
+				return;
+
+			if (!ObjectExists(objectType, objectName))
+				throw new ObjectNotFoundException(objectName);
+
+			var granter = Session.User.Name;
+
+			if (!UserHasGrantOption(objectType, objectName, privileges))
+				throw new MissingPrivilegesException(granter, objectName, privileges);
+
+			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
+			PrivilegeManager.GrantToUser(grantee, grant);
+		}
+
+		public void GrantToUserOnSchema(string schemaName, string grantee, Privileges privileges, bool withOption = false) {
+			GrantToUserOn(DbObjectType.Schema, new ObjectName(schemaName), grantee, privileges, withOption);
+		}
+
+		public void GrantToGroupOn(DbObjectType objectType, ObjectName objectName, string groupName, Privileges privileges, bool withOption = false) {
+			if (SystemGroups.IsSystemGroup(groupName))
+				throw new InvalidOperationException("Cannot grant to a system group.");
+
+			var granter = Session.User.Name;
+
+			if (!UserCanManageGroups())
+				throw new MissingPrivilegesException(granter, new ObjectName(groupName));
+
+			if (!ObjectExists(objectType, objectName))
+				throw new ObjectNotFoundException(objectName);
+
+			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
+			PrivilegeManager.GrantToGroup(groupName, grant);
+		}
+
+		public void GrantTo(string groupOrUserName, DbObjectType objectType, ObjectName objectName, Privileges privileges, bool withOption = false) {
+			if (UserManager.UserGroupExists(groupOrUserName)) {
+				if (withOption)
+					throw new SecurityException("User groups cannot be granted with grant option.");
+
+				GrantToGroupOn(objectType, objectName, groupOrUserName, privileges);
+			} else if (UserManager.UserExists(groupOrUserName)) {
+				GrantToUserOn(objectType, objectName, groupOrUserName, privileges, withOption);
+			} else {
+				throw new SecurityException(String.Format("User or group '{0}' was not found.", groupOrUserName));
+			}
+		}
+
+		public void RevokeAllGrantsOnTable(ObjectName objectName) {
+			PrivilegeManager.RevokeAllGrantsOn(DbObjectType.Table, objectName);
+		}
+
+		public void RevokeAllGrantsOnView(ObjectName objectName) {
+			PrivilegeManager.RevokeAllGrantsOn(DbObjectType.View, objectName);
+		}
+
+		public void GrantToUserOnTable(ObjectName tableName, string grantee, Privileges privileges) {
+			GrantToUserOn(DbObjectType.Table, tableName, grantee, privileges);
+		}
+
+		#endregion
+
 		#endregion
 
 		#region Routine Management
 
-		public bool IsSystemFunction(Invoke invoke, IQuery query) {
-			var info = ResolveFunctionInfo(invoke, query);
+		public bool IsSystemFunction(Invoke invoke, IRequest request) {
+			var info = ResolveFunctionInfo(invoke, request);
 			if (info == null)
 				return false;
 
@@ -410,25 +1232,25 @@ namespace Deveel.Data {
 				   info.FunctionType != FunctionType.UserDefined;
 		}
 
-		public bool IsAggregateFunction(Invoke invoke, IQuery query) {
-			var function = ResolveFunction(invoke, query);
+		public bool IsAggregateFunction(Invoke invoke, IRequest request) {
+			var function = ResolveFunction(invoke, request);
 			return function != null && function.FunctionType == FunctionType.Aggregate;
 		}
 
-		public IRoutine ResolveRoutine(Invoke invoke, IQuery query) {
-			var routine = ResolveSystemRoutine(invoke, query);
+		public IRoutine ResolveRoutine(Invoke invoke, IRequest request) {
+			var routine = ResolveSystemRoutine(invoke, request);
 			if (routine == null)
-				routine = ResolveUserRoutine(invoke, query);
+				routine = ResolveUserRoutine(invoke, request);
 
 			return routine;
 		}
 
-		public IRoutine ResolveSystemRoutine(Invoke invoke, IQuery query) {
-			// return query.SystemContext().ResolveRoutine(invoke, query);
+		public IRoutine ResolveSystemRoutine(Invoke invoke, IRequest request) {
+			// return request.SystemContext().ResolveRoutine(invoke, request);
 
 			var resolvers = Session.Context.ResolveAllServices<IRoutineResolver>();
 			foreach (var resolver in resolvers) {
-				var routine = resolver.ResolveRoutine(invoke, query);
+				var routine = resolver.ResolveRoutine(invoke, request);
 				if (routine != null)
 					return routine;
 			}
@@ -436,30 +1258,30 @@ namespace Deveel.Data {
 			return null;
 		}
 
-		public IRoutine ResolveUserRoutine(Invoke invoke, IQuery query) {
+		public IRoutine ResolveUserRoutine(Invoke invoke, IRequest request) {
 			var routine = Session.ResolveRoutine(invoke);
 			if (routine != null &&
-				!UserCanExecute(routine.Type, invoke, query))
+				!UserCanExecute(routine.Type, invoke, request))
 				throw new InvalidOperationException();
 
 			return routine;
 		}
 
-		public IFunction ResolveFunction(Invoke invoke, IQuery query) {
-			return ResolveRoutine(invoke, query) as IFunction;
+		public IFunction ResolveFunction(Invoke invoke, IRequest request) {
+			return ResolveRoutine(invoke, request) as IFunction;
 		}
 
-		public IFunction ResolveFunction(IQuery query, ObjectName functionName, params SqlExpression[] args) {
+		public IFunction ResolveFunction(IRequest request, ObjectName functionName, params SqlExpression[] args) {
 			var invoke = new Invoke(functionName, args);
-			return ResolveFunction(invoke, query);
+			return ResolveFunction(invoke, request);
 		}
 
-		public FunctionInfo ResolveFunctionInfo(Invoke invoke, IQuery query) {
-			return ResolveRoutineInfo(invoke, query) as FunctionInfo;
+		public FunctionInfo ResolveFunctionInfo(Invoke invoke, IRequest request) {
+			return ResolveRoutineInfo(invoke, request) as FunctionInfo;
 		}
 
-		public RoutineInfo ResolveRoutineInfo(Invoke invoke, IQuery query) {
-			var routine = ResolveRoutine(invoke, query);
+		public RoutineInfo ResolveRoutineInfo(Invoke invoke, IRequest request) {
+			var routine = ResolveRoutine(invoke, request);
 			if (routine == null)
 				return null;
 

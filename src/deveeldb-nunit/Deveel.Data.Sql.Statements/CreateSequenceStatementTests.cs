@@ -14,7 +14,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = Query.IsolatedAccess.ObjectExists(DbObjectType.Sequence, seqName);
 
 			Assert.IsTrue(exists);
 		}
@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = Query.IsolatedAccess.ObjectExists(DbObjectType.Sequence, seqName);
 
 			Assert.IsTrue(exists);
 		}
