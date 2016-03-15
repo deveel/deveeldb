@@ -38,7 +38,7 @@ namespace Deveel.Data {
 
 			StartedOn = DateTimeOffset.UtcNow;
 
-			IsolatedAccess = new IsolatedAccess(this);
+			Access = new IsolatedAccess(this);
 
 			metadata = GetMetadata();
 		}
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 
 		public SqlQuery SourceQuery { get; private set; }
 		
-		public IsolatedAccess IsolatedAccess { get; private set; }
+		public IsolatedAccess Access { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);

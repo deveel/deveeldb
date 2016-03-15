@@ -32,11 +32,11 @@ namespace Deveel.Data.Security {
 		public void Register(IScope systemScope) {
 			systemScope.Bind<IUserManager>()
 				.To<UserManager>()
-				.InQueryScope();
+				.InSessionScope();
 
 			systemScope.Bind<IPrivilegeManager>()
 				.To<PrivilegeManager>()
-				.InQueryScope();
+				.InSessionScope();
 		}
 	}
 }

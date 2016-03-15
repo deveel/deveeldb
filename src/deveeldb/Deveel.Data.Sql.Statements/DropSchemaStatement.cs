@@ -46,15 +46,15 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Query.Session.SystemAccess.SchemaExists(SchemaName))
+			if (!context.Query.Session.Access.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' does not exist.", SchemaName));
 
-			if (!context.Query.Session.SystemAccess.UserCanDropSchema(SchemaName))
+			if (!context.Query.Session.Access.UserCanDropSchema(SchemaName))
 				throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Drop);
 
 			// TODO: Check if the schema is empty before deleting it
 
-			context.Query.Session.SystemAccess.DropSchema(SchemaName);
+			context.Query.Session.Access.DropSchema(SchemaName);
 
 			// TODO: Remove all the grants on this schema...
 		}

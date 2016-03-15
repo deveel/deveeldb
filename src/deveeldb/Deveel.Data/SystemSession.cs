@@ -38,9 +38,11 @@ namespace Deveel.Data {
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
+			Context.RegisterInstance(this);
+
 			StartedOn = DateTimeOffset.UtcNow;
 
-			SystemAccess = new SystemAccess(this);
+			Access = new SystemAccess(this);
 		}
 
 		public void Dispose() {
@@ -51,7 +53,7 @@ namespace Deveel.Data {
 
 		public DateTimeOffset StartedOn { get; private set; }
 
-		public SystemAccess SystemAccess { get; private set; }
+		public SystemAccess Access { get; private set; }
 
 		public DateTimeOffset? LastCommandTime {
 			get { return null; }
@@ -91,7 +93,7 @@ namespace Deveel.Data {
 			throw new NotSupportedException();
 		}
 
-		public void Access(IEnumerable<IDbObject> objects, AccessType accessType) {
+		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
 			// A system session bypasses any lock
 		}
 

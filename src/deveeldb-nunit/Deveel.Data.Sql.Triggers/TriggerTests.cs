@@ -30,17 +30,17 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("date", PrimitiveTypes.DateTime());
-			query.Session.SystemAccess.CreateTable(tableInfo);
+			query.Session.Access.CreateTable(tableInfo);
 			return query;
 		}
 
 		[Test]
 		public void CreateCallbackTrigger() {
 			var triggerName = ObjectName.Parse("APP.test_trigger");
-			Assert.DoesNotThrow(() => Query.Session.SystemAccess.CreateCallbackTrigger(triggerName, TriggerEventType.BeforeInsert));
+			Assert.DoesNotThrow(() => Query.Session.Access.CreateCallbackTrigger(triggerName, TriggerEventType.BeforeInsert));
 
 			bool exists = false;
-			Assert.DoesNotThrow(() => exists = Query.Session.SystemAccess.TriggerExists(triggerName));
+			Assert.DoesNotThrow(() => exists = Query.Session.Access.TriggerExists(triggerName));
 			Assert.IsTrue(exists);
 		}
 

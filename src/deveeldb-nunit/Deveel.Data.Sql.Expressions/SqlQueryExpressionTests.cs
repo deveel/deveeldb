@@ -41,12 +41,12 @@ namespace Deveel.Data.Sql.Expressions {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			Query.Session.SystemAccess.CreateTable(tableInfo, false);
-			Query.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			Query.Session.Access.CreateTable(tableInfo, false);
+			Query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private void AddTestData() {
-			var table = Query.IsolatedAccess.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = Query.Access.GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 			row.SetValue("first_name", Field.String("John"));
 			row.SetValue("last_name", Field.String("Doe"));

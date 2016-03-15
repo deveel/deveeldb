@@ -56,7 +56,7 @@ namespace Deveel.Data.Routines {
 			var request = new Invoke(routine.FullName, args);
 
 			if (query != null &&
-			    !query.Session.SystemAccess.UserCanExecuteFunction(request, query))
+			    !query.Session.Access.UserCanExecuteFunction(request, query))
 				throw new InvalidOperationException();
 
 			var executeContext = new InvokeContext(request, routine, resolver, group, query);

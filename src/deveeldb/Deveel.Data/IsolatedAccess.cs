@@ -5,6 +5,8 @@ using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
@@ -26,7 +28,7 @@ namespace Deveel.Data {
 		}
 
 		public SystemAccess SystemAccess {
-			get { return Session.SystemAccess; }
+			get { return Session.Access; }
 		}
 
 		public bool ObjectExists(ObjectName objectName) {
@@ -35,7 +37,7 @@ namespace Deveel.Data {
 			if (Request.Context.VariableExists(objectName.Name))
 				return true;
 
-			return Session.ObjectExists(objectName);
+			return Session.Access.ObjectExists(objectName);
 		}
 
 		public bool ObjectExists(DbObjectType objectType, ObjectName objectName) {
@@ -46,7 +48,7 @@ namespace Deveel.Data {
 				Request.Context.VariableExists(objectName.Name))
 				return true;
 
-			return Session.ObjectExists(objectType, objectName);
+			return Session.Access.ObjectExists(objectType, objectName);
 		}
 
 		public IDbObject GetObject(DbObjectType objType, ObjectName objName) {
@@ -63,10 +65,10 @@ namespace Deveel.Data {
 				return GetTable(objName);
 
 			// TODO: throw a specialized exception
-			if (!Session.SystemAccess.UserCanAccessObject(objType, objName))
+			if (!Session.Access.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
 
-			return Session.GetObject(objType, objName, accessType);
+			return Session.Access.GetObject(objType, objName, accessType);
 		}
 
 		public void CreateObject(IObjectInfo objectInfo) {
@@ -77,7 +79,7 @@ namespace Deveel.Data {
 				var varInfo = (VariableInfo) objectInfo;
 				Request.Context.DeclareVariable(varInfo);
 			} else {
-				Session.SystemAccess.CreateObject(objectInfo);
+				Session.Access.CreateObject(objectInfo);
 			}
 		}
 
@@ -87,7 +89,7 @@ namespace Deveel.Data {
 			if (objectType == DbObjectType.Variable)
 				return Request.Context.DropVariable(objectName.Name);
 
-			Session.SystemAccess.DropObject(objectType, objectName);
+			Session.Access.DropObject(objectType, objectName);
 			return true;
 		}
 
@@ -100,7 +102,7 @@ namespace Deveel.Data {
 				throw new NotSupportedException();
 			}
 
-			Session.SystemAccess.AlterObject(objectInfo);
+			Session.Access.AlterObject(objectInfo);
 		}
 
 		public ObjectName ResolveObjectName(string name) {
@@ -109,7 +111,7 @@ namespace Deveel.Data {
 			if (Request.Context.VariableExists(name))
 				return new ObjectName(name);
 
-			return Session.SystemAccess.ResolveObjectName(name);
+			return Session.Access.ResolveObjectName(name);
 		}
 
 		public ObjectName ResolveObjectName(DbObjectType objectType, ObjectName objectName) {
@@ -120,7 +122,7 @@ namespace Deveel.Data {
 				Request.Context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 
-			return Session.SystemAccess.ResolveObjectName(objectType, objectName);
+			return Session.Access.ResolveObjectName(objectType, objectName);
 		}
 
 		public IDbObject FindObject(ObjectName objectName) {
@@ -129,7 +131,7 @@ namespace Deveel.Data {
 			if (Request.Context.VariableExists(objectName.Name))
 				return Request.Context.FindVariable(objectName.Name);
 
-			return Session.SystemAccess.FindObject(objectName);
+			return Session.Access.FindObject(objectName);
 		}
 
 		private ICache TableCache {
@@ -139,7 +141,7 @@ namespace Deveel.Data {
 		public ITable GetTable(ObjectName tableName) {
 			var table = GetCachedTable(tableName.FullName) as ITable;
 			if (table == null) {
-				table = Session.GetTable(tableName);
+				table = Session.Access.GetTable(tableName);
 				if (table != null) {
 					table = new UserContextTable(Request, table);
 					CacheTable(tableName.FullName, table);
@@ -181,16 +183,87 @@ namespace Deveel.Data {
 			return obj as ITable;
 		}
 
+		#region Cursors
+
+		public void DeclareCursor(CursorInfo cursorInfo) {
+			var queryPlan = Request.Context.QueryPlanner().PlanQuery(new QueryInfo(Request, cursorInfo.QueryExpression));
+			var selectedTables = queryPlan.DiscoverTableNames();
+			foreach (var tableName in selectedTables) {
+				if (!SystemAccess.UserCanSelectFromTable(tableName))
+					throw new MissingPrivilegesException(Request.Query.UserName(), tableName, Privileges.Select);
+			}
+
+			Request.Context.DeclareCursor(cursorInfo);
+		}
+
+		public void DeclareCursor(string cursorName, SqlQueryExpression query) {
+			DeclareCursor(cursorName, (CursorFlags)0, query);
+		}
+
+		public void DeclareCursor(string cursorName, CursorFlags flags, SqlQueryExpression query) {
+			DeclareCursor(new CursorInfo(cursorName, flags, query));
+		}
+
+		public void DeclareInsensitiveCursor(string cursorName, SqlQueryExpression query) {
+			DeclareInsensitiveCursor(cursorName, query, false);
+		}
+
+		public void DeclareInsensitiveCursor(string cursorName, SqlQueryExpression query, bool withScroll) {
+			var flags = CursorFlags.Insensitive;
+			if (withScroll)
+				flags |= CursorFlags.Scroll;
+
+			DeclareCursor(cursorName, flags, query);
+		}
+
+		public bool CursorExists(string cursorName) {
+			return Request.Context.CursorExists(cursorName);
+		}
+
+		public bool DropCursor(string cursorName) {
+			return Request.Context.DropCursor(cursorName);
+		}
+
+		public Cursor FindCursor(string cursorName) {
+			return Request.Context.FindCursor(cursorName);
+		}
+
+		public bool OpenCursor(string cursorName, params SqlExpression[] args) {
+			return Request.Context.OpenCursor(Request, cursorName, args);
+		}
+
+		public bool CloseCursor(string cursorName) {
+			return Request.Context.CloseCursor(Request, cursorName);
+		}
+
+
+		#endregion
+
 		public bool IsAggregateFunction(Invoke invoke) {
-			return Session.SystemAccess.IsAggregateFunction(invoke, Request);
+			return Session.Access.IsAggregateFunction(invoke, Request);
 		}
 
 		public IRoutine ResolveRoutine(Invoke invoke) {
-			return Session.SystemAccess.ResolveRoutine(invoke, Request);
+			return Session.Access.ResolveRoutine(invoke, Request);
 		}
 
+		public Field InvokeSystemFunction(string functionName, params SqlExpression[] args) {
+			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
+			var invoke = new Invoke(resolvedName, args);
+			return Session.Access.InvokeFunction(Request, invoke);
+		}
+
+		public Field InvokeFunction(Invoke invoke) {
+			return Session.Access.InvokeFunction(Request, invoke);
+		}
+
+		public Field InvokeFunction(ObjectName functionName, params SqlExpression[] args) {
+			return SystemAccess.InvokeFunction(Request, new Invoke(functionName, args));
+		}
+
+
 		public void FireTriggers(TableEvent tableEvent) {
-			Session.SystemAccess.FireTriggers(Request, tableEvent);
+			Session.Access.FireTriggers(Request, tableEvent);
 		}
 
 

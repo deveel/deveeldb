@@ -21,18 +21,18 @@ namespace Deveel.Data.Sql.Statements {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			query.Session.SystemAccess.CreateTable(tableInfo, false, false);
+			query.Session.Access.CreateTable(tableInfo, false, false);
 		}
 
 		private void DeclareCursors(IQuery query) {
 			var queryExp1 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
-			query.DeclareCursor("c1", queryExp1);
+			query.Access.DeclareCursor("c1", queryExp1);
 
 
 			var queryExp2 = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM APP.test_table WHERE a > :a");
 			var cursorInfo = new CursorInfo("c2", queryExp2);
 			cursorInfo.Parameters.Add(new CursorParameter("a", PrimitiveTypes.Integer()));
-			query.DeclareCursor(cursorInfo);
+			query.Access.DeclareCursor(cursorInfo);
 		}
 
 		[Test]
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var cursor = Query.FindCursor("c1");
+			var cursor = Query.Access.FindCursor("c1");
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual("c1", cursor.CursorInfo.CursorName);
 			Assert.AreEqual(CursorStatus.Open, cursor.Status);

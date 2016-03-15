@@ -101,14 +101,14 @@ namespace Deveel.Data {
 
 		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
 			try {
-				var user = context.IsolatedAccess.SystemAccess.CreateUser(adminName, adminPassword);
+				var user = context.Access.SystemAccess.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
-				context.IsolatedAccess.SystemAccess.AddUserToGroup(adminName, SystemGroups.SecureGroup);
+				context.Session.Access.AddUserToGroup(adminName, SystemGroups.SecureGroup);
 
-				context.IsolatedAccess.SystemAccess.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
-				context.IsolatedAccess.SystemAccess.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
-				context.IsolatedAccess.SystemAccess.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
+				context.Session.Access.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
+				context.Session.Access.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
+				context.Session.Access.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
 
 				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {
@@ -122,7 +122,7 @@ namespace Deveel.Data {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
-				return session.SystemAccess.Authenticate(username, password);
+				return session.Access.Authenticate(username, password);
 			}
 		}
 

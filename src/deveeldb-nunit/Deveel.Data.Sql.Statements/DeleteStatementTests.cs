@@ -20,14 +20,14 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.Session.SystemAccess.CreateTable(tableInfo);
-			query.Session.SystemAccess.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.Access.CreateTable(tableInfo);
+			query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private void InsertTestData(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			var table = query.IsolatedAccess.GetMutableTable(tableName);
+			var table = query.Access.GetMutableTable(tableName);
 			var row = table.NewRow();
 			row.SetValue("first_name", Field.String("Antonello"));
 			row.SetValue("last_name", Field.String("Provenzano"));
@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Statements {
 			var count = result.GetValue(0, 0).AsBigInt();
 			Assert.AreEqual(1L,  ((SqlNumber) count.Value).ToInt64());
 
-			var table = Query.IsolatedAccess.GetTable(tableName);
+			var table = Query.Access.GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Statements {
 			var count = result.GetValue(0, 0).AsBigInt();
 			Assert.AreEqual(2L, ((SqlNumber)count.Value).ToInt64());
 
-			var table = Query.IsolatedAccess.GetTable(tableName);
+			var table = Query.Access.GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
 		}

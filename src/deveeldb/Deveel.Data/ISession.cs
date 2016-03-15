@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// encapsulating the transaction for operations.
 	/// </summary>
 	public interface ISession : IEventSource, IDisposable {
-		SystemAccess SystemAccess { get; }
+		SystemAccess Access { get; }
 
 		/// <summary>
 		/// Gets the name of the current schema of this session.
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 		///// <seealso cref="ObjectId"/>
 		//ILargeObject GetLargeObject(ObjectId objId);
 
-		void Access(IEnumerable<IDbObject> objects, AccessType accessType);
+		void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
 
 		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
 

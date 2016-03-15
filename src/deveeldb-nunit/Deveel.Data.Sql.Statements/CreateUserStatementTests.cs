@@ -16,7 +16,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.UserExists(userName);
+			var exists = Query.Session.Access.UserExists(userName);
 			Assert.IsTrue(exists);
 		}
 	}

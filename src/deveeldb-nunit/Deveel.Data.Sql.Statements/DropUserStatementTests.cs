@@ -16,7 +16,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private void CreateUser(IQuery query) {
-			query.Session.SystemAccess.CreateUser(UserName, "12345");
+			query.Session.Access.CreateUser(UserName, "12345");
 		}
 
 		[Test]
@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.UserExists(UserName);
+			var exists = Query.Session.Access.UserExists(UserName);
 			Assert.IsFalse(exists);
 		}
 	}

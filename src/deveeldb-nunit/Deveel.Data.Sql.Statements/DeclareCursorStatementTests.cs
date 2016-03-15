@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.SystemAccess.CreateTable(tableInfo, false, false);
+			Query.Session.Access.CreateTable(tableInfo, false, false);
 		}
 
 		[Test]
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var cursor = Query.FindCursor(cursorName);
+			var cursor = Query.Access.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsEmpty(cursor.CursorInfo.Parameters);
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var cursor = Query.FindCursor(cursorName);
+			var cursor = Query.Access.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsNotEmpty(cursor.CursorInfo.Parameters);

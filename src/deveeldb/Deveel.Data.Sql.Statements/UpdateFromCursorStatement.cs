@@ -19,9 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class UpdateFromCursorStatement : SqlStatement, IPlSqlStatement {
@@ -40,15 +38,15 @@ namespace Deveel.Data.Sql.Statements {
 		public string CursorName { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var cursor = context.FindCursor(CursorName);
+			var cursor = context.Access.FindCursor(CursorName);
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 
-			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
+			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
-			var table = context.IsolatedAccess.GetMutableTable(tableName);
+			var table = context.Access.GetMutableTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 

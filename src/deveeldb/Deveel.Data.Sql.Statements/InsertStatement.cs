@@ -62,16 +62,16 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
+			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
 
-			var table = context.IsolatedAccess.GetTable(tableName);
+			var table = context.Access.GetTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(TableName);
 
 			if (Values.Any(x => x.OfType<SqlQueryExpression>().Any()))
 				throw new InvalidOperationException("Cannot set a value from a query.");
 
-			var tableQueryInfo = context.Query.Session.GetTableQueryInfo(tableName, null);
+			var tableQueryInfo = context.Query.Session.Access.GetTableQueryInfo(tableName, null);
 			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
 
 			var columns = new string[0];
@@ -221,7 +221,7 @@ namespace Deveel.Data.Sql.Statements {
 				int insertCount = 0;
 
 				foreach (var assignment in Assignments) {
-					context.Request.Query.Session.SystemAccess.InsertIntoTable(context.Request, TableName, assignment);
+					context.Request.Query.Session.Access.InsertIntoTable(context.Request, TableName, assignment);
 					insertCount++;
 				}
 

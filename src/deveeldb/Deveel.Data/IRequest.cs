@@ -21,7 +21,7 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
 	public interface IRequest : IEventSource, IDisposable {
-		IsolatedAccess IsolatedAccess { get; }
+		IsolatedAccess Access { get; }
 
 		IQuery Query { get; }
 

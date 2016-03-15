@@ -39,8 +39,8 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
-			if (!context.Query.Session.SystemAccess.TableExists(tableName) &&
+			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
+			if (!context.Query.Session.Access.TableExists(tableName) &&
 			    !IfExists)
 				throw new ObjectNotFoundException(TableName);
 
@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				context.Request.Query.Session.SystemAccess.DropTables(new[] { TableName }, IfExists);
+				context.Request.Query.Session.Access.DropTables(new[] { TableName }, IfExists);
 			}
 		}
 

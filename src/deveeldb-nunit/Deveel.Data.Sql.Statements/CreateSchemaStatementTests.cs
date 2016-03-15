@@ -14,7 +14,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.SchemaExists(schemaName);
+			var exists = Query.Session.Access.SchemaExists(schemaName);
 
 			Assert.IsTrue(exists);
 		}

@@ -525,7 +525,6 @@
     <Compile Include="Deveel.Data.Routines\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
-    <Compile Include="Deveel.Data.Routines\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Security\UserStatus.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
@@ -671,7 +670,6 @@
     <Compile Include="Deveel.Data.Sql.Query\SubsetNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\UserSessionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ColumnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateViewStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlTableColumn.cs" />

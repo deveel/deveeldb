@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Cursors {
 			var queryPlan = context.Context.QueryPlanner().PlanQuery(new QueryInfo(context, cursorInfo.QueryExpression));
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
-				if (!context.Query.IsolatedAccess.SystemAccess.UserCanSelectFromTable(tableName))
+				if (!context.Query.Access.SystemAccess.UserCanSelectFromTable(tableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), tableName, Privileges.Select);
 			}
 

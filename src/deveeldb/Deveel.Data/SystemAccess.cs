@@ -86,7 +86,7 @@ namespace Deveel.Data {
 		}
 
 		public void DropObject(DbObjectType objectType, ObjectName objectName) {
-			if (!Session.SystemAccess.UserCanDropObject(objectType, objectName))
+			if (!Session.Access.UserCanDropObject(objectType, objectName))
 				throw new MissingPrivilegesException(Session.User.Name, objectName, Privileges.Drop);
 
 			Session.Transaction.DropObject(objectType, objectName);
@@ -158,6 +158,10 @@ namespace Deveel.Data {
 			Session.Transaction.CreateTable(tableInfo, temporary);
 		}
 
+		public ITable GetTable(ObjectName tableName) {
+			return GetObject(DbObjectType.Table, tableName, AccessType.ReadWrite) as ITable;
+		}
+
 		#region Constraints
 
 		public void AddPrimaryKey(ObjectName tableName, string column) {
@@ -187,17 +191,41 @@ namespace Deveel.Data {
 
 		public void AddForeignKey(ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns,
-			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, string constraintName) {
 			Session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		public void AddUniqueKey(ObjectName tableName, string[] columns, string constraintName) {
+			AddUniqueKey(tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
 		public void AddUniqueKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
 			Session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
 		}
 
-		public void AddCheck(ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
-			string constraintName) {
+		public void AddCheck(ObjectName tableName, SqlExpression expression, string constraintName) {
+			AddCheck(tableName, expression, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public void AddCheck(ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability, string constraintName) {
 			Session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
+		}
+
+		public void AddConstraint(ObjectName tableName, ConstraintInfo constraintInfo) {
+			if (constraintInfo.ConstraintType == ConstraintType.PrimaryKey) {
+				var columnNames = constraintInfo.ColumnNames;
+				if (columnNames.Length > 1)
+					throw new ArgumentException();
+
+				AddPrimaryKey(tableName, columnNames[0], constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Unique) {
+				AddUniqueKey(tableName, constraintInfo.ColumnNames, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.Check) {
+				AddCheck(tableName, constraintInfo.CheckExpression, constraintInfo.ConstraintName);
+			} else if (constraintInfo.ConstraintType == ConstraintType.ForeignKey) {
+				AddForeignKey(tableName, constraintInfo.ColumnNames, constraintInfo.ForeignTable,
+					constraintInfo.ForeignColumnNames, constraintInfo.OnDelete, constraintInfo.OnUpdate, constraintInfo.ConstraintName);
+			}
 		}
 
 		public void DropAllTableConstraints(ObjectName tableName) {
@@ -308,7 +336,7 @@ namespace Deveel.Data {
 			if (!UserCanSelectFromPlan(queryPlan))
 				throw new InvalidOperationException();
 
-			var table = context.IsolatedAccess.GetMutableTable(tableName);
+			var table = context.Access.GetMutableTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 
@@ -326,7 +354,7 @@ namespace Deveel.Data {
 			if (!UserCanInsertIntoTable(tableName, columnNames))
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Insert);
 
-			var table = context.IsolatedAccess.GetMutableTable(tableName);
+			var table = context.Access.GetMutableTable(tableName);
 			if (table == null)
 				throw new ObjectNotFoundException(tableName);
 
@@ -391,6 +419,52 @@ namespace Deveel.Data {
 		public void AlterTable(TableInfo tableInfo) {
 			AlterObject(tableInfo);
 		}
+
+		#endregion
+
+		#region Query
+
+		public ITableQueryInfo GetTableQueryInfo(ObjectName tableName, ObjectName alias) {
+			var tableInfo = GetTableInfo(tableName);
+			if (alias != null) {
+				tableInfo = tableInfo.Alias(alias);
+			}
+
+			return new TableQueryInfo(Session, tableInfo, tableName, alias);
+		}
+
+		public IQueryPlanNode CreateQueryPlan(ObjectName tableName, ObjectName aliasedName) {
+			string tableType = GetTableType(tableName);
+			if (tableType.Equals(TableTypes.View))
+				return new FetchViewNode(tableName, aliasedName);
+
+			return new FetchTableNode(tableName, aliasedName);
+		}
+
+		#region TableQueryInfo
+
+		class TableQueryInfo : ITableQueryInfo {
+			public TableQueryInfo(ISession session, TableInfo tableInfo, ObjectName tableName, ObjectName aliasName) {
+				Session = session;
+				TableInfo = tableInfo;
+				TableName = tableName;
+				AliasName = aliasName;
+			}
+
+			public ISession Session { get; private set; }
+
+			public TableInfo TableInfo { get; private set; }
+
+			public ObjectName TableName { get; set; }
+
+			public ObjectName AliasName { get; set; }
+
+			public IQueryPlanNode QueryPlanNode {
+				get { return Session.Access.CreateQueryPlan(TableName, AliasName); }
+			}
+		}
+
+		#endregion
 
 		#endregion
 
@@ -1240,7 +1314,7 @@ namespace Deveel.Data {
 		public IRoutine ResolveRoutine(Invoke invoke, IRequest request) {
 			var routine = ResolveSystemRoutine(invoke, request);
 			if (routine == null)
-				routine = ResolveUserRoutine(invoke, request);
+				routine = ResolveUserRoutine(invoke);
 
 			return routine;
 		}
@@ -1258,13 +1332,8 @@ namespace Deveel.Data {
 			return null;
 		}
 
-		public IRoutine ResolveUserRoutine(Invoke invoke, IRequest request) {
-			var routine = Session.ResolveRoutine(invoke);
-			if (routine != null &&
-				!UserCanExecute(routine.Type, invoke, request))
-				throw new InvalidOperationException();
-
-			return routine;
+		public IRoutine ResolveUserRoutine(Invoke invoke) {
+			return GetObject(DbObjectType.Routine, invoke.RoutineName, AccessType.Read) as IRoutine;
 		}
 
 		public IFunction ResolveFunction(Invoke invoke, IRequest request) {
@@ -1286,6 +1355,21 @@ namespace Deveel.Data {
 				return null;
 
 			return routine.RoutineInfo;
+		}
+
+		public Field InvokeSystemFunction(IRequest request, string functionName, params SqlExpression[] args) {
+			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
+			var invoke = new Invoke(resolvedName, args);
+			return InvokeFunction(request, invoke);
+		}
+
+		public Field InvokeFunction(IRequest request, Invoke invoke) {
+			var result = invoke.Execute(request);
+			return result.ReturnValue;
+		}
+
+		public Field InvokeFunction(IRequest request, ObjectName functionName, params SqlExpression[] args) {
+			return InvokeFunction(request, new Invoke(functionName, args));
 		}
 
 		#endregion

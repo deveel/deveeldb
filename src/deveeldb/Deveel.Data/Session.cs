@@ -56,7 +56,7 @@ namespace Deveel.Data {
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
 
-			SystemAccess = new SystemAccess(this);
+			Access = new SystemAccess(this);
 
 			transaction.Database.Sessions.Add(this);
 
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 
 		public User User { get; private set; }
 
-		public SystemAccess SystemAccess { get; private set; }
+		public SystemAccess Access { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return Transaction; }
@@ -114,7 +114,7 @@ namespace Deveel.Data {
 				throw new ObjectDisposedException("Session");
 		}
 
-		public void Access(IEnumerable<IDbObject> objects, AccessType accessType) {
+		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
 			if (Database == null)
 				return;
 

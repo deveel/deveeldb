@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlQueryExpression QueryExpression { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.Session.SystemAccess.ResolveTableName(TableName);
+			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
@@ -56,11 +56,11 @@ namespace Deveel.Data.Sql.Statements {
 			if (ColumnNames != null)
 				columns = ColumnNames.ToArray();
 
-			ITableQueryInfo tableQueryInfo = context.Query.Session.GetTableQueryInfo(tableName, null);
+			ITableQueryInfo tableQueryInfo = context.Query.Session.Access.GetTableQueryInfo(tableName, null);
 			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
 
 			// Get the table we are inserting to
-			var insertTable = context.IsolatedAccess.GetTable(tableName);
+			var insertTable = context.Access.GetTable(tableName);
 
 			if (columns.Length == 0) {
 				columns = new string[insertTable.TableInfo.ColumnCount];
@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var insertTable = context.Request.IsolatedAccess.GetMutableTable(TableName);
+				var insertTable = context.Request.Access.GetMutableTable(TableName);
 
 				if (insertTable == null)
 					throw new ObjectNotFoundException(TableName);

@@ -29,15 +29,18 @@ namespace Deveel.Data.Security {
 		private Dictionary<GrantCacheKey, Privileges> grantsCache;
 		private Dictionary<string, Privileges> groupsPrivilegesCache;
 
-		public PrivilegeManager(IQuery queryContext) {
-			QueryContext = queryContext;
+		public PrivilegeManager(ISession session) {
+			if (session == null)
+				throw new ArgumentNullException("session");
+
+			Session = session;
 		}
 
 		~PrivilegeManager() {
 			Dispose(false);
 		}
 
-		public IQuery QueryContext { get; private set; }
+		public ISession Session { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -53,7 +56,7 @@ namespace Deveel.Data.Security {
 		//}
 
 		protected virtual void Dispose(bool disposing) {
-			QueryContext = null;
+			Session = null;
 		}
 
 		private static void UpdateGrants(IQuery queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName,
@@ -121,13 +124,16 @@ namespace Deveel.Data.Security {
 		}
 
 
-		private void UpdateUserGrants(DbObjectType objectType, ObjectName objectName, string granter, string grantee, Privileges privileges, bool withOption) {
-			var grantTable = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGrantsTableName);
+		private void UpdateUserGrants(DbObjectType objectType, ObjectName objectName, string granter, string grantee,
+			Privileges privileges, bool withOption) {
+			using (var query = Session.CreateQuery()) {
+				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
 
-			try {
-				UpdateGrants(QueryContext, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
-			} finally {
-				ClearUserGrantsCache(grantee, objectType, objectName, withOption, true);
+				try {
+					UpdateGrants(query, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
+				} finally {
+					ClearUserGrantsCache(grantee, objectType, objectName, withOption, true);
+				}
 			}
 		}
 
@@ -186,53 +192,56 @@ namespace Deveel.Data.Security {
 			grantsCache[key] = privileges;
 		}
 
-		private void RevokeAllGrantsFromUser(DbObjectType objectType, ObjectName objectName, string revoker, string user, bool withOption = false) {
-			var grantTable = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGrantsTableName);
+		private void RevokeAllGrantsFromUser(DbObjectType objectType, ObjectName objectName, string revoker, string user,
+			bool withOption = false) {
+			using (var query = Session.CreateQuery()) {
+				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
 
-			var objectCol = grantTable.GetResolvedColumnName(1);
-			var paramCol = grantTable.GetResolvedColumnName(2);
-			var granteeCol = grantTable.GetResolvedColumnName(3);
-			var grantOptionCol = grantTable.GetResolvedColumnName(4);
-			var granterCol = grantTable.GetResolvedColumnName(5);
+				var objectCol = grantTable.GetResolvedColumnName(1);
+				var paramCol = grantTable.GetResolvedColumnName(2);
+				var granteeCol = grantTable.GetResolvedColumnName(3);
+				var grantOptionCol = grantTable.GetResolvedColumnName(4);
+				var granterCol = grantTable.GetResolvedColumnName(5);
 
-			ITable t1 = grantTable;
+				ITable t1 = grantTable;
 
-			// All that match the given object parameter
-			// It's most likely this will reduce the search by the most so we do
-			// it first.
-			t1 = t1.SimpleSelect(QueryContext, paramCol, SqlExpressionType.Equal,
-				SqlExpression.Constant(Field.String(objectName.FullName)));
+				// All that match the given object parameter
+				// It's most likely this will reduce the search by the most so we do
+				// it first.
+				t1 = t1.SimpleSelect(query, paramCol, SqlExpressionType.Equal,
+					SqlExpression.Constant(Field.String(objectName.FullName)));
 
-			// The next is a single exhaustive select through the remaining records.
-			// It finds all grants that match either public or the grantee is the
-			// username, and that match the object type.
+				// The next is a single exhaustive select through the remaining records.
+				// It finds all grants that match either public or the grantee is the
+				// username, and that match the object type.
 
-			// Expression: ("grantee_col" = username)
-			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(Field.String(user)));
+				// Expression: ("grantee_col" = username)
+				var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
+					SqlExpression.Constant(Field.String(user)));
 
-			// Expression: ("object_col" = object AND
-			//              "grantee_col" = username)
-			// All that match the given username or public and given object
-			var expr =
-				SqlExpression.And(
-					SqlExpression.Equal(SqlExpression.Reference(objectCol),
-						SqlExpression.Constant(Field.BigInt((int)objectType))), userCheck);
+				// Expression: ("object_col" = object AND
+				//              "grantee_col" = username)
+				// All that match the given username or public and given object
+				var expr =
+					SqlExpression.And(
+						SqlExpression.Equal(SqlExpression.Reference(objectCol),
+							SqlExpression.Constant(Field.BigInt((int) objectType))), userCheck);
 
-			// Are we only searching for grant options?
-			var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
-				SqlExpression.Constant(Field.Boolean(withOption)));
-			expr = SqlExpression.And(expr, grantOptionCheck);
+				// Are we only searching for grant options?
+				var grantOptionCheck = SqlExpression.Equal(SqlExpression.Reference(grantOptionCol),
+					SqlExpression.Constant(Field.Boolean(withOption)));
+				expr = SqlExpression.And(expr, grantOptionCheck);
 
-			// Make sure the granter matches up also
-			var granterCheck = SqlExpression.Equal(SqlExpression.Reference(granterCol),
-				SqlExpression.Constant(Field.String(revoker)));
-			expr = SqlExpression.And(expr, granterCheck);
+				// Make sure the granter matches up also
+				var granterCheck = SqlExpression.Equal(SqlExpression.Reference(granterCol),
+					SqlExpression.Constant(Field.String(revoker)));
+				expr = SqlExpression.And(expr, granterCheck);
 
-			t1 = t1.ExhaustiveSelect(QueryContext, expr);
+				t1 = t1.ExhaustiveSelect(query, expr);
 
-			// Remove these rows from the table
-			grantTable.Delete(t1);
+				// Remove these rows from the table
+				grantTable.Delete(t1);
+			}
 		}
 
 		private static Privileges QueryPrivileges(IQuery queryContext, ITable grantTable, string grantee,
@@ -289,15 +298,19 @@ namespace Deveel.Data.Security {
 
 		private Privileges QueryUserPrivileges(string userName, DbObjectType objectType, ObjectName objectName,
 			bool withOption, bool withPublic) {
-			// The system grants table.
-			var grantTable = QueryContext.IsolatedAccess.GetTable(SystemSchema.UserGrantsTableName);
-			return QueryPrivileges(QueryContext, grantTable, userName, objectType, objectName, withOption, withPublic);
+			using (var query = Session.CreateQuery()) {
+				// The system grants table.
+				var grantTable = query.Access.GetTable(SystemSchema.UserGrantsTableName);
+				return QueryPrivileges(query, grantTable, userName, objectType, objectName, withOption, withPublic);
+			}
 		}
 
 		private Privileges QueryGroupPrivileges(string groupName, DbObjectType objectType, ObjectName objectName,
 			bool withOption, bool withPublic) {
-			var grantTable = QueryContext.IsolatedAccess.GetTable(SystemSchema.GroupGrantsTable);
-			return QueryPrivileges(QueryContext, grantTable, groupName, objectType, objectName, withOption, withPublic);
+			using (var query = Session.CreateQuery()) {
+				var grantTable = query.Access.GetTable(SystemSchema.GroupGrantsTable);
+				return QueryPrivileges(query, grantTable, groupName, objectType, objectName, withOption, withPublic);
+			}
 		}
 
 		public Privileges GetUserPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption) {
@@ -322,19 +335,23 @@ namespace Deveel.Data.Security {
 		}
 
 		public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
-			var grantTable = QueryContext.IsolatedAccess.GetMutableTable(SystemSchema.UserGrantsTableName);
+			using (var query = Session.CreateQuery()) {
+				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
 
-			var objectTypeColumn = grantTable.GetResolvedColumnName(1);
-			var objectNameColumn = grantTable.GetResolvedColumnName(2);
-			// All that match the given object
-			var t1 = grantTable.SimpleSelect(QueryContext, objectTypeColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(Field.Integer((int) objectType)));
-			// All that match the given parameter
-			t1 = t1.SimpleSelect(QueryContext, objectNameColumn, SqlExpressionType.Equal,
-				SqlExpression.Constant(Field.String(objectName.FullName)));
+				var objectTypeColumn = grantTable.GetResolvedColumnName(1);
+				var objectNameColumn = grantTable.GetResolvedColumnName(2);
 
-			// Remove these rows from the table
-			grantTable.Delete(t1);
+				// All that match the given object
+				var t1 = grantTable.SimpleSelect(query, objectTypeColumn, SqlExpressionType.Equal,
+					SqlExpression.Constant(Field.Integer((int) objectType)));
+
+				// All that match the given parameter
+				t1 = t1.SimpleSelect(query, objectNameColumn, SqlExpressionType.Equal,
+					SqlExpression.Constant(Field.String(objectName.FullName)));
+
+				// Remove these rows from the table
+				grantTable.Delete(t1);
+			}
 		}
 
 		public void GrantToGroup(string groupName, Grant grant) {

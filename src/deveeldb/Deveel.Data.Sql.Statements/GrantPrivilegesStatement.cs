@@ -71,16 +71,16 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var objName = context.Query.Session.SystemAccess.ResolveObjectName(ObjectName.FullName);
+			var objName = context.Query.Session.Access.ResolveObjectName(ObjectName.FullName);
 			return new GrantPrivilegesStatement(Grantee, Privilege, WithGrant, objName, Columns);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var obj = context.Request.Query.Session.SystemAccess.FindObject(ObjectName);
+			var obj = context.Request.Query.Session.Access.FindObject(ObjectName);
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
 
-			context.Request.Query.Session.SystemAccess.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
+			context.Request.Query.Session.Access.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
 		}
 	}
 }

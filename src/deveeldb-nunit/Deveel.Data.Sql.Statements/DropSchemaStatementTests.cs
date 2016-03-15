@@ -11,7 +11,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override IQuery CreateQuery(ISession session) {
 			var query = base.CreateQuery(session);
-			query.Session.SystemAccess.CreateSchema("test", SchemaTypes.User);
+			query.Session.Access.CreateSchema("test", SchemaTypes.User);
 			return query;
 		}
 
@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.SchemaExists(SchemaName);
+			var exists = Query.Session.Access.SchemaExists(SchemaName);
 			Assert.IsFalse(exists);
 		}
 	}

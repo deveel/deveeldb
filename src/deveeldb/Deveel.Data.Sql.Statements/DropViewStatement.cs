@@ -41,10 +41,10 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Query.Session.SystemAccess.ResolveObjectName(DbObjectType.View, ViewName);
+			var viewName = context.Query.Session.Access.ResolveObjectName(DbObjectType.View, ViewName);
 
 			if (!IfExists &&
-				!context.Query.Session.SystemAccess.ViewExists(viewName))
+				!context.Query.Session.Access.ViewExists(viewName))
 				throw new ObjectNotFoundException(ViewName);
 
 			return new Prepared(viewName, IfExists);
@@ -74,26 +74,26 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Request.Query.Session.SystemAccess.UserCanDropObject(DbObjectType.View, ViewName))
+				if (!context.Request.Query.Session.Access.UserCanDropObject(DbObjectType.View, ViewName))
 					throw new MissingPrivilegesException(context.Request.Query.UserName(), ViewName, Privileges.Drop);
 
 				// If the 'only if exists' flag is false, we need to check tables to drop
 				// exist first.
 				if (!IfExists) {
 					// If view doesn't exist, throw an error
-					if (!context.Request.Query.Session.SystemAccess.ViewExists(ViewName)) {
+					if (!context.Request.Query.Session.Access.ViewExists(ViewName)) {
 						throw new ObjectNotFoundException(ViewName,
 							String.Format("The view '{0}' does not exist and cannot be dropped.", ViewName));
 					}
 				}
 
 				// Does the table already exist?
-				if (context.Request.Query.Session.SystemAccess.ViewExists(ViewName)) {
+				if (context.Request.Query.Session.Access.ViewExists(ViewName)) {
 					// Drop table in the transaction
-					context.Request.Query.Session.SystemAccess.DropObject(DbObjectType.View, ViewName);
+					context.Request.Query.Session.Access.DropObject(DbObjectType.View, ViewName);
 
 					// Revoke all the grants on the table
-					context.Request.Query.Session.SystemAccess.RevokeAllGrantsOnView(ViewName);
+					context.Request.Query.Session.Access.RevokeAllGrantsOnView(ViewName);
 				}
 			}
 		}

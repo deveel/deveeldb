@@ -34,17 +34,17 @@ namespace Deveel.Data.Sql.Statements {
 			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
 			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
-			context.Session.SystemAccess.CreateTable(tableInfo1);
-			context.Session.SystemAccess.AddPrimaryKey(tn1, "id");
+			context.Session.Access.CreateTable(tableInfo1);
+			context.Session.Access.AddPrimaryKey(tn1, "id");
 
 			var tn2 = ObjectName.Parse("APP.test_table2");
 			var tableInfo2 = new TableInfo(tn2);
 			tableInfo2.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo2.AddColumn(new ColumnInfo("other_id", PrimitiveTypes.Integer()));
 			tableInfo2.AddColumn(new ColumnInfo("count", PrimitiveTypes.Integer()));
-			context.Session.SystemAccess.CreateTable(tableInfo2);
-			context.Session.SystemAccess.AddPrimaryKey(tn2, "id");
-			context.Session.SystemAccess.AddForeignKey(tn2, new[] {"other_id"}, tn1, new[] {"id"}, ForeignKeyAction.Cascade,
+			context.Session.Access.CreateTable(tableInfo2);
+			context.Session.Access.AddPrimaryKey(tn2, "id");
+			context.Session.Access.AddForeignKey(tn2, new[] {"other_id"}, tn1, new[] {"id"}, ForeignKeyAction.Cascade,
 				ForeignKeyAction.Cascade, null);
 		}
 
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.TableExists(tableName);
+			var exists = Query.Session.Access.TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.TableExists(tableName);
+			var exists = Query.Session.Access.TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Query.ExecuteStatement(statement);
 
-			var exists = Query.Session.SystemAccess.TableExists(tableName);
+			var exists = Query.Session.Access.TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			Assert.Throws<ConstraintViolationException>(() => Query.ExecuteStatement(statement));
 
-			var exists = Query.Session.SystemAccess.TableExists(tableName);
+			var exists = Query.Session.Access.TableExists(tableName);
 			Assert.IsTrue(exists);
 		}
 	}

@@ -61,147 +61,147 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Objects
+		//#region Objects
 
-		public static IDbObject GetObject(this ISession session, DbObjectType objectType, ObjectName objectName) {
-			return GetObject(session, objectType, objectName, AccessType.ReadWrite);
-		}
+		//public static IDbObject GetObject(this ISession session, DbObjectType objectType, ObjectName objectName) {
+		//	return GetObject(session, objectType, objectName, AccessType.ReadWrite);
+		//}
 
-		public static IDbObject GetObject(this ISession session, DbObjectType objectType, ObjectName objectName, AccessType accessType) {
-			return session.Transaction.GetObject(objectType, objectName);
-		}
+		//public static IDbObject GetObject(this ISession session, DbObjectType objectType, ObjectName objectName, AccessType accessType) {
+		//	return session.Transaction.GetObject(objectType, objectName);
+		//}
 
-		public static void CreateObject(this ISession session, IObjectInfo objectInfo) {
-			session.Transaction.CreateObject(objectInfo);
-		}
+		//public static void CreateObject(this ISession session, IObjectInfo objectInfo) {
+		//	session.Transaction.CreateObject(objectInfo);
+		//}
 
-		public static void AlterObject(this ISession session, IObjectInfo objectInfo) {
-			session.Transaction.AlterObject(objectInfo);
-		}
+		//public static void AlterObject(this ISession session, IObjectInfo objectInfo) {
+		//	session.Transaction.AlterObject(objectInfo);
+		//}
 
-		public static bool ObjectExists(this ISession session, ObjectName objectName) {
-			return session.Transaction.ObjectExists(objectName);
-		}
+		//public static bool ObjectExists(this ISession session, ObjectName objectName) {
+		//	return session.Transaction.ObjectExists(objectName);
+		//}
 
-		public static bool ObjectExists(this ISession session, DbObjectType objectType, ObjectName objectName) {
-			return session.Transaction.ObjectExists(objectType, objectName);
-		}
+		//public static bool ObjectExists(this ISession session, DbObjectType objectType, ObjectName objectName) {
+		//	return session.Transaction.ObjectExists(objectType, objectName);
+		//}
 
-		public static IDbObject FindObject(this ISession session, ObjectName objectName) {
-			return session.Transaction.FindObject(objectName);
-		}
+		//public static IDbObject FindObject(this ISession session, ObjectName objectName) {
+		//	return session.Transaction.FindObject(objectName);
+		//}
 
-		public static void DropObject(this ISession session, DbObjectType objectType, ObjectName objectName) {
-			session.Transaction.DropObject(objectType, objectName);
-		}
+		//public static void DropObject(this ISession session, DbObjectType objectType, ObjectName objectName) {
+		//	session.Transaction.DropObject(objectType, objectName);
+		//}
 
-		public static ObjectName ResolveObjectName(this ISession session, string name) {
-			return session.Transaction.ResolveObjectName(name);
-		}
+		//public static ObjectName ResolveObjectName(this ISession session, string name) {
+		//	return session.Transaction.ResolveObjectName(name);
+		//}
 
-		public static ObjectName ResolveObjectName(this ISession session, DbObjectType objectType, ObjectName objectName) {
-			return session.Transaction.ResolveObjectName(objectType, objectName);
-		}
+		//public static ObjectName ResolveObjectName(this ISession session, DbObjectType objectType, ObjectName objectName) {
+		//	return session.Transaction.ResolveObjectName(objectType, objectName);
+		//}
 
-		public static ObjectName ResolveObjectName(this ISession session, ObjectName objectName) {
-			return session.Transaction.ResolveObjectName(objectName);
-		}
+		//public static ObjectName ResolveObjectName(this ISession session, ObjectName objectName) {
+		//	return session.Transaction.ResolveObjectName(objectName);
+		//}
 
-		#endregion
+		//#endregion
 
-		#region Tables
+		//#region Tables
 
 
-		public static ObjectName ResolveTableName(this ISession session, ObjectName tableName) {
-			return session.Transaction.ResolveObjectName(DbObjectType.Table, tableName);
-		}
+		//public static ObjectName ResolveTableName(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.ResolveObjectName(DbObjectType.Table, tableName);
+		//}
 
-		public static ITable GetTable(this ISession session, ObjectName tableName) {
-			tableName = session.ResolveTableName(tableName);
-			return session.GetObject(DbObjectType.Table, tableName) as ITable;
-		}
+		//public static ITable GetTable(this ISession session, ObjectName tableName) {
+		//	tableName = session.ResolveTableName(tableName);
+		//	return session.GetObject(DbObjectType.Table, tableName) as ITable;
+		//}
 
-		public static TableInfo GetTableInfo(this ISession session, ObjectName tableName) {
-			return session.Transaction.GetTableInfo(tableName);
-		}
+		//public static TableInfo GetTableInfo(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.GetTableInfo(tableName);
+		//}
 
-		public static string GetTableType(this ISession session, ObjectName tableName) {
-			return session.Transaction.GetTableType(tableName);
-		}
+		//public static string GetTableType(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.GetTableType(tableName);
+		//}
 
-		public static void CreateTable(this ISession session, TableInfo tableInfo, bool temporary) {
-			session.Transaction.CreateTable(tableInfo, temporary);
-		}
+		//public static void CreateTable(this ISession session, TableInfo tableInfo, bool temporary) {
+		//	session.Transaction.CreateTable(tableInfo, temporary);
+		//}
 
-		#region Constraints
+		//#region Constraints
 
-		public static void AddPrimaryKey(this ISession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
-		}
+		//public static void AddPrimaryKey(this ISession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		//	session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
+		//}
 
-		public static void AddForeignKey(this ISession session, ObjectName table, string[] columns,
-			ObjectName refTable, string[] refColumns,
-			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
-			session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
-		}
+		//public static void AddForeignKey(this ISession session, ObjectName table, string[] columns,
+		//	ObjectName refTable, string[] refColumns,
+		//	ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, String constraintName) {
+		//	session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		//}
 
-		public static void AddUniqueKey(this ISession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
-			session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
-		}
+		//public static void AddUniqueKey(this ISession session, ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
+		//	session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
+		//}
 
-		public static void AddCheck(this ISession session, ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
-			string constraintName) {
-			session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
-		}
+		//public static void AddCheck(this ISession session, ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
+		//	string constraintName) {
+		//	session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
+		//}
 
-		public static void DropAllTableConstraints(this ISession session, ObjectName tableName) {
-			session.Transaction.DropAllTableConstraints(tableName);
-		}
+		//public static void DropAllTableConstraints(this ISession session, ObjectName tableName) {
+		//	session.Transaction.DropAllTableConstraints(tableName);
+		//}
 
-		public static int DropTableConstraint(this ISession session, ObjectName tableName, string constraintName) {
-			return session.Transaction.DropTableConstraint(tableName, constraintName);
-		}
+		//public static int DropTableConstraint(this ISession session, ObjectName tableName, string constraintName) {
+		//	return session.Transaction.DropTableConstraint(tableName, constraintName);
+		//}
 
-		public static bool DropTablePrimaryKey(this ISession session, ObjectName tableName, string constraintName) {
-			return session.Transaction.DropTablePrimaryKey(tableName, constraintName);
-		}
+		//public static bool DropTablePrimaryKey(this ISession session, ObjectName tableName, string constraintName) {
+		//	return session.Transaction.DropTablePrimaryKey(tableName, constraintName);
+		//}
 
-		public static ObjectName[] QueryTablesRelationallyLinkedTo(this ISession session, ObjectName tableName) {
-			return session.Transaction.QueryTablesRelationallyLinkedTo(tableName);
-		}
+		//public static ObjectName[] QueryTablesRelationallyLinkedTo(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.QueryTablesRelationallyLinkedTo(tableName);
+		//}
 
-		public static ConstraintInfo[] QueryTableCheckExpressions(this ISession session, ObjectName tableName) {
-			return session.Transaction.QueryTableCheckExpressions(tableName);
-		}
+		//public static ConstraintInfo[] QueryTableCheckExpressions(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.QueryTableCheckExpressions(tableName);
+		//}
 
-		public static ConstraintInfo QueryTablePrimaryKey(this ISession session, ObjectName tableName) {
-			return session.Transaction.QueryTablePrimaryKey(tableName);
-		}
+		//public static ConstraintInfo QueryTablePrimaryKey(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.QueryTablePrimaryKey(tableName);
+		//}
 
-		public static ConstraintInfo[] QueryTableUniqueKeys(this ISession session, ObjectName tableName) {
-			return session.Transaction.QueryTableUniqueKeys(tableName);
-		}
+		//public static ConstraintInfo[] QueryTableUniqueKeys(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.QueryTableUniqueKeys(tableName);
+		//}
 
-		public static ConstraintInfo[] QueryTableImportedForeignKeys(this ISession session, ObjectName refTableName) {
-			return session.Transaction.QueryTableImportedForeignKeys(refTableName);
-		}
+		//public static ConstraintInfo[] QueryTableImportedForeignKeys(this ISession session, ObjectName refTableName) {
+		//	return session.Transaction.QueryTableImportedForeignKeys(refTableName);
+		//}
 
-		public static ConstraintInfo[] QueryTableForeignKeys(this ISession session, ObjectName tableName) {
-			return session.Transaction.QueryTableForeignKeys(tableName);
-		}
+		//public static ConstraintInfo[] QueryTableForeignKeys(this ISession session, ObjectName tableName) {
+		//	return session.Transaction.QueryTableForeignKeys(tableName);
+		//}
 
-		public static void CheckConstraintViolations(this ISession session, ObjectName tableName) {
-			session.Transaction.CheckAllConstraintViolations(tableName);
-		}
+		//public static void CheckConstraintViolations(this ISession session, ObjectName tableName) {
+		//	session.Transaction.CheckAllConstraintViolations(tableName);
+		//}
 
-		#endregion
+		//#endregion
 
-		#endregion
+		//#endregion
 
 		#region Locks
 
-		public static void Access(this ISession session, IDbObject obj, AccessType accessType) {
-			session.Access(new [] {obj}, accessType);
+		public static void Enter(this ISession session, IDbObject obj, AccessType accessType) {
+			session.Enter(new [] {obj}, accessType);
 		}
 
 		#endregion

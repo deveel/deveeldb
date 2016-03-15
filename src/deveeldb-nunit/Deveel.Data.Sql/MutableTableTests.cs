@@ -58,8 +58,8 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("order", PrimitiveTypes.Integer());
 
-			Query.Session.SystemAccess.CreateTable(tableInfo, false);
-			return Query.IsolatedAccess.GetMutableTable(tableName);
+			Query.Session.Access.CreateTable(tableInfo, false);
+			return Query.Access.GetMutableTable(tableName);
 		}
 	}
 }

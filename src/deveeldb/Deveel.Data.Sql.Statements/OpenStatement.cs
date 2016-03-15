@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			SqlExpression[] args = Arguments;
 
-			var cursor = context.Query.FindCursor(CursorName);
+			var cursor = context.Access.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementPrepareException(String.Format("Cursor '{0}' was not found.", CursorName));
 
@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var cursor = context.Request.Query.FindCursor(CursorName);
+			var cursor = context.Request.Access.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 

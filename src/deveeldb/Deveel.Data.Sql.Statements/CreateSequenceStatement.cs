@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var schemaName = context.Query.Session.SystemAccess.ResolveSchemaName(SequenceName.ParentName);
+			var schemaName = context.Query.Session.Access.ResolveSchemaName(SequenceName.ParentName);
 			var seqName = new ObjectName(schemaName, SequenceName.Name);
 
 			return new Prepared(seqName) {
@@ -97,10 +97,10 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Request.Query.Session.SystemAccess.UserCanCreateObject(DbObjectType.Sequence, SequenceName))
+				if (!context.Request.Query.Session.Access.UserCanCreateObject(DbObjectType.Sequence, SequenceName))
 					throw new MissingPrivilegesException(context.Request.Query.UserName(), SequenceName, Privileges.Create);
 
-				if (context.Request.Query.Session.SystemAccess.ObjectExists(DbObjectType.Sequence, SequenceName))
+				if (context.Request.Query.Session.Access.ObjectExists(DbObjectType.Sequence, SequenceName))
 					throw new InvalidOperationException(String.Format("The sequence '{0}' already exists.", SequenceName));
 
 				var startValue = SqlNumber.Zero;
@@ -126,7 +126,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new InvalidOperationException("The start value cannot be out of the mim/max range.");
 
 				var seqInfo = new SequenceInfo(SequenceName, startValue, incrementBy, minValue, maxValue, cache, cycle);
-				context.Request.Query.Session.SystemAccess.CreateObject(seqInfo);
+				context.Request.Query.Session.Access.CreateObject(seqInfo);
 			}
 		}
 
