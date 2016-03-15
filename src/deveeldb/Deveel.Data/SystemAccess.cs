@@ -330,7 +330,7 @@ namespace Deveel.Data {
 				.Cast<SqlReferenceExpression>()
 				.Select(x => x.ReferenceName.Name).ToArray();
 
-			if (!UserCanUpdateTable(tableName, columnNames))
+			if (!UserCanUpdateTable(tableName))
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Update);
 
 			if (!UserCanSelectFromPlan(queryPlan))
@@ -351,7 +351,7 @@ namespace Deveel.Data {
 				assignments.Select(x => x.ReferenceExpression)
 					.Cast<SqlReferenceExpression>()
 					.Select(x => x.ReferenceName.Name).ToArray();
-			if (!UserCanInsertIntoTable(tableName, columnNames))
+			if (!UserCanInsertIntoTable(tableName))
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Insert);
 
 			var table = context.Access.GetMutableTable(tableName);
