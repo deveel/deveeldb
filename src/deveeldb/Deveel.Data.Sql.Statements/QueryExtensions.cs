@@ -41,33 +41,5 @@ namespace Deveel.Data.Sql.Statements {
 		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource) {
 			return query.ExecuteQuery(sqlSource, null);
 		}
-
-		// TODO: Provide an overload with dynamic object parameter
-
-		#region CreateView
-
-		public static ITable ExecuteCreateView(this IQuery query, string viewName, string querySource) {
-			return ExecuteCreateView(query, viewName, new string[0], querySource);
-		}
-
-		public static ITable ExecuteCreateView(this IQuery query, string viewName, IEnumerable<string> columnNames, string querySource) {
-			var expression = SqlExpression.Parse(querySource);
-			if (expression.ExpressionType != SqlExpressionType.Query)
-				throw new ArgumentException("The input query string is invalid.", "querySource");
-
-			return query.ExecuteCreateView(viewName, columnNames, (SqlQueryExpression)expression);
-		}
-
-		public static ITable ExecuteCreateView(this IQuery query, string viewName, SqlQueryExpression queryExpression) {
-			return ExecuteCreateView(query, viewName, new string[0], queryExpression);
-		}
-
-		public static ITable ExecuteCreateView(this IQuery query, string viewName, IEnumerable<string> columnNames,
-			SqlQueryExpression queryExpression) {
-			var statement = new CreateViewStatement(viewName, columnNames, queryExpression);
-			return query.ExecuteStatement(statement);
-		}
-
-		#endregion
 	}
 }

@@ -21,6 +21,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Variables {
+	// TODO: Move all to statement
 	public static class QueryExtensions {
 		public static Variable DeclareVariable(this IQuery query, VariableInfo variableInfo) {
 			return query.Context.DeclareVariable(variableInfo);

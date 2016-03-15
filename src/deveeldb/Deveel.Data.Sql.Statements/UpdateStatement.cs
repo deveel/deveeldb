@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
@@ -100,7 +102,23 @@ namespace Deveel.Data.Sql.Statements {
 			public int Limit { get; private set; }
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var updateCount = context.Request.Query.Session.Access.UpdateTable(context.Request, TableName, QueryPlan, Columns, Limit);
+				var columnNames = Columns.Select(x => x.ReferenceExpression)
+					.Cast<SqlReferenceExpression>()
+					.Select(x => x.ReferenceName.Name).ToArray();
+
+				if (!context.Query.Session.Access.UserCanUpdateTable(TableName))
+					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Update);
+
+				if (!context.Query.Session.Access.UserCanSelectFromPlan(QueryPlan))
+					throw new InvalidOperationException();
+
+				var table = context.Request.Access.GetMutableTable(TableName);
+				if (table == null)
+					throw new ObjectNotFoundException(TableName);
+
+				var updateSet = QueryPlan.Evaluate(context.Request);
+				var updateCount = table.Update(context.Request, updateSet, Columns, Limit);
+
 				context.SetResult(updateCount);
 			}
 

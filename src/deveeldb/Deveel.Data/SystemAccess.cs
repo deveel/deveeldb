@@ -289,29 +289,6 @@ namespace Deveel.Data {
 			return ObjectExists(DbObjectType.Table, tableName);
 		}
 
-		// TODO: Move this to statement
-		public void CreateTable(TableInfo tableInfo, bool onlyIfNotExists, bool temporary) {
-			if (tableInfo == null)
-				throw new ArgumentNullException("tableInfo");
-
-			var tableName = tableInfo.TableName;
-			var creator = Session.User.Name;
-
-			if (!UserCanCreateTable(tableName))
-				throw new MissingPrivilegesException(creator, tableName, Privileges.Create);
-
-			if (TableExists(tableName)) {
-				if (!onlyIfNotExists)
-					throw new InvalidOperationException(
-						String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
-
-				return;
-			}
-
-			CreateTable(tableInfo, temporary);
-			GrantToUserOnTable(tableInfo.TableName, creator, Privileges.TableAll);
-		}
-
 		public void CreateSystemTable(TableInfo tableInfo) {
 			if (tableInfo == null)
 				throw new ArgumentNullException("tableInfo");
@@ -322,98 +299,6 @@ namespace Deveel.Data {
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
 
 			CreateTable(tableInfo, false);
-		}
-
-		// TODO: Move this to statement
-		public int UpdateTable(IRequest context, ObjectName tableName, IQueryPlanNode queryPlan, IEnumerable<SqlAssignExpression> assignments, int limit) {
-			var columnNames = assignments.Select(x => x.ReferenceExpression)
-				.Cast<SqlReferenceExpression>()
-				.Select(x => x.ReferenceName.Name).ToArray();
-
-			if (!UserCanUpdateTable(tableName))
-				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Update);
-
-			if (!UserCanSelectFromPlan(queryPlan))
-				throw new InvalidOperationException();
-
-			var table = context.Access.GetMutableTable(tableName);
-			if (table == null)
-				throw new ObjectNotFoundException(tableName);
-
-			var updateSet = queryPlan.Evaluate(context);
-			return table.Update(context, updateSet, assignments, limit);
-		}
-
-		// TODO: Move this to statement
-
-		public void InsertIntoTable(IRequest context, ObjectName tableName, IEnumerable<SqlAssignExpression> assignments) {
-			var columnNames =
-				assignments.Select(x => x.ReferenceExpression)
-					.Cast<SqlReferenceExpression>()
-					.Select(x => x.ReferenceName.Name).ToArray();
-			if (!UserCanInsertIntoTable(tableName))
-				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Insert);
-
-			var table = context.Access.GetMutableTable(tableName);
-			if (table == null)
-				throw new ObjectNotFoundException(tableName);
-
-			var row = table.NewRow();
-			foreach (var expression in assignments) {
-				row.EvaluateAssignment(expression, context);
-			}
-
-			table.AddRow(row);
-		}
-
-		// TODO: Move this to statement
-		public void DropTables(IEnumerable<ObjectName> tableNames, bool onlyIfExists) {
-			var tableNameList = tableNames.ToList();
-			foreach (var tableName in tableNameList) {
-				if (!UserCanDropObject(DbObjectType.Table, tableName))
-					throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Drop);
-			}
-
-			// Check there are no referential links to any tables being dropped
-			foreach (var tableName in tableNameList) {
-				var refs = QueryTableImportedForeignKeys(tableName);
-
-				foreach (var reference in refs) {
-					// If the key table isn't being dropped then error
-					if (!tableNameList.Contains(reference.TableName)) {
-						throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
-							String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
-								reference.ConstraintName, tableName, reference.TableName));
-					}
-				}
-			}
-
-			// If the 'only if exists' flag is false, we need to check tables to drop
-			// exist first.
-			if (!onlyIfExists) {
-				// For each table to drop.
-				foreach (var tableName in tableNameList) {
-					// If table doesn't exist, throw an error
-					if (!TableExists(tableName)) {
-						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
-							tableName));
-					}
-				}
-			}
-
-			foreach (var tname in tableNameList) {
-				// Does the table already exist?
-				if (TableExists(tname)) {
-					// Drop table in the transaction
-					DropObject(DbObjectType.Table, tname);
-
-					// Revoke all the grants on the table
-					RevokeAllGrantsOnTable(tname);
-
-					// Drop all constraints from the schema
-					DropAllTableConstraints(tname);
-				}
-			}
 		}
 
 		public void AlterTable(TableInfo tableInfo) {
@@ -542,69 +427,6 @@ namespace Deveel.Data {
 
 		public bool ViewExists(ObjectName viewName) {
 			return ObjectExists(DbObjectType.View, viewName);
-		}
-
-		public void DefineView(ViewInfo viewInfo, bool replaceIfExists) {
-			var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
-			foreach (var tableName in tablesInPlan) {
-				if (!UserCanSelectFromTable(tableName))
-					throw new InvalidAccessException(Session.User.Name, tableName);
-			}
-
-			if (ViewExists(viewInfo.ViewName)) {
-				if (!replaceIfExists)
-					throw new InvalidOperationException(
-						String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
-
-				DropObject(DbObjectType.View, viewInfo.ViewName);
-			}
-
-			CreateObject(viewInfo);
-
-			// The initial grants for a view is to give the user who created it
-			// full access.
-			GrantToUserOnTable(viewInfo.ViewName, Session.User.Name, Privileges.TableAll);
-		}
-
-		public void DefineView(ObjectName viewName, IQueryPlanNode queryPlan, bool replaceIfExists, IQuery query) {
-			// We have to execute the plan to get the TableInfo that represents the
-			// result of the view execution.
-			var table = queryPlan.Evaluate(query);
-			var tableInfo = table.TableInfo.Alias(viewName);
-
-			var viewInfo = new ViewInfo(tableInfo, null, queryPlan);
-			DefineView(viewInfo, replaceIfExists);
-		}
-
-		public void DropViews(IEnumerable<ObjectName> viewNames, bool onlyIfExists) {
-			var viewNameList = viewNames.ToList();
-			foreach (var tableName in viewNameList) {
-				if (!UserCanDropObject(DbObjectType.View, tableName))
-					throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Drop);
-			}
-
-			// If the 'only if exists' flag is false, we need to check tables to drop
-			// exist first.
-			if (!onlyIfExists) {
-				// For each table to drop.
-				foreach (var viewName in viewNameList) {
-					// If view doesn't exist, throw an error
-					if (!ViewExists(viewName)) {
-						throw new ObjectNotFoundException(viewName, String.Format("The view '{0}' does not exist and cannot be dropped.", viewName));
-					}
-				}
-			}
-
-			foreach (var viewName in viewNameList) {
-				// Does the table already exist?
-				if (ViewExists(viewName)) {
-					// Drop table in the transaction
-					DropObject(DbObjectType.Table, viewName);
-
-					// Revoke all the grants on the table
-					RevokeAllGrantsOnView(viewName);
-				}
-			}
 		}
 
 		public View GetView(ObjectName viewName) {

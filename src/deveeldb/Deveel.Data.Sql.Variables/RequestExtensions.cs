@@ -20,6 +20,7 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Variables {
+	// TODO: Move everything to statement
 	public static class RequestExtensions {
 		public static void SetVariable(this IRequest request, string variableName, SqlExpression value) {
 			request.Context.SetVariable(variableName, value);

@@ -26,7 +26,7 @@ namespace Deveel.Data.Sql.Statements {
 			query.Session.Access.AddPrimaryKey(tn1, "id");
 
 			var exp = SqlExpression.Parse("SELECT * FROM APP.test_table1");
-			query.ExecuteCreateView("APP.test_view1", (SqlQueryExpression) exp);
+			query.CreateView("APP.test_view1", (SqlQueryExpression) exp);
 		}
 
 		[Test]

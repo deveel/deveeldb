@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Statements {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			query.Session.Access.CreateTable(tableInfo, false, false);
+			query.Session.Access.CreateTable(tableInfo);
 		}
 
 		private void DeclareCursors(IQuery query) {

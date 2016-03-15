@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CommitStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
-			context.Request.Query.Commit();
+			context.Request.Query.Session.Commit();
 		}
 	}
 }

@@ -24,8 +24,6 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class QueryContextExtensions {
-		#region Properties
-
 		public static bool IgnoreIdentifiersCase(this IQueryContext context) {
 			return context.SessionContext.TransactionContext.IgnoreIdentifiersCase();
 		}
@@ -57,11 +55,5 @@ namespace Deveel.Data {
 		public static QueryParameterStyle ParameterStyle(this IQueryContext context) {
 			return context.SessionContext.TransactionContext.ParameterStyle();
 		}
-
-		public static ISystemContext SystemContext(this IQueryContext context) {
-			return context.SessionContext.TransactionContext.DatabaseContext.SystemContext;
-		}
-
-		#endregion
 	}
 }

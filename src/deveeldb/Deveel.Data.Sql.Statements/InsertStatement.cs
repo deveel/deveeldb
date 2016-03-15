@@ -26,6 +26,8 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using System.Text;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql.Statements {
 	public sealed class InsertStatement : SqlStatement, IPlSqlStatement {
 		public InsertStatement(ObjectName tableName, IEnumerable<SqlExpression[]> values) 
@@ -191,11 +193,12 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private Prepared(SerializationInfo info, StreamingContext context) {
-				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
 				int setCount = info.GetInt32("SetCount");
 				var assignmenets = new SqlAssignExpression[setCount][];
 				for (int i = 0; i < setCount; i++) {
-					assignmenets[i] = (SqlAssignExpression[]) info.GetValue(String.Format("Assign[{0}]", i), typeof(SqlAssignExpression[]));
+					assignmenets[i] =
+						(SqlAssignExpression[]) info.GetValue(String.Format("Assign[{0}]", i), typeof (SqlAssignExpression[]));
 				}
 
 				Assignments = assignmenets;
@@ -220,8 +223,26 @@ namespace Deveel.Data.Sql.Statements {
 			protected override void ExecuteStatement(ExecutionContext context) {
 				int insertCount = 0;
 
+				if (!context.Query.Session.Access.UserCanInsertIntoTable(TableName))
+					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Insert);
+
+				var table = context.Query.Access.GetMutableTable(TableName);
+				if (table == null)
+					throw new ObjectNotFoundException(TableName);
+
 				foreach (var assignment in Assignments) {
-					context.Request.Query.Session.Access.InsertIntoTable(context.Request, TableName, assignment);
+					var columnNames =
+						assignment.Select(x => x.ReferenceExpression)
+							.Cast<SqlReferenceExpression>()
+							.Select(x => x.ReferenceName.Name).ToArray();
+
+					var row = table.NewRow();
+
+					foreach (var expression in assignment) {
+						row.EvaluateAssignment(expression, context.Request);
+					}
+
+					table.AddRow(row);
 					insertCount++;
 				}
 

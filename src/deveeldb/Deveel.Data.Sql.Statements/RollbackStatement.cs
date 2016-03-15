@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class RollbackStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
-			context.Request.Query.Rollback();
+			context.Request.Query.Session.Rollback();
 		}
 	}
 }

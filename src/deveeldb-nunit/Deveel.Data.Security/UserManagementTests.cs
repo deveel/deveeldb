@@ -25,7 +25,7 @@ namespace Deveel.Data.Security {
 				using (var session = base.CreateAdminSession(database)) {
 					using (var query = session.CreateQuery()) {
 						query.Session.Access.CreateUser("tester", "123456789");
-						query.Commit();
+						query.Session.Commit();
 					}
 				}
 			}

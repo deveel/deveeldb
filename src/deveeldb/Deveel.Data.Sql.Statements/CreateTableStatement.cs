@@ -121,7 +121,23 @@ namespace Deveel.Data.Sql.Statements {
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				try {
-					context.Request.Query.Session.Access.CreateTable(TableInfo, IfNotExists, Temporary);
+					var tableName = TableInfo.TableName;
+
+					if (!context.Query.Session.Access.UserCanCreateTable(tableName))
+						throw new MissingPrivilegesException(context.Query.UserName(), tableName, Privileges.Create);
+
+					if (context.Query.Session.Access.TableExists(tableName)) {
+						if (!IfNotExists)
+							throw new InvalidOperationException(
+								String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
+
+						return;
+					}
+
+					context.Query.Session.Access.CreateTable(TableInfo, Temporary);
+
+					// TODO: Check if to do this we must use a system session 
+					context.Query.Session.Access.GrantToUserOnTable(TableInfo.TableName, context.Query.UserName(), Privileges.TableAll);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}

@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(2, "Provenzano");
 
 			Assert.DoesNotThrow(() => table.AddRow(row));
-			Assert.DoesNotThrow(() => Query.Commit());
+			Assert.DoesNotThrow(() => Query.Session.Commit());
 
 			Assert.IsNull(beforeEvent);
 			Assert.IsNull(afterEvent);

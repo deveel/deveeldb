@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
@@ -134,8 +135,32 @@ namespace Deveel.Data.Sql.Statements {
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-				context.Request.Query.Session.Access.DefineView(viewInfo, ReplaceIfExists);
+				DefineView(context, viewInfo, ReplaceIfExists);
 			}
+
+			private void DefineView(ExecutionContext context, ViewInfo viewInfo, bool replaceIfExists) {
+				var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
+				foreach (var tableName in tablesInPlan) {
+					if (!context.Query.Session.Access.UserCanSelectFromTable(tableName))
+						throw new InvalidAccessException(context.Query.UserName(), tableName);
+				}
+
+				if (context.Query.Session.Access.ViewExists(viewInfo.ViewName)) {
+					if (!replaceIfExists)
+						throw new InvalidOperationException(
+							String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
+
+					context.Query.Access.DropObject(DbObjectType.View, viewInfo.ViewName);
+				}
+
+				context.Query.Access.CreateObject(viewInfo);
+
+				// The initial grants for a view is to give the user who created it
+				// full access.
+				// TODO: Verify if we need a system session to assign this...
+				context.Query.Session.Access.GrantToUserOnTable(viewInfo.ViewName, context.Query.UserName(), Privileges.TableAll);
+			}
+
 		}
 
 		#endregion

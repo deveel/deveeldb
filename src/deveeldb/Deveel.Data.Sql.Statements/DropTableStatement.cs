@@ -16,8 +16,10 @@
 
 
 using System;
+using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
@@ -57,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private Prepared(SerializationInfo info, StreamingContext context) {
-				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+				TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
 				IfExists = info.GetBoolean("IfExists");
 			}
 
@@ -71,7 +73,39 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				context.Request.Query.Session.Access.DropTables(new[] { TableName }, IfExists);
+				if (!context.Query.Session.Access.UserCanDropObject(DbObjectType.Table, TableName))
+					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Drop);
+
+				// Check there are no referential links to any tables being dropped
+				var refs = context.Query.Session.Access.QueryTableImportedForeignKeys(TableName);
+				if (refs.Length > 0) {
+					var reference = refs[0];
+					throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
+						String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
+							reference.ConstraintName, TableName, reference.TableName));
+				}
+
+				// If the 'only if exists' flag is false, we need to check tables to drop
+				// exist first.
+				if (!IfExists) {
+					// If table doesn't exist, throw an error
+					if (!context.Query.Session.Access.TableExists(TableName)) {
+						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
+							TableName));
+					}
+				}
+
+				// Does the table already exist?
+				if (context.Query.Session.Access.TableExists(TableName)) {
+					// Drop table in the transaction
+					context.Query.Access.DropObject(DbObjectType.Table, TableName);
+
+					// Revoke all the grants on the table
+					context.Query.Session.Access.RevokeAllGrantsOnTable(TableName);
+
+					// Drop all constraints from the schema
+					context.Query.Session.Access.DropAllTableConstraints(TableName);
+				}
 			}
 		}
 

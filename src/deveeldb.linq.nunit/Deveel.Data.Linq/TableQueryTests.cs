@@ -20,7 +20,7 @@ namespace Deveel.Data.Linq {
 					CreateTestTable(query);
 					AddTestData(query);
 
-					query.Commit();
+					query.Session.Commit();
 				}
 			}
 
@@ -73,7 +73,7 @@ namespace Deveel.Data.Linq {
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 
-			context.Commit();
+			context.Session.Commit();
 		}
 
 		protected override void OnSetUp(string testName) {

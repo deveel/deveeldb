@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 					CreateTestTable(query);
 					AddTestData(query);
 
-					query.Commit();
+					query.Session.Commit();
 				}
 			}
 
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql.Statements {
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 
-			context.Commit();
+			context.Session.Commit();
 		}
 
 		[Test]
