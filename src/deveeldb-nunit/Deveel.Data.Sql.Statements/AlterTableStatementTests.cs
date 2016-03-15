@@ -61,14 +61,14 @@ namespace Deveel.Data.Sql.Statements {
 			var column = new SqlTableColumn("reserved", PrimitiveTypes.Boolean());
 			var statement = new AlterTableStatement(tableName, new AddColumnAction(column));
 
-			ITable result = null;
-			Assert.DoesNotThrow(() => result = Query.ExecuteStatement(statement));
+			var result = Query.ExecuteStatement(statement);
+
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0,  ((SqlNumber) result.GetValue(0,0).Value).ToInt32());
 
-			var testTable = Query.Access.GetTable(new ObjectName("APP.test_table"));
+			var testTable = Query.Access.GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.Access.GetTable(new ObjectName("APP.test_table"));
+			var testTable = Query.Access.GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.Access.GetTable(new ObjectName("APP.test_table"));
+			var testTable = Query.Access.GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -164,7 +164,7 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.AreEqual(1, result.TableInfo.ColumnCount);
 			Assert.AreEqual(0, ((SqlNumber)result.GetValue(0, 0).Value).ToInt32());
 
-			var testTable = Query.Access.GetTable(new ObjectName("APP.test_table"));
+			var testTable = Query.Access.GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 

@@ -102,7 +102,21 @@ namespace Deveel.Data {
 				throw new NotSupportedException();
 			}
 
+			if (objectInfo.ObjectType == DbObjectType.Table) {
+				AlterTable((TableInfo) objectInfo);
+				return;
+			}
+
 			Session.Access.AlterObject(objectInfo);
+		}
+
+		public void AlterTable(TableInfo tableInfo) {
+			try {
+				Session.Access.AlterTable(tableInfo);
+			} finally {
+				if (TableCache != null)
+					TableCache.Remove(tableInfo.TableName.FullName);
+			}
 		}
 
 		public ObjectName ResolveObjectName(string name) {
