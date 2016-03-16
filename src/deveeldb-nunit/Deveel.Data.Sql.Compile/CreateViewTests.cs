@@ -22,7 +22,8 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<CreateViewStatement>(statement);
 
 			var createView = (CreateViewStatement) statement;
-			Assert.AreEqual("test_view", createView.ViewName);
+			Assert.IsNotNull(createView.ViewName);
+			Assert.AreEqual("test_view", createView.ViewName.FullName);
 			Assert.IsNotEmpty(createView.ColumnNames);
 			Assert.IsNotNull(createView.QueryExpression);
 			Assert.IsFalse(createView.ReplaceIfExists);
@@ -42,7 +43,8 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<CreateViewStatement>(statement);
 
 			var createView = (CreateViewStatement)statement;
-			Assert.AreEqual("test_view", createView.ViewName);
+			Assert.IsNotNull(createView.ViewName);
+			Assert.AreEqual("test_view", createView.ViewName.FullName);
 			Assert.IsNull(createView.ColumnNames);
 			Assert.IsNotNull(createView.QueryExpression);
 			Assert.IsFalse(createView.ReplaceIfExists);

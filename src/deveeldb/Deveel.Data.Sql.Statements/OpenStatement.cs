@@ -19,7 +19,6 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -86,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
-			cursor.Open(context.Request, Arguments);
+			context.Request.Access.OpenCursor(CursorName, Arguments);
 		}
 	}
 }

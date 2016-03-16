@@ -13,7 +13,7 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class RequestAccess : IDisposable {
+	public sealed class RequestAccess : SystemAccess {
 		public RequestAccess(IRequest request) {
 			if (request == null)
 				throw new ArgumentNullException("request");
@@ -21,26 +21,26 @@ namespace Deveel.Data {
 			Request = request;
 		}
 
-		public IRequest Request { get; private set; }
+		private IRequest Request { get; set; }
 
-		public ISession Session {
+		protected override ISession Session {
 			get { return Request.Query.Session; }
 		}
 
-		public SessionAccess SessionAccess {
+		private SessionAccess SessionAccess {
 			get { return Session.Access; }
 		}
 
-		public bool ObjectExists(ObjectName objectName) {
+		public override bool ObjectExists(ObjectName objectName) {
 			if (Request.Context.VariableExists(objectName.Name))
 				return true;
 			if (Request.Context.VariableExists(objectName.Name))
 				return true;
 
-			return Session.Access.ObjectExists(objectName);
+			return base.ObjectExists(objectName);
 		}
 
-		public bool ObjectExists(DbObjectType objectType, ObjectName objectName) {
+		public override bool ObjectExists(DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Cursor &&
 				Request.Context.CursorExists(objectName.Name))
 				return true;
@@ -48,14 +48,14 @@ namespace Deveel.Data {
 				Request.Context.VariableExists(objectName.Name))
 				return true;
 
-			return Session.Access.ObjectExists(objectType, objectName);
+			return base.ObjectExists(objectType, objectName);
 		}
 
-		public IDbObject GetObject(DbObjectType objType, ObjectName objName) {
+		public override IDbObject GetObject(DbObjectType objType, ObjectName objName) {
 			return GetObject(objType, objName, AccessType.ReadWrite);
 		}
 
-		public IDbObject GetObject(DbObjectType objType, ObjectName objName, AccessType accessType) {
+		public override IDbObject GetObject(DbObjectType objType, ObjectName objName, AccessType accessType) {
 			if (objType == DbObjectType.Cursor)
 				return Request.Context.FindCursor(objName.Name);
 			if (objType == DbObjectType.Variable)
@@ -68,10 +68,10 @@ namespace Deveel.Data {
 			if (!Session.Access.UserCanAccessObject(objType, objName))
 				throw new InvalidOperationException();
 
-			return Session.Access.GetObject(objType, objName, accessType);
+			return base.GetObject(objType, objName, accessType);
 		}
 
-		public void CreateObject(IObjectInfo objectInfo) {
+		public override void CreateObject(IObjectInfo objectInfo) {
 			if (objectInfo.ObjectType == DbObjectType.Cursor) {
 				var cursorInfo = (CursorInfo) objectInfo;
 				Request.Context.DeclareCursor(cursorInfo);
@@ -79,21 +79,20 @@ namespace Deveel.Data {
 				var varInfo = (VariableInfo) objectInfo;
 				Request.Context.DeclareVariable(varInfo);
 			} else {
-				Session.Access.CreateObject(objectInfo);
+				base.CreateObject(objectInfo);
 			}
 		}
 
-		public bool DropObject(DbObjectType objectType, ObjectName objectName) {
+		public override bool DropObject(DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Cursor)
 				return Request.Context.DropCursor(objectName.Name);
 			if (objectType == DbObjectType.Variable)
 				return Request.Context.DropVariable(objectName.Name);
 
-			Session.Access.DropObject(objectType, objectName);
-			return true;
+			return base.DropObject(objectType, objectName);
 		}
 
-		public void AlterObject(IObjectInfo objectInfo) {
+		public override void AlterObject(IObjectInfo objectInfo) {
 			if (objectInfo == null)
 				throw new ArgumentNullException("objectInfo");
 
@@ -107,28 +106,28 @@ namespace Deveel.Data {
 				return;
 			}
 
-			Session.Access.AlterObject(objectInfo);
+			base.AlterObject(objectInfo);
 		}
 
 		public void AlterTable(TableInfo tableInfo) {
 			try {
-				Session.Access.AlterTable(tableInfo);
+				base.AlterObject(tableInfo);
 			} finally {
 				if (TableCache != null)
 					TableCache.Remove(tableInfo.TableName.FullName);
 			}
 		}
 
-		public ObjectName ResolveObjectName(string name) {
+		public override ObjectName ResolveObjectName(string name) {
 			if (Request.Context.CursorExists(name))
 				return new ObjectName(name);
 			if (Request.Context.VariableExists(name))
 				return new ObjectName(name);
 
-			return Session.Access.ResolveObjectName(name);
+			return base.ResolveObjectName(name);
 		}
 
-		public ObjectName ResolveObjectName(DbObjectType objectType, ObjectName objectName) {
+		public override ObjectName ResolveObjectName(DbObjectType objectType, ObjectName objectName) {
 			if (objectType == DbObjectType.Variable &&
 				Request.Context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
@@ -136,23 +135,23 @@ namespace Deveel.Data {
 				Request.Context.VariableExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 
-			return Session.Access.ResolveObjectName(objectType, objectName);
+			return base.ResolveObjectName(objectType, objectName);
 		}
 
-		public IDbObject FindObject(ObjectName objectName) {
+		public override IDbObject FindObject(ObjectName objectName) {
 			if (Request.Context.CursorExists(objectName.Name))
 				return Request.Context.FindCursor(objectName.Name);
 			if (Request.Context.VariableExists(objectName.Name))
 				return Request.Context.FindVariable(objectName.Name);
 
-			return Session.Access.FindObject(objectName);
+			return base.FindObject(objectName);
 		}
 
 		private ICache TableCache {
 			get { return Request.Context.ResolveService<ICache>("TableCache"); }
 		}
 
-		public ITable GetTable(ObjectName tableName) {
+		public override ITable GetTable(ObjectName tableName) {
 			var table = GetCachedTable(tableName.FullName) as ITable;
 			if (table == null) {
 				table = Session.Access.GetTable(tableName);
@@ -203,7 +202,7 @@ namespace Deveel.Data {
 			var queryPlan = Request.Context.QueryPlanner().PlanQuery(new QueryInfo(Request, cursorInfo.QueryExpression));
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
-				if (!SessionAccess.UserCanSelectFromTable(tableName))
+				if (!UserCanSelectFromTable(tableName))
 					throw new MissingPrivilegesException(Request.Query.UserName(), tableName, Privileges.Select);
 			}
 
@@ -275,18 +274,8 @@ namespace Deveel.Data {
 			return Session.Access.InvokeFunction(Request, invoke);
 		}
 
-		public Field InvokeFunction(ObjectName functionName, params SqlExpression[] args) {
-			return SessionAccess.InvokeFunction(Request, new Invoke(functionName, args));
-		}
-
-
 		public void FireTriggers(TableEvent tableEvent) {
 			Session.Access.FireTriggers(Request, tableEvent);
-		}
-
-
-		public void Dispose() {
-			Request = null;
 		}
 	}
 }

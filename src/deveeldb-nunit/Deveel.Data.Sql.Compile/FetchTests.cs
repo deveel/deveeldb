@@ -23,9 +23,9 @@ namespace Deveel.Data.Sql.Compile {
 			var statement = result.Statements.FirstOrDefault();
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<FetchStatement>(statement);
+			Assert.IsInstanceOf<FetchIntoStatement>(statement);
 
-			var cursorStatement = (FetchStatement) statement;
+			var cursorStatement = (FetchIntoStatement) statement;
 			Assert.AreEqual("test_cursor", cursorStatement.CursorName);
 		}
 

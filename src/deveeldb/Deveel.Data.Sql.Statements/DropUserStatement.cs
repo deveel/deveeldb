@@ -41,14 +41,14 @@ namespace Deveel.Data.Sql.Statements {
 		public string UserName { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Query.Session.Access.UserCanDropUser(UserName))
+			if (!context.Request.Access.UserCanDropUser(UserName))
 				throw new SecurityException(String.Format("The user '{0}' has not enough rights to drop the other user '{1}'",
-					context.Request.Query.UserName(), UserName));
+					context.Request.UserName(), UserName));
 
-			if (!context.Request.Query.Session.Access.UserExists(UserName))
+			if (!context.Request.Access.UserExists(UserName))
 				throw new InvalidOperationException(String.Format("The user '{0}' does not exist: cannot delete.", UserName));
 
-			context.Request.Query.Session.Access.DeleteUser(UserName);
+			context.Request.Access.DeleteUser(UserName);
 		}
 
 		protected override void GetData(SerializationInfo info) {

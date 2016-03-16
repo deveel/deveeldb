@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 
 			var table = context.Access.GetTable(tableName);
 			if (table == null)
@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (Values.Any(x => x.OfType<SqlQueryExpression>().Any()))
 				throw new InvalidOperationException("Cannot set a value from a query.");
 
-			var tableQueryInfo = context.Query.Session.Access.GetTableQueryInfo(tableName, null);
+			var tableQueryInfo = context.Access.GetTableQueryInfo(tableName, null);
 			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
 
 			var columns = new string[0];

@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Statements {
 			var userName = context.Request.User().Name;
 
 			bool modifyOwnRecord = userName.Equals(UserName);
-			bool secureAccessPrivs = context.Request.Query.Session.Access.UserCanManageUsers();
+			bool secureAccessPrivs = context.Request.Access.UserCanManageUsers();
 
 			if (!(modifyOwnRecord || secureAccessPrivs))
 				throw new MissingPrivilegesException(userName, new ObjectName(UserName), Privileges.Alter);
@@ -72,16 +72,16 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
-				context.Request.Query.Session.Access.AlterUserPassword(UserName, password);
+				context.Request.Access.AlterUserPassword(UserName, password);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
 				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
 					.Cast<SqlConstantExpression>()
 					.Select(x => x.Value.Value.ToString())
 					.ToArray();
 
-				context.Request.Query.Session.Access.SetUserGroups(UserName, groupNames);
+				context.Request.Access.SetUserGroups(UserName, groupNames);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetAccountStatus) {
-				context.Request.Query.Session.Access.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
+				context.Request.Access.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}
 		}
 	}

@@ -90,7 +90,7 @@ namespace Deveel.Data.Routines {
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
 		public bool IsAggregate(IRequest query) {
-			if (query.Query.Access.IsAggregateFunction(this))
+			if (query.Access.IsAggregateFunction(this))
 				return true;
 
 			// Look at parameterss

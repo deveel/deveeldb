@@ -252,9 +252,9 @@ namespace Deveel.Data.Sql.Query {
 					string name = fromTable.Name;
 
 					// Resolve to full table name
-					var tableName = context.Query.Session.Access.ResolveTableName(name);
+					var tableName = context.Access.ResolveTableName(name);
 
-					if (!context.Query.Session.Access.TableExists(tableName))
+					if (!context.Access.TableExists(tableName))
 						throw new InvalidOperationException(String.Format("Table '{0}' was not found.", tableName));
 
 					ObjectName givenName = null;
@@ -262,7 +262,7 @@ namespace Deveel.Data.Sql.Query {
 						givenName = new ObjectName(alias);
 
 					// Get the ITableQueryInfo object for this table name (aliased).
-					var tableQueryInfo = context.Query.Session.Access.GetTableQueryInfo(tableName, givenName);
+					var tableQueryInfo = context.Access.GetTableQueryInfo(tableName, givenName);
 
 					queryFrom.AddTable(new FromTableDirectSource(ignoreCase, tableQueryInfo, uniqueKey, givenName, tableName));
 				}

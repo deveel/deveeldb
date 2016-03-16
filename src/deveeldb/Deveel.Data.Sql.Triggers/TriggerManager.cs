@@ -239,10 +239,6 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		void ITriggerManager.RegisterTrigger(TriggerInfo triggerInfo) {
-			CreateTrigger(triggerInfo);
-		}
-
 		public void CreateTrigger(TriggerInfo triggerInfo) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;

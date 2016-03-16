@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 
-			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 

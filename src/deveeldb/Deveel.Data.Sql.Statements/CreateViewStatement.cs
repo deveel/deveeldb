@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool ReplaceIfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Query.Session.Access.ResolveTableName(ViewName);
+			var viewName = context.Access.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));

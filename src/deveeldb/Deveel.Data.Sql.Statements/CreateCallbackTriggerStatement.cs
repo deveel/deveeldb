@@ -17,16 +17,16 @@ namespace Deveel.Data.Sql.Statements {
 		public TriggerEventType EventType { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 
 			return new CreateCallbackTriggerStatement(tableName, EventType);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Query.Session.Access.TableExists(TableName))
+			if (!context.Request.Access.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
 
-			context.Request.Query.Session.Access.CreateCallbackTrigger(TableName, EventType);
+			context.Request.Access.CreateCallbackTrigger(TableName, EventType);
 		}
 	}
 }

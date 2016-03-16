@@ -37,7 +37,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void CallbackTrigger() {
-			var tableName = ObjectName.Parse("APP.test_trigger");
+			var tableName = ObjectName.Parse("APP.test_table");
 			Query.CreateCallbackTrigger(tableName, TriggerEventType.BeforeInsert);
 
 			// TODO: Assert a callback trigger exists for the table

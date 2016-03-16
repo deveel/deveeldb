@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private TableInfo CreateTableInfo(IRequest context) {
-			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 
 			var idColumnCount = Columns.Count(x => x.IsIdentity);
 			if (idColumnCount > 1)

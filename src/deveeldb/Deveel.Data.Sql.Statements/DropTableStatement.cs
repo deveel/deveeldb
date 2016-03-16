@@ -41,8 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.Session.Access.ResolveTableName(TableName);
-			if (!context.Query.Session.Access.TableExists(tableName) &&
+			var tableName = context.Access.ResolveTableName(TableName);
+			if (!context.Access.TableExists(tableName) &&
 			    !IfExists)
 				throw new ObjectNotFoundException(TableName);
 
