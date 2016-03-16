@@ -72,9 +72,6 @@ namespace Deveel.Data.Sql.Triggers {
 
 		AfterUpdate = After | Update,
 
-		AfterDelete = After | Delete,
-
-		AllBefore = BeforeInsert | BeforeDelete | BeforeUpdate,
-		AllAfter = AfterInsert | AfterDelete | AfterUpdate,
+		AfterDelete = After | Delete
 	}
 }

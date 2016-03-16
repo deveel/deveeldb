@@ -253,6 +253,10 @@ namespace Deveel.Data {
 
 		#endregion
 
+		public bool VariableExists(string variableName) {
+			return ObjectExists(DbObjectType.Variable, new ObjectName(variableName));
+		}
+
 		public bool IsAggregateFunction(Invoke invoke) {
 			return Session.Access.IsAggregateFunction(invoke, Request);
 		}

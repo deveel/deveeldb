@@ -27,12 +27,12 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class UpdateStatement : SqlStatement, IPlSqlStatement {
-		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
+		public UpdateStatement(ObjectName tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
 				throw new ArgumentNullException("wherExpression");
 			if (assignments == null)
 				throw new ArgumentNullException("assignments");
-			if (String.IsNullOrEmpty(tableName))
+			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 			Limit = -1;
 		}
 
-		public string TableName { get; private set; }
+		public ObjectName TableName { get; private set; }
 
 		public SqlExpression WherExpression { get; private set; }
 

@@ -17,10 +17,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data {
 	public static class QueryExtensions {
@@ -58,7 +62,23 @@ namespace Deveel.Data {
 
 		#region Statements
 
-		#region CreateTable
+		#region Create Schema
+
+		public static void CreateSchema(this IQuery query, string name) {
+			query.ExecuteStatement(new CreateSchemaStatement(name));
+		}
+
+		#endregion
+
+		#region Drop Schema
+
+		public static void DropSchema(this IQuery query, string name) {
+			query.ExecuteStatement(new DropSchemaStatement(name));
+		}
+
+		#endregion
+
+		#region Create Table
 
 		public static void CreateTable(this IQuery query, ObjectName tableName, params SqlTableColumn[] columns) {
 			CreateTable(query, tableName, false, columns);
@@ -78,7 +98,63 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region DropTable
+		#region Alter Table
+
+		public static void AlterTable(this IQuery query, ObjectName tableName, IAlterTableAction action) {
+			query.ExecuteStatement(new AlterTableStatement(tableName, action));
+		}
+
+		public static void AddColumn(this IQuery query, ObjectName tableName, SqlTableColumn column) {
+			query.AlterTable(tableName, new AddColumnAction(column));
+		}
+
+		public static void AddColumn(this IQuery query, ObjectName tableName, string columnName, SqlType columnType) {
+			query.AddColumn(tableName, new SqlTableColumn(columnName, columnType));
+		}
+
+		public static void DropColumn(this IQuery query, ObjectName tableName, string columnName) {
+			query.AlterTable(tableName, new DropColumnAction(columnName));
+		}
+
+		public static void AddConstraint(this IQuery query, ObjectName tableName, SqlTableConstraint constraint) {
+			query.AlterTable(tableName, new AddConstraintAction(constraint));
+		}
+
+		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, params string[] columnNames) {
+			query.AddPrimaryKey(tableName, null, columnNames);
+		}
+
+		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, string constraintName, params string[] columnNames) {
+			query.AddConstraint(tableName, SqlTableConstraint.PrimaryKey(constraintName, columnNames));
+		}
+
+		public static void DropPrimaryKey(this IQuery query, ObjectName tableName) {
+			query.AlterTable(tableName, new DropPrimaryKeyAction());
+		}
+
+		public static void AddUniqueKey(this IQuery query, ObjectName tableName, params string[] columnNames) {
+			AddUniqueKey(query, tableName, null, columnNames);
+		}
+
+		public static void AddUniqueKey(this IQuery query, ObjectName tableName, string constraintName, params string[] columnNames) {
+			query.AddConstraint(tableName, SqlTableConstraint.UniqueKey(constraintName, columnNames));
+		}
+
+		public static void DropConstraint(this IQuery query, ObjectName tableName, string constraintName) {
+			query.AlterTable(tableName, new DropConstraintAction(constraintName));
+		}
+
+		public static void SetDefault(this IQuery query, ObjectName tableName, string columnName, SqlExpression expression) {
+			query.AlterTable(tableName, new SetDefaultAction(columnName, expression));
+		}
+
+		public static void DropDefault(this IQuery query, ObjectName tableName, string columnName) {
+			query.AlterTable(tableName, new DropDefaultAction(columnName));
+		}
+
+		#endregion
+
+		#region Drop Table
 
 		public static void DropTable(this IQuery query, ObjectName tableName) {
 			DropTable(query, tableName, false);
@@ -90,7 +166,7 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region CreateView
+		#region Create View
 
 		public static void CreateView(this IQuery query, string viewName, string querySource) {
 			CreateView(query, viewName, new string[0], querySource);
@@ -116,7 +192,7 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region DropView
+		#region Drop View
 
 		public static void DropView(this IQuery query, ObjectName viewName) {
 			DropView(query, viewName, false);
@@ -124,6 +200,203 @@ namespace Deveel.Data {
 
 		public static void DropView(this IQuery query, ObjectName viewName, bool ifExists) {
 			query.ExecuteStatement(new DropViewStatement(viewName, ifExists));
+		}
+
+		#endregion
+
+		#region Create Group
+
+		public static void CreateRole(this IQuery query, string roleName) {
+			query.ExecuteStatement(new CreateRoleStatement(roleName));
+		}
+
+		#endregion
+
+		#region Drop Role
+
+		public static void DropRole(this IQuery query, string roleName) {
+			query.ExecuteStatement(new DropRoleStatement(roleName));
+		}
+
+		#endregion
+
+		#region Create User
+
+		public static void CreateUser(this IQuery query, string userName, SqlExpression password) {
+			query.ExecuteStatement(new CreateUserStatement(userName, password));
+		}
+
+		public static void CreateUser(this IQuery query, string userName, string password) {
+			query.CreateUser(userName, SqlExpression.Constant(Field.VarChar(password)));
+		}
+
+		#endregion
+
+		#region Alter User
+
+		public static void AlterUser(this IQuery query, string userName, IAlterUserAction action) {
+			query.ExecuteStatement(new AlterUserStatement(userName, action));
+		}
+
+		public static void SetPassword(this IQuery query, string userName, SqlExpression password) {
+			query.AlterUser(userName, new SetPasswordAction(password));
+		}
+
+		public static void SetPassword(this IQuery query, string userName, string password) {
+			query.SetPassword(userName, SqlExpression.Constant(Field.VarChar(password)));
+		}
+
+		public static void SetGroups(this IQuery query, string userName, params SqlExpression[] groups) {
+			query.AlterUser(userName, new SetUserGroupsAction(groups));
+		}
+
+		public static void SetGroups(this IQuery query, string userName, params string[] groupNames) {
+			if (groupNames == null)
+				throw new ArgumentNullException("groupNames");
+
+			var groups = groupNames.Select(x => SqlExpression.Constant(Field.VarChar(x))).Cast<SqlExpression>().ToArray();
+			query.SetGroups(userName, groups);
+		}
+
+		public static void SetAccountStatus(this IQuery query, string userName, UserStatus status) {
+			query.AlterUser(userName, new SetAccountStatusAction(status));
+		}
+
+		public static void SetAccountLocked(this IQuery query, string userName) {
+			query.SetAccountStatus(userName, UserStatus.Locked);
+		}
+
+		public static void SetAccountUnlocked(this IQuery query, string userName) {
+			query.SetAccountStatus(userName, UserStatus.Unlocked);
+		}
+
+		#endregion
+
+		#region Drop User
+
+		public static void DropUser(this IQuery query, string userName) {
+			query.ExecuteStatement(new DropUserStatement(userName));
+		}
+
+		#endregion
+
+
+		#region Grant Privileges
+
+		public static void Grant(this IQuery query, string grantee, Privileges privileges, ObjectName objectName) {
+			query.Grant(grantee, privileges, false, objectName);
+		}
+
+		public static void Grant(this IQuery query, string grantee, Privileges privileges, bool withOption, ObjectName objectName) {
+			query.ExecuteStatement(new GrantPrivilegesStatement(grantee, privileges, withOption, objectName));
+		}
+
+		#endregion
+
+		#region Grant Role
+
+		public static void GrantRole(this IQuery query, string userName, string roleName) {
+			GrantRole(query, userName, roleName, false);
+		}
+
+		public static void GrantRole(this IQuery query, string userName, string roleName, bool withAdmin) {
+			query.ExecuteStatement(new GrantRoleStatement(userName, roleName, withAdmin));
+		}
+
+		#endregion
+
+		#region Revoke Privileges
+
+		public static void RevokeFromUser(this IQuery query, string grantee, Privileges privileges, ObjectName objectName) {
+			RevokeFromUser(query, grantee, privileges, false, objectName);
+		}
+
+		public static void RevokeFromUser(this IQuery query, string grantee, Privileges privileges, bool grantOption, ObjectName objectName) {
+			query.ExecuteStatement(new RevokePrivilegesStatement(grantee, privileges, grantOption, objectName, new string[0]));
+		}
+
+		#endregion
+
+		#region Create Trigger
+
+		public static void CreateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateTriggerStatement(triggerName, tableName, body, eventType));
+		}
+
+		public static void CreateBeforeInsertTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeInsert);
+		}
+
+		public static void CreateAfterInsertTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterInsert);
+		}
+
+		public static void CreateBeforeUpdateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeUpdate);
+		}
+
+		public static void CreateAfterUpdateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterUpdate);
+		}
+
+		public static void CreateBeforeDeleteTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeDelete);
+		}
+
+		public static void CreateAfterDeleteTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
+			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterDelete);
+		}
+
+		public static void CreateCallbackTrigger(this IQuery query, ObjectName tableName, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateCallbackTriggerStatement(tableName, eventType));
+		}
+
+		#endregion
+
+		#region DropTrigger
+
+		public static void DropTrigger(this IQuery query, ObjectName triggerName) {
+			query.ExecuteStatement(new DropTriggerStatement(triggerName));
+		}
+
+		public static void DropCallbackTrigger(this IQuery query, ObjectName tableName) {
+			query.ExecuteStatement(new DropCallbackTriggersStatement(tableName));
+		}
+
+		#endregion
+
+		#region Create Sequence
+
+		#endregion
+
+		#region Drop Sequence
+
+		public static void DropSequence(this IQuery query, ObjectName sequenceName) {
+			query.ExecuteStatement(new DropSequenceStatement(sequenceName));
+		}
+
+		#endregion
+
+		#region Show
+
+		public static void Show(this IQuery query, ShowTarget target) {
+			query.ExecuteStatement(new ShowStatement(target));
+		}
+
+		#endregion
+
+		#region Commit
+
+		public static void Commit(this IQuery query) {
+			query.ExecuteStatement(new CommitStatement());
+		}
+
+		#endregion
+
+		#region Rollback
+
+		public static void Rollback(this IQuery query) {
+			query.ExecuteStatement(new RollbackStatement());
 		}
 
 		#endregion

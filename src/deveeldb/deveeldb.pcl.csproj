@@ -117,7 +117,6 @@
     <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Cursors\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
@@ -143,8 +142,12 @@
     <Compile Include="Deveel.Data.Sql.Statements\CodeBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CursorForLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionStatement.cs" />
@@ -152,11 +155,14 @@
     <Compile Include="Deveel.Data.Sql.Statements\DeleteCurrentStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropCallbackTriggersStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropTypeStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropUserStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ExitStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ForLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GoToStatement.cs" />
@@ -211,6 +217,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
     <Compile Include="Deveel.Data\IsolatedAccess.cs" />
     <Compile Include="Deveel.Data\ModuleInfo.cs" />
+    <Compile Include="Deveel.Data\QueryContext.cs" />
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
     <Compile Include="Deveel.Data\SystemAccess.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
@@ -391,7 +398,6 @@
     <Compile Include="Deveel.Data.Routines\SystemFunctionsProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
-    <Compile Include="Deveel.Data.Routines\SystemRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\Grant.cs" />
@@ -422,7 +428,6 @@
     <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
-    <Compile Include="Deveel.Data.Sql\IExecutable.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
@@ -767,7 +772,6 @@
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Variables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\Variable.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableInfo.cs" />
@@ -938,7 +942,6 @@
     <Compile Include="Deveel.Data\ISystemModule.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data\Query.cs" />
-    <Compile Include="Deveel.Data\QueryContextBase.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />

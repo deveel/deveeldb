@@ -1117,7 +1117,7 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Routine Management
+		#region Routines
 
 		public bool IsSystemFunction(Invoke invoke, IRequest request) {
 			var info = ResolveFunctionInfo(invoke, request);

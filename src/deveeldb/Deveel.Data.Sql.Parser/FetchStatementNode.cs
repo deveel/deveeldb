@@ -19,6 +19,7 @@ using System;
 using System.Linq;
 
 using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
@@ -100,11 +101,18 @@ namespace Deveel.Data.Sql.Parser {
 			if (!TryParseDirection(Direction, out direction))
 				throw new InvalidOperationException();
 
-			var statement = new FetchStatement(CursorName, direction);
-			if (Into != null)
-				statement.IntoReference = ExpressionBuilder.Build(Into);
+			SqlExpression offset = null;
 			if (Position != null)
-				statement.PositionExpression = ExpressionBuilder.Build(Position);
+				offset = ExpressionBuilder.Build(Position);
+
+			SqlStatement statement;
+
+			if (Into != null) {
+				var intoRef = ExpressionBuilder.Build(Into);
+				statement = new FetchIntoStatement(CursorName, direction, offset, intoRef);
+			} else {
+				statement = new FetchStatement(CursorName, direction, offset);
+			}
 
 			builder.AddObject(statement);
 		}

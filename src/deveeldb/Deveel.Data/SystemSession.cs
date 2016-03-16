@@ -20,7 +20,6 @@ using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;

@@ -22,17 +22,26 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class FetchStatement : SqlStatement, IPlSqlStatement {
-		public FetchStatement(string cursorName, FetchDirection direction) {
+		public FetchStatement(string cursorName, FetchDirection direction) 
+			: this(cursorName, direction, null) {
+		}
+
+		public FetchStatement(string cursorName, FetchDirection direction, SqlExpression offsetExpression) {
+			if (offsetExpression != null) {
+				if (direction != FetchDirection.Absolute &&
+					direction != FetchDirection.Relative)
+					throw new ArgumentException("Cannot specify an offset for a FETCH that is not RELATIVE or ABSOLUTE");
+			}
+
 			CursorName = cursorName;
 			Direction = direction;
+			OffsetExpression = offsetExpression;
 		}
 
 		public string CursorName { get; private set; }
 
 		public FetchDirection Direction { get; private set; }
 
-		public SqlExpression PositionExpression { get; set; }
-
-		public SqlExpression IntoReference { get; set; }
+		public SqlExpression OffsetExpression { get; set; }
 	}
 }

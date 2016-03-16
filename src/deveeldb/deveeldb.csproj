@@ -153,6 +153,13 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
@@ -413,7 +420,7 @@
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
-    <Compile Include="Deveel.Data\QueryContextBase.cs" />
+    <Compile Include="Deveel.Data\QueryContext.cs" />
     <Compile Include="Deveel.Data\RecordState.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
     <Compile Include="Deveel.Data\SystemAccess.cs" />

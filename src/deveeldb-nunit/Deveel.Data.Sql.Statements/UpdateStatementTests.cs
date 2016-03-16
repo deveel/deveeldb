@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql.Statements {
 				new SqlColumnAssignment("birth_date", SqlExpression.Constant(Field.Date(new SqlDateTime(1970, 01, 20)))) 
 			};
 
-			var statement = new UpdateStatement("APP.test_table", whereExp, assignments);
+			var statement = new UpdateStatement(ObjectName.Parse("APP.test_table"), whereExp, assignments);
 			Query.ExecuteStatement(statement);
 		}
 	}
