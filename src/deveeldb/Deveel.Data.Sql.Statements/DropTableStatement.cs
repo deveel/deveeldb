@@ -73,11 +73,11 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Query.Session.Access.UserCanDropObject(DbObjectType.Table, TableName))
+				if (!context.Request.Access.UserCanDropObject(DbObjectType.Table, TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Drop);
 
 				// Check there are no referential links to any tables being dropped
-				var refs = context.Query.Session.Access.QueryTableImportedForeignKeys(TableName);
+				var refs = context.Request.Access.QueryTableImportedForeignKeys(TableName);
 				if (refs.Length > 0) {
 					var reference = refs[0];
 					throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
@@ -89,22 +89,22 @@ namespace Deveel.Data.Sql.Statements {
 				// exist first.
 				if (!IfExists) {
 					// If table doesn't exist, throw an error
-					if (!context.Query.Session.Access.TableExists(TableName)) {
+					if (!context.Request.Access.TableExists(TableName)) {
 						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
 							TableName));
 					}
 				}
 
 				// Does the table already exist?
-				if (context.Query.Session.Access.TableExists(TableName)) {
+				if (context.Request.Access.TableExists(TableName)) {
 					// Drop table in the transaction
-					context.Query.Access.DropObject(DbObjectType.Table, TableName);
+					context.Request.Access.DropObject(DbObjectType.Table, TableName);
 
 					// Revoke all the grants on the table
-					context.Query.Session.Access.RevokeAllGrantsOnTable(TableName);
+					context.Request.Access.RevokeAllGrantsOnTable(TableName);
 
 					// Drop all constraints from the schema
-					context.Query.Session.Access.DropAllTableConstraints(TableName);
+					context.Request.Access.DropAllTableConstraints(TableName);
 				}
 			}
 		}

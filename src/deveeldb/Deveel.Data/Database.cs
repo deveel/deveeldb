@@ -264,7 +264,7 @@ namespace Deveel.Data {
 							SystemSchema.CreateTables(query);
 							SystemGroups.Create(query);
 
-							query.Session.Access.CreatePublicUser();
+							query.Access.CreatePublicUser();
 
 							// Create the system views
 							InformationSchema.CreateViews(query);
@@ -308,8 +308,8 @@ namespace Deveel.Data {
 
 		private void CreateSchemata(IQuery context) {
 			try {
-				context.Session.Access.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				context.Session.Access.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
+				context.Access.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
+				context.Access.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {

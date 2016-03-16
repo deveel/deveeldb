@@ -104,11 +104,11 @@ namespace Deveel.Data {
 				var user = context.Access.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
-				context.Session.Access.AddUserToGroup(adminName, SystemGroups.SecureGroup);
+				context.Access.AddUserToGroup(adminName, SystemGroups.SecureGroup);
 
-				context.Session.Access.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
-				context.Session.Access.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
-				context.Session.Access.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
+				context.Access.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
+				context.Access.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
+				context.Access.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
 
 				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {

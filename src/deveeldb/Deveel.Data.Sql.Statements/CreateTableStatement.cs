@@ -123,10 +123,10 @@ namespace Deveel.Data.Sql.Statements {
 				try {
 					var tableName = TableInfo.TableName;
 
-					if (!context.Query.Session.Access.UserCanCreateTable(tableName))
+					if (!context.Request.Access.UserCanCreateTable(tableName))
 						throw new MissingPrivilegesException(context.Query.UserName(), tableName, Privileges.Create);
 
-					if (context.Query.Session.Access.TableExists(tableName)) {
+					if (context.Request.Access.TableExists(tableName)) {
 						if (!IfNotExists)
 							throw new InvalidOperationException(
 								String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
@@ -134,10 +134,10 @@ namespace Deveel.Data.Sql.Statements {
 						return;
 					}
 
-					context.Query.Session.Access.CreateTable(TableInfo, Temporary);
+					context.Request.Access.CreateTable(TableInfo, Temporary);
 
 					// TODO: Check if to do this we must use a system session 
-					context.Query.Session.Access.GrantToUserOnTable(TableInfo.TableName, context.Query.UserName(), Privileges.TableAll);
+					context.Request.Access.GrantToUserOnTable(TableInfo.TableName, context.Query.UserName(), Privileges.TableAll);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}
