@@ -253,22 +253,22 @@ namespace Deveel.Data.Sql.Schemas {
 		}
 
 		public static void GrantToPublic(IQuery query) {
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
 
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, Catalogs, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, Schemata, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, Tables, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, TablePrivileges, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, Columns, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ColumnPrivileges, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, PrimaryKeys, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ImportedKeys, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, ExportedKeys, User.PublicName, Privileges.TableRead);
-			query.Access.SystemAccess.GrantToUserOn(DbObjectType.View, CrossReference, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, Catalogs, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, Schemata, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, Tables, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, TablePrivileges, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, Columns, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ColumnPrivileges, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, PrimaryKeys, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ImportedKeys, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, ExportedKeys, User.PublicName, Privileges.TableRead);
+			query.Access.SessionAccess.GrantToUserOn(DbObjectType.View, CrossReference, User.PublicName, Privileges.TableRead);
 		}
 	}
 }

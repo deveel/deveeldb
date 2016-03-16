@@ -56,7 +56,7 @@ namespace Deveel.Data {
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
 
-			Access = new SystemAccess(this);
+			Access = new SessionAccess(this);
 
 			transaction.Database.Sessions.Add(this);
 
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 
 		public User User { get; private set; }
 
-		public SystemAccess Access { get; private set; }
+		public SessionAccess Access { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return Transaction; }

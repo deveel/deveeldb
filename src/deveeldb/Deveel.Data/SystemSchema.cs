@@ -333,14 +333,14 @@ namespace Deveel.Data {
 		}
 
 		public static void GrantToPublic(IQuery context) {
-			context.Access.SystemAccess.GrantToUserOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(StatisticsTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(VariablesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(RoutineTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(RoutineParameterTableName, User.PublicName, Privileges.TableRead);
-			context.Access.SystemAccess.GrantToUserOnTable(SessionInfoTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(StatisticsTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(VariablesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(RoutineTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+			context.Access.SessionAccess.GrantToUserOnTable(SessionInfoTableName, User.PublicName, Privileges.TableRead);
 		}
 
 		public static void Setup(ITransaction transaction) {

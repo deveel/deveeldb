@@ -101,7 +101,7 @@ namespace Deveel.Data {
 
 		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
 			try {
-				var user = context.Access.SystemAccess.CreateUser(adminName, adminPassword);
+				var user = context.Access.SessionAccess.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
 				context.Session.Access.AddUserToGroup(adminName, SystemGroups.SecureGroup);

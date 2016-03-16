@@ -13,8 +13,8 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class IsolatedAccess : IDisposable {
-		public IsolatedAccess(IRequest request) {
+	public sealed class RequestAccess : IDisposable {
+		public RequestAccess(IRequest request) {
 			if (request == null)
 				throw new ArgumentNullException("request");
 
@@ -27,7 +27,7 @@ namespace Deveel.Data {
 			get { return Request.Query.Session; }
 		}
 
-		public SystemAccess SystemAccess {
+		public SessionAccess SessionAccess {
 			get { return Session.Access; }
 		}
 
@@ -203,7 +203,7 @@ namespace Deveel.Data {
 			var queryPlan = Request.Context.QueryPlanner().PlanQuery(new QueryInfo(Request, cursorInfo.QueryExpression));
 			var selectedTables = queryPlan.DiscoverTableNames();
 			foreach (var tableName in selectedTables) {
-				if (!SystemAccess.UserCanSelectFromTable(tableName))
+				if (!SessionAccess.UserCanSelectFromTable(tableName))
 					throw new MissingPrivilegesException(Request.Query.UserName(), tableName, Privileges.Select);
 			}
 
@@ -276,7 +276,7 @@ namespace Deveel.Data {
 		}
 
 		public Field InvokeFunction(ObjectName functionName, params SqlExpression[] args) {
-			return SystemAccess.InvokeFunction(Request, new Invoke(functionName, args));
+			return SessionAccess.InvokeFunction(Request, new Invoke(functionName, args));
 		}
 
 

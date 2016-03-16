@@ -17,11 +17,11 @@ using Deveel.Data.Sql.Views;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public sealed class SystemAccess : IDisposable {
+	public sealed class SessionAccess : IDisposable {
 		private IUserManager userManager;
 		private IPrivilegeManager privilegeManager;
 
-		public SystemAccess(ISession session) {
+		public SessionAccess(ISession session) {
 			if (session == null)
 				throw new ArgumentNullException("session");
 

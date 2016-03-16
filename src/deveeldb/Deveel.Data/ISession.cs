@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// encapsulating the transaction for operations.
 	/// </summary>
 	public interface ISession : IEventSource, IDisposable {
-		SystemAccess Access { get; }
+		SessionAccess Access { get; }
 
 		/// <summary>
 		/// Gets the name of the current schema of this session.

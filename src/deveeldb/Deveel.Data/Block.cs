@@ -36,7 +36,7 @@ namespace Deveel.Data {
 
 			Parent = request as IBlock;
 
-			Access = new IsolatedAccess(this);
+			Access = new RequestAccess(this);
 		}
 
 		~Block() {
@@ -56,7 +56,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IsolatedAccess Access { get; private set; }
+		public RequestAccess Access { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return Parent; }

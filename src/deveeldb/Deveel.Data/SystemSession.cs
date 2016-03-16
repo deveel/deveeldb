@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 			StartedOn = DateTimeOffset.UtcNow;
 
-			Access = new SystemAccess(this);
+			Access = new SessionAccess(this);
 		}
 
 		public void Dispose() {
@@ -52,7 +52,7 @@ namespace Deveel.Data {
 
 		public DateTimeOffset StartedOn { get; private set; }
 
-		public SystemAccess Access { get; private set; }
+		public SessionAccess Access { get; private set; }
 
 		public DateTimeOffset? LastCommandTime {
 			get { return null; }
