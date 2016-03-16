@@ -1,21 +1,20 @@
 ﻿using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Sql.Statements {
+namespace Deveel.Data {
 	[TestFixture]
-	public class InsertSelectStatementTests : ContextBasedTest {
-		protected override IQuery CreateQuery(ISession session) {
-			var query = base.CreateQuery(session);
-			CreateTestTable(query);
-			return query;
+	public sealed class InsertSelectTests : ContextBasedTest {
+		protected override void OnSetUp(string testName) {
+			CreateTestTable(Query);
 		}
 
-		private void CreateTestTable(IQuery query) {
+		private static void CreateTestTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -32,12 +31,12 @@ namespace Deveel.Data.Sql.Statements {
 		[Test]
 		public void WithColumns() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT 'Antonello', 'Provenzano', NULL, NULL");
-			var columns = new[] {"first_name", "last_name", "birth_date", "active"};
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT 'Antonello', 'Provenzano', NULL, NULL");
+			var columns = new[] { "first_name", "last_name", "birth_date", "active" };
 
-			var statement = new InsertSelectStatement(tableName, columns, query);
+			var count = Query.InsertSelect(tableName, columns, query);
 
-			Query.ExecuteStatement(statement);
+			Assert.AreEqual(1, count);
 
 			var table = Query.Access.GetTable(tableName);
 
@@ -49,14 +48,15 @@ namespace Deveel.Data.Sql.Statements {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT 3, 'Antonello', 'Provenzano', NULL, NULL");
 
-			var statement = new InsertSelectStatement(tableName, query);
+			var count = Query.InsertSelect(tableName, query);
 
-			Query.ExecuteStatement(statement);
+			Assert.AreEqual(1, count);
 
 			var table = Query.Access.GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 
 		}
+
 	}
 }

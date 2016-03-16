@@ -187,10 +187,34 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Insert Select
+
+		public static int InsertSelect(this IRequest request, ObjectName tableName, SqlQueryExpression query) {
+			return InsertSelect(request, tableName, new string[0], query);
+		}
+
+		public static int InsertSelect(this IRequest request, ObjectName tableName, string[] columnNames, SqlQueryExpression query) {
+			return GetResult(request.ExecuteStatement(new InsertSelectStatement(tableName, columnNames, query)));
+		}
+
+		#endregion
+
 		#region Update
 
 		public static int Update(this IRequest request, ObjectName tableName, SqlExpression where, params SqlColumnAssignment[] assignments) {
 			return GetResult(request.ExecuteStatement(new UpdateStatement(tableName, where, assignments)));
+		}
+
+		#endregion
+
+		#region Delete
+
+		public static int Delete(this IRequest request, ObjectName tableName, SqlExpression where) {
+			return Delete(request, tableName, @where, -1);
+		}
+
+		public static int Delete(this IRequest request, ObjectName tableName, SqlExpression where, int limit) {
+			return GetResult(request.ExecuteStatement(new DeleteStatement(tableName, where, limit)));
 		}
 
 		#endregion

@@ -23,16 +23,15 @@ using System.Runtime.Serialization;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateViewStatement : SqlStatement {
-		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
+		public CreateViewStatement(ObjectName viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
 
-		public CreateViewStatement(string viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
+		public CreateViewStatement(ObjectName viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			if (viewName == null)
 				throw new ArgumentNullException("viewName");
 			if (queryExpression == null)
@@ -43,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
-		public string ViewName { get; private set; }
+		public ObjectName ViewName { get; private set; }
 
 		public IEnumerable<string> ColumnNames { get; private set; }
 

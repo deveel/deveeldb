@@ -168,11 +168,11 @@ namespace Deveel.Data {
 
 		#region Create View
 
-		public static void CreateView(this IQuery query, string viewName, string querySource) {
+		public static void CreateView(this IQuery query, ObjectName viewName, string querySource) {
 			CreateView(query, viewName, new string[0], querySource);
 		}
 
-		public static void CreateView(this IQuery query, string viewName, IEnumerable<string> columnNames, string querySource) {
+		public static void CreateView(this IQuery query, ObjectName viewName, IEnumerable<string> columnNames, string querySource) {
 			var expression = SqlExpression.Parse(querySource);
 			if (expression.ExpressionType != SqlExpressionType.Query)
 				throw new ArgumentException("The input query string is invalid.", "querySource");
@@ -180,14 +180,13 @@ namespace Deveel.Data {
 			query.CreateView(viewName, columnNames, (SqlQueryExpression)expression);
 		}
 
-		public static void CreateView(this IQuery query, string viewName, SqlQueryExpression queryExpression) {
+		public static void CreateView(this IQuery query, ObjectName viewName, SqlQueryExpression queryExpression) {
 			CreateView(query, viewName, new string[0], queryExpression);
 		}
 
-		public static void CreateView(this IQuery query, string viewName, IEnumerable<string> columnNames,
+		public static void CreateView(this IQuery query, ObjectName viewName, IEnumerable<string> columnNames,
 			SqlQueryExpression queryExpression) {
-			var statement = new CreateViewStatement(viewName, columnNames, queryExpression);
-			query.ExecuteStatement(statement);
+			query.ExecuteStatement(new CreateViewStatement(viewName, columnNames, queryExpression));
 		}
 
 		#endregion

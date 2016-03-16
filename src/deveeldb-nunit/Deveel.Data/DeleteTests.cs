@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -7,9 +8,14 @@ using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Sql.Statements {
+namespace Deveel.Data {
 	[TestFixture]
-	public sealed class DeleteStatementTests : ContextBasedTest {
+	public sealed class DeleteTests : ContextBasedTest {
+		protected override void OnSetUp(string testName) {
+			CreateTestTable(Query);
+			InsertTestData(Query);
+		}
+
 		private void CreateTestTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
@@ -45,27 +51,13 @@ namespace Deveel.Data.Sql.Statements {
 			table.AddRow(row);
 		}
 
-		protected override IQuery CreateQuery(ISession session) {
-			var query = base.CreateQuery(session);
-			CreateTestTable(query);
-			InsertTestData(query);
-			return query;
-		}
-
 		[Test]
-		public void DeleteOnlyOneRow() {
+		public void OnlyOneRow() {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("first_name = 'Antonello'");
 
-			var statement = new DeleteStatement(tableName, expr);
-
-			var result = Query.ExecuteStatement(statement);
-
-			Assert.IsNotNull(result);
-			Assert.AreEqual(1, result.RowCount);
-
-			var count = result.GetValue(0, 0).AsBigInt();
-			Assert.AreEqual(1L,  ((SqlNumber) count.Value).ToInt64());
+			var count = Query.Delete(tableName, expr);
+			Assert.AreEqual(1, count);
 
 			var table = Query.Access.GetTable(tableName);
 
@@ -73,23 +65,17 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		[Test]
-		public void DeleteTwoRows() {
+		public void TwoRows() {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
 
-			var statement = new DeleteStatement(tableName, expr);
-
-			var result = Query.ExecuteStatement(statement);
-
-			Assert.IsNotNull(result);
-			Assert.AreEqual(1, result.RowCount);
-
-			var count = result.GetValue(0, 0).AsBigInt();
-			Assert.AreEqual(2L, ((SqlNumber)count.Value).ToInt64());
+			var count = Query.Delete(tableName, expr);
+			Assert.AreEqual(2, count);
 
 			var table = Query.Access.GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
 		}
+
 	}
 }

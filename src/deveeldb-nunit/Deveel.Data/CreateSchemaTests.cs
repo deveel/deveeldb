@@ -1,18 +1,15 @@
 ﻿using System;
 
-using Deveel.Data.Sql.Schemas;
-
 using NUnit.Framework;
 
-namespace Deveel.Data.Sql.Statements {
+namespace Deveel.Data {
 	[TestFixture]
-	public sealed class CreateSchemaStatementTests : ContextBasedTest {
+	public sealed class CreateSchemaTests : ContextBasedTest {
 		[Test]
 		public void CreateNewSchema() {
 			const string schemaName = "Sch1";
-			var statement = new CreateSchemaStatement(schemaName);
 
-			Query.ExecuteStatement(statement);
+			Query.CreateSchema(schemaName);
 
 			var exists = Query.Session.Access.SchemaExists(schemaName);
 

@@ -397,7 +397,7 @@ namespace Deveel.Data.Security {
 
 		public bool UserGroupExists(string groupName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(SystemSchema.UserGroupTableName);
+				var table = query.Access.GetTable(SystemSchema.GroupsTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All password where name = %groupName%

@@ -251,7 +251,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
-    <Compile Include="Deveel.Data.Sql.Variables\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreDataFactory.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
@@ -295,7 +294,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
-    <Compile Include="Deveel.Data.Sql.Variables\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\VariableScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\CompositeFunction.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\CompositeTable.cs" />
