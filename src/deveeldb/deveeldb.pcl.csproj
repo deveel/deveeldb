@@ -215,11 +215,11 @@
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
-    <Compile Include="Deveel.Data\IsolatedAccess.cs" />
+    <Compile Include="Deveel.Data\RequestAccess.cs" />
     <Compile Include="Deveel.Data\ModuleInfo.cs" />
     <Compile Include="Deveel.Data\QueryContext.cs" />
+    <Compile Include="Deveel.Data\SessionAccess.cs" />
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
-    <Compile Include="Deveel.Data\SystemAccess.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\Header.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\HeaderHandler.cs" />
