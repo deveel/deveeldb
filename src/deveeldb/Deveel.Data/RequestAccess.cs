@@ -196,62 +196,6 @@ namespace Deveel.Data {
 			return obj as ITable;
 		}
 
-		#region Cursors
-
-		public void DeclareCursor(CursorInfo cursorInfo) {
-			var queryPlan = Request.Context.QueryPlanner().PlanQuery(new QueryInfo(Request, cursorInfo.QueryExpression));
-			var selectedTables = queryPlan.DiscoverTableNames();
-			foreach (var tableName in selectedTables) {
-				if (!UserCanSelectFromTable(tableName))
-					throw new MissingPrivilegesException(Request.Query.UserName(), tableName, Privileges.Select);
-			}
-
-			Request.Context.DeclareCursor(cursorInfo);
-		}
-
-		public void DeclareCursor(string cursorName, SqlQueryExpression query) {
-			DeclareCursor(cursorName, (CursorFlags)0, query);
-		}
-
-		public void DeclareCursor(string cursorName, CursorFlags flags, SqlQueryExpression query) {
-			DeclareCursor(new CursorInfo(cursorName, flags, query));
-		}
-
-		public void DeclareInsensitiveCursor(string cursorName, SqlQueryExpression query) {
-			DeclareInsensitiveCursor(cursorName, query, false);
-		}
-
-		public void DeclareInsensitiveCursor(string cursorName, SqlQueryExpression query, bool withScroll) {
-			var flags = CursorFlags.Insensitive;
-			if (withScroll)
-				flags |= CursorFlags.Scroll;
-
-			DeclareCursor(cursorName, flags, query);
-		}
-
-		public bool CursorExists(string cursorName) {
-			return Request.Context.CursorExists(cursorName);
-		}
-
-		public bool DropCursor(string cursorName) {
-			return Request.Context.DropCursor(cursorName);
-		}
-
-		public Cursor FindCursor(string cursorName) {
-			return Request.Context.FindCursor(cursorName);
-		}
-
-		public bool OpenCursor(string cursorName, params SqlExpression[] args) {
-			return Request.Context.OpenCursor(Request, cursorName, args);
-		}
-
-		public bool CloseCursor(string cursorName) {
-			return Request.Context.CloseCursor(Request, cursorName);
-		}
-
-
-		#endregion
-
 		public bool VariableExists(string variableName) {
 			return ObjectExists(DbObjectType.Variable, new ObjectName(variableName));
 		}

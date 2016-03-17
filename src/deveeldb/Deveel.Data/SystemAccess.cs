@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 
+using Deveel.Data.Caching;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -19,6 +20,9 @@ namespace Deveel.Data {
 		private IUserManager userManager;
 		private IPrivilegeManager privilegeManager;
 
+		private ICache userRolesCache;
+		private ICache privsCache;
+
 		protected abstract ISession Session { get; }
 
 		private IUserManager UserManager {
@@ -36,6 +40,28 @@ namespace Deveel.Data {
 					privilegeManager = Session.Context.ResolveService<IPrivilegeManager>();
 
 				return privilegeManager;
+			}
+		}
+
+		private ICache PrivilegesCache {
+			get {
+				if (privsCache == null)
+					privsCache = Session.Context.ResolveService<ICache>("Privileges");
+				if (privsCache == null)
+					privsCache = new MemoryCache();
+
+				return privsCache;
+			}
+		}
+
+		private ICache UserRolesCache {
+			get {
+				if (userRolesCache == null)
+					userRolesCache = Session.Context.ResolveService<ICache>("UserRoles");
+				if (userRolesCache == null)
+					userRolesCache = new MemoryCache();
+
+				return userRolesCache;
 			}
 		}
 
@@ -469,52 +495,12 @@ namespace Deveel.Data {
 
 		#region User Management
 
-		public  User GetUser(string userName) {
-			if (Session.User.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))
-				return new User(Session, userName);
-
-			if (!UserCanAccessUsers())
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Select,
-					String.Format("The user '{0}' has not enough rights to access other users information.", Session.User.Name));
-
-			if (!UserManager.UserExists(userName))
-				return null;
-
-			return new User(Session, userName);
-		}
-
 		public void SetUserStatus(string username, UserStatus status) {
-			if (!UserCanManageUsers())
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(username), Privileges.Alter,
-					String.Format("User '{0}' cannot change the status of user '{1}'", Session.User.Name, username));
-
 			UserManager.SetUserStatus(username, status);
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			if (!Session.User.Name.Equals(userName) &&
-				!UserCanAccessUsers())
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Select,
-					String.Format("The user '{0}' has not enough rights to access other users information.", Session.User.Name));
-
 			return UserManager.GetUserStatus(userName);
-		}
-
-		public void SetUserGroups(string userName, string[] groups) {
-			if (!UserCanManageUsers())
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Alter,
-					String.Format("The user '{0}' has not enough rights to modify other users information.", Session.User.Name));
-
-			// TODO: Check if the user exists?
-
-			var userGroups = UserManager.GetUserRoles(userName);
-			foreach (var userGroup in userGroups) {
-				UserManager.RemoveUserFromRole(userName, userGroup);
-			}
-
-			foreach (var userGroup in groups) {
-				UserManager.AddUserToRole(userName, userGroup, false);
-			}
 		}
 
 		public bool UserExists(string userName) {
@@ -559,9 +545,6 @@ namespace Deveel.Data {
 		}
 
 		public void AlterUserPassword(string username, string password) {
-			if (!UserCanAlterUser(username))
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(username), Privileges.Alter);
-
 			var userId = UserIdentification.PlainText;
 			var userInfo = new UserInfo(username, userId);
 
@@ -620,8 +603,32 @@ namespace Deveel.Data {
 			return String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase);
 		}
 
+		public void SetUserRoles(string userName, string[] roleNames) {
+			try {
+				var userRoles = UserManager.GetUserRoles(userName);
+				foreach (var userGroup in userRoles) {
+					UserManager.RemoveUserFromRole(userName, userGroup);
+				}
+
+				foreach (var userGroup in roleNames) {
+					UserManager.AddUserToRole(userName, userGroup, false);
+				}
+			} finally {
+				UserRolesCache.Remove(userName);
+			}
+		}
+
 		public Role[] GetUserRoles(string username) {
-			var roles = UserManager.GetUserRoles(username);
+			string[] roles;
+			object cached;
+			if (!UserRolesCache.TryGet(username, out cached)) {
+				roles = UserManager.GetUserRoles(username);
+
+				UserRolesCache.Set(username, roles);
+			} else {
+				roles = (string[]) cached;
+			}
+
 			if (roles == null || roles.Length == 0)
 				return new Role[0];
 
@@ -634,6 +641,19 @@ namespace Deveel.Data {
 
 		public bool UserIsRoleAdmin(string userName, string roleName) {
 			return UserManager.IsUserRoleAdmin(userName, roleName);
+		}
+
+		public void AddUserToRole(string username, string role, bool asAdmin = false) {
+			if (String.IsNullOrEmpty(role))
+				throw new ArgumentNullException("role");
+			if (String.IsNullOrEmpty(username))
+				throw new ArgumentNullException("username");
+
+			try {
+				UserManager.AddUserToRole(username, role, asAdmin);
+			} finally {
+				UserRolesCache.Remove(username);
+			}
 		}
 
 		public bool UserHasSecureAccess(string userName) {
@@ -650,19 +670,17 @@ namespace Deveel.Data {
 			return (grant & privileges) != 0;
 		}
 
-		public bool UserHasPrivilege(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserHasPrivilege(Session.User.Name, objectType, objectName, privileges);
-		}
-
 		public bool UserHasPrivilege(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (IsSystemUser(userName) ||
-				UserIsInSecureAccessRole(userName))
-				return true;
+			object grantObj;
+			Privileges grant;
 
-			var grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, false);
+			var key = new GrantCacheKey(userName, objectType, objectName.FullName, false, false);
+			if (PrivilegesCache.TryGet(key, out grantObj)) {
+				grant = (Privileges) grantObj;
+			} else {
+				grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, false);
+			}
+			
 			return (grant & privileges) != 0;
 		}
 
@@ -695,62 +713,8 @@ namespace Deveel.Data {
 			       Session.User.Name.Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
 		}
 
-		public bool UserCanAlterUser(string userToAlter) {
-			if (Session.User.IsSystem)
-				return true;
-			if (Session.User.IsPublic)
-				return false;
-
-			return UserCanAlterUser(Session.User.Name, userToAlter);
-		}
-
-		public bool UserCanAlterUser(string userName, string userToAlter) {
-			if (IsSystemUser(userName) || 
-				String.Equals(userName, userToAlter, StringComparison.OrdinalIgnoreCase))
-				return true;
-
-			if (IsPublicUser(userName))
-				return false;
-
-			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanManageUsers() {
-			if (Session.User.IsSystem)
-				return true;
-			if (Session.User.IsPublic)
-				return false;
-
-			return UserCanManageUsers(Session.User.Name);
-		}
-
-		public bool UserCanManageUsers(string userName) {
-			return UserHasSecureAccess(userName) || 
-				UserIsInRole(userName, SystemRoles.UserManagerRole);
-		}
-
-		public bool UserCanAccessUsers() {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserCanAccessUsers(Session.User.Name);
-		}
-
-		public bool UserCanAccessUsers(string userName) {
-			return UserHasSecureAccess(userName) ||
-			       UserIsInRole(userName, SystemRoles.UserManagerRole);
-		}
-
-		public bool UserHasTablePrivilege(ObjectName tableName, Privileges privileges) {
-			return UserHasTablePrivilege(Session.User.Name, tableName, privileges);
-		}
-
 		public bool UserHasTablePrivilege(string userName, ObjectName tableName, Privileges privileges) {
 			return UserHasPrivilege(userName, DbObjectType.Table, tableName, privileges);
-		}
-
-		public bool UserHasSchemaPrivilege(string schemaName, Privileges privileges) {
-			return UserHasSchemaPrivilege(Session.User.Name, schemaName, privileges);
 		}
 
 		public bool UserHasSchemaPrivilege(string userName, string schemaName, Privileges privileges) {
@@ -766,10 +730,6 @@ namespace Deveel.Data {
 
 		public bool UserCanCreateSchema(string userName) {
 			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanCreateInSchema(string schemaName) {
-			return UserCanCreateInSchema(Session.User.Name, schemaName);
 		}
 
 		public bool UserCanCreateInSchema(string userName, string schemaName) {
@@ -819,23 +779,6 @@ namespace Deveel.Data {
 				return false;
 
 			return UserCanAlterInSchema(userName, schema.FullName);
-		}
-
-		public bool UserCanSelectFromTable(string userName, ObjectName tableName) {
-			return UserCanSelectFromTable(userName, tableName, new string[0]);
-		}
-
-		public bool UserCanReferenceTable(string userName, ObjectName tableName) {
-			return UserHasTablePrivilege(userName, tableName, Privileges.References);
-		}
-
-		public bool UserCanSelectFromPlan(IQueryPlanNode queryPlan) {
-			return UserCanSelectFromPlan(Session.User.Name, queryPlan);
-		}
-
-		public bool UserCanSelectFromPlan(string userName, IQueryPlanNode queryPlan) {
-			var selectedTables = queryPlan.DiscoverTableNames();
-			return selectedTables.All(tableName => UserCanSelectFromTable(userName, tableName));
 		}
 
 		public bool UserCanSelectFromTable(ObjectName tableName, params string[] columnNames) {
@@ -941,30 +884,70 @@ namespace Deveel.Data {
 			return UserHasPrivilege(userName, objectType, objectName, Privileges.Select);
 		}
 
-		#endregion
+		#region GrantCacheKey
 
-		#region User Grants Management
+		class GrantCacheKey : IEquatable<GrantCacheKey> {
+			private readonly string userName;
+			private readonly DbObjectType objectType;
+			private readonly string objectName;
+			private readonly int options;
 
-		public void AddUserToRole(string username, string role, bool asAdmin = false) {
-			if (String.IsNullOrEmpty(role))
-				throw new ArgumentNullException("role");
-			if (String.IsNullOrEmpty(username))
-				throw new ArgumentNullException("username");
+			public GrantCacheKey(string userName, DbObjectType objectType, string objectName, bool withOption, bool withPublic) {
+				this.userName = userName;
+				this.objectType = objectType;
+				this.objectName = objectName;
 
-			UserManager.AddUserToRole(username, role, asAdmin);
+				options = 0;
+				if (withOption)
+					options++;
+				if (withPublic)
+					options++;
+			}
+
+			public override bool Equals(object obj) {
+				var other = obj as GrantCacheKey;
+				return Equals(other);
+			}
+
+			public override int GetHashCode() {
+				return unchecked(((userName.GetHashCode() * objectName.GetHashCode()) ^ (int)objectType) + options);
+			}
+
+			public bool Equals(GrantCacheKey other) {
+				if (other == null)
+					return false;
+
+				if (!String.Equals(userName, other.userName, StringComparison.OrdinalIgnoreCase))
+					return false;
+
+				if (objectType != other.objectType)
+					return false;
+
+				if (!String.Equals(objectName, other.objectName, StringComparison.OrdinalIgnoreCase))
+					return false;
+
+				if (options != other.options)
+					return false;
+
+				return true;
+			}
 		}
 
+		#endregion
+
+		#endregion
+
+		#region Grants Management
+
 		public void GrantOn(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
-			//if (!ObjectExists(objectType, objectName))
-			//	throw new ObjectNotFoundException(objectName);
+			try {
+				var granter = Session.User.Name;
 
-			var granter = Session.User.Name;
-
-			//if (!HasGrantOption(Session.User.Name, objectType, objectName, privileges))
-			//	throw new MissingPrivilegesException(granter, objectName, privileges);
-
-			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
-			PrivilegeManager.GrantTo(grantee, grant);
+				var grant = new Grant(privileges, objectName, objectType, granter, withOption);
+				PrivilegeManager.GrantTo(grantee, grant);
+			} finally {
+				PrivilegesCache.Remove(new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, false));
+			}
 		}
 
 		public void GrantOnSchema(string schemaName, string grantee, Privileges privileges, bool withOption = false) {
@@ -993,6 +976,15 @@ namespace Deveel.Data {
 
 		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges) {
 			GrantOn(DbObjectType.Table, tableName, grantee, privileges);
+		}
+
+		public void RevokeFrom(string grantee, DbObjectType objectType, ObjectName objectName, Privileges privileges, bool grantOption = false) {
+			try {
+				var granter = Session.User.Name;
+				PrivilegeManager.RevokeFrom(grantee, new Grant(privileges, objectName, objectType, granter, grantOption));
+			} finally {
+				PrivilegesCache.Remove(new GrantCacheKey(grantee, objectType, objectName.FullName, grantOption, false));
+			}
 		}
 
 		#endregion

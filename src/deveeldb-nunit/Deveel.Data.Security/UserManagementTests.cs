@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.Linq;
 
@@ -20,17 +21,13 @@ using NUnit.Framework;
 namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
-		protected override ISession CreateAdminSession(IDatabase database) {
-			var testName = TestContext.CurrentContext.Test.Name;
-			if (testName != "CreateUser") {
-				using (var session = base.CreateAdminSession(database)) {
-					using (var query = session.CreateQuery()) {
-						query.Session.Access.CreateUser("tester", "123456789");
-						query.Session.Commit();
-					}
+		protected override void OnSetUp(string testName) {
+			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
+				using (var query = session.CreateQuery()) {
+					query.Access.CreateUser("tester", "123456789");
+					session.Commit();
 				}
 			}
-			return base.CreateAdminSession(database);
 		}
 
 		[Test]
@@ -47,40 +44,6 @@ namespace Deveel.Data.Security {
 
 			Assert.Throws<SecurityException>(() => authenticated = Database.Authenticate("test2", "12545587"));
 			Assert.IsFalse(authenticated);
-		}
-
-		[Test]
-		public void AdminChangesUserPassword() {
-			Assert.DoesNotThrow(() => Query.Session.Access.AlterUserPassword("tester", "0123456789"));
-		}
-
-		[Test]
-		public void SetUserRoles() {
-			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToRole("tester", "test_group"));
-			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToRole("tester", SystemRoles.UserManagerRole));
-
-			User user = null;
-			Assert.DoesNotThrow(() => user = Query.Session.Access.GetUser("tester"));
-			Assert.IsNotNull(user);
-
-			Role[] userRoles = null;
-			Assert.DoesNotThrow(() => userRoles = Query.Session.Access.GetUserRoles(user.Name));
-			Assert.IsNotNull(userRoles);
-
-			var roleNames = userRoles.Select(x => x.Name).ToArray();
-			Assert.Contains("test_group", roleNames);
-			Assert.Contains(SystemRoles.UserManagerRole, roleNames);
-
-			Assert.IsTrue(Query.Session.Access.UserIsInRole("tester", "test_group"));
-		}
-
-		[Test]
-		public void LockUser() {
-			Query.Session.Access.SetUserStatus("tester", UserStatus.Locked);
-
-			UserStatus status = new UserStatus();
-			Assert.DoesNotThrow(() => status = Query.Session.Access.GetUserStatus("tester"));
-			Assert.AreEqual(UserStatus.Locked, status);
 		}
 	}
 }

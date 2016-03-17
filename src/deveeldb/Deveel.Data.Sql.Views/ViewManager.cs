@@ -205,17 +205,12 @@ namespace Deveel.Data.Sql.Views {
 				var cName = viewTable.GetValue(row, 1).Value.ToString();
 
 				if (viewName.ParentName.Equals(cSchema) &&
-					viewName.Name.Equals(cName)) {
+				    viewName.Name.Equals(cName)) {
 
 					ViewInfo viewInfo;
-					if (!viewCache.TryGetValue(row, out viewInfo)) { 
-						var blob = (SqlBinary)viewTable.GetValue(row, 3).Value;
-						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
-							using (var context = session.CreateQuery()) {
-
-								viewInfo = ViewInfo.Deserialize(blob.GetInput());
-							}
-						}
+					if (!viewCache.TryGetValue(row, out viewInfo)) {
+						var blob = (SqlBinary) viewTable.GetValue(row, 3).Value;
+						viewInfo = ViewInfo.Deserialize(blob.GetInput());
 
 						viewCache[row] = viewInfo;
 
@@ -270,11 +265,7 @@ namespace Deveel.Data.Sql.Views {
 					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
 
-						using (var session = new SystemSession(Transaction, SystemSchema.Name)) {
-							using (var context = session.CreateQuery()) {
-								viewInfo = ViewInfo.Deserialize(binary.GetInput());
-							}
-						}
+						viewInfo = ViewInfo.Deserialize(binary.GetInput());
 
 						viewCache[row] = viewInfo;
 					}

@@ -26,8 +26,6 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
 	public class PrivilegeManager : IPrivilegeManager {
-		private Dictionary<GrantCacheKey, Privileges> grantsCache;
-
 		public PrivilegeManager(ISession session) {
 			if (session == null)
 				throw new ArgumentNullException("session");
@@ -120,29 +118,7 @@ namespace Deveel.Data.Security {
 			using (var query = Session.CreateQuery()) {
 				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
 
-				try {
-					UpdateGrants(query, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
-				} finally {
-					ClearGrantsCache(grantee, objectType, objectName, withOption, true);
-				}
-			}
-		}
-
-		private void ClearGrantsCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic) {
-			if (grantsCache == null)
-				return;
-
-			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
-			grantsCache.Remove(key);
-		}
-
-		private void ClearGrantsCache(string grantee) {
-			if (grantsCache == null)
-				return;
-
-			var keys = grantsCache.Keys.Where(x => x.userName.Equals(grantee, StringComparison.OrdinalIgnoreCase));
-			foreach (var key in keys) {
-				grantsCache.Remove(key);
+				UpdateGrants(query, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
 			}
 		}
 
@@ -162,26 +138,7 @@ namespace Deveel.Data.Security {
 			if (!oldPrivs.Equals(privileges))
 				UpdateUserGrants(objectType, objectName, grant.GranterName, grantee, privileges, grant.WithOption);
 		}
-
-		private bool TryGetPrivilegesFromCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
-			out Privileges privileges) {
-			if (grantsCache == null) {
-				privileges = Privileges.None;
-				return false;
-			}
-
-			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
-			return grantsCache.TryGetValue(key, out privileges);
-		}
-
-		private void SetPrivilegesInCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
-			Privileges privileges) {
-			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
-			if (grantsCache == null)
-				grantsCache = new Dictionary<GrantCacheKey, Privileges>();
-
-			grantsCache[key] = privileges;
-		}
+		
 
 		private void RevokeAllGrantsFrom(DbObjectType objectType, ObjectName objectName, string revoker, string grantee, bool withOption = false) {
 			using (var query = Session.CreateQuery()) {
@@ -296,24 +253,14 @@ namespace Deveel.Data.Security {
 		}
 
 		public Privileges GetPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption) {
-			Privileges privs;
-			if (!TryGetPrivilegesFromCache(userName, objectType, objectName, withOption, true, out privs)) {
-				privs = QueryUserPrivileges(userName, objectType, objectName, withOption, true);
-				SetPrivilegesInCache(userName, objectType, objectName, withOption, true, privs);
-			}
-
-			return privs;
+			return QueryUserPrivileges(userName, objectType, objectName, withOption, true);
 		}
 
 		public void RevokeFrom(string grantee, Grant grant) {
 			if (String.IsNullOrEmpty(grantee))
 				throw new ArgumentNullException("grantee");
 
-			try {
-				RevokeAllGrantsFrom(grant.ObjectType, grant.ObjectName, grant.GranterName, grantee, grant.WithOption);
-			} finally {
-				ClearGrantsCache(grantee, grant.ObjectType, grant.ObjectName, grant.WithOption, false);
-			}
+			RevokeAllGrantsFrom(grant.ObjectType, grant.ObjectName, grant.GranterName, grantee, grant.WithOption);
 		}
 
 		public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
@@ -335,56 +282,5 @@ namespace Deveel.Data.Security {
 				grantTable.Delete(t1);
 			}
 		}
-
-		#region GrantCacheKey
-
-		class GrantCacheKey : IEquatable<GrantCacheKey> {
-			public readonly string userName;
-			private readonly DbObjectType objectType;
-			private readonly string objectName;
-			private readonly int options;
-
-			public GrantCacheKey(string userName, DbObjectType objectType, string objectName, bool withOption, bool withPublic) {
-				this.userName = userName;
-				this.objectType = objectType;
-				this.objectName = objectName;
-
-				options = 0;
-				if (withOption)
-					options++;
-				if (withPublic)
-					options++;
-			}
-
-			public override bool Equals(object obj) {
-				var other = obj as GrantCacheKey;
-				return Equals(other);
-			}
-
-			public override int GetHashCode() {
-				return unchecked(((userName.GetHashCode() * objectName.GetHashCode()) ^ (int)objectType) + options);
-			}
-
-			public bool Equals(GrantCacheKey other) {
-				if (other == null)
-					return false;
-
-				if (!String.Equals(userName, other.userName, StringComparison.OrdinalIgnoreCase))
-					return false;
-
-				if (objectType != other.objectType)
-					return false;
-
-				if (!String.Equals(objectName, other.objectName, StringComparison.OrdinalIgnoreCase))
-					return false;
-
-				if (options != other.options)
-					return false;
-
-				return true;
-			}
-		}
-
-		#endregion
 	}
 }

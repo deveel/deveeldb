@@ -98,10 +98,10 @@ namespace Deveel.Data.Sql.Statements {
 				if (deleteTable == null)
 					throw new ObjectNotFoundException(TableName);
 
-				if (!context.Request.Access.UserCanSelectFromPlan(QueryPlan))
-					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Select);
+				if (!context.User.CanSelectFrom(QueryPlan))
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Select);
 				if (!context.User.CanDeleteFromTable(TableName))
-					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Delete);
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
 				
 				var result = QueryPlan.Evaluate(context.Request);
 				var count = deleteTable.Delete(result);

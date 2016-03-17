@@ -43,9 +43,9 @@ namespace Deveel.Data.Sql.Statements {
 		public bool WithAdmin { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Access.UserExists(UserName))
+			if (!context.DirectAccess.UserExists(UserName))
 				throw new InvalidOperationException(String.Format("The user '{0}' does not exist", UserName));
-			if (!context.Request.Access.RoleExists(Role))
+			if (!context.DirectAccess.RoleExists(Role))
 				throw new InvalidOperationException(String.Format("The role '{0}' does not exist", Role));
 
 			if (!context.User.CanGrantRole(Role))
@@ -56,10 +56,15 @@ namespace Deveel.Data.Sql.Statements {
 					throw new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", context.User, Role));
 			}
 
-			if (!context.Request.Access.UserCanManageUsers())
+			if (!context.User.CanManageUsers())
 				throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", context.User.Name));
 
-			context.Request.Access.AddUserToRole(UserName, Role, WithAdmin);
+			if (!context.User.IsInRole(Role)) {
+				context.Request.Access.AddUserToRole(UserName, Role, WithAdmin);
+			} else if (WithAdmin &&
+			           !context.User.IsRoleAdmin(Role)) {
+				throw new NotImplementedException();
+			}
 		}
 	}
 }

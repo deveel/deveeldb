@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (!context.Request.Access.UserCanUpdateTable(TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Update);
 
-				if (!context.Request.Access.UserCanSelectFromPlan(QueryPlan))
+				if (!context.User.CanSelectFrom(QueryPlan))
 					throw new InvalidOperationException();
 
 				var table = context.Request.Access.GetMutableTable(TableName);

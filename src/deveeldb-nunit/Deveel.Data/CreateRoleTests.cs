@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Sql.Statements;
+
 using NUnit.Framework;
 
 namespace Deveel.Data {
@@ -14,7 +16,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ExistingRole() {
-			Assert.Throws<InvalidOperationException>(() => Query.CreateRole("secure_access"));
+			Assert.Throws<StatementException>(() => Query.CreateRole("secure_access"));
 		}
 	}
 }

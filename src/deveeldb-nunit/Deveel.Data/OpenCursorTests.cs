@@ -25,20 +25,20 @@ namespace Deveel.Data {
 
 		private static void DeclareCursors(IQuery query) {
 			var queryExp1 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
-			query.Access.DeclareCursor("c1", queryExp1);
+			query.Context.DeclareCursor("c1", queryExp1);
 
 
 			var queryExp2 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table WHERE a > :a");
 			var cursorInfo = new CursorInfo("c2", queryExp2);
 			cursorInfo.Parameters.Add(new CursorParameter("a", PrimitiveTypes.Integer()));
-			query.Access.DeclareCursor(cursorInfo);
+			query.Context.DeclareCursor(cursorInfo);
 		}
 
 		[Test]
 		public void Simple() {
 			Query.Open("c1");
 
-			var cursor = Query.Access.FindCursor("c1");
+			var cursor = Query.Context.FindCursor("c1");
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual("c1", cursor.CursorInfo.CursorName);
 			Assert.AreEqual(CursorStatus.Open, cursor.Status);

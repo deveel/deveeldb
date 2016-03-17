@@ -140,8 +140,8 @@ namespace Deveel.Data.Sql.Statements {
 			private void DefineView(ExecutionContext context, ViewInfo viewInfo, bool replaceIfExists) {
 				var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
 				foreach (var tableName in tablesInPlan) {
-					if (!context.Request.Access.UserCanSelectFromTable(tableName))
-						throw new InvalidAccessException(context.Query.UserName(), tableName);
+					if (!context.User.CanSelectFromTable(tableName))
+						throw new InvalidAccessException(context.User.Name, tableName);
 				}
 
 				if (context.Request.Access.ViewExists(viewInfo.ViewName)) {

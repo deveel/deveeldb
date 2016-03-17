@@ -51,6 +51,10 @@ namespace Deveel.Data.Sql {
 			get { return Request.Query; }
 		}
 
+		public SystemAccess DirectAccess {
+			get { return Request.Access; }
+		}
+
 		public void SetResult(ITable result) {
 			if (result != null) {
 				Result = result;

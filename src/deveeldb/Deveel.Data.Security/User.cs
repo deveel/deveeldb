@@ -25,8 +25,6 @@ namespace Deveel.Data.Security {
 	/// Provides the information for a user in a database system
 	/// </summary>
 	public sealed class User : Privileged {
-		public static readonly User System = new User(null, SystemName);
-
 		internal User(ISession session, string name)
 			: base(session, name) { 
 		}
@@ -34,7 +32,7 @@ namespace Deveel.Data.Security {
 		/// <summary>
 		/// The name of the <c>PUBLIC</c> special user.
 		/// </summary>
-		public const string PublicName = "@PUBLIC";
+		public const string PublicName = "PUBLIC";
 
 		/// <summary>
 		/// The name of the <c>SYSTEM</c> special user.
@@ -56,6 +54,13 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
+		}
+
+		public UserStatus Status {
+			get {
+				AssertInContext();
+				return Session.Access.GetUserStatus(Name);
+			}
 		}
 
 		public Role[] Roles {
@@ -84,6 +89,19 @@ namespace Deveel.Data.Security {
 		public bool CanManageRoles() {
 			return IsSystem ||
 			       IsInRole(SystemRoles.SecureAccessRole);
+		}
+
+		public bool CanManageUsers() {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole) ||
+			       IsInRole(SystemRoles.UserManagerRole);
+		}
+
+		public bool CanDropUser(string userName) {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole) ||
+			       IsInRole(SystemRoles.UserManagerRole) ||
+			       String.Equals(Name, userName, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {

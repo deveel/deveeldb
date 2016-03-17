@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<SqlExpression> Roles { get; private set; }
 
 		public AlterUserActionType ActionType {
-			get { return AlterUserActionType.SetGroups; }
+			get { return AlterUserActionType.SetRoles; }
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {

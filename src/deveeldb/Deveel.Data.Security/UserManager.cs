@@ -26,9 +26,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public class UserManager : IUserManager {
-		private Dictionary<string, string[]> userGroupsCache;
-		 
+	public class UserManager : IUserManager {		 
 		public UserManager(ISession session) {
 			if (session == null)
 				throw new ArgumentNullException("session");
@@ -48,7 +46,6 @@ namespace Deveel.Data.Security {
 		}
 
 		protected virtual void Dispose(bool disposing) {
-			userGroupsCache = null;
 			Session = null;
 		}
 
@@ -174,37 +171,6 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private bool TryGetUserRolesFromCache(string userName, out string[] roles) {
-			if (userGroupsCache == null) {
-				roles = null;
-				return false;
-			}
-
-			return userGroupsCache.TryGetValue(userName, out roles);
-		}
-
-		private void ClearUserRolesCache(string userName) {
-			if (userGroupsCache == null)
-				return;
-
-			userGroupsCache.Remove(userName);
-		}
-
-		private void ClearUserRolesCache() {
-			if (userGroupsCache == null)
-				return;
-
-			userGroupsCache.Clear();
-		}
-
-		private void SetUserRolesInCache(string userName, string[] roles) {
-			if (userGroupsCache == null)
-				userGroupsCache = new Dictionary<string, string[]>();
-
-			userGroupsCache[userName] = roles;
-		}
-
-
 		public bool DropUser(string userName) {
 			var userExpr = SqlExpression.Constant(Field.String(userName));
 
@@ -240,8 +206,6 @@ namespace Deveel.Data.Security {
 
 				if (t.RowCount > 0) {
 					table.Delete(t);
-
-					ClearUserRolesCache(username);
 				}
 			}
 		}
@@ -387,7 +351,6 @@ namespace Deveel.Data.Security {
 
 				if (t.RowCount > 0) {
 					table.Delete(t);
-					ClearUserRolesCache();
 					return true;
 				}
 
@@ -462,9 +425,6 @@ namespace Deveel.Data.Security {
 
 				if (t.RowCount > 0) {
 					table.Delete(t);
-
-					ClearUserRolesCache(userName);
-
 					return true;
 				}
 
@@ -473,11 +433,6 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool IsUserInRole(string userName, string roleName) {
-			string[] userGroups;
-			if (TryGetUserRolesFromCache(userName, out userGroups) &&
-			    userGroups.Any(x => String.Equals(roleName, x, StringComparison.OrdinalIgnoreCase)))
-				return true;
-
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
@@ -495,14 +450,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public string[] GetUserRoles(string userName) {
-			string[] groups;
-			if (!TryGetUserRolesFromCache(userName, out groups)) {
-				groups = QueryUserRoles(userName);
-				SetUserRolesInCache(userName, groups);
-			}
-
-			return groups;
+			return QueryUserRoles(userName);
 		}
-
 	}
 }

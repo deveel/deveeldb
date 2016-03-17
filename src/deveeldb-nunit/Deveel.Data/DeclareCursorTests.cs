@@ -27,7 +27,7 @@ namespace Deveel.Data {
 
 			Query.DeclareCursor(cursorName, query);
 
-			var cursor = Query.Access.FindCursor(cursorName);
+			var cursor = Query.Context.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsEmpty(cursor.CursorInfo.Parameters);
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 			Query.DeclareCursor(cursorName, parameters, query);
 
-			var cursor = Query.Access.FindCursor(cursorName);
+			var cursor = Query.Context.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsNotEmpty(cursor.CursorInfo.Parameters);

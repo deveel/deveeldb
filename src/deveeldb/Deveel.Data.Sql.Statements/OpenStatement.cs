@@ -19,6 +19,7 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
@@ -58,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			SqlExpression[] args = Arguments;
 
-			var cursor = context.Access.FindCursor(CursorName);
+			var cursor = context.Context.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementPrepareException(String.Format("Cursor '{0}' was not found.", CursorName));
 
@@ -81,11 +82,11 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var cursor = context.Request.Access.FindCursor(CursorName);
+			var cursor = context.Request.Context.FindCursor(CursorName);
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
-			context.Request.Access.OpenCursor(CursorName, Arguments);
+			cursor.Open(context.Request, Arguments);
 		}
 	}
 }

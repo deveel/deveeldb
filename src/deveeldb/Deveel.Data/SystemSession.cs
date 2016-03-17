@@ -41,6 +41,8 @@ namespace Deveel.Data {
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
 
+			User = new User(this, User.SystemName);
+
 			StartedOn = DateTimeOffset.UtcNow;
 
 			Access = new SessionAccess(this);
@@ -62,9 +64,7 @@ namespace Deveel.Data {
 			get { return null; }
 		}
 
-		public User User {
-			get { return User.System; }
-		}
+		public User User { get; private set; }
 
 		public ITransaction Transaction { get; private set; }
 

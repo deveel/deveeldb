@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
@@ -38,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 		public string CursorName { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var cursor = context.Access.FindCursor(CursorName);
+			var cursor = context.Context.FindCursor(CursorName);
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 

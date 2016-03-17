@@ -74,7 +74,7 @@ namespace Deveel.Data.Transactions {
 
 		public static IDbObject FindObject(this ITransaction transaction, ObjectName objName) {
 			foreach (var manager in transaction.GetObjectManagers()) {
-				if (manager.ObjectExists(objName))
+				if (manager.RealObjectExists(objName))
 					return manager.GetObject(objName);
 			}
 

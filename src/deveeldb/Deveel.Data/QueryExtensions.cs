@@ -245,16 +245,16 @@ namespace Deveel.Data {
 			query.SetPassword(userName, SqlExpression.Constant(Field.VarChar(password)));
 		}
 
-		public static void SetGroups(this IQuery query, string userName, params SqlExpression[] groups) {
-			query.AlterUser(userName, new SetUserRolesAction(groups));
+		public static void SetRoles(this IQuery query, string userName, params SqlExpression[] roleNames) {
+			query.AlterUser(userName, new SetUserRolesAction(roleNames));
 		}
 
-		public static void SetGroups(this IQuery query, string userName, params string[] groupNames) {
-			if (groupNames == null)
-				throw new ArgumentNullException("groupNames");
+		public static void SetRoles(this IQuery query, string userName, params string[] roleNames) {
+			if (roleNames == null)
+				throw new ArgumentNullException("roleNames");
 
-			var groups = groupNames.Select(x => SqlExpression.Constant(Field.VarChar(x))).Cast<SqlExpression>().ToArray();
-			query.SetGroups(userName, groups);
+			var roles = roleNames.Select(x => SqlExpression.Constant(Field.VarChar(x))).Cast<SqlExpression>().ToArray();
+			query.SetRoles(userName, roles);
 		}
 
 		public static void SetAccountStatus(this IQuery query, string userName, UserStatus status) {

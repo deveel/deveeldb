@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Security {
 	public abstract class Privileged {
@@ -40,6 +42,11 @@ namespace Deveel.Data.Security {
 
 		public bool CanSelectFromTable(ObjectName tableName) {
 			return CanSelectFrom(DbObjectType.Table, tableName);
+		}
+
+		public bool CanSelectFrom(IQueryPlanNode queryPlan) {
+			var references = queryPlan.DiscoverTableNames();
+			return references.All(CanSelectFromTable);
 		}
 
 		public bool CanInsertIntoTable(ObjectName tableName) {
