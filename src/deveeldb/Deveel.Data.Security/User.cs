@@ -16,30 +16,19 @@
 
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	/// <summary>
 	/// Provides the information for a user in a database system
 	/// </summary>
-	public sealed class User {
-		public static readonly User System = new User(SystemName);
-		public static readonly User Public = new User(PublicName);
+	public sealed class User : Privileged {
+		public static readonly User System = new User(null, SystemName);
 
-		private Dictionary<ObjectName, Privileges> grantCache;
-
-		/// <summary>
-		/// Constructs a new user with the given name.
-		/// </summary>
-		/// <param name="name"></param>
-		internal User(string name) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-
-			Name = name;
+		internal User(ISession session, string name)
+			: base(session, name) { 
 		}
 
 		/// <summary>
@@ -51,11 +40,6 @@ namespace Deveel.Data.Security {
 		/// The name of the <c>SYSTEM</c> special user.
 		/// </summary>
 		public const string SystemName = "@SYSTEM";
-
-		/// <summary>
-		/// Gets the name that uniquely identify a user within a database system.
-		/// </summary>
-		public string Name { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if this user represents the
@@ -72,6 +56,27 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
+		}
+
+		public Role[] Roles {
+			get {
+				AssertInContext();
+				return Session.Access.GetUserRoles(Name);
+			}
+		}
+
+		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (IsSystem)
+				return true;
+
+			if (base.HasPrivileges(objectType, objectName, privileges))
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.HasPrivileges(objectType, objectName, privileges));
 		}
 	}
 }

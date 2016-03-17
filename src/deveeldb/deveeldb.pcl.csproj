@@ -114,7 +114,10 @@
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
+    <Compile Include="Deveel.Data.Security\Privileged.cs" />
+    <Compile Include="Deveel.Data.Security\Role.cs" />
     <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
+    <Compile Include="Deveel.Data.Security\SystemRoles.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
@@ -175,6 +178,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetUserRolesAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
@@ -415,7 +419,6 @@
     <Compile Include="Deveel.Data.Security\Privileges.cs" />
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
-    <Compile Include="Deveel.Data.Security\SystemGroups.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
@@ -730,7 +733,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\SetAccountStatusAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetDefaultAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetPasswordAction.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SetUserGroupsAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserStatusStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlColumnAssignment.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStatement.cs" />

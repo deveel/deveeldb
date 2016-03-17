@@ -455,13 +455,14 @@ namespace Deveel.Data {
 
 		#region Security
 
-		#region Group Management
+		#region Role Management
 
-		public void CreateUserGroup(string groupName) {
-			if (!UserCanManageGroups(Session.User.Name))
-				throw new InvalidOperationException(String.Format("User '{0}' has not enough privileges to create a group.", Session.User.Name));
+		public void CreateRole(string roleName) {
+			UserManager.CreateRole(roleName);
+		}
 
-			UserManager.CreateUserGroup(groupName);
+		public bool RoleExists(string roleName) {
+			return UserManager.RoleExists(roleName);
 		}
 
 		#endregion
@@ -470,7 +471,7 @@ namespace Deveel.Data {
 
 		public  User GetUser(string userName) {
 			if (Session.User.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))
-				return new User(userName);
+				return new User(Session, userName);
 
 			if (!UserCanAccessUsers())
 				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Select,
@@ -479,7 +480,7 @@ namespace Deveel.Data {
 			if (!UserManager.UserExists(userName))
 				return null;
 
-			return new User(userName);
+			return new User(Session, userName);
 		}
 
 		public void SetUserStatus(string username, UserStatus status) {
@@ -506,13 +507,13 @@ namespace Deveel.Data {
 
 			// TODO: Check if the user exists?
 
-			var userGroups = UserManager.GetUserGroups(userName);
+			var userGroups = UserManager.GetUserRoles(userName);
 			foreach (var userGroup in userGroups) {
-				UserManager.RemoveUserFromGroup(userName, userGroup);
+				UserManager.RemoveUserFromRole(userName, userGroup);
 			}
 
 			foreach (var userGroup in groups) {
-				UserManager.AddUserToGroup(userName, userGroup, false);
+				UserManager.AddUserToRole(userName, userGroup, false);
 			}
 		}
 
@@ -531,15 +532,11 @@ namespace Deveel.Data {
 			UserManager.CreateUser(userInfo, "####");
 		}
 
-		public User CreateUser(string userName, string password) {
+		public void CreateUser(string userName, string password) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
 			if (String.IsNullOrEmpty(password))
 				throw new ArgumentNullException("password");
-
-			if (!UserCanCreateUsers())
-				throw new MissingPrivilegesException(userName, new ObjectName(userName), Privileges.Create,
-					String.Format("User '{0}' cannot create users.", Session.User.Name));
 
 			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
 				throw new ArgumentException(
@@ -559,8 +556,6 @@ namespace Deveel.Data {
 			var userInfo = new UserInfo(userName, userId);
 
 			UserManager.CreateUser(userInfo, password);
-
-			return new User(userName);
 		}
 
 		public void AlterUserPassword(string username, string password) {
@@ -619,7 +614,7 @@ namespace Deveel.Data {
 					return null;
 
 				// Successfully authenticated...
-				return new User(username);
+				return new User(Session, username);
 			} catch (SecurityException) {
 				throw;
 			} catch (Exception ex) {
@@ -640,28 +635,32 @@ namespace Deveel.Data {
 			return String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase);
 		}
 
-		public string[] GetGroupsUserBelongsTo(string username) {
-			return UserManager.GetUserGroups(username);
+		public Role[] GetUserRoles(string username) {
+			var roles = UserManager.GetUserRoles(username);
+			if (roles == null || roles.Length == 0)
+				return new Role[0];
+
+			return roles.Select(x => new Role(Session, x)).ToArray();
 		}
 
-		public bool UserBelongsToGroup(string group) {
-			return UserBelongsToGroup(Session.User.Name, group);
+		public bool UserIsInRole(string roleName) {
+			return UserIsInRole(Session.User.Name, roleName);
 		}
 
-		public bool UserBelongsToGroup(string username, string groupName) {
-			return UserManager.IsUserInGroup(username, groupName);
+		public bool UserIsInRole(string username, string roleName) {
+			return UserManager.IsUserInRole(username, roleName);
 		}
 
-		public bool UserCanManageGroups(string userName) {
+		public bool UserCanManageRoles(string userName) {
 			return IsSystemUser(userName) ||
 			       UserHasSecureAccess(userName);
 		}
 
-		public bool UserCanManageGroups() {
+		public bool UserCanManageRoles() {
 			if (Session.User.IsSystem)
 				return true;
 
-			return UserCanManageGroups(Session.User.Name);
+			return UserCanManageRoles(Session.User.Name);
 		}
 
 		public bool UserHasSecureAccess() {
@@ -673,15 +672,15 @@ namespace Deveel.Data {
 
 		public bool UserHasSecureAccess(string userName) {
 			return IsSystemUser(userName) ||
-			       UserBelongsToSecureGroup(userName);
+			       UserIsInSecureAccessRole(userName);
 		}
 
-		public bool UserBelongsToSecureGroup(string userName) {
-			return UserBelongsToGroup(userName, SystemGroups.SecureGroup);
+		public bool UserIsInSecureAccessRole(string userName) {
+			return UserIsInRole(userName, SystemRoles.SecureAccessRole);
 		}
 
-		public bool UserBelongsToSecureGroup() {
-			return UserBelongsToSecureGroup(Session.User.Name);
+		public bool UserIsInSecureAccessRole() {
+			return UserIsInSecureAccessRole(Session.User.Name);
 		}
 
 		public bool UserHasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
@@ -695,10 +694,10 @@ namespace Deveel.Data {
 
 		public bool UserHasGrantOption(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			if (IsSystemUser(userName) ||
-				UserBelongsToSecureGroup(userName))
+				UserIsInSecureAccessRole(userName))
 				return true;
 
-			var grant = PrivilegeManager.GetUserPrivileges(userName, objectType, objectName, true);
+			var grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, true);
 			return (grant & privileges) != 0;
 		}
 
@@ -711,10 +710,10 @@ namespace Deveel.Data {
 
 		public bool UserHasPrivilege(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			if (IsSystemUser(userName) ||
-				UserBelongsToSecureGroup(userName))
+				UserIsInSecureAccessRole(userName))
 				return true;
 
-			var grant = PrivilegeManager.GetUserPrivileges(userName, objectType, objectName, false);
+			var grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, false);
 			return (grant & privileges) != 0;
 		}
 
@@ -729,7 +728,7 @@ namespace Deveel.Data {
 
 		public bool UserCanCreateUsers(string userName) {
 			return UserHasSecureAccess(userName) ||
-				UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
+				UserIsInRole(userName, SystemRoles.UserManagerRole);
 		}
 
 		public bool UserCanDropUser(string userToDrop) {
@@ -743,7 +742,7 @@ namespace Deveel.Data {
 
 		public bool UserCanDropUser(string userName, string userToDrop) {
 			return UserHasSecureAccess(userName) ||
-			       UserBelongsToGroup(userName, SystemGroups.UserManagerGroup) ||
+			       UserIsInRole(userName, SystemRoles.UserManagerRole) ||
 			       Session.User.Name.Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
 		}
 
@@ -778,7 +777,7 @@ namespace Deveel.Data {
 
 		public bool UserCanManageUsers(string userName) {
 			return UserHasSecureAccess(userName) || 
-				UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
+				UserIsInRole(userName, SystemRoles.UserManagerRole);
 		}
 
 		public bool UserCanAccessUsers() {
@@ -790,7 +789,7 @@ namespace Deveel.Data {
 
 		public bool UserCanAccessUsers(string userName) {
 			return UserHasSecureAccess(userName) ||
-			       UserBelongsToGroup(userName, SystemGroups.UserManagerGroup);
+			       UserIsInRole(userName, SystemRoles.UserManagerRole);
 		}
 
 		public bool UserHasTablePrivilege(ObjectName tableName, Privileges privileges) {
@@ -1007,11 +1006,11 @@ namespace Deveel.Data {
 
 		public bool UserCanAddToGroup(string userName, string groupName) {
 			if (IsSystemUser(userName) ||
-			    UserBelongsToSecureGroup(userName) ||
-			    UserBelongsToGroup(userName, SystemGroups.UserManagerGroup))
+			    UserIsInSecureAccessRole(userName) ||
+				UserIsInRole(userName, SystemRoles.UserManagerRole))
 				return true;
 
-			return UserManager.IsUserGroupAdmin(userName, groupName);
+			return UserManager.IsUserRoleAdmin(userName, groupName);
 		}
 
 
@@ -1019,27 +1018,27 @@ namespace Deveel.Data {
 
 		#region User Grants Management
 
-		public void AddUserToGroup(string username, string group, bool asAdmin = false) {
-			if (String.IsNullOrEmpty(@group))
-				throw new ArgumentNullException("group");
+		public void AddUserToRole(string username, string role, bool asAdmin = false) {
+			if (String.IsNullOrEmpty(role))
+				throw new ArgumentNullException("role");
 			if (String.IsNullOrEmpty(username))
 				throw new ArgumentNullException("username");
 
-			if (!UserCanAddToGroup(group))
+			if (!UserCanAddToGroup(role))
 				throw new SecurityException();
 
-			UserManager.AddUserToGroup(username, group, asAdmin);
+			UserManager.AddUserToRole(username, role, asAdmin);
 		}
 
-		public void GrantToUserOn(ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+		public void GrantOn(ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
 			var obj = FindObject(objectName);
 			if (obj == null)
 				throw new ObjectNotFoundException(objectName);
 
-			GrantToUserOn(obj.ObjectType, obj.FullName, grantee, privileges, withOption);
+			GrantOn(obj.ObjectType, obj.FullName, grantee, privileges, withOption);
 		}
 
-		public void GrantToUserOn(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
+		public void GrantOn(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
 			if (IsSystemUser(grantee))       // The @SYSTEM user does not need any other
 				return;
 
@@ -1052,40 +1051,23 @@ namespace Deveel.Data {
 				throw new MissingPrivilegesException(granter, objectName, privileges);
 
 			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
-			PrivilegeManager.GrantToUser(grantee, grant);
+			PrivilegeManager.GrantTo(grantee, grant);
 		}
 
-		public void GrantToUserOnSchema(string schemaName, string grantee, Privileges privileges, bool withOption = false) {
-			GrantToUserOn(DbObjectType.Schema, new ObjectName(schemaName), grantee, privileges, withOption);
+		public void GrantOnSchema(string schemaName, string grantee, Privileges privileges, bool withOption = false) {
+			GrantOn(DbObjectType.Schema, new ObjectName(schemaName), grantee, privileges, withOption);
 		}
 
-		public void GrantToGroupOn(DbObjectType objectType, ObjectName objectName, string groupName, Privileges privileges, bool withOption = false) {
-			if (SystemGroups.IsSystemGroup(groupName))
-				throw new InvalidOperationException("Cannot grant to a system group.");
+		public void GrantTo(string grantee, DbObjectType objectType, ObjectName objectName, Privileges privileges, bool withOption = false) {
+			if (!UserManager.UserExists(grantee) &&
+				!UserManager.RoleExists(grantee))
+				throw new SecurityException(String.Format("User or role '{0}' was not found.", grantee));
 
-			var granter = Session.User.Name;
+			if (UserManager.RoleExists(grantee) &&
+				withOption)
+				throw new SecurityException("Roles cannot be granted with grant option.");
 
-			if (!UserCanManageGroups())
-				throw new MissingPrivilegesException(granter, new ObjectName(groupName));
-
-			if (!ObjectExists(objectType, objectName))
-				throw new ObjectNotFoundException(objectName);
-
-			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
-			PrivilegeManager.GrantToGroup(groupName, grant);
-		}
-
-		public void GrantTo(string groupOrUserName, DbObjectType objectType, ObjectName objectName, Privileges privileges, bool withOption = false) {
-			if (UserManager.UserGroupExists(groupOrUserName)) {
-				if (withOption)
-					throw new SecurityException("User groups cannot be granted with grant option.");
-
-				GrantToGroupOn(objectType, objectName, groupOrUserName, privileges);
-			} else if (UserManager.UserExists(groupOrUserName)) {
-				GrantToUserOn(objectType, objectName, groupOrUserName, privileges, withOption);
-			} else {
-				throw new SecurityException(String.Format("User or group '{0}' was not found.", groupOrUserName));
-			}
+			GrantOn(objectType, objectName, grantee, privileges);
 		}
 
 		public void RevokeAllGrantsOnTable(ObjectName objectName) {
@@ -1096,8 +1078,8 @@ namespace Deveel.Data {
 			PrivilegeManager.RevokeAllGrantsOn(DbObjectType.View, objectName);
 		}
 
-		public void GrantToUserOnTable(ObjectName tableName, string grantee, Privileges privileges) {
-			GrantToUserOn(DbObjectType.Table, tableName, grantee, privileges);
+		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges) {
+			GrantOn(DbObjectType.Table, tableName, grantee, privileges);
 		}
 
 		#endregion

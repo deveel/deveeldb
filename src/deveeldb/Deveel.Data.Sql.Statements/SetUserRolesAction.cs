@@ -23,26 +23,26 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class SetUserGroupsAction : IAlterUserAction {
-		public SetUserGroupsAction(IEnumerable<SqlExpression> groups) {
-			if (groups == null)
-				throw new ArgumentNullException("groups");
+	public sealed class SetUserRolesAction : IAlterUserAction {
+		public SetUserRolesAction(IEnumerable<SqlExpression> roles) {
+			if (roles == null)
+				throw new ArgumentNullException("roles");
 
-			Groups = groups;
+			Roles = roles;
 		}
 
-		private SetUserGroupsAction(SerializationInfo info, StreamingContext context) {
-			Groups = (SqlExpression[]) info.GetValue("Groups", typeof(SqlExpression[]));
+		private SetUserRolesAction(SerializationInfo info, StreamingContext context) {
+			Roles = (SqlExpression[]) info.GetValue("Roles", typeof(SqlExpression[]));
 		}
 
-		public IEnumerable<SqlExpression> Groups { get; private set; }
+		public IEnumerable<SqlExpression> Roles { get; private set; }
 
 		public AlterUserActionType ActionType {
 			get { return AlterUserActionType.SetGroups; }
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("Groups", Groups);
+			info.AddValue("Roles", Roles);
 		}
 	}
 }

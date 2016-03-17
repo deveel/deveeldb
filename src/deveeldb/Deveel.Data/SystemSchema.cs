@@ -208,9 +208,7 @@ namespace Deveel.Data {
 
 		public static readonly ObjectName UserGroupTableName = new ObjectName(SchemaName, "user_group");
 
-		public static readonly ObjectName UserGrantsTableName = new ObjectName(SchemaName, "grants");
-
-		public static readonly ObjectName GroupGrantsTable = new ObjectName(SchemaName, "group_grants");
+		public static readonly ObjectName GrantsTableName = new ObjectName(SchemaName, "grants");
 
 		#endregion
 
@@ -267,7 +265,7 @@ namespace Deveel.Data {
 
 			context.Access.AddPrimaryKey(GroupsTableName, new[] { "name" }, "SYSTEM_GROUP_PK");
 
-			tableInfo = new TableInfo(UserGrantsTableName);
+			tableInfo = new TableInfo(GrantsTableName);
 			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
@@ -277,14 +275,6 @@ namespace Deveel.Data {
 			tableInfo = tableInfo.AsReadOnly();
 			context.Access.CreateSystemTable(tableInfo);
 
-			tableInfo = new TableInfo(GroupGrantsTable);
-			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("group", PrimitiveTypes.String());
-			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("granter", PrimitiveTypes.String());
-
 			var fkCol = new[] {"user"};
 			var gfkCol = new[] {"group"};
 			var refCol = new[] {"name"};
@@ -293,8 +283,7 @@ namespace Deveel.Data {
 			context.Access.AddForeignKey(PasswordTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PASSWORD_FK");
 			context.Access.AddForeignKey(UserGroupTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_PRIV_FK");
 			context.Access.AddForeignKey(UserGroupTableName, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "USER_GROUP_FK");
-			context.Access.AddForeignKey(UserGrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
-			context.Access.AddForeignKey(GroupGrantsTable, gfkCol, GroupsTableName, refCol, onDelete, onUpdate, "GROUP_GRANTS_FK");
+			context.Access.AddForeignKey(GrantsTableName, fkCol, UserTableName, refCol, onDelete, onUpdate, "USER_GRANTS_FK");
 		}
 
 		/*
@@ -333,14 +322,14 @@ namespace Deveel.Data {
 		}
 
 		public static void GrantToPublic(IQuery context) {
-			context.Access.GrantToUserOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(StatisticsTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(VariablesTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(RoutineTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(RoutineParameterTableName, User.PublicName, Privileges.TableRead);
-			context.Access.GrantToUserOnTable(SessionInfoTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(ProductInfoTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(SqlTypesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(PrivilegesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(StatisticsTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(VariablesTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(RoutineTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+			context.Access.GrantOnTable(SessionInfoTableName, User.PublicName, Privileges.TableRead);
 		}
 
 		public static void Setup(ITransaction transaction) {

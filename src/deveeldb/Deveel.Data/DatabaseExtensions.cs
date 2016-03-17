@@ -18,7 +18,6 @@
 using System;
 
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Transactions;
 
@@ -101,14 +100,14 @@ namespace Deveel.Data {
 
 		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
 			try {
-				var user = context.Access.CreateUser(adminName, adminPassword);
+				context.Access.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
-				context.Access.AddUserToGroup(adminName, SystemGroups.SecureGroup);
+				context.Access.AddUserToRole(adminName, SystemRoles.SecureAccessRole);
 
-				context.Access.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
-				context.Access.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
-				context.Access.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
+				context.Access.GrantOnSchema(database.Context.DefaultSchema(), adminName, Privileges.SchemaAll, true);
+				context.Access.GrantOnSchema(SystemSchema.Name, adminName, Privileges.SchemaRead);
+				context.Access.GrantOnSchema(InformationSchema.SchemaName, adminName, Privileges.SchemaRead);
 
 				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {

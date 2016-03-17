@@ -13,6 +13,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 using System;
+using System.Linq;
 
 using NUnit.Framework;
 
@@ -33,19 +34,6 @@ namespace Deveel.Data.Security {
 		}
 
 		[Test]
-		public void CreateUser() {
-			User user = null;
-			Assert.DoesNotThrow(() => user = Query.Session.Access.CreateUser("tester", "123456"));
-			Assert.IsNotNull(user);
-
-			Assert.AreEqual("tester", user.Name);
-
-			bool exists = false;
-			Assert.DoesNotThrow(() => exists = Query.Session.Access.UserExists("tester"));
-			Assert.IsTrue(exists);
-		}
-
-		[Test]
 		public void Authenticate_Success() {
 			User user = null;
 
@@ -63,44 +51,28 @@ namespace Deveel.Data.Security {
 		}
 
 		[Test]
-		public void CreateExistingUser() {
-			bool exists = false;
-			Assert.DoesNotThrow(() => exists = Query.Session.Access.UserExists("tester"));
-			Assert.IsTrue(exists);
-
-			Assert.Throws<SecurityException>(() => Query.Session.Access.CreateUser("tester", "123456789"));
-		}
-
-		[Test]
-		public void DropUser() {
-			Assert.DoesNotThrow(() => Query.Session.Access.DeleteUser("tester"));
-
-			bool exists = false;
-			Assert.DoesNotThrow(() => Query.Session.Access.UserExists("tester"));
-			Assert.IsFalse(exists);
-		}
-
-		[Test]
 		public void AdminChangesUserPassword() {
 			Assert.DoesNotThrow(() => Query.Session.Access.AlterUserPassword("tester", "0123456789"));
 		}
 
 		[Test]
-		public void SetUserGroups() {
-			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToGroup("tester", "test_group"));
-			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToGroup("tester", SystemGroups.UserManagerGroup));
+		public void SetUserRoles() {
+			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToRole("tester", "test_group"));
+			Assert.DoesNotThrow(() => Query.Session.Access.AddUserToRole("tester", SystemRoles.UserManagerRole));
 
 			User user = null;
 			Assert.DoesNotThrow(() => user = Query.Session.Access.GetUser("tester"));
 			Assert.IsNotNull(user);
 
-			string[] userGroups = null;
-			Assert.DoesNotThrow(() => userGroups = Query.Session.Access.GetGroupsUserBelongsTo(user.Name));
-			Assert.IsNotNull(userGroups);
-			Assert.Contains("test_group", userGroups);
-			Assert.Contains(SystemGroups.UserManagerGroup, userGroups);
+			Role[] userRoles = null;
+			Assert.DoesNotThrow(() => userRoles = Query.Session.Access.GetUserRoles(user.Name));
+			Assert.IsNotNull(userRoles);
 
-			Assert.IsTrue(Query.Session.Access.UserBelongsToGroup("tester", "test_group"));
+			var roleNames = userRoles.Select(x => x.Name).ToArray();
+			Assert.Contains("test_group", roleNames);
+			Assert.Contains(SystemRoles.UserManagerRole, roleNames);
+
+			Assert.IsTrue(Query.Session.Access.UserIsInRole("tester", "test_group"));
 		}
 
 		[Test]

@@ -42,26 +42,37 @@ namespace Deveel.Data {
 		}
 
 		private void CreateTestRole(IQuery query) {
-			query.Session.Access.CreateUserGroup("test_role");
+			query.Session.Access.CreateRole("test_role");
 		}
 
 		[Test]
 		public void GrantCreateToUserOnSchema() {
 			Query.Grant("test_user", Privileges.Create, new ObjectName("APP"));
 
-			// TODO: Query the user privileges
+			// TODO: Query the user privileges and assert he was granted
 		}
 
 		[Test]
 		public void GrantSelectToUserOnTable() {
 			Query.Grant("test_user", Privileges.Create, new ObjectName("APP.test_table"));
 
-			// TODO: Query the user privileges
+			// TODO: Query the user privileges and assert he was granted
 		}
 
 		[Test]
 		public void GrantCreateToRoleOnSchema() {
 			Query.Grant("test_role", Privileges.Create, new ObjectName("APP"));
+		}
+
+		[Test]
+		public void GrantRoleToUser() {
+			Query.GrantRole("test_user", "test_role");
+
+			var userRoles = Query.Access.GetUserRoles("test_user");
+
+			Assert.IsNotNull(userRoles);
+			Assert.AreEqual(1, userRoles.Length);
+			Assert.Contains("test_role", userRoles);
 		}
 	}
 }

@@ -729,7 +729,7 @@ namespace Deveel.Data.Sql.Parser {
 			var action = new NonTerminal("action");
 			var setAccountStatus = new NonTerminal("set_account_status", typeof(SetAccountStatusNode));
 			var setPassword = new NonTerminal("set_password", typeof(SetPasswordNode));
-			var setGroups = new NonTerminal("set_groups", typeof(SetGroupsNode));
+			var setGroups = new NonTerminal("set_groups", typeof(SetRolesNode));
 			var accountStatus = new NonTerminal("account_status");
 
 			alterUser.Rule = Key("ALTER") + Key("USER") + Identifier + actionList;
@@ -738,7 +738,7 @@ namespace Deveel.Data.Sql.Parser {
 			setAccountStatus.Rule = Key("SET") + Key("ACCOUNT") + accountStatus;
 			accountStatus.Rule = Key("LOCK") | Key("UNLOCK");
 			setPassword.Rule = Key("SET") + Key("PASSWORD") + SqlExpression();
-			setGroups.Rule = Key("SET") + Key("GROUPS") + SqlExpressionList();
+			setGroups.Rule = Key("SET") + Key("ROLES") + SqlExpressionList();
 
 			return alterUser;
 		}

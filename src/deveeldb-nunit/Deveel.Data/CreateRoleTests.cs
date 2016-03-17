@@ -14,7 +14,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ExistingRole() {
-			Assert.Throws<InvalidOperationException>(() => Query.CreateRole("secure_admin"));
+			Assert.Throws<InvalidOperationException>(() => Query.CreateRole("secure_access"));
 		}
 	}
 }

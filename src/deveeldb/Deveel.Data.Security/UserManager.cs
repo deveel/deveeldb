@@ -154,61 +154,61 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private string[] QueryUserGroups(string userName) {
+		private string[] QueryUserRoles(string userName) {
 			using (var query = Session.CreateQuery()) {
 				var table = query.Access.GetTable(SystemSchema.UserGroupTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
-				// All 'user_group' where UserName = %username%
+				// All 'user_role' where UserName = %username%
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(userName)));
 				int sz = t.RowCount;
-				var groups = new string[sz];
+				var roles = new string[sz];
 				var rowEnum = t.GetEnumerator();
 				int i = 0;
 				while (rowEnum.MoveNext()) {
-					groups[i] = t.GetValue(rowEnum.Current.RowId.RowNumber, 1).Value.ToString();
+					roles[i] = t.GetValue(rowEnum.Current.RowId.RowNumber, 1).Value.ToString();
 					++i;
 				}
 
-				return groups;
+				return roles;
 			}
 		}
 
-		private bool TryGetUserGroupsFromCache(string userName, out string[] groups) {
+		private bool TryGetUserRolesFromCache(string userName, out string[] roles) {
 			if (userGroupsCache == null) {
-				groups = null;
+				roles = null;
 				return false;
 			}
 
-			return userGroupsCache.TryGetValue(userName, out groups);
+			return userGroupsCache.TryGetValue(userName, out roles);
 		}
 
-		private void ClearUserGroupsCache(string userName) {
+		private void ClearUserRolesCache(string userName) {
 			if (userGroupsCache == null)
 				return;
 
 			userGroupsCache.Remove(userName);
 		}
 
-		private void ClearUserGroupsCache() {
+		private void ClearUserRolesCache() {
 			if (userGroupsCache == null)
 				return;
 
 			userGroupsCache.Clear();
 		}
 
-		private void SetUserGroupsInCache(string userName, string[] groups) {
+		private void SetUserRolesInCache(string userName, string[] roles) {
 			if (userGroupsCache == null)
 				userGroupsCache = new Dictionary<string, string[]>();
 
-			userGroupsCache[userName] = groups;
+			userGroupsCache[userName] = roles;
 		}
 
 
 		public bool DropUser(string userName) {
 			var userExpr = SqlExpression.Constant(Field.String(userName));
 
-			RemoveUserFromAllGroups(userName);
+			RemoveUserFromAllRoles(userName);
 
 			using (var query = Session.CreateQuery()) {
 				// TODO: Remove all object-level privileges from the user...
@@ -230,7 +230,7 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private void RemoveUserFromAllGroups(string username) {
+		private void RemoveUserFromAllRoles(string username) {
 			using (var query = Session.CreateQuery()) {
 				var userExpr = SqlExpression.Constant(Field.String(username));
 
@@ -241,7 +241,7 @@ namespace Deveel.Data.Security {
 				if (t.RowCount > 0) {
 					table.Delete(t);
 
-					ClearUserGroupsCache(username);
+					ClearUserRolesCache(username);
 				}
 			}
 		}
@@ -290,8 +290,8 @@ namespace Deveel.Data.Security {
 				// All 'user_group' where UserName = %username%
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 
-				// All from this set where PrivGroupName = %group%
-				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroups.LockGroup));
+				// All from this set where PrivGroupName = %role%
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemRoles.LockedRole));
 
 				bool userBelongsToLockGroup = t.RowCount > 0;
 				if (status == UserStatus.Locked &&
@@ -300,7 +300,7 @@ namespace Deveel.Data.Security {
 					// Add this user to the locked group.
 					var rdat = new Row(table);
 					rdat.SetValue(0, userName);
-					rdat.SetValue(1, SystemGroups.LockGroup);
+					rdat.SetValue(1, SystemRoles.LockedRole);
 					table.AddRow(rdat);
 				} else if (status == UserStatus.Unlocked &&
 				           userBelongsToLockGroup) {
@@ -312,7 +312,7 @@ namespace Deveel.Data.Security {
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			if (IsUserInGroup(userName, SystemGroups.LockGroup))
+			if (IsUserInRole(userName, SystemRoles.LockedRole))
 				return UserStatus.Locked;
 
 			return UserStatus.Unlocked;
@@ -359,35 +359,35 @@ namespace Deveel.Data.Security {
 		}
 
 
-		public void CreateUserGroup(string groupName) {
-			if (String.IsNullOrEmpty(groupName))
-				throw new ArgumentNullException("groupName");
+		public void CreateRole(string roleName) {
+			if (String.IsNullOrEmpty(roleName))
+				throw new ArgumentNullException("roleName");
 
-			var c = groupName[0];
+			var c = roleName[0];
 			if (c == '$' || c == '%' || c == '@')
-				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", groupName));
+				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", roleName));
 
 			using (var query = Session.CreateQuery()) {
 				var table = query.Access.GetMutableTable(SystemSchema.GroupsTableName);
 
 				var row = table.NewRow();
-				row.SetValue(0, groupName);
+				row.SetValue(0, roleName);
 
 				table.AddRow(row);
 			}
 		}
 
-		public bool DropUserGroup(string groupName) {
+		public bool DropRole(string roleName) {
 			using (var query = Session.CreateQuery()) {
 				var table = query.Access.GetMutableTable(SystemSchema.UserGroupTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
-				// All password where name = %groupName%
-				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+				// All password where name = %roleName%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 
 				if (t.RowCount > 0) {
 					table.Delete(t);
-					ClearUserGroupsCache();
+					ClearUserRolesCache();
 					return true;
 				}
 
@@ -395,40 +395,40 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public bool UserGroupExists(string groupName) {
+		public bool RoleExists(string roleName) {
 			using (var query = Session.CreateQuery()) {
 				var table = query.Access.GetTable(SystemSchema.GroupsTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
-				// All password where name = %groupName%
-				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+				// All password where name = %roleName%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 				return t.RowCount > 0;
 			}
 		}
 
-		public void AddUserToGroup(string userName, string groupName, bool asAdmin) {
-			if (String.IsNullOrEmpty(groupName))
+		public void AddUserToRole(string userName, string roleName, bool asAdmin) {
+			if (String.IsNullOrEmpty(roleName))
 				throw new ArgumentNullException("group");
 			if (String.IsNullOrEmpty(userName))
-				throw new ArgumentNullException("username");
+				throw new ArgumentNullException("userName");
 
-			char c = groupName[0];
+			char c = roleName[0];
 			if (c == '@' || c == '&' || c == '#' || c == '$')
-				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", groupName, c), "groupName");
+				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", roleName, c), "roleName");
 
-			if (!IsUserInGroup(userName, groupName)) {
+			if (!IsUserInRole(userName, roleName)) {
 				using (var query = Session.CreateQuery()) {
 					var table = query.Access.GetMutableTable(SystemSchema.UserGroupTableName);
 					var row = table.NewRow();
 					row.SetValue(0, userName);
-					row.SetValue(1, groupName);
+					row.SetValue(1, roleName);
 					row.SetValue(2, asAdmin);
 					table.AddRow(row);
 				}
 			}
 		}
 
-		public bool IsUserGroupAdmin(string userName, string groupName) {
+		public bool IsUserRoleAdmin(string userName, string roleName) {
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
@@ -439,8 +439,8 @@ namespace Deveel.Data.Security {
 				// All 'user_group' where UserName = %username%
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 
-				// All from this set where PrivGroupName = %group%
-				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+				// All from this set where PrivGroupName = %roleName%
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 				if (t.RowCount == 0)
 					return false;
 
@@ -448,7 +448,7 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public bool RemoveUserFromGroup(string userName, string groupName) {
+		public bool RemoveUserFromRole(string userName, string roleName) {
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
@@ -460,12 +460,12 @@ namespace Deveel.Data.Security {
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 
 				// All from this set where PrivGroupName = %group%
-				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 
 				if (t.RowCount > 0) {
 					table.Delete(t);
 
-					ClearUserGroupsCache(userName);
+					ClearUserRolesCache(userName);
 
 					return true;
 				}
@@ -474,10 +474,10 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public bool IsUserInGroup(string userName, string groupName) {
+		public bool IsUserInRole(string userName, string roleName) {
 			string[] userGroups;
-			if (TryGetUserGroupsFromCache(userName, out userGroups) &&
-			    userGroups.Any(x => String.Equals(groupName, x, StringComparison.OrdinalIgnoreCase)))
+			if (TryGetUserRolesFromCache(userName, out userGroups) &&
+			    userGroups.Any(x => String.Equals(roleName, x, StringComparison.OrdinalIgnoreCase)))
 				return true;
 
 			using (var query = Session.CreateQuery()) {
@@ -491,16 +491,16 @@ namespace Deveel.Data.Security {
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 
 				// All from this set where PrivGroupName = %group%
-				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 				return t.RowCount > 0;
 			}
 		}
 
-		public string[] GetUserGroups(string userName) {
+		public string[] GetUserRoles(string userName) {
 			string[] groups;
-			if (!TryGetUserGroupsFromCache(userName, out groups)) {
-				groups = QueryUserGroups(userName);
-				SetUserGroupsInCache(userName, groups);
+			if (!TryGetUserRolesFromCache(userName, out groups)) {
+				groups = QueryUserRoles(userName);
+				SetUserRolesInCache(userName, groups);
 			}
 
 			return groups;

@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
 				context.Request.Access.AlterUserPassword(UserName, password);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
-				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
+				var groupNames = ((SetUserRolesAction)AlterAction).Roles
 					.Cast<SqlConstantExpression>()
 					.Select(x => x.Value.Value.ToString())
 					.ToArray();

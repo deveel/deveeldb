@@ -262,7 +262,7 @@ namespace Deveel.Data {
 
 							// The system tables that are present in every conglomerate.
 							SystemSchema.CreateTables(query);
-							SystemGroups.Create(query);
+							SystemRoles.Create(query);
 
 							query.Access.CreatePublicUser();
 

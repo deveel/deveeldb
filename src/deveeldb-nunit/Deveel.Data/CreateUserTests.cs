@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Security;
+
 using NUnit.Framework;
 
 namespace Deveel.Data {
@@ -13,6 +15,16 @@ namespace Deveel.Data {
 
 			var exists = Query.Session.Access.UserExists(userName);
 			Assert.IsTrue(exists);
+		}
+
+		[Test]
+		public void ExistingUser() {
+			Assert.Throws<SecurityException>(() => Query.CreateUser(AdminUserName, "0123456789"));
+		}
+
+		[Test]
+		public void WithRoleName() {
+			Assert.Throws<SecurityException>(() => Query.CreateUser(SystemRoles.LockedRole, "0123456789"));
 		}
 	}
 }

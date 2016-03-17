@@ -25,9 +25,8 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public class PrivilegeManager : IPrivilegeManager/*, IResolveCallback*/ {
+	public class PrivilegeManager : IPrivilegeManager {
 		private Dictionary<GrantCacheKey, Privileges> grantsCache;
-		private Dictionary<string, Privileges> groupsPrivilegesCache;
 
 		public PrivilegeManager(ISession session) {
 			if (session == null)
@@ -46,14 +45,6 @@ namespace Deveel.Data.Security {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-
-		//void IResolveCallback.OnResolved(IResolveScope scope) {
-		//	var context = scope as IQueryContext;
-		//	if (context == null)
-		//		throw new InvalidOperationException("Privilege manager resolved outside the scope of the query context.");
-
-		//	QueryContext = context;
-		//}
 
 		protected virtual void Dispose(bool disposing) {
 			Session = null;
@@ -76,7 +67,7 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private static void RevokeAllGrants(IQuery queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName, string revoker, string user, bool withOption = false) {
+		private static void RevokeAllGrants(IQuery queryContext, IMutableTable grantTable, DbObjectType objectType, ObjectName objectName, string revoker, string grantee, bool withOption = false) {
 			var objectCol = grantTable.GetResolvedColumnName(1);
 			var paramCol = grantTable.GetResolvedColumnName(2);
 			var granteeCol = grantTable.GetResolvedColumnName(3);
@@ -93,15 +84,15 @@ namespace Deveel.Data.Security {
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
-			// username, and that match the object type.
+			// user or role, and that match the object type.
 
-			// Expression: ("grantee_col" = username)
+			// Expression: ("grantee_col" = grantee)
 			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-				SqlExpression.Constant(Field.String(user)));
+				SqlExpression.Constant(Field.String(grantee)));
 
 			// Expression: ("object_col" = object AND
-			//              "grantee_col" = username)
-			// All that match the given username or public and given object
+			//              "grantee_col" = grantee)
+			// All that match the given grantee or public and given object
 			var expr =
 				SqlExpression.And(
 					SqlExpression.Equal(SqlExpression.Reference(objectCol),
@@ -127,37 +118,37 @@ namespace Deveel.Data.Security {
 		private void UpdateUserGrants(DbObjectType objectType, ObjectName objectName, string granter, string grantee,
 			Privileges privileges, bool withOption) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
+				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
 
 				try {
 					UpdateGrants(query, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
 				} finally {
-					ClearUserGrantsCache(grantee, objectType, objectName, withOption, true);
+					ClearGrantsCache(grantee, objectType, objectName, withOption, true);
 				}
 			}
 		}
 
-		private void ClearUserGrantsCache(string userName, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic) {
+		private void ClearGrantsCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic) {
 			if (grantsCache == null)
 				return;
 
-			var key = new GrantCacheKey(userName, objectType, objectName.FullName, withOption, withPublic);
+			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
 			grantsCache.Remove(key);
 		}
 
-		private void ClearUserGrantsCache(string userName) {
+		private void ClearGrantsCache(string grantee) {
 			if (grantsCache == null)
 				return;
 
-			var keys = grantsCache.Keys.Where(x => x.userName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+			var keys = grantsCache.Keys.Where(x => x.userName.Equals(grantee, StringComparison.OrdinalIgnoreCase));
 			foreach (var key in keys) {
 				grantsCache.Remove(key);
 			}
 		}
 
-		public void GrantToUser(string userName, Grant grant) {
-			if (String.IsNullOrEmpty(userName))
-				throw new ArgumentNullException("userName");
+		public void GrantTo(string grantee, Grant grant) {
+			if (String.IsNullOrEmpty(grantee))
+				throw new ArgumentNullException("grantee");
 			if (grant == null)
 				throw new ArgumentNullException("grant");
 
@@ -165,37 +156,36 @@ namespace Deveel.Data.Security {
 			var objectName = grant.ObjectName;
 			var privileges = grant.Privileges;
 
-			Privileges oldPrivs = GetUserPrivileges(userName, objectType, objectName, grant.WithOption);
+			Privileges oldPrivs = GetPrivileges(grantee, objectType, objectName, grant.WithOption);
 			privileges |= oldPrivs;
 
 			if (!oldPrivs.Equals(privileges))
-				UpdateUserGrants(objectType, objectName, grant.GranterName, userName, privileges, grant.WithOption);
+				UpdateUserGrants(objectType, objectName, grant.GranterName, grantee, privileges, grant.WithOption);
 		}
 
-		private bool TryGetPrivilegesFromCache(string userName, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
+		private bool TryGetPrivilegesFromCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
 			out Privileges privileges) {
 			if (grantsCache == null) {
 				privileges = Privileges.None;
 				return false;
 			}
 
-			var key = new GrantCacheKey(userName, objectType, objectName.FullName, withOption, withPublic);
+			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
 			return grantsCache.TryGetValue(key, out privileges);
 		}
 
-		private void SetPrivilegesInCache(string userName, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
+		private void SetPrivilegesInCache(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption, bool withPublic,
 			Privileges privileges) {
-			var key = new GrantCacheKey(userName, objectType, objectName.FullName, withOption, withPublic);
+			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, withPublic);
 			if (grantsCache == null)
 				grantsCache = new Dictionary<GrantCacheKey, Privileges>();
 
 			grantsCache[key] = privileges;
 		}
 
-		private void RevokeAllGrantsFromUser(DbObjectType objectType, ObjectName objectName, string revoker, string user,
-			bool withOption = false) {
+		private void RevokeAllGrantsFrom(DbObjectType objectType, ObjectName objectName, string revoker, string grantee, bool withOption = false) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
+				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
 
 				var objectCol = grantTable.GetResolvedColumnName(1);
 				var paramCol = grantTable.GetResolvedColumnName(2);
@@ -213,15 +203,15 @@ namespace Deveel.Data.Security {
 
 				// The next is a single exhaustive select through the remaining records.
 				// It finds all grants that match either public or the grantee is the
-				// username, and that match the object type.
+				// user or role, and that match the object type.
 
-				// Expression: ("grantee_col" = username)
+				// Expression: ("grantee_col" = grantee)
 				var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol),
-					SqlExpression.Constant(Field.String(user)));
+					SqlExpression.Constant(Field.String(grantee)));
 
 				// Expression: ("object_col" = object AND
-				//              "grantee_col" = username)
-				// All that match the given username or public and given object
+				//              "grantee_col" = grantee)
+				// All that match the given grantee or public and given object
 				var expr =
 					SqlExpression.And(
 						SqlExpression.Equal(SqlExpression.Reference(objectCol),
@@ -261,20 +251,20 @@ namespace Deveel.Data.Security {
 
 			// The next is a single exhaustive select through the remaining records.
 			// It finds all grants that match either public or the grantee is the
-			// username, and that match the object type.
+			// user or role, and that match the object type.
 
-			// Expression: ("grantee_col" = username OR "grantee_col" = 'public')
-			var userCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol), SqlExpression.Constant(Field.String(grantee)));
+			// Expression: ("grantee_col" = grantee OR "grantee_col" = 'public')
+			var granteeCheck = SqlExpression.Equal(SqlExpression.Reference(granteeCol), SqlExpression.Constant(Field.String(grantee)));
 			if (withPublic) {
-				userCheck = SqlExpression.Or(userCheck, SqlExpression.Equal(SqlExpression.Reference(granteeCol),
+				granteeCheck = SqlExpression.Or(granteeCheck, SqlExpression.Equal(SqlExpression.Reference(granteeCol),
 					SqlExpression.Constant(Field.String(User.PublicName))));
 			}
 
 			// Expression: ("object_col" = object AND
-			//              ("grantee_col" = username OR "grantee_col" = 'public'))
-			// All that match the given username or public and given object
+			//              ("grantee_col" = grantee OR "grantee_col" = 'public'))
+			// All that match the given grantee or public and given object
 			var expr = SqlExpression.And(SqlExpression.Equal(SqlExpression.Reference(objectCol),
-				SqlExpression.Constant(Field.BigInt((int)objectType))), userCheck);
+				SqlExpression.Constant(Field.BigInt((int)objectType))), granteeCheck);
 
 			// Are we only searching for grant options?
 			if (withOption) {
@@ -300,20 +290,12 @@ namespace Deveel.Data.Security {
 			bool withOption, bool withPublic) {
 			using (var query = Session.CreateQuery()) {
 				// The system grants table.
-				var grantTable = query.Access.GetTable(SystemSchema.UserGrantsTableName);
+				var grantTable = query.Access.GetTable(SystemSchema.GrantsTableName);
 				return QueryPrivileges(query, grantTable, userName, objectType, objectName, withOption, withPublic);
 			}
 		}
 
-		private Privileges QueryGroupPrivileges(string groupName, DbObjectType objectType, ObjectName objectName,
-			bool withOption, bool withPublic) {
-			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetTable(SystemSchema.GroupGrantsTable);
-				return QueryPrivileges(query, grantTable, groupName, objectType, objectName, withOption, withPublic);
-			}
-		}
-
-		public Privileges GetUserPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption) {
+		public Privileges GetPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption) {
 			Privileges privs;
 			if (!TryGetPrivilegesFromCache(userName, objectType, objectName, withOption, true, out privs)) {
 				privs = QueryUserPrivileges(userName, objectType, objectName, withOption, true);
@@ -323,20 +305,20 @@ namespace Deveel.Data.Security {
 			return privs;
 		}
 
-		public void RevokeFromUser(string userName, Grant grant) {
-			if (String.IsNullOrEmpty(userName))
-				throw new ArgumentNullException("userName");
+		public void RevokeFrom(string grantee, Grant grant) {
+			if (String.IsNullOrEmpty(grantee))
+				throw new ArgumentNullException("grantee");
 
 			try {
-				RevokeAllGrantsFromUser(grant.ObjectType, grant.ObjectName, grant.GranterName, userName, grant.WithOption);
+				RevokeAllGrantsFrom(grant.ObjectType, grant.ObjectName, grant.GranterName, grantee, grant.WithOption);
 			} finally {
-				ClearUserGrantsCache(userName, grant.ObjectType, grant.ObjectName, grant.WithOption, false);
+				ClearGrantsCache(grantee, grant.ObjectType, grant.ObjectName, grant.WithOption, false);
 			}
 		}
 
 		public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.UserGrantsTableName);
+				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
 
 				var objectTypeColumn = grantTable.GetResolvedColumnName(1);
 				var objectNameColumn = grantTable.GetResolvedColumnName(2);
@@ -352,24 +334,6 @@ namespace Deveel.Data.Security {
 				// Remove these rows from the table
 				grantTable.Delete(t1);
 			}
-		}
-
-		public void GrantToGroup(string groupName, Grant grant) {
-			throw new NotImplementedException();
-		}
-
-		public void RevokeFromGroup(string groupName, Grant grant) {
-			throw new NotImplementedException();
-		}
-
-		public Privileges GetGroupPrivileges(string groupName, DbObjectType objectType, ObjectName objectName) {
-			Privileges privileges;
-			if (!TryGetPrivilegesFromCache(groupName, objectType, objectName, false, false, out privileges)) {
-				privileges = QueryGroupPrivileges(groupName, objectType, objectName, false, false);
-				SetPrivilegesInCache(groupName, objectType, objectName, false, false, privileges);
-			}
-
-			return privileges;
 		}
 
 		#region GrantCacheKey

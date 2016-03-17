@@ -246,7 +246,7 @@ namespace Deveel.Data {
 		}
 
 		public static void SetGroups(this IQuery query, string userName, params SqlExpression[] groups) {
-			query.AlterUser(userName, new SetUserGroupsAction(groups));
+			query.AlterUser(userName, new SetUserRolesAction(groups));
 		}
 
 		public static void SetGroups(this IQuery query, string userName, params string[] groupNames) {
