@@ -35,19 +35,18 @@ namespace Deveel.Data.Security {
 
 		[Test]
 		public void Authenticate_Success() {
-			User user = null;
+			bool authenticated = false;
 
-			Assert.DoesNotThrow(() => user = Database.Authenticate("tester", "123456789"));
-			Assert.IsNotNull(user);
-			Assert.AreEqual("tester", user.Name);
+			Assert.DoesNotThrow(() => authenticated = Database.Authenticate("tester", "123456789"));
+			Assert.IsTrue(authenticated);
 		}
 
 		[Test]
 		public void Authenticate_Fail() {
-			User user = null;
+			bool authenticated = false;
 
-			Assert.Throws<SecurityException>(() => user = Database.Authenticate("test2", "12545587"));
-			Assert.IsNull(user);
+			Assert.Throws<SecurityException>(() => authenticated = Database.Authenticate("test2", "12545587"));
+			Assert.IsFalse(authenticated);
 		}
 
 		[Test]

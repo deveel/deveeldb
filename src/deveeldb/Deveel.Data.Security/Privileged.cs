@@ -29,6 +29,11 @@ namespace Deveel.Data.Security {
 			return Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges);
 		}
 
+		public virtual bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			AssertInContext();
+			return Session.Access.HasGrantOption(Name, objectType, objectName, privileges);
+		}
+
 		public bool CanSelectFrom(DbObjectType objectType, ObjectName objectName) {
 			return HasPrivileges(objectType, objectName, Privileges.Select);
 		}

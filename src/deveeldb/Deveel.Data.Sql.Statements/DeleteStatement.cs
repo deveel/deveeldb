@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				if (!context.Request.Access.UserCanSelectFromPlan(QueryPlan))
 					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Select);
-				if (!context.Request.Access.UserCanDeleteFromTable(TableName))
+				if (!context.User.CanDeleteFromTable(TableName))
 					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Delete);
 				
 				var result = QueryPlan.Evaluate(context.Request);

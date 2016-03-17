@@ -65,6 +65,27 @@ namespace Deveel.Data.Security {
 			}
 		}
 
+		public bool IsRoleAdmin(string roleName) {
+			AssertInContext();
+			return Session.Access.UserIsRoleAdmin(Name, roleName);
+		}
+
+		public bool IsInRole(string roleName) {
+			AssertInContext();
+			return Session.Access.UserIsInRole(Name, roleName);
+		}
+
+		public bool CanGrantRole(string roleName) {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole) ||
+			       IsRoleAdmin(roleName);
+		}
+
+		public bool CanManageRoles() {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole);
+		}
+
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			if (IsSystem)
 				return true;
@@ -77,6 +98,20 @@ namespace Deveel.Data.Security {
 				return false;
 
 			return roles.Any(role => role.HasPrivileges(objectType, objectName, privileges));
+		}
+
+		public override bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (IsSystem)
+				return true;
+
+			if (base.HasGrantOption(objectType, objectName, privileges))
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.HasGrantOption(objectType, objectName, privileges));
 		}
 	}
 }

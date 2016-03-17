@@ -33,6 +33,8 @@ namespace Deveel.Data {
 		public SystemSession(ITransaction transaction, string currentSchema) {
 			if (String.IsNullOrEmpty(currentSchema))
 				throw new ArgumentNullException("currentSchema");
+			if (transaction == null)
+				throw new ArgumentNullException("transaction");
 
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
@@ -43,6 +45,8 @@ namespace Deveel.Data {
 
 			Access = new SessionAccess(this);
 		}
+
+		private bool committed;
 
 		public void Dispose() {
 			Transaction = null;

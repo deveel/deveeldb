@@ -39,7 +39,7 @@ namespace Deveel.Data {
 			}
 		}
 
-				#region Objects
+		#region Objects
 
 		public virtual IDbObject GetObject(DbObjectType objectType, ObjectName objectName) {
 			return GetObject(objectType, objectName, AccessType.ReadWrite);
@@ -578,22 +578,7 @@ namespace Deveel.Data {
 			return UserManager.DropUser(userName);
 		}
 
-		/// <summary>
-		/// Authenticates the specified user using the provided credentials.
-		/// </summary>
-		/// <param name="queryContext">The query query.</param>
-		/// <param name="username">The name of the user to authenticate.</param>
-		/// <param name="password">The password used to authenticate the user.</param>
-		/// <returns></returns>
-		/// <exception cref="System.ArgumentNullException">
-		/// If either <paramref name="username"/> or <paramref name="password"/> are
-		/// <c>null</c> or empty.
-		/// </exception>
-		/// <exception cref="SecurityException">
-		/// If the authentication was not successful for the credentials provided.
-		/// </exception>
-		/// <exception cref="System.NotImplementedException">The external authentication mechanism is not implemented yet</exception>
-		public User Authenticate(string username, string password) {
+		public bool Authenticate(string username, string password) {
 			try {
 				if (String.IsNullOrEmpty(username))
 					throw new ArgumentNullException("username");
@@ -603,7 +588,7 @@ namespace Deveel.Data {
 				var userInfo = UserManager.GetUser(username);
 
 				if (userInfo == null)
-					return null;
+					return false;
 
 				var userId = userInfo.Identification;
 
@@ -611,10 +596,10 @@ namespace Deveel.Data {
 					throw new NotImplementedException();
 
 				if (!UserManager.CheckIdentifier(username, password))
-					return null;
+					return false;
 
 				// Successfully authenticated...
-				return new User(Session, username);
+				return true;
 			} catch (SecurityException) {
 				throw;
 			} catch (Exception ex) {
@@ -643,31 +628,12 @@ namespace Deveel.Data {
 			return roles.Select(x => new Role(Session, x)).ToArray();
 		}
 
-		public bool UserIsInRole(string roleName) {
-			return UserIsInRole(Session.User.Name, roleName);
-		}
-
 		public bool UserIsInRole(string username, string roleName) {
 			return UserManager.IsUserInRole(username, roleName);
 		}
 
-		public bool UserCanManageRoles(string userName) {
-			return IsSystemUser(userName) ||
-			       UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanManageRoles() {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserCanManageRoles(Session.User.Name);
-		}
-
-		public bool UserHasSecureAccess() {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserHasSecureAccess(Session.User.Name);
+		public bool UserIsRoleAdmin(string userName, string roleName) {
+			return UserManager.IsUserRoleAdmin(userName, roleName);
 		}
 
 		public bool UserHasSecureAccess(string userName) {
@@ -679,25 +645,8 @@ namespace Deveel.Data {
 			return UserIsInRole(userName, SystemRoles.SecureAccessRole);
 		}
 
-		public bool UserIsInSecureAccessRole() {
-			return UserIsInSecureAccessRole(Session.User.Name);
-		}
-
-		public bool UserHasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (Session.User.IsSystem)
-				return true;
-			if (Session.User.IsPublic)
-				return false;
-
-			return UserHasGrantOption(Session.User.Name, objectType, objectName, privileges);
-		}
-
-		public bool UserHasGrantOption(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (IsSystemUser(userName) ||
-				UserIsInSecureAccessRole(userName))
-				return true;
-
-			var grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, true);
+		public bool HasGrantOption(string granter, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			var grant = PrivilegeManager.GetPrivileges(granter, objectType, objectName, true);
 			return (grant & privileges) != 0;
 		}
 
@@ -992,28 +941,6 @@ namespace Deveel.Data {
 			return UserHasPrivilege(userName, objectType, objectName, Privileges.Select);
 		}
 
-		public bool UserCanDeleteFromTable(ObjectName tableName) {
-			return UserCanDeleteFromTable(Session.User.Name, tableName);
-		}
-
-		public bool UserCanDeleteFromTable(string userName, ObjectName tableName) {
-			return UserHasTablePrivilege(userName, tableName, Privileges.Delete);
-		}
-
-		public bool UserCanAddToGroup(string groupName) {
-			return UserCanAddToGroup(Session.User.Name, groupName);
-		}
-
-		public bool UserCanAddToGroup(string userName, string groupName) {
-			if (IsSystemUser(userName) ||
-			    UserIsInSecureAccessRole(userName) ||
-				UserIsInRole(userName, SystemRoles.UserManagerRole))
-				return true;
-
-			return UserManager.IsUserRoleAdmin(userName, groupName);
-		}
-
-
 		#endregion
 
 		#region User Grants Management
@@ -1024,31 +951,17 @@ namespace Deveel.Data {
 			if (String.IsNullOrEmpty(username))
 				throw new ArgumentNullException("username");
 
-			if (!UserCanAddToGroup(role))
-				throw new SecurityException();
-
 			UserManager.AddUserToRole(username, role, asAdmin);
 		}
 
-		public void GrantOn(ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
-			var obj = FindObject(objectName);
-			if (obj == null)
-				throw new ObjectNotFoundException(objectName);
-
-			GrantOn(obj.ObjectType, obj.FullName, grantee, privileges, withOption);
-		}
-
 		public void GrantOn(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges, bool withOption = false) {
-			if (IsSystemUser(grantee))       // The @SYSTEM user does not need any other
-				return;
-
-			if (!ObjectExists(objectType, objectName))
-				throw new ObjectNotFoundException(objectName);
+			//if (!ObjectExists(objectType, objectName))
+			//	throw new ObjectNotFoundException(objectName);
 
 			var granter = Session.User.Name;
 
-			if (!UserHasGrantOption(objectType, objectName, privileges))
-				throw new MissingPrivilegesException(granter, objectName, privileges);
+			//if (!HasGrantOption(Session.User.Name, objectType, objectName, privileges))
+			//	throw new MissingPrivilegesException(granter, objectName, privileges);
 
 			var grant = new Grant(privileges, objectName, objectType, granter, withOption);
 			PrivilegeManager.GrantTo(grantee, grant);

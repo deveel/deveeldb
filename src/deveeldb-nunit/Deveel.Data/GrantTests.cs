@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -71,8 +72,11 @@ namespace Deveel.Data {
 			var userRoles = Query.Access.GetUserRoles("test_user");
 
 			Assert.IsNotNull(userRoles);
-			Assert.AreEqual(1, userRoles.Length);
-			Assert.Contains("test_role", userRoles);
+
+			var roleNames = userRoles.Select(x => x.Name).ToArray();
+
+			Assert.AreEqual(1, roleNames.Length);
+			Assert.Contains("test_role", roleNames);
 		}
 	}
 }

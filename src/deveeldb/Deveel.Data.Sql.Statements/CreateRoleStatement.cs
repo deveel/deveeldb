@@ -15,7 +15,7 @@ namespace Deveel.Data.Sql.Statements {
 		public string RoleName { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Access.UserCanManageRoles())
+			if (!context.User.CanManageRoles())
 				throw new SecurityException(String.Format("User '{0}' has not enough rights to create roles.", context.User.Name));
 
 			if (context.Request.Access.RoleExists(RoleName))

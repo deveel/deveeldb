@@ -48,7 +48,13 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.Request.Access.RoleExists(Role))
 				throw new InvalidOperationException(String.Format("The role '{0}' does not exist", Role));
 
-			// TODO: Verify the user can manage the given role ...
+			if (!context.User.CanGrantRole(Role))
+				throw new SecurityException(String.Format("User '{0}' cannot grant role '{1}' to '{2}'.", context.User.Name, Role, UserName));
+
+			if (WithAdmin) {
+				if (!context.User.IsRoleAdmin(Role))
+					throw new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", context.User, Role));
+			}
 
 			if (!context.Request.Access.UserCanManageUsers())
 				throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", context.User.Name));

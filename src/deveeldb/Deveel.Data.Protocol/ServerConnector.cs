@@ -72,7 +72,7 @@ namespace Deveel.Data.Protocol {
 
 		public ConnectionEndPoint RemoteEndPoint { get; private set; }
 
-		protected User User { get; private set; }
+		protected string User { get; private set; }
 
 		protected IDictionary<string, object> Metadata { get; private set; } 
 
@@ -169,14 +169,13 @@ namespace Deveel.Data.Protocol {
 			// TODO: Log an information about the logging user...
 
 			try {
-				var user = Database.Authenticate(username, password);
-				if (user == null)
+				if (!Database.Authenticate(username, password))
 					return false;
 
-				if (!OnAuthenticated(user))
+				if (!OnAuthenticated(username))
 					return false;
 
-				User = user;
+				User = username;
 
 				// TODO: Accept more connection settings and store them here...
 				Metadata = new Dictionary<string, object> {
@@ -194,7 +193,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected virtual bool OnAuthenticated(User user) {
+		protected virtual bool OnAuthenticated(string userName) {
 			return true;
 		}
 

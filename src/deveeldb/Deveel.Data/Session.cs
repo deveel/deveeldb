@@ -40,17 +40,18 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <param name="transaction">A transaction that handles the commands issued by
 		/// the user during the session.</param>
-		/// <param name="user"></param>
+		/// <param name="userName"></param>
 		/// <seealso cref="ITransaction"/>
-		public Session(ITransaction transaction, User user) {
+		public Session(ITransaction transaction, string userName) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 			
-			if (user == null)
-				throw new ArgumentNullException("user");
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
 
-			if (user.IsSystem || user.IsPublic)
-				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", user.Name));
+			if (String.Equals(userName, User.SystemName, StringComparison.OrdinalIgnoreCase) || 
+				String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
+				throw new ArgumentException(String.Format("Cannot open a session for user '{0}'.", userName));
 
             Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
@@ -60,7 +61,7 @@ namespace Deveel.Data {
 
 			transaction.Database.Sessions.Add(this);
 
-			User = user;
+			User = new User(this, userName);
 			StartedOn = DateTimeOffset.UtcNow;
 		}
 
