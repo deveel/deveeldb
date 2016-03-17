@@ -106,10 +106,10 @@ namespace Deveel.Data.Sql.Statements {
 					.Cast<SqlReferenceExpression>()
 					.Select(x => x.ReferenceName.Name).ToArray();
 
-				if (!context.Query.Session.Access.UserCanUpdateTable(TableName))
+				if (!context.Request.Access.UserCanUpdateTable(TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Update);
 
-				if (!context.Query.Session.Access.UserCanSelectFromPlan(QueryPlan))
+				if (!context.Request.Access.UserCanSelectFromPlan(QueryPlan))
 					throw new InvalidOperationException();
 
 				var table = context.Request.Access.GetMutableTable(TableName);
