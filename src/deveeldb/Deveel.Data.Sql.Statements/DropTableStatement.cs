@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Request.Access.UserCanDropObject(DbObjectType.Table, TableName))
+				if (!context.User.CanDrop(DbObjectType.Table, TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Drop);
 
 				// Check there are no referential links to any tables being dropped

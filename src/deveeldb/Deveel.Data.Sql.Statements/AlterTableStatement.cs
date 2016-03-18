@@ -82,7 +82,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Access.UserCanAlterTable(TableName))
+			if (!context.User.CanAlterTable(TableName))
 				throw new InvalidAccessException(context.Request.UserName(), TableName);
 
 			var table = context.Request.Access.GetTable(TableName);

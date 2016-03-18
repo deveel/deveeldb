@@ -114,6 +114,9 @@
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
+    <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
+    <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
+    <Compile Include="Deveel.Data.Security\KnownUserIdentifications.cs" />
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
     <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
@@ -406,8 +409,6 @@
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\Grant.cs" />
-    <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
-    <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunctionProvider.cs" />
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs" />
@@ -424,7 +425,6 @@
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
-    <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
     <Compile Include="Deveel.Data.Security\UserStatus.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
     <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />

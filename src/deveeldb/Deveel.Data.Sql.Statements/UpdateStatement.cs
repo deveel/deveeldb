@@ -106,7 +106,7 @@ namespace Deveel.Data.Sql.Statements {
 					.Cast<SqlReferenceExpression>()
 					.Select(x => x.ReferenceName.Name).ToArray();
 
-				if (!context.Request.Access.UserCanUpdateTable(TableName))
+				if (!context.User.CanUpdateTable(TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Update);
 
 				if (!context.User.CanSelectFrom(QueryPlan))

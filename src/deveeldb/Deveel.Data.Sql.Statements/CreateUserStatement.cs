@@ -58,15 +58,15 @@ namespace Deveel.Data.Sql.Statements {
 			var evaluated = Password.EvaluateToConstant(context.Request, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
 
-			if (!context.Request.Access.UserCanCreateUsers())
-				throw new SecurityException(String.Format("User '{0}' cannot create users.", UserName));
+			if (!context.User.CanManageUsers())
+				throw new SecurityException(String.Format("User '{0}' cannot create users.", context.User.Name));
 
-			if (context.Request.Access.UserExists(UserName))
+			if (context.DirectAccess.UserExists(UserName))
 				throw new SecurityException(String.Format("The user '{0}' already exists.", UserName));
-			if (context.Request.Access.RoleExists(UserName))
+			if (context.DirectAccess.RoleExists(UserName))
 				throw new SecurityException(String.Format("A role named '{0}' already exists.", UserName));
 
-			context.Request.Access.CreateUser(UserName, passwordText);
+			context.DirectAccess.CreateUser(UserName, passwordText);
 		}
 
 		#region PreparedSerializer

@@ -25,6 +25,15 @@ namespace Deveel.Data {
 
 		protected abstract ISession Session { get; }
 
+		private ISession SystemSession {
+			get {
+				if (Session is SystemSession)
+					return Session;
+
+				return new SystemSession(Session.Transaction, Session.CurrentSchema);
+			}
+		}
+
 		private IUserManager UserManager {
 			get {
 				if (userManager == null)
@@ -76,17 +85,10 @@ namespace Deveel.Data {
 		}
 
 		public virtual void CreateObject(IObjectInfo objectInfo) {
-			// TODO: throw a specialized exception
-			if (!UserCanCreateObject(objectInfo.ObjectType, objectInfo.FullName))
-				throw new InvalidOperationException();
-
 			Session.Transaction.CreateObject(objectInfo);
 		}
 
 		public virtual void AlterObject(IObjectInfo objectInfo) {
-			if (!UserCanAlterObject(objectInfo.ObjectType, objectInfo.FullName))
-				throw new MissingPrivilegesException(Session.User.Name, objectInfo.FullName, Privileges.Alter);
-
 			Session.Transaction.AlterObject(objectInfo);
 		}
 
@@ -103,7 +105,7 @@ namespace Deveel.Data {
 		}
 
 		public virtual bool DropObject(DbObjectType objectType, ObjectName objectName) {
-			if (!Session.Access.UserCanDropObject(objectType, objectName))
+			if (!Session.User.CanDrop(objectType, objectName))
 				throw new MissingPrivilegesException(Session.User.Name, objectName, Privileges.Drop);
 
 			return Session.Transaction.DropObject(objectType, objectName);
@@ -126,14 +128,14 @@ namespace Deveel.Data {
 		#region Schemata
 
 		public void CreateSchema(string name, string type) {
-			if (!UserCanCreateSchema())
-				throw new InvalidOperationException();      // TODO: throw a specialized exception
+			if (!Session.User.CanManageSchema())
+				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(name), Privileges.Create);
 
 			CreateObject(new SchemaInfo(name, type));
 		}
 
 		public void DropSchema(string schemaName) {
-			if (!UserCanDropSchema(schemaName))
+			if (!Session.User.CanDropSchema(schemaName))
 				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(schemaName), Privileges.Drop);
 
 			DropObject(DbObjectType.Schema, new ObjectName(schemaName));
@@ -194,7 +196,7 @@ namespace Deveel.Data {
 		}
 
 		public void AddPrimaryKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			if (!UserCanAlterTable(tableName))
+			if (!Session.User.CanAlterTable(tableName))
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Alter);
 
 			Session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
@@ -312,7 +314,7 @@ namespace Deveel.Data {
 
 			var tableName = tableInfo.TableName;
 
-			if (!UserCanCreateTable(tableName))
+			if (!Session.User.CanCreateTable(tableName))
 				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
 
 			CreateTable(tableInfo, false);
@@ -496,15 +498,15 @@ namespace Deveel.Data {
 		#region User Management
 
 		public void SetUserStatus(string username, UserStatus status) {
-			UserManager.SetUserStatus(username, status);
+			SystemSession.Access.UserManager.SetUserStatus(username, status);
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			return UserManager.GetUserStatus(userName);
+			return SystemSession.Access.UserManager.GetUserStatus(userName);
 		}
 
 		public bool UserExists(string userName) {
-			return UserManager.UserExists(userName);
+			return SystemSession.Access.UserManager.UserExists(userName);
 		}
 
 		public void CreatePublicUser() {
@@ -512,17 +514,23 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The @PUBLIC user can be created only by the SYSTEM");
 
 			var userName = User.PublicName;
-			var userId = UserIdentification.PlainText;
+			var userId = new UserIdentification(KnownUserIdentifications.ClearText, "###");
 			var userInfo = new UserInfo(userName, userId);
 
-			UserManager.CreateUser(userInfo, "####");
+			SystemSession.Access.UserManager.CreateUser(userInfo);
 		}
 
 		public void CreateUser(string userName, string password) {
+			CreateUser(userName, KnownUserIdentifications.ClearText, password);
+		}
+
+		public void CreateUser(string userName, string identification, string token) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
-			if (String.IsNullOrEmpty(password))
-				throw new ArgumentNullException("password");
+			if (String.IsNullOrEmpty(identification))
+				throw new ArgumentNullException("identification");
+			if (String.IsNullOrEmpty(token))
+				throw new ArgumentNullException("token");
 
 			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase))
 				throw new ArgumentException(
@@ -530,7 +538,7 @@ namespace Deveel.Data {
 
 			if (userName.Length <= 1)
 				throw new ArgumentException("User name must be at least one character.");
-			if (password.Length <= 1)
+			if (token.Length <= 1)
 				throw new ArgumentException("The password must be at least one character.");
 
 			var c = userName[0];
@@ -538,27 +546,46 @@ namespace Deveel.Data {
 				throw new ArgumentException(
 					String.Format("User name '{0}' is invalid: cannot start with '{1}' character.", userName, c), "userName");
 
-			var userId = UserIdentification.PlainText;
+			var identifier = FindIdentifier(identification);
+			if (identifier == null)
+				throw new ArgumentException(String.Format("User identification method '{0}' cannot be found", identification));
+
+			var userId = identifier.CreateIdentification(token);
 			var userInfo = new UserInfo(userName, userId);
 
-			UserManager.CreateUser(userInfo, password);
+			SystemSession.Access.UserManager.CreateUser(userInfo);
 		}
 
-		public void AlterUserPassword(string username, string password) {
-			var userId = UserIdentification.PlainText;
+		public void AlterUserPassword(string username, string token) {
+			AlterUserPassword(username, KnownUserIdentifications.ClearText, token);
+		}
+
+		public void AlterUserPassword(string username, string identification, string token) {
+			if (String.IsNullOrEmpty(username))
+				throw new ArgumentNullException("username");
+			if (String.IsNullOrEmpty(identification))
+				throw new ArgumentNullException("identification");
+
+			var identifier = FindIdentifier(identification);
+			if (identifier == null)
+				throw new ArgumentException(String.Format("User identification method '{0}' cannot be found", identification));
+
+			var userId = identifier.CreateIdentification(token);
 			var userInfo = new UserInfo(username, userId);
 
-			UserManager.AlterUser(userInfo, password);
+			SystemSession.Access.UserManager.AlterUser(userInfo);
 		}
 
 		public bool DeleteUser(string userName) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
 
-			if (!UserCanDropUser(userName))
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(userName), Privileges.Drop);
+			return SystemSession.Access.UserManager.DropUser(userName);
+		}
 
-			return UserManager.DropUser(userName);
+		private IUserIdentifier FindIdentifier(string name) {
+			return Session.Context.ResolveAllServices<IUserIdentifier>()
+				.FirstOrDefault(x => x.Name == name);
 		}
 
 		public bool Authenticate(string username, string password) {
@@ -568,17 +595,18 @@ namespace Deveel.Data {
 				if (String.IsNullOrEmpty(password))
 					throw new ArgumentNullException("password");
 
-				var userInfo = UserManager.GetUser(username);
+				var userInfo = SystemSession.Access.UserManager.GetUser(username);
 
 				if (userInfo == null)
 					return false;
 
 				var userId = userInfo.Identification;
+				var identifier = FindIdentifier(userId.Method);
 
-				if (userId.Method != "plain")
-					throw new NotImplementedException();
+				if (identifier == null)
+					throw new SecurityException(String.Format("The user '{0}' was identified by '{1}' but the identifier cannot be found in the context.", userInfo.Name, userId.Method));
 
-				if (!UserManager.CheckIdentifier(username, password))
+				if (!identifier.VerifyIdentification(password, userId))
 					return false;
 
 				// Successfully authenticated...
@@ -656,21 +684,15 @@ namespace Deveel.Data {
 			}
 		}
 
-		public bool UserHasSecureAccess(string userName) {
-			return IsSystemUser(userName) ||
-			       UserIsInSecureAccessRole(userName);
-		}
-
-		public bool UserIsInSecureAccessRole(string userName) {
-			return UserIsInRole(userName, SystemRoles.SecureAccessRole);
-		}
-
 		public bool HasGrantOption(string granter, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			var grant = PrivilegeManager.GetPrivileges(granter, objectType, objectName, true);
 			return (grant & privileges) != 0;
 		}
 
 		public bool UserHasPrivilege(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (User.IsSystemUserName(userName))
+				return true;
+
 			object grantObj;
 			Privileges grant;
 
@@ -682,206 +704,6 @@ namespace Deveel.Data {
 			}
 			
 			return (grant & privileges) != 0;
-		}
-
-		public bool UserCanCreateUsers() {
-			if (Session.User.IsSystem)
-				return true;
-			if (Session.User.IsPublic)
-				return false;
-
-			return UserCanCreateUsers(Session.User.Name);
-		}
-
-		public bool UserCanCreateUsers(string userName) {
-			return UserHasSecureAccess(userName) ||
-				UserIsInRole(userName, SystemRoles.UserManagerRole);
-		}
-
-		public bool UserCanDropUser(string userToDrop) {
-			if (Session.User.IsSystem)
-				return true;
-			if (Session.User.IsPublic)
-				return false;
-
-			return UserCanDropUser(Session.User.Name, userToDrop);
-		}
-
-		public bool UserCanDropUser(string userName, string userToDrop) {
-			return UserHasSecureAccess(userName) ||
-			       UserIsInRole(userName, SystemRoles.UserManagerRole) ||
-			       Session.User.Name.Equals(userToDrop, StringComparison.OrdinalIgnoreCase);
-		}
-
-		public bool UserHasTablePrivilege(string userName, ObjectName tableName, Privileges privileges) {
-			return UserHasPrivilege(userName, DbObjectType.Table, tableName, privileges);
-		}
-
-		public bool UserHasSchemaPrivilege(string userName, string schemaName, Privileges privileges) {
-			if (UserHasPrivilege(userName, DbObjectType.Schema, new ObjectName(schemaName), privileges))
-				return true;
-
-			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanCreateSchema() {
-			return UserCanCreateSchema(Session.User.Name);
-		}
-
-		public bool UserCanCreateSchema(string userName) {
-			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanCreateInSchema(string userName, string schemaName) {
-			return UserHasSchemaPrivilege(userName, schemaName, Privileges.Create);
-		}
-
-		public bool UserCanCreateTable(ObjectName tableName) {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserCanCreateTable(Session.User.Name, tableName);
-		}
-
-		public bool UserCanCreateTable(string userName, ObjectName tableName) {
-			var schema = tableName.Parent;
-			if (schema == null)
-				return UserHasSecureAccess(userName);
-
-			return UserCanCreateInSchema(userName, schema.FullName);
-		}
-
-		public bool UserCanAlterInSchema(string userName, string schemaName) {
-			if (UserHasSchemaPrivilege(userName, schemaName, Privileges.Alter))
-				return true;
-
-			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanDropSchema(string schemaName) {
-			return UserCanDropSchema(Session.User.Name, schemaName);
-		}
-
-		public bool UserCanDropSchema(string userName, string schemaName) {
-			if (UserCanDropObject(userName, DbObjectType.Schema, new ObjectName(schemaName)))
-				return true;
-
-			return UserHasSecureAccess(userName);
-		}
-
-		public bool UserCanAlterTable(ObjectName tableName) {
-			return UserCanAlterTable(Session.User.Name, tableName);
-		}
-
-		public bool UserCanAlterTable(string userName, ObjectName tableName) {
-			var schema = tableName.Parent;
-			if (schema == null)
-				return false;
-
-			return UserCanAlterInSchema(userName, schema.FullName);
-		}
-
-		public bool UserCanSelectFromTable(ObjectName tableName, params string[] columnNames) {
-			return UserCanSelectFromTable(Session.User.Name, tableName, columnNames);
-		}
-
-		public bool UserCanSelectFromTable(string userName, ObjectName tableName, params string[] columnNames) {
-			// TODO: Column-level select will be implemented in the future
-			if (columnNames != null && columnNames.Length > 0)
-				throw new NotSupportedException();
-
-			return UserHasTablePrivilege(userName, tableName, Privileges.Select);
-		}
-
-		public bool UserCanUpdateTable(ObjectName tableName, params string[] columnNames) {
-			return UserCanUpdateTable(Session.User.Name, tableName, columnNames);
-		}
-
-		public bool UserCanUpdateTable(string userName, ObjectName tableName, params string[] columnNames) {
-			// TODO: Column-level select will be implemented in the future
-			if (columnNames != null && columnNames.Length > 0)
-				throw new NotSupportedException();
-
-			return UserHasTablePrivilege(userName, tableName, Privileges.Update);
-		}
-
-		public bool UserCanInsertIntoTable(ObjectName tableName, params string[] columnNames) {
-			return UserCanInsertIntoTable(Session.User.Name, tableName, columnNames);
-		}
-
-		public bool UserCanInsertIntoTable(string userName, ObjectName tableName, params string[] columnNames) {
-			// TODO: Column-level select will be implemented in the future
-			if (columnNames != null && columnNames.Length > 0)
-				throw new NotSupportedException();
-
-			return UserHasTablePrivilege(userName, tableName, Privileges.Insert);
-		}
-
-		public bool UserCanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
-			return UserCanExecute(Session.User.Name, routineType, invoke, request);
-		}
-
-		public bool UserCanExecute(string userName, RoutineType routineType, Invoke invoke, IRequest request) {
-			if (routineType == RoutineType.Function &&
-				IsSystemFunction(invoke, request)) {
-				return true;
-			}
-
-			if (UserHasSecureAccess(userName))
-				return true;
-
-			return UserHasPrivilege(userName, DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
-		}
-
-		public bool UserCanExecuteFunction(Invoke invoke, IRequest request) {
-			return UserCanExecuteFunction(Session.User.Name, invoke, request);
-		}
-
-		public bool UserCanExecuteFunction(string userName, Invoke invoke, IRequest request) {
-			return UserCanExecute(userName, RoutineType.Function, invoke, request);
-		}
-
-		public bool UserCanExecuteProcedure(Invoke invoke, IRequest request) {
-			return UserCanExecuteProcedure(Session.User.Name, invoke, request);
-		}
-
-		public bool UserCanExecuteProcedure(string userName, Invoke invoke, IRequest request) {
-			return UserCanExecute(userName, RoutineType.Procedure, invoke, request);
-		}
-
-		public bool UserCanCreateObject(DbObjectType objectType, ObjectName objectName) {
-			if (Session.User.IsSystem)
-				return true;
-
-			return UserCanCreateObject(Session.User.Name, objectType, objectName);
-		}
-
-		public bool UserCanCreateObject(string userName, DbObjectType objectType, ObjectName objectName) {
-			return UserHasPrivilege(userName, objectType, objectName, Privileges.Create);
-		}
-
-		public bool UserCanDropObject(DbObjectType objectType, ObjectName objectName) {
-			return UserCanDropObject(Session.User.Name, objectType, objectName);
-		}
-
-		public bool UserCanDropObject(string userName, DbObjectType objectType, ObjectName objectName) {
-			return UserHasPrivilege(userName, objectType, objectName, Privileges.Drop);
-		}
-
-		public bool UserCanAlterObject(DbObjectType objectType, ObjectName objectName) {
-			return UserCanAlterObject(Session.User.Name, objectType, objectName);
-		}
-
-		public bool UserCanAlterObject(string userName, DbObjectType objectType, ObjectName objectName) {
-			return UserHasPrivilege(userName, objectType, objectName, Privileges.Alter);
-		}
-
-		public bool UserCanAccessObject(DbObjectType objectType, ObjectName objectName) {
-			return UserCanAccessObject(Session.User.Name, objectType, objectName);
-		}
-
-		public bool UserCanAccessObject(string userName, DbObjectType objectType, ObjectName objectName) {
-			return UserHasPrivilege(userName, objectType, objectName, Privileges.Select);
 		}
 
 		#region GrantCacheKey

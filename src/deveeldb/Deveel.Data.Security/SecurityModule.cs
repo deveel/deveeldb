@@ -37,6 +37,14 @@ namespace Deveel.Data.Security {
 			systemScope.Bind<IPrivilegeManager>()
 				.To<PrivilegeManager>()
 				.InSessionScope();
+
+			systemScope.Bind<IUserIdentifier>()
+				.To<ClearTextUserIdentifier>();
+
+#if !PCL
+			systemScope.Bind<IUserIdentifier>()
+				.To<Pkcs12UserIdentifier>();
+#endif
 		}
 	}
 }

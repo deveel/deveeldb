@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Request.Access.UserCanDropObject(DbObjectType.View, ViewName))
+				if (!context.User.CanDrop(DbObjectType.View, ViewName))
 					throw new MissingPrivilegesException(context.Request.UserName(), ViewName, Privileges.Drop);
 
 				// If the 'only if exists' flag is false, we need to check tables to drop

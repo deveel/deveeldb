@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Query;
 
@@ -28,12 +29,38 @@ namespace Deveel.Data.Security {
 
 		public virtual bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			AssertInContext();
-			return Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges);
+
+			if (Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges))
+				return true;
+
+			if (objectName.Parent != null)
+				return HasPrivileges(DbObjectType.Schema, objectName.Parent, privileges);
+
+			return false;
 		}
 
 		public virtual bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			AssertInContext();
 			return Session.Access.HasGrantOption(Name, objectType, objectName, privileges);
+		}
+
+		public virtual bool CanManageUsers() {
+			return false;
+		}
+
+		public virtual bool CanManageSchema() {
+			return false;
+		}
+
+		public bool CanCreate(DbObjectType objectType, ObjectName objectName) {
+			if (objectType == DbObjectType.Schema)
+				return CanManageSchema();
+
+			return HasSchemaPrivileges(objectName.ParentName, Privileges.Create);
+		}
+
+		public bool CanCreateTable(ObjectName tableName) {
+			return CanCreate(DbObjectType.Table, tableName);
 		}
 
 		public bool CanSelectFrom(DbObjectType objectType, ObjectName objectName) {
@@ -49,8 +76,20 @@ namespace Deveel.Data.Security {
 			return references.All(CanSelectFromTable);
 		}
 
+		public bool CanAccessObject(DbObjectType objectType, ObjectName objectName) {
+			var privileges = Privileges.Select;
+			if (objectType == DbObjectType.Routine)
+				privileges = Privileges.Execute;
+
+			return HasPrivileges(objectType, objectName, privileges);
+		}
+
 		public bool CanInsertIntoTable(ObjectName tableName) {
 			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Insert);
+		}
+
+		public bool CanUpdateTable(ObjectName tableName) {
+			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Update);
 		}
 
 		public bool CanDeleteFromTable(ObjectName tableName) {
@@ -70,9 +109,32 @@ namespace Deveel.Data.Security {
 			       HasSchemaPrivileges(objectName.ParentName, Privileges.Drop);
 		}
 
+		public bool CanDropSchema(string schemaName) {
+			return HasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), Privileges.Drop) ||
+			       CanManageSchema();
+		}
+
 		public bool CanAlter(DbObjectType objectType, ObjectName objectName) {
 			return HasPrivileges(objectType, objectName, Privileges.Alter) ||
 			       HasSchemaPrivileges(objectName.ParentName, Privileges.Alter);
+		}
+
+		public bool CanAlterTable(ObjectName tableName) {
+			return CanAlter(DbObjectType.Table, tableName);
+		}
+
+		public bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+			AssertInContext();
+
+			if (routineType == RoutineType.Function &&
+				Session.Access.IsSystemFunction(invoke, request))
+				return true;
+
+			return HasPrivileges(DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
+		}
+
+		public bool CanExecuteFunction(Invoke invoke, IRequest request) {
+			return CanExecute(RoutineType.Function, invoke, request);
 		}
 	}
 }

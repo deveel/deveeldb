@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.Request.Access.UserCanCreateObject(DbObjectType.Sequence, SequenceName))
+				if (!context.User.CanCreate(DbObjectType.Sequence, SequenceName))
 					throw new MissingPrivilegesException(context.Request.UserName(), SequenceName, Privileges.Create);
 
 				if (context.Request.Access.ObjectExists(DbObjectType.Sequence, SequenceName))

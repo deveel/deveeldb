@@ -21,17 +21,15 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	public interface IUserManager : IDisposable {
-		void CreateUser(UserInfo userInfo, string identifier);
+		void CreateUser(UserInfo userInfo);
 
 		bool DropUser(string userName);
 
-		void AlterUser(UserInfo userInfo, string identifier);
+		void AlterUser(UserInfo userInfo);
 
 		void SetUserStatus(string userName, UserStatus status);
 
 		UserStatus GetUserStatus(string userName);
-
-		bool CheckIdentifier(string userName, string identifier);
 
 		bool UserExists(string userName);
 

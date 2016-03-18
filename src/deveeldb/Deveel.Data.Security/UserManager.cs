@@ -60,11 +60,9 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public void CreateUser(UserInfo userInfo, string identifier) {
+		public void CreateUser(UserInfo userInfo) {
 			if (userInfo == null)
 				throw new ArgumentNullException("userInfo");
-			if (String.IsNullOrEmpty(identifier))
-				throw new ArgumentNullException("identifier");
 
 			// TODO: make these rules configurable?
 
@@ -82,16 +80,14 @@ namespace Deveel.Data.Security {
 
 				var method = userInfo.Identification.Method;
 				var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
-
-				if (method != "plain")
-					throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
+				var token = userInfo.Identification.Token;
 
 				table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
 				row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, method);
 				row.SetValue(2, methodArgs);
-				row.SetValue(3, identifier);
+				row.SetValue(3, token);
 				table.AddRow(row);
 			}
 		}
@@ -210,7 +206,7 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public void AlterUser(UserInfo userInfo, string identifier) {
+		public void AlterUser(UserInfo userInfo) {
 			using (var query = Session.CreateQuery()) {
 				var userName = userInfo.Name;
 
@@ -229,9 +225,7 @@ namespace Deveel.Data.Security {
 
 				var method = userInfo.Identification.Method;
 				var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
-
-				if (method != "plain")
-					throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
+				var token = userInfo.Identification.Token;
 
 				// Add the new username
 				table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
@@ -239,7 +233,7 @@ namespace Deveel.Data.Security {
 				row.SetValue(0, userName);
 				row.SetValue(1, method);
 				row.SetValue(2, methodArgs);
-				row.SetValue(3, identifier);
+				row.SetValue(3, token);
 				table.AddRow(row);
 			}
 		}
@@ -288,6 +282,7 @@ namespace Deveel.Data.Security {
 				var unameColumn = table.GetResolvedColumnName(0);
 				var methodColumn = table.GetResolvedColumnName(1);
 				var methodArgsColumn = table.GetResolvedColumnName(2);
+				var tokenColumn = table.GetResolvedColumnName(3);
 
 				var t = table.SimpleSelect(query, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
 				if (t.RowCount == 0)
@@ -297,8 +292,9 @@ namespace Deveel.Data.Security {
 				var methodArgs = t.GetValue(0, methodArgsColumn);
 				var argBytes = ((SqlBinary) methodArgs.Value).ToByteArray();
 				var args = DeserializeArguments(argBytes);
+				var token = t.GetValue(0, tokenColumn);
 
-				var identification = new UserIdentification(method);
+				var identification = new UserIdentification(method, token);
 				foreach (var arg in args) {
 					identification.Arguments[arg.Key] = arg.Value;
 				}
@@ -307,20 +303,19 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		public bool CheckIdentifier(string userName, string identifier) {
-			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(SystemSchema.PasswordTableName);
-				var unameColumn = table.GetResolvedColumnName(0);
-				var idColumn = table.GetResolvedColumnName(3);
+		//public string GetUserToken(string userName) {
+		//	using (var query = Session.CreateQuery()) {
+		//		var table = query.Access.GetTable(SystemSchema.PasswordTableName);
+		//		var unameColumn = table.GetResolvedColumnName(0);
+		//		var idColumn = table.GetResolvedColumnName(3);
 
-				var t = table.SimpleSelect(query, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-				if (t.RowCount == 0)
-					throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
+		//		var t = table.SimpleSelect(query, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+		//		if (t.RowCount == 0)
+		//			throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
 
-				var stored = t.GetValue(0, idColumn);
-				return stored.Value.ToString().Equals(identifier);
-			}
-		}
+		//		return t.GetValue(0, idColumn).Value.ToString();
+		//	}
+		//}
 
 
 		public void CreateRole(string roleName) {

@@ -52,7 +52,8 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.DirectAccess.UserExists(UserName))
 				throw new InvalidOperationException(String.Format("The user '{0}' does not exist: cannot delete.", UserName));
 
-			context.Request.Access.DeleteUser(UserName);
+			if (!context.DirectAccess.DeleteUser(UserName))
+				throw new StatementException(String.Format("Could not delete user '{0}': maybe not existing.", UserName));
 		}
 
 		protected override void GetData(SerializationInfo info) {

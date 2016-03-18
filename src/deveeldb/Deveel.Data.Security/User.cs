@@ -91,21 +91,38 @@ namespace Deveel.Data.Security {
 			       IsInRole(SystemRoles.SecureAccessRole);
 		}
 
-		public bool CanManageUsers() {
-			return IsSystem ||
-			       IsInRole(SystemRoles.SecureAccessRole) ||
-			       IsInRole(SystemRoles.UserManagerRole);
+		public override bool CanManageUsers() {
+			if (IsSystem)
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.CanManageUsers());
 		}
 
 		public bool CanDropUser(string userName) {
-			return IsSystem ||
-			       IsInRole(SystemRoles.SecureAccessRole) ||
-			       IsInRole(SystemRoles.UserManagerRole) ||
-			       String.Equals(Name, userName, StringComparison.OrdinalIgnoreCase);
+			if (String.Equals(Name, userName, StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			return CanManageUsers();
+		}
+
+		public override bool CanManageSchema() {
+			if (IsSystem)
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.CanManageSchema());
 		}
 
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (IsSystem)
+			if (IsSystem ||
+				IsInRole(SystemRoles.SecureAccessRole))
 				return true;
 
 			if (base.HasPrivileges(objectType, objectName, privileges))
@@ -130,6 +147,10 @@ namespace Deveel.Data.Security {
 				return false;
 
 			return roles.Any(role => role.HasGrantOption(objectType, objectName, privileges));
+		}
+
+		public static bool IsSystemUserName(string name) {
+			return String.Equals(SystemName, name, StringComparison.OrdinalIgnoreCase);
 		}
 	}
 }

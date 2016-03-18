@@ -223,7 +223,7 @@ namespace Deveel.Data.Sql.Statements {
 			protected override void ExecuteStatement(ExecutionContext context) {
 				int insertCount = 0;
 
-				if (!context.Request.Access.UserCanInsertIntoTable(TableName))
+				if (!context.User.CanInsertIntoTable(TableName))
 					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Insert);
 
 				var table = context.Query.Access.GetMutableTable(TableName);

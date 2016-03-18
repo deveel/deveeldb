@@ -123,8 +123,8 @@ namespace Deveel.Data.Sql.Statements {
 				try {
 					var tableName = TableInfo.TableName;
 
-					if (!context.Request.Access.UserCanCreateTable(tableName))
-						throw new MissingPrivilegesException(context.Query.UserName(), tableName, Privileges.Create);
+					if (!context.User.CanCreateTable(tableName))
+						throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
 
 					if (context.Request.Access.TableExists(tableName)) {
 						if (!IfNotExists)

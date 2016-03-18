@@ -64,10 +64,6 @@ namespace Deveel.Data {
 			if (objType == DbObjectType.Table)
 				return GetTable(objName);
 
-			// TODO: throw a specialized exception
-			if (!Session.Access.UserCanAccessObject(objType, objName))
-				throw new InvalidOperationException();
-
 			return base.GetObject(objType, objName, accessType);
 		}
 

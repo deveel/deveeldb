@@ -153,6 +153,10 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
+    <Compile Include="Deveel.Data.Security\KnownUserIdentifications.cs" />
+    <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
+    <Compile Include="Deveel.Data.Security\Pkcs12UserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
@@ -189,7 +193,6 @@
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\EmbeddedClientConnector.cs" />
     <Compile Include="Deveel.Data.Protocol\ServerClientConnector.cs" />
-    <Compile Include="Deveel.Data.Security\IAuthenticationCallback.cs" />
     <Compile Include="Deveel.Data.Security\IPrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\IUserManager.cs" />
     <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
@@ -726,7 +729,6 @@
     <Compile Include="Deveel.Data.Security\HashFunctions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Security\IdentificationType.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -739,7 +741,6 @@
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\Grant.cs" />
     <Compile Include="Deveel.Data.Security\UserGroup.cs" />
-    <Compile Include="Deveel.Data.Security\UserProtocolAccess.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateViewNode.cs" />

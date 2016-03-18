@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.Request.Access.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' does not exist.", SchemaName));
 
-			if (!context.Request.Access.UserCanDropSchema(SchemaName))
+			if (!context.User.CanDropSchema(SchemaName))
 				throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Drop);
 
 			// TODO: Check if the schema is empty before deleting it
