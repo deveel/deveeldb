@@ -35,10 +35,17 @@ namespace Deveel.Data.Security {
 		}
 
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (String.Equals(Name, SystemRoles.SecureAccessRole))
+			if (IsSecureAccess)
 				return true;
 
 			return base.HasPrivileges(objectType, objectName, privileges);
+		}
+
+		public override bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (IsSecureAccess)
+				return true;
+
+			return base.HasGrantOption(objectType, objectName, privileges);
 		}
 	}
 }

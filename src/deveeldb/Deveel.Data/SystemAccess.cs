@@ -830,8 +830,20 @@ namespace Deveel.Data {
 			RevokeAllGrantsOn(DbObjectType.View, objectName);
 		}
 
-		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges) {
-			GrantOn(DbObjectType.Table, tableName, grantee, privileges);
+		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges, bool withOption = false) {
+			GrantOn(DbObjectType.Table, tableName, grantee, privileges, withOption);
+		}
+
+		public void Revoke(DbObjectType objectType, ObjectName objectName, string grantee, Privileges privileges,
+			bool grantOption = false) {
+			try {
+				var revoker = Session.User.Name;
+				var grant = new Grant(privileges, objectName, objectType, grantee, revoker, grantOption);
+				SystemSession.Access.PrivilegeManager.Revoke(grant);
+			} finally {
+				var key = new GrantCacheKey(grantee, objectType, objectName.FullName, grantOption, false);
+				PrivilegesCache.Remove(key);
+			}
 		}
 
 		#endregion

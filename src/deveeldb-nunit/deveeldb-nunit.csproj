@@ -149,6 +149,7 @@
     <Compile Include="Deveel.Data\InsertSelectTests.cs" />
     <Compile Include="Deveel.Data\InsertTests.cs" />
     <Compile Include="Deveel.Data\OpenCursorTests.cs" />
+    <Compile Include="Deveel.Data\RevokeTests.cs" />
     <Compile Include="Deveel.Data\SelectTests.cs" />
     <Compile Include="Deveel.Data\SystemTests.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
@@ -175,8 +176,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockTests.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseTests.cs" />
     <Compile Include="Deveel.Data.Sql\JoinTableTests.cs" />
-    <Compile Include="Deveel.Data.Sql\MutableTableTests.cs" />
-    <Compile Include="Deveel.Data.Sql\TableQueryTests.cs" />
     <Compile Include="Deveel.Data.Store\SingleFileStoreTests.cs" />
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />

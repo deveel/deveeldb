@@ -306,11 +306,11 @@ namespace Deveel.Data {
 
 		#region Revoke Privileges
 
-		public static void RevokeFromUser(this IQuery query, string grantee, Privileges privileges, ObjectName objectName) {
-			RevokeFromUser(query, grantee, privileges, false, objectName);
+		public static void Revoke(this IQuery query, string grantee, Privileges privileges, ObjectName objectName) {
+			Revoke(query, grantee, privileges, false, objectName);
 		}
 
-		public static void RevokeFromUser(this IQuery query, string grantee, Privileges privileges, bool grantOption, ObjectName objectName) {
+		public static void Revoke(this IQuery query, string grantee, Privileges privileges, bool grantOption, ObjectName objectName) {
 			query.ExecuteStatement(new RevokePrivilegesStatement(grantee, privileges, grantOption, objectName, new string[0]));
 		}
 
