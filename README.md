@@ -19,6 +19,14 @@ DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The sys
 
 Although the core project is thought to be embedded in applications, the modular architecture allows extensions to other uses, such as providing databases through networks: an application is already included in the solution.
 
+Getting Started
+=============
+
+In the wiki pages of the GitHub space dedicated to the project, it is possible to find more information about the project dynamics and usage.
+
+For a quick start, I suggest taking a look at [the getting started guide](https://github.com/deveel/deveeldb/wiki/Getting-Started-Embedded)
+
+
 Getting It
 ============
 
