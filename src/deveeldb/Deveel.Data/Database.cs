@@ -253,31 +253,31 @@ namespace Deveel.Data {
 				TableComposite.Create();
 
 				using (var session = this.CreateInitialSystemSession()) {
-					using (var context = session.CreateQuery()) {
+					using (var query = session.CreateQuery()) {
 						try {
 							session.CurrentSchema(SystemSchema.Name);
 
 							// Create the schema information tables
-							CreateSchemata(context);
+							CreateSchemata(query);
 
 							// The system tables that are present in every conglomerate.
-							SystemSchema.CreateTables(context);
-							SystemGroups.Create(context);
+							SystemSchema.CreateTables(query);
+							SystemRoles.Create(query);
 
-							context.CreatePublicUser();
+							query.Access.CreatePublicUser();
 
 							// Create the system views
-							InformationSchema.CreateViews(context);
-							InformationSchema.GrantToPublic(context);
+							InformationSchema.CreateViews(query);
+							InformationSchema.GrantToPublic(query);
 
-							this.CreateAdminUser(context, adminName, adminPassword);
+							this.CreateAdminUser(query, adminName, adminPassword);
 
-							SetCurrentDataVersion(context);
+							SetCurrentDataVersion(query);
 
 							// Set all default system procedures.
 							// TODO: SystemSchema.SetupSystemFunctions(session, username);
 
-							OnDatabaseCreate(context);
+							OnDatabaseCreate(query);
 
 							try {
 								// Close and commit this transaction.
@@ -308,8 +308,8 @@ namespace Deveel.Data {
 
 		private void CreateSchemata(IQuery context) {
 			try {
-				context.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				context.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
+				context.Access.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
+				context.Access.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {

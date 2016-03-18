@@ -16,21 +16,22 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	public interface IPrivilegeManager : IDisposable {
-		void GrantToUser(string userName, Grant grant);
+		void Grant(Grant grant);
 
-		Privileges GetUserPrivileges(string userName, DbObjectType objectType, ObjectName objectName, bool withOption);
+		Grant[] GetGrants(string grantee, bool withPublic);
 
-		void RevokeFromUser(string userName, Grant grant);
+		//Privileges GetPrivileges(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption);
 
-		void GrantToGroup(string groupName, Grant grant);
+		void Revoke(Grant grant);
 
-		void RevokeFromGroup(string groupName, Grant grant);
+		Grant[] GetGrantsOn(DbObjectType objectType, ObjectName objectName); 
 
-		Privileges GetGroupPrivileges(string groupName, DbObjectType objectType, ObjectName objectName);
+		// void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName);
 	}
 }

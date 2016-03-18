@@ -17,20 +17,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class UpdateStatement : SqlStatement, IPlSqlStatement {
-		public UpdateStatement(string tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
+		public UpdateStatement(ObjectName tableName, SqlExpression wherExpression, IEnumerable<SqlColumnAssignment> assignments) {
 			if (wherExpression == null)
 				throw new ArgumentNullException("wherExpression");
 			if (assignments == null)
 				throw new ArgumentNullException("assignments");
-			if (String.IsNullOrEmpty(tableName))
+			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
@@ -39,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 			Limit = -1;
 		}
 
-		public string TableName { get; private set; }
+		public ObjectName TableName { get; private set; }
 
 		public SqlExpression WherExpression { get; private set; }
 
@@ -48,8 +50,8 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
-			if (!context.Query.TableExists(tableName))
+			var tableName = context.Access.ResolveTableName(TableName);
+			if (!context.Access.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExpression = new SqlQueryExpression(new[]{SelectColumn.Glob("*") });
@@ -100,7 +102,23 @@ namespace Deveel.Data.Sql.Statements {
 			public int Limit { get; private set; }
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var updateCount = context.Request.Query.UpdateTable(TableName, QueryPlan, Columns, Limit);
+				var columnNames = Columns.Select(x => x.ReferenceExpression)
+					.Cast<SqlReferenceExpression>()
+					.Select(x => x.ReferenceName.Name).ToArray();
+
+				if (!context.User.CanUpdateTable(TableName))
+					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Update);
+
+				if (!context.User.CanSelectFrom(QueryPlan))
+					throw new InvalidOperationException();
+
+				var table = context.Request.Access.GetMutableTable(TableName);
+				if (table == null)
+					throw new ObjectNotFoundException(TableName);
+
+				var updateSet = QueryPlan.Evaluate(context.Request);
+				var updateCount = table.Update(context.Request, updateSet, Columns, Limit);
+
 				context.SetResult(updateCount);
 			}
 

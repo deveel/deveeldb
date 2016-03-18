@@ -41,14 +41,19 @@ namespace Deveel.Data.Sql.Statements {
 		public string UserName { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Query.UserCanDropUser(UserName))
-				throw new SecurityException(String.Format("The user '{0}' has not enough rights to drop the other user '{1}'",
-					context.Request.Query.UserName(), UserName));
+			if (String.Equals(UserName, User.PublicName, StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(UserName, User.SystemName, StringComparison.OrdinalIgnoreCase))
+				throw new SecurityException(String.Format("User '{0}' is reserved and cannot be dropped.", UserName));
 
-			if (!context.Request.Query.UserExists(UserName))
+			if (!context.User.CanDropUser(UserName))
+				throw new SecurityException(String.Format("The user '{0}' has not enough rights to drop the other user '{1}'",
+					context.User.Name, UserName));
+
+			if (!context.DirectAccess.UserExists(UserName))
 				throw new InvalidOperationException(String.Format("The user '{0}' does not exist: cannot delete.", UserName));
 
-			context.Request.Query.DeleteUser(UserName);
+			if (!context.DirectAccess.DeleteUser(UserName))
+				throw new StatementException(String.Format("Could not delete user '{0}': maybe not existing.", UserName));
 		}
 
 		protected override void GetData(SerializationInfo info) {

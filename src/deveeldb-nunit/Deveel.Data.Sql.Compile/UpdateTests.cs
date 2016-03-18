@@ -25,7 +25,9 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<UpdateStatement>(statement);
 
 			var update = (UpdateStatement) statement;
-			Assert.AreEqual("table", update.TableName);
+
+			Assert.IsNotNull(update.TableName);
+			Assert.AreEqual("table", update.TableName.FullName);
 
 			Assert.IsNotEmpty(update.Assignments);
 			Assert.IsNotNull(update.WherExpression);
@@ -49,7 +51,9 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<UpdateStatement>(statement);
 
 			var update = (UpdateStatement) statement;
-			Assert.AreEqual("table", update.TableName);
+
+			Assert.IsNotNull(update.TableName);
+			Assert.AreEqual("table", update.TableName.FullName);
 
 			Assert.IsNotEmpty(update.Assignments);
 			Assert.IsNotNull(update.WherExpression);

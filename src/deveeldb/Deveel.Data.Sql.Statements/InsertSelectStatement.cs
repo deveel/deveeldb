@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlQueryExpression QueryExpression { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 			if (tableName == null)
 				throw new ObjectNotFoundException(TableName);
 
@@ -56,11 +56,11 @@ namespace Deveel.Data.Sql.Statements {
 			if (ColumnNames != null)
 				columns = ColumnNames.ToArray();
 
-			ITableQueryInfo tableQueryInfo = context.Query.GetTableQueryInfo(tableName, null);
+			ITableQueryInfo tableQueryInfo = context.Access.GetTableQueryInfo(tableName, null);
 			var fromTable = new FromTableDirectSource(context.Query.IgnoreIdentifiersCase(), tableQueryInfo, "INSERT_TABLE", tableName, tableName);
 
 			// Get the table we are inserting to
-			var insertTable = context.Query.GetTable(tableName);
+			var insertTable = context.Access.GetTable(tableName);
 
 			if (columns.Length == 0) {
 				columns = new string[insertTable.TableInfo.ColumnCount];
@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var insertTable = context.Request.Query.GetMutableTable(TableName);
+				var insertTable = context.Request.Access.GetMutableTable(TableName);
 
 				if (insertTable == null)
 					throw new ObjectNotFoundException(TableName);
@@ -181,7 +181,7 @@ namespace Deveel.Data.Sql.Statements {
 						newRow.SetValue(ColumnIndices[n], cell);
 					}
 
-					newRow.SetDefault(context.Request.Query);
+					newRow.SetDefault(context.Request);
 
 					insertTable.AddRow(newRow);
 					++insertCount;

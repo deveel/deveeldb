@@ -32,11 +32,19 @@ namespace Deveel.Data.Security {
 		public void Register(IScope systemScope) {
 			systemScope.Bind<IUserManager>()
 				.To<UserManager>()
-				.InQueryScope();
+				.InSessionScope();
 
 			systemScope.Bind<IPrivilegeManager>()
 				.To<PrivilegeManager>()
-				.InQueryScope();
+				.InSessionScope();
+
+			systemScope.Bind<IUserIdentifier>()
+				.To<ClearTextUserIdentifier>();
+
+#if !PCL
+			systemScope.Bind<IUserIdentifier>()
+				.To<Pkcs12UserIdentifier>();
+#endif
 		}
 	}
 }

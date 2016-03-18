@@ -15,7 +15,6 @@
 
 using System;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Sequences;
@@ -32,22 +31,10 @@ namespace Deveel.Data {
 
 			if (TestContext.CurrentContext.Test.Name != "CreateNormalSequence") {
 				var seqInfo = new SequenceInfo(testSequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
-				query.CreateObject(seqInfo);
+				query.Access.CreateObject(seqInfo);
 			}
 
 			return query;
-		}
-
-		[Test]
-		public void CreateNormalSequence() {
-			var sequenceManager = new SequenceManager(Session.Transaction);
-
-			var sequenceName = ObjectName.Parse("APP.test_sequence");
-			var seqInfo = new SequenceInfo(sequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
-
-			ISequence sequence =null;
-			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));
-			Assert.IsNotNull(sequence);
 		}
 
 		[Test]

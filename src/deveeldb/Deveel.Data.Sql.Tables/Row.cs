@@ -379,7 +379,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <exception cref="InvalidOperationException">
 		/// If the column has no <c>DEFAULT</c> value defined.
 		/// </exception>
-		public void SetDefault(int columnOffset, IQuery context) {
+		public void SetDefault(int columnOffset, IRequest context) {
 			if (columnOffset < 0 || columnOffset >= Table.TableInfo.ColumnCount)
 				throw new ArgumentOutOfRangeException("columnOffset");
 
@@ -397,8 +397,8 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <param name="context">The context that is used to evaluate the
 		/// <c>DEFAULT</c> <see cref="SqlExpression"/> of the column.</param>
-		/// <seealso cref="SetDefault(int, IQuery)"/>
-		public void SetDefault(IQuery context) {
+		/// <seealso cref="SetDefault(int, IRequest)"/>
+		public void SetDefault(IRequest context) {
 			for (int i = 0; i < Table.TableInfo.ColumnCount; ++i) {
 				if (!values.ContainsKey(i)) {
 					SetDefault(i, context);
@@ -406,8 +406,8 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		private Field Evaluate(SqlExpression expression, IQuery queryContext) {
-			var ignoreCase = queryContext.IgnoreIdentifiersCase();
+		private Field Evaluate(SqlExpression expression, IRequest queryContext) {
+			var ignoreCase = queryContext.Query.IgnoreIdentifiersCase();
 			// Resolve any variables to the table_def for this expression.
 			expression = Table.TableInfo.ResolveColumns(ignoreCase, expression);
 			// Get the variable resolver and evaluate over this data.
@@ -505,7 +505,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public void EvaluateAssignment(SqlAssignExpression assignExpression, IQuery context) {
+		public void EvaluateAssignment(SqlAssignExpression assignExpression, IRequest context) {
 			var colRef = (SqlReferenceExpression) assignExpression.ReferenceExpression;
 			var valueExp = assignExpression.ValueExpression;
 			var value = valueExp.EvaluateToConstant(context, VariableResolver);

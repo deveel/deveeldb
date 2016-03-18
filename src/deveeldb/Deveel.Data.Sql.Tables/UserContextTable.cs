@@ -26,14 +26,14 @@ namespace Deveel.Data.Sql.Tables {
 	/// A wrapper around a table that fires triggers on table events.
 	/// </summary>
 	class UserContextTable : BaseDataTable, IMutableTable {
-		public UserContextTable(IQuery context, ITable table) {
+		public UserContextTable(IRequest context, ITable table) {
 			Context = context;
 			Table = table;
 		}
 
 		public ITable Table { get; private set; }
 
-		public IQuery Context { get; private set; }
+		public IRequest Context { get; private set; }
 
 		private IMutableTable MutableTable {
 			get { return Table as IMutableTable; }
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private void OnTableEvent(TriggerEventType eventType, RowId rowId, Row row) {
-			Context.FireTriggers(new TableEvent(this, eventType, rowId, row));
+			Context.Access.FireTriggers(new TableEvent(this, eventType, rowId, row));
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {

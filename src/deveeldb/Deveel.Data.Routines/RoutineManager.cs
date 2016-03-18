@@ -166,7 +166,7 @@ namespace Deveel.Data.Routines {
 			return null;
 		}
 
-		public IRoutine ResolveRoutine(Invoke request, IQuery context) {
+		public IRoutine ResolveRoutine(Invoke invoke, IRequest context) {
 			// TODO: implement
 			return null;
 		}

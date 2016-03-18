@@ -34,10 +34,6 @@ namespace Deveel.Data.Security {
 		Compact = 1024,
 		Execute = 2048,
 
-		All = Alter | Compact | Create | Delete |
-		      Drop | Insert | List | References |
-		      Select | Update | Usage,
-
 		TableAll = Select | Update | Delete | Insert | References | Usage | Compact,
 		TableRead = Select | Usage,
 

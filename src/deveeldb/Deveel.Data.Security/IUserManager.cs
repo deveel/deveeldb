@@ -21,36 +21,34 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	public interface IUserManager : IDisposable {
-		void CreateUser(UserInfo userInfo, string identifier);
+		void CreateUser(UserInfo userInfo);
 
 		bool DropUser(string userName);
 
-		void AlterUser(UserInfo userInfo, string identifier);
+		void AlterUser(UserInfo userInfo);
 
 		void SetUserStatus(string userName, UserStatus status);
 
 		UserStatus GetUserStatus(string userName);
 
-		bool CheckIdentifier(string userName, string identifier);
-
 		bool UserExists(string userName);
 
 		UserInfo GetUser(string userName);
 
-		void CreateUserGroup(string groupName);
+		void CreateRole(string roleName);
 
-		bool DropUserGroup(string groupName);
+		bool DropRole(string roleName);
 
-		bool UserGroupExists(string groupName);
+		bool RoleExists(string roleName);
 
-		void AddUserToGroup(string userName, string groupName, bool asAdmin);
+		void AddUserToRole(string userName, string roleName, bool asAdmin);
 
-		bool RemoveUserFromGroup(string userName, string groupName);
+		bool RemoveUserFromRole(string userName, string roleName);
 
-		string[] GetUserGroups(string userName);
+		string[] GetUserRoles(string userName);
 
-		bool IsUserInGroup(string userName, string groupName);
+		bool IsUserInRole(string userName, string roleName);
 
-		bool IsUserGroupAdmin(string userName, string groupName);
+		bool IsUserRoleAdmin(string userName, string roleName);
 	}
 }

@@ -23,10 +23,6 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CommitStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var result = FunctionTable.ResultTable(context.Request, 0);
-			context.Request.Query.Session.Commit();
-
-			context.SetResult(result);
 		}
 	}
 }

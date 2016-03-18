@@ -52,9 +52,7 @@ namespace Deveel.Data {
 		}
 
 		protected virtual ISession CreateAdminSession(IDatabase database) {
-			var user = database.Authenticate(AdminUserName, AdminPassword);
-			var transaction = database.CreateTransaction(IsolationLevel.Serializable);
-			return new Session(transaction, user);
+			return database.CreateUserSession(AdminUserName, AdminPassword);
 		}
 
 		protected virtual IQuery CreateQuery(ISession session) {

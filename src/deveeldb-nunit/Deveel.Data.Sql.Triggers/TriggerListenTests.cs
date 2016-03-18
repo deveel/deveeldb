@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 
-			query.CreateTable(tableInfo);
+			query.Session.Access.CreateTable(tableInfo);
 
 			return query;
 		}
@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		[Test]
 		public void Insert_NoTriggers() {
-			var table = Query.GetMutableTable(TestTableName);
+			var table = Query.Access.GetMutableTable(TestTableName);
 
 			Assert.IsNotNull(table);
 
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(2, "Provenzano");
 
 			Assert.DoesNotThrow(() => table.AddRow(row));
-			Assert.DoesNotThrow(() => Query.Commit());
+			Assert.DoesNotThrow(() => Query.Session.Commit());
 
 			Assert.IsNull(beforeEvent);
 			Assert.IsNull(afterEvent);

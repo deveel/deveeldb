@@ -18,7 +18,6 @@
 using System;
 
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Transactions;
 
@@ -45,16 +44,16 @@ namespace Deveel.Data {
 
 		#region Sessions
 
-		static ISession CreateUserSession(this IDatabase database, User user, IsolationLevel isolation) {
-			if (user == null)
-				throw new ArgumentNullException("user");
+		private static ISession CreateUserSession(this IDatabase database, string userName, IsolationLevel isolation) {
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
 
 			// TODO: if the isolation is not specified, use a configured default one
 			if (isolation == IsolationLevel.Unspecified)
 				isolation = IsolationLevel.Serializable;
 
 			var transaction = database.CreateTransaction(isolation);
-			return new Session(transaction, user);
+			return new Session(transaction, userName);
 		}
 
 		static ISession CreateSystemSession(this IDatabase database, IsolationLevel isolation) {
@@ -71,20 +70,18 @@ namespace Deveel.Data {
 			return database.CreateSystemSession(IsolationLevel.Serializable);
 		}
 
-		public static ISession CreateUserSession(this IDatabase database, User user) {
-			// TODO: get the pre-configured default transaction isolation
-			return database.CreateUserSession(user, IsolationLevel.Unspecified);
+		public static ISession CreateUserSession(this IDatabase database, string userName, string password) {
+			return CreateUserSession(database, userName, password, IsolationLevel.Unspecified);
 		}
 
-		public static ISession CreateUserSession(this IDatabase database, string userName, string password) {
-			var user = database.Authenticate(userName, password);
-			if (user == null)
+		public static ISession CreateUserSession(this IDatabase database, string userName, string password, IsolationLevel isolation) {
+			if (!database.Authenticate(userName, password))
 				throw new InvalidOperationException(String.Format("Unable to create a session for user '{0}': not authenticated.", userName));
 
-			return database.CreateUserSession(user);
+			return database.CreateUserSession(userName, isolation);
 		}
 
-		static ISession OpenUserSession(this IDatabase database, int commitId, User user) {
+		static ISession OpenUserSession(this IDatabase database, int commitId, string userName) {
 			if (commitId < 0)
 				throw new ArgumentException("Invalid commit reference specified.");
 
@@ -92,7 +89,7 @@ namespace Deveel.Data {
 			if (transaction == null)
 				throw new InvalidOperationException(String.Format("The request transaction with ID '{0}' is not open.", commitId));
 
-			return new Session(transaction, user);
+			return new Session(transaction, userName);
 		}
 
 		#endregion
@@ -101,14 +98,14 @@ namespace Deveel.Data {
 
 		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
 			try {
-				var user = context.CreateUser(adminName, adminPassword);
+				context.Access.CreateUser(adminName, adminPassword);
 
 				// This is the admin user so add to the 'secure access' table.
-				context.AddUserToGroup(adminName, SystemGroups.SecureGroup);
+				context.Access.AddUserToRole(adminName, SystemRoles.SecureAccessRole);
 
-				context.GrantToUserOnSchema(database.Context.DefaultSchema(), user.Name, Privileges.SchemaAll, true);
-				context.GrantToUserOnSchema(SystemSchema.Name, user.Name, Privileges.SchemaRead);
-				context.GrantToUserOnSchema(InformationSchema.SchemaName, user.Name, Privileges.SchemaRead);
+				context.Access.GrantOnSchema(database.Context.DefaultSchema(), adminName, Privileges.SchemaAll, true);
+				context.Access.GrantOnSchema(SystemSchema.Name, adminName, Privileges.SchemaRead);
+				context.Access.GrantOnSchema(InformationSchema.SchemaName, adminName, Privileges.SchemaRead);
 
 				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {
@@ -118,14 +115,11 @@ namespace Deveel.Data {
 			}
 		}
 
-		public static User Authenticate(this IDatabase database, string username, string password) {
+		public static bool Authenticate(this IDatabase database, string username, string password) {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
-
-				using (var queryContext = session.CreateQuery()) {
-					return queryContext.Authenticate(username, password);
-				}
+				return session.Access.Authenticate(username, password);
 			}
 		}
 

@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql {
 					}
 
 					// Clear the cache in the context
-					context.Request.Query.ClearCachedTables();
+					context.Request.Access.ClearCachedTables();
 				}
 
 				// Evaluate the plan,
@@ -101,7 +101,7 @@ namespace Deveel.Data.Sql {
 					}
 
 					// Clear the cache in the context
-					context.Request.Query.ClearCachedTables();
+					context.Request.Access.ClearCachedTables();
 				}
 
 				// Evaluate the plan,

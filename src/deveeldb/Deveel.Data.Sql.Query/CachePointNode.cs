@@ -53,11 +53,11 @@ namespace Deveel.Data.Sql.Query {
 
 		public override ITable Evaluate(IRequest context) {
 			// Is the result available in the context?
-			var childTable = context.Query.GetCachedTable(Id.ToString());
+			var childTable = context.Access.GetCachedTable(Id.ToString());
 			if (childTable == null) {
 				// No so evaluate the child and cache it
 				childTable = Child.Evaluate(context);
-				context.Query.CacheTable(Id.ToString(), childTable);
+				context.Access.CacheTable(Id.ToString(), childTable);
 			}
 
 			return childTable;

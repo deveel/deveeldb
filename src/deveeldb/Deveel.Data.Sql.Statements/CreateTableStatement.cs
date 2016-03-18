@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private TableInfo CreateTableInfo(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 
 			var idColumnCount = Columns.Count(x => x.IsIdentity);
 			if (idColumnCount > 1)
@@ -121,7 +121,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				try {
-					context.Request.Query.CreateTable(TableInfo, IfNotExists, Temporary);
+					var tableName = TableInfo.TableName;
+
+					if (!context.User.CanCreateTable(tableName))
+						throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
+
+					if (context.Request.Access.TableExists(tableName)) {
+						if (!IfNotExists)
+							throw new InvalidOperationException(
+								String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
+
+						return;
+					}
+
+					context.Request.Access.CreateTable(TableInfo, Temporary);
+					context.Request.Access.GrantOnTable(TableInfo.TableName, context.Query.UserName(), Privileges.TableAll);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}

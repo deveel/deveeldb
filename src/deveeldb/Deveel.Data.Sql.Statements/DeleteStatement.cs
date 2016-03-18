@@ -50,9 +50,9 @@ namespace Deveel.Data.Sql.Statements {
 		public long Limit { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Query.ResolveTableName(TableName);
+			var tableName = context.Access.ResolveTableName(TableName);
 
-			if (!context.Query.TableExists(tableName))
+			if (!context.Access.TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExp = new SqlQueryExpression(new SelectColumn[] {SelectColumn.Glob("*") });
@@ -93,15 +93,15 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var deleteTable = context.Request.Query.GetMutableTable(TableName);
+				var deleteTable = context.Request.Access.GetMutableTable(TableName);
 
 				if (deleteTable == null)
 					throw new ObjectNotFoundException(TableName);
 
-				if (!context.Request.Query.UserCanSelectFromPlan(QueryPlan))
-					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Select);
-				if (!context.Request.Query.UserCanDeleteFromTable(TableName))
-					throw new MissingPrivilegesException(context.Request.User().Name, TableName, Privileges.Delete);
+				if (!context.User.CanSelectFrom(QueryPlan))
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Select);
+				if (!context.User.CanDeleteFromTable(TableName))
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
 				
 				var result = QueryPlan.Evaluate(context.Request);
 				var count = deleteTable.Delete(result);

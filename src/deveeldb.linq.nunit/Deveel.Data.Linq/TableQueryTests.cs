@@ -21,7 +21,7 @@ namespace Deveel.Data.Linq {
 					CreateTestTable(query);
 					AddTestData(query);
 
-					query.Commit();
+					query.Session.Commit();
 				}
 			}
 
@@ -38,12 +38,12 @@ namespace Deveel.Data.Linq {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			context.CreateTable(tableInfo);
-			context.AddPrimaryKey(tableInfo.TableName, "id", "PK_PEOPLE_TABLE");
+			context.Session.Access.CreateTable(tableInfo);
+			context.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_PEOPLE_TABLE");
 		}
 
 		private void AddTestData(IQuery context) {
-			var table = context.GetMutableTable(ObjectName.Parse("APP.people"));
+			var table = context.Access.GetMutableTable(ObjectName.Parse("APP.people"));
 			var row = table.NewRow();
 
 			// row.SetValue("id", Field.Integer(0));
@@ -74,7 +74,7 @@ namespace Deveel.Data.Linq {
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
 
-			context.Commit();
+			context.Session.Commit();
 		}
 
 		protected override void OnSetUp(string testName) {

@@ -19,9 +19,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Triggers {
-	public interface ITriggerManager : IDisposable {
-		void RegisterTrigger(TriggerInfo triggerInfo);
-
-		void FireTriggers(IQuery context, TableEvent tableEvent);
+	public interface ITriggerManager : IObjectManager, IDisposable {
+		void FireTriggers(IRequest context, TableEvent tableEvent);
 	}
 }

@@ -21,6 +21,8 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
 	public interface IRequest : IEventSource, IDisposable {
+		RequestAccess Access { get; }
+
 		IQuery Query { get; }
 
 		IBlockContext CreateBlockContext();

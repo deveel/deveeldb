@@ -108,7 +108,7 @@ namespace Deveel.Data.Sql.Statements {
 				var result = QueryPlan.Evaluate(context.Request);
 
 				if (IsForTable) {
-					var table = context.Request.Query.GetMutableTable(Table);
+					var table = context.Request.Access.GetMutableTable(Table);
 					if (table == null)
 						throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", Table));
 

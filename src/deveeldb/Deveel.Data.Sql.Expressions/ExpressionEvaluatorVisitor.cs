@@ -276,7 +276,7 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 
 			try {
-				context.Request.SetVariable(variableName, valueExpression);
+				context.Request.Context.SetVariable(variableName, valueExpression);
 			} catch (Exception ex) {
 				throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
 			}
@@ -312,7 +312,7 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new ExpressionEvaluateException("The query context does not handle variables.");
 
 			
-			var variable = context.Request.FindVariable(refName);
+			var variable = context.Request.Context.FindVariable(refName);
 			if (variable == null)
 				return SqlExpression.Constant(Field.Null());
 

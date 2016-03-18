@@ -16,46 +16,28 @@
 
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	/// <summary>
 	/// Provides the information for a user in a database system
 	/// </summary>
-	public sealed class User {
-		public static readonly User System = new User(SystemName);
-		public static readonly User Public = new User(PublicName);
-
-		private Dictionary<ObjectName, Privileges> grantCache;
-
-		/// <summary>
-		/// Constructs a new user with the given name.
-		/// </summary>
-		/// <param name="name"></param>
-		internal User(string name) {
-			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
-
-			Name = name;
+	public sealed class User : Privileged {
+		internal User(ISession session, string name)
+			: base(session, name) { 
 		}
 
 		/// <summary>
 		/// The name of the <c>PUBLIC</c> special user.
 		/// </summary>
-		public const string PublicName = "@PUBLIC";
+		public const string PublicName = "PUBLIC";
 
 		/// <summary>
 		/// The name of the <c>SYSTEM</c> special user.
 		/// </summary>
 		public const string SystemName = "@SYSTEM";
-
-		/// <summary>
-		/// Gets the name that uniquely identify a user within a database system.
-		/// </summary>
-		public string Name { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if this user represents the
@@ -72,6 +54,103 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public bool IsPublic {
 			get { return Name.Equals(PublicName); }
+		}
+
+		public UserStatus Status {
+			get {
+				AssertInContext();
+				return Session.Access.GetUserStatus(Name);
+			}
+		}
+
+		public Role[] Roles {
+			get {
+				AssertInContext();
+				return Session.Access.GetUserRoles(Name);
+			}
+		}
+
+		public bool IsRoleAdmin(string roleName) {
+			AssertInContext();
+			return Session.Access.UserIsRoleAdmin(Name, roleName);
+		}
+
+		public bool IsInRole(string roleName) {
+			AssertInContext();
+			return Session.Access.UserIsInRole(Name, roleName);
+		}
+
+		public bool CanGrantRole(string roleName) {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole) ||
+			       IsRoleAdmin(roleName);
+		}
+
+		public bool CanManageRoles() {
+			return IsSystem ||
+			       IsInRole(SystemRoles.SecureAccessRole);
+		}
+
+		public override bool CanManageUsers() {
+			if (IsSystem)
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.CanManageUsers());
+		}
+
+		public bool CanDropUser(string userName) {
+			if (String.Equals(Name, userName, StringComparison.OrdinalIgnoreCase))
+				return true;
+
+			return CanManageUsers();
+		}
+
+		public override bool CanManageSchema() {
+			if (IsSystem)
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.CanManageSchema());
+		}
+
+		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (IsSystem ||
+				IsInRole(SystemRoles.SecureAccessRole))
+				return true;
+
+			if (base.HasPrivileges(objectType, objectName, privileges))
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.HasPrivileges(objectType, objectName, privileges));
+		}
+
+		public override bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (IsSystem)
+				return true;
+
+			if (base.HasGrantOption(objectType, objectName, privileges))
+				return true;
+
+			var roles = Roles;
+			if (roles == null || roles.Length == 0)
+				return false;
+
+			return roles.Any(role => role.HasGrantOption(objectType, objectName, privileges));
+		}
+
+		public static bool IsSystemUserName(string name) {
+			return String.Equals(SystemName, name, StringComparison.OrdinalIgnoreCase);
 		}
 	}
 }

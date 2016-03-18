@@ -26,18 +26,19 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public class UserManager : IUserManager {
-		private Dictionary<string, string[]> userGroupsCache;
-		 
-		public UserManager(IQuery queryContext) {
-			QueryContext = queryContext;
+	public class UserManager : IUserManager {		 
+		public UserManager(ISession session) {
+			if (session == null)
+				throw new ArgumentNullException("session");
+
+			Session = session;
 		}
 
 		~UserManager() {
 			Dispose(false);
 		}
 
-		public IQuery QueryContext { get; private set; }
+		public ISession Session { get; private set; }
 
 		public void Dispose() {
 			Dispose(true);
@@ -45,24 +46,23 @@ namespace Deveel.Data.Security {
 		}
 
 		protected virtual void Dispose(bool disposing) {
-			userGroupsCache = null;
-			QueryContext = null;
+			Session = null;
 		}
 
 		public bool UserExists(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.UserTableName);
-			var c1 = table.GetResolvedColumnName(0);
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetTable(SystemSchema.UserTableName);
+				var c1 = table.GetResolvedColumnName(0);
 
-			// All password where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-			return t.RowCount > 0;
+				// All password where UserName = %username%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+				return t.RowCount > 0;
+			}
 		}
 
-		public void CreateUser(UserInfo userInfo, string identifier) {
+		public void CreateUser(UserInfo userInfo) {
 			if (userInfo == null)
 				throw new ArgumentNullException("userInfo");
-			if (String.IsNullOrEmpty(identifier))
-				throw new ArgumentNullException("identifier");
 
 			// TODO: make these rules configurable?
 
@@ -71,25 +71,25 @@ namespace Deveel.Data.Security {
 			if (UserExists(userName))
 				throw new SecurityException(String.Format("User '{0}' is already registered.", userName));
 
-			// Add to the key 'user' table
-			var table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
-			var row = table.NewRow();
-			row[0] = Field.String(userName);
-			table.AddRow(row);
+			using (var query = Session.CreateQuery()) {
+				// Add to the key 'user' table
+				var table = query.Access.GetMutableTable(SystemSchema.UserTableName);
+				var row = table.NewRow();
+				row[0] = Field.String(userName);
+				table.AddRow(row);
 
-			var method = userInfo.Identification.Method;
-			var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
+				var method = userInfo.Identification.Method;
+				var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
+				var token = userInfo.Identification.Token;
 
-			if (method != "plain")
-				throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
-
-			table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			row = table.NewRow();
-			row.SetValue(0, userName);
-			row.SetValue(1, method);
-			row.SetValue(2, methodArgs);
-			row.SetValue(3, identifier);
-			table.AddRow(row);
+				table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
+				row = table.NewRow();
+				row.SetValue(0, userName);
+				row.SetValue(1, method);
+				row.SetValue(2, methodArgs);
+				row.SetValue(3, token);
+				table.AddRow(row);
+			}
 		}
 
 		private static byte[] SerializeArguments(IDictionary<string, object> args) {
@@ -147,327 +147,305 @@ namespace Deveel.Data.Security {
 			}
 		}
 
-		private string[] QueryUserGroups(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(userName)));
-			int sz = t.RowCount;
-			var groups = new string[sz];
-			var rowEnum = t.GetEnumerator();
-			int i = 0;
-			while (rowEnum.MoveNext()) {
-				groups[i] = t.GetValue(rowEnum.Current.RowId.RowNumber, 1).Value.ToString();
-				++i;
+		private string[] QueryUserRoles(string userName) {
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+
+				// All 'user_role' where user = %username%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(Field.String(userName)));
+				int sz = t.RowCount;
+				var roles = new string[sz];
+				var rowEnum = t.GetEnumerator();
+				int i = 0;
+				while (rowEnum.MoveNext()) {
+					roles[i] = t.GetValue(rowEnum.Current.RowId.RowNumber, 1).Value.ToString();
+					++i;
+				}
+
+				return roles;
 			}
-
-			return groups;
 		}
-
-		private bool TryGetUserGroupsFromCache(string userName, out string[] groups) {
-			if (userGroupsCache == null) {
-				groups = null;
-				return false;
-			}
-
-			return userGroupsCache.TryGetValue(userName, out groups);
-		}
-
-		private void ClearUserGroupsCache(string userName) {
-			if (userGroupsCache == null)
-				return;
-
-			userGroupsCache.Remove(userName);
-		}
-
-		private void ClearUserGroupsCache() {
-			if (userGroupsCache == null)
-				return;
-
-			userGroupsCache.Clear();
-		}
-
-		private void SetUserGroupsInCache(string userName, string[] groups) {
-			if (userGroupsCache == null)
-				userGroupsCache = new Dictionary<string, string[]>();
-
-			userGroupsCache[userName] = groups;
-		}
-
 
 		public bool DropUser(string userName) {
 			var userExpr = SqlExpression.Constant(Field.String(userName));
 
-			RemoveUserFromAllGroups(userName);
+			RemoveUserFromAllRoles(userName);
 
-			// TODO: Remove all object-level privileges from the user...
+			using (var query = Session.CreateQuery()) {
+				// TODO: Remove all object-level privileges from the user...
 
-			//var table = QueryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
-			//var c1 = table.GetResolvedColumnName(0);
-			//var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			//table.Delete(t);
+				//var table = QueryContext.GetMutableTable(SystemSchema.UserConnectPrivilegesTableName);
+				//var c1 = table.GetResolvedColumnName(0);
+				//var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
+				//table.Delete(t);
 
-			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			table.Delete(t);
-
-			table = QueryContext.GetMutableTable(SystemSchema.UserTableName);
-			c1 = table.GetResolvedColumnName(0);
-			t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			return table.Delete(t) > 0;
-		}
-
-		private void RemoveUserFromAllGroups(string username) {
-			var userExpr = SqlExpression.Constant(Field.String(username));
-
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-
-			if (t.RowCount > 0) {
+				var table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 				table.Delete(t);
 
-				ClearUserGroupsCache(username);
+				table = query.Access.GetMutableTable(SystemSchema.UserTableName);
+				c1 = table.GetResolvedColumnName(0);
+				t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
+				return table.Delete(t) > 0;
 			}
 		}
 
-		public void AlterUser(UserInfo userInfo, string identifier) {
-			var userName = userInfo.Name;
+		private void RemoveUserFromAllRoles(string username) {
+			using (var query = Session.CreateQuery()) {
+				var userExpr = SqlExpression.Constant(Field.String(username));
 
-			var userExpr = SqlExpression.Constant(Field.String(userName));
+				var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 
-			// Delete the current username from the 'password' table
-			var table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
-			if (t.RowCount != 1)
-				throw new SecurityException(String.Format("User '{0}' was not found.", userName));
+				if (t.RowCount > 0) {
+					table.Delete(t);
+				}
+			}
+		}
 
-			table.Delete(t);
+		public void AlterUser(UserInfo userInfo) {
+			using (var query = Session.CreateQuery()) {
+				var userName = userInfo.Name;
 
-			// TODO: get the hash algorithm and hash ...
+				var userExpr = SqlExpression.Constant(Field.String(userName));
 
-			var method = userInfo.Identification.Method;
-			var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
+				// Delete the current username from the 'password' table
+				var table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
+				if (t.RowCount != 1)
+					throw new SecurityException(String.Format("User '{0}' was not found.", userName));
 
-			if (method != "plain")
-				throw new NotImplementedException("Only mechanism implemented right now is plain text (it sucks!)");
+				table.Delete(t);
 
-			// Add the new username
-			table = QueryContext.GetMutableTable(SystemSchema.PasswordTableName);
-			var row = table.NewRow();
-			row.SetValue(0, userName);
-			row.SetValue(1, method);
-			row.SetValue(2, methodArgs);
-			row.SetValue(3, identifier);
-			table.AddRow(row);
+				// TODO: get the hash algorithm and hash ...
 
+				var method = userInfo.Identification.Method;
+				var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
+				var token = userInfo.Identification.Token;
+
+				// Add the new username
+				table = query.Access.GetMutableTable(SystemSchema.PasswordTableName);
+				var row = table.NewRow();
+				row.SetValue(0, userName);
+				row.SetValue(1, method);
+				row.SetValue(2, methodArgs);
+				row.SetValue(3, token);
+				table.AddRow(row);
+			}
 		}
 
 		public void SetUserStatus(string userName, UserStatus status) {
-			// Internally we implement this by adding the user to the #locked group.
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var c2 = table.GetResolvedColumnName(1);
-			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemGroups.LockGroup));
+			using (var query = Session.CreateQuery()) {
+				// Internally we implement this by adding the user to the #locked group.
+				var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var c2 = table.GetResolvedColumnName(1);
 
-			bool userBelongsToLockGroup = t.RowCount > 0;
-			if (status == UserStatus.Locked &&
-				!userBelongsToLockGroup) {
-				// Lock the user by adding the user to the Lock group
-				// Add this user to the locked group.
-				var rdat = new Row(table);
-				rdat.SetValue(0, userName);
-				rdat.SetValue(1, SystemGroups.LockGroup);
-				table.AddRow(rdat);
-			} else if (status == UserStatus.Unlocked &&
-				userBelongsToLockGroup) {
-				// Unlock the user by removing the user from the Lock group
-				// Remove this user from the locked group.
-				table.Delete(t);
+				// All 'user_role' where user = %username%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+				// All from this set where PrivGroupName = %role%
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(SystemRoles.LockedRole));
+
+				bool userBelongsToLockGroup = t.RowCount > 0;
+				if (status == UserStatus.Locked &&
+				    !userBelongsToLockGroup) {
+					// Lock the user by adding the user to the Lock group
+					// Add this user to the locked group.
+					var rdat = new Row(table);
+					rdat.SetValue(0, userName);
+					rdat.SetValue(1, SystemRoles.LockedRole);
+					table.AddRow(rdat);
+				} else if (status == UserStatus.Unlocked &&
+				           userBelongsToLockGroup) {
+					// Unlock the user by removing the user from the Lock group
+					// Remove this user from the locked group.
+					table.Delete(t);
+				}
 			}
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			if (IsUserInGroup(userName, SystemGroups.LockGroup))
+			if (IsUserInRole(userName, SystemRoles.LockedRole))
 				return UserStatus.Locked;
 
 			return UserStatus.Unlocked;
 		}
 
 		public UserInfo GetUser(string userName) {
-			var table = QueryContext.GetTable(SystemSchema.PasswordTableName);
-			var unameColumn = table.GetResolvedColumnName(0);
-			var methodColumn = table.GetResolvedColumnName(1);
-			var methodArgsColumn = table.GetResolvedColumnName(2);
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetTable(SystemSchema.PasswordTableName);
+				var unameColumn = table.GetResolvedColumnName(0);
+				var methodColumn = table.GetResolvedColumnName(1);
+				var methodArgsColumn = table.GetResolvedColumnName(2);
+				var tokenColumn = table.GetResolvedColumnName(3);
 
-			var t = table.SimpleSelect(QueryContext, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-			if (t.RowCount == 0)
-				throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
+				var t = table.SimpleSelect(query, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+				if (t.RowCount == 0)
+					throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
 
-			var method = t.GetValue(0, methodColumn);
-			var methodArgs = t.GetValue(0, methodArgsColumn);
-			var argBytes = ((SqlBinary) methodArgs.Value).ToByteArray();
-			var args = DeserializeArguments(argBytes);
+				var method = t.GetValue(0, methodColumn);
+				var methodArgs = t.GetValue(0, methodArgsColumn);
+				var argBytes = ((SqlBinary) methodArgs.Value).ToByteArray();
+				var args = DeserializeArguments(argBytes);
+				var token = t.GetValue(0, tokenColumn);
 
-			var identification = new UserIdentification(method);
-			foreach (var arg in args) {
-				identification.Arguments[arg.Key] = arg.Value;
+				var identification = new UserIdentification(method, token);
+				foreach (var arg in args) {
+					identification.Arguments[arg.Key] = arg.Value;
+				}
+
+				return new UserInfo(userName, identification);
 			}
-
-			return new UserInfo(userName, identification);
 		}
 
-		public bool CheckIdentifier(string userName, string identifier) {
-			var table = QueryContext.GetTable(SystemSchema.PasswordTableName);
-			var unameColumn = table.GetResolvedColumnName(0);
-			var idColumn = table.GetResolvedColumnName(3);
+		//public string GetUserToken(string userName) {
+		//	using (var query = Session.CreateQuery()) {
+		//		var table = query.Access.GetTable(SystemSchema.PasswordTableName);
+		//		var unameColumn = table.GetResolvedColumnName(0);
+		//		var idColumn = table.GetResolvedColumnName(3);
 
-			var t = table.SimpleSelect(QueryContext, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-			if (t.RowCount == 0)
-				throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
+		//		var t = table.SimpleSelect(query, unameColumn, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+		//		if (t.RowCount == 0)
+		//			throw new SecurityException(String.Format("User '{0}' is not registered.", userName));
 
-			var stored = t.GetValue(0, idColumn);
-			return stored.Value.ToString().Equals(identifier);
-		}
+		//		return t.GetValue(0, idColumn).Value.ToString();
+		//	}
+		//}
 
 
-		public void CreateUserGroup(string groupName) {
-			if (String.IsNullOrEmpty(groupName))
-				throw new ArgumentNullException("groupName");
+		public void CreateRole(string roleName) {
+			if (String.IsNullOrEmpty(roleName))
+				throw new ArgumentNullException("roleName");
 
-			var c = groupName[0];
+			var c = roleName[0];
 			if (c == '$' || c == '%' || c == '@')
-				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", groupName));
+				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", roleName));
 
-			var table = QueryContext.GetMutableTable(SystemSchema.GroupsTableName);
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetMutableTable(SystemSchema.RoleTableName);
 
-			var row = table.NewRow();
-			row.SetValue(0, groupName);
-
-			table.AddRow(row);
-		}
-
-		public bool DropUserGroup(string groupName) {
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-
-			// All password where name = %groupName%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-
-			if (t.RowCount > 0) {
-				table.Delete(t);
-				ClearUserGroupsCache();
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool UserGroupExists(string groupName) {
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-
-			// All password where name = %groupName%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-			return t.RowCount > 0;
-		}
-
-		public void AddUserToGroup(string userName, string groupName, bool asAdmin) {
-			if (String.IsNullOrEmpty(groupName))
-				throw new ArgumentNullException("group");
-			if (String.IsNullOrEmpty(userName))
-				throw new ArgumentNullException("username");
-
-			char c = groupName[0];
-			if (c == '@' || c == '&' || c == '#' || c == '$')
-				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", groupName, c), "groupName");
-
-			if (!IsUserInGroup(userName, groupName)) {
-				var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
 				var row = table.NewRow();
-				row.SetValue(0, userName);
-				row.SetValue(1, groupName);
-				row.SetValue(2, asAdmin);
+				row.SetValue(0, roleName);
+
 				table.AddRow(row);
 			}
 		}
 
-		public bool IsUserGroupAdmin(string userName, string groupName) {
-			// This is a special query that needs to access the lowest level of ITable, skipping
-			// other security controls
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var c2 = table.GetResolvedColumnName(1);
+		public bool DropRole(string roleName) {
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
 
-			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+				// All password where name = %roleName%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
 
-			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-			if (t.RowCount == 0)
+				if (t.RowCount > 0) {
+					table.Delete(t);
+					return true;
+				}
+
 				return false;
-
-			return t.GetValue(0, 2).AsBoolean();
-		}
-
-		public bool RemoveUserFromGroup(string userName, string groupName) {
-			// This is a special query that needs to access the lowest level of ITable, skipping
-			// other security controls
-			var table = QueryContext.GetMutableTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var c2 = table.GetResolvedColumnName(1);
-
-			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-
-			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-
-			if (t.RowCount > 0) {
-				table.Delete(t);
-
-				ClearUserGroupsCache(userName);
-
-				return true;
 			}
-
-			return false;
 		}
 
-		public bool IsUserInGroup(string userName, string groupName) {
-			string[] userGroups;
-			if (TryGetUserGroupsFromCache(userName, out userGroups) &&
-			    userGroups.Any(x => String.Equals(groupName, x, StringComparison.OrdinalIgnoreCase)))
-				return true;
+		public bool RoleExists(string roleName) {
+			using (var query = Session.CreateQuery()) {
+				var table = query.Access.GetTable(SystemSchema.RoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
 
-			// This is a special query that needs to access the lowest level of ITable, skipping
-			// other security controls
-			var table = QueryContext.GetTable(SystemSchema.UserGroupTableName);
-			var c1 = table.GetResolvedColumnName(0);
-			var c2 = table.GetResolvedColumnName(1);
-
-			// All 'user_group' where UserName = %username%
-			var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
-
-			// All from this set where PrivGroupName = %group%
-			t = t.SimpleSelect(QueryContext, c2, SqlExpressionType.Equal, SqlExpression.Constant(groupName));
-			return t.RowCount > 0;
-		}
-
-		public string[] GetUserGroups(string userName) {
-			string[] groups;
-			if (!TryGetUserGroupsFromCache(userName, out groups)) {
-				groups = QueryUserGroups(userName);
-				SetUserGroupsInCache(userName, groups);
+				// All password where name = %roleName%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
+				return t.RowCount > 0;
 			}
-
-			return groups;
 		}
 
+		public void AddUserToRole(string userName, string roleName, bool asAdmin) {
+			if (String.IsNullOrEmpty(roleName))
+				throw new ArgumentNullException("roleName");
+			if (String.IsNullOrEmpty(userName))
+				throw new ArgumentNullException("userName");
+
+			char c = roleName[0];
+			if (c == '@' || c == '&' || c == '#' || c == '$')
+				throw new ArgumentException(String.Format("Group name '{0}' is invalid: cannot start with {1}", roleName, c), "roleName");
+
+			if (!IsUserInRole(userName, roleName)) {
+				using (var query = Session.CreateQuery()) {
+					var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+					var row = table.NewRow();
+					row.SetValue(0, userName);
+					row.SetValue(1, roleName);
+					row.SetValue(2, asAdmin);
+					table.AddRow(row);
+				}
+			}
+		}
+
+		public bool IsUserRoleAdmin(string userName, string roleName) {
+			using (var query = Session.CreateQuery()) {
+				// This is a special query that needs to access the lowest level of ITable, skipping
+				// other security controls
+				var table = query.Access.GetTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var c2 = table.GetResolvedColumnName(1);
+
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
+				if (t.RowCount == 0)
+					return false;
+
+				return t.GetValue(0, 2).AsBoolean();
+			}
+		}
+
+		public bool RemoveUserFromRole(string userName, string roleName) {
+			using (var query = Session.CreateQuery()) {
+				// This is a special query that needs to access the lowest level of ITable, skipping
+				// other security controls
+				var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var c2 = table.GetResolvedColumnName(1);
+
+				// All 'user_group' where UserName = %username%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+				// All from this set where PrivGroupName = %group%
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
+
+				if (t.RowCount > 0) {
+					table.Delete(t);
+					return true;
+				}
+
+				return false;
+			}
+		}
+
+		public bool IsUserInRole(string userName, string roleName) {
+			using (var query = Session.CreateQuery()) {
+				// This is a special query that needs to access the lowest level of ITable, skipping
+				// other security controls
+				var table = query.Access.GetTable(SystemSchema.UserRoleTableName);
+				var c1 = table.GetResolvedColumnName(0);
+				var c2 = table.GetResolvedColumnName(1);
+
+				// All 'user_group' where UserName = %username%
+				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, SqlExpression.Constant(userName));
+
+				// All from this set where PrivGroupName = %group%
+				t = t.SimpleSelect(query, c2, SqlExpressionType.Equal, SqlExpression.Constant(roleName));
+				return t.RowCount > 0;
+			}
+		}
+
+		public string[] GetUserRoles(string userName) {
+			return QueryUserRoles(userName);
+		}
 	}
 }

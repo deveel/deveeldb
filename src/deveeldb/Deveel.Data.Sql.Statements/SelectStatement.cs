@@ -28,13 +28,22 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class SelectStatement : SqlStatement, IPlSqlStatement {
 		public SelectStatement(SqlQueryExpression queryExpression) 
-			: this(queryExpression, null) {
+			: this(queryExpression, (QueryLimit) null) {
 		}
 
-		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<SortColumn> orderBy) {
+		public SelectStatement(SqlQueryExpression queryExpression, IEnumerable<SortColumn> orderBy) 
+			: this(queryExpression, null, orderBy) {
+		}
+
+		public SelectStatement(SqlQueryExpression queryExpression, QueryLimit limit) 
+			: this(queryExpression, limit, null) {
+		}
+
+		public SelectStatement(SqlQueryExpression queryExpression, QueryLimit limit, IEnumerable<SortColumn> orderBy) {
 			if (queryExpression == null)
 				throw new ArgumentNullException("queryExpression");
 
+			Limit = limit;
 			QueryExpression = queryExpression;
 			OrderBy = orderBy;
 		}
@@ -92,9 +101,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				var refNames = QueryPlan.DiscoverTableNames();
-				var refs = refNames.Select(x => context.Query.FindObject(x));
+				var refs = refNames.Select(x => context.DirectAccess.FindObject(x));
 
-				context.Query.Session.Access(refs, AccessType.Read);
+				context.Query.Session.Enter(refs, AccessType.Read);
 
 				var result = QueryPlan.Evaluate(context.Request);
 				context.SetResult(result);

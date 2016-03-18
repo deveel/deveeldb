@@ -239,10 +239,6 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		void ITriggerManager.RegisterTrigger(TriggerInfo triggerInfo) {
-			CreateTrigger(triggerInfo);
-		}
-
 		public void CreateTrigger(TriggerInfo triggerInfo) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
@@ -338,7 +334,7 @@ namespace Deveel.Data.Sql.Triggers {
 			return triggers.Select(x => new Trigger(x));
 		}
 
-		public void FireTriggers(IQuery context, TableEvent tableEvent) {
+		public void FireTriggers(IRequest context, TableEvent tableEvent) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 

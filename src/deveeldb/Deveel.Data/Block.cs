@@ -35,6 +35,8 @@ namespace Deveel.Data {
 			Context.RegisterInstance<IBlock>(this);
 
 			Parent = request as IBlock;
+
+			Access = new RequestAccess(this);
 		}
 
 		~Block() {
@@ -53,6 +55,8 @@ namespace Deveel.Data {
 				return Parent.Query;
 			}
 		}
+
+		public RequestAccess Access { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
 			get { return Parent; }

@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Query {
 			// Evaluate the child branch,
 			var result = Child.Evaluate(context);
 			// Get the table of the complete mark name,
-			var completeLeft = context.Query.GetCachedTable(MarkerName);
+			var completeLeft = context.Access.GetCachedTable(MarkerName);
 
 			// The rows in 'complete_left' that are outside (not in) the rows in the
 			// left result.

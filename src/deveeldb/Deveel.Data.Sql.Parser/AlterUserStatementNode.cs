@@ -51,9 +51,9 @@ namespace Deveel.Data.Sql.Parser {
 					var statusText = ((SetAccountStatusNode) actionNode).Status;
 					var userStatus = ParseUserStatus(statusText);
 					action = new SetAccountStatusAction(userStatus);
-				} else if (actionNode is SetGroupsNode) {
-					var groupNames = ((SetGroupsNode) actionNode).Groups.Select(ExpressionBuilder.Build);
-					action = new SetUserGroupsAction(groupNames);
+				} else if (actionNode is SetRolesNode) {
+					var roles = ((SetRolesNode) actionNode).Roles.Select(ExpressionBuilder.Build);
+					action = new SetUserRolesAction(roles);
 				} else {
 					throw new NotSupportedException(String.Format("The action of type '{0}' is not supported.", actionNode.GetType()));
 				}

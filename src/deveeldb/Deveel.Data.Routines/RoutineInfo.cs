@@ -78,7 +78,7 @@ namespace Deveel.Data.Routines {
 
 		// TODO: public RoutineBody Body { get; private set; }
 
-		internal abstract bool MatchesInvoke(Invoke request, IQuery query);
+		internal abstract bool MatchesInvoke(Invoke invoke, IRequest request);
 
 		public override string ToString() {
 			var sb = new StringBuilder();

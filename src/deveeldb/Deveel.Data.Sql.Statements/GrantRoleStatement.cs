@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql.Statements {
 	public sealed class GrantRoleStatement : SqlStatement {
 		public GrantRoleStatement(string userName, string role) 
@@ -39,5 +41,30 @@ namespace Deveel.Data.Sql.Statements {
 		public string UserName { get; private set; }
 
 		public bool WithAdmin { get; private set; }
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.DirectAccess.UserExists(UserName))
+				throw new InvalidOperationException(String.Format("The user '{0}' does not exist", UserName));
+			if (!context.DirectAccess.RoleExists(Role))
+				throw new InvalidOperationException(String.Format("The role '{0}' does not exist", Role));
+
+			if (!context.User.CanGrantRole(Role))
+				throw new SecurityException(String.Format("User '{0}' cannot grant role '{1}' to '{2}'.", context.User.Name, Role, UserName));
+
+			if (WithAdmin) {
+				if (!context.User.IsRoleAdmin(Role))
+					throw new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", context.User, Role));
+			}
+
+			if (!context.User.CanManageUsers())
+				throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", context.User.Name));
+
+			if (!context.User.IsInRole(Role)) {
+				context.Request.Access.AddUserToRole(UserName, Role, WithAdmin);
+			} else if (WithAdmin &&
+			           !context.User.IsRoleAdmin(Role)) {
+				throw new NotImplementedException();
+			}
+		}
 	}
 }

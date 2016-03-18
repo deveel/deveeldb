@@ -59,10 +59,10 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var userName = context.Request.User().Name;
+			var userName = context.User.Name;
 
 			bool modifyOwnRecord = userName.Equals(UserName);
-			bool secureAccessPrivs = context.Request.Query.UserCanManageUsers();
+			bool secureAccessPrivs = context.User.CanManageUsers();
 
 			if (!(modifyOwnRecord || secureAccessPrivs))
 				throw new MissingPrivilegesException(userName, new ObjectName(UserName), Privileges.Alter);
@@ -71,17 +71,18 @@ namespace Deveel.Data.Sql.Statements {
 				throw new SecurityException("User 'public' is reserved.");
 
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
-				var password = ((SqlConstantExpression)((SetPasswordAction)AlterAction).PasswordExpression).Value.ToString();
-				context.Request.Query.AlterUserPassword(UserName, password);
-			} else if (AlterAction.ActionType == AlterUserActionType.SetGroups) {
-				var groupNames = ((SetUserGroupsAction)AlterAction).Groups
+				var password = ((SqlConstantExpression) ((SetPasswordAction) AlterAction).PasswordExpression).Value;
+				var passwordText = password.Value.ToString();
+				context.DirectAccess.AlterUserPassword(UserName, passwordText);
+			} else if (AlterAction.ActionType == AlterUserActionType.SetRoles) {
+				var roleNames = ((SetUserRolesAction)AlterAction).Roles
 					.Cast<SqlConstantExpression>()
 					.Select(x => x.Value.Value.ToString())
 					.ToArray();
 
-				context.Request.Query.SetUserGroups(UserName, groupNames);
+				context.DirectAccess.SetUserRoles(UserName, roleNames);
 			} else if (AlterAction.ActionType == AlterUserActionType.SetAccountStatus) {
-				context.Request.Query.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
+				context.DirectAccess.SetUserStatus(UserName, ((SetAccountStatusAction)AlterAction).Status);
 			}
 		}
 	}

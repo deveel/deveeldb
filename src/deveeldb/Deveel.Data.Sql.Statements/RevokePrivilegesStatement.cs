@@ -25,6 +25,7 @@ using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class RevokePrivilegesStatement : SqlStatement {
 		public RevokePrivilegesStatement(string grantee, Privileges privileges, bool grantOption, ObjectName objectName, IEnumerable<string> columns) {
 			if (String.IsNullOrEmpty(grantee))
@@ -50,56 +51,25 @@ namespace Deveel.Data.Sql.Statements {
 		public bool GrantOption { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var objectName = context.Query.ResolveTableName(ObjectName);
+			var objectName = context.Access.ResolveTableName(ObjectName);
 
 			if (objectName == null)
 				throw new ObjectNotFoundException(ObjectName);
 
 			var columns = (Columns != null ? Columns.ToArray() : null);
-			return new Prepared(Grantee, Privileges, columns, objectName, GrantOption);
+			return new RevokePrivilegesStatement(Grantee, Privileges, GrantOption, objectName, columns);
 		}
 
-		#region Prepared
+		protected override void ExecuteStatement(ExecutionContext context) {
+			var obj = context.DirectAccess.FindObject(ObjectName);
+			if (obj == null)
+				throw new ObjectNotFoundException(ObjectName);
 
-		[Serializable]
-		class Prepared : SqlStatement {
-			public Prepared(string grantee, Privileges privileges, string[] columns, ObjectName objectName, bool grantOption) {
-				Grantee = grantee;
-				Privileges = privileges;
-				Columns = columns;
-				ObjectName = objectName;
-				GrantOption = grantOption;
-			}
+			if (!context.User.HasGrantOption(obj.ObjectType, obj.FullName, Privileges))
+				throw new SecurityException(String.Format("User '{0}' cannot revoke '{1}' privilege from '{2}' on '{3}'.",
+					context.User.Name, Privileges, Grantee, ObjectName));
 
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				Grantee = info.GetString("Grantee");
-				Privileges = (Privileges) info.GetInt32("Privileges");
-				ObjectName = (ObjectName) info.GetValue("ObjectName", typeof(ObjectName));
-				GrantOption = info.GetBoolean("GrantOption");
-			}
-
-			public string Grantee { get; private set; }
-
-			public Privileges Privileges { get; private set; }
-
-			public string[] Columns { get; private set; }
-
-			public ObjectName ObjectName { get; private set; }
-
-			public bool GrantOption { get; private set; }
-
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("Grantee", Grantee);
-				info.AddValue("Privileges", (int)Privileges);
-				info.AddValue("ObjectName", ObjectName);
-				info.AddValue("GrantOption", GrantOption);
-			}
-
-			protected override void ExecuteStatement(ExecutionContext context) {
-				base.ExecuteStatement(context);
-			}
+			context.DirectAccess.Revoke(obj.ObjectType, obj.FullName, Grantee, Privileges, GrantOption);
 		}
-
-		#endregion
 	}
 }

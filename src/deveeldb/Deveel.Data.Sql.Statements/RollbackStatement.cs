@@ -23,10 +23,6 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class RollbackStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var result = FunctionTable.ResultTable(context.Request, 0);
-			context.Request.Query.Session.Rollback();
-
-			context.SetResult(result);
 		}
 	}
 }

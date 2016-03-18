@@ -28,6 +28,7 @@ using Deveel.Data.Sql.Tables;
 using System.Text;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -73,9 +74,12 @@ namespace Deveel.Data.Sql.Statements {
 				ExecuteStatement(context);
 
 				context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
-			} catch (Exception ex) {
+			} catch (ErrorException ex) {
 				context.Request.OnError(ex);
 				throw;
+			} catch (Exception ex) {
+				context.Request.OnError(ex);
+				throw new StatementException("Statement execution caused an error", ex);
 			}
 		}
 
@@ -126,9 +130,12 @@ namespace Deveel.Data.Sql.Statements {
 				context.OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
 
 				return prepared;
-			} catch (Exception ex) {
+			} catch (ErrorException ex) {
 				context.OnError(ex);
 				throw;
+			} catch (Exception ex) {
+				context.OnError(ex);
+				throw new StatementException("Preparation of the statement caused an error.", ex);
 			}
 		}
 
@@ -199,7 +206,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new SqlParseException(messages.ToString());
 				}
 
-				var statements = result.Statements.Cast<SqlStatement>();
+				var statements = result.Statements;
 
 				foreach (var statement in statements) {
 					if (statement != null)

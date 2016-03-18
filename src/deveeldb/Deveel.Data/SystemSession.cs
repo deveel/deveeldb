@@ -20,7 +20,6 @@ using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -34,12 +33,22 @@ namespace Deveel.Data {
 		public SystemSession(ITransaction transaction, string currentSchema) {
 			if (String.IsNullOrEmpty(currentSchema))
 				throw new ArgumentNullException("currentSchema");
+			if (transaction == null)
+				throw new ArgumentNullException("transaction");
 
 			CurrentSchema =currentSchema;
 			Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
+			Context.RegisterInstance(this);
+
+			User = new User(this, User.SystemName);
+
 			StartedOn = DateTimeOffset.UtcNow;
+
+			Access = new SessionAccess(this);
 		}
+
+		private bool committed;
 
 		public void Dispose() {
 			Transaction = null;
@@ -49,13 +58,13 @@ namespace Deveel.Data {
 
 		public DateTimeOffset StartedOn { get; private set; }
 
+		public SessionAccess Access { get; private set; }
+
 		public DateTimeOffset? LastCommandTime {
 			get { return null; }
 		}
 
-		public User User {
-			get { return User.System; }
-		}
+		public User User { get; private set; }
 
 		public ITransaction Transaction { get; private set; }
 
@@ -87,7 +96,7 @@ namespace Deveel.Data {
 			throw new NotSupportedException();
 		}
 
-		public void Access(IEnumerable<IDbObject> objects, AccessType accessType) {
+		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
 			// A system session bypasses any lock
 		}
 

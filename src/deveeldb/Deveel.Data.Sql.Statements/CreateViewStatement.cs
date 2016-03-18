@@ -20,18 +20,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateViewStatement : SqlStatement {
-		public CreateViewStatement(string viewName, SqlQueryExpression queryExpression) 
+		public CreateViewStatement(ObjectName viewName, SqlQueryExpression queryExpression) 
 			: this(viewName, null, queryExpression) {
 		}
 
-		public CreateViewStatement(string viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
+		public CreateViewStatement(ObjectName viewName, IEnumerable<string> columnNames, SqlQueryExpression queryExpression) {
 			if (viewName == null)
 				throw new ArgumentNullException("viewName");
 			if (queryExpression == null)
@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 			QueryExpression = queryExpression;
 		}
 
-		public string ViewName { get; private set; }
+		public ObjectName ViewName { get; private set; }
 
 		public IEnumerable<string> ColumnNames { get; private set; }
 
@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool ReplaceIfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Query.ResolveTableName(ViewName);
+			var viewName = context.Access.ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
@@ -134,8 +134,32 @@ namespace Deveel.Data.Sql.Statements {
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
 				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
-				context.Request.Query.DefineView(viewInfo, ReplaceIfExists);
+				DefineView(context, viewInfo, ReplaceIfExists);
 			}
+
+			private void DefineView(ExecutionContext context, ViewInfo viewInfo, bool replaceIfExists) {
+				var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
+				foreach (var tableName in tablesInPlan) {
+					if (!context.User.CanSelectFromTable(tableName))
+						throw new InvalidAccessException(context.User.Name, tableName);
+				}
+
+				if (context.Request.Access.ViewExists(viewInfo.ViewName)) {
+					if (!replaceIfExists)
+						throw new InvalidOperationException(
+							String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
+
+					context.Request.Access.DropObject(DbObjectType.View, viewInfo.ViewName);
+				}
+
+				context.Request.Access.CreateObject(viewInfo);
+
+				// The initial grants for a view is to give the user who created it
+				// full access.
+				// TODO: Verify if we need a system session to assign this...
+				context.Request.Access.GrantOn(DbObjectType.View, viewInfo.ViewName, context.Query.UserName(), Privileges.TableAll);
+			}
+
 		}
 
 		#endregion

@@ -25,7 +25,7 @@ namespace Deveel.Data.Spatial {
 			var args = ((SqlFunctionCallExpression) exp).Arguments;
 			var invoke = new Invoke(functionName, args);
 
-			return Query.InvokeFunction(invoke);
+			return Query.Access.InvokeFunction(invoke);
 		}
 
 		[Test]

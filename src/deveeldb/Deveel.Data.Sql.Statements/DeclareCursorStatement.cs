@@ -20,8 +20,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Query;
+
+using DryIoc;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -89,7 +93,15 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			context.Request.Query.DeclareCursor(cursorInfo);
+			var queryPlan = context.Request.Context.QueryPlanner().PlanQuery(new QueryInfo(context.Request, QueryExpression));
+			var selectedTables = queryPlan.DiscoverTableNames();
+			foreach (var tableName in selectedTables) {
+				if (!context.User.CanSelectFromTable(tableName))
+					throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Select);
+			}
+
+
+			context.Request.Context.DeclareCursor(cursorInfo);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

@@ -25,18 +25,6 @@ namespace Deveel.Data.Routines {
 	/// routines given a user invocation.
 	/// </summary>
 	public interface IRoutineResolver {
-		/// <summary>
-		/// Resolves a routine that matches the given invocation
-		/// within the context provided.
-		/// </summary>
-		/// <param name="request">The routine invocation request used to resolve
-		/// the routine.</param>
-		/// <param name="query">The parent query context.</param>
-		/// <returns>
-		/// Returns an instance of <see cref="IRoutine"/> that matches the
-		/// given request, or <c>null</c> if no routine was found in the
-		/// underlying context.
-		/// </returns>
-		IRoutine ResolveRoutine(Invoke request, IQuery query);
+		IRoutine ResolveRoutine(Invoke request, IRequest query);
 	}
 }

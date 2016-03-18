@@ -46,15 +46,14 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Query.UserCanCreateSchema())
+			if (!context.User.CanManageSchema())
 				throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Create);
 
-			if (context.Query.SchemaExists(SchemaName))
+			if (context.DirectAccess.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' already exists in the system.", SchemaName));
 
-			context.Query.CreateSchema(SchemaName, SchemaTypes.User);
-
-			// TODO: Grant to the current user all privileges on the schema
+			context.DirectAccess.CreateSchema(SchemaName, SchemaTypes.User);
+			context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, Privileges.SchemaAll, true);
 		}
 	}
 }
