@@ -230,7 +230,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns an instance of <seealso cref="SqlExpression"/> that represents
 		/// the given SQL string parsed.
 		/// </returns>
-		public static SqlExpression Parse(string s, ISystemContext context) {
+		public static SqlExpression Parse(string s, IContext context) {
 			// TODO: Get the expression compiler from the context
 			var parser = context.ResolveService<IExpressionParser>();
 

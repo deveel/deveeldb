@@ -16,23 +16,27 @@
 
 
 using System;
-using System.Runtime.Serialization;
 
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class ShowStatement : SqlStatement {
-		public ShowStatement(ShowTarget target) {
+		public ShowStatement(ShowTarget target) 
+			: this(target, null) {
+		}
+
+		public ShowStatement(ShowTarget target, ObjectName tableName) {
 			Target = target;
+			TableName = tableName;
 		}
 
 		public ShowTarget Target { get; private set; }
 
 		public ObjectName TableName { get; set; }
-
-		protected override void ExecuteStatement(ExecutionContext context) {
-			base.ExecuteStatement(context);
-		}
+	
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			ObjectName tableName = null;
@@ -42,35 +46,56 @@ namespace Deveel.Data.Sql.Statements {
 				tableName = context.Access.ResolveTableName(TableName);
 			}
 
-			return new Prepared(Target, tableName);
+			if (Target == ShowTarget.Schema)
+				return ShowSchema(context.Context);
+			if (Target == ShowTarget.SchemaTables)
+				return ShowSchemaTables(context.Query.CurrentSchema(), context.Context);
+
+			throw new StatementException(String.Format("The SHOW target {0} is not supported.", Target));
+		}
+
+		private static SqlStatement Show(IContext context, string sql, params SortColumn[] orderBy) {
+			var query = (SqlQueryExpression)SqlExpression.Parse(sql, context);
+			var select = new SelectStatement(query, orderBy);
+			return new Prepared(select);
+		}
+
+		private SqlStatement ShowSchema(IContext systemContext) {
+			var sql = "SELECT \"name\" AS \"schema_name\", " +
+			          "       \"type\", " +
+			          "       \"other\" AS \"notes\" " +
+			          "    FROM " + InformationSchema.ThisUserSchemaInfoViewName;
+
+			return Show(systemContext, sql, new SortColumn("schema_name"));
+		}
+
+		private SqlStatement ShowSchemaTables(string schema, IContext context) {
+			var sql = "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
+			          "         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
+			          "         \"Tables.TABLE_TYPE\" as \"table_type\" " +
+			          "    FROM " + InformationSchema.Tables + ", " +
+			          "         ( SELECT AGGOR(\"priv_bit\") agg_priv_bit, " +
+			          "                  \"object\", \"param\" " +
+			          "             FROM " + InformationSchema.ThisUserSimpleGrantViewName +
+			          "            WHERE \"object\" = 1 " +
+			          "         GROUP BY \"param\" )" +
+			          "   WHERE \"Tables.TABLE_SCHEMA\" = \"" + schema + "\" " +
+			          "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" ";
+			return Show(context, sql, new SortColumn("Tables.TABLE_NAME"));
 		}
 
 		#region Prepared
 
-		[Serializable]
 		class Prepared : SqlStatement {
-
-			public Prepared(ShowTarget target, ObjectName tableName) {
-				Target = target;
-				TableName = tableName;
+			public Prepared(SelectStatement select) {
+				Select = select;
 			}
 
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
-				Target = (ShowTarget) info.GetInt32("Target");
-			}
-
-			public ObjectName TableName { get; private set; }
-
-			public ShowTarget Target { get; private set; }
-
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("TableName", TableName);
-				info.AddValue("Target", (int)Target);
-			}
+			public SelectStatement Select { get; private set; }
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				base.ExecuteStatement(context);
+				var result = context.Request.ExecuteStatement(Select);
+				context.SetResult(result);
 			}
 		}
 

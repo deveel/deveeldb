@@ -38,18 +38,6 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void CreateNormalSequence() {
-			var sequenceManager = new SequenceManager(Session.Transaction);
-
-			var sequenceName = ObjectName.Parse("APP.test_sequence");
-			var seqInfo = new SequenceInfo(sequenceName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), 126);
-
-			ISequence sequence =null;
-			Assert.DoesNotThrow(() => sequence = sequenceManager.CreateSequence(seqInfo));
-			Assert.IsNotNull(sequence);
-		}
-
-		[Test]
 		public void CreateNativeSequence() {
 			var sequenceManager = new SequenceManager(Session.Transaction);
 

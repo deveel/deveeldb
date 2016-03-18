@@ -16,17 +16,14 @@
 
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
-using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data {
 	public static class RequestExtensions {
@@ -228,6 +225,34 @@ namespace Deveel.Data {
 
 		public static ITable Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
 			return request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
+		}
+
+		#endregion
+
+		#region Show
+
+		public static ITable Show(this IRequest request, ShowTarget target) {
+			return Show(request, target, null);
+		}
+
+		public static ITable Show(this IRequest request, ShowTarget target, ObjectName objectName) {
+			return request.ExecuteStatement(new ShowStatement(target, objectName));
+		}
+
+		public static ITable ShowSchema(this IRequest request) {
+			return request.Show(ShowTarget.Schema);
+		}
+
+		public static ITable ShowTables(this IRequest request) {
+			return request.Show(ShowTarget.SchemaTables);
+		}
+
+		public static ITable ShowStatus(this IRequest request) {
+			return request.Show(ShowTarget.Status);
+		}
+
+		public static ITable ShowSession(this IRequest request) {
+			return request.Show(ShowTarget.Session);
 		}
 
 		#endregion
