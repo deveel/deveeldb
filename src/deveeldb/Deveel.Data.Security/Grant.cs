@@ -35,8 +35,8 @@ namespace Deveel.Data.Security {
 		/// to grant the given access privileges to the user.</param>
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
 		/// <param name="granterName">The name of the user that granted.</param>
-		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName) 
-			: this(privileges, objectName, objectType, granterName, false) {
+		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string grantee, string granterName) 
+			: this(privileges, objectName, objectType, grantee, granterName, false) {
 		}
 
 		/// <summary>
@@ -50,18 +50,23 @@ namespace Deveel.Data.Security {
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
 		/// <param name="granterName">The name of the user that granted.</param>
 		/// <param name="withOption"></param>
-		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string granterName, bool withOption) {
+		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string grantee, string granterName, bool withOption) {
 			if (String.IsNullOrEmpty(granterName))
 				throw new ArgumentNullException("granterName");
 			if (objectName == null)
 				throw new ArgumentNullException("objectName");
+			if (String.IsNullOrEmpty(grantee))
+				throw new ArgumentNullException("grantee");
 
 			Privileges = privileges;
+			Grantee = grantee;
 			ObjectName = objectName;
 			ObjectType = objectType;
 			GranterName = granterName;
 			WithOption = withOption;
 		}
+
+		public string Grantee { get; private set; }
 
 		/// <summary>
 		/// Gets the name of the user that provided this grant.

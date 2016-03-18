@@ -623,14 +623,6 @@ namespace Deveel.Data {
 
 		#region Privilege Query
 
-		private static bool IsSystemUser(string userName) {
-			return String.Equals(userName, User.SystemName, StringComparison.OrdinalIgnoreCase);
-		}
-
-		private static bool IsPublicUser(string userName) {
-			return String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase);
-		}
-
 		public void SetUserRoles(string userName, string[] roleNames) {
 			try {
 				var userRoles = UserManager.GetUserRoles(userName);
@@ -684,26 +676,47 @@ namespace Deveel.Data {
 			}
 		}
 
-		public bool HasGrantOption(string granter, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			var grant = PrivilegeManager.GetPrivileges(granter, objectType, objectName, true);
-			return (grant & privileges) != 0;
+		private Privileges GetPrivileges(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption) {
+			object privsObj;
+			Privileges privs;
+
+			var key = new GrantCacheKey(grantee, objectType, objectName.FullName, true, true);
+
+			if (PrivilegesCache.TryGet(key, out privsObj)) {
+				privs = (Privileges)privsObj;
+			} else {
+				var grants = PrivilegeManager.GetGrants(grantee, true);
+				foreach (var g in grants) {
+					PrivilegesCache.Set(new GrantCacheKey(g.Grantee, g.ObjectType, g.ObjectName.FullName, g.WithOption, true), g.Privileges);
+				}
+
+				var grantOptions = grants.Where(x => x.WithOption &&
+															  x.ObjectType == objectType &&
+															  x.ObjectName.Equals(objectName));
+
+				privs = Privileges.None;
+				foreach (var grant in grantOptions) {
+					privs |= grant.Privileges;
+				}
+			}
+
+			return privs;
 		}
 
-		public bool UserHasPrivilege(string userName, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
-			if (User.IsSystemUserName(userName))
+		public bool HasGrantOption(string granter, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (User.IsSystemUserName(granter))
 				return true;
 
-			object grantObj;
-			Privileges grant;
+			var privs = GetPrivileges(granter, objectType, objectName, true);
+			return (privs & privileges) != 0;
+		}
 
-			var key = new GrantCacheKey(userName, objectType, objectName.FullName, false, false);
-			if (PrivilegesCache.TryGet(key, out grantObj)) {
-				grant = (Privileges) grantObj;
-			} else {
-				grant = PrivilegeManager.GetPrivileges(userName, objectType, objectName, false);
-			}
-			
-			return (grant & privileges) != 0;
+		public bool UserHasPrivilege(string grantee, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
+			if (User.IsSystemUserName(grantee))
+				return true;
+
+			var privs = GetPrivileges(grantee, objectType, objectName, false);
+			return (privs & privileges) != 0;
 		}
 
 		#region GrantCacheKey
@@ -765,8 +778,8 @@ namespace Deveel.Data {
 			try {
 				var granter = Session.User.Name;
 
-				var grant = new Grant(privileges, objectName, objectType, granter, withOption);
-				PrivilegeManager.GrantTo(grantee, grant);
+				var grant = new Grant(privileges, objectName, objectType, grantee, granter, withOption);
+				PrivilegeManager.Grant(grant);
 			} finally {
 				PrivilegesCache.Remove(new GrantCacheKey(grantee, objectType, objectName.FullName, withOption, false));
 			}
@@ -788,25 +801,31 @@ namespace Deveel.Data {
 			GrantOn(objectType, objectName, grantee, privileges);
 		}
 
+		public void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName) {
+			var grants = PrivilegeManager.GetGrantsOn(objectType, objectName);
+
+			try {
+				foreach (var grant in grants) {
+					PrivilegeManager.Revoke(grant);
+				}
+			} finally {
+				foreach (var grant in grants) {
+					PrivilegesCache.Remove(new GrantCacheKey(grant.Grantee, grant.ObjectType, grant.ObjectName.FullName,
+						grant.WithOption, false));
+				}
+			}
+		}
+
 		public void RevokeAllGrantsOnTable(ObjectName objectName) {
-			PrivilegeManager.RevokeAllGrantsOn(DbObjectType.Table, objectName);
+			RevokeAllGrantsOn(DbObjectType.Table, objectName);
 		}
 
 		public void RevokeAllGrantsOnView(ObjectName objectName) {
-			PrivilegeManager.RevokeAllGrantsOn(DbObjectType.View, objectName);
+			RevokeAllGrantsOn(DbObjectType.View, objectName);
 		}
 
 		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges) {
 			GrantOn(DbObjectType.Table, tableName, grantee, privileges);
-		}
-
-		public void RevokeFrom(string grantee, DbObjectType objectType, ObjectName objectName, Privileges privileges, bool grantOption = false) {
-			try {
-				var granter = Session.User.Name;
-				PrivilegeManager.RevokeFrom(grantee, new Grant(privileges, objectName, objectType, granter, grantOption));
-			} finally {
-				PrivilegesCache.Remove(new GrantCacheKey(grantee, objectType, objectName.FullName, grantOption, false));
-			}
 		}
 
 		#endregion

@@ -135,8 +135,6 @@ namespace Deveel.Data.Sql.Statements {
 					}
 
 					context.Request.Access.CreateTable(TableInfo, Temporary);
-
-					// TODO: Check if to do this we must use a system session 
 					context.Request.Access.GrantOnTable(TableInfo.TableName, context.Query.UserName(), Privileges.TableAll);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
