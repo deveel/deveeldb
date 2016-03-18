@@ -2,7 +2,7 @@
 
 namespace Deveel.Data {
 	public sealed class SessionAccess : SystemAccess {
-		private ISession session;
+		private readonly ISession session;
 
 		public SessionAccess(ISession session) {
 			if (session == null)

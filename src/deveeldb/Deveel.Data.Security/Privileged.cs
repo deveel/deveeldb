@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 
 using Deveel.Data.Routines;
@@ -6,6 +7,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Security {
+	[DebuggerDisplay("{Name}")]
 	public abstract class Privileged {
 		internal Privileged(ISession session, string name) {
 			if (String.IsNullOrEmpty(name))
@@ -135,6 +137,10 @@ namespace Deveel.Data.Security {
 
 		public bool CanExecuteFunction(Invoke invoke, IRequest request) {
 			return CanExecute(RoutineType.Function, invoke, request);
+		}
+
+		public override string ToString() {
+			return Name;
 		}
 	}
 }
