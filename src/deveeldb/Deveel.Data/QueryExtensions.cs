@@ -366,6 +366,29 @@ namespace Deveel.Data {
 
 		#region Create Sequence
 
+		public static void CreateSequence(this IQuery query, ObjectName name, SqlExpression start, SqlExpression increment,
+			SqlExpression min, SqlExpression max, SqlExpression cache) {
+			CreateSequence(query, name, start, increment, min, max, cache, false);
+		}
+
+		public static void CreateSequence(this IQuery query, ObjectName name, SqlExpression start, SqlExpression increment,
+			SqlExpression min, SqlExpression max, SqlExpression cache, bool cycle) {
+			var statement = new CreateSequenceStatement(name) {
+				StartWith = start,
+				IncrementBy = increment,
+				MinValue = min,
+				MaxValue = max,
+				Cache = cache,
+				Cycle = cycle
+			};
+
+			query.ExecuteStatement(statement);
+		}
+
+		public static void CreateSequence(this IQuery query, ObjectName name) {
+			query.ExecuteStatement(new CreateSequenceStatement(name));
+		}
+
 		#endregion
 
 		#region Drop Sequence
