@@ -493,8 +493,8 @@ namespace Deveel.Data {
 			return UserManager.RoleExists(roleName);
 		}
 
-		public void DropRole(string roleName) {
-			UserManager.DropRole(roleName);
+		public bool DropRole(string roleName) {
+			return UserManager.DropRole(roleName);
 
 			// TODO: Remove all privileges related to the role
 		}

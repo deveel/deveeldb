@@ -24,7 +24,8 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.DirectAccess.RoleExists(RoleName))
 				throw new StatementException(String.Format("The role '{0}' does not exists.", RoleName));
 
-			context.DirectAccess.DropRole(RoleName);
+			if (!context.DirectAccess.DropRole(RoleName))
+				throw new StatementException(String.Format("The role '{0}' could not be deleted: maybe not found.", RoleName));
 		}
 	}
 }

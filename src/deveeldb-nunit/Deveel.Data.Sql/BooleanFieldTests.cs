@@ -75,14 +75,19 @@ namespace Deveel.Data.Sql {
 		[Test]
 		public static void ToUnsupported() {
 			var value = Field.BooleanTrue;
-			var v = value.AsTimeStamp();
+			Field v = null;
 
-			Assert.IsNotNull(v);
-			Assert.IsInstanceOf<DateType>(v.Type);
-			Assert.AreEqual(SqlTypeCode.TimeStamp, v.Type.TypeCode);
-			Assert.IsInstanceOf<SqlDateTime>(v.Value);
-			Assert.IsTrue(v.IsNull);
-			Assert.IsTrue(v.Value.IsNull);
+			// CHECK: Not sure if casting to an invalid destination should
+			//        throw or return a null value
+
+			Assert.Throws<InvalidCastException>(() => v = value.AsTimeStamp());
+			
+			//Assert.IsNotNull(v);
+			//Assert.IsInstanceOf<DateType>(v.Type);
+			//Assert.AreEqual(SqlTypeCode.TimeStamp, v.Type.TypeCode);
+			//Assert.IsInstanceOf<SqlDateTime>(v.Value);
+			//Assert.IsTrue(v.IsNull);
+			//Assert.IsTrue(v.Value.IsNull);
 		}
 
 		[Test]

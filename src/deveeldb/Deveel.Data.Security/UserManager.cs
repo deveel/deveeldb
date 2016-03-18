@@ -338,7 +338,7 @@ namespace Deveel.Data.Security {
 
 		public bool DropRole(string roleName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetMutableTable(SystemSchema.UserRoleTableName);
+				var table = query.Access.GetMutableTable(SystemSchema.RoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All password where name = %roleName%
