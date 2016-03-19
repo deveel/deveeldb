@@ -160,8 +160,8 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "    FROM " + Columns + ", INFORMATION_SCHEMA.ThisUserGrant \n" +
 			                     "   WHERE CONCAT(columns.TABLE_SCHEMA, '.', columns.TABLE_NAME) = \n" +
 			                     "         ThisUserGrant.name \n" +
-			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
-			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
+			                     "     AND " + ThisUserGrantViewName + ".object = 1 \n" +
+			                     "     AND " + ThisUserGrantViewName + ".description IS NOT NULL \n");
 
 			query.ExecuteQuery("  CREATE VIEW " + TablePrivileges + " AS " +
 			                     "  SELECT \"TABLE_CATALOG\",\n" +
@@ -173,11 +173,11 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 			                     "         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
 			                     "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
-			                     "    FROM " + Tables + ", INFORMATION_SCHEMA.ThisUserGrant \n" +
+			                     "    FROM " + Tables + ", " + ThisUserGrantViewName + " \n" +
 			                     "   WHERE CONCAT(tables.TABLE_SCHEMA, '.', tables.TABLE_NAME) = \n" +
 			                     "         ThisUserGrant.name \n" +
-			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.object = 1 \n" +
-			                     "     AND INFORMATION_SCHEMA.ThisUserGrant.description IS NOT NULL \n");
+			                     "     AND " + ThisUserGrantViewName + ".object = 1 \n" +
+			                     "     AND " + ThisUserGrantViewName + ".description IS NOT NULL \n");
 
 			query.ExecuteQuery("  CREATE VIEW " + PrimaryKeys + " AS " +
 			                     "  SELECT NULL \"TABLE_CATALOG\",\n" +
@@ -189,7 +189,7 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "    FROM " + SystemSchema.PrimaryKeyInfoTableName + ", " + SystemSchema.PrimaryKeyColumnsTableName + "\n" +
 			                     "   WHERE pkey_info.id = pkey_cols.pk_id\n" +
 			                     "     AND \"schema\" IN\n" +
-			                     "            ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
+			                     "            ( SELECT \"name\" FROM " + ThisUserSchemaInfoViewName + " )\n");
 
 			query.ExecuteQuery("  CREATE VIEW " + ImportedKeys + " AS " +
 			                     "  SELECT NULL \"PKTABLE_CATALOG\",\n" +
@@ -229,7 +229,7 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "    FROM " + SystemSchema.ForeignKeyInfoTableName + ", " + SystemSchema.ForeignKeyColumnsTableName + "\n" +
 			                     "   WHERE fkey_info.id = fkey_cols.fk_id\n" +
 			                     "     AND \"fkey_info.schema\" IN\n" +
-			                     "              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
+			                     "              ( SELECT \"name\" FROM " + ThisUserSchemaInfoViewName + " )\n");
 
 			query.ExecuteQuery("  CREATE VIEW " + CrossReference + " AS " +
 			                     "  SELECT NULL \"PKTABLE_CAT\",\n" +
@@ -249,7 +249,7 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "    FROM " + SystemSchema.ForeignKeyInfoTableName + ", " + SystemSchema.ForeignKeyColumnsTableName + "\n" +
 			                     "   WHERE fkey_info.id = fkey_cols.fk_id\n" +
 			                     "     AND \"fkey_info.schema\" IN\n" +
-			                     "              ( SELECT \"name\" FROM INFORMATION_SCHEMA.ThisUserSchemaInfo )\n");
+			                     "              ( SELECT \"name\" FROM " + ThisUserSchemaInfoViewName + " )\n");
 		}
 
 		public static void GrantToPublic(IQuery query) {

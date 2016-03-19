@@ -494,9 +494,11 @@ namespace Deveel.Data {
 		}
 
 		public bool DropRole(string roleName) {
-			return UserManager.DropRole(roleName);
-
-			// TODO: Remove all privileges related to the role
+			try {
+				return SystemSession.Access.UserManager.DropRole(roleName);
+			} finally {
+				RevokeAllGrantsFrom(roleName);
+			}
 		}
 
 		#endregion
@@ -586,7 +588,11 @@ namespace Deveel.Data {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
 
-			return SystemSession.Access.UserManager.DropUser(userName);
+			try {
+				return SystemSession.Access.UserManager.DropUser(userName);
+			} finally {
+				RevokeAllGrantsFrom(userName);
+			}
 		}
 
 		private IUserIdentifier FindIdentifier(string name) {
@@ -828,6 +834,21 @@ namespace Deveel.Data {
 
 		public void RevokeAllGrantsOnView(ObjectName objectName) {
 			RevokeAllGrantsOn(DbObjectType.View, objectName);
+		}
+
+		private void RevokeAllGrantsFrom(string grantee) {
+			var grants = PrivilegeManager.GetGrants(grantee, false);
+
+			try {
+				foreach (var grant in grants) {
+					PrivilegeManager.Revoke(grant);
+				}
+			} finally {
+				foreach (var grant in grants) {
+					PrivilegesCache.Remove(new GrantCacheKey(grant.Grantee, grant.ObjectType, grant.ObjectName.FullName,
+						grant.WithOption, false));
+				}
+			}
 		}
 
 		public void GrantOnTable(ObjectName tableName, string grantee, Privileges privileges, bool withOption = false) {
