@@ -537,7 +537,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AlterUserStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\BreakStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
