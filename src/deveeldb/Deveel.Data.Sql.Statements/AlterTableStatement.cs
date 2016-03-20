@@ -224,7 +224,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (newTableInfo.ColumnCount == 0)
 					throw new InvalidOperationException("Can not ALTER table to have 0 columns.");
 
-				context.Request.Access.AlterTable(newTableInfo);
+				context.DirectAccess.AlterObject(newTableInfo);
 			} else {
 				// If the table wasn't physically altered, check the constraints.
 				// Calling this method will also make the transaction check all

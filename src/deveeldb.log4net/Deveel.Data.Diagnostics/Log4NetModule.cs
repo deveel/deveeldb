@@ -13,7 +13,11 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public void Register(IScope systemScope) {
-			// TODO:
+			Log4NetEventRouter.Setup();
+
+			systemScope.Bind<IEventRouter>()
+				.To<Log4NetEventRouter>()
+				.InSystemScope();
 		}
 	}
 }

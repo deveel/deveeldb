@@ -20,7 +20,7 @@ using System;
 using Deveel.Data.Configuration;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class EventRegistry : ThreadedQueue<IEvent>, IEventRegistry, IDisposable {
+	public sealed class EventRegistry : ThreadedQueue<IEvent>, IEventRegistry {
 		private bool disposed;
 
 		private readonly int threadCount;

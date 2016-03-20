@@ -2,11 +2,9 @@
 
 using Deveel.Data.Caching;
 using Deveel.Data.Routines;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Variables;
@@ -105,7 +103,7 @@ namespace Deveel.Data {
 			base.AlterObject(objectInfo);
 		}
 
-		public void AlterTable(TableInfo tableInfo) {
+		private void AlterTable(TableInfo tableInfo) {
 			try {
 				base.AlterObject(tableInfo);
 			} finally {
@@ -174,10 +172,6 @@ namespace Deveel.Data {
 				return;
 
 			tableCache.Clear();
-		}
-
-		public IMutableTable GetMutableTable(ObjectName tableName) {
-			return GetTable(tableName) as IMutableTable;
 		}
 
 		public ITable GetCachedTable(string cacheKey) {

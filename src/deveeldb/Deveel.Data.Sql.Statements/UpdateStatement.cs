@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (!context.User.CanSelectFrom(QueryPlan))
 					throw new InvalidOperationException();
 
-				var table = context.Request.Access.GetMutableTable(TableName);
+				var table = context.DirectAccess.GetMutableTable(TableName);
 				if (table == null)
 					throw new ObjectNotFoundException(TableName);
 

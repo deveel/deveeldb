@@ -181,6 +181,10 @@ namespace Deveel.Data {
 			return GetObject(DbObjectType.Table, tableName, AccessType.ReadWrite) as ITable;
 		}
 
+		public IMutableTable GetMutableTable(ObjectName tableName) {
+			return GetTable(tableName) as IMutableTable;
+		}
+
 		#region Constraints
 
 		public void AddPrimaryKey(ObjectName tableName, string column) {
