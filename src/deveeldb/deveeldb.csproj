@@ -197,6 +197,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
@@ -275,8 +276,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />

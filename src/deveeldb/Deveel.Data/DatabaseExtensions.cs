@@ -106,8 +106,6 @@ namespace Deveel.Data {
 				context.Access.GrantOnSchema(database.Context.DefaultSchema(), adminName, Privileges.SchemaAll, true);
 				context.Access.GrantOnSchema(SystemSchema.Name, adminName, Privileges.SchemaRead);
 				context.Access.GrantOnSchema(InformationSchema.SchemaName, adminName, Privileges.SchemaRead);
-
-				SystemSchema.GrantToPublic(context);
 			} catch (DatabaseSystemException) {
 				throw;
 			} catch (Exception ex) {

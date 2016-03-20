@@ -224,7 +224,7 @@ namespace Deveel.Data.Sql.Statements {
 				int insertCount = 0;
 
 				if (!context.User.CanInsertIntoTable(TableName))
-					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Insert);
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Insert);
 
 				var table = context.Query.Access.GetMutableTable(TableName);
 				if (table == null)

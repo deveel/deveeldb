@@ -147,6 +147,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CodeBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
@@ -185,8 +186,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SetReadOnlyStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserRolesAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />

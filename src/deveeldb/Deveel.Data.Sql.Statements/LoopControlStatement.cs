@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (WhenExpression != null) {
-				var eval = WhenExpression.EvaluateToConstant(context.Query, null);
+				var eval = WhenExpression.EvaluateToConstant(context.Request, null);
 				if (!eval.AsBoolean())
 					return;
 			}

@@ -265,6 +265,7 @@ namespace Deveel.Data {
 							SystemRoles.Create(query);
 
 							query.Access.CreatePublicUser();
+							SystemSchema.GrantToPublic(query);
 
 							// Create the system views
 							InformationSchema.CreateViews(query);

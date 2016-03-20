@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 			Parent = parent;
 		}
 
-		public SqlStatement Statement { get; private set; }
+		private SqlStatement Statement { get; set; }
 
 		public IRequest Request { get; private set; }
 

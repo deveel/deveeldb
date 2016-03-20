@@ -18,6 +18,7 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Transactions;
 
@@ -61,9 +62,13 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		protected override void BuildStatement(SqlStatementBuilder builder) {
+			string key;
+			object value;
+
 			if (VariableName.Equals(IsolationLevelVariable)) {
 				var isolationLevel = ParseIsolationLevel(Value);
-				builder.AddObject(new SetIsolationLevelStatement(isolationLevel));
+				key = TransactionSettingKeys.IsolationLevel;
+				value = isolationLevel.ToString();
 			} else if (VariableName.Equals(AccessVariable)) {
 				bool status;
 				if (String.Equals(Value, "READ ONLY", StringComparison.OrdinalIgnoreCase)) {
@@ -74,8 +79,13 @@ namespace Deveel.Data.Sql.Parser {
 					throw new SqlParseException("Invalid access type");
 				}
 
-				builder.AddObject(new SetReadOnlyStatement(status));
+				key = TransactionSettingKeys.ReadOnly;
+				value = status;
+			} else {
+				throw new NotSupportedException(String.Format("Transaction variable '{0}' is not supported.", VariableName));
 			}
+			
+			builder.AddObject(new SetStatement(key, SqlExpression.Constant(value)));			
 		}
 
 		private IsolationLevel ParseIsolationLevel(string value) {

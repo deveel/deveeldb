@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				if (!context.User.CanDrop(DbObjectType.Table, TableName))
-					throw new MissingPrivilegesException(context.Query.UserName(), TableName, Privileges.Drop);
+					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
 
 				// Check there are no referential links to any tables being dropped
 				var refs = context.Request.Access.QueryTableImportedForeignKeys(TableName);

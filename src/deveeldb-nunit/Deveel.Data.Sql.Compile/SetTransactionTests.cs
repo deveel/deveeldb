@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 using NUnit.Framework;
@@ -25,11 +28,20 @@ namespace Deveel.Data.Sql.Compile {
 			var statement = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SetIsolationLevelStatement>(statement);
+			Assert.IsInstanceOf<SetStatement>(statement);
 
-			var setIsolationLevel = (SetIsolationLevelStatement) statement;
+			var set = (SetStatement)statement;
+			Assert.AreEqual(TransactionSettingKeys.IsolationLevel, set.SettingName);
+			Assert.IsInstanceOf<SqlConstantExpression>(set.ValueExpression);
 
-			Assert.AreEqual(expected, setIsolationLevel.IsolationLevel);
+			var value = (SqlConstantExpression)set.ValueExpression;
+			var field = value.Value;
+
+			Assert.IsInstanceOf<StringType>(field.Type);
+
+			var s = (SqlString) field.Value;
+
+			Assert.AreEqual(expected.ToString(), s.ToString());
 		}
 
 		[TestCase("READ ONLY", true)]
@@ -47,11 +59,19 @@ namespace Deveel.Data.Sql.Compile {
 			var statement = result.Statements.ElementAt(0);
 
 			Assert.IsNotNull(statement);
-			Assert.IsInstanceOf<SetReadOnlyStatement>(statement);
+			Assert.IsInstanceOf<SetStatement>(statement);
 
-			var setReadOnly = (SetReadOnlyStatement)statement;
+			var set = (SetStatement)statement;
+			Assert.AreEqual(TransactionSettingKeys.ReadOnly, set.SettingName);
+			Assert.IsInstanceOf<SqlConstantExpression>(set.ValueExpression);
 
-			Assert.AreEqual(expectedStatus, setReadOnly.Status);
+			var value = (SqlConstantExpression) set.ValueExpression;
+			var field = value.Value;
+
+			Assert.IsInstanceOf<BooleanType>(field.Type);
+
+			var status = (bool) ((SqlBoolean) field.Value);
+			Assert.AreEqual(expectedStatus, status);
 		}
 	}
 }
