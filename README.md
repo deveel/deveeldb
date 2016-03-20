@@ -7,12 +7,12 @@ DeveelDB 2.0
 
 DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The system is designed around the standards ISO/ANSI and supports the following features:
 
-- ACID Transactions: `BEGIN`, `COMMIT`, `ROLLBACK` (Isolation Level *Serializable*)
+- Transactions: `COMMIT`, `ROLLBACK` (Isolation Level *Serializable*)
 - Data Definition Language (DDL): `CREATE/DROP SCHEMA`, `CREATE/DROP/ALTER TABLE`
 - Data Manipulation Language (DML): `SELECT FROM`, `INSERT INTO`, `DELETE FROM`, `UPDATE`
-- User Management: `GRANT/REVOKE` statements
+- User Management: `CREATE/DROP/ALTER USER`, `CREATE/DROP ROLE`, `GRANT/REVOKE` statements
 - Support for structured variables (eg. `DECLARE var INT(200) NOT NULL`)
-- Procedures and functions: with the (current) limitation of the body defined into .NET classes
+- Procedures and functions
 - Cursors
 - ADO.NET native client
 - Direct Access: programmatically execute SQL statements (without ADO.NET client and text commands)
