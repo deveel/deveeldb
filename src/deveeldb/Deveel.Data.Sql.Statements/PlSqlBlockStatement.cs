@@ -49,9 +49,6 @@ namespace Deveel.Data.Sql.Statements {
 
 			try {
 				base.ExecuteStatement(context);
-
-				if (context.IsInException)
-					FireHandler(context, context.Exception);
 			} catch (SqlErrorException ex) {
 				FireHandler(context, ex);
 			} catch (Exception ex) {
@@ -59,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		private void FireHandler(ExecutionContext context, string exception) {
+		internal void FireHandler(ExecutionContext context, string exception) {
 			var handler = ExceptionHandlers.FirstOrDefault(x => x.Handles(exception));
 			if (handler == null)
 				throw new InvalidOperationException(String.Format("Exception '{0}' is not handled in this context.", exception));

@@ -246,7 +246,6 @@ namespace Deveel.Data.Sql.Parser {
 			loopBody.Rule = plsqlStatementList | loopControlStatement;
 			loopBodyList.Rule = MakePlusRule(loopBodyList, loopBody);
 			loopControlStatement.Rule = Exit() |
-										Break() |
 										Continue();
 			loopHeadOpt.Rule = Empty | loopHead;
 			loopHead.Rule = whileLoop | forLoop;
@@ -271,18 +270,6 @@ namespace Deveel.Data.Sql.Parser {
 			exitStatement.Rule = Key("EXIT") + labelOpt + whenOpt + StatementEnd();
 
 			return exitStatement;
-		}
-
-		private NonTerminal Break() {
-			var breakStatement = new NonTerminal("break_statement", typeof(BreakStatementNode));
-			var whenOpt = new NonTerminal("when_opt");
-			var labelOpt = new NonTerminal("label_opt");
-
-			breakStatement.Rule = Key("BREAK") + labelOpt + whenOpt + StatementEnd();
-			labelOpt.Rule = Empty | Identifier;
-			whenOpt.Rule = Empty | Key("WHEN") + SqlExpression();
-
-			return breakStatement;
 		}
 
 		private NonTerminal Continue() {

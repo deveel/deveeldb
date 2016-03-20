@@ -40,26 +40,26 @@ namespace Deveel.Data.Routines {
 			return Execute(routine, args, query, resolver, null);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, IQuery query) {
-			return Execute(routine, query, null);
+		public static InvokeResult Execute(this IRoutine routine, IRequest request) {
+			return Execute(routine, request, null);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, IQuery query, IVariableResolver resolver) {
-			return Execute(routine, query, resolver, null);
+		public static InvokeResult Execute(this IRoutine routine, IRequest request, IVariableResolver resolver) {
+			return Execute(routine, request, resolver, null);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, IQuery query, IVariableResolver resolver, IGroupResolver group) {
-			return Execute(routine, new SqlExpression[0], query, resolver, group);
+		public static InvokeResult Execute(this IRoutine routine, IRequest request, IVariableResolver resolver, IGroupResolver group) {
+			return Execute(routine, new SqlExpression[0], request, resolver, group);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IQuery query, IVariableResolver resolver, IGroupResolver group) {
-			var request = new Invoke(routine.FullName, args);
+		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IRequest request, IVariableResolver resolver, IGroupResolver group) {
+			var invoke = new Invoke(routine.FullName, args);
 
-			if (query != null &&
-			    !query.User().CanExecute(routine.Type, request, query))
+			if (request != null &&
+			    !request.User().CanExecute(routine.Type, invoke, request))
 				throw new InvalidOperationException();
 
-			var executeContext = new InvokeContext(request, routine, resolver, group, query);
+			var executeContext = new InvokeContext(invoke, routine, resolver, group, request);
 			return routine.Execute(executeContext);
 		}
 

@@ -116,6 +116,13 @@ namespace Deveel.Data.Sql.Statements {
 			return this;
 		}
 
+		internal SqlStatement Prepare(IExpressionPreparer preparer) {
+			return PrepareExpressions(preparer);
+		}
+
+		internal SqlStatement Prepare(IRequest request) {
+			return PrepareStatement(request);
+		}
 
 		internal SqlStatement Prepare(IRequest context, IExpressionPreparer preparer) {
 			try {
@@ -123,7 +130,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				var prepared = PrepareExpressions(preparer);
 				if (prepared == null)
-					throw new InvalidOperationException();
+					throw new StatementException(String.Format("The statement '{0}' prepared expressions to null", GetType()));
 
 				prepared = prepared.PrepareStatement(context);
 

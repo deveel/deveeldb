@@ -20,8 +20,25 @@ using System;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public class LoopStatement : CodeBlockStatement, IPlSqlStatement {
+		private bool Continue { get; set; }
+
+		private bool Exit { get; set; }
+
+		internal void Control(LoopControlType controlType) {
+			if (controlType == LoopControlType.Continue) {
+				Continue = true;
+			} else if (controlType == LoopControlType.Exit) {
+				Exit = true;
+			}
+		}
+
+		// TODO: Review the logic to control the loop...
 		protected virtual bool Loop(ExecutionContext context) {
-			return !context.HasTermination;
+			return !Exit;
+		}
+
+		protected virtual bool CanExecute(ExecutionContext context) {
+			return !Continue;
 		}
 
 		protected virtual void BeforeLoop(ExecutionContext context) {
@@ -34,11 +51,13 @@ namespace Deveel.Data.Sql.Statements {
 			BeforeLoop(context);
 
 			while (Loop(context)) {
-				base.ExecuteStatement(context);
+				if (CanExecute(context))
+					base.ExecuteStatement(context);
 			}
 
 			AfterLoop(context);
 		}
+
 
 		protected override void AppendTo(SqlStringBuilder builder) {
 			if (!String.IsNullOrEmpty(Label)) {

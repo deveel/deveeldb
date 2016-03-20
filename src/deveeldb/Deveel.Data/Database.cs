@@ -268,7 +268,6 @@ namespace Deveel.Data {
 
 							// Create the system views
 							InformationSchema.CreateViews(query);
-							InformationSchema.GrantToPublic(query);
 
 							this.CreateAdminUser(query, adminName, adminPassword);
 

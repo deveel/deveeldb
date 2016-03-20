@@ -912,6 +912,10 @@ namespace Deveel.Data {
 			return GetObject(DbObjectType.Routine, invoke.RoutineName, AccessType.Read) as IRoutine;
 		}
 
+		public IProcedure ResolveProcedure(Invoke invoke) {
+			return ResolveUserRoutine(invoke) as IProcedure;
+		}
+
 		public IFunction ResolveFunction(Invoke invoke, IRequest request) {
 			return ResolveRoutine(invoke, request) as IFunction;
 		}

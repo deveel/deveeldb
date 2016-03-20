@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 			for (int i = 0; i < statements.Length; i++) {
 				var statement = statements[i];
 
-				var context = new ExecutionContext(request);
+				var context = new ExecutionContext(request, statement);
 
 				var prepared = statement.Prepare(request, preparer);
 

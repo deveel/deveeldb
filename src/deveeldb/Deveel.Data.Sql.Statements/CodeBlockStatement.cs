@@ -53,10 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var block = new Block(context.Request);
-			var blockContext = new ExecutionContext(block);
-
-			ExecuteBlock(blockContext);
+			ExecuteBlock(context.NewBlock(this));
 		}
 
 		private ICollection<SqlStatement> DeserializeObjects(SerializationInfo info) {

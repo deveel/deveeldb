@@ -18,29 +18,35 @@
 using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
-	public sealed class ExecutionContext : IDisposable {
-		public ExecutionContext(IRequest request) {
+	public sealed class ExecutionContext {
+		public ExecutionContext(IRequest request, SqlStatement statement)
+			: this(null, request, statement) {
+		}
+
+		private ExecutionContext(ExecutionContext parent, IRequest request, SqlStatement statement) {
 			if (request == null)
 				throw new ArgumentNullException("request");
 
 			Request = request;
+			Statement = statement;
+			Parent = parent;
 		}
+
+		public SqlStatement Statement { get; private set; }
 
 		public IRequest Request { get; private set; }
 
 		public ITable Result { get; private set; }
 
-		public bool HasResult { get; private set; }
-
 		public bool HasTermination { get; private set; }
 
-		public string Exception { get; private set; }
-
-		public bool IsInException {
-			get { return !String.IsNullOrEmpty(Exception); }
+		public bool HasResult {
+			get { return Result != null; }
 		}
 
 		public User User {
@@ -55,34 +61,121 @@ namespace Deveel.Data.Sql {
 			get { return Request.Access; }
 		}
 
+		private ExecutionContext Parent { get; set; }
+
+
+		private void AssertNotFinished() {
+			if (HasTermination)
+				throw new InvalidOperationException("The context has already terminated.");
+		}
+
 		public void SetResult(ITable result) {
-			if (result != null) {
-				Result = result;
-				HasResult = true;
-				HasTermination = true;
-			}
+			AssertNotFinished();
+			Result = result;
 		}
 
 		public void SetResult(int value) {
 			SetResult(FunctionTable.ResultTable(Request, value));
 		}
 
-		public void RaiseException(string exceptionName) {
+		public void Raise(string exceptionName) {
 			if (String.IsNullOrEmpty(exceptionName))
 				throw new ArgumentNullException("exceptionName");
 
-			if (!String.IsNullOrEmpty(Exception))
-				throw new InvalidOperationException("An exception was already arose and not handled");
+			AssertNotFinished();
 
-			Exception = exceptionName;
+			try {
+				var statement = Statement;
+				while (statement != null) {
+					if (statement is PlSqlBlockStatement) {
+						var block = (PlSqlBlockStatement) statement;
+						block.FireHandler(this, exceptionName);
+						return;
+					}
+
+					statement = statement.Parent;
+				}
+			} finally {
+				HasTermination = true;
+			}
 		}
 
-		public void Terminate() {
+		public void Control(LoopControlType controlType, string label) {
+			AssertNotFinished();
+
+			bool controlled = false;
+
+			var statement = Statement;
+			while (statement != null) {
+				if (statement is LoopStatement) {
+					var loop = (LoopStatement) statement;
+					if (!String.IsNullOrEmpty(label) &&
+					    String.Equals(label, loop.Label)) {
+						loop.Control(controlType);
+						controlled = true;
+					} else if (!controlled) {
+						loop.Control(controlType);
+						controlled = true;
+					}
+				}
+
+				statement = statement.Parent;
+			}
+
+			if (!controlled)
+				throw new StatementException(String.Format("Could not control {0} any loop.",
+					controlType.ToString().ToUpperInvariant()));
+		}
+
+		public void Transfer(string label) {
+			AssertNotFinished();
+
+			if (String.IsNullOrEmpty(label))
+				throw new ArgumentNullException("label");
+
+			var statement = FindInTree(Statement, label);
+			if (statement == null)
+				throw new StatementException(String.Format("Could not find any block labeled '{0}' in the execution tree.", label));
+
+			var block = NewBlock(statement);
+			statement.Execute(block);
+
+			if (block.HasResult)
+				SetResult(block.Result);
+		}
+
+		public void Return(SqlExpression value) {
+			AssertNotFinished();
+
+			if (value != null)
+				SetResult(FunctionTable.ResultTable(Request, value));
+
 			HasTermination = true;
 		}
 
-		public void Dispose() {
-			Request = null;
+		private SqlStatement FindInTree(SqlStatement root, string label) {
+			var statement = root;
+			while (statement != null) {
+				if (statement is CodeBlockStatement) {
+					var block = (CodeBlockStatement) statement;
+					if (String.Equals(label, block.Label))
+						return statement;
+
+					foreach (var child in block.Statements) {
+						var found = FindInTree(child, label);
+						if (found != null)
+							return found;
+					}
+				}
+
+				statement = statement.Parent;
+			}
+
+			return null;
+		}
+
+		public ExecutionContext NewBlock(SqlStatement statement) {
+			return new ExecutionContext(this, new Block(Request), statement);
 		}
 	}
 }

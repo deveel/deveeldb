@@ -17,7 +17,6 @@
 
 using System;
 
-using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	public interface IUserManager : IDisposable {

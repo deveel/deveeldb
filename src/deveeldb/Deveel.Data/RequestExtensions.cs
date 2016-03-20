@@ -216,6 +216,14 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Call
+
+		public static void Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
+			request.ExecuteStatement(new CallStatement(procedureName, args));
+		}
+
+		#endregion
+
 		#region Select
 
 		// TODO: instead of returning a ITable we must return a Cursor

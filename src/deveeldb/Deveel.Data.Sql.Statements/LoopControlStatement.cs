@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 					return;
 			}
 
-			throw new NotImplementedException();
+			context.Control(ControlType, Label);
 		}
 
 		protected override void GetData(SerializationInfo info) {

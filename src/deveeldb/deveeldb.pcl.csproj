@@ -144,11 +144,15 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AssignVariableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CodeBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalProcedureStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateSchemaStatement.cs" />
@@ -161,6 +165,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\DeleteCurrentStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DeleteStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropCallbackTriggersStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSchemaStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
@@ -177,6 +183,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />

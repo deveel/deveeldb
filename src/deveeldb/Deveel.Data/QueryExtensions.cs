@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -399,6 +400,124 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Create Function
+
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body) {
+			CreateFunction(query, functionName, returnType, null, body);
+		}
+
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			CreateFunction(query, functionName, returnType, parameters, body, false);
+		}
+
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body, bool replace) {
+			CreateFunction(query, functionName, returnType, null, body, replace);
+		}
+
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body, bool replace) {
+			query.ExecuteStatement(new CreateFunctionStatement(functionName, returnType, parameters, body) {
+				ReplaceIfExists = replace
+			});
+		}
+
+		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body) {
+			CreateOrReplaceFunction(query, functionName, returnType, null, body);
+		}
+
+		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+	IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			query.CreateFunction(functionName, returnType, parameters, body, true);
+		}
+
+		#endregion
+
+		#region Create External Function
+
+		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+			IEnumerable<RoutineParameter> parameters, string externRef) {
+			CreateExternFunction(query, functionName, returnType, parameters, externRef, false);
+		}
+
+		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType, string externRef) {
+			CreateExternFunction(query, functionName, returnType, externRef, false);
+		}
+
+		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType, string externRef, bool replace) {
+			CreateExternFunction(query, functionName, returnType, null, externRef, replace);
+		}
+
+		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+			IEnumerable<RoutineParameter> parameters, string externRef, bool replace) {
+			query.ExecuteStatement(new CreateExternalFunctionStatement(functionName, returnType, parameters, externRef) {
+				ReplaceIfExists = replace
+			});
+		}
+
+		public static void CreateOrReplaceExternFunction(this IQuery query, ObjectName functionName, SqlType returnType, string externRef) {
+			CreateOrReplaceExternFunction(query, functionName, returnType, null, externRef);
+		}
+
+		public static void CreateOrReplaceExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
+			IEnumerable<RoutineParameter> parameters, string externRef) {
+			query.CreateExternFunction(functionName, returnType, parameters, externRef, true);
+		}
+
+		#endregion
+
+		#region Drop Function
+
+		public static void DropFunction(this IQuery query, ObjectName functionName) {
+			DropFunction(query, functionName, false);
+		}
+
+		public static void DropFunction(this IQuery query, ObjectName functionName, bool ifExists) {
+			query.ExecuteStatement(new DropFunctionStatement(functionName) {
+				IfExists = ifExists
+			});
+		}
+
+		public static void DropFunctionIfExists(this IQuery query, ObjectName functionName) {
+			query.DropFunction(functionName, true);
+		}
+
+		#endregion
+
+		#region Create Procedure
+
+		public static void CreateProcedure(this IQuery query, ObjectName procedureName, PlSqlBlockStatement body) {
+			CreateProcedure(query, procedureName, body, false);
+		}
+
+		public static void CreateProcedure(this IQuery query, ObjectName procedureName, PlSqlBlockStatement body, bool replace) {
+			CreateProcedure(query, procedureName, null, body, replace);
+		}
+
+		public static void CreateProcedure(this IQuery query, ObjectName procedureName,
+			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			CreateProcedure(query, procedureName, parameters, body, false);
+		}
+
+		public static void CreateProcedure(this IQuery query, ObjectName procedureName,
+	IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body, bool replace) {
+			query.ExecuteStatement(new CreateProcedureStatement(procedureName, parameters, body) {
+				ReplaceIfExists = replace
+			});
+		}
+
+		#endregion
+
+		#region Drop Procedure
+
+		public static void DropProcedure(this IQuery query, ObjectName procedureName, bool ifExists) {
+			query.ExecuteStatement(new DropProcedureStatement(procedureName) {
+				IfExists = ifExists
+			});
+		}
+
+		#endregion
+
 		#region Show
 
 		public static void Show(this IQuery query, ShowTarget target) {
@@ -426,3 +545,4 @@ namespace Deveel.Data {
 		#endregion
 	}
 }
+

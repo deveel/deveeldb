@@ -181,10 +181,18 @@
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectItemWithExpressionConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectListConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalProcedureStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropFunctionStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
@@ -241,7 +249,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AssignVariableStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\BreakStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CodeBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CommitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ContinueStatement.cs" />
@@ -425,7 +432,6 @@
     <Compile Include="Deveel.Data.Sql.Cursors\CursorParameter.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorStatus.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\FetchDirection.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\BreakStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ContinueStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CursorParameterNode.cs" />

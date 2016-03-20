@@ -250,9 +250,11 @@ namespace Deveel.Data.Sql.Schemas {
 			                     "   WHERE fkey_info.id = fkey_cols.fk_id\n" +
 			                     "     AND \"fkey_info.schema\" IN\n" +
 			                     "              ( SELECT \"name\" FROM " + ThisUserSchemaInfoViewName + " )\n");
+
+			GrantToPublic(query);
 		}
 
-		public static void GrantToPublic(IQuery query) {
+		private static void GrantToPublic(IQuery query) {
 			query.Access.GrantOn(DbObjectType.View, ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
 			query.Access.GrantOn(DbObjectType.View, ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
 			query.Access.GrantOn(DbObjectType.View, ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
