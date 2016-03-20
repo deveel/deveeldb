@@ -31,6 +31,18 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected PlSqlBlockStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
+			Declarations = new DeclarationCollection();
+			ExceptionHandlers = new ExceptionHandlerCollection();
+
+			var decls = (SqlStatement[]) info.GetValue("Declarations", typeof (SqlStatement[]));
+			foreach (var statement in decls) {
+				Declarations.Add(statement);
+			}
+
+			var handlers = (ExceptionHandler[]) info.GetValue("ExceptionHandlers", typeof (ExceptionHandler[]));
+			foreach (var handler in handlers) {
+				ExceptionHandlers.Add(handler);
+			}
 		}
 
 		public ICollection<SqlStatement> Declarations { get; private set; } 
@@ -38,6 +50,8 @@ namespace Deveel.Data.Sql.Statements {
 		public ICollection<ExceptionHandler> ExceptionHandlers { get; private set; }
 
 		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Declarations", Declarations.ToArray());
+			info.AddValue("ExceptionHandlers", ExceptionHandlers.ToArray());
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

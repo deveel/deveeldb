@@ -54,10 +54,6 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
-		IBlockContext IRequest.CreateBlockContext() {
-			return Context.CreateBlockContext();
-		}
-
 		public IBlock CreateBlock() {
 			return new Block(this);
 		}
@@ -67,6 +63,10 @@ namespace Deveel.Data {
 		}
 
 		public IQueryContext Context { get; private set; }
+
+		IBlockContext IRequest.Context {
+			get { return Context; }
+		}
 
 		public ISession Session { get; private set; }
 

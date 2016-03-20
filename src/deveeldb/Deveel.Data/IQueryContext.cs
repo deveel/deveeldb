@@ -17,17 +17,13 @@
 
 using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides a context for executing queries, accessing the
 	/// system resources and evaluation context.
 	/// </summary>
-	public interface IQueryContext : IContext {
+	public interface IQueryContext : IBlockContext {
         ISessionContext SessionContext { get; }
-
-		IBlockContext CreateBlockContext();
 
 		/*
 		/// <summary>

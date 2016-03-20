@@ -182,7 +182,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
@@ -732,7 +731,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopControlType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\OpenStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RaiseStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStatement.cs" />

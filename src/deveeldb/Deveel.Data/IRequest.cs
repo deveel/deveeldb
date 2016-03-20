@@ -25,6 +25,6 @@ namespace Deveel.Data {
 
 		IQuery Query { get; }
 
-		IBlockContext CreateBlockContext();
+		new IBlockContext Context { get; }
 	}
 }

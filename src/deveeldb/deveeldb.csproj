@@ -196,6 +196,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
     <Compile Include="Deveel.Data.Protocol\ClientConnector.cs" />
@@ -272,7 +273,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\IDeclarationStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetIsolationLevelStatement.cs" />
@@ -323,7 +323,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\BaseDataTable.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />

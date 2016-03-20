@@ -35,6 +35,8 @@ namespace Deveel.Data {
 			return request.User().Name;
 		}
 
+		#region Statements
+
 		private static int GetResult(ITable table) {
 			if (table.RowCount != 1)
 				throw new InvalidOperationException("Invalid number of rows returned in result");
@@ -45,7 +47,46 @@ namespace Deveel.Data {
 			return value.AsInteger();
 		}
 
-		#region Statements
+		public static ITable ExecuteStatement(this IRequest request, SqlStatement statement) {
+			var results = request.ExecuteStatements(statement);
+			return results[0];
+		}
+
+		public static ITable[] ExecuteStatements(this IRequest request, params SqlStatement[] statements) {
+			return ExecuteStatements(request, null, statements);
+		}
+
+		public static ITable[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer, params SqlStatement[] statements) {
+			if (statements == null)
+				throw new ArgumentNullException("statements");
+			if (statements.Length == 0)
+				throw new ArgumentException("No statements provided for execution", "statements");
+
+			var results = new ITable[statements.Length];
+			for (int i = 0; i < statements.Length; i++) {
+				var statement = statements[i];
+
+				var context = new ExecutionContext(request, statement);
+
+				var prepared = statement.Prepare(request, preparer);
+
+				if (prepared == null)
+					throw new InvalidOperationException(String.Format("The preparation of the statement '{0}' returned a null instance", statement.GetType()));
+
+				prepared.Execute(context);
+
+				ITable result;
+				if (context.HasResult) {
+					result = context.Result;
+				} else {
+					result = FunctionTable.ResultTable(request, 0);
+				}
+
+				results[i] = result;
+			}
+
+			return results;
+		}
 
 		#region Declare Cursor
 

@@ -22,8 +22,10 @@ using System.Linq;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
 
@@ -60,6 +62,48 @@ namespace Deveel.Data {
 		public static QueryParameterStyle ParameterStyle(this IQuery query) {
 			return query.Context.ParameterStyle();
 		}
+
+		#region Execute
+
+		public static ITable[] Execute(this IQuery query, SqlQuery sqlQuery) {
+			if (sqlQuery == null)
+				throw new ArgumentNullException("sqlQuery");
+
+			var sqlSouce = sqlQuery.Text;
+			var compiler = query.Context.SqlCompiler();
+
+			var compileResult = compiler.Compile(new SqlCompileContext(query.Context, sqlSouce));
+
+			if (compileResult.HasErrors) {
+				// TODO: throw a specialized exception...
+				throw new InvalidOperationException("The compilation of the query thrown errors.");
+			}
+
+			var preparer = new QueryPreparer(sqlQuery);
+
+			return query.ExecuteStatements(preparer, compileResult.Statements.ToArray());
+		}
+
+		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
+			return query.Execute(sqlQuery);
+		}
+
+		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource, params QueryParameter[] parameters) {
+			var sqlQuery = new SqlQuery(sqlSource);
+			if (parameters != null) {
+				foreach (var parameter in parameters) {
+					sqlQuery.Parameters.Add(parameter);
+				}
+			}
+
+			return query.ExecuteQuery(sqlQuery);
+		}
+
+		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource) {
+			return query.ExecuteQuery(sqlSource, null);
+		}
+
+		#endregion
 
 		#region Statements
 
@@ -518,14 +562,6 @@ namespace Deveel.Data {
 
 		#endregion
 
-		#region Show
-
-		public static void Show(this IQuery query, ShowTarget target) {
-			query.ExecuteStatement(new ShowStatement(target));
-		}
-
-		#endregion
-
 		#region Commit
 
 		public static void Commit(this IQuery query) {
@@ -543,6 +579,37 @@ namespace Deveel.Data {
 		#endregion
 
 		#endregion
+
+		#region QueryPreparer
+
+		class QueryPreparer : IExpressionPreparer {
+			private readonly SqlQuery query;
+
+			public QueryPreparer(SqlQuery query) {
+				this.query = query;
+			}
+
+			public bool CanPrepare(SqlExpression expression) {
+				return expression is SqlVariableReferenceExpression;
+			}
+
+			public SqlExpression Prepare(SqlExpression expression) {
+				var varRef = (SqlVariableReferenceExpression)expression;
+				var varName = varRef.VariableName;
+
+				var parameter = query.Parameters.FindParameter(varName);
+				if (parameter == null)
+					return expression;
+
+				var value = parameter.SqlType.CreateFrom(parameter.Value);
+				var obj = new Field(parameter.SqlType, value);
+
+				return SqlExpression.Constant(obj);
+			}
+		}
+
+		#endregion
+
 	}
 }
 

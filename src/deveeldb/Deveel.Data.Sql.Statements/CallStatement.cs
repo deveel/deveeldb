@@ -8,7 +8,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class CallStatement  : SqlStatement {
+	public sealed class CallStatement  : SqlStatement, IPlSqlStatement {
 		public CallStatement(ObjectName procedureName) 
 			: this(procedureName, null) {
 		}

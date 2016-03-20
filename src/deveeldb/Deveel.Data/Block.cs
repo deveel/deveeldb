@@ -30,7 +30,7 @@ namespace Deveel.Data {
 
 			query = request as IQuery;
 			
-			Context = request.CreateBlockContext();
+			Context = request.Context.CreateBlockContext();
 			Context.UnregisterService<IBlock>();
 			Context.RegisterInstance<IBlock>(this);
 
@@ -89,10 +89,6 @@ namespace Deveel.Data {
 
 		IContext IEventSource.Context {
 			get { return Context; }
-		}
-
-		IBlockContext IRequest.CreateBlockContext() {
-			return Context.CreateBlockContext();
 		}
 
 		void IBlock.Execute(BlockExecuteContext context) {
