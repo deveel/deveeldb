@@ -112,8 +112,11 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
+    <Compile Include="Deveel.Data.Routines\Procedure.cs" />
+    <Compile Include="Deveel.Data.Routines\UserProcedure.cs" />
     <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\KnownUserIdentifications.cs" />
@@ -124,6 +127,7 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
@@ -216,6 +220,7 @@
     <Compile Include="Deveel.Data.Sql.Types\SqlTypeCode.cs" />
     <Compile Include="Deveel.Data.Sql.Types\StringType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\SystemContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeManager.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeResolveContext.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeResolver.cs" />

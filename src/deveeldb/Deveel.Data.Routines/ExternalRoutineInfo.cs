@@ -14,27 +14,13 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
-using Deveel.Data.Types;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
- 	public sealed class ExternalRoutineInfo {
- 		public ExternalRoutineInfo(Type type, Type[] argTypes)
- 			: this(type, null, argTypes) {
- 		}
-
- 		public ExternalRoutineInfo(Type type)
- 			: this(type, String.Empty) {
- 		}
-
- 		public ExternalRoutineInfo(Type type, string methodName)
- 			: this(type, methodName, Type.EmptyTypes) {
- 		}
-
+ 	public abstract class ExternalRoutineInfo : RoutineInfo { 
  		public ExternalRoutineInfo(Type type, string methodName, Type[] argTypes)
  			: this(type.FullName, methodName, ToTypeNames(argTypes)) {
  		}
@@ -44,9 +30,9 @@ namespace Deveel.Data.Routines {
  		}
 
  		public ExternalRoutineInfo(string typeString, string methodName, string[] argNames) {
- 			this.TypeName = typeString;
- 			this.MethodName = methodName;
- 			this.Arguments = argNames;
+ 			TypeName = typeString;
+ 			MethodName = methodName;
+ 			Arguments = argNames;
  		}
 
  		public string TypeName { get; private set; }
@@ -58,6 +44,8 @@ namespace Deveel.Data.Routines {
  		}
 
 		public string[] Arguments { get; private set; }
+
+ 		public const string InvokeMethodName = "Invoke";
 
 		private static string[] ToTypeNames(Type[] argTypes) {
 			if (argTypes == null || argTypes.Length == 0)
@@ -90,19 +78,20 @@ namespace Deveel.Data.Routines {
 
 			// Remove the array part
 			int arrayEnd = typeString.Length - (dimensions * 2);
-			String typePart = typeString.Substring(0, arrayEnd);
+			string typePart = typeString.Substring(0, arrayEnd);
 			// Check there's no array parts in the class part
 			if (typePart.IndexOf("[]", StringComparison.InvariantCulture) != -1)
 				throw new Exception("Type specification incorrectly formatted: " + typeString);
 
 			// Convert the specification to a .NET Type.  For example,
 			// String is converted to typeof(System.String), etc.
-			Type cl;
-			// Is there a '.' in the class specification?
+			Type type;
+
+			// Is there a '.' in the type specification?
 			if (typePart.IndexOf('.') != -1) {
 				// Must be a specification such as 'System.Uri' or 'System.Collection.IList'.
 				try {
-					cl = Type.GetType(typePart);
+					type = Type.GetType(typePart, false);
 				} catch (TypeLoadException) {
 					throw new Exception("Type not found: " + typePart);
 				}
@@ -111,29 +100,31 @@ namespace Deveel.Data.Routines {
 				// Try for a primitive types
 			else if (typePart.Equals("boolean") ||
 					 typePart.Equals("bool")) {
-				cl = typeof(bool);
+				type = typeof(bool);
 			} else if (typePart.Equals("byte")) {
-				cl = typeof(byte);
+				type = typeof(byte);
 			} else if (typePart.Equals("short")) {
-				cl = typeof(short);
+				type = typeof(short);
 			} else if (typePart.Equals("char")) {
-				cl = typeof(char);
+				type = typeof(char);
 			} else if (typePart.Equals("int")) {
-				cl = typeof(int);
+				type = typeof(int);
 			} else if (typePart.Equals("long")) {
-				cl = typeof(long);
+				type = typeof(long);
 			} else if (typePart.Equals("float")) {
-				cl = typeof(float);
+				type = typeof(float);
 			} else if (typePart.Equals("double")) {
-				cl = typeof(double);
+				type = typeof (double);
+			} else if (typePart.Equals("DateTime")) {
+				type = typeof (DateTime);
 			} else {
 				// Not a primitive type so try resolving against System.* or some
 				// key classes in Deveel.Data.*
-				if (typePart.Equals("IProcedureConnection")) {
-					cl = typeof(IProcedureConnection);
+				if (typePart.Equals("ISession")) {
+					type = typeof(ISession);
 				} else {
 					try {
-						cl = Type.GetType("System." + typePart);
+						type = Type.GetType("System." + typePart, false);
 					} catch (TypeLoadException) {
 						// No luck so give up,
 						throw new Exception("Type not found: " + typePart);
@@ -141,36 +132,40 @@ namespace Deveel.Data.Routines {
 				}
 			}
 
+			if (type == null)
+				return null;
+
 			// Finally make into a dimension if necessary
 			if (dimensions > 0) {
 				// This is a little untidy way of doing this.  Perhaps a better approach
 				// would be to make an array encoded string.
-				cl = Array.CreateInstance(cl, new int[dimensions]).GetType();
+				type = type.MakeArrayType(dimensions);
 			}
 
-			return cl;
+			return type;
 		}
 
 
- 		public MethodInfo ResolveMethod(TType[] paramTypes) {
-			// The name of the class
-			String typeName;
-			// The name of the invokation method in the class.
-			String methodName;
+ 		public MethodInfo ResolveMethod(SqlType[] paramTypes) {
+			string typeName;
+			string methodName;
+
 			// The object specification that must be matched.  If any entry is 'null'
 			// then the argument parameter is discovered.
 			Type[] argTypes;
-			bool firstProcedureConnectionIgnore;
+			bool ignoreFirstArg;
 
 			if (!HasMethodName) {
-				// This means the typeString only specifies a class name, so we use
+				// This means the typeString only specifies a type name, so we use
 				// 'Invoke' as the static method to call, and discover the arguments.
 				typeName = TypeName;
-				methodName = "Invoke";
+				methodName = InvokeMethodName;
+
 				// All null which means we discover the arg types dynamically
 				argTypes = new Type[paramTypes.Length];
-				// ignore IProcedureConnection is first argument
-				firstProcedureConnectionIgnore = true;
+
+				// ignore ISession is first argument
+				ignoreFirstArg = true;
 			} else {
 				// This means we specify a class and method name and argument
 				// specification.
@@ -179,37 +174,36 @@ namespace Deveel.Data.Routines {
 				argTypes = new Type[Arguments.Length];
 
 				for (int i = 0; i < Arguments.Length; ++i) {
-					String typeSpec = Arguments[i];
+					string typeSpec = Arguments[i];
 					argTypes[i] = ResolveToType(typeSpec);
 				}
 
-				firstProcedureConnectionIgnore = false;
+				ignoreFirstArg = false;
 			}
 
-			Type routineType = Type.GetType(typeName, false, true);
+			var routineType = Type.GetType(typeName, false, true);
 			if (routineType == null)
-				throw new Exception("Procedure class not found: " + typeName);
+				throw new Exception(String.Format("Routine containing type '{0}' not found", typeName));
 
 			// Get all the methods in this class
-			MethodInfo[] methods = routineType.GetMethods(BindingFlags.Public | BindingFlags.Static);
+			var methods = routineType.GetMethods(BindingFlags.Public | BindingFlags.Static);
 			MethodInfo invokeMethod = null;
-			// Search for the invoke method
+
 			foreach (MethodInfo method in methods) {
 				if (method.Name.Equals(methodName)) {
 					bool paramsMatch;
 
-					// Get the parameters for this method
-					ParameterInfo[] methodArgs = method.GetParameters();
+					var methodArgs = method.GetParameters();
 
-					// If no methods, and object_specification has no args then this is a
-					// match.
+					// If both the reference and the method have no args then this is a match.
 					if (methodArgs.Length == 0 && argTypes.Length == 0) {
 						paramsMatch = true;
 					} else {
 						int searchStart = 0;
-						// Is the first arugments a IProcedureConnection implementation?
-						if (firstProcedureConnectionIgnore &&
-							typeof(IProcedureConnection).IsAssignableFrom(methodArgs[0].ParameterType)) {
+
+						// Is the first argument is a ISession implementation and we are skipping it
+						if (ignoreFirstArg &&
+							typeof(ISession).IsAssignableFrom(methodArgs[0].ParameterType)) {
 							searchStart = 1;
 						}
 
@@ -224,6 +218,7 @@ namespace Deveel.Data.Routines {
 									matchSpec = false;
 								}
 							}
+
 							paramsMatch = matchSpec;
 						} else {
 							paramsMatch = false;
@@ -232,23 +227,25 @@ namespace Deveel.Data.Routines {
 
 					if (paramsMatch) {
 						if (invokeMethod != null)
-							throw new Exception("Ambiguous public static " + methodName + " methods in stored procedure class '" + typeName + "'");
+							throw new AmbiguousMatchException(String.Format("Ambiguous public static '{0}' methods in type '{1}'", methodName, typeName));
 
 						invokeMethod = method;
 					}
 				}
 			}
 
-			// Return the invoke method we found
 			return invokeMethod;
  		}
 
- 		public static ExternalRoutineInfo Parse(string s) {
-			// Look for the first parenthese
+ 		internal override bool MatchesInvoke(Invoke invoke, IRequest request) {
+ 			throw new NotImplementedException();
+ 		}
+
+ 		public static ExternalRoutineInfo Resolve(string s) {
+			// Look for the first parentheses
 			int parentheseDelim = s.IndexOf("(", StringComparison.InvariantCulture);
 
  			if (parentheseDelim != -1) {
-				// This represents type/method
 				string typeMethod = s.Substring(0, parentheseDelim);
 				// This will be deliminated by a '.'
 				int methodDelim = typeMethod.LastIndexOf(".", StringComparison.InvariantCulture);
@@ -271,7 +268,7 @@ namespace Deveel.Data.Routines {
 				return new ExternalRoutineInfo(typeString, methodString, args);
 			}
 
-			// No parenthese so we assume this is a class
+			// No parentheses so we assume this is a class
 			return new ExternalRoutineInfo(s, null);
  		}
 

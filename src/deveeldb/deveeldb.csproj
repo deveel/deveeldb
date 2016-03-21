@@ -153,6 +153,9 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\Procedure.cs" />
+    <Compile Include="Deveel.Data.Routines\UserProcedure.cs" />
     <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\KnownUserIdentifications.cs" />
     <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
@@ -181,6 +184,7 @@
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectItemWithExpressionConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectListConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
@@ -284,6 +288,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreDataFactory.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />

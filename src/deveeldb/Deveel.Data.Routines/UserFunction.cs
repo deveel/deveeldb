@@ -24,22 +24,32 @@ namespace Deveel.Data.Routines {
 	public sealed class UserFunction : Function {
 		public UserFunction(FunctionInfo functionInfo) 
 			: base(functionInfo) {
+			AssertHasBody();
 		}
 
-		public UserFunction(ObjectName name, RoutineParameter[] parameters, FunctionType functionType) 
-			: base(name, parameters, functionType) {
-		}
-
-		public UserFunction(ObjectName name, RoutineParameter[] parameters, SqlType returnType) 
-			: base(name, parameters, returnType) {
-		}
-
-		public UserFunction(ObjectName name, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType) 
-			: base(name, parameters, returnType, functionType) {
+		private void AssertHasBody() {
+			if (FunctionInfo.Body == null)
+				throw new InvalidOperationException(String.Format("The user function {0} has no body.", FunctionName));
 		}
 
 		public override InvokeResult Execute(InvokeContext context) {
-			throw new NotImplementedException();
+			var execContext = new ExecutionContext(context.Request, FunctionInfo.Body);
+			FunctionInfo.Body.Execute(execContext);
+
+			if (!execContext.HasResult)
+				throw new InvalidOperationException("The execution of the function has no returns");
+
+			var result = execContext.Result;
+			var returnType = ReturnType(context);
+
+			if (returnType is TabularType)
+				return new InvokeResult(context, Field.Table(result));
+
+			if (result.RowCount != 0)
+				throw new InvalidOperationException("The execution of the function has no returns");
+
+			var retunValue = result.GetValue(0, 0);
+			return new InvokeResult(context, retunValue);
 		}
 	}
 }

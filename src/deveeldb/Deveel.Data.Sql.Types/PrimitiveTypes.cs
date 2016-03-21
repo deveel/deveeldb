@@ -20,6 +20,7 @@ using System.Globalization;
 using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Math;
 
 namespace Deveel.Data.Sql.Types {
 	/// <summary>
@@ -149,7 +150,19 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static SqlType BigInt(int size) {
-			return Numeric(SqlTypeCode.BigInt);
+			return Numeric(SqlTypeCode.BigInt, size);
+		}
+
+		public static NumericType Real() {
+			return Real(-1);
+		}
+
+		public static NumericType Real(int precision) {
+			return Numeric(SqlTypeCode.Real, precision);
+		}
+
+		public static NumericType Real(int precision, byte scale) {
+			return Numeric(SqlTypeCode.Real, precision, scale);
 		}
 
 		public static NullType Null() {
@@ -443,8 +456,19 @@ namespace Deveel.Data.Sql.Types {
 				return Bit();
 			if (type == typeof (short))
 				return TinyInt();
+			if (type == typeof (int))
+				return Integer();
+			if (type == typeof (long))
+				return BigInt();
+			if (type == typeof (float) ||
+			    type == typeof (double))
+				return Real();
+			if (type == typeof (BigInteger))
+				return Numeric();
+			if (type == typeof (DateTime))
+				return TimeStamp();
 
-			throw new NotSupportedException();
+			throw new NotSupportedException(System.String.Format("The runtime type '{0}' is not supported as SQL type (yet).", type));
 		}
 	}
 }

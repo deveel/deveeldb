@@ -20,6 +20,7 @@ using System.Collections.Generic;
 
 using Deveel.Data;
 using Deveel.Data.Index;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlTabular : ITable, ISqlObject {
@@ -78,10 +79,10 @@ namespace Deveel.Data.Sql.Objects {
 			table = null;
 		}
 
-		IDatabaseContext ITable.DatabaseContext {
+		IContext ITable.Context {
 			get {
 				AssertNotNull();
-				return table.DatabaseContext;
+				return table.Context;
 			}
 		}
 
@@ -99,7 +100,7 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
-		public DataObject GetValue(long rowNumber, int columnOffset) {
+		public Field GetValue(long rowNumber, int columnOffset) {
 			AssertNotNull();
 			return table.GetValue(rowNumber, columnOffset);
 		}

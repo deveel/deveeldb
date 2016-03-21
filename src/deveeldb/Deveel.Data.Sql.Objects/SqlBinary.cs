@@ -20,6 +20,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 namespace Deveel.Data.Sql.Objects {
 	/// <summary>
 	/// Implements a <c>BINARY</c> object that handles a limited number
@@ -107,6 +109,30 @@ namespace Deveel.Data.Sql.Objects {
 			var destArray = new byte[bytes.Length];
 			Array.Copy(bytes, 0, destArray, 0, bytes.Length);
 			return destArray;
+		}
+
+		public T ToObject<T>() where T : class {
+			if (IsNull)
+				return null;
+
+			using (var stream = new MemoryStream(bytes)) {
+				var formatter = new BinarySerializer();
+				return formatter.Deserialize(stream) as T;
+			}
+		}
+
+		public static SqlBinary ToBinary<T>(T obj) where T : class {
+			if (obj == null)
+				return SqlBinary.Null;
+
+			using (var stream = new MemoryStream()) {
+				var serializer = new BinarySerializer();
+				serializer.Serialize(stream, obj);
+
+				stream.Flush();
+
+				return new SqlBinary(stream.ToArray());
+			}
 		}
 	}
 }

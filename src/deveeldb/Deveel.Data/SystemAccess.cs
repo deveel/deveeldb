@@ -960,6 +960,18 @@ namespace Deveel.Data {
 			return InvokeFunction(request, new Invoke(functionName, args));
 		}
 
+		public bool RoutineExists(ObjectName routineName) {
+			return ObjectExists(DbObjectType.Routine, routineName);
+		}
+
+		public bool DeleteRoutine(ObjectName routineName) {
+			return SystemSession.Access.DropObject(DbObjectType.Routine, routineName);
+		}
+
+		public void CreateRoutine(RoutineInfo routineInfo) {
+			SystemSession.Access.CreateObject(routineInfo);
+		}
+
 		#endregion
 	}
 }

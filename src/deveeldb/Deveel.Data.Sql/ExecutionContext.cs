@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql {
 			SetResult(FunctionTable.ResultTable(Request, value));
 		}
 
-		public void Raise(string exceptionName) {
+		internal void Raise(string exceptionName) {
 			if (String.IsNullOrEmpty(exceptionName))
 				throw new ArgumentNullException("exceptionName");
 
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql {
 			}
 		}
 
-		public void Control(LoopControlType controlType, string label) {
+		internal void Control(LoopControlType controlType, string label) {
 			AssertNotFinished();
 
 			bool controlled = false;
@@ -127,7 +127,7 @@ namespace Deveel.Data.Sql {
 					controlType.ToString().ToUpperInvariant()));
 		}
 
-		public void Transfer(string label) {
+		internal void Transfer(string label) {
 			AssertNotFinished();
 
 			if (String.IsNullOrEmpty(label))

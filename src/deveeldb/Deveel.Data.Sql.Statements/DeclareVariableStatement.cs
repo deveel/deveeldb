@@ -16,12 +16,14 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DeclareVariableStatement : SqlStatement, IDeclarationStatement {
 		public DeclareVariableStatement(string variableName, SqlType variableType) {
 			if (String.IsNullOrEmpty(variableName))
@@ -33,6 +35,14 @@ namespace Deveel.Data.Sql.Statements {
 			VariableType = variableType;
 		}
 
+		private DeclareVariableStatement(SerializationInfo info, StreamingContext context) {
+			VariableName = info.GetString("Variable");
+			VariableType = (SqlType) info.GetValue("Type", typeof (SqlType));
+			IsConstant = info.GetBoolean("Constant");
+			IsNotNull = info.GetBoolean("NotNull");
+			DefaultExpression = (SqlExpression) info.GetValue("Default", typeof (SqlExpression));
+		}
+
 		public string VariableName { get; private set; }
 
 		public SqlType VariableType { get; private set; }
@@ -42,6 +52,14 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlExpression DefaultExpression { get; set; }
 
 		public bool IsNotNull { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Variable", VariableName);
+			info.AddValue("Type", VariableType);
+			info.AddValue("Constant", IsConstant);
+			info.AddValue("NotNull", IsNotNull);
+			info.AddValue("Default", DefaultExpression);
+		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var statement = new DeclareVariableStatement(VariableName, VariableType);

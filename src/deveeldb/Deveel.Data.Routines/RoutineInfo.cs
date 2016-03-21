@@ -20,6 +20,7 @@ using System.Text;
 
 using Deveel.Data;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -76,7 +77,9 @@ namespace Deveel.Data.Routines {
 
 		public Type ExternalType { get; set; }
 
-		// TODO: public RoutineBody Body { get; private set; }
+		public PlSqlBlockStatement Body { get; set; }
+
+		public string Owner { get; set; }
 
 		internal abstract bool MatchesInvoke(Invoke invoke, IRequest request);
 

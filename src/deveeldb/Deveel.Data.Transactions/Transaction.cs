@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
@@ -139,6 +140,10 @@ namespace Deveel.Data.Transactions {
 			get { return (SequenceManager) this.GetObjectManager(DbObjectType.Sequence); }
 		}
 
+		private RoutineManager RoutineManager {
+			get { return (RoutineManager) this.GetObjectManager(DbObjectType.Routine); }
+		}
+
 		private ViewManager ViewManager {
 			get { return (ViewManager) this.GetObjectManager(DbObjectType.View); }
 		}
@@ -162,8 +167,8 @@ namespace Deveel.Data.Transactions {
 			// Model views as tables (obviously)
 			TableManager.AddInternalTables(ViewManager.CreateInternalTableInfo());
 
-			//// Model procedures as tables
-			//tableManager.AddInternalTables(routineManager.CreateInternalTableInfo());
+			// Model procedures as tables
+			TableManager.AddInternalTables(RoutineManager.TableContainer);
 
 			// Model sequences as tables
 			TableManager.AddInternalTables(SequenceManager.TableContainer);
