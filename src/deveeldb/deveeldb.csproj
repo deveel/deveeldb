@@ -154,6 +154,7 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalRef.cs" />
     <Compile Include="Deveel.Data.Routines\Procedure.cs" />
     <Compile Include="Deveel.Data.Routines\UserProcedure.cs" />
     <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />

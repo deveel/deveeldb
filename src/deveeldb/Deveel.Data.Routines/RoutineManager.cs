@@ -105,7 +105,7 @@ namespace Deveel.Data.Routines {
 			tableInfo.AddColumn("arg_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("arg_type", PrimitiveTypes.String());
 			tableInfo.AddColumn("arg_attrs", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("in_out", PrimitiveTypes.String());
+			tableInfo.AddColumn("in_out", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
 			transaction.CreateTable(tableInfo);
 
@@ -138,7 +138,7 @@ namespace Deveel.Data.Routines {
 				} else if (routineInfo.RoutineType == RoutineType.Procedure) {
 					routineType = ProcedureType;
 				}
-			} else if (routineInfo.ExternalType != null) {
+			} else if (routineInfo.ExternalRef != null) {
 				if (routineInfo.RoutineType == RoutineType.Function) {
 					routineType = ExtrernalFunctionType;
 				} else if (routineInfo.RoutineType == RoutineType.Procedure) {
@@ -164,7 +164,7 @@ namespace Deveel.Data.Routines {
 
 			if (routineType == ExternalProcedureType ||
 			    routineType == ExtrernalFunctionType) {
-				var location = FormLocation(routineInfo.ExternalType, routineInfo.ExternalMethodName);
+				var location = routineInfo.ExternalRef.ToString();
 				row.SetValue(4, location);
 			} else {
 				var bin = SqlBinary.ToBinary(routineInfo.Body);
@@ -249,41 +249,6 @@ namespace Deveel.Data.Routines {
 			return list.OrderBy(x => x.Offset).ToArray();
 		}
 
-		private static void ParseLocation(string externLocation, out Type externType, out string externMethod) {
-			if (String.IsNullOrEmpty(externLocation))
-				throw new ArgumentNullException("externLocation");
-
-			try {
-				string typeString;
-				var delim = externLocation.LastIndexOf('.');
-				if (delim == -1) {
-					typeString = externLocation;
-					externMethod = null;
-				} else {
-					typeString = externLocation.Substring(0, delim);
-					externMethod = externLocation.Substring(delim + 1);
-				}
-
-				if (String.IsNullOrEmpty(typeString))
-					throw new FormatException();
-
-				externType = Type.GetType(typeString, true);
-			} catch (FormatException ex) {
-				throw new FormatException(String.Format("Location '{0}' is not in the right format.", externLocation), ex);
-			} catch (Exception ex) {
-				throw new FormatException(String.Format("Error while parsing extern location '{0}'.", externLocation), ex);
-			}		
-		}
-
-		private static string FormLocation(Type externType, string externMethod) {
-			var sb = new StringBuilder();
-			sb.Append(externType.FullName);
-			if (!String.IsNullOrEmpty(externMethod))
-				sb.Append('.').Append(externMethod);
-
-			return sb.ToString();
-		}
-
 		public IRoutine GetRoutine(ObjectName routineName) {
 			var t = FindEntry(routineName);
 			if (t == null || t.RowCount == 0)
@@ -325,12 +290,13 @@ namespace Deveel.Data.Routines {
 			if (routineType == ExternalProcedureType ||
 			    routineType == ExtrernalFunctionType) {
 				var location = t.GetValue(0, 4).Value.ToString();
-				Type externType;
-				string externMethod;
-				ParseLocation(location, out externType, out externMethod);
 
-				info.ExternalType = externType;
-				info.ExternalMethodName = externMethod;
+				ExternalRef externRef;
+				if (!ExternalRef.TryParse(location, out externRef))
+					throw new InvalidOperationException(String.Format("The location stored for function '{0}' is invalid: {1}.",
+						routineName, location));
+
+				info.ExternalRef = externRef;
 			} else {
 				var bodyBin = (SqlBinary) t.GetValue(0, 5).Value;
 				info.Body = bodyBin.ToObject<PlSqlBlockStatement>();

@@ -73,9 +73,7 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		public RoutineParameter[] Parameters { get; private set; }
 
-		public string ExternalMethodName { get; set; }
-
-		public Type ExternalType { get; set; }
+		public ExternalRef ExternalRef { get; set; }
 
 		public PlSqlBlockStatement Body { get; set; }
 

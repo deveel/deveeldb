@@ -23,26 +23,32 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	public sealed class ExternalFunction : Function {
-		private readonly MethodInfo method;
-
 		public ExternalFunction(FunctionInfo functionInfo) 
 			: base(functionInfo) {
 			if (functionInfo.FunctionType != FunctionType.External)
 				throw new ArgumentException("The information specified are not pointing to any external function.");
 
-			method = DiscoverMethod();
+			CheckReference();
+		}
 
+		private void CheckReference() {
+			var method = FunctionInfo.ExternalRef.GetMethod();
 			if (method == null)
-				throw new InvalidOperationException(String.Format("Cannot resolve method '{0}.{1}' for external function '{2}'.",
-					functionInfo.ExternalType, functionInfo.ExternalMethodName, functionInfo.RoutineName));
+				throw new ArgumentException(String.Format("The reference '{0}' does not resolve to any method.", FunctionInfo.ExternalRef));
 
 			if (method.ReturnType == typeof (void))
-				throw new InvalidOperationException(String.Format("The method '{0}.{1}' is not a function.",
-					functionInfo.ExternalType, functionInfo.ExternalMethodName));
+				throw new ArgumentException(String.Format("The method '{0}.{1}' is not a function.",
+					FunctionInfo.ExternalRef.Type.FullName, method.Name));
+
+			var methodParams = method.GetParameters();
+			if (!ParametersMatch(methodParams))
+				throw new ArgumentException("The parameters of this function and the reference do not match.");
 		}
 
 		public override InvokeResult Execute(InvokeContext context) {
 			var args = context.EvaluatedArguments;
+
+			var method = FunctionInfo.ExternalRef.GetMethod();
 
 			var methodArgs = ConvertArguments(method, context.Request, args);
 			var result = method.Invoke(null, methodArgs);
@@ -79,33 +85,13 @@ namespace Deveel.Data.Routines {
 		}
 
 		public override SqlType ReturnType(InvokeContext context) {
-			var returnType = method.ReturnType;
-
-			return PrimitiveTypes.FromType(returnType);
-		}
-
-		private MethodInfo DiscoverMethod() {
-			var type = FunctionInfo.ExternalType;
-			var methodName = FunctionInfo.ExternalMethodName;
-			if (String.IsNullOrEmpty(methodName))
-				methodName = FunctionInfo.RoutineName.Name;
-
-			MethodInfo foundMethod = null;
-
-			var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-			foreach (var methodInfo in methods) {
-				if (methodInfo.Name == methodName) {
-					var methodPars = methodInfo.GetParameters();
-					if (ParametersMatch(methodPars)) {
-						if (foundMethod != null)
-							throw new AmbiguousMatchException(String.Format("Ambiguous reference to method '{0}' in type '{1}'.", methodName, type));
-
-						foundMethod = methodInfo;
-					}
-				}
+			var returnType = FunctionInfo.ReturnType;
+			if (returnType == null) {
+				var methodReturnType = FunctionInfo.ExternalRef.GetMethod().ReturnType;
+				returnType = PrimitiveTypes.FromType(methodReturnType);
 			}
 
-			return foundMethod;
+			return returnType;
 		}
 
 		private bool ParametersMatch(ParameterInfo[] parameters) {
