@@ -65,7 +65,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var functionName = context.Access.ResolveSchemaName(FunctionName.FullName);
+			var schemaName = context.Access.ResolveSchemaName(FunctionName.ParentName);
+			var functionName = new ObjectName(schemaName, FunctionName.Name);
 
 			return new CreateExternalFunctionStatement(functionName, ReturnType, Parameters, ExternalReference);
 		}

@@ -35,7 +35,18 @@ namespace Deveel.Data {
 			var externRef = ExternalRef.MakeRef(typeof(Test), "Function(int, int)");
 			Query.CreateExternFunction(funName, PrimitiveTypes.Integer(), parameters, externRef.ToString());
 
-			// TODO: assert it exists
+			var exists = Query.Access.RoutineExists(funName);
+
+			Assert.IsTrue(exists);
+
+			var function = Query.Access.GetObject(DbObjectType.Routine, funName);
+
+			Assert.IsNotNull(function);
+			Assert.IsInstanceOf<ExternalFunction>(function);
+
+			var externFunction = (ExternalFunction) function;
+			Assert.IsNotNull(externFunction.FunctionInfo.ExternalRef);
+			Assert.AreEqual(typeof(Test), externFunction.FunctionInfo.ExternalRef.Type);
 		}
 
 		static class Test {

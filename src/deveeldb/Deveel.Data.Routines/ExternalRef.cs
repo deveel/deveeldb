@@ -68,10 +68,48 @@ namespace Deveel.Data.Routines {
 				var typeName = names[i];
 
 				// TODO: support more advanced types than those resolved in the AppDomain
-				types[i] = Type.GetType(typeName, true);
+				types[i] = ResolveType(typeName);
 			}
 
 			return types;
+		}
+
+		private static Type ResolveType(string typeName) {
+			if (typeName.IndexOf('[') != -1) {
+				var delim1 = typeName.IndexOf('[');
+				var delim2 = typeName.IndexOf(']');
+
+				//TODO: support multi-dimensional arrays?
+				var elemTypeName = typeName.Substring(0, delim1);
+				var elemType = ResolveType(elemTypeName);
+
+				return elemType.MakeArrayType(1);
+			}
+
+			switch (typeName) {
+				case "bool":
+					return typeof (bool);
+				case "byte":
+					return typeof (byte);
+				case "short":
+					return typeof (short);
+				case "int":
+					return typeof (int);
+				case "long":
+					return typeof (long);
+				case "float":
+					return typeof (float);
+				case "double":
+					return typeof (double);
+				case "DateTime":
+					return typeof (DateTime);
+				case "DateTimeOffset":
+					return typeof (DateTimeOffset);
+				case "string":
+					return typeof (string);
+				default:
+					return Type.GetType(typeName, true);
+			}
 		}
 
 		private static string GetAssemblyName(string typeName) {
@@ -91,6 +129,9 @@ namespace Deveel.Data.Routines {
 				var paramTypes = ArgumentTypes;
 				var methodName = MethodName;
 				var type = Type;
+
+				if (type == null)
+					return null;
 
 				MethodInfo foundMethod = null;
 
@@ -188,7 +229,7 @@ namespace Deveel.Data.Routines {
 					return false;
 				}
 
-				assemblyName = s.Substring(0, delim2);
+				assemblyName = s.Substring(1, delim2-1);
 				typeName = s.Substring(delim2 + 1);
 			}
 

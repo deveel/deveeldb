@@ -177,6 +177,7 @@ namespace Deveel.Data.Routines {
 			}
 
 			row.SetValue(7, routineInfo.Owner);
+			routine.AddRow(row);
 
 			if (routineInfo.Parameters != null) {
 				foreach (var parameter in routineInfo.Parameters) {
@@ -194,6 +195,8 @@ namespace Deveel.Data.Routines {
 					prow.SetValue(4, dir);
 
 					prow.SetValue(5, parameter.Offset);
+
+					routineParams.AddRow(prow);
 				}
 			}
 		}
@@ -264,7 +267,7 @@ namespace Deveel.Data.Routines {
 
 			var parameters = CreateParameters(t2);
 
-			var routineType = t.GetValue(0, 2).Value.ToString();
+			var routineType = t.GetValue(0, 3).Value.ToString();
 			var returnTypeString = t.GetValue(0, 6).Value.ToString();
 			var owner = t.GetValue(0, 7).Value.ToString();
 

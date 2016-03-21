@@ -115,12 +115,27 @@ namespace Deveel.Data.Sql.Types {
 			return casted;
 		}
 
+		public override ISqlObject CreateFrom(object value) {
+			if (value == null)
+				return SqlBinary.Null;
+
+			if (value is byte[])
+				return new SqlBinary((byte[])value);
+
+			throw new NotSupportedException();
+		}
+
 		internal override int ColumnSizeOf(ISqlObject obj) {
 			if (obj is SqlBinary) {
 				var binary = (SqlBinary) obj;
-				return 1 + 4 + (int) binary.Length;
+				if (binary.IsNull)
+					return 1;
+
+				return 1 + 1 + 4 + (int) binary.Length;
 			} else if (obj is SqlLongBinary) {
 				throw new NotImplementedException();
+			} else if (obj is SqlNull) {
+				return 1;
 			}
 
 			throw new NotSupportedException();
@@ -128,6 +143,13 @@ namespace Deveel.Data.Sql.Types {
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
+
+			if (obj == null || obj.IsNull) {
+				writer.Write((byte) 0);
+				return;
+			}
+
+			writer.Write((byte)1);
 
 			if (obj is SqlBinary) {
 				var bin = (SqlBinary) obj;
@@ -149,6 +171,10 @@ namespace Deveel.Data.Sql.Types {
 
 		public override ISqlObject DeserializeObject(Stream stream) {
 			var reader = new BinaryReader(stream);
+
+			var nullCheck = reader.ReadByte() == 0;
+			if (nullCheck)
+				return SqlBinary.Null;
 
 			var type = reader.ReadByte();
 			if (type == 1) {
