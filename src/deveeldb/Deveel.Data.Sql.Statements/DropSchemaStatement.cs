@@ -19,7 +19,6 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Schemas;
 
 namespace Deveel.Data.Sql.Statements {
@@ -46,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Access.SchemaExists(SchemaName))
+			if (!context.DirectAccess.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' does not exist.", SchemaName));
 
 			if (!context.User.CanDropSchema(SchemaName))
@@ -54,9 +53,8 @@ namespace Deveel.Data.Sql.Statements {
 
 			// TODO: Check if the schema is empty before deleting it
 
-			context.Request.Access.DropSchema(SchemaName);
-
-			// TODO: Remove all the grants on this schema...
+			context.DirectAccess.DropSchema(SchemaName);
+			context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Schema, new ObjectName(SchemaName));
 		}
 	}
 }

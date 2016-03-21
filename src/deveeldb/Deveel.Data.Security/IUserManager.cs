@@ -42,6 +42,8 @@ namespace Deveel.Data.Security {
 
 		void AddUserToRole(string userName, string roleName, bool asAdmin);
 
+		void SetRoleAdmin(string roleName, string userName);
+
 		bool RemoveUserFromRole(string userName, string roleName);
 
 		string[] GetUserRoles(string userName);

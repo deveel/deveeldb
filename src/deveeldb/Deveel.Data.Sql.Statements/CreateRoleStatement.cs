@@ -21,7 +21,8 @@ namespace Deveel.Data.Sql.Statements {
 			if (context.DirectAccess.RoleExists(RoleName))
 				throw new InvalidOperationException(String.Format("Role '{0}' already exists.", RoleName));
 
-			context.Request.Access.CreateRole(RoleName);
+			context.DirectAccess.CreateRole(RoleName);
+			context.DirectAccess.AddUserToRole(context.User.Name, RoleName, true);
 		}
 	}
 }

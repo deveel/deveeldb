@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -384,6 +383,10 @@ namespace Deveel.Data.Security {
 					table.AddRow(row);
 				}
 			}
+		}
+
+		public void SetRoleAdmin(string roleName, string userName) {
+			throw new NotImplementedException();
 		}
 
 		public bool IsUserRoleAdmin(string userName, string roleName) {

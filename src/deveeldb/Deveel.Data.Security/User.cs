@@ -86,6 +86,11 @@ namespace Deveel.Data.Security {
 			       IsRoleAdmin(roleName);
 		}
 
+		public bool CanDropRole(string roleName) {
+			return CanManageRoles() ||
+			       IsRoleAdmin(roleName);
+		}
+
 		public bool CanManageRoles() {
 			return IsSystem ||
 			       IsInRole(SystemRoles.SecureAccessRole);

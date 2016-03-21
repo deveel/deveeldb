@@ -490,11 +490,11 @@ namespace Deveel.Data {
 		#region Role Management
 
 		public void CreateRole(string roleName) {
-			UserManager.CreateRole(roleName);
+			SystemSession.Access.UserManager.CreateRole(roleName);
 		}
 
 		public bool RoleExists(string roleName) {
-			return UserManager.RoleExists(roleName);
+			return SystemSession.Access.UserManager.RoleExists(roleName);
 		}
 
 		public bool DropRole(string roleName) {
@@ -503,6 +503,10 @@ namespace Deveel.Data {
 			} finally {
 				RevokeAllGrantsFrom(roleName);
 			}
+		}
+
+		public void SetRoleAdmin(string roleName, string userName) {
+			SystemSession.Access.UserManager.SetRoleAdmin(roleName, userName);
 		}
 
 		#endregion

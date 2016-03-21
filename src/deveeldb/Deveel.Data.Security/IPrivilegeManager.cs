@@ -26,12 +26,8 @@ namespace Deveel.Data.Security {
 
 		Grant[] GetGrants(string grantee, bool withPublic);
 
-		//Privileges GetPrivileges(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption);
-
 		void Revoke(Grant grant);
 
 		Grant[] GetGrantsOn(DbObjectType objectType, ObjectName objectName); 
-
-		// void RevokeAllGrantsOn(DbObjectType objectType, ObjectName objectName);
 	}
 }
