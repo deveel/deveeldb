@@ -43,7 +43,15 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private void SerializeObjects(SerializationInfo info) {
-			throw new NotImplementedException();
+			var count = Statements.Count;
+			info.AddValue("Statements.Count", count);
+
+			int i = 0;
+			foreach (var statement in Statements) {
+				info.AddValue(String.Format("Statement[{0}]", i), statement);
+
+				i++;
+			}
 		}
 
 		protected virtual void ExecuteBlock(ExecutionContext context) {
@@ -57,7 +65,16 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private ICollection<SqlStatement> DeserializeObjects(SerializationInfo info) {
-			throw new NotImplementedException();
+			var count = info.GetInt32("Statements.Count");
+
+			var list = new StatementCollection(this);
+
+			for (int i = 0; i < count; i++) {
+				var statement = (SqlStatement) info.GetValue(String.Format("Statement[{0}]", i), typeof (SqlStatement));
+				list.Add(statement);
+			}
+
+			return list;
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

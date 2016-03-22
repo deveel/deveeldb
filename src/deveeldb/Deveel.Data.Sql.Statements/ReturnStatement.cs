@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -13,6 +14,12 @@ namespace Deveel.Data.Sql.Statements {
 			ReturnExpression = returnExpression;
 		}
 
+
+		private ReturnStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ReturnExpression = (SqlExpression) info.GetValue("Return", typeof (SqlExpression));
+		}
+
 		public SqlExpression ReturnExpression { get; set; }
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
@@ -25,6 +32,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Return(ReturnExpression);
+		}
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Return", ReturnExpression);
+			base.GetData(info);
 		}
 	}
 }

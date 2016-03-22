@@ -52,6 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Declarations", Declarations.ToArray());
 			info.AddValue("ExceptionHandlers", ExceptionHandlers.ToArray());
+			base.GetData(info);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

@@ -46,7 +46,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var functionName = context.Query.Access.ResolveSchemaName(FunctionName.FullName);
+			var schemaName = context.Access.ResolveSchemaName(FunctionName.ParentName);
+			var functionName = new ObjectName(schemaName, FunctionName.Name);
 
 			var body = (PlSqlBlockStatement) Body.Prepare(context);
 			return new CreateFunctionStatement(functionName, ReturnType, Parameters, body) {

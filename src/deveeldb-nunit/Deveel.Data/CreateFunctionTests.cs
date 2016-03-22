@@ -21,7 +21,16 @@ namespace Deveel.Data {
 			var funName = ObjectName.Parse("APP.fun1");
 			Query.CreateFunction(funName, PrimitiveTypes.Numeric(), body);
 
-			// TODO: assert it exists
+			var exists = Query.Access.RoutineExists(funName);
+
+			Assert.IsTrue(exists);
+
+			var function = Query.Access.GetObject(DbObjectType.Routine, funName);
+			Assert.IsNotNull(function);
+			Assert.IsInstanceOf<UserFunction>(function);
+
+			var userFunction = (UserFunction) function;
+			Assert.IsNotNull(userFunction.FunctionInfo.Body);
 		}
 
 		[Test]
