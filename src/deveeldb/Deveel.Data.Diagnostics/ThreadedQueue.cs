@@ -116,7 +116,7 @@ namespace Deveel.Data.Diagnostics {
 #else
 			foreach (var thread in threads) {
 				try {
-					thread.Join(300);
+					thread.Join(50);
 					thread.Interrupt();
 				} catch (ThreadInterruptedException) {
 				}
