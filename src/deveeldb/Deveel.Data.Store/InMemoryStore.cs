@@ -57,10 +57,8 @@ namespace Deveel.Data.Store {
 		}
 
 		private void Dispose(bool disposing) {
-			if (disposing) {
-				fixedAreaBlock = null;
-				areaMap = null;
-			}
+			fixedAreaBlock = null;
+			areaMap = null;
 		}
 
 		public void Dispose() {

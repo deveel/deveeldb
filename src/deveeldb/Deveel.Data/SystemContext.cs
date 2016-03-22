@@ -74,8 +74,12 @@ namespace Deveel.Data {
 			if (disposing) {
 				if (scope != null)
 					scope.Dispose();
+
+				if (EventRegistry != null)
+					EventRegistry.Dispose();
 			}
 
+			EventRegistry = null;
 			scope = null;
 			base.Dispose(true);
 		}

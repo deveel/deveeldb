@@ -45,6 +45,16 @@ namespace Deveel.Data {
 		public IQueryContext CreateQueryContext() {
 			return new QueryContext(this);
 		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (EventRegistry != null)
+					EventRegistry.Dispose();
+			}
+
+			EventRegistry = null;
+			base.Dispose(disposing);
+		}
 	}
 }
 
