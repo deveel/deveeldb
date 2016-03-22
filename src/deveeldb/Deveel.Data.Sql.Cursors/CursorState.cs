@@ -27,6 +27,7 @@ namespace Deveel.Data.Sql.Cursors {
 				throw new ArgumentNullException("cursor");
 
 			Cursor = cursor;
+			CurrentOffset = -1;
 		}
 
 		~CursorState() {
@@ -78,7 +79,7 @@ namespace Deveel.Data.Sql.Cursors {
 			} else if (direction == FetchDirection.First) {
 				rowOffset = CurrentOffset = 0;
 			} else if (direction == FetchDirection.Last) {
-				rowOffset = table.RowCount;
+				rowOffset = table.RowCount - 1;
 			} else if (direction == FetchDirection.Absolute) {
 				rowOffset = offset;
 			} else if (direction == FetchDirection.Relative) {

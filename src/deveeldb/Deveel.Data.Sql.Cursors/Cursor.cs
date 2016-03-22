@@ -132,21 +132,29 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
-		public void FetchInto(FetchContext context) {
-			if (context == null)
-				throw new ArgumentNullException("context");
+		public Row Fetch(IRequest request, FetchDirection direction) {
+			return Fetch(request, direction, -1);
+		}
 
+		public Row Fetch(IRequest request, FetchDirection direction, int offset) {
 			if (!CursorInfo.IsScroll &&
-				context.Direction != FetchDirection.Next)
+				direction != FetchDirection.Next)
 				throw new ArgumentException(String.Format("Cursor '{0}' is not SCROLL: can fetch only NEXT value.", CursorInfo.CursorName));
 
 			var table = State.Result;
 			if (!CursorInfo.IsInsensitive) {
 				IList<IDbObject> refs;
-				table = Evaluate(context.Request, State.OpenArguments, out refs);
+				table = Evaluate(request, State.OpenArguments, out refs);
 			}
 
-			var fetchRow = State.FetchRowFrom(table, context.Direction, context.Offset);
+			return State.FetchRowFrom(table, direction, offset);
+		}
+
+		public void FetchInto(FetchContext context) {
+			if (context == null)
+				throw new ArgumentNullException("context");
+
+			var fetchRow = Fetch(context.Request, context.Direction, context.Offset);
 
 			if (context.IsGlobalReference) {
 				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;

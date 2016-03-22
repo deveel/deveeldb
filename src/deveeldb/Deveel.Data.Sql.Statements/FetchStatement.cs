@@ -16,11 +16,14 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class FetchStatement : SqlStatement, IPlSqlStatement {
 		public FetchStatement(string cursorName, FetchDirection direction) 
 			: this(cursorName, direction, null) {
@@ -43,5 +46,36 @@ namespace Deveel.Data.Sql.Statements {
 		public FetchDirection Direction { get; private set; }
 
 		public SqlExpression OffsetExpression { get; set; }
+
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var offset = OffsetExpression;
+			if (offset != null)
+				offset = offset.Prepare(preparer);
+
+			return new FetchStatement(CursorName, Direction, offset);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.Request.Context.CursorExists(CursorName))
+				throw new StatementException(String.Format("The cursor '{0}' was not found in the current context.", CursorName));
+
+			var cursor = context.Request.Context.FindCursor(CursorName);
+			
+			if (cursor == null)
+				throw new StatementException(String.Format("The cursor '{0}' was not found in the current context.", CursorName));
+			if (cursor.Status == CursorStatus.Closed)
+				throw new StatementException(String.Format("The cursor '{0}' was already closed.", CursorName));
+
+			int offset = -1;
+			if (OffsetExpression != null)
+				offset = OffsetExpression.EvaluateToConstant(context.Request, null);
+
+			var row = cursor.Fetch(context.Request, Direction, offset);
+
+			if (row != null) {
+				var result = new VirtualTable(row.Table, new List<int> {row.RowId.RowNumber});
+				context.SetResult(result);
+			}
+		}
 	}
 }
