@@ -161,7 +161,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		protected virtual void Dispose(bool disposing) {
-			if (disposed) {
+			if (!disposed) {
 				if (disposing) {
 					Stop();
 				}
