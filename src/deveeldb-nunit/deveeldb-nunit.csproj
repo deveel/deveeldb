@@ -128,6 +128,7 @@
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStoreTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />
+    <Compile Include="Deveel.Data\AssignTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\CreateFunctionTests.cs" />
     <Compile Include="Deveel.Data\CreateRoleTests.cs" />

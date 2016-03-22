@@ -18,8 +18,8 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -51,6 +51,34 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Variable", VariableReference);
 			info.AddValue("Value", ValueExpression);
+		}
+
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var varRef = VariableReference.Prepare(preparer);
+			var value = ValueExpression.Prepare(preparer);
+			return new AssignVariableStatement(varRef, value);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			string varName;
+			if (VariableReference is SqlVariableReferenceExpression) {
+				varName = ((SqlVariableReferenceExpression) VariableReference).VariableName;
+			} else if (VariableReference is SqlReferenceExpression) {
+				varName = ((SqlReferenceExpression) VariableReference).ReferenceName.Name;
+			} else {
+				throw new StatementException("The type of variable reference is invalid.");
+			}
+
+			var variable = context.Request.Context.FindVariable(varName);
+
+			if (variable == null) {
+				var varType = ValueExpression.ReturnType(context.Request, null);
+				variable = context.Request.Context.DeclareVariable(varName, varType);
+			}
+
+			variable.SetValue(context.Request, ValueExpression);
+
+			context.SetResult(variable.Value);
 		}
 	}
 }

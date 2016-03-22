@@ -81,21 +81,21 @@ namespace Deveel.Data.Sql.Variables {
 			return Value.Equals(other.Value);
 		}
 
-		public void SetValue(IQuery context, SqlExpression expression) {
+		public void SetValue(IRequest context, SqlExpression expression) {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 
 			if (IsConstant)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException(String.Format("The variable '{0}' is constant and cannot be assigned.", Name));
 
 			if (!expression.IsConstant())
-				throw new ArgumentException();
+				throw new ArgumentException("The value is not constant.");
 
 			Expression = expression;
 
 			var exp = expression.Evaluate(context, null);
 			if (exp.ExpressionType != SqlExpressionType.Constant)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("The evaluation of the assignment value is not constant.");
 
 			var value = ((SqlConstantExpression) exp).Value;
 			SetValue(value);

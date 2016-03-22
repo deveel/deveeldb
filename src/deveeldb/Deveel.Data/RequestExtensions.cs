@@ -88,6 +88,23 @@ namespace Deveel.Data {
 			return results;
 		}
 
+		#region Assign
+
+		public static Field Assign(this IRequest request, SqlExpression variable, SqlExpression value) {
+			var result = request.ExecuteStatement(new AssignVariableStatement(variable, value));
+
+			if (result.RowCount != 1)
+				throw new InvalidOperationException();
+
+			return result.GetValue(0, 0);
+		}
+
+		public static Field Assign(this IRequest request, string variable, SqlExpression value) {
+			return request.Assign(SqlExpression.VariableReference(variable), value);
+		}
+
+		#endregion
+
 		#region Declare Cursor
 
 		public static void DeclareCursor(this IRequest request, string cursorName, SqlQueryExpression query) {

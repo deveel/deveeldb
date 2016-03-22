@@ -78,6 +78,10 @@ namespace Deveel.Data.Sql {
 			SetResult(FunctionTable.ResultTable(Request, value));
 		}
 
+		public void SetResult(Field value) {
+			SetResult(FunctionTable.ResultTable(Request, value));
+		}
+
 		internal void Raise(string exceptionName) {
 			if (String.IsNullOrEmpty(exceptionName))
 				throw new ArgumentNullException("exceptionName");
