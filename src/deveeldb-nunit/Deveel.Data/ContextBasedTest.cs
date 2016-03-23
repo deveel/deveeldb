@@ -27,9 +27,9 @@ namespace Deveel.Data {
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
 
-		protected virtual bool SingleContext {
-			get { return false; }
-		}
+		//protected virtual bool SingleContext {
+		//	get { return false; }
+		//}
 
 		protected IQuery Query { get; private set; }
 
@@ -73,8 +73,8 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public void TestSetUp() {
-			if (!SingleContext)
-				CreateContext();
+			//if (!SingleContext)
+			CreateContext();
 
 			var testName = TestContext.CurrentContext.Test.Name;
 			OnSetUp(testName);
@@ -82,17 +82,23 @@ namespace Deveel.Data {
 
 		[TestFixtureSetUp]
 		public void TestFixtureSetUp() {
-			if (SingleContext)
-				CreateContext();
-		}
-
-		private void CreateContext() {
+			//if (SingleContext)
+			//	CreateContext();
 			System = CreateSystem();
 
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 
 			Database = CreateDatabase(System, dbConfig);
+		}
+
+		private void CreateContext() {
+			// System = CreateSystem();
+
+			//var dbConfig = new Configuration.Configuration();
+			//dbConfig.SetValue("database.name", DatabaseName);
+
+			//Database = CreateDatabase(System, dbConfig);
 			Session = CreateAdminSession(Database);
 			Query = CreateQuery(Session);
 		}
@@ -101,30 +107,36 @@ namespace Deveel.Data {
 			if (Query != null)
 				Query.Dispose();
 
-			if (Database != null)
-				Database.Dispose();
+			//if (Database != null)
+			//	Database.Dispose();
 
-			if (System != null)
-				System.Dispose();
+			//if (System != null)
+			//	System.Dispose();
 
 			Query = null;
-			Database = null;
-			Database = null;
-			System = null;
+			Session = null;
+			// Database = null;
+			// System = null;
 		}
 
 		[TearDown]
 		public void TestTearDown() {
 			OnTearDown();
 
-			if (!SingleContext)
-				DisposeContext();
+			// if (!SingleContext)
+			DisposeContext();
 		}
 
 		[TestFixtureTearDown]
 		public void TestFixtureTearDown() {
-			if (SingleContext)
-				DisposeContext();
+			//if (SingleContext)
+			//	DisposeContext();
+
+			if (Database != null)
+				Database.Dispose();
+
+			if (System != null)
+				System.Dispose();
 		}
 
 		private class TestSystemBuilder : SystemBuilder {

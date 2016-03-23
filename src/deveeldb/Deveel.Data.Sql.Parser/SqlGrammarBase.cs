@@ -325,6 +325,7 @@ namespace Deveel.Data.Sql.Parser {
 			var allOp = new NonTerminal("all_op");
 
 			var nextValueFor = new NonTerminal("next_value_for", typeof(NextSequenceValueNode));
+			var currentTime = new NonTerminal("current_time", typeof(CurrentTimeFunctionNode));
 
 			sqlExpression.Rule = sqlSimpleExpression |
 								  sqlBetweenExpression |
@@ -336,6 +337,7 @@ namespace Deveel.Data.Sql.Parser {
 			            sqlVarefExpression |
 			            sqlConstantExpression |
 						nextValueFor |
+						currentTime |
 			            functionCallExpression |
 			            grouped;
 			sqlReferenceExpression.Rule = ObjectName();
@@ -366,6 +368,9 @@ namespace Deveel.Data.Sql.Parser {
 			notOpt.Rule = Empty | Key("NOT");
 
 			nextValueFor.Rule = Key("NEXT") + Key("VALUE") + Key("FOR") + ObjectName();
+			currentTime.Rule = Key("CURRENT_TIME") |
+			                   Key("CURRENT_DATE") |
+			                   Key("CURRENT_TIMESTAMP");
 
 			MarkTransient(sqlExpression, term, sqlSimpleExpression, grouped, functionCallArgsOpt);
 

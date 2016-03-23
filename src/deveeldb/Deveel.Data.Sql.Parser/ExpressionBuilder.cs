@@ -49,8 +49,14 @@ namespace Deveel.Data.Sql.Parser {
 
 			if (node is NextSequenceValueNode)
 				return VisitNextValueForExpression((NextSequenceValueNode) node);
+			if (node is CurrentTimeFunctionNode)
+				return VisitCurrentTimeFunctionExpression((CurrentTimeFunctionNode) node);
 
 			throw new NotSupportedException();
+		}
+
+		private static SqlExpression VisitCurrentTimeFunctionExpression(CurrentTimeFunctionNode node) {
+			return SqlExpression.FunctionCall(node.FunctionName);
 		}
 
 		private static SqlExpression VisitNextValueForExpression(NextSequenceValueNode node) {

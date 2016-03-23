@@ -186,6 +186,7 @@
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectListConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CurrentTimeFunctionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NextSequenceValueNode.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />

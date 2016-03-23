@@ -132,6 +132,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CurrentTimeFunctionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DeleteStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\DropTriggerStatementNode.cs" />

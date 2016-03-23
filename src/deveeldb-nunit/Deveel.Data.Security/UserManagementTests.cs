@@ -24,10 +24,12 @@ namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
 		protected override void OnSetUp(string testName) {
-			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
-				using (var query = session.CreateQuery()) {
-					query.Access.CreateUser("tester", "123456789");
-					session.Commit();
+			if (testName == "Authenticate_Success") {
+				using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
+					using (var query = session.CreateQuery()) {
+						query.Access.CreateUser("tester", "123456789");
+						session.Commit();
+					}
 				}
 			}
 		}
