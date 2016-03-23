@@ -82,23 +82,17 @@ namespace Deveel.Data {
 
 		[TestFixtureSetUp]
 		public void TestFixtureSetUp() {
-			//if (SingleContext)
-			//	CreateContext();
 			System = CreateSystem();
 
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 
 			Database = CreateDatabase(System, dbConfig);
+
+			OnFixtureSetUp();
 		}
 
 		private void CreateContext() {
-			// System = CreateSystem();
-
-			//var dbConfig = new Configuration.Configuration();
-			//dbConfig.SetValue("database.name", DatabaseName);
-
-			//Database = CreateDatabase(System, dbConfig);
 			Session = CreateAdminSession(Database);
 			Query = CreateQuery(Session);
 		}
@@ -107,36 +101,33 @@ namespace Deveel.Data {
 			if (Query != null)
 				Query.Dispose();
 
-			//if (Database != null)
-			//	Database.Dispose();
-
-			//if (System != null)
-			//	System.Dispose();
-
 			Query = null;
 			Session = null;
-			// Database = null;
-			// System = null;
 		}
 
 		[TearDown]
 		public void TestTearDown() {
 			OnTearDown();
-
-			// if (!SingleContext)
 			DisposeContext();
 		}
 
 		[TestFixtureTearDown]
 		public void TestFixtureTearDown() {
-			//if (SingleContext)
-			//	DisposeContext();
+			OnFixtureTearDown();
 
 			if (Database != null)
 				Database.Dispose();
 
 			if (System != null)
 				System.Dispose();
+		}
+
+		protected virtual void OnFixtureSetUp() {
+			
+		}
+
+		protected virtual void OnFixtureTearDown() {
+			
 		}
 
 		private class TestSystemBuilder : SystemBuilder {

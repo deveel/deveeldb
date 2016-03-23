@@ -15,8 +15,8 @@ namespace Deveel.Data.Linq {
 	[TestFixture]
 	public class TableQueryTests : ContextBasedTest {
 		private QueryContext Context { get; set; }
-		protected override ISession CreateAdminSession(IDatabase database) {
-			using (var session = base.CreateAdminSession(database)) {
+		protected override void OnFixtureSetUp() {
+			using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
 				using (var query = session.CreateQuery()) {
 					CreateTestTable(query);
 					AddTestData(query);
@@ -24,8 +24,6 @@ namespace Deveel.Data.Linq {
 					query.Session.Commit();
 				}
 			}
-
-			return base.CreateAdminSession(database);
 		}
 
 		private void CreateTestTable(IQuery context) {
