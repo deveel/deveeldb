@@ -434,7 +434,6 @@
     <Compile Include="Deveel.Data.Security\SecurityErrorCodes.cs" />
     <Compile Include="Deveel.Data.Security\SecurityException.cs" />
     <Compile Include="Deveel.Data.Security\User.cs" />
-    <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
