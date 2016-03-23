@@ -25,10 +25,6 @@ namespace Deveel.Data {
 			get { return Request.Query.Session; }
 		}
 
-		private SessionAccess SessionAccess {
-			get { return Session.Access; }
-		}
-
 		public override bool ObjectExists(ObjectName objectName) {
 			if (Request.Context.VariableExists(objectName.Name))
 				return true;

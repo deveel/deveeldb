@@ -438,11 +438,6 @@
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Security\UserStatus.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
-    <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
@@ -704,7 +699,6 @@
     <Compile Include="Deveel.Data.Sql.Query\SingleRowTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SortNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SubsetNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TableNamesVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Query\TablePlan.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\Schema.cs" />

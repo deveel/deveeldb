@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Query {
@@ -37,9 +38,10 @@ namespace Deveel.Data.Sql.Query {
 			return references;
 		}
 
-		public static SqlBinary AsBinary(this IQueryPlanNode planNode, ISystemContext context) {
+		public static SqlBinary AsBinary(this IQueryPlanNode planNode) {
 			using (var memoryStream = new MemoryStream()) {
-				context.SerializeQueryPlan(planNode, memoryStream);
+				var serializaer = new BinarySerializer();
+				serializaer.Serialize(memoryStream, planNode);
 				memoryStream.Flush();
 				return new SqlBinary(memoryStream.ToArray());
 			}

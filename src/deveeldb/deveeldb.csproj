@@ -317,9 +317,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\IQueryPlanNodeSerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequence.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequenceManager.cs" />
@@ -569,11 +567,6 @@
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
     <Compile Include="Deveel.Data.Security\UserStatus.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectBinarySerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectSerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\IObjectSerializerResolver.cs" />
-    <Compile Include="Deveel.Data.Serialization\ObjectBinarySerializer.cs" />
-    <Compile Include="Deveel.Data.Serialization\ObjectSerializerProvider.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CompileMessageLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ISqlCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SourceLocation.cs" />
@@ -744,12 +737,8 @@
     <Compile Include="Deveel.Data.Security\IKeyedHashFunction.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Security\PasswordCrypto.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Deveel.Data.Security\User.cs" />
     <Compile Include="Deveel.Data.Security\Grant.cs" />
-    <Compile Include="Deveel.Data.Security\UserGroup.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateViewNode.cs" />
