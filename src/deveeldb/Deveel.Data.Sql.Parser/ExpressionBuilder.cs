@@ -47,7 +47,14 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is SqlBetweenExpressionNode)
 				return VisitBetweenExpression((SqlBetweenExpressionNode) node);
 
+			if (node is NextSequenceValueNode)
+				return VisitNextValueForExpression((NextSequenceValueNode) node);
+
 			throw new NotSupportedException();
+		}
+
+		private static SqlExpression VisitNextValueForExpression(NextSequenceValueNode node) {
+			return SqlExpression.FunctionCall("NEXT_VALUE", new[] {SqlExpression.Constant(node.SequenceName.Name)});
 		}
 
 		private static SqlExpression VisitVariableRefExpression(SqlVariableRefExpressionNode node) {

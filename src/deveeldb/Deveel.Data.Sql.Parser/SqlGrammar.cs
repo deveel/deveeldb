@@ -87,7 +87,6 @@ namespace Deveel.Data.Sql.Parser {
 				Delete() |
 				Truncate() |
 				Set() |
-				NextValueFor() |
 				Commit() |
 				Rollback() |
 				Grant() |
@@ -216,7 +215,6 @@ namespace Deveel.Data.Sql.Parser {
 					Fetch() |
 					Commit() |
 					Set() |
-					NextValueFor() |
 					Rollback();
 
 			return sqlStatement;
@@ -562,12 +560,6 @@ namespace Deveel.Data.Sql.Parser {
 			cache.Rule = Key("CACHE") + SqlExpression();
 
 			return createSequence;
-		}
-
-		private NonTerminal NextValueFor() {
-			var command = new NonTerminal("next_value", typeof(NextSequenceValueNode));
-			command.Rule = Key("NEXT") + Key("VALUE") + Key("FOR") + ObjectName();
-			return command;
 		}
 
 		private NonTerminal CreateSchema() {
