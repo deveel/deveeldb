@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
+using Deveel.Data.Sql.Types;
+
 namespace Deveel.Data.Routines {
 	public class ExternalRef {
 		private Type[] argTypes;
@@ -156,6 +158,55 @@ namespace Deveel.Data.Routines {
 
 			return methodInfo;
 		}
+
+		internal void CheckReference(RoutineInfo routineInfo) {
+			var method = GetMethod();
+			if (method == null)
+				throw new ArgumentException(String.Format("The reference '{0}' does not resolve to any method.", this));
+
+			if (routineInfo is FunctionInfo &&
+			    method.ReturnType == typeof (void)) {
+				throw new ArgumentException(String.Format("The method '{0}.{1}' is not a function.", Type.FullName, method.Name));
+			} else if (routineInfo is ProcedureInfo &&
+			           method.ReturnType != typeof (void)) {
+				throw new ArgumentException(String.Format("The method '{0}.{1}' is not a procedure.", Type.FullName, method.Name));
+			}
+
+			var methodParams = method.GetParameters();
+			if (!CheckParametersMatch(routineInfo, methodParams))
+				throw new ArgumentException("The parameters of this function and the reference do not match.");
+
+		}
+
+		private bool CheckParametersMatch(RoutineInfo routineInfo, ParameterInfo[] parameters) {
+			var routineParameters = routineInfo.Parameters;
+			if ((routineParameters == null || routineParameters.Length == 0) &&
+				(parameters == null || parameters.Length == 0))
+				return true;
+
+			if (routineParameters == null || routineParameters.Length == 0)
+				return false;
+
+			var offset = 0;
+			if (parameters[0].ParameterType == typeof(ISession))
+				offset = 1;
+
+			if (routineParameters.Length != parameters.Length - offset)
+				return false;
+
+			for (int i = offset; i < parameters.Length; i++) {
+				var param = parameters[i];
+
+				var paramType = PrimitiveTypes.FromType(param.ParameterType);
+				var routineParameter = routineParameters[i];
+
+				if (!routineParameter.Type.CanCastTo(paramType))
+					return false;
+			}
+
+			return true;
+		}
+
 
 		private static bool TypesMatch(Type[] methodTypes, Type[] refTypes) {
 			if ((methodTypes == null || methodTypes.Length == 0) &&

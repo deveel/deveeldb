@@ -28,23 +28,8 @@ namespace Deveel.Data.Routines {
 			if (functionInfo.FunctionType != FunctionType.External)
 				throw new ArgumentException("The information specified are not pointing to any external function.");
 
-			CheckReference();
+			functionInfo.ExternalRef.CheckReference(functionInfo);
 		}
-
-		private void CheckReference() {
-			var method = FunctionInfo.ExternalRef.GetMethod();
-			if (method == null)
-				throw new ArgumentException(String.Format("The reference '{0}' does not resolve to any method.", FunctionInfo.ExternalRef));
-
-			if (method.ReturnType == typeof (void))
-				throw new ArgumentException(String.Format("The method '{0}.{1}' is not a function.",
-					FunctionInfo.ExternalRef.Type.FullName, method.Name));
-
-			var methodParams = method.GetParameters();
-			if (!ParametersMatch(methodParams))
-				throw new ArgumentException("The parameters of this function and the reference do not match.");
-		}
-
 		public override InvokeResult Execute(InvokeContext context) {
 			var args = context.EvaluatedArguments;
 
@@ -70,15 +55,26 @@ namespace Deveel.Data.Routines {
 			var values = new object[args.Length];
 			for (int i = 0; i < args.Length; i++) {
 				var paramType = methodParams[i].ParameterType;
-				if (paramType == typeof (ISession)) {
-					if (i > 0)
+				if ((paramType == typeof (ISession) ||
+					paramType == typeof(IRequest) ||
+					paramType == typeof(IQuery)) && 
+					i > 0)
 						throw new InvalidOperationException("The request parameter must be the first in method signature.");
 
-					values[i] = request;
+				object arg;
+
+				if (paramType == typeof (ISession)) {
+					arg = request.Query.Session;
+				} else if (paramType == typeof (IQuery)) {
+					arg = request.Query;
+				} else if (paramType == typeof(IRequest)) { 
+					arg = new Block(request);
 				} else {
 					var sqlType = PrimitiveTypes.FromType(paramType);
-					values[i] = sqlType.ConvertTo(args[i].Value, paramType);
+					arg = sqlType.ConvertTo(args[i].Value, paramType);
 				}
+
+				values[i] = arg;
 			}
 
 			return values;
@@ -92,35 +88,6 @@ namespace Deveel.Data.Routines {
 			}
 
 			return returnType;
-		}
-
-		private bool ParametersMatch(ParameterInfo[] parameters) {
-			var routineParameters = FunctionInfo.Parameters;
-			if ((routineParameters == null || routineParameters.Length == 0) &&
-			    (parameters == null || parameters.Length == 0))
-				return true;
-
-			if (routineParameters == null || routineParameters.Length == 0)
-				return false;
-
-			var offset = 0;
-			if (parameters[0].ParameterType == typeof (ISession))
-				offset = 1;
-
-			if (routineParameters.Length != parameters.Length - offset)
-				return false;
-
-			for (int i = offset; i < parameters.Length; i++) {
-				var param = parameters[i];
-
-				var paramType = PrimitiveTypes.FromType(param.ParameterType);
-				var routineParameter = routineParameters[i];
-
-				if (!routineParameter.Type.CanCastTo(paramType))
-					return false;
-			}
-
-			return true;
 		}
 	}
 }

@@ -17,12 +17,11 @@
 
 using System;
 
-using Deveel.Data.Sql.Tables;
-
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CommitStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
+			context.Query.Session.Commit();
 		}
 	}
 }

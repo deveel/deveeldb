@@ -16,10 +16,18 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public class LoopStatement : CodeBlockStatement, IPlSqlStatement {
+		public LoopStatement() {
+		}
+
+		protected LoopStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+		}
+
 		private bool Continue { get; set; }
 
 		private bool Exit { get; set; }

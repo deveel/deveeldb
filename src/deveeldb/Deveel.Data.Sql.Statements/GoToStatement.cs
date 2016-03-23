@@ -26,5 +26,9 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Append("GOTO ");
 			builder.Append("'{0}'", Label);
 		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			context.Transfer(Label);
+		}
 	}
 }

@@ -22,19 +22,13 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorState : IDisposable {
-		internal CursorState(Cursor cursor) {
-			if (cursor == null)
-				throw new ArgumentNullException("cursor");
-
-			Cursor = cursor;
+		internal CursorState() {
 			CurrentOffset = -1;
 		}
 
 		~CursorState() {
 			Dispose(false);
 		}
-
-		public Cursor Cursor { get; private set; }
 
 		public CursorStatus Status { get; private set; }
 
@@ -55,6 +49,8 @@ namespace Deveel.Data.Sql.Cursors {
 		internal ITable Result { get; private set; }
 
 		private int CurrentOffset { get; set; }
+
+		public Row CurrentRow { get; private set; }
 
 		internal IDbObject[] References { get; private set; }
 
@@ -97,7 +93,8 @@ namespace Deveel.Data.Sql.Cursors {
 			CurrentOffset = rowOffset;
 			Status = CursorStatus.Fetching;
 
-			return table.GetRow(rowOffset);
+			CurrentRow = table.GetRow(rowOffset);
+			return CurrentRow;
 		}
 
 		public void Dispose() {
@@ -113,7 +110,6 @@ namespace Deveel.Data.Sql.Cursors {
 
 			References = null;
 			Result = null;
-			Cursor = null;
 			Status = CursorStatus.Disposed;
 		}
 	}

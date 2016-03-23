@@ -184,7 +184,17 @@ namespace Deveel.Data {
 
 		#region Fetch Into
 
-		// TODO:
+		public static void FetchNextInto(this IRequest request, string cursorName, SqlExpression reference) {
+			FetchInto(request, cursorName, FetchDirection.Next, reference);
+		}
+
+		public static void FetchInto(this IRequest request, string cursorName, FetchDirection direction, SqlExpression reference) {
+			FetchInto(request, cursorName, direction, reference, null);
+		}
+
+		public static void FetchInto(this IRequest request, string cursorName, FetchDirection direction, SqlExpression reference, SqlExpression offset) {
+			request.ExecuteStatement(new FetchIntoStatement(cursorName, direction, offset, reference));
+		}
 
 		#endregion
 
@@ -274,6 +284,14 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Delete Current
+
+		public static void DeleteCurrent(this IRequest request, ObjectName tableName, string cursorName) {
+			request.ExecuteStatement(new DeleteCurrentStatement(tableName, cursorName));
+		}
+
+		#endregion
+
 		#region Call
 
 		public static void Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
@@ -291,6 +309,16 @@ namespace Deveel.Data {
 
 		public static ITable Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
 			return request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
+		}
+
+		#endregion
+
+		#region Select Into
+
+		// TODO: support for LIMIT clause and ORDER BY?
+
+		public static void SelectInto(this IRequest request, SqlQueryExpression query, SqlExpression reference) {
+			request.ExecuteStatement(new SelectIntoStatement(query, reference));
 		}
 
 		#endregion

@@ -25,8 +25,6 @@ using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
-using DryIoc;
-
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class DeclareCursorStatement : SqlStatement, IDeclarationStatement {

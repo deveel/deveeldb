@@ -16,8 +16,11 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -35,6 +38,10 @@ namespace Deveel.Data.Sql.Statements {
 			UpperBound = upperBound;
 		}
 
+		private ForLoopStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+		}
+
 		public string IndexName { get; private set; }
 
 		public SqlExpression LowerBound { get; private set; }
@@ -43,16 +50,24 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool Reverse { get; set; }
 
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var lower = LowerBound.Prepare(preparer);
+			var upper = UpperBound.Prepare(preparer);
+
+			return new ForLoopStatement(IndexName, lower, upper);
+		}
+
 		protected override void BeforeLoop(ExecutionContext context) {
-			// TODO: define the index variable into the context
+			context.Request.Context.DeclareVariable(IndexName, PrimitiveTypes.BigInt());
+			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(Field.BigInt(0)));
 
 			base.BeforeLoop(context);
 		}
 
 		protected override void AfterLoop(ExecutionContext context) {
-			// TODO: Get the index variable from the context
-			// TODO: Increment the value of the variable
-			// TODO: Redefine the value of the variable into the context
+			var variable = context.Request.Context.FindVariable(IndexName);
+			var value = variable.Value.Add(Field.BigInt(1));
+			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
 
 			base.AfterLoop(context);
 		}

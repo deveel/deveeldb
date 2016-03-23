@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -36,6 +37,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ExitStatement(string label, SqlExpression whenExpression)
 			: base(LoopControlType.Exit, label, whenExpression) {
+		}
+
+		private ExitStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 	}
 }

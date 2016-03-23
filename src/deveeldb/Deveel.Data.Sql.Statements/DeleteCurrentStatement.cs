@@ -18,7 +18,11 @@
 using System;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Cursors;
+
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DeleteCurrentStatement : SqlStatement, IPlSqlStatement {
 		public DeleteCurrentStatement(ObjectName tableName, string cursorName) {
 			if (tableName == null)
@@ -30,34 +34,42 @@ namespace Deveel.Data.Sql.Statements {
 			CursorName = cursorName;
 		}
 
+		private DeleteCurrentStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
+			CursorName = info.GetString("Cursor");
+		}
+
 		public ObjectName TableName { get; private set; }
 
 		public string CursorName { get; private set; }
 
-		#region Prepared
-
-		[Serializable]
-		class Prepared : SqlStatement {
-			public Prepared(ObjectName tableName, string cursorName) {
-				TableName = tableName;
-				CursorName = cursorName;
-			}
-
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
-				CursorName = info.GetString("CursorName");
-			}
-
-			public ObjectName TableName { get; private set; }
-
-			public string CursorName { get; private set; }
-
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("TableName", TableName);
-				info.AddValue("CursorName", CursorName);
-			}
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("Cursor", CursorName);
 		}
 
-		#endregion
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var tableName = context.Access.ResolveTableName(TableName);
+			return new DeleteCurrentStatement(tableName, CursorName);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.DirectAccess.TableExists(TableName))
+				throw new ObjectNotFoundException(TableName);
+			if (!context.User.CanDeleteFromTable(TableName))
+				throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
+
+			if (!context.Request.Context.CursorExists(CursorName))
+				throw new StatementException(String.Format("The cursor '{0}' was not found in this scope.", CursorName));
+
+			var table = context.DirectAccess.GetMutableTable(TableName);
+			if (table == null)
+				throw new StatementException(String.Format("The table '{0}' was not found or it is not mutable.", TableName));
+
+			var cursor = context.Request.Context.FindCursor(CursorName);
+
+			cursor.DeleteCurrent(table, context.Request);
+		}
 	}
 }

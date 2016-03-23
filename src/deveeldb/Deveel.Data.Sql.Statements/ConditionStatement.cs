@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class ConditionStatement : SqlStatement {
+	public sealed class ConditionStatement : SqlStatement, IPlSqlStatement {
 		public ConditionStatement(SqlExpression condition, SqlStatement[] trueStatements) 
 			: this(condition, trueStatements, new SqlStatement[0]) {
 		}
@@ -20,6 +20,13 @@ namespace Deveel.Data.Sql.Statements {
 			ConditionExpression = condition;
 			TrueStatements = trueStatements;
 			FalseStatements = falseStatements;
+		}
+
+		private ConditionStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ConditionExpression = (SqlExpression) info.GetValue("Condition", typeof (SqlExpression));
+			TrueStatements = (SqlStatement[]) info.GetValue("True", typeof (SqlStatement[]));
+			FalseStatements = (SqlStatement[]) info.GetValue("False", typeof (SqlStatement[]));
 		}
 
 		public SqlExpression ConditionExpression { get; private set; }
@@ -85,6 +92,16 @@ namespace Deveel.Data.Sql.Statements {
 					if (block.HasTermination)
 						break;
 				}
+			}
+		}
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Condition", ConditionExpression);
+			info.AddValue("True", TrueStatements);
+			if (FalseStatements != null) {
+				info.AddValue("False", FalseStatements);
+			} else {
+				info.AddValue("False", new SqlStatement[0]);
 			}
 		}
 

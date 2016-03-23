@@ -16,6 +16,12 @@
 
 
 using System;
+using System.Runtime.Serialization;
+
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -30,29 +36,53 @@ namespace Deveel.Data.Sql.Statements {
 			CursorName = cursorName;
 		}
 
+		private CursorForLoopStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			IndexName = info.GetString("Index");
+			CursorName = info.GetString("Cursor");
+		}
+
 		public string IndexName { get; private set; }
 
 		public string CursorName { get; private set; }
 
 		protected override void BeforeLoop(ExecutionContext context) {
-			// TODO: define the index variable into the context
+			var cursor = context.Request.Context.FindCursor(CursorName);
+			if (cursor == null)
+				throw new StatementException(String.Format("Cursor '{0}' was not defined in this scope.", CursorName));
+			if (cursor.Status != CursorStatus.Open)
+				throw new StatementException(String.Format("The cursor '{0}' is in an invalid status ({1}).", CursorName,
+					cursor.Status.ToString().ToUpperInvariant()));
+
+			context.Request.Context.DeclareVariable(IndexName, PrimitiveTypes.BigInt());
+			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(Field.BigInt(0)));
 
 			base.BeforeLoop(context);
 		}
 
 		protected override bool Loop(ExecutionContext context) {
-			// TODO: Get the cursor and check if it is still enumerating
+			// TODO: Check if it can still enumerate
+			var cursor = context.Request.Context.FindCursor(CursorName);
 
 			return base.Loop(context);
 		}
 
 		protected override void AfterLoop(ExecutionContext context) {
-			// TODO: Get the index variable from the context
-			// TODO: Increment the value of the variable
-			// TODO: Redefine the value of the variable into the context
-			// TODO: Advance the cursor to the next element
+			var variable = context.Request.Context.FindVariable(IndexName);
+			var value = variable.Value.Add(Field.BigInt(1));
+			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
+
+			var cursor = context.Request.Context.FindCursor(CursorName);
+			cursor.Fetch(context.Request, FetchDirection.Next);
 
 			base.AfterLoop(context);
+		}
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Index", IndexName);
+			info.AddValue("Cursor", CursorName);
+
+			base.GetData(info);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

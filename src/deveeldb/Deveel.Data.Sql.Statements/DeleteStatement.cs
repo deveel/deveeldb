@@ -24,6 +24,7 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DeleteStatement : SqlStatement, IPlSqlStatement {
 		public DeleteStatement(ObjectName tableName, SqlExpression whereExpression) 
 			: this(tableName, whereExpression, -1) {
@@ -43,11 +44,29 @@ namespace Deveel.Data.Sql.Statements {
 			Limit = limit;
 		}
 
+		private DeleteStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
+			WhereExpression = (SqlExpression) info.GetValue("Where", typeof (SqlExpression));
+			Limit = info.GetInt64("Limit");
+		}
+
 		public ObjectName TableName { get; private set; }
 
 		public SqlExpression WhereExpression { get; private set; }
 
 		public long Limit { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("Where", WhereExpression);
+			info.AddValue("Limit", Limit);
+		}
+
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var where = WhereExpression.Prepare(preparer);
+			return new DeleteStatement(TableName, where, Limit);
+		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access.ResolveTableName(TableName);

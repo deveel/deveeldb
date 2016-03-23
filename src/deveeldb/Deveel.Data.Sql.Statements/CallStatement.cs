@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
@@ -18,9 +19,25 @@ namespace Deveel.Data.Sql.Statements {
 			Arguments = arguments;
 		}
 
+		private CallStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ProcedureName = (ObjectName) info.GetValue("Procedure", typeof (ObjectName));
+			Arguments = (SqlExpression[]) info.GetValue("Arguments", typeof (SqlExpression[]));
+		}
+
 		public ObjectName ProcedureName { get; private set; }
 
 		public IEnumerable<SqlExpression> Arguments { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Procedure", ProcedureName);
+
+			var args = new SqlExpression[0];
+			if (Arguments != null)
+				args = Arguments.ToArray();
+
+			info.AddValue("Arguments", args);
+		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var args = Arguments;

@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -29,7 +30,17 @@ namespace Deveel.Data.Sql.Statements {
 			ConditionExpression = conditionExpression;
 		}
 
+		private WhileLoopStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ConditionExpression = (SqlExpression) info.GetValue("Condition", typeof (SqlExpression));
+		}
+
 		public SqlExpression ConditionExpression { get; private set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Condition", ConditionExpression);
+			base.GetData(info);
+		}
 
 		protected override bool Loop(ExecutionContext context) {
 			// TODO: evaluate the condition against the context and return a boolean

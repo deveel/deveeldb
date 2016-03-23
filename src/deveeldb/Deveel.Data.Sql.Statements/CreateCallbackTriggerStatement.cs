@@ -3,6 +3,7 @@
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class CreateCallbackTriggerStatement : SqlStatement {
 		public CreateCallbackTriggerStatement(ObjectName tableName, TriggerEventType eventType) {
 			if (tableName == null)

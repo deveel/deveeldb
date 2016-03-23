@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AssignVariableStatement : SqlStatement {
+	public sealed class AssignVariableStatement : SqlStatement, IPlSqlStatement {
 		public AssignVariableStatement(SqlExpression varRef, SqlExpression valueExpression) {
 			if (varRef == null)
 				throw new ArgumentNullException("varRef");

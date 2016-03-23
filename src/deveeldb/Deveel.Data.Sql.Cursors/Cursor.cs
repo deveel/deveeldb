@@ -22,6 +22,8 @@ using System.Linq;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Cursors {
@@ -31,7 +33,7 @@ namespace Deveel.Data.Sql.Cursors {
 				throw new ArgumentNullException("cursorInfo");
 
 			CursorInfo = cursorInfo;
-			State = new CursorState(this);
+			State = new CursorState();
 		}
 
 		~Cursor() {
@@ -167,6 +169,20 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		private void FetchIntoVatiable(IRequest request, Row row, string varName) {
+			var variable = request.Context.FindVariable(varName);
+			if (variable == null)
+				throw new InvalidOperationException(String.Format("Variable '{0}' was not found in current scope.", varName));
+
+			if (variable.Type is TabularType) {
+				var tabular = (TabularType) variable.Type;
+				// TODO: check if the table info is compatible with the row info
+			} else {
+				if (row.ColumnCount != 1)
+					throw new NotSupportedException();
+
+				// TODO: find the variable type and cast the source type
+				// TODO: set the value from the row into the variable
+			}
 
 			throw new NotImplementedException();
 		}
@@ -195,6 +211,10 @@ namespace Deveel.Data.Sql.Cursors {
 				request.Query.Session.Exit(new []{table}, AccessType.Write);
 			}
 
+		}
+
+		public void DeleteCurrent(IMutableTable table, IRequest request) {
+			throw new NotImplementedException();
 		}
 
 		public void Dispose() {

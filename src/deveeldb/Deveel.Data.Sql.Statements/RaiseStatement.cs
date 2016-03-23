@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			throw new NotImplementedException();
+			context.Raise(ExceptionName);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

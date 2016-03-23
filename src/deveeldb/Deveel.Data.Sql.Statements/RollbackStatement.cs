@@ -17,12 +17,11 @@
 
 using System;
 
-using Deveel.Data.Sql.Tables;
-
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class RollbackStatement : SqlStatement, IPlSqlStatement {
 		protected override void ExecuteStatement(ExecutionContext context) {
+			context.Request.Query.Session.Rollback();
 		}
 	}
 }
