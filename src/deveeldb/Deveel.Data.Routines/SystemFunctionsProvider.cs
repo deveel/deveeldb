@@ -120,6 +120,11 @@ namespace Deveel.Data.Routines {
 				.WithStringParameter("table")
 				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Request, args[0])))
 				.ReturnsNumeric());
+
+			Register(config => config.Named("nextvalue")
+				.WithParameter("sequence", PrimitiveTypes.String())
+				.WhenExecute(context => Simple(context, args => SystemFunctions.NextValue(context.Request, args[0])))
+				.ReturnsNumeric());
 		}
 
 		private static SqlType IifReturnType(InvokeContext context) {
