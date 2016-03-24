@@ -263,7 +263,6 @@
     <Compile Include="System.Runtime.Serialization\SerializationEntry.cs" />
     <Compile Include="System.Runtime.Serialization\SerializationEnumerator.cs" />
     <Compile Include="System.Runtime.Serialization\SerializationInfo.cs" />
-    <Compile Include="System.Runtime.Serialization\StreamingContext.cs" />
     <Compile Include="System.Runtime.Serialization\StreamingContextStates.cs" />
     <Compile Include="System\NonSerializedAttribute.cs" />
     <Compile Include="System\SerializableAttribute.cs" />

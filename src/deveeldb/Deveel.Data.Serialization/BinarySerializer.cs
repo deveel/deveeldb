@@ -135,7 +135,7 @@ namespace Deveel.Data.Serialization {
 				info.AddValue(key, objValue, valueType);
 			}
 
-			var context = new StreamingContext(StreamingContextStates.All);
+			var context = new StreamingContext();
 
 			return ctor.Invoke(new object[] {info, context});
 		}
@@ -245,7 +245,7 @@ namespace Deveel.Data.Serialization {
 				throw new ArgumentException(String.Format("The type '{0} is not serializable", objType.FullName));
 
 			var graph = new SerializationInfo(objType, new FormatterConverter());
-			var context = new StreamingContext(StreamingContextStates.All);
+			var context = new StreamingContext();
 
 			if (typeof (ISerializable).IsAssignableFrom(objType)) {
 				((ISerializable) obj).GetObjectData(graph, context);
