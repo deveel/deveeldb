@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using Deveel.Data.Sql.Statements;
 
@@ -30,7 +31,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// in the text analysis parsing of SQL commands.
 	/// </summary>
 	/// <seealso cref="ISqlNode"/>
-	public class SqlNode : ISqlNode,  IAstNodeInit {
+	class SqlNode : ISqlNode,  IAstNodeInit {
 		public SqlNode() {
 			ChildNodes = new ReadOnlyCollection<ISqlNode>(new ISqlNode[0]);
 			Tokens = new ReadOnlyCollection<Token>(new Token[0]);
@@ -63,6 +64,17 @@ namespace Deveel.Data.Sql.Parser {
 		/// <seealso cref="ISqlNode.Tokens"/>
 		protected IEnumerable<Token> Tokens { get; private set; }
 
+		public int Line {
+			get { return Tokens.First().Line; }
+		}
+
+		public int Column {
+			get { return Tokens.First().Column; }
+		}
+
+		protected SqlParseException Error(string message) {
+			return new SqlParseException(message, SqlParseErrorLevel.Error, Line, Column);
+		}
 
 		void IAstNodeInit.Init(AstContext context, ParseTreeNode parseNode) {
 			NodeName = parseNode.Term == null ? GetType().Name : parseNode.Term.Name;

@@ -14,7 +14,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (String.Equals(key.Text, "CURRENT_DATE", StringComparison.OrdinalIgnoreCase)) {
 					FunctionName = "DATE";
 				} else {
-					throw new SqlParseException(String.Format("The keyword '{0}' is not allowed.", key.Text));
+					throw Error(String.Format("The keyword '{0}' is not allowed.", key.Text));
 				}
 			}
 

@@ -46,6 +46,8 @@ namespace Deveel.Data.Sql.Parser {
 				return VisitUnaryExpression((SqlUnaryExpressionNode) node);
 			if (node is SqlBetweenExpressionNode)
 				return VisitBetweenExpression((SqlBetweenExpressionNode) node);
+			if (node is SqlParameterReferenceNode)
+				return VisitParameterReferenceExpression((SqlParameterReferenceNode) node);
 
 			if (node is NextSequenceValueNode)
 				return VisitNextValueForExpression((NextSequenceValueNode) node);
@@ -53,6 +55,10 @@ namespace Deveel.Data.Sql.Parser {
 				return VisitCurrentTimeFunctionExpression((CurrentTimeFunctionNode) node);
 
 			throw new NotSupportedException();
+		}
+
+		private static SqlExpression VisitParameterReferenceExpression(SqlParameterReferenceNode node) {
+			return new SqlParameterExpression();
 		}
 
 		private static SqlExpression VisitCurrentTimeFunctionExpression(CurrentTimeFunctionNode node) {

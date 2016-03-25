@@ -210,7 +210,8 @@ namespace Deveel.Data.Sql.Statements {
 						messages.AppendFormat(", Message: {0}", m.Text);
 						messages.AppendLine();
 					}
-					throw new SqlParseException(messages.ToString());
+
+					throw new FormatException(messages.ToString());
 				}
 
 				var statements = result.Statements;
@@ -227,7 +228,7 @@ namespace Deveel.Data.Sql.Statements {
 				var messages = new StringBuilder();
 				messages.AppendFormat ("The input string '{0}'" + Environment.NewLine, query.Text);
 				messages.AppendFormat (" cannot be parsed into SQL Statements, because of {0}" + Environment.NewLine, ex.ToString());
-				throw new SqlParseException(messages.ToString(), ex);
+				throw new FormatException(messages.ToString(), ex);
 			}
 		}
 

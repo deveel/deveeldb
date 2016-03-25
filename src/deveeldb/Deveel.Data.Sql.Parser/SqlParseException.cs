@@ -24,29 +24,22 @@ namespace Deveel.Data.Sql.Parser {
 	/// An error that occurs when compiling a input string into
 	/// a SQL object.  
 	/// </summary>
-	public sealed class SqlParseException : ErrorException {
-		public SqlParseException() 
-			: this(CompileErrorCodes.SyntaxError) {
+	class SqlParseException : Exception {
+		public SqlParseException(string message, int line, int column)
+			: this(message, SqlParseErrorLevel.Error, line, column) {
 		}
 
-		public SqlParseException(int errorCode) 
-			: base(errorCode) {
+		public SqlParseException(string message, SqlParseErrorLevel level, int line, int column)
+			: base(message) {
+			Level = level;
+			Line = line;
+			Column = column;
 		}
 
-		public SqlParseException(string message) 
-			: this(CompileErrorCodes.SyntaxError, message) {
-		}
+		public SqlParseErrorLevel Level { get; private set; }
 
-		public SqlParseException(int errorCode, string message) 
-			: base(errorCode, message) {
-		}
+		public int Line { get; private set; }
 
-		public SqlParseException(string message, Exception innerException) 
-			: this(CompileErrorCodes.SyntaxError, message, innerException) {
-		}
-
-		public SqlParseException(int errorCode, string message, Exception innerException) 
-			: base(errorCode, message, innerException) {
-		}
+		public int Column { get; private set; }
 	}
 }

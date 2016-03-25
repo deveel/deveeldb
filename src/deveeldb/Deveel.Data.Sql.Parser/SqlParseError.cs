@@ -18,11 +18,16 @@
 using System;
 
 namespace Deveel.Data.Sql.Parser {
-	public sealed class SqlParseError {
-		public SqlParseError(string message, int line, int column) {
+	class SqlParseError {
+		public SqlParseError(string message, int line, int column) 
+			: this(message, SqlParseErrorLevel.Error, line, column) {
+		}
+
+		public SqlParseError(string message, SqlParseErrorLevel level, int line, int column) {
 			Message = message;
 			Line = line;
 			Column = column;
+			Level = level;
 		}
 
 		public string Message { get; private set; }
@@ -30,5 +35,15 @@ namespace Deveel.Data.Sql.Parser {
 		public int Line { get; private set; }
 
 		public int Column { get; private set; }
+
+		public Exception UnhandledException { get; set; }
+
+		public SqlParseErrorLevel Level { get; private set; }
+
+		public static SqlParseError Unhandled(Exception error) {
+			return new SqlParseError("Unhandled error occurred", SqlParseErrorLevel.Critical, -1, -1) {
+				UnhandledException = error
+			};
+		}
 	}
 }

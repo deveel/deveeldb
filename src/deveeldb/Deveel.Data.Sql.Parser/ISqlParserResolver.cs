@@ -22,7 +22,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// An object used to resolve a parser for a specific
 	/// dialect as configured within the system.
 	/// </summary>
-	public interface ISqlParserResolver {
+	interface ISqlParserResolver {
 		/// <summary>
 		/// Resolves a SQL parser that is associated
 		/// to the given dialect.

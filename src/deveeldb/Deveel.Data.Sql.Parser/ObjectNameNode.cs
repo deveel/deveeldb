@@ -55,9 +55,9 @@ namespace Deveel.Data.Sql.Parser {
 				text = ((SqlKeyNode) node).Text;
 
 				if (!String.Equals(text, "*"))
-					throw new SqlParseException(String.Format("Invalid object name part '{0}' provided.", text));
+					throw Error(String.Format("Invalid object name part '{0}' provided.", text));
 			} else {
-				throw new SqlParseException(String.Format("The node of type '{0}' is not allowed.", node.GetType()));
+				throw Error(String.Format("The node of type '{0}' is not allowed.", node.GetType()));
 			}
 
 			if (Name != null) {

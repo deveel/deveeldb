@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Parser {
 		private void GetReadAccess(ISqlNode node) {
 			var accessType = node.FindByName("access_type");
 			if (accessType == null)
-				throw new SqlParseException("Cannot find the read access type.");
+				throw Error("Cannot find the read access type.");
 
 			var keys = accessType.ChildNodes.OfType<SqlKeyNode>().Select(x => x.Text).ToArray();
 			Value = String.Join(" ", keys);
@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Parser {
 		private void GetIsolationLevel(ISqlNode node) {
 			var levelType = node.FindByName("level_type");
 			if (levelType == null)
-				throw new SqlParseException("Cannot find the isolation level");
+				throw Error("Cannot find the isolation level");
 
 			var keys = levelType.ChildNodes.OfType<SqlKeyNode>().Select(x => x.Text).ToArray();
 			Value = String.Join(" ", keys);
@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Parser {
 				} else if (String.Equals(Value, "READ WRITE", StringComparison.OrdinalIgnoreCase)) {
 					status = false;
 				} else {
-					throw new SqlParseException("Invalid access type");
+					throw Error("Invalid access type");
 				}
 
 				key = TransactionSettingKeys.ReadOnly;
@@ -92,8 +92,8 @@ namespace Deveel.Data.Sql.Parser {
 			try {
 				var s = value.Replace(" ", "");
 				return (IsolationLevel) Enum.Parse(typeof (IsolationLevel), s, true);
-			} catch (Exception ex) {
-				throw new SqlParseException(String.Format("The string '{0}' is not a valid isolation level.", value), ex);
+			} catch (Exception) {
+				throw Error(String.Format("The string '{0}' is not a valid isolation level.", value));
 			}
 		}
 	}

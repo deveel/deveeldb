@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			if (arg1 == null && arg2 == null)
-				throw new SqlParseException("At least one parameter is required in a LIMIT.");
+				throw Error("At least one parameter is required in a LIMIT.");
 
 			if (arg2 != null) {
 				Offset = arg1.Value;

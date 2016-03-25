@@ -32,8 +32,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		private void Productions(NonTerminal root) {
 			// PL/SQL
-			root.Rule = SqlStatementList() + Eof |
-			            SqlBlockList() + Eof;
+			root.Rule = SqlStatementList() + Eof;
 		}
 
 		private NonTerminal SqlBlockList() {
@@ -73,6 +72,7 @@ namespace Deveel.Data.Sql.Parser {
 			command.Rule =
 				VariableDeclaration() |
 				CursorDeclaration() |
+				Assign() |
 				Create() |
 				Alter() |
 				Drop() |
@@ -90,7 +90,8 @@ namespace Deveel.Data.Sql.Parser {
 				Commit() |
 				Rollback() |
 				Grant() |
-				Revoke();
+				Revoke() |
+				PlSqlBlock();
 
 			return sqlStatement;
 		}
@@ -143,6 +144,16 @@ namespace Deveel.Data.Sql.Parser {
 			varDefaultAssign.Rule = ":=" | Key("DEFAULT");
 
 			return declareVariable;
+		}
+
+		private NonTerminal Assign() {
+			var command = new NonTerminal("assign", typeof(AssignStatementNode));
+			var op = new NonTerminal("assign_op");
+
+			op.Rule = Key(":=") | Key("=");
+			command.Rule = Identifier + op + SqlExpression();
+
+			return command;
 		}
 
 		private NonTerminal ExceptionDeclaration() {
@@ -207,15 +218,16 @@ namespace Deveel.Data.Sql.Parser {
 			var sqlStatement = new NonTerminal("sql_statement");
 
 			sqlStatement.Rule = Select() |
-					Insert() |
-					Update() |
-					Delete() |
-					Open() |
-					Close() |
-					Fetch() |
-					Commit() |
-					Set() |
-					Rollback();
+			                    Assign() |
+			                    Insert() |
+			                    Update() |
+			                    Delete() |
+			                    Open() |
+			                    Close() |
+			                    Fetch() |
+			                    Commit() |
+			                    Set() |
+			                    Rollback();
 
 			return sqlStatement;
 		}

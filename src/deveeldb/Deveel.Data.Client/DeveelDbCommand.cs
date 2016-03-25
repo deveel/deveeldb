@@ -77,6 +77,9 @@ namespace Deveel.Data.Client {
 			// TODO: If we have a Value that is a Stream object, upload it and get 
 			//       back the object ID to replace the value
 
+			if (parameter.SqlType == SqlTypeCode.Unknown)
+				throw new ArgumentException("Cannot resolve Unknown SQL Type");
+
 			var name = parameter.ParameterName;
 			if (String.IsNullOrEmpty(name))
 				name = QueryParameter.Marker;

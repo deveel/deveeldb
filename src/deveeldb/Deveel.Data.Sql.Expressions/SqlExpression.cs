@@ -581,8 +581,9 @@ namespace Deveel.Data.Sql.Expressions {
 				var compiler = SqlParsers.Expression;
 				var result = compiler.Parse(s);
 
-				if (result.HasErrors)
-					throw new SqlParseException();
+				if (result.HasErrors) {
+					throw new FormatException();
+				}
 
 				var expNode = result.RootNode as IExpressionNode;
 				if (expNode == null)

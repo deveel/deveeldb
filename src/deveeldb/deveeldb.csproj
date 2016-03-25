@@ -165,6 +165,7 @@
     <Compile Include="Deveel.Data.Security\Pkcs12UserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IAggregateFunctionConfiguration.cs" />
@@ -188,8 +189,11 @@
     <Compile Include="Deveel.Data.Sql.Fluid\ISelectListConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AssignStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CurrentTimeFunctionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NextSequenceValueNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParseErrorLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
@@ -765,7 +769,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseResult.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\IStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SelectStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParserExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SequenceOfStatementsNode.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ConstantVisitor.cs" />

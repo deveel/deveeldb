@@ -344,7 +344,7 @@ namespace Deveel.Data.Sql.Types {
 			try {
 				var result = sqlCompiler.Parse(s);
 				if (result.HasErrors)
-					throw new SqlParseException(result.Errors.First().Message);
+					throw new FormatException(result.Errors.First().Message);
 
 				var node = (DataTypeNode) result.RootNode;
 
@@ -484,6 +484,44 @@ namespace Deveel.Data.Sql.Types {
 				typeCode = SqlTypeCode.Type;
 
 			return typeCode;
+		}
+
+		public static SqlTypeCode GetTypeCode(Type type) {
+			if (type == null)
+				return SqlTypeCode.Unknown;
+
+			if (type == typeof(bool))
+				return SqlTypeCode.Boolean;
+			if (type == typeof(byte))
+				return SqlTypeCode.TinyInt;
+			if (type == typeof(short))
+				return SqlTypeCode.SmallInt;
+			if (type == typeof(int))
+				return SqlTypeCode.Integer;
+			if (type == typeof(long))
+				return SqlTypeCode.BigInt;
+			if (type == typeof(float))
+				return SqlTypeCode.Real;
+			if (type == typeof(double))
+				return SqlTypeCode.Double;
+			if (type == typeof(DateTime) ||
+				type == typeof(DateTimeOffset))
+				return SqlTypeCode.TimeStamp;
+			if (type == typeof(string))
+				return SqlTypeCode.String;
+			if (type == typeof(byte[]))
+				return SqlTypeCode.Binary;
+
+			if (type == typeof(SqlBoolean))
+				return SqlTypeCode.Boolean;
+			if (type == typeof(SqlNumber))
+				return SqlTypeCode.Numeric;
+			if (type == typeof(SqlDateTime))
+				return SqlTypeCode.TimeStamp;
+			if (type == typeof(SqlString))
+				return SqlTypeCode.String;
+
+			throw new NotSupportedException(String.Format("The type '{0}' is not supported.", type));
 		}
 	}
 }

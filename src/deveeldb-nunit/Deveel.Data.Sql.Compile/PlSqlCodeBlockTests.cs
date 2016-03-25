@@ -61,6 +61,11 @@ namespace Deveel.Data.Sql.Compile {
 								BEGIN
 									SELECT * FROM test WHERE a < test.a
 								END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
 		}
 	}
 }

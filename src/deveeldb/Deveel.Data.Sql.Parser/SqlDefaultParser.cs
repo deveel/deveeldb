@@ -61,9 +61,10 @@ namespace Deveel.Data.Sql.Parser {
 				long time;
 				var node = ParseNode(input, result.Errors, out time);
 				result.RootNode = node;
-			} catch (Exception ex) {
-				// TODO: form a better exception
-				result.Errors.Add(new SqlParseError(ex.Message, 0, 0));
+			} catch(SqlParseException ex) {
+				result.Errors.Add(new SqlParseError(ex.Message, ex.Level, ex.Line, ex.Column));
+		} catch (Exception ex) {
+				result.Errors.Add(SqlParseError.Unhandled(ex));
 			} finally {
 				timer.Dispose();
 				result.ParseTime = timer.Elapsed;
@@ -105,9 +106,12 @@ namespace Deveel.Data.Sql.Parser {
 					var line = logMessage.Location.Line;
 					var column = logMessage.Location.Column;
 					var locationMessage = FormInfoMessage(tree, line, column);
-					var expected = logMessage.ParserState.ReportedExpectedSet.ToArray();
+					string[] expected = null;
+					if (logMessage.ParserState.ReportedExpectedSet != null)
+						expected = logMessage.ParserState.ReportedExpectedSet.ToArray();
+
 					var infoMessage = String.Format("A parse error occurred near '{0}' in the source", locationMessage);
-					if (expected.Length > 0)
+					if (expected != null && expected.Length > 0)
 						infoMessage = String.Format("{0}. Expected {1}", infoMessage, String.Join(", ", expected));
 					
 					errors.Add(new SqlParseError(infoMessage, line, column));

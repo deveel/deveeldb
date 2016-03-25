@@ -314,6 +314,7 @@ namespace Deveel.Data.Sql.Parser {
 			var caseWhenThenList = new NonTerminal("case_when_then_list");
 			var caseWhenThen = new NonTerminal("case_when_then", typeof(CaseSwitchNode));
 			var caseElseOpt = new NonTerminal("case_else_opt");
+			var sqlParamRefExpression = new NonTerminal("param_ref_expression", typeof(SqlParameterReferenceNode));
 			var sqlVarefExpression = new NonTerminal("sql_varef_expression", typeof(SqlVariableRefExpressionNode));
 			var sqlConstantExpression = new NonTerminal("sql_constant_expression", typeof(SqlConstantExpressionNode));
 			var functionCallExpression = new NonTerminal("function_call_expression", typeof(SqlFunctionCallExpressionNode));
@@ -333,13 +334,15 @@ namespace Deveel.Data.Sql.Parser {
 								  SqlQueryExpression();
 			sqlConstantExpression.Rule = StringLiteral | NumberLiteral | Key("TRUE") | Key("FALSE") | Key("NULL");
 			sqlSimpleExpression.Rule = term  | sqlBinaryExpression | sqlUnaryExpression;
-			term.Rule = sqlReferenceExpression |
+			term.Rule = sqlParamRefExpression |
+			            sqlReferenceExpression |
 			            sqlVarefExpression |
 			            sqlConstantExpression |
-						nextValueFor |
-						currentTime |
+			            nextValueFor |
+			            currentTime |
 			            functionCallExpression |
 			            grouped;
+			sqlParamRefExpression.Rule = Key("?");
 			sqlReferenceExpression.Rule = ObjectName();
 			grouped.Rule = ImplyPrecedenceHere(30) + "(" + sqlExpression + ")";
 			sqlUnaryExpression.Rule = unaryOp + term;

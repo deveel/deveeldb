@@ -44,5 +44,9 @@ namespace Deveel.Data.Sql.Parser {
 		/// </summary>
 		/// <seealso cref="Token"/>
 		IEnumerable<Token> Tokens { get; }
+
+		int Line { get; }
+
+		int Column { get; }
 	}
 }

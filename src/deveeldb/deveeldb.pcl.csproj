@@ -128,7 +128,9 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\AssignStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
@@ -147,6 +149,8 @@
     <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParseErrorLevel.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
@@ -637,7 +641,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseError.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseResult.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParserExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParsers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlQueryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlReferenceExpressionNode.cs" />

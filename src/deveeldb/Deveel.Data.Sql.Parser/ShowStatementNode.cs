@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Parser {
 			builder.AddObject(statement);
 		}
 
-		private static ShowTarget ParseTarget(string s) {
+		private ShowTarget ParseTarget(string s) {
 			if (String.Equals(s, "OPEN SESSIONS", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(s, "SESSIONS", StringComparison.OrdinalIgnoreCase))
 				return ShowTarget.OpenSessions;
@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Parser {
 			try {
 				return (ShowTarget) Enum.Parse(typeof (ShowTarget), s, true);
 			} catch (Exception ex) {
-				throw new SqlParseException("Invalid SHOW target type.", ex);
+				throw Error(String.Format("The string '{0}' is an invalid SHOW target type.", s));
 			}
 		}
 	}

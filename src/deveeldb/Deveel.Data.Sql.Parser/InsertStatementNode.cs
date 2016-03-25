@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Parser {
 				var queryInsert = QueryInsert;
 				var queryExpression = ExpressionBuilder.Build(queryInsert.QueryExpression) as SqlQueryExpression;
 				if (queryExpression == null)
-					throw new SqlParseException();
+					throw Error("Invalid expression in statement: expecting a query");
 
 				builder.AddObject(new InsertSelectStatement(tableName, ColumnNames, queryExpression));
 			}

@@ -56,10 +56,15 @@ namespace Deveel.Data.Client {
 
 		private void AssertValidName(string paramName) {
 			if (ParameterStyle == QueryParameterStyle.Named) {
+				if (String.IsNullOrEmpty(paramName))
+					throw new ArgumentNullException("paramName");
+				if (String.Equals(paramName, QueryParameter.Marker))
+					throw new ArgumentException("The marker parameter name is not permitted in a named context.");
+
 				if (Contains(paramName))
 					throw new ArgumentException(String.Format("The parameter '{0}' already exists in the collection.", paramName));
 			} else {
-				if (!String.IsNullOrEmpty(paramName) ||
+				if (!String.IsNullOrEmpty(paramName) &&
 					!String.Equals(paramName, QueryParameter.Marker))
 					throw new ArgumentException("Cannot specify the name of the parameter.");
 			}
@@ -79,11 +84,38 @@ namespace Deveel.Data.Client {
 		}
 
 		private SqlTypeCode GetSqlType(object value) {
-			throw new NotImplementedException();
+			if (value == null)
+				return SqlTypeCode.Null;
+
+			var type = value.GetType();
+			return SqlType.GetTypeCode(type);
 		}
 
 		private DbType GetDbType(object value) {
-			throw new NotImplementedException();
+			if (value is bool)
+				return DbType.Boolean;
+			if (value is byte)
+				return DbType.Byte;
+			if (value is int)
+				return DbType.Int32;
+			if (value is short)
+				return DbType.Int16;
+			if (value is long)
+				return DbType.Int64;
+			if (value is double)
+				return DbType.Double;
+			if (value is float)
+				return DbType.Single;
+			if (value is string)
+				return DbType.String;
+			if (value is DateTime)
+				return DbType.DateTime2;
+			if (value is DateTimeOffset)
+				return DbType.DateTimeOffset;
+			if (value is byte[])
+				return DbType.Binary;
+
+			throw new NotSupportedException();
 		}
 
 		public override int Add(object value) {
@@ -93,6 +125,18 @@ namespace Deveel.Data.Client {
 				return AddDbDataParameter((IDbDataParameter) value);
 
 			return AddValue(value);
+		}
+
+		public int Add(DeveelDbParameter parameter) {
+			return AddParameter(parameter);
+		}
+
+		public DeveelDbParameter Add(string name, object value) {
+			var dbType = GetDbType(value);
+
+			var parameter = new DeveelDbParameter(name, dbType, value);
+			Add(parameter);
+			return parameter;
 		}
 
 		private int AddValue(object value) {
@@ -179,11 +223,27 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override void SetParameter(int index, DbParameter value) {
-			throw new NotImplementedException();
+			if (index < 0 || index >= parameters.Count)
+				throw new ArgumentOutOfRangeException("index");
+			if (!(value is DeveelDbParameter))
+				throw new ArgumentException("The parameter type is invalid.", "value");
+
+			parameters[index] = (DeveelDbParameter) value;
 		}
 
 		protected override void SetParameter(string parameterName, DbParameter value) {
-			throw new NotImplementedException();
+			if (ParameterStyle != QueryParameterStyle.Named)
+				throw new ArgumentException();
+			if (String.IsNullOrEmpty(parameterName))
+				throw new ArgumentNullException("parameterName");
+			if (!(value is DeveelDbParameter))
+				throw new ArgumentException("The parameter type is invalid.", "value");
+
+			var index = parameters.FindIndex(x => x.ParameterName == parameterName);
+			if (index == -1)
+				throw new ArgumentException(String.Format("Parameter '{0}' was not found in collection", parameterName));
+
+			SetParameter(index, value);
 		}
 
 		public override int Count {
@@ -223,11 +283,17 @@ namespace Deveel.Data.Client {
 		}
 
 		protected override DbParameter GetParameter(int index) {
-			throw new NotImplementedException();
+			if (index < 0 || index >= parameters.Count)
+				throw new ArgumentOutOfRangeException("index");
+
+			return parameters[index];
 		}
 
 		protected override DbParameter GetParameter(string parameterName) {
-			throw new NotImplementedException();
+			if (ParameterStyle != QueryParameterStyle.Named)
+				return null;
+
+			return parameters.FirstOrDefault(x => x.ParameterName == parameterName);
 		}
 
 		public override bool Contains(string value) {
@@ -238,7 +304,12 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void CopyTo(Array array, int index) {
-			throw new NotImplementedException();
+			if (array == null)
+				throw new ArgumentNullException("array");
+
+			var paramArray = parameters.ToArray();
+			var count = System.Math.Min(paramArray.Length, array.Length);
+			Array.Copy(paramArray, 0, array, index, count);
 		}
 
 		public override void AddRange(Array values) {

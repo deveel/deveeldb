@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// The result of a parse of an SQL input
 	/// </summary>
 	/// <seealso cref="ISqlParser"/>
-	public sealed class SqlParseResult {
+	class SqlParseResult {
 		/// <summary>
 		/// Constructs a new <see cref="SqlParseResult"/>.
 		/// </summary>

@@ -26,6 +26,30 @@ namespace Deveel.Data.Client {
 		private SqlTypeCode typeCode;
 		private DbType dbType;
 
+		public DeveelDbParameter() {
+		}
+
+		public DeveelDbParameter(string parameterName) {
+			ParameterName = parameterName;
+		}
+
+		public DeveelDbParameter(string parameterName, DbType dbType) {
+			ParameterName = parameterName;
+			DbType = dbType;
+		}
+
+		public DeveelDbParameter(string parameterName, DbType dbType, object value) {
+			ParameterName = parameterName;
+			Value = value;
+			DbType = dbType;
+		}
+
+		public DeveelDbParameter(string parameterName, object value) {
+			ParameterName = parameterName;
+			Value = value;
+			DbType = DiscoverDbType(value);
+		}
+
 		public override void ResetDbType() {
 			if (typeCode == SqlTypeCode.Bit ||
 			    typeCode == SqlTypeCode.Boolean) {
@@ -95,6 +119,33 @@ namespace Deveel.Data.Client {
 			}
 		}
 
+		private DbType DiscoverDbType(object value) {
+			if (value is bool)
+				return DbType.Boolean;
+			if (value is byte)
+				return DbType.Byte;
+			if (value is int)
+				return DbType.Int32;
+			if (value is short)
+				return DbType.Int16;
+			if (value is long)
+				return DbType.Int64;
+			if (value is double)
+				return DbType.Double;
+			if (value is float)
+				return DbType.Single;
+			if (value is string)
+				return DbType.String;
+			if (value is DateTime)
+				return DbType.DateTime2;
+			if (value is DateTimeOffset)
+				return DbType.DateTimeOffset;
+			if (value is byte[])
+				return DbType.Binary;
+
+			throw new NotSupportedException();
+		}
+
 		public override DbType DbType {
 			get { return dbType; }
 			set {
@@ -111,7 +162,7 @@ namespace Deveel.Data.Client {
 			}
 		}
 
-		public override System.Data.ParameterDirection Direction { get; set; }
+		public override ParameterDirection Direction { get; set; }
 
 		public override bool IsNullable { get; set; }
 

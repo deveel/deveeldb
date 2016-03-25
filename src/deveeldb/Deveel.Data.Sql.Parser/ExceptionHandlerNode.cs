@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			foreach (var childNode in node.ChildNodes) {
 				if (HandlesOthers)
-					throw new SqlParseException("Multiple exception names found when OTHERS clause was specified.");
+					throw new SqlParseException("Multiple exception names found when OTHERS clause was specified.", node.Line, node.Column);
 
 				if (childNode is SqlKeyNode &&
 				    ((SqlKeyNode) childNode).Text.Equals("OTHERS", StringComparison.OrdinalIgnoreCase)) {

@@ -317,15 +317,17 @@ namespace Deveel.Data.Protocol {
 			if (parameters != null) {
 				foreach (var p in parameters) {
 					var c = p.SqlType.TypeCode;
-					switch (c)
-					{
-					case SqlTypeCode.Blob:
-					case SqlTypeCode.Clob:
-					case SqlTypeCode.LongVarBinary:
-					case SqlTypeCode.LongVarChar:
-					case SqlTypeCode.VarBinary:
-					case SqlTypeCode.VarChar:
-						throw new NotImplementedException ("TODO: Download the Large-Objects and replace with a reference");
+					switch (c) {
+						case SqlTypeCode.Blob:
+						case SqlTypeCode.Clob:
+						case SqlTypeCode.LongVarBinary:
+						case SqlTypeCode.LongVarChar:
+						case SqlTypeCode.VarBinary:
+						case SqlTypeCode.VarChar:
+							throw new NotImplementedException("TODO: Download the Large-Objects and replace with a reference");
+						default:
+							query.Parameters.Add(p);
+							break;
 					}
 				}
 			}

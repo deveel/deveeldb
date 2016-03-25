@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Parser {
 			}
 
 			if (String.IsNullOrEmpty(typeName))
-				throw new SqlParseException("Could not determine type name.");
+				throw new FormatException("Could not determine type name.");
 
 			DataTypeMeta[] meta = typeMeta.ToArray();
 			if (!node.IsPrimitive && node.Metadata != null)
@@ -87,7 +87,7 @@ namespace Deveel.Data.Sql.Parser {
 			var type = TypeResolver.Resolve(sqlTypeCode, typeName, meta, resolver);
 
 			if (type == null)
-				throw new SqlParseException(String.Format("User defined type {0} could not be resolved.", typeName));
+				throw new FormatException(String.Format("User defined type {0} could not be resolved.", typeName));
 
 			return type;
 		}

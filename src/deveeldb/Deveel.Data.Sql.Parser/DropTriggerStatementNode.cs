@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (node.NodeName == "drop_procedure_trigger") {
 				var idNode = node.FindNode<ObjectNameNode>();
 				if (idNode == null)
-					throw new SqlParseException("Could not find the name of the trigger to delete.");
+					throw Error("Could not find the name of the trigger to delete.");
 
 				TriggerName = idNode.Name;
 			} else if (node.NodeName == "drop_callback_trigger") {
@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Parser {
 
 				var tableNameNode = node.FindNode<ObjectNameNode>();
 				if (tableNameNode == null)
-					throw new SqlParseException("Could not find the name of the table in a DROP CALLBACK TRIGGER");
+					throw Error("Could not find the name of the table in a DROP CALLBACK TRIGGER");
 
 				TableName = tableNameNode.Name;
 			}

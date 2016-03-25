@@ -87,6 +87,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		VariableReference,
 
+		Parameter,
+
 		/// <summary>
 		/// A variable or reference assignment expression.
 		/// </summary>

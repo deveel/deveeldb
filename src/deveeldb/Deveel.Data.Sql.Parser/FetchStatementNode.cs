@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			childNode = childNode.ChildNodes.FirstOrDefault();
 			if (childNode == null)
-				throw new SqlParseException();
+				throw Error("No direction specified");
 
 			if (String.Equals(childNode.NodeName, "NEXT", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(childNode.NodeName, "PRIOR", StringComparison.OrdinalIgnoreCase) ||
@@ -62,11 +62,11 @@ namespace Deveel.Data.Sql.Parser {
 			           String.Equals(childNode.NodeName, "RELATIVE", StringComparison.OrdinalIgnoreCase)) {
 				var positionNode = childNode.ChildNodes.FirstOrDefault();
 				if (positionNode == null)
-					throw new SqlParseException("The position expression if required in an ABSOLUTE or RELATIVE fetch.");
+					throw Error("The position expression if required in an ABSOLUTE or RELATIVE fetch.");
 
 				var expression = positionNode as IExpressionNode;
 				if (expression == null)
-					throw new SqlParseException();
+					throw Error("No offset specified in a ABSOLUTE or RELATIVE fetch");
 
 				Direction = childNode.NodeName.ToUpper();
 				Position = expression;

@@ -32,6 +32,14 @@ namespace Deveel.Data.Sql.Parser {
 		private readonly Token token;
 		private ISqlNode parent;
 
+		int ISqlNode.Line {
+			get { return token.Line; }
+		}
+
+		int ISqlNode.Column {
+			get { return token.Column; }
+		}
+
 		string ISqlNode.NodeName {
 			get { return Text; }
 		}

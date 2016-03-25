@@ -79,7 +79,11 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The compilation of the query thrown errors.");
 			}
 
-			var preparer = new QueryPreparer(sqlQuery);
+			var paramStyle = sqlQuery.ParameterStyle;
+			if (paramStyle == QueryParameterStyle.Default)
+				paramStyle = query.ParameterStyle();
+
+			var preparer = new QueryPreparer(sqlQuery, paramStyle);
 
 			return query.ExecuteStatements(preparer, compileResult.Statements.ToArray());
 		}
@@ -584,20 +588,45 @@ namespace Deveel.Data {
 
 		class QueryPreparer : IExpressionPreparer {
 			private readonly SqlQuery query;
+			private readonly QueryParameterStyle paramStyle;
+			private int paramOffset = -1;
 
-			public QueryPreparer(SqlQuery query) {
+			public QueryPreparer(SqlQuery query, QueryParameterStyle paramStyle) {
 				this.query = query;
+				this.paramStyle = paramStyle;
 			}
 
 			public bool CanPrepare(SqlExpression expression) {
-				return expression is SqlVariableReferenceExpression;
+				return query.Parameters.Count > 0 &&
+				       (expression is SqlVariableReferenceExpression ||
+				        expression is SqlParameterExpression);
 			}
 
 			public SqlExpression Prepare(SqlExpression expression) {
-				var varRef = (SqlVariableReferenceExpression)expression;
-				var varName = varRef.VariableName;
+				QueryParameter parameter = null;
 
-				var parameter = query.Parameters.FindParameter(varName);
+				if (expression is SqlParameterExpression) {
+					var param = (SqlParameterExpression)expression;
+					var paramName = param.ParameterName;
+
+					if (String.Equals(paramName, QueryParameter.Marker)) {
+						if (paramStyle != QueryParameterStyle.Marker)
+							return null;
+
+						parameter = query.Parameters.ElementAt(++paramOffset);
+					} else {
+						if (paramStyle != QueryParameterStyle.Named)
+							return null;
+
+						parameter = query.Parameters.FindParameter(paramName);
+					}
+				} else if (expression is SqlVariableReferenceExpression) {
+					var varRef = (SqlVariableReferenceExpression) expression;
+					var varName = varRef.VariableName;
+
+					parameter = query.Parameters.FindParameter(varName);
+				}
+
 				if (parameter == null)
 					return expression;
 

@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Parser {
 	/// <seealso cref="ISqlNode"/>
 	/// <seealso cref="ISqlNodeVisitor"/>
 	/// <seealso cref="SqlParseResult"/>
-	public interface ISqlParser : IDisposable {
+	interface ISqlParser : IDisposable {
 		/// <summary>
 		/// Gets the string identifying the SQL dialect used to parse
 		/// </summary>

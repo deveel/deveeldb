@@ -95,6 +95,32 @@ namespace Deveel.Data.Sql.Types {
 			return base.GetRuntimeType();
 		}
 
+		public override ISqlObject CreateFrom(object value) {
+			if (value == null)
+				return SqlNumber.Null;
+			if (value is SqlNumber)
+				return (SqlNumber) value;
+
+			if (value is byte)
+				return new SqlNumber((byte)value, Size);
+			if (value is short)
+				return new SqlNumber((short)value, Size);
+			if (value is int)
+				return new SqlNumber((int)value, Size);
+			if (value is long)
+				return new SqlNumber((long)value, Size);
+			if (value is float)
+				return new SqlNumber((float)value, Size);
+			if (value is double)
+				return new SqlNumber((double)value, Size);
+			if (value is byte[])
+				return new SqlNumber((byte[])value, Scale, Size);
+			if (value is string)
+				return SqlNumber.Parse((string) value);
+
+			throw new NotSupportedException("The value passed is not supported");
+		}
+
 		public override bool IsCacheable(ISqlObject value) {
 			return value is SqlNumber || value is SqlNull;
 		}
