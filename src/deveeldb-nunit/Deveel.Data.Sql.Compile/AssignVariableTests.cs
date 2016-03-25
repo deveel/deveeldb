@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var assignVar = (AssignVariableStatement)statement;
 
-			Assert.IsInstanceOf<SqlReferenceExpression>(assignVar.VariableReference);
+			Assert.IsInstanceOf<SqlVariableReferenceExpression>(assignVar.VariableReference);
 			Assert.IsInstanceOf<SqlConstantExpression>(assignVar.ValueExpression);
 		}
 	}

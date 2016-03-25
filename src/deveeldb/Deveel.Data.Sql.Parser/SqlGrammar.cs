@@ -35,13 +35,6 @@ namespace Deveel.Data.Sql.Parser {
 			root.Rule = SqlStatementList() + Eof;
 		}
 
-		private NonTerminal SqlBlockList() {
-			var blockList = new NonTerminal("block_list", typeof(SequenceOfBlocksNode));
-			blockList.Rule = MakePlusRule(blockList, PlSqlBlock());
-
-			return blockList;
-		}
-
 		private NonTerminal StatementEnd() {
 			var statementEnd = new NonTerminal("statement_end");
 			statementEnd.Rule = Empty | ";";

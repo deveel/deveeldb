@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parser {
-	class PlSqlBlockNode : SqlNode, IRootNode {
+	class PlSqlBlockNode : SqlStatementNode {
 		public string Label { get; private set; }
 
 		public IEnumerable<IDeclareNode> Declarations { get; private set; }
@@ -42,9 +42,8 @@ namespace Deveel.Data.Sql.Parser {
 			return base.OnChildNode(node);
 		}
 
-		void ISqlVisitableNode.Accept(ISqlNodeVisitor visitor) {
-			if (visitor is SqlStatementBuilder)
-				BuildBlock((SqlStatementBuilder) visitor);
+		protected override void BuildStatement(SqlStatementBuilder builder) {
+			BuildBlock(builder);
 		}
 
 		private void BuildBlock(SqlStatementBuilder builder) {
