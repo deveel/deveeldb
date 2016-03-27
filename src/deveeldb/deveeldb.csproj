@@ -302,7 +302,6 @@
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
-    <Compile Include="Deveel.Data\AuthenticationRequest.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
