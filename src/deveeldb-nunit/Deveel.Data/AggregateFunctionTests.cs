@@ -71,5 +71,28 @@ namespace Deveel.Data {
 
 			var value = (SqlNumber)result.Value;
 		}
+
+		[Test]
+		public void CountAll() {
+			var result = SelectAggregate("COUNT", SqlExpression.Reference(new ObjectName("*")));
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var value = (SqlNumber)result.Value;
+			Assert.AreEqual(new SqlNumber(15), value);
+		}
+
+		[Test]
+		public void DistinctCount() {
+			var result = SelectAggregate("DISTINCT_COUNT", SqlExpression.Reference(new ObjectName("a")));
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var value = (SqlNumber)result.Value;
+		}
 	}
 }

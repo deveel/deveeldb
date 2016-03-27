@@ -208,11 +208,13 @@ namespace Deveel.Data.Routines {
 				.ReturnsDateTime());
 
 			Register(config => config.Named("add_date")
-			.WithDateTimeParameter("date")
-			.WithStringParameter("datePart")
-			.WithNumericParameter("value")
-			.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
-			.ReturnsDateTime());
+				.WithDateTimeParameter("date")
+				.WithStringParameter("datePart")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
+				.ReturnsDateTime());
+
+			Register(new DistinctCountFucntion());
 		}
 
 		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
@@ -268,10 +270,131 @@ namespace Deveel.Data.Routines {
 
 		#region DistinctCount
 
-		static class DistinctCount {
-			public static InvokeResult Execute(InvokeContext context) {
-				throw new NotImplementedException();
+		class DistinctCountFucntion : Function {
+			public DistinctCountFucntion()
+				: base(new ObjectName(SystemSchema.SchemaName, "distinct_count"),
+					new[] {new RoutineParameter("args", Function.DynamicType, ParameterAttributes.Unbounded)}, PrimitiveTypes.Integer(),
+					FunctionType.Aggregate) {
+		}
+
+		public override InvokeResult Execute(InvokeContext context) {
+				// There's some issues with implementing this function.
+				// For this function to be efficient, we need to have access to the
+				// underlying Table object(s) so we can use table indexing to sort the
+				// columns.  Otherwise, we will need to keep in memory the group
+				// contents so it can be sorted.  Or alternatively (and probably worst
+				// of all) don't store in memory, but use an expensive iterative search
+				// for non-distinct rows.
+				//
+				// An iterative search will be terrible for large groups with mostly
+				// distinct rows.  But would be okay for large groups with few distinct
+				// rows.
+
+				if (context.GroupResolver == null)
+					throw new Exception("'count' can only be used as an aggregate function.");
+
+				int rows = context.GroupResolver.Count;
+				if (rows <= 1) {
+					// If count of entries in group is 0 or 1
+					return context.Result(Field.Integer(rows));
+				}
+
+				// Make an array of all cells in the group that we are finding which
+				// are distinct.
+				int cols = context.ArgumentCount;
+				var groupRow = new Field[rows * cols];
+				int n = 0;
+				for (int i = 0; i < rows; ++i) {
+					var vr = context.GroupResolver.GetVariableResolver(i);
+					for (int p = 0; p < cols; ++p) {
+						var exp = context.Arguments[p];
+						groupRow[n + p] = exp.EvaluateToConstant(context.Request, vr);
+					}
+
+					n += cols;
+				}
+
+				var c = new DistinctComparer(cols, groupRow);
+
+				// The list of indexes,
+				var list = new int[rows];
+				for (int i = 0; i < rows; ++i) {
+					list[i] = i;
+				}
+
+				// Sort the list,
+				Array.Sort(list, c);
+
+				// The count of distinct elements, (there will always be at least 1)
+				int distinctCount = 1;
+				for (int i = 1; i < rows; ++i) {
+					int v = c.Compare(list[i], list[i - 1]);
+
+					// If v == 0 then entry is not distinct with the previous element in
+					// the sorted list therefore the distinct counter is not incremented.
+					if (v > 0) {
+						// If current entry is greater than previous then we've found a
+						// distinct entry.
+						++distinctCount;
+					} else if (v < 0) {
+						// The current element should never be less if list is sorted in
+						// ascending order.
+						throw new ApplicationException("Assertion failed - the distinct list does not " +
+													   "appear to be sorted.");
+					}
+				}
+
+				// If the first entry in the list is NULL then subtract 1 from the
+				// distinct count because we shouldn't be counting NULL entries.
+				if (list.Length > 0) {
+					int firstEntry = (int)list[0];
+					// Assume first is null
+					bool firstIsNull = true;
+					for (int m = 0; m < cols && firstIsNull; ++m) {
+						var val = groupRow[(firstEntry * cols) + m];
+						if (!val.IsNull) {
+							// First isn't null
+							firstIsNull = false;
+						}
+					}
+
+					// Is first NULL?
+					if (firstIsNull) {
+						// decrease distinct count so we don't count the null entry.
+						distinctCount = distinctCount - 1;
+					}
+				}
+
+				return context.Result(Field.Integer(distinctCount));
 			}
+
+			#region DistinctComparer
+
+			class DistinctComparer : IComparer<int> {
+				private readonly int columnCount;
+				private readonly Field[] groupedRows;
+
+				public DistinctComparer(int columnCount, Field[] groupedRows) {
+					this.columnCount = columnCount;
+					this.groupedRows = groupedRows;
+				}
+
+				public int Compare(int x, int y) {
+					int index1 = x * columnCount;
+					int index2 = y * columnCount;
+					for (int n = 0; n < columnCount; ++n) {
+						int v = groupedRows[index1 + n].CompareTo(groupedRows[index2 + n]);
+						if (v != 0) {
+							return v;
+						}
+					}
+
+					// If we got here then rows must be equal.
+					return 0;
+				}
+			}
+
+			#endregion
 		}
 
 		#endregion
