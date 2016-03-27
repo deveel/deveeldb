@@ -44,8 +44,8 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void ResolveSystemFunctionFullyQualified() {
-			IFunction function = null;
-			Assert.DoesNotThrow(() => function = Query.Session.Access.ResolveFunction(Query, ObjectName.Parse("SYSTEM.user")));
+			var function = Query.Session.Access.ResolveFunction(Query, ObjectName.Parse("SYSTEM.user"));
+
 			Assert.IsNotNull(function);
 			Assert.AreEqual(SystemSchema.Name, function.FullName.ParentName);
 			Assert.AreEqual("user", function.FullName.Name);
@@ -53,8 +53,7 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void InvokeUserFunction() {
-			Field result = null;
-			Assert.DoesNotThrow(() => result = InvokeFunction("user"));
+			var result = InvokeFunction("user");
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.Value.ToString());
 		}
@@ -62,8 +61,8 @@ namespace Deveel.Data.Routines {
 		[Test]
 		public void InvokeIntegerToString() {
 			var value = Field.Integer(455366);
-			Field result = null;
-			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
+			var result = InvokeFunction("TOSTRING", value);
+
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<StringType>(result.Type);
 

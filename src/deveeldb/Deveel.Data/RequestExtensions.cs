@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -310,6 +311,25 @@ namespace Deveel.Data {
 		public static ITable Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
 			return request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
 		}
+
+		public static ITable Select(this IRequest request, params SqlExpression[] args) {
+			if (args == null || args.Length == 0)
+				throw new ArgumentNullException("args");
+
+			var columns = args.Select(x => new SelectColumn(x));
+			var query = new SqlQueryExpression(columns);
+			return request.Select(query);
+		}
+
+		#region Select Function
+
+		public static ITable SelectFunction(this IRequest request, ObjectName functionName, params SqlExpression[] args) {
+			var funcExp = SqlExpression.FunctionCall(functionName, args);
+			var query = new SqlQueryExpression(new []{new SelectColumn(funcExp) });
+			return request.Select(query);
+		}
+
+		#endregion
 
 		#endregion
 

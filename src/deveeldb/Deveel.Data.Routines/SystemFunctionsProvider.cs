@@ -22,6 +22,7 @@ using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
@@ -40,6 +41,11 @@ namespace Deveel.Data.Routines {
 		private InvokeResult Simple(InvokeContext context, Func<Field[], Field> func) {
 			var evaluated = context.EvaluatedArguments;
 			var value = func(evaluated);
+			return context.Result(value);
+		}
+
+		private InvokeResult Simple(InvokeContext context, Func<Field> func) {
+			var value = func();
 			return context.Result(value);
 		}
 
@@ -121,7 +127,7 @@ namespace Deveel.Data.Routines {
 				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Request, args[0])))
 				.ReturnsNumeric());
 
-			Register(config => config.Named("nextvalue")
+			Register(config => config.Named("nextval")
 				.WithParameter("sequence", PrimitiveTypes.String())
 				.WhenExecute(context => Simple(context, args => SystemFunctions.NextValue(context.Request, args[0])))
 				.ReturnsNumeric());
@@ -161,6 +167,39 @@ namespace Deveel.Data.Routines {
 			}));
 		}
 
+		private void AddDateFunctions() {
+			Register(config => config.Named("date")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentDate(context.Request)))
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("time")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTime(context.Request)))
+				.ReturnsType(PrimitiveTypes.Time()));
+
+			Register(config => config.Named("timestamp")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTimeStamp(context.Request)))
+				.ReturnsDateTime());
+
+			Register(config => config.Named("system_date")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemDate))
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("system_time")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemTime))
+				.ReturnsType(PrimitiveTypes.Time()));
+
+			Register(config => config.Named("system_timestamp")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemTimeStamp))
+				.ReturnsDateTime());
+
+			Register(config => config.Named("add_date")
+			.WithDateTimeParameter("date")
+			.WithStringParameter("datePart")
+			.WithNumericParameter("value")
+			.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
+			.ReturnsDateTime());
+		}
+
 		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
 			return exp.ReturnType(context.Request, context.VariableResolver);
 		}
@@ -171,6 +210,7 @@ namespace Deveel.Data.Routines {
 			AddConversionFunctions();
 			AddSecurityFunctions();
 			AddSequenceFunctions();
+			AddDateFunctions();
 
 			AddMiscFunctions();
 		}

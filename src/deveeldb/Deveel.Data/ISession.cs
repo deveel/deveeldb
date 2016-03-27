@@ -35,11 +35,7 @@ namespace Deveel.Data {
 		/// Gets the name of the current schema of this session.
 		/// </summary>
 		string CurrentSchema { get; }
-
-		DateTimeOffset StartedOn { get; }
-
-		DateTimeOffset? LastCommandTime { get; }
-
+			
 		User User { get; }
 
 		/// <summary>

@@ -26,6 +26,8 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	class SystemSession : ISession {
+		private DateTimeOffset startedOn;
+
 		public SystemSession(ITransaction transaction) 
 			: this(transaction, transaction.CurrentSchema()) {
 		}
@@ -43,7 +45,7 @@ namespace Deveel.Data {
 
 			User = new User(this, User.SystemName);
 
-			StartedOn = DateTimeOffset.UtcNow;
+			startedOn = DateTimeOffset.UtcNow;
 
 			Access = new SessionAccess(this);
 		}
@@ -56,13 +58,7 @@ namespace Deveel.Data {
 
 		public string CurrentSchema { get; private set; }
 
-		public DateTimeOffset StartedOn { get; private set; }
-
 		public SessionAccess Access { get; private set; }
-
-		public DateTimeOffset? LastCommandTime {
-			get { return null; }
-		}
 
 		public User User { get; private set; }
 
@@ -84,7 +80,8 @@ namespace Deveel.Data {
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetaData() {
 			return new Dictionary<string, object> {
-				{ "session.user", User.SystemName }
+				{ "session.user", User.SystemName },
+				{ "session.startTime", startedOn }
 			};
 		} 
 

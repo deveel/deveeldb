@@ -21,7 +21,6 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
@@ -33,6 +32,7 @@ namespace Deveel.Data {
 	public sealed class Session : ISession {
 		private List<LockHandle> lockHandles;
 		private bool disposed;
+		private DateTimeOffset startedOn;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -56,13 +56,14 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
+			Context.Route<QueryEvent>(OnQueryCommand);
 
 			Access = new SessionAccess(this);
 
 			transaction.Database.Sessions.Add(this);
 
 			User = new User(this, userName);
-			StartedOn = DateTimeOffset.UtcNow;
+			startedOn = DateTimeOffset.UtcNow;
 		}
 
 		~Session() {
@@ -77,10 +78,6 @@ namespace Deveel.Data {
 		public string CurrentSchema {
 			get { return Transaction.CurrentSchema(); }
 		}
-
-		public DateTimeOffset? LastCommandTime { get; private set; }
-
-		public DateTimeOffset StartedOn { get; private set; }
 
 	    public ISessionContext Context { get; private set; }
 
@@ -100,12 +97,25 @@ namespace Deveel.Data {
 			get { return GetMetadata(); }
 		}
 
+		public IDictionary<string, object> Metadata { get; set; }
+
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
-			return new Dictionary<string, object> {
-				{ KnownEventMetadata.UserName, User.Name },
-				{ KnownEventMetadata.LastCommandTime, LastCommandTime },
-				{ KnownEventMetadata.SessionStartTime, StartedOn },
+			var meta = new Dictionary<string, object> {
+				{KnownEventMetadata.UserName, User.Name},
+				{ KnownEventMetadata.SessionStartTime, startedOn }
 			};
+
+			if (Metadata != null) {
+				foreach (var pair in Metadata) {
+					var key = pair.Key;
+					if (!key.StartsWith("session"))
+						key = String.Format("session.{0}", pair.Key);
+
+					meta[key] = pair.Value;
+				}
+			}
+
+			return meta;
 		}
 
 		public ITransaction Transaction { get; private set; }
@@ -200,8 +210,20 @@ namespace Deveel.Data {
 	        get { return Transaction.Database; }
 	    }
 
-		private void OnCommand() {
-			LastCommandTime = DateTimeOffset.UtcNow;
+		private void OnQueryCommand(QueryEvent e) {
+			if (Metadata == null)
+				Metadata = new Dictionary<string, object>();
+
+			Metadata[KnownEventMetadata.LastCommandTime] = e.TimeStamp;
+			Metadata[KnownEventMetadata.LastCommand] = e.Query.Text;
+		}
+
+		private void OnCommand(string command) {
+			if (Metadata == null)
+				Metadata = new Dictionary<string, object>();
+
+			Metadata[KnownEventMetadata.LastCommandTime] = DateTimeOffset.UtcNow;
+			Metadata[KnownEventMetadata.LastCommand] = command;
 		}
 
 		public void Commit() {
@@ -211,7 +233,7 @@ namespace Deveel.Data {
 				try {
 					Transaction.Commit();
 				} finally {
-					OnCommand();
+					OnCommand("COMMIT");
 					DisposeTransaction();
 				}
 			}
@@ -224,7 +246,7 @@ namespace Deveel.Data {
 				try {
 					Transaction.Rollback();
 				} finally {
-					OnCommand();
+					OnCommand("ROLLBACK");
 					DisposeTransaction();
 				}
 			}

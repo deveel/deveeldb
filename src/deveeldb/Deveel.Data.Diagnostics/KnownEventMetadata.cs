@@ -22,6 +22,7 @@ namespace Deveel.Data.Diagnostics {
 		public const string UserName = "session.userName";
 		public const string SessionStartTime = "session.startTime";
 		public const string LastCommandTime = "session.lastCommandTime";
+		public const string LastCommand = "session.lastCommand";
 		public const string CommitId = "transaction.commitId";
 		public const string CurrentSchema = "transaction.currentSchema";
 		public const string IsolationLevel = "transaction.isolationLevel";

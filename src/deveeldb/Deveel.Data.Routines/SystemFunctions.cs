@@ -87,6 +87,8 @@ namespace Deveel.Data.Routines {
 			return value.CastTo(PrimitiveTypes.Binary());
 		}
 
+		#region Sequences
+
 		public static Field UniqueKey(IRequest request, Field tableName) {
 			var tableNameString = (SqlString)tableName.Value;
 			var value = UniqueKey(request, tableNameString);
@@ -113,7 +115,7 @@ namespace Deveel.Data.Routines {
 
 		public static Field NextValue(IRequest request, Field sequenceName) {
 			var sequenceNameString = (SqlString)sequenceName.Value;
-			var value = CurrentValue(request, sequenceNameString);
+			var value = NextValue(request, sequenceNameString);
 			return Field.Number(value);
 		}
 
@@ -122,6 +124,85 @@ namespace Deveel.Data.Routines {
 			var resolvedName = request.Access.ResolveObjectName(DbObjectType.Sequence, objName);
 			return request.Access.GetNextValue(resolvedName);
 		}
+
+		#endregion
+
+		#region Dates
+
+		public static Field CurrentDate(IRequest request) {
+			var systemDate = SqlDateTime.Now;
+			var sessionOffset = request.Query.Session.TimeZoneOffset();
+			var offset = new SqlDayToSecond(sessionOffset.Hours, sessionOffset.Minutes, 0);
+			return Field.Date(systemDate.Add(offset).DatePart);
+		}
+
+		public static Field CurrentTime(IRequest request) {
+			var systemDate = SqlDateTime.Now;
+			var sessionOffset = request.Query.Session.TimeZoneOffset();
+			var offset = new SqlDayToSecond(sessionOffset.Hours, sessionOffset.Minutes, 0);
+			return Field.Time(systemDate.Add(offset).TimePart);
+		}
+
+		public static Field CurrentTimeStamp(IRequest request) {
+			var systemDate = SqlDateTime.Now;
+			var sessionOffset = request.Query.Session.TimeZoneOffset();
+			var offset = new SqlDayToSecond(sessionOffset.Hours, sessionOffset.Minutes, 0);
+			return Field.TimeStamp(systemDate.Add(offset));
+		}
+
+		public static Field SystemDate() {
+			return Field.Date(SqlDateTime.Now.DatePart);
+		}
+
+		public static Field SystemTime() {
+			return Field.Time(SqlDateTime.Now.TimePart);
+		}
+
+		public static Field SystemTimeStamp() {
+			return Field.TimeStamp(SqlDateTime.Now);
+		}
+
+		public static Field AddDate(Field dateField, Field datePart, Field value) {
+			if (dateField.IsNull)
+				return Field.Date(SqlDateTime.Null);
+
+			var date = (SqlDateTime) dateField.AsDate().Value;
+			var partString = datePart.AsVarChar().Value.ToString();
+			var iValue = ((SqlNumber) value.AsInteger().Value).ToInt32();
+
+			SqlDateTime result;
+
+			switch (partString.ToUpperInvariant()) {
+				case "YEAR":
+					result = date.Add(new SqlYearToMonth(iValue, 0));
+					break;
+				case "MONTH":
+					result = date.Add(new SqlYearToMonth(iValue));
+					break;
+				case "DAY":
+					result = date.Add(new SqlDayToSecond(iValue, 0, 0, 0, 0));
+					break;
+				case "HOUR":
+					result = date.Add(new SqlDayToSecond(0, iValue, 0, 0));
+					break;
+				case "MINUTE":
+					result = date.Add(new SqlDayToSecond(0, 0, iValue, 0));
+					break;
+				case "SECOND":
+					result = date.Add(new SqlDayToSecond(0, 0, 0, iValue, 0));
+					break;
+				case "MILLIS":
+				case "MILLISECOND":
+					result = date.Add(new SqlDayToSecond(0, 0, 0, 0, iValue));
+					break;
+				default:
+					throw new ArgumentException(String.Format("The date parth '{0}' is invalid", partString));
+			}
+
+			return Field.Date(result);
+		}
+
+		#endregion
 
 		internal static InvokeResult Iif(InvokeContext context) {
 			var result = Field.Null();

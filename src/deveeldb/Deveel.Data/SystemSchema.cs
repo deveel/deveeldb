@@ -758,9 +758,9 @@ namespace Deveel.Data {
 					throw new ArgumentOutOfRangeException("rowNumber");
 
 				var session = transaction.Database.Sessions[(int) rowNumber];
-				var lastCommandTime = session.LastCommandTime == null
+				var lastCommandTime = !session.HasCommandTime()
 					? SqlDateTime.Null
-					: (SqlDateTime) session.LastCommandTime.Value;
+					: (SqlDateTime) session.LastCommandTime();
 
 				switch (columnOffset) {
 					case 0:
@@ -770,7 +770,7 @@ namespace Deveel.Data {
 					case 2:
 						return GetColumnValue(2, lastCommandTime);
 					case 3:
-						return GetColumnValue(3, (SqlDateTime)session.StartedOn);
+						return GetColumnValue(3, (SqlDateTime)session.StartedOn());
 					default:
 						throw new ArgumentOutOfRangeException("columnOffset");
 				}

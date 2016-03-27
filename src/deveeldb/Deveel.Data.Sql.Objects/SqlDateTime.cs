@@ -17,6 +17,7 @@
 
 using System;
 using System.Globalization;
+using System.Reflection;
 
 namespace Deveel.Data.Sql.Objects {
 	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime> {
@@ -216,6 +217,20 @@ namespace Deveel.Data.Sql.Objects {
 			get {
 				AssertNotNull();
 				return new SqlDayToSecond(0, value.Value.Offset.Hours, value.Value.Offset.Minutes, 0, 0);
+			}
+		}
+
+		public SqlDateTime DatePart {
+			get {
+				AssertNotNull();
+				return new SqlDateTime(Year, Month, Day);
+			}
+		}
+
+		public SqlDateTime TimePart {
+			get {
+				AssertNotNull();
+				return new SqlDateTime(1, 1, 1, Hour, Minute, Second, Millisecond);
 			}
 		}
 
