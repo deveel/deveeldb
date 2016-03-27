@@ -244,19 +244,20 @@ namespace Deveel.Data.Routines {
 					result = Field.Integer(size);
 				} else {
 					// Otherwise we need to count the number of non-null entries in the
-					// columns list(s).
+					// columns list(s)
 
-					int totalCount = size;
+					var arg1 = context.EvaluatedArguments[0];
+					var arg2 = context.EvaluatedArguments[1];
 
-					var exp = context.Arguments[0];
-					for (int i = 0; i < size; ++i) {
-						var val = exp.EvaluateToConstant(context.Request, context.GroupResolver.GetVariableResolver(i));
-						if (Field.IsNullField(val)) {
-							--totalCount;
+					if (!Field.IsNullField(arg2)) {
+						if (Field.IsNullField(arg1)) {
+							result = Field.Integer(1);
+						} else {
+							result = arg1.Add(Field.Integer(1));
 						}
+					} else {
+						result = arg1;
 					}
-
-					result = Field.Integer(totalCount);
 				}
 
 				return context.Result(result);

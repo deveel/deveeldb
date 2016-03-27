@@ -22,6 +22,12 @@ Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "deveeldb.schfb", "deveeldb.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\deveeldb.pcl.csproj", "{ADD851E0-1314-46C6-9312-7861F46438D0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuspec", "nuspec", "{508A8A13-279F-42AC-8E82-9842107126A0}"
+	ProjectSection(SolutionItems) = preProject
+		..\nuget\deveeldb-platform.nuspec = ..\nuget\deveeldb-platform.nuspec
+		..\nuget\deveeldb.nuspec = ..\nuget\deveeldb.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
