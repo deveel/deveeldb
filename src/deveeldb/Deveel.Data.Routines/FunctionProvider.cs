@@ -21,6 +21,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Types;
 
@@ -56,7 +57,15 @@ namespace Deveel.Data.Routines {
 		}
 
 		protected void Register(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, SqlType> returnType) {
-			Register(new DelegateFunction(functionInfo, body, returnType));
+			Register(functionInfo, body, null, returnType);
+		}
+
+		protected void Register(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, Field, Field> afterAggregate, Func<InvokeContext, SqlType> returnType) {
+			if (afterAggregate != null &&
+				functionInfo.FunctionType != FunctionType.Aggregate)
+				throw new ArgumentException("Cannot specify an after-aggregation on non-aggregate function.");
+
+			Register(new DelegateFunction(functionInfo, body, afterAggregate, returnType));
 		}
 
 		protected void Register(Func<IFunctionConfiguration, IFunctionConfiguration> config) {
@@ -68,7 +77,7 @@ namespace Deveel.Data.Routines {
 
 			var functionInfos = configuration.FunctionInfo;
 			foreach (var functionInfo in functionInfos) {
-				Register(functionInfo, configuration.ExecuteFunc, configuration.ReturnTypeFunc);
+				Register(functionInfo, configuration.ExecuteFunc, configuration.AfterAggregate, configuration.ReturnTypeFunc);
 			}
 		}
 
@@ -106,15 +115,76 @@ namespace Deveel.Data.Routines {
 		class DelegateFunction : Function {
 			private readonly Func<InvokeContext, InvokeResult> functionBody;
 			private readonly Func<InvokeContext, SqlType> returnType; 
- 
-			public DelegateFunction(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> functionBody, Func<InvokeContext, SqlType> returnType)
+			private readonly Func<InvokeContext, Field, Field> afterAggregate ;
+
+			public DelegateFunction(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> functionBody,
+				Func<InvokeContext, Field, Field> afterAggregate, Func<InvokeContext, SqlType> returnType)
 				: base(functionInfo) {
 				this.functionBody = functionBody;
+				this.afterAggregate = afterAggregate;
 				this.returnType = returnType;
 			}
 
 			public override InvokeResult Execute(InvokeContext context) {
-				return functionBody(context);
+				if (FunctionInfo.FunctionType != FunctionType.Aggregate)
+					return functionBody(context);
+
+				if (context.GroupResolver == null)
+					throw new Exception(String.Format("Function '{0}' can only be used as an aggregate.", FunctionInfo.RoutineName));
+
+				Field result = null;
+
+				// All aggregates functions return 'null' if group size is 0
+				int size = context.GroupResolver.Count;
+				if (size == 0) {
+					// Return a NULL of the return type
+					return context.Result(Field.Null(ReturnType(context)));
+				}
+
+				Field val;
+				SqlReferenceExpression v = context.Arguments[0] as SqlReferenceExpression;
+
+				// If the aggregate parameter is a simple variable, then use optimal
+				// routine,
+				if (v != null) {
+					for (int i = 0; i < size; ++i) {
+						val = context.GroupResolver.Resolve(v.ReferenceName, i);
+						var invokeResult = functionBody(context.New(new SqlExpression[] {
+							SqlExpression.Constant(result),
+							SqlExpression.Constant(val)
+						}));
+
+						result = invokeResult.ReturnValue;
+					}
+				} else {
+					// Otherwise we must resolve the expression for each entry in group,
+					// This allows for expressions such as 'sum(quantity * price)' to
+					// work for a group.
+					var exp = context.Arguments[0];
+					for (int i = 0; i < size; ++i) {
+						var evaluated = exp.Evaluate(context.Request, context.GroupResolver.GetVariableResolver(i));
+
+						if (evaluated.ExpressionType != SqlExpressionType.Constant)
+							throw new InvalidOperationException(
+								String.Format("The evaluation of the group {0} in aggregate function '{1}' is not constant", i,
+									FunctionInfo.RoutineName));
+
+						val = ((SqlConstantExpression) evaluated).Value;
+
+						var invokeResult = functionBody(context.New(new SqlExpression[] {
+							SqlExpression.Constant(result),
+							SqlExpression.Constant(val)
+						}));
+
+						result = invokeResult.ReturnValue;
+					}
+				}
+
+				// Post method.
+				if (afterAggregate!= null)
+					result = afterAggregate(context, result);
+
+				return context.Result(result);
 			}
 
 			public override SqlType ReturnType(InvokeContext context) {
@@ -129,7 +199,7 @@ namespace Deveel.Data.Routines {
 
 		#region FunctionConfiguration
 
-		class FunctionConfiguration : IFunctionConfiguration, IRoutineConfiguration {
+		class FunctionConfiguration : IRoutineConfiguration, IAggregateFunctionConfiguration {
 			private readonly FunctionProvider provider;
 			private readonly Dictionary<string, RoutineParameter> parameters;
 			private List<ObjectName> aliases;
@@ -146,11 +216,13 @@ namespace Deveel.Data.Routines {
 
 			public Func<InvokeContext, InvokeResult> ExecuteFunc { get; private set; }
 
+			public Func<InvokeContext, Field, Field> AfterAggregate { get; private set; } 
+
 			public FunctionInfo[] FunctionInfo {
 				get {
-					var result = new List<FunctionInfo> { new FunctionInfo(FunctionName, parameters.Values.ToArray()) };
+					var result = new List<FunctionInfo> { new FunctionInfo(FunctionName, parameters.Values.ToArray(), FunctionType) };
 					if (aliases != null && aliases.Count > 0)
-						result.AddRange(aliases.Select(name => new FunctionInfo(name, parameters.Values.ToArray())));
+						result.AddRange(aliases.Select(name => new FunctionInfo(name, parameters.Values.ToArray(), FunctionType)));
 
 					return result.ToArray();
 				}
@@ -232,6 +304,11 @@ namespace Deveel.Data.Routines {
 
 			public IFunctionConfiguration WhenExecute(Func<InvokeContext, InvokeResult> execute) {
 				ExecuteFunc = execute;
+				return this;
+			}
+
+			public IAggregateFunctionConfiguration OnAfterAggregate(Func<InvokeContext, Field, Field> afterAggregate) {
+				AfterAggregate = afterAggregate;
 				return this;
 			}
 

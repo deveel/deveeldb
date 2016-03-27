@@ -64,7 +64,7 @@ namespace Deveel.Data.Sql.Query {
 			var funTable = new FunctionTable(childTable, Functions, Names, context);
 
 			// If no columns then it is implied the whole table is the group.
-			if (ColumnNames == null) {
+			if (ColumnNames == null || ColumnNames.Length == 0) {
 				funTable = funTable.AsGroup();
 			} else {
 				funTable = funTable.CreateGroupMatrix(ColumnNames);

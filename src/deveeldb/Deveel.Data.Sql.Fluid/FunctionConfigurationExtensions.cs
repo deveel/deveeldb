@@ -38,9 +38,9 @@ namespace Deveel.Data.Sql.Fluid {
 			return configuration.WithAlias(new ObjectName(new ObjectName(routineConfig.Context.SchemaName), alias));
 		}
 
-		public static IFunctionConfiguration OfAggregateType(this IFunctionConfiguration configuration) {
+		public static IAggregateFunctionConfiguration OfAggregateType(this IFunctionConfiguration configuration) {
 			configuration.OfType(FunctionType.Aggregate);
-			return configuration;
+			return (IAggregateFunctionConfiguration) configuration;
 		}
 
 		public static IFunctionConfiguration WithParameter(this IFunctionConfiguration configuration, string name,

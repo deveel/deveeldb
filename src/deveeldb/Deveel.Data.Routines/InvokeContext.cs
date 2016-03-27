@@ -84,6 +84,11 @@ namespace Deveel.Data.Routines {
 
 		public IRequest Request { get; private set; }
 
+		public InvokeContext New(SqlExpression[] args) {
+			var newInvoke = new Invoke(Invoke.RoutineName, args);
+			return new InvokeContext(newInvoke, Routine, VariableResolver, GroupResolver, Request);
+		}
+
 		public Field[] EvaluatedArguments {
 			get {
 				if (evaluatedArgs == null) {

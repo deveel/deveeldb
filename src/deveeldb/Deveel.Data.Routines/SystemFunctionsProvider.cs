@@ -62,13 +62,28 @@ namespace Deveel.Data.Routines {
 				.OfAggregateType()
 				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
 
-			// COUNT
 			Register(config => config.Named("count")
 				.WithUnoundedParameter("args", Function.DynamicType)
 				.WhenExecute(Count.Execute)
 				.OfAggregateType()
 				.ReturnsNumeric());
 
+			Register(config => config
+				.Named("avg")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.WhenExecute(context => Simple(context, args => {
+					var ob1 = args[0];
+					var ob2 = args[1];
+					if (Field.IsNullField(ob1))
+						return ob2;
+					if (Field.IsNullField(ob2))
+						return ob1;
+
+					return ob1.Add(ob2);
+				}))
+				.OfAggregateType()
+				.OnAfterAggregate(
+					(context, result) => result.IsNull ? result : result.Divide(Field.Integer(context.GroupResolver.Count))));
 		}
 
 		private void AddSecurityFunctions() {
@@ -236,7 +251,7 @@ namespace Deveel.Data.Routines {
 					var exp = context.Arguments[0];
 					for (int i = 0; i < size; ++i) {
 						var val = exp.EvaluateToConstant(context.Request, context.GroupResolver.GetVariableResolver(i));
-						if (val.IsNull) {
+						if (Field.IsNullField(val)) {
 							--totalCount;
 						}
 					}

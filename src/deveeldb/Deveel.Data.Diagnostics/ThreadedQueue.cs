@@ -62,23 +62,22 @@ namespace Deveel.Data.Diagnostics {
 			if (started)
 				return;
 
-
 #if PCL
 			tasks = new List<Task>();
 #else
-			threads = new List<Thread>(ThreadCount);
+				threads = new List<Thread>(ThreadCount);
 #endif
 
 			for (int i = 0; i < ThreadCount; i++) {
 #if PCL
 				tasks.Add(new Task(RouteMessages, cancellationToken));
 #else
-				var thread = new Thread(RouteMessages) {
-					IsBackground = true,
-					Name = String.Format("{0}.QueueConsumer {1}", GetType().Name, i)
-				};
+					var thread = new Thread(RouteMessages) {
+						IsBackground = true,
+						Name = String.Format("{0}.QueueConsumer {1}", GetType().Name, i)
+					};
 
-				threads.Add(thread);
+					threads.Add(thread);
 #endif
 			}
 
@@ -90,11 +89,10 @@ namespace Deveel.Data.Diagnostics {
 				task.Start();
 			}
 #else
-			foreach (var thread in threads) {
-				thread.Start();
-			}
+				foreach (var thread in threads) {
+					thread.Start();
+				}
 #endif
-
 			started = true;
 		}
 

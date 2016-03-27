@@ -646,6 +646,10 @@ namespace Deveel.Data.Sql {
 			return new Field(new TabularType(), SqlTabular.From(table));
 		}
 
+		public static bool IsNullField(Field field) {
+			return ReferenceEquals(field, null) || field.IsNull;
+		}
+
 		public static Field Create(object value) {
 			// Numeric values ...
 			if (value is bool)
@@ -876,6 +880,13 @@ namespace Deveel.Data.Sql {
 			return (SqlBoolean) value.AsBoolean().Value;
 		}
 
+		public static implicit operator bool?(Field value) {
+			if (ReferenceEquals(value, null) || value.IsNull)
+				return null;
+
+			return (SqlBoolean) value.AsBoolean().Value;
+		}
+
 		public static implicit operator int(Field value) {
 			if (ReferenceEquals(value, null) || value.IsNull)
 				throw new InvalidCastException("Cannot convert NULL value to integer.");
@@ -918,7 +929,6 @@ namespace Deveel.Data.Sql {
 
 			throw new InvalidCastException("Cannot convert non-nullable value to DBNull.");
 		}
-
 #endif
 
 		#endregion
