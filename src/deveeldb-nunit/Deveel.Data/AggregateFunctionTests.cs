@@ -62,7 +62,7 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void SimpleCount() {
+		public void Count_Column() {
 			var result = SelectAggregate("COUNT", SqlExpression.Reference(new ObjectName("a")));
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.IsNull);
@@ -93,6 +93,43 @@ namespace Deveel.Data {
 			Assert.IsInstanceOf<SqlNumber>(result.Value);
 
 			var value = (SqlNumber)result.Value;
+			Assert.AreEqual(new SqlNumber(15), value);
+		}
+
+		[Test]
+		public void Min_Column() {
+			var result = SelectAggregate("MIN", SqlExpression.Reference(new ObjectName("a")));
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var value = (SqlNumber) result.Value;
+			Assert.AreEqual(new SqlNumber(0), value);
+		}
+
+		[Test]
+		public void Max_Column() {
+			var result = SelectAggregate("MAX", SqlExpression.Reference(new ObjectName("a")));
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var value = (SqlNumber)result.Value;
+			Assert.AreEqual(new SqlNumber(196), value);
+		}
+
+		[Test]
+		public void Sum_Column() {
+			var result = SelectAggregate("SUM", SqlExpression.Reference(new ObjectName("a")));
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var value = (SqlNumber)result.Value;
+			Assert.AreEqual(new SqlNumber(1015), value);
 		}
 	}
 }

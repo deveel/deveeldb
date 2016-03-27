@@ -56,18 +56,86 @@ namespace Deveel.Data.Routines {
 		}
 
 		private void AddAggregateFunctions() {
+			// AGGOR
 			Register(configuration => configuration
 				.Named("aggor")
 				.WithParameter(p => p.Named("args").Unbounded().OfDynamicType())
 				.OfAggregateType()
 				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
 
+			// COUNT
 			Register(config => config.Named("count")
 				.WithUnoundedParameter("args", Function.DynamicType)
 				.WhenExecute(Count.Execute)
 				.OfAggregateType()
 				.ReturnsNumeric());
 
+			// COUNT(DISTINCT)
+			Register(new DistinctCountFucntion());
+
+
+			//  SUM
+			Register(config => config
+				.Named("sum")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.OfAggregateType()
+				.WhenExecute(context => Simple(context, args => {
+					var ob1 = args[0];
+					var ob2 = args[1];
+					if (Field.IsNullField(ob1))
+						return ob2;
+					if (Field.IsNullField(ob2))
+						return ob1;
+
+					return ob1.Add(ob2);
+				}))
+				.ReturnsNumeric());
+
+			// MAX
+			Register(config => config
+				.Named("max")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.OfAggregateType()
+				.WhenExecute(context => Simple(context, args => {
+					var ob1 = args[0];
+					var ob2 = args[1];
+					if (Field.IsNullField(ob1))
+						return ob2;
+					if (Field.IsNullField(ob2))
+						return ob1;
+
+					if (ob1.IsGreaterThan(ob2))
+						return ob1;
+					if (ob2.IsGreaterThan(ob1))
+						return ob2;
+
+					return ob1;
+				}))
+				.ReturnsNumeric());
+
+			// MIN
+			Register(config => config
+				.Named("min")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.OfAggregateType()
+				.WhenExecute(context => Simple(context, args => {
+					var ob1 = args[0];
+					var ob2 = args[1];
+					if (Field.IsNullField(ob1))
+						return ob2;
+					if (Field.IsNullField(ob2))
+						return ob1;
+
+					if (ob1.IsSmallerThan(ob2))
+						return ob1;
+					if (ob2.IsSmallerThan(ob1))
+						return ob2;
+
+					return ob1;
+				}))
+				.ReturnsNumeric());
+
+			// AVG
 			Register(config => config
 				.Named("avg")
 				.WithUnoundedParameter("args", Function.DynamicType)
@@ -84,6 +152,7 @@ namespace Deveel.Data.Routines {
 				.OfAggregateType()
 				.OnAfterAggregate(
 					(context, result) => result.IsNull ? result : result.Divide(Field.Integer(context.GroupResolver.Count))));
+
 		}
 
 		private void AddSecurityFunctions() {
@@ -213,8 +282,6 @@ namespace Deveel.Data.Routines {
 				.WithNumericParameter("value")
 				.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
 				.ReturnsDateTime());
-
-			Register(new DistinctCountFucntion());
 		}
 
 		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
