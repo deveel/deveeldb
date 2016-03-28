@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -69,6 +70,8 @@ namespace Deveel.Data {
 			if (sqlQuery == null)
 				throw new ArgumentNullException("sqlQuery");
 
+			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.BeforeExecute, null));
+
 			var sqlSouce = sqlQuery.Text;
 			var compiler = query.Context.SqlCompiler();
 
@@ -85,7 +88,11 @@ namespace Deveel.Data {
 
 			var preparer = new QueryPreparer(sqlQuery, paramStyle);
 
-			return query.ExecuteStatements(preparer, compileResult.Statements.ToArray());
+			var result = query.ExecuteStatements(preparer, compileResult.Statements.ToArray());
+
+			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.AfterExecute, result));
+
+			return result;
 		}
 
 		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {

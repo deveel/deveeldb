@@ -19,21 +19,30 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Diagnostics {
 	public sealed class QueryEvent : Event {
-		public QueryEvent(SqlQuery query) {
+		public QueryEvent(SqlQuery query, QueryEventType eventType, ITable[] result) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
 			Query = query;
+			EventType = eventType;
+			Result = result;
 		}
 
 		public SqlQuery Query { get; private set; }
 
+		public QueryEventType EventType { get; private set; }
+
+		public ITable[] Result { get; private set; }
+
 		protected override void GetEventData(Dictionary<string, object> data) {
 			data["query.text"] = Query.Text;
+			data["query.eventType"] = (int) EventType;
 			data["query.paramStyle"] = Query.ParameterStyle;
+			data["query.paramCount"] = Query.Parameters.Count;
 
 			int i = 0;
 			foreach (var parameter in Query.Parameters) {
@@ -43,6 +52,8 @@ namespace Deveel.Data.Diagnostics {
 
 				i++;
 			}
+
+			// TODO: pass also the results as meta?
 		}
 	}
 }

@@ -32,9 +32,5 @@ namespace Deveel.Data.Diagnostics {
 		public static void OnRollback(this ISession session) {
 			session.Database().OnSessionRollback(session.User.Name, session.Transaction.CommitId);
 		}
-
-		public static void OnQuery(this ISession session, SqlQuery query) {
-			session.OnEvent(new QueryEvent(query));
-		}
 	}
 }

@@ -218,14 +218,6 @@ namespace Deveel.Data {
 			Metadata[KnownEventMetadata.LastCommand] = e.Query.Text;
 		}
 
-		private void OnCommand(string command) {
-			if (Metadata == null)
-				Metadata = new Dictionary<string, object>();
-
-			Metadata[KnownEventMetadata.LastCommandTime] = DateTimeOffset.UtcNow;
-			Metadata[KnownEventMetadata.LastCommand] = command;
-		}
-
 		public void Commit() {
 			AssertNotDisposed();
 
@@ -233,7 +225,6 @@ namespace Deveel.Data {
 				try {
 					Transaction.Commit();
 				} finally {
-					OnCommand("COMMIT");
 					DisposeTransaction();
 				}
 			}
@@ -246,7 +237,6 @@ namespace Deveel.Data {
 				try {
 					Transaction.Rollback();
 				} finally {
-					OnCommand("ROLLBACK");
 					DisposeTransaction();
 				}
 			}

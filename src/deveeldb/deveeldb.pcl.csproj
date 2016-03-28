@@ -107,6 +107,7 @@
     <Compile Include="Deveel.Data.Diagnostics\LoggerSettings.cs" />
     <Compile Include="Deveel.Data.Diagnostics\PerformanceEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\QueryEvent.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
