@@ -1318,7 +1318,7 @@ namespace Deveel.Data.Sql.Tables {
 			if (resultTable.RowCount != table.RowCount)
 				throw new InvalidOperationException("The final row count mismatches.");
 
-			return table;
+			return resultTable;
 		}
 
 		public static ITable OrderBy(this ITable table, int columnIndex, bool ascending) {

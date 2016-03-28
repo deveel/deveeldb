@@ -38,6 +38,12 @@ namespace Deveel.Data {
 			row.SetValue(1, "Smith");
 			row.SetValue(2, 65);
 			table.AddRow(row);
+
+			row = table.NewRow();
+			row.SetValue(0, "Antonello");
+			row.SetValue(1, "Capone");
+			row.SetValue(2, 33);
+			table.AddRow(row);
 		}
 
 		private ITable Execute(string s) {
@@ -52,6 +58,14 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void DistinctMulti_TwoColumns() {
+			var result = Execute("SELECT DISTINCT first_name, age FROM persons");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(3, result.RowCount);
 		}
 	}
 }
