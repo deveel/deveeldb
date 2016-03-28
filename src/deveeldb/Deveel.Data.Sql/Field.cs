@@ -680,6 +680,13 @@ namespace Deveel.Data.Sql {
 				return Number(num);
 			}
 
+			if (value is SqlDateTime)
+				return Date((SqlDateTime) value);
+			if (value is DateTime)
+				return Date((DateTime) value);
+			if (value is DateTimeOffset)
+				return Date((DateTimeOffset) value);
+
 			// String values ...
 			if (value is string)
 				return String((string) value);

@@ -20,7 +20,7 @@ using System.Globalization;
 using System.Reflection;
 
 namespace Deveel.Data.Sql.Objects {
-	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime> {
+	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime>, IFormattable {
 		private readonly DateTimeOffset? value;
 
 		public static readonly SqlDateTime Null = new SqlDateTime(true);
@@ -448,6 +448,10 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlDateTime(result.Ticks);
 		}
 
+		public SqlDateTime AddDays(int days) {
+			return Add(new SqlDayToSecond(days, 0, 0, 0));
+		}
+
 		public SqlDateTime Subtract(SqlYearToMonth interval) {
 			if (IsNull)
 				return Null;
@@ -456,6 +460,31 @@ namespace Deveel.Data.Sql.Objects {
 
 			var result = value.Value.AddMonths(-interval.TotalMonths);
 			return new SqlDateTime(result.Ticks);			
+		}
+
+		public SqlDateTime GetNextDateForDay(DayOfWeek desiredDay) {
+			// Given a date and day of week,
+			// find the next date whose day of the week equals the specified day of the week.
+			return AddDays(DaysToAdd(DayOfWeek, desiredDay));
+		}
+
+		public DayOfWeek DayOfWeek {
+			get {
+				AssertNotNull();
+				return value.Value.DayOfWeek;
+			}
+		}
+
+		private static int DaysToAdd(DayOfWeek current, DayOfWeek desired) {
+			// f( c, d ) = g( c, d ) mod 7, g( c, d ) > 7
+			//           = g( c, d ), g( c, d ) < = 7
+			//   where 0 <= c < 7 and 0 <= d < 7
+
+			int c = (int)current;
+			int d = (int)desired;
+			int n = (7 - c + d);
+
+			return (n > 7) ? n % 7 : n;
 		}
 
 		public static bool operator ==(SqlDateTime a, SqlDateTime b) {
@@ -631,6 +660,17 @@ namespace Deveel.Data.Sql.Objects {
 				return "NULL";
 
 			return ToTimeStampString().ToString();
+		}
+
+		public string ToString(string format, IFormatProvider formatProvider) {
+			if (value == null)
+				return "NULL";
+
+			return value.Value.ToString(format, formatProvider);
+		}
+
+		public string ToString(string format) {
+			return ToString(format, CultureInfo.CurrentCulture);
 		}
 
 		public DateTime ToDateTime() {

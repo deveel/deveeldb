@@ -74,7 +74,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void CountAll() {
-			var result = SelectAggregate("COUNT", SqlExpression.Reference(new ObjectName("*")));
+			var result = SelectAggregate("COUNT", SqlExpression.Constant("*"));
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.IsNull);
 			Assert.IsInstanceOf<NumericType>(result.Type);

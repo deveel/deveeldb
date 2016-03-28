@@ -101,6 +101,18 @@ namespace Deveel.Data.Routines {
 			return request.Access.GetNextValue(resolvedName);
 		}
 
+		public static Field CurrentKey(IRequest request, Field tableName) {
+			var tableNameString = (SqlString)tableName.Value;
+			var result = CurrentKey(request, tableNameString);
+			return Field.Number(result);
+		}
+
+		public static SqlNumber CurrentKey(IRequest request, SqlString tableName) {
+			var tableNameString = tableName.ToString();
+			var resolvedName = request.Access.ResolveTableName(tableNameString);
+			return request.Access.GetCurrentValue(resolvedName);
+		}
+
 		public static Field CurrentValue(IRequest query, Field tableName) {
 			var sequenceName = (SqlString)tableName.Value;
 			var value = CurrentValue(query, sequenceName);
@@ -196,10 +208,76 @@ namespace Deveel.Data.Routines {
 					result = date.Add(new SqlDayToSecond(0, 0, 0, 0, iValue));
 					break;
 				default:
-					throw new ArgumentException(String.Format("The date parth '{0}' is invalid", partString));
+					throw new ArgumentException(String.Format("The date part '{0}' is invalid", partString));
 			}
 
 			return Field.Date(result);
+		}
+
+		public static Field Extract(Field dateField, Field datePart) {
+			if (dateField.IsNull)
+				return Field.Number(SqlNumber.Null);
+
+			var date = (SqlDateTime)dateField.AsDate().Value;
+			var partString = datePart.AsVarChar().Value.ToString();
+
+			int result;
+
+			switch (partString.ToUpperInvariant()) {
+				case "YEAR":
+					result = date.Year;
+					break;
+				case "MONTH":
+					result = date.Month;
+					break;
+				case "DAY":
+					result = date.Day;
+					break;
+				case "HOUR":
+					result = date.Hour;
+					break;
+				case "MINUTE":
+					result = date.Minute;
+					break;
+				case "SECOND":
+					result = date.Second;
+					break;
+				case "MILLIS":
+				case "MILLISECOND":
+					result = date.Millisecond;
+					break;
+				default:
+					throw new ArgumentException(String.Format("The date part '{0}' is invalid", partString));
+			}
+
+			return Field.Integer(result);
+		}
+
+		public static Field DateFormat(Field dateField, Field format) {
+			if (Field.IsNullField(dateField))
+				return Field.String(SqlString.Null);
+
+			var date = (SqlDateTime) dateField.Value;
+			var formatString = format.Value.ToString();
+
+			// TODO: Get the current context's culture for formatting
+			var result = date.ToString(formatString);
+			return Field.String(result);
+		}
+
+		public static Field NextDay(Field dateField, Field dayOfWeek) {
+			if (Field.IsNullField(dateField))
+				return dateField;
+
+			var date = (SqlDateTime) dateField.Value;
+			var dow = ParseDayOfWeek(dayOfWeek);
+			var result = date.GetNextDateForDay(dow);
+			return Field.Date(result);
+		}
+
+		private static DayOfWeek ParseDayOfWeek(Field value) {
+			var s = value.Value.ToString();
+			return (DayOfWeek) Enum.Parse(typeof (DayOfWeek), s, true);
 		}
 
 		#endregion

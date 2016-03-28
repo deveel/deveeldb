@@ -24,6 +24,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
+using Deveel.Math;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {
@@ -37,6 +38,8 @@ namespace Deveel.Data.Routines {
 
 			return base.NormalizeName(functionName);
 		}
+
+		#region Utils
 
 		private InvokeResult Simple(InvokeContext context, Func<Field[], Field> func) {
 			var evaluated = context.EvaluatedArguments;
@@ -55,7 +58,15 @@ namespace Deveel.Data.Routines {
 			return context.Result(value);			
 		}
 
-		private void AddAggregateFunctions() {
+		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
+			return exp.ReturnType(context.Request, context.VariableResolver);
+		}
+
+		#endregion
+
+		#region Aggregate Functions
+
+		private void AggregateFunctions() {
 			// AGGOR
 			Register(configuration => configuration
 				.Named("aggor")
@@ -152,151 +163,6 @@ namespace Deveel.Data.Routines {
 				.OfAggregateType()
 				.OnAfterAggregate(
 					(context, result) => result.IsNull ? result : result.Divide(Field.Integer(context.GroupResolver.Count))));
-
-		}
-
-		private void AddSecurityFunctions() {
-			Register(config => config.Named("user")
-				.WhenExecute(context => context.Result(SystemFunctions.User(context.Request)))
-				.ReturnsString());
-		}
-
-		private void AddConversionFunctions() {
-			Register(config => config.Named("cast")
-				.WithDynamicParameter("value")
-				.WithStringParameter("destType")
-				.WhenExecute(Cast.Execute)
-				.ReturnsType(Cast.ReturnType));
-
-			Register(config => config.Named("tonumber")
-				.WithDynamicParameter("value")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToNumber(args[0])))
-				.ReturnsNumeric());
-
-			Register(config => config.Named("tostring")
-				.WithDynamicParameter("value")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToString(args[0])))
-				.ReturnsString());
-
-			Register(config => config.Named("tobinary")
-				.WithDynamicParameter("value")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToBinary(args[0])))
-				.ReturnsType(PrimitiveTypes.Binary()));
-
-			// Date Conversions
-			Register(config => config.Named("todate")
-				.WithStringParameter("value")
-				.WhenExecute(context => Simple(context, objects => SystemFunctions.ToDate(objects[0])))
-				.ReturnsType(PrimitiveTypes.Date()));
-
-			Register(config => config.Named("todatetime")
-				.WithStringParameter("value")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToDateTime(args[0])))
-				.ReturnsType(PrimitiveTypes.DateTime()));
-
-			Register(config => config.Named("totimestamp")
-				.WithParameter(p => p.Named("value").OfStringType())
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToTimeStamp(args[0])))
-				.ReturnsType(PrimitiveTypes.TimeStamp()));
-		}
-
-		private void AddSequenceFunctions() {
-			Register(config => config.Named("uniquekey")
-				.WithStringParameter("table")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.UniqueKey(context.Request, args[0])))
-				.ReturnsNumeric());
-
-			Register(config => config.Named("curval")
-				.WithStringParameter("table")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Request, args[0])))
-				.ReturnsNumeric());
-
-			Register(config => config.Named("nextval")
-				.WithParameter("sequence", PrimitiveTypes.String())
-				.WhenExecute(context => Simple(context, args => SystemFunctions.NextValue(context.Request, args[0])))
-				.ReturnsNumeric());
-		}
-
-		private static SqlType IifReturnType(InvokeContext context) {
-			// It's impossible to know the return type of this function until runtime
-			// because either comparator could be returned.  We could assume that
-			// both branch expressions result in the same type of object but this
-			// currently is not enforced.
-
-			// Returns type of first argument
-			var t1 = ReturnType(context.Arguments[1], context);
-			// This is a hack for null values.  If the first parameter is null
-			// then return the type of the second parameter which hopefully isn't
-			// also null.
-			if (t1 is NullType) {
-				return ReturnType(context.Arguments[2], context);
-			}
-			return t1;
-		}
-
-		private void AddMiscFunctions() {
-			Register(config => config.Named("iif")
-				.WithBooleanParameter("condition")
-				.WithDynamicParameter("ifTrue")
-				.WithDynamicParameter("ifFalse")
-				.WhenExecute(context => SystemFunctions.Iif(context))
-				.ReturnsType(IifReturnType));
-
-			Register(config => config.Named("i_frule_convert")
-			.WithDynamicParameter("rule")
-			.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
-			.ReturnsType(context => {
-				var argType = ReturnType(context.Arguments[0], context);
-				return argType is StringType ? (SqlType)PrimitiveTypes.Numeric() : (SqlType)PrimitiveTypes.String();
-			}));
-		}
-
-		private void AddDateFunctions() {
-			Register(config => config.Named("date")
-				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentDate(context.Request)))
-				.ReturnsType(PrimitiveTypes.Date()));
-
-			Register(config => config.Named("time")
-				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTime(context.Request)))
-				.ReturnsType(PrimitiveTypes.Time()));
-
-			Register(config => config.Named("timestamp")
-				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTimeStamp(context.Request)))
-				.ReturnsDateTime());
-
-			Register(config => config.Named("system_date")
-				.WhenExecute(context => Simple(context, SystemFunctions.SystemDate))
-				.ReturnsType(PrimitiveTypes.Date()));
-
-			Register(config => config.Named("system_time")
-				.WhenExecute(context => Simple(context, SystemFunctions.SystemTime))
-				.ReturnsType(PrimitiveTypes.Time()));
-
-			Register(config => config.Named("system_timestamp")
-				.WhenExecute(context => Simple(context, SystemFunctions.SystemTimeStamp))
-				.ReturnsDateTime());
-
-			Register(config => config.Named("add_date")
-				.WithDateTimeParameter("date")
-				.WithStringParameter("datePart")
-				.WithNumericParameter("value")
-				.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
-				.ReturnsDateTime());
-		}
-
-		private static SqlType ReturnType(SqlExpression exp, InvokeContext context) {
-			return exp.ReturnType(context.Request, context.VariableResolver);
-		}
-
-		protected override void OnInit() {
-			AddAggregateFunctions();
-
-			AddConversionFunctions();
-			AddSecurityFunctions();
-			AddSequenceFunctions();
-			AddDateFunctions();
-
-			AddMiscFunctions();
 		}
 
 		#region Count
@@ -340,11 +206,11 @@ namespace Deveel.Data.Routines {
 		class DistinctCountFucntion : Function {
 			public DistinctCountFucntion()
 				: base(new ObjectName(SystemSchema.SchemaName, "distinct_count"),
-					new[] {new RoutineParameter("args", Function.DynamicType, ParameterAttributes.Unbounded)}, PrimitiveTypes.Integer(),
+					new[] { new RoutineParameter("args", Function.DynamicType, ParameterAttributes.Unbounded) }, PrimitiveTypes.Integer(),
 					FunctionType.Aggregate) {
-		}
+			}
 
-		public override InvokeResult Execute(InvokeContext context) {
+			public override InvokeResult Execute(InvokeContext context) {
 				// There's some issues with implementing this function.
 				// For this function to be efficient, we need to have access to the
 				// underlying Table object(s) so we can use table indexing to sort the
@@ -406,7 +272,7 @@ namespace Deveel.Data.Routines {
 					} else if (v < 0) {
 						// The current element should never be less if list is sorted in
 						// ascending order.
-						throw new ApplicationException("Assertion failed - the distinct list does not " +
+						throw new Exception("Assertion failed - the distinct list does not " +
 													   "appear to be sorted.");
 					}
 				}
@@ -465,6 +331,241 @@ namespace Deveel.Data.Routines {
 		}
 
 		#endregion
+
+		#endregion
+
+		#region Security Functions
+
+		private void SecurityFunctions() {
+			Register(config => config.Named("user")
+				.WhenExecute(context => context.Result(SystemFunctions.User(context.Request)))
+				.ReturnsString());
+		}
+
+		#endregion
+
+
+		#region Conversion Functions
+
+		private void ConversionFunctions() {
+			Register(config => config.Named("cast")
+				.WithDynamicParameter("value")
+				.WithStringParameter("destType")
+				.WhenExecute(Cast.Execute)
+				.ReturnsType(Cast.ReturnType));
+
+			Register(config => config.Named("tonumber")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToNumber(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("tostring")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToString(args[0])))
+				.ReturnsString());
+
+			Register(config => config.Named("tobinary")
+				.WithDynamicParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToBinary(args[0])))
+				.ReturnsType(PrimitiveTypes.Binary()));
+
+			// Date Conversions
+			Register(config => config.Named("todate")
+				.WithStringParameter("value")
+				.WhenExecute(context => Simple(context, objects => SystemFunctions.ToDate(objects[0])))
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("todatetime")
+				.WithStringParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToDateTime(args[0])))
+				.ReturnsType(PrimitiveTypes.DateTime()));
+
+			Register(config => config.Named("totimestamp")
+				.WithParameter(p => p.Named("value").OfStringType())
+				.WhenExecute(context => Simple(context, args => SystemFunctions.ToTimeStamp(args[0])))
+				.ReturnsType(PrimitiveTypes.TimeStamp()));
+		}
+
+		#endregion
+
+		#region Sequence Functions
+
+		private void SequenceFunctions() {
+			Register(config => config.Named("uniquekey")
+				.WithStringParameter("table")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.UniqueKey(context.Request, args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("curval")
+				.WithStringParameter("sequence")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentValue(context.Request, args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("nextval")
+				.WithParameter("sequence", PrimitiveTypes.String())
+				.WhenExecute(context => Simple(context, args => SystemFunctions.NextValue(context.Request, args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config
+				.Named("curkey")
+				.WithStringParameter("table")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CurrentKey(context.Request, args[0])))
+				.ReturnsNumeric());
+		}
+
+		#endregion
+
+		#region Misc Functions
+
+		private static SqlType IifReturnType(InvokeContext context) {
+			// It's impossible to know the return type of this function until runtime
+			// because either comparator could be returned.  We could assume that
+			// both branch expressions result in the same type of object but this
+			// currently is not enforced.
+
+			// Returns type of first argument
+			var t1 = ReturnType(context.Arguments[1], context);
+			// This is a hack for null values.  If the first parameter is null
+			// then return the type of the second parameter which hopefully isn't
+			// also null.
+			if (t1 is NullType) {
+				return ReturnType(context.Arguments[2], context);
+			}
+			return t1;
+		}
+
+		private void MiscFunctions() {
+			Register(config => config.Named("iif")
+				.WithBooleanParameter("condition")
+				.WithDynamicParameter("ifTrue")
+				.WithDynamicParameter("ifFalse")
+				.WhenExecute(context => Simple(context, args => {
+					Field result = Field.Null();
+
+					var condition = args[0];
+					if (condition.Type is BooleanType) {
+						if (condition.Equals(Field.BooleanTrue)) {
+							result = args[1];
+						} else if (condition.Equals(Field.BooleanFalse)) {
+							result = args[2];
+						}
+					}
+
+					return result;
+				}))
+				.ReturnsType(IifReturnType));
+
+			Register(config => config.Named("i_frule_convert")
+				.WithDynamicParameter("rule")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
+				.ReturnsType(context => {
+					var argType = ReturnType(context.Arguments[0], context);
+					return argType is StringType ? (SqlType) PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
+				}));
+
+			// VERSION
+			Register(config => config
+			.Named("version")
+			.WhenExecute(context => context.Result(Field.String(context.Request.Query.Session.Database().Version.ToString(3))))
+			.ReturnsString());
+
+			// COALESCE
+			Register(config => config.Named("coalesce")
+			.WhenExecute(context => Simple(context, args => {
+				var argc = args.Length;
+				for (int i = 0; i < argc; i++) {
+					var arg = args[i];
+					if (!Field.IsNullField(arg))
+						return arg;
+				}
+
+				return Field.Null();
+			}))
+			.ReturnsType(context => {
+				var argc = context.Arguments.Length;
+				for (int i = 0; i < argc; i++) {
+					var returnType = context.Arguments[i].ReturnType(context.Request, context.VariableResolver);
+					if (!(returnType is NullType))
+						return returnType;
+				}
+
+				return PrimitiveTypes.Null();
+			}));
+		}
+
+		#endregion
+
+		#region Date Functions
+
+		private void DateFunctions() {
+			Register(config => config.Named("date")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentDate(context.Request)))
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("time")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTime(context.Request)))
+				.ReturnsType(PrimitiveTypes.Time()));
+
+			Register(config => config.Named("timestamp")
+				.WhenExecute(context => Simple(context, () => SystemFunctions.CurrentTimeStamp(context.Request)))
+				.ReturnsDateTime());
+
+			Register(config => config.Named("system_date")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemDate))
+				.ReturnsType(PrimitiveTypes.Date()));
+
+			Register(config => config.Named("system_time")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemTime))
+				.ReturnsType(PrimitiveTypes.Time()));
+
+			Register(config => config
+				.Named("system_timestamp")
+				.WhenExecute(context => Simple(context, SystemFunctions.SystemTimeStamp))
+				.ReturnsDateTime());
+
+			// ADD_DATE
+			Register(config => config.Named("add_date")
+				.WithDateTimeParameter("date")
+				.WithStringParameter("datePart")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.AddDate(args[0], args[1], args[2])))
+				.ReturnsDateTime());
+
+			// EXTRACT
+			Register(config => config.Named("extract")
+				.WithDateTimeParameter("date")
+				.WithStringParameter("unit")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Extract(args[0], args[1])))
+				.ReturnsNumeric());
+
+			// DATEFORMAT
+			Register(config => config.Named("dateformat")
+				.WithDateTimeParameter("date")
+				.WithStringParameter("format")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.DateFormat(args[0], args[1])))
+				.ReturnsString());
+
+			// NEXT_DAY
+			Register(config => config
+				.Named("next_day")
+				.WithDateTimeParameter("date")
+				.WithStringParameter("dayOfWeek")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.NextDay(args[0], args[1])))
+				.ReturnsDateTime());
+		}
+
+		#endregion
+
+		protected override void OnInit() {
+			AggregateFunctions();
+
+			ConversionFunctions();
+			SecurityFunctions();
+			SequenceFunctions();
+			DateFunctions();
+
+			MiscFunctions();
+		}
 
 		#region Cast
 
