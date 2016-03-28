@@ -134,14 +134,14 @@ namespace Deveel.Data.Index {
 				sb.Append("AFTER_LAST_VALUE ");
 			}
 
-			sb.Append(StartValue.ToString());
+			sb.Append(StartValue.Value);
 			sb.Append(" -> ");
 			if (EndOffset == RangeFieldOffset.LastValue) {
 				sb.Append("LAST_VALUE ");
 			} else if (EndOffset == RangeFieldOffset.BeforeFirstValue) {
 				sb.Append("BEFORE_FIRST_VALUE ");
 			}
-			sb.Append(EndValue.ToString());
+			sb.Append(EndValue.Value);
 			return sb.ToString();
 		}
 

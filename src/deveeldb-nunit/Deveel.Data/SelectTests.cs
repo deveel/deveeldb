@@ -63,11 +63,14 @@ namespace Deveel.Data {
 			table.AddRow(row);
 		}
 
+		private ITable Execute(string s) {
+			var query = (SqlQueryExpression)SqlExpression.Parse(s);
+			return Query.Select(query);
+		}
+
 		[Test]
 		public void AllColumns() {
-			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table");
-
-			var result = Query.Select(query);
+			var result = Execute("SELECT * FROM test_table");
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
@@ -90,9 +93,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void SelectAliasedWithGroupedExpression() {
-			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)");
-
-			var result = Query.Select(query);
+			var result = Execute("SELECT * FROM test_table t0 WHERE (t0.id = 1 AND t0.id <> 0)");
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
@@ -100,13 +101,26 @@ namespace Deveel.Data {
 
 		[Test]
 		public void SelectFromAliased() {
-			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table t0 WHERE t0.id = 1");
-
-			var result = Query.Select(query);
+			var result = Execute("SELECT * FROM test_table t0 WHERE t0.id = 1");
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
 
+		[Test]
+		public void WhereGreaterThan() {
+			var result = Execute("SELECT * FROM test_table WHERE id > 1");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void WhereSmallerThanOrEqual() {
+			var result = Execute("SELECT * FROM test_table WHERE id <= 1");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+		}
 	}
 }

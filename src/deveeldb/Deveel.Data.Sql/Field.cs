@@ -184,13 +184,20 @@ namespace Deveel.Data.Sql {
 		/// <inheritdoc/>
 		public bool Equals(Field other) {
 			if (ReferenceEquals(other, null))
-				return IsNull;
+				return false;
 
-			var result = IsEqualTo(other);
-			if (result.IsNull)
-				return IsNull;
+			if (!Type.Equals(other.Type))
+				return false;
 
-			return result.AsBoolean();
+			if ((ReferenceEquals(Value, null) || Value.IsNull) &&
+			    (ReferenceEquals(other.Value, null) || other.Value.IsNull))
+				return true;
+			if (ReferenceEquals(Value, null))
+				return false;
+			if (ReferenceEquals(other.Value, null))
+				return false;
+
+			return Value.Equals(other.Value);
 		}
 
 		/// <summary>
