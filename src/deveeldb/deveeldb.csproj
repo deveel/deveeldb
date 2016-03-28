@@ -191,6 +191,7 @@
     <Compile Include="Deveel.Data.Sql.Fluid\QueryConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AssignStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CastExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CurrentTimeFunctionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\NextSequenceValueNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />

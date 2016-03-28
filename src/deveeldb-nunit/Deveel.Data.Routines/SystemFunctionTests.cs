@@ -57,41 +57,5 @@ namespace Deveel.Data.Routines {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.Value.ToString());
 		}
-
-		[Test]
-		public void InvokeIntegerToString() {
-			var value = Field.Integer(455366);
-			var result = InvokeFunction("TOSTRING", value);
-
-			Assert.IsNotNull(result);
-			Assert.IsInstanceOf<StringType>(result.Type);
-
-			var stringResult = result.Value.ToString();
-			Assert.AreEqual("455366", stringResult);
-		}
-
-		[Test]
-		public void InvokeDateToString() {
-			var value = Field.Date(new SqlDateTime(2015, 02, 10));
-			Field result = null;
-			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
-			Assert.IsNotNull(result);
-			Assert.IsInstanceOf<StringType>(result.Type);
-
-			var stringResult = result.Value.ToString();
-			Assert.AreEqual("2015-02-10", stringResult);
-		}
-
-		[Test]
-		public void InvokeTimeStampToString_NoFormat() {
-			var value = Field.TimeStamp(new SqlDateTime(2015, 02, 10, 17, 15, 01,00));
-			Field result = null;
-			Assert.DoesNotThrow(() => result = InvokeFunction("TOSTRING", value));
-			Assert.IsNotNull(result);
-			Assert.IsInstanceOf<StringType>(result.Type);
-
-			var stringResult = result.Value.ToString();
-			Assert.AreEqual("2015-02-10T17:15:01.000 +00:00", stringResult);
-		}
 	}
 }

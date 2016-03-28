@@ -52,8 +52,18 @@ namespace Deveel.Data.Sql.Parser {
 				return VisitNextValueForExpression((NextSequenceValueNode) node);
 			if (node is CurrentTimeFunctionNode)
 				return VisitCurrentTimeFunctionExpression((CurrentTimeFunctionNode) node);
+			if (node is CastExpressionNode)
+				return VisitCastExpression((CastExpressionNode) node);
 
 			throw new NotSupportedException();
+		}
+
+		private static SqlFunctionCallExpression VisitCastExpression(CastExpressionNode node) {
+			// TODO: ExpressionBuilder does not support the ITypeResolver yet, so cast happens only to primitive types
+			var expression = Build(node.Expression);
+			var dataType = DataTypeBuilder.Build(null, node.DataType);
+			var dataTypeArg = SqlExpression.Constant(dataType.ToString());
+			return SqlExpression.FunctionCall("cast", new[] {expression, dataTypeArg});
 		}
 
 		private static SqlExpression VisitParameterReferenceExpression(SqlParameterReferenceNode node) {

@@ -132,6 +132,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\AssignStatementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\CastExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
