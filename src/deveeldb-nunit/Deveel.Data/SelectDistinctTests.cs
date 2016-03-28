@@ -57,7 +57,7 @@ namespace Deveel.Data {
 			var result = Execute("SELECT DISTINCT last_name FROM persons");
 
 			Assert.IsNotNull(result);
-			Assert.AreEqual(2, result.RowCount);
+			Assert.AreEqual(3, result.RowCount);
 		}
 
 		[Test]
