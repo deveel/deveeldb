@@ -21,7 +21,6 @@ using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Parser {
 	class ExpressionBuilder {
@@ -79,7 +78,9 @@ namespace Deveel.Data.Sql.Parser {
 
 		private static SqlExpression VisitQueryExpression(SqlQueryExpressionNode node) {
 			var selectColumns = GetSelectColumns(node);
-			var exp = new SqlQueryExpression(selectColumns);
+			var exp = new SqlQueryExpression(selectColumns) {
+				Distinct = node.IsDistinct
+			};
 
 			if (node.FromClause != null) {
 				SetFromClause(exp.FromClause, node.FromClause);

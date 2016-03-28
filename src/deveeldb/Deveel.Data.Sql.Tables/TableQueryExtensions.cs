@@ -674,8 +674,8 @@ namespace Deveel.Data.Sql.Tables {
 					bool equal = true;
 					// Compare cell in column in this row with previous row.
 					for (int n = 0; n < columns.Length && equal; ++n) {
-						var c1 = table.GetValue(columns[n], rowIndex);
-						var c2 = table.GetValue(columns[n], previousRow);
+						var c1 = table.GetValue(rowIndex, columns[n]);
+						var c2 = table.GetValue(previousRow, columns[n]);
 						equal = (c1.CompareTo(c2) == 0);
 					}
 

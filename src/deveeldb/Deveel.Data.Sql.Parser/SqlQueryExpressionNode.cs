@@ -25,9 +25,6 @@ namespace Deveel.Data.Sql.Parser {
 	/// from a set of sources defined, given some conditions specified.
 	/// </summary>
 	class SqlQueryExpressionNode : SqlNode, IExpressionNode {
-		internal SqlQueryExpressionNode() {
-		}
-
 		/// <summary>
 		/// Gets a boolean value indicating if the selection will return
 		/// all columns from the sources specified in <see cref="FromClause"/>.

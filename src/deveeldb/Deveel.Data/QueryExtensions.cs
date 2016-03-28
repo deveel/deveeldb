@@ -66,7 +66,7 @@ namespace Deveel.Data {
 
 		#region Execute
 
-		public static ITable[] Execute(this IQuery query, SqlQuery sqlQuery) {
+		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
 			if (sqlQuery == null)
 				throw new ArgumentNullException("sqlQuery");
 
@@ -93,10 +93,6 @@ namespace Deveel.Data {
 			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.AfterExecute, result));
 
 			return result;
-		}
-
-		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
-			return query.Execute(sqlQuery);
 		}
 
 		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource, params QueryParameter[] parameters) {
