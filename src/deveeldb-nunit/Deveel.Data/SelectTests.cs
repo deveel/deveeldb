@@ -124,6 +124,15 @@ namespace Deveel.Data {
 		}
 
 		[Test]
+		public void WhereGreaterThanOrEqual() {
+			var result = Execute("SELECT * FROM test_table WHERE id >= 2");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+
+		[Test]
 		public void WhereLikes_Start() {
 			var result = Execute("SELECT * FROM test_table WHERE first_name LIKE 'J%'");
 
@@ -153,6 +162,14 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
+		}
+
+		[Test]
+		public void WhereIsNotNull() {
+			var result = Execute("SELECT * FROM test_table WHERE first_name IS NOT NULL");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(3, result.RowCount);
 		}
 	}
 }

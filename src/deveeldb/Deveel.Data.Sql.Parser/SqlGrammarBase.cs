@@ -76,11 +76,11 @@ namespace Deveel.Data.Sql.Parser {
 			RegisterOperators(10, "*", "/", "%");
 			RegisterOperators(9, "+", "-");
 			RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=");
-			RegisterOperators(8, Key("LIKE"), Key("NOT") + Key("LIKE"), Key("IN"), Key("IS"), Key("IS") + Key("NOT"));
+			RegisterOperators(8, "IN", "IS", "LIKE");
 			RegisterOperators(7, "^", "&", "|");
-			RegisterOperators(6, Key("NOT"));
-			RegisterOperators(5, Key("AND"));
-			RegisterOperators(4, Key("OR"));
+			RegisterOperators(6, "NOT");
+			RegisterOperators(5, "AND");
+			RegisterOperators(4, "OR");
 		}
 
 		private void SetupGrammar() {
@@ -309,6 +309,7 @@ namespace Deveel.Data.Sql.Parser {
 			var binaryOp = new NonTerminal("binary_op");
 			var binaryOpSimple = new NonTerminal("binary_op_simple");
 			var logicalOp = new NonTerminal("logical_op");
+			var logicalOpSimple = new NonTerminal("logical_op_simple");
 			var subqueryOp = new NonTerminal("subquery_op");
 			var caseTestExpressionOpt = new NonTerminal("case_test_expression_opt");
 			var caseWhenThenList = new NonTerminal("case_when_then_list");
@@ -350,12 +351,13 @@ namespace Deveel.Data.Sql.Parser {
 			sqlUnaryExpression.Rule = unaryOp + term;
 			unaryOp.Rule = Key("NOT") | "+" | "-" | "~";
 			sqlBinaryExpression.Rule = sqlSimpleExpression + binaryOp + sqlSimpleExpression;
-			binaryOpSimple.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | ">" | "<" | "=" | "<>" | "<=" | ">=" | Key("LIKE") | Key("NOT") + Key("LIKE");
-			binaryOp.Rule = binaryOpSimple | allOp | anyOp | logicalOp | subqueryOp;
-			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") | Key("IS") + Key("NOT") | "&" | "|";
+			binaryOpSimple.Rule = ToTerm("+") | "-" | "*" | "/" | "%" ;
+			logicalOpSimple.Rule = ToTerm(">") | "<" | "=" | "<>" | "<=" | ">=";
+			binaryOp.Rule = binaryOpSimple | logicalOp | allOp | anyOp | subqueryOp;
+			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") + Key("NOT") | Key("IS") | Key("LIKE") | Key("NOT") + Key("LIKE") | logicalOpSimple;
 			subqueryOp.Rule = Key("IN") | Key("NOT") + Key("IN");
-			anyOp.Rule = Key("ANY") + binaryOpSimple;
-			allOp.Rule = Key("ALL") + binaryOpSimple;
+			anyOp.Rule = Key("ANY") + logicalOpSimple;
+			allOp.Rule = Key("ALL") + logicalOpSimple;
 			sqlBetweenExpression.Rule = sqlSimpleExpression + notOpt + Key("BETWEEN") + sqlSimpleExpression + Key("AND") +
 										sqlSimpleExpression;
 			sqlCaseExpression.Rule = Key("CASE") + caseTestExpressionOpt + caseWhenThenList + caseElseOpt + Key("END");
@@ -384,6 +386,7 @@ namespace Deveel.Data.Sql.Parser {
 			binaryOp.SetFlag(TermFlags.InheritPrecedence);
 			binaryOpSimple.SetFlag(TermFlags.InheritPrecedence);
 			logicalOp.SetFlag(TermFlags.InheritPrecedence);
+			logicalOpSimple.SetFlag(TermFlags.InheritPrecedence);
 			subqueryOp.SetFlag(TermFlags.InheritPrecedence);
 			unaryOp.SetFlag(TermFlags.InheritPrecedence);
 

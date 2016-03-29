@@ -273,7 +273,57 @@ namespace Deveel.Data.Sql.Parser {
 
 			var expType = GetBinaryExpressionType(op);
 
+			// in case of IS NOT simplify
+			if (expType == SqlExpressionType.Is &&
+			    right is SqlUnaryExpression) {
+				var unary = (SqlUnaryExpression) right;
+				if (unary.ExpressionType == SqlExpressionType.Not) {
+					expType = SqlExpressionType.IsNot;
+					right = unary.Operand;
+				}
+			}
+
+			if (expressionNode.IsAll) {
+				expType = MakeAll(expType);
+			} else if (expressionNode.IsAny) {
+				expType = MakeAny(expType);
+			}
+
 			return SqlExpression.Binary(left, expType, right);
+		}
+
+		private static SqlExpressionType MakeAll(SqlExpressionType binaryType) {
+			if (binaryType == SqlExpressionType.Equal)
+				return SqlExpressionType.AllEqual;
+			if (binaryType == SqlExpressionType.NotEqual)
+				return SqlExpressionType.AllNotEqual;
+			if (binaryType == SqlExpressionType.GreaterThan)
+				return SqlExpressionType.AllGreaterThan;
+			if (binaryType == SqlExpressionType.GreaterOrEqualThan)
+				return SqlExpressionType.AllGreaterOrEqualThan;
+			if (binaryType == SqlExpressionType.SmallerThan)
+				return SqlExpressionType.AllSmallerThan;
+			if (binaryType == SqlExpressionType.SmallerOrEqualThan)
+				return SqlExpressionType.AllGreaterOrEqualThan;
+
+			throw new NotSupportedException(String.Format("The operator '{0}' cannot be in ALL form", binaryType));
+		}
+
+		private static SqlExpressionType MakeAny(SqlExpressionType binaryType) {
+			if (binaryType == SqlExpressionType.Equal)
+				return SqlExpressionType.AnyEqual;
+			if (binaryType == SqlExpressionType.NotEqual)
+				return SqlExpressionType.AnyNotEqual;
+			if (binaryType == SqlExpressionType.GreaterThan)
+				return SqlExpressionType.AnyGreaterThan;
+			if (binaryType == SqlExpressionType.GreaterOrEqualThan)
+				return SqlExpressionType.AnyGreaterOrEqualThan;
+			if (binaryType == SqlExpressionType.SmallerThan)
+				return SqlExpressionType.AnySmallerThan;
+			if (binaryType == SqlExpressionType.SmallerOrEqualThan)
+				return SqlExpressionType.AnyGreaterOrEqualThan;
+
+			throw new NotSupportedException(String.Format("The operator '{0}' cannot be in ANY form", binaryType));
 		}
 
 		private static SqlExpressionType GetBinaryExpressionType(string op) {
@@ -321,7 +371,7 @@ namespace Deveel.Data.Sql.Parser {
 			if (String.Equals(op, "NOT IN", StringComparison.OrdinalIgnoreCase))
 				return SqlExpressionType.AllNotEqual;
 
-			throw new ArgumentException(String.Format("The operator {0} is not a binary one.", op));
+			throw new ArgumentException(String.Format("The operator '{0}' is not a binary one.", op));
 		}
 
 		private static SqlExpression VisitUnaryExpression(SqlUnaryExpressionNode expressionNode) {

@@ -19,6 +19,8 @@ using System;
 using System.Linq;
 using System.Text;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// Represents an expression that evaluates between two other expressions.
@@ -73,36 +75,28 @@ namespace Deveel.Data.Sql.Parser {
 
 		private void GetOperator(ISqlNode node) {
 			var childNode = node.ChildNodes.First();
-			if (childNode.NodeName == "binary_op_simple") {
-				GetBinaryOp(childNode);
-			} else if (childNode.NodeName == "logical_op") {
-				GetLogicalOp(childNode); 
+
+			if (childNode.NodeName == "logical_op" ||
+				childNode.NodeName == "logical_op_simple" ||
+				childNode.NodeName == "binary_op_simple" ||
+				childNode.NodeName == "subquery_op") {
+				GetOp(childNode); 
 			} else if (node.NodeName == "any_op" ||
 			           node.NodeName == "all_op") {
 				GetAnyAllOp(childNode);
-			} else if (childNode.NodeName == "subquery_op") {
-				GetLogicalOp(childNode);
 			}
 		}
 
-		private void GetLogicalOp(ISqlNode node) {
+		private void GetOp(ISqlNode node) {
 			var sb = new StringBuilder();
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
 					sb.Append(((SqlKeyNode) childNode).Text);
 					sb.Append(" ");
-				}
-			}
-
-			Operator = sb.ToString().Trim();
-		}
-
-		private void GetBinaryOp(ISqlNode node) {
-			var sb = new StringBuilder();
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is SqlKeyNode) {
-					sb.Append(((SqlKeyNode)childNode).Text);
-					sb.Append(" ");
+				} else if (childNode.NodeName == "logical_op_simple" ||
+				           childNode.NodeName == "binary_op_simple") {
+					GetOp(childNode);
+					return;
 				}
 			}
 
@@ -119,7 +113,7 @@ namespace Deveel.Data.Sql.Parser {
 					} else if (String.Equals(anyOrAll, "ANY", StringComparison.OrdinalIgnoreCase)) {
 						IsAny = true;
 					}
-				} else if (childNode.NodeName == "binary_op_simple") {
+				} else if (childNode.NodeName == "logical_op_simple") {
 					var op = childNode.ChildNodes.First();
 					sb.Append(((SqlKeyNode) op).Text);
 				}
