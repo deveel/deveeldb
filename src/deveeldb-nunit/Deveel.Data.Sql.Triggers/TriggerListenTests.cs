@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		protected override void OnSetUp(string testName) {
 			if (!testName.EndsWith("_NoTriggers")) {
-				// TODO: Create triggers
+				Query.Access.CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
 			}
 
 			base.OnSetUp(testName);
@@ -78,6 +78,24 @@ namespace Deveel.Data.Sql.Triggers {
 
 			Assert.IsNull(beforeEvent);
 			Assert.IsNull(afterEvent);
+		}
+
+		[Test]
+		public void Insert() {
+			var table = Query.Access.GetMutableTable(TestTableName);
+
+			Assert.IsNotNull(table);
+
+			var row = table.NewRow();
+			row.SetValue(0, 1);
+			row.SetValue(1, "Antonello");
+			row.SetValue(2, "Provenzano");
+
+			table.AddRow(row);
+			Query.Session.Commit();
+
+			Assert.IsNull(beforeEvent);
+			Assert.IsNotNull(afterEvent);
 		}
 	}
 }

@@ -20,7 +20,7 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Triggers {
-	public class TriggerEventRouter : IEventRouter {
+	public class TriggerEventRouter : ThreadedQueue<TriggerEvent>, IEventRouter {
 		public TriggerEventRouter(ISystemContext systemContext) {
 			if (systemContext == null)
 				throw new ArgumentNullException("systemContext");
@@ -29,6 +29,10 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public ISystemContext SystemContext { get; private set; }
+
+		protected override void Consume(TriggerEvent message) {
+			RouteEvent(message);
+		}
 
 		public bool CanRoute(IEvent @event) {
 			return @event is TriggerEvent;

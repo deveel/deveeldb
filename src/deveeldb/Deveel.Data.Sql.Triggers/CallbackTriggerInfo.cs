@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		internal bool CanFire(TableEvent tableEvent) {
 			return TableName.Equals(tableEvent.Table.FullName) &&
-			       (EventType & tableEvent.EventType) != 0;
+			       EventType == tableEvent.EventType;
 		}
 	}
 }
