@@ -202,6 +202,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalProcedureStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
@@ -297,7 +298,12 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerScope.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
@@ -649,14 +655,11 @@
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerBody.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventRouter.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />

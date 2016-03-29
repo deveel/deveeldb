@@ -21,19 +21,16 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Protocol {
 	public sealed class TriggerEventNotification : IMessage {
-		public TriggerEventNotification(string triggerName, string objectName, TriggerType triggerType, TriggerEventType eventType, int invokeCount) {
+		public TriggerEventNotification(string triggerName, string objectName, TriggerEventType eventType, int invokeCount) {
 			InvokeCount = invokeCount;
 			EventType = eventType;
 			ObjectName = objectName;
-			TriggerType = triggerType;
 			TriggerName = triggerName;
 		}
 
 		public string TriggerName { get; private set; }
 
 		public string ObjectName { get; private set; }
-
-		public TriggerType TriggerType { get; private set; }
 
 		public TriggerEventType EventType { get; private set; }
 

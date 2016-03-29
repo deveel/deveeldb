@@ -18,13 +18,17 @@
 using System;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public class SessionContext : Context, ISessionContext {
+	public class SessionContext : Context, ISessionContext, ITriggerScope {
+		private CallbackTriggerManager triggerManager;
+
 		public SessionContext(ITransactionContext transactionContext)
 			: base(transactionContext) {
 			EventRegistry = new EventRegistry(this);
+			triggerManager = new CallbackTriggerManager(this);
 		}
 
 		public ITransactionContext TransactionContext {
@@ -41,6 +45,14 @@ namespace Deveel.Data {
 		IEventRegistry IEventScope.EventRegistry {
 			get { return EventRegistry; }
 		}
+
+		ITriggerManager ITriggerScope.TriggerManager {
+			get { return triggerManager; }
+		}
+
+		void ITriggerScope.OnTriggerEvent(TriggerEvent @event) {
+			EventRegistry.RegisterEvent(@event);
+		}
 		
 		public IQueryContext CreateQueryContext() {
 			return new QueryContext(this);
@@ -48,11 +60,16 @@ namespace Deveel.Data {
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {
+				if (triggerManager != null)
+					triggerManager.Dispose();
+
 				if (EventRegistry != null)
 					EventRegistry.Dispose();
 			}
 
+			triggerManager = null;
 			EventRegistry = null;
+
 			base.Dispose(disposing);
 		}
 	}

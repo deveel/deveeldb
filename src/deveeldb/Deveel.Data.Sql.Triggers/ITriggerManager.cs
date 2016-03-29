@@ -16,10 +16,15 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Triggers {
-	public interface ITriggerManager : IObjectManager, IDisposable {
+	public interface ITriggerManager : IDisposable {
+		void CreateTrigger(ITriggerInfo triggerInfo);
+
+		bool DropTrigger(ObjectName triggerName);
+
+		bool TriggerExists(ObjectName triggerName);
+
 		void FireTriggers(IRequest context, TableEvent tableEvent);
 	}
 }

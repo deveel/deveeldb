@@ -44,7 +44,13 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.Request.Access.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
 
-			context.Request.Access.CreateCallbackTrigger(TableName, EventType);
+			// TODO: Make the trigger name configurable in the statement
+			var triggerName = String.Format("CALLBACK_{0}", TableName.FullName);
+
+			if (context.DirectAccess.TriggerExists(new ObjectName(triggerName)))
+				throw new StatementException();
+
+			context.Request.Access.CreateCallbackTrigger(triggerName, TableName, EventType);
 		}
 	}
 }

@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
@@ -42,5 +44,44 @@ namespace Deveel.Data.Sql.Statements {
 		public TriggerEventType EventType { get; private set; }
 
 		public PlSqlBlockStatement Body { get; private set; }
+
+		public bool ReplaceIfExists { get; set; }
+
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var body = Body;
+			if (body != null)
+				body = (PlSqlBlockStatement) body.Prepare(preparer);
+
+			return new CreateTriggerStatement(TriggerName, TableName, body, EventType);
+		}
+
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var schemaName = context.Access.ResolveSchemaName(TriggerName.ParentName);
+			var triggerName = new ObjectName(schemaName, TriggerName.Name);
+
+			var tableName = context.Access.ResolveTableName(TableName);
+
+			return new CreateTriggerStatement(triggerName, tableName, Body, EventType);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.User.CanCreateInSchema(TriggerName.ParentName))
+				throw new SecurityException(String.Format("The user '{0}' cannot create in schema '{1}'.", context.User.Name, TriggerName.ParentName));
+
+			if (!context.DirectAccess.TableExists(TableName))
+				throw new ObjectNotFoundException(TableName);
+
+			if (context.DirectAccess.ObjectExists(DbObjectType.Trigger, TriggerName)) {
+				if (!ReplaceIfExists)
+					throw new StatementException(String.Format("A trigger named '{0}' already exists.", TriggerName));
+
+				context.DirectAccess.DropObject(DbObjectType.Trigger, TriggerName);
+			}
+
+			var triggerInfo = new TriggerInfo(TriggerName, EventType, TableName) {Body = Body};
+
+			context.DirectAccess.CreateObject(triggerInfo);
+			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, Privileges.SchemaAll, true);
+		}
 	}
 }

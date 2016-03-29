@@ -208,7 +208,12 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerScope.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BinaryType.cs" />
@@ -768,7 +773,6 @@
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerBody.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventEventTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventInfo.cs" />
@@ -777,7 +781,6 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\IVariableScope.cs" />

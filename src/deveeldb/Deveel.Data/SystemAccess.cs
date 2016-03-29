@@ -164,7 +164,7 @@ namespace Deveel.Data {
 
 		public ObjectName ResolveSchemaName(string name) {
 			if (String.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
+				name = Session.CurrentSchema;
 
 			return ResolveObjectName(DbObjectType.Schema, new ObjectName(name));
 		}
@@ -479,6 +479,8 @@ namespace Deveel.Data {
 		#region Triggers
 
 		public void FireTriggers(IRequest context, TableEvent tableEvent) {
+			Session.Context.FireTriggers(context, tableEvent);
+
 			var manager = Session.Transaction.GetTriggerManager();
 			if (manager == null)
 				return;
@@ -490,13 +492,14 @@ namespace Deveel.Data {
 			CreateObject(triggerInfo);
 		}
 
-		public void CreateCallbackTrigger(ObjectName triggerName, TriggerEventType eventType) {
-			// TODO: Create it in the session context
-			CreateTrigger(new TriggerInfo(triggerName, eventType));
+		public void CreateCallbackTrigger(string triggerName, ObjectName tableName, TriggerEventType eventType) {
+			Session.Context.DeclareTrigger(new CallbackTriggerInfo(triggerName, tableName, eventType));
 		}
 
 		public bool TriggerExists(ObjectName triggerName) {
-			// TODO: verify the callback triggers
+			if (Session.Context.TriggerExists(triggerName.FullName))
+				return true;
+
 			return ObjectExists(DbObjectType.Trigger, triggerName);
 		}
 

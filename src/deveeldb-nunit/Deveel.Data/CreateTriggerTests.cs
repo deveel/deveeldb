@@ -2,6 +2,7 @@
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
@@ -41,6 +42,20 @@ namespace Deveel.Data {
 			Query.CreateCallbackTrigger(tableName, TriggerEventType.BeforeInsert);
 
 			// TODO: Assert a callback trigger exists for the table
+		}
+
+		[Test]
+		public void ProcedureTrigger_PlSql() {
+			var body = new PlSqlBlockStatement();
+			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] {SqlExpression.Constant("One row was inserted")}));
+			var triggerName = new ObjectName("trigger1");
+			var tableName = ObjectName.Parse("APP.test_table");
+
+			Query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterInsert);
+
+			var exists = Query.Access.TriggerExists(ObjectName.Parse("APP.trigger1"));
+
+			Assert.IsTrue(exists);
 		}
 	}
 }

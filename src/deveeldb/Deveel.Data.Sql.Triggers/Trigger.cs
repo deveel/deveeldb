@@ -66,15 +66,6 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		/// <summary>
-		/// Gets the type of the trigger, as defined in <see cref="TriggerInfo"/>
-		/// </summary>
-		/// <seealso cref="TriggerInfo"/>
-		/// <seealso cref="Triggers.TriggerInfo.TriggerType"/>
-		public TriggerType TriggerType {
-			get { return TriggerInfo.TriggerType; }
-		}
-
 		DbObjectType IDbObject.ObjectType {
 			get { return DbObjectType.Trigger; }
 		}
@@ -83,26 +74,18 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo.TriggerName; }
 		}
 
-		private void FireTrigger(IRequest context, TableEvent tableEvent) {
-			if (TriggerType == TriggerType.Callback) {
-				NotifyTriggerEvent(context, tableEvent);
-			} else {
-				ExecuteProcedure(context);
+		private void FireTrigger(IRequest context) {
+			if (TriggerInfo.Body != null) {
+				// TODO: pass the arguments
+				TriggerInfo.Body.Execute(new ExecutionContext(context, TriggerInfo.Body));
+			} else if (TriggerInfo.ExternalRef != null) {
+				throw new NotImplementedException();
+			} else if (TriggerInfo.ProcedureName != null) {
+				// TODO: pass the arguments
+				context.Call(TriggerInfo.ProcedureName);
 			}
 		}
 
-		private void ExecuteProcedure(IRequest context) {
-			throw new NotImplementedException();
-		}
-
-		private void NotifyTriggerEvent(IRequest context, TableEvent tableEvent) {
-			var tableName = tableEvent.Table.FullName;
-			var eventType = tableEvent.EventType;
-
-			var triggerEvent = new TriggerEvent(context.Query.Session, TriggerName, tableName, eventType, tableEvent.OldRowId,
-				tableEvent.NewRow);
-			// TODO: context.RegisterEvent(triggerEvent);
-		}
 
 		public bool CanInvoke(TableEvent context) {
 			if ((TriggerInfo.EventType & context.EventType) == 0)
@@ -126,12 +109,12 @@ namespace Deveel.Data.Sql.Triggers {
 				stateHandler.SetTableState(newState);
 
 				try {
-					FireTrigger(context, tableEvent);
+					FireTrigger(context);
 				} finally {
 					stateHandler.SetTableState(oldState);
 				}
 			} else {
-				FireTrigger(context, tableEvent);
+				FireTrigger(context);
 			}
 		}
 	}

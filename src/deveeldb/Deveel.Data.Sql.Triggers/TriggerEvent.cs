@@ -23,21 +23,18 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerEvent : Event {
-		internal TriggerEvent(IEventSource source, ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId oldRowId, Row newRow) {
+		internal TriggerEvent(ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (sourceName == null)
 				throw new ArgumentNullException("sourceName");
 
-			Source = source;
 			TriggerName = triggerName;
 			SourceName = sourceName;
 			TriggerEventType = eventType;
 			OldRowId = oldRowId;
 			NewRow = newRow;
 		}
-
-		private IEventSource Source { get; set; }
 
 		public ObjectName TriggerName { get; private set; }
 
