@@ -16,7 +16,9 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data;
@@ -651,6 +653,11 @@ namespace Deveel.Data.Sql {
 
 		public static Field Table(ITable table) {
 			return new Field(new TabularType(), SqlTabular.From(table));
+		}
+
+		public static Field Array(IEnumerable<SqlExpression> items) {
+			var array = items.ToArray();
+			return new Field(new ArrayType(array.Length), new SqlArray(array));
 		}
 
 		public static bool IsNullField(Field field) {

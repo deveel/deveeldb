@@ -171,5 +171,13 @@ namespace Deveel.Data {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.RowCount);
 		}
+
+		[Test]
+		public void WhereInArray() {
+			var result = Execute("SELECT * FROM test_table WHERE id IN (2, 3)");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
 	}
 }

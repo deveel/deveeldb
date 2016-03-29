@@ -305,6 +305,7 @@ namespace Deveel.Data.Sql.Parser {
 			var sqlReferenceExpression = new NonTerminal("sql_reference_expression", typeof(SqlReferenceExpressionNode));
 			var term = new NonTerminal("term");
 			var sqlSimpleExpression = new NonTerminal("sql_simple_expression");
+			var array = new NonTerminal("array", typeof(ArrayNode));
 			var unaryOp = new NonTerminal("unary_op");
 			var binaryOp = new NonTerminal("binary_op");
 			var binaryOpSimple = new NonTerminal("binary_op_simple");
@@ -323,6 +324,7 @@ namespace Deveel.Data.Sql.Parser {
 			var functionCallArgsList = new NonTerminal("function_call_args_list");
 			var notOpt = new NonTerminal("not_opt");
 			var grouped = new NonTerminal("grouped");
+			var groupedArg = new NonTerminal("grouped_arg");
 			var anyOp = new NonTerminal("any_op");
 			var allOp = new NonTerminal("all_op");
 
@@ -347,7 +349,9 @@ namespace Deveel.Data.Sql.Parser {
 			            grouped;
 			sqlParamRefExpression.Rule = Key("?");
 			sqlReferenceExpression.Rule = ObjectName();
-			grouped.Rule = ImplyPrecedenceHere(30) + "(" + sqlExpression + ")";
+			grouped.Rule = ImplyPrecedenceHere(30) + "(" + groupedArg + ")";
+			groupedArg.Rule = sqlExpression | SqlQueryExpression() | array;
+			array.Rule = MakePlusRule(array, Comma, term);
 			sqlUnaryExpression.Rule = unaryOp + term;
 			unaryOp.Rule = Key("NOT") | "+" | "-" | "~";
 			sqlBinaryExpression.Rule = sqlSimpleExpression + binaryOp + sqlSimpleExpression;
@@ -381,7 +385,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			sqlCastExpression.Rule = Key("CAST") + "(" + sqlExpression + Key("AS") + DataType() + ")";
 
-			MarkTransient(sqlExpression, term, sqlSimpleExpression, grouped, functionCallArgsOpt);
+			MarkTransient(sqlExpression, term, sqlSimpleExpression, grouped, groupedArg, functionCallArgsOpt);
 
 			binaryOp.SetFlag(TermFlags.InheritPrecedence);
 			binaryOpSimple.SetFlag(TermFlags.InheritPrecedence);

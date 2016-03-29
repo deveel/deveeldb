@@ -90,7 +90,7 @@ namespace Deveel.Data.Sql.Parser {
 				String.Equals("SETNULL", actionName, StringComparison.OrdinalIgnoreCase))
 				return ForeignKeyAction.SetNull;
 
-			throw new NotSupportedException();
+			throw new NotSupportedException(String.Format("The action '{0}' is not permitted in a foreign key", actionName));
 		}
 	}
 }

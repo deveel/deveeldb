@@ -48,6 +48,9 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is SqlParameterReferenceNode)
 				return VisitParameterReferenceExpression((SqlParameterReferenceNode) node);
 
+			if (node is ArrayNode)
+				return VisitArray((ArrayNode) node);
+
 			if (node is NextSequenceValueNode)
 				return VisitNextValueForExpression((NextSequenceValueNode) node);
 			if (node is CurrentTimeFunctionNode)
@@ -55,7 +58,16 @@ namespace Deveel.Data.Sql.Parser {
 			if (node is CastExpressionNode)
 				return VisitCastExpression((CastExpressionNode) node);
 
-			throw new NotSupportedException();
+			throw new NotSupportedException(String.Format("The node of type '{0}' is not and expression", node.GetType()));
+		}
+
+		private static SqlExpression VisitArray(ArrayNode node) {
+			var args = new List<SqlExpression>();
+			foreach (var item in node.Items) {
+				args.Add(Build(item));
+			}
+
+			return SqlExpression.Constant(Field.Array(args));
 		}
 
 		private static SqlFunctionCallExpression VisitCastExpression(CastExpressionNode node) {

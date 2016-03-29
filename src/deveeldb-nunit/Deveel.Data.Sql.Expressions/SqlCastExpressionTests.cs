@@ -190,9 +190,5 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.AreEqual(new SqlString("2015-02-03"), value.Value);
 		}
 
-		[Test]
-		public void CastNumberToString() {
-			Assert.Inconclusive();
-		}
 	}
 }
