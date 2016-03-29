@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Statements {
 				context.DirectAccess.DropObject(DbObjectType.Trigger, TriggerName);
 			}
 
-			var triggerInfo = new TriggerInfo(TriggerName, EventType, TableName) {Body = Body};
+			var triggerInfo = new PlSqlTriggerInfo(TriggerName, TableName, EventType, Body);
 
 			context.DirectAccess.CreateObject(triggerInfo);
 			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, Privileges.SchemaAll, true);

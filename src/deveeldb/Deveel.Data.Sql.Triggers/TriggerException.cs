@@ -19,38 +19,25 @@ using System;
 
 namespace Deveel.Data.Sql.Triggers {
 	public class TriggerException : SqlErrorException {
-		public TriggerException(Trigger trigger, Exception innerException)
-			: this(trigger, FormMessage(trigger), innerException) {
+		internal TriggerException(Trigger trigger, Exception innerException)
+			: this(FormMessage(trigger), innerException) {
 		}
 
-		public TriggerException(Trigger trigger, string message, Exception innerException)
+		public TriggerException(string message)
+			: this(message, null) {
+		}
+
+		public TriggerException(string message, Exception innerException)
 			: base(-1, message, innerException) {
-			TableName = trigger.TriggerInfo.TableName;
-			TriggerName = trigger.TriggerName;
-			EventType = trigger.TriggerInfo.EventType;
 		}
-
-		public TriggerException(Trigger trigger) 
-			: this(trigger, FormMessage(trigger)) {
-		}
-
-		public TriggerException(Trigger trigger, string message) 
-			: this(trigger, message, null) {
-		}
-
-		public ObjectName TableName { get; private set; }
-
-		public ObjectName TriggerName { get; private set; }
-
-		public TriggerEventType EventType { get; private set; }
 
 		private static string FormMessage(Trigger trigger) {
-			return FormMessage(trigger.TriggerInfo.TableName, trigger.TriggerName, trigger.TriggerInfo.EventType);
+			return FormMessage(trigger.TriggerInfo.TableName, trigger.TriggerInfo.TriggerName, trigger.TriggerInfo.EventTypes);
 		}
 
 		private static string FormMessage(ObjectName tableName, ObjectName triggerName, TriggerEventType eventType) {
-			return String.Format("An error occurred when firing trigger '{0}' on table '{1}' on {2}",
-				triggerName, tableName, eventType.AsString());
+			return String.Format("An error occurred when firing trigger '{0}' {1} on table '{2}'",
+				triggerName, eventType.AsString(), tableName);
 		}
 	}
 }

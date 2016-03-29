@@ -496,6 +496,10 @@ namespace Deveel.Data {
 			Session.Context.DeclareTrigger(new CallbackTriggerInfo(triggerName, tableName, eventType));
 		}
 
+		public bool DropCallbackTrigger(string triggerName) {
+			return Session.Context.DropTrigger(triggerName);
+		}
+
 		public bool TriggerExists(ObjectName triggerName) {
 			if (Session.Context.TriggerExists(triggerName.FullName))
 				return true;

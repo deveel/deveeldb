@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class CallbackTriggerManager : ITriggerManager {
-		private Dictionary<string, CallbackTriggerInfo> triggers;
+		private Dictionary<string, CallbackTrigger> triggers;
 		 
 		public CallbackTriggerManager(ITriggerScope scope) {
 			if (scope == null)
 				throw new ArgumentNullException("scope");
 
 			Scope = scope;
-			triggers = new Dictionary<string, CallbackTriggerInfo>();
+			triggers = new Dictionary<string, CallbackTrigger>();
 		}
 
 		~CallbackTriggerManager() {
@@ -33,12 +33,12 @@ namespace Deveel.Data.Sql.Triggers {
 			triggers = null;
 		}
 
-		void ITriggerManager.CreateTrigger(ITriggerInfo triggerInfo) {
+		void ITriggerManager.CreateTrigger(TriggerInfo triggerInfo) {
 			CreateTrigger((CallbackTriggerInfo) triggerInfo);
 		}
 
 		public void CreateTrigger(CallbackTriggerInfo triggerInfo) {
-			triggers[triggerInfo.TriggerName] = triggerInfo;
+			triggers[triggerInfo.TriggerName.FullName] = new CallbackTrigger(triggerInfo);
 		}
 
 		bool ITriggerManager.DropTrigger(ObjectName triggerName) {
@@ -60,8 +60,7 @@ namespace Deveel.Data.Sql.Triggers {
 		public void FireTriggers(IRequest context, TableEvent tableEvent) {
 			foreach (var trigger in triggers.Values) {
 				if (trigger.CanFire(tableEvent))
-					Scope.OnTriggerEvent(new TriggerEvent(new ObjectName(trigger.TriggerName), tableEvent.Table.FullName,
-						tableEvent.EventType, tableEvent.OldRowId, tableEvent.NewRow));
+					trigger.Fire(tableEvent, context);
 			}
 		}
 	}

@@ -36,9 +36,8 @@ namespace Deveel.Data.Sql.Triggers {
 		private bool cacheValid;
 		private List<Trigger> triggerCache;
 
-		private const int ProcedureType = 1;
-		private const int ExternalRef = 2;
-		private const int Trigger = 3;
+		private const int PlSqlType = 1;
+		private const int ProcedureType = 2;
 
 		public TriggerManager(ITransaction transaction) {
 			this.transaction = transaction;
@@ -101,7 +100,11 @@ namespace Deveel.Data.Sql.Triggers {
 				var list =  new List<Trigger>();
 				foreach (var row in table) {
 					var triggerInfo = FormTrigger(row);
-					list.Add(new Trigger(triggerInfo));
+					if (triggerInfo is PlSqlTriggerInfo) {
+						list.Add(new PlSqlTrigger((PlSqlTriggerInfo)triggerInfo));
+					} else if (triggerInfo is ProcedureTriggerInfo) {
+						list.Add(new ProcedureTrigger((ProcedureTriggerInfo)triggerInfo));
+					}
 				}
 
 				triggerCache = new List<Trigger>(list);
@@ -121,9 +124,8 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
 			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("external_ref", PrimitiveTypes.String());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
 			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
 			transaction.CreateTable(tableInfo);
 		}
 
@@ -254,30 +256,25 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		void ITriggerManager.CreateTrigger(ITriggerInfo triggerInfo) {
-			CreateTrigger((TriggerInfo)triggerInfo);
+		void ITriggerManager.CreateTrigger(TriggerInfo triggerInfo) {
+			CreateTrigger(triggerInfo);
 		}
 
 		public void CreateTrigger(TriggerInfo triggerInfo) {
 			if (!transaction.TableExists(SystemSchema.TriggerTableName))
 				return;
 
-			var args = new TriggerArgument(triggerInfo.Arguments.ToArray());
-			var binArgs = SerializeArguments(args);
-
 			var schema = triggerInfo.TriggerName.ParentName;
 			var name = triggerInfo.TriggerName.Name;
 			var onTable = triggerInfo.TableName.FullName;
 
-			var action = (int) triggerInfo.EventType;
+			var action = (int) triggerInfo.EventTypes;
 
 			int type;
-			if (triggerInfo.ProcedureName != null) {
+			if (triggerInfo is ProcedureTriggerInfo) {
 				type = ProcedureType;
-			} else if (triggerInfo.Body != null) {
-				type = Trigger;
-			} else if (triggerInfo.ExternalRef != null) {
-				type = ExternalRef;
+			} else if (triggerInfo is PlSqlTriggerInfo) {
+				type = PlSqlType;
 			} else {
 				throw new ArgumentException("The specified trigger info is invalid.");
 			}
@@ -292,17 +289,20 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(4, Field.Integer(action));
 
 			if (type == ProcedureType) {
-				var procedureName = triggerInfo.ProcedureName != null ? triggerInfo.ProcedureName.FullName : null;
+				var procInfo = (ProcedureTriggerInfo) triggerInfo;
+
+				var args = new TriggerArgument(procInfo.Arguments);
+				var binArgs = SerializeArguments(args);
+
+				var procedureName = procInfo.ProcedureName.FullName;
 				row.SetValue(5, Field.String(procedureName));
-			} else if (type == ExternalRef) {
-				var externalRef = triggerInfo.ExternalRef.ToString();
-				row.SetValue(6, Field.String(externalRef));
-			} else if (type == Trigger) {
-				var body = Field.Binary(SqlBinary.ToBinary(triggerInfo.Body));
+				row.SetValue(6, Field.Binary(binArgs));
+			} else if (type == PlSqlType) {
+				var plsqlInfo = (PlSqlTriggerInfo) triggerInfo;
+				var body = Field.Binary(SqlBinary.ToBinary(plsqlInfo.Body));
 				row.SetValue(7, body);
 			}
 
-			row.SetValue(8, Field.Binary(binArgs));
 			table.AddRow(row);
 
 			InvalidateTriggerCache();
@@ -338,7 +338,12 @@ namespace Deveel.Data.Sql.Triggers {
 				throw new InvalidOperationException(String.Format("More than one trigger found with name '{0}'.", triggerName));
 
 			var triggerInfo = FormTrigger(result.First());
-			return new Trigger(triggerInfo);
+			if (triggerInfo is PlSqlTriggerInfo)
+				return new PlSqlTrigger((PlSqlTriggerInfo)triggerInfo);
+			if (triggerInfo is ProcedureTriggerInfo)
+				return new ProcedureTrigger((ProcedureTriggerInfo)triggerInfo);
+
+			throw new InvalidOperationException();
 		}
 
 		private TriggerInfo FormTrigger(Row row) {
@@ -351,27 +356,28 @@ namespace Deveel.Data.Sql.Triggers {
 			var tableName = ObjectName.Parse(((SqlString) row.GetValue(3).Value).ToString());
 			var eventType = (TriggerEventType) ((SqlNumber) row.GetValue(4).Value).ToInt32();
 
-			var triggerInfo = new TriggerInfo(triggerName, eventType, tableName);
+			TriggerInfo triggerInfo;
 
 			if (triggerType == ProcedureType) {
-				var procName = row.GetValue(5).Value.ToString();
-				triggerInfo.ProcedureName = ObjectName.Parse(procName);
-			} else if (triggerType == ExternalRef) {
-				var extRef = row.GetValue(6).Value.ToString();
-				triggerInfo.ExternalRef = Routines.ExternalRef.Parse(extRef);
-			} else if (triggerType == Trigger) {
+				var procNameString = row.GetValue(5).Value.ToString();
+				var procName = ObjectName.Parse(procNameString);
+				var argsBinary = (SqlBinary)row.GetValue(6).Value;
+				var args = DeserializeArguments(argsBinary.ToByteArray());
+
+				triggerInfo = new ProcedureTriggerInfo(procName, tableName, eventType, procName);
+
+				if (args != null && args.Length > 0) {
+					foreach (var expression in args) {
+						((ProcedureTriggerInfo) triggerInfo).Arguments = args;
+					}
+				}
+			} else if (triggerType == PlSqlType) {
 				var binary = (SqlBinary) row.GetValue(7).Value;
 				var body = binary.ToObject<PlSqlBlockStatement>();
-				triggerInfo.Body = body;
-			}
 
-			var argsBinary = (SqlBinary) row.GetValue(8).Value;
-			var args = DeserializeArguments(argsBinary.ToByteArray());
-
-			if (args != null && args.Length > 0) {
-				foreach (var expression in args) {
-					triggerInfo.Arguments.Add(expression);
-				}
+				triggerInfo = new PlSqlTriggerInfo(triggerName, tableName, eventType, body);
+			} else {
+				throw new InvalidOperationException();
 			}
 
 			return triggerInfo;
@@ -389,8 +395,10 @@ namespace Deveel.Data.Sql.Triggers {
 
 			foreach (var trigger in triggerCache) {
 				try {
-					if (trigger.CanInvoke(tableEvent))
-						trigger.Invoke(context, tableEvent);
+					if (trigger.CanFire(tableEvent))
+						trigger.Fire(tableEvent, context);
+				} catch(TriggerException) {
+					throw;
 				} catch (Exception ex) {
 					throw new TriggerException(trigger, ex);
 				}

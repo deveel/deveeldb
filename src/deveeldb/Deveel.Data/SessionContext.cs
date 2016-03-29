@@ -49,10 +49,6 @@ namespace Deveel.Data {
 		ITriggerManager ITriggerScope.TriggerManager {
 			get { return triggerManager; }
 		}
-
-		void ITriggerScope.OnTriggerEvent(TriggerEvent @event) {
-			EventRegistry.RegisterEvent(@event);
-		}
 		
 		public IQueryContext CreateQueryContext() {
 			return new QueryContext(this);

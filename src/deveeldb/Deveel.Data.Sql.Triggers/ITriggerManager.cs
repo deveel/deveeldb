@@ -19,7 +19,7 @@ using System;
 
 namespace Deveel.Data.Sql.Triggers {
 	public interface ITriggerManager : IDisposable {
-		void CreateTrigger(ITriggerInfo triggerInfo);
+		void CreateTrigger(TriggerInfo triggerInfo);
 
 		bool DropTrigger(ObjectName triggerName);
 

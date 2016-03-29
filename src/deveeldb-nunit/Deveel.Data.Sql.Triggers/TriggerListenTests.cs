@@ -25,25 +25,32 @@ namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerListenTests : ContextBasedTest {
 		private static readonly ObjectName TestTableName = ObjectName.Parse("APP.test_table");
 
-		protected override IQuery CreateQuery(ISession session) {
-			var query = base.CreateQuery(session);
+		private TriggerEvent beforeEvent;
+		private TriggerEvent afterEvent;
+
+		private ISession testSession;
+		private IQuery testQuery;
+
+		protected override void OnSetUp(string testName) {
+			testSession = Database.CreateUserSession(AdminUserName, AdminPassword);
+			testQuery = testSession.CreateQuery();
+
+			// TODO: this is a bug: since the session is new, the table should not exist
+			if (testQuery.Access.TableExists(TestTableName))
+				testQuery.Access.DropObject(DbObjectType.Table, TestTableName);
 
 			var tableInfo = new TableInfo(TestTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 
-			query.Session.Access.CreateTable(tableInfo);
+			testQuery.Access.CreateTable(tableInfo);
 
-			return query;
-		}
+			if (!testName.EndsWith("_NoTriggers")) {
+				testQuery.Access.CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
+			}
 
-		private TriggerEvent beforeEvent;
-		private TriggerEvent afterEvent;
-
-		protected override ISystem CreateSystem() {
-			var system = base.CreateSystem();
-			system.Context.ListenTriggers(trigger => {
+			System.Context.ListenTriggers(trigger => {
 				if ((trigger.TriggerEventType & TriggerEventType.After) != 0) {
 					afterEvent = trigger;
 				} else if ((trigger.TriggerEventType & TriggerEventType.Before) != 0) {
@@ -51,38 +58,24 @@ namespace Deveel.Data.Sql.Triggers {
 				}
 			});
 
-			return system;
+			base.OnSetUp(testName);
 		}
 
-		protected override void OnSetUp(string testName) {
-			if (!testName.EndsWith("_NoTriggers")) {
-				Query.Access.CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
-			}
+		protected override void OnTearDown() {
+			beforeEvent = null;
+			afterEvent = null;
 
-			base.OnSetUp(testName);
+			if (testQuery != null)
+				testQuery.Dispose();
+			if (testSession != null) {
+				testSession.Rollback();
+				testSession.Dispose();
+			}
 		}
 
 		[Test]
 		public void Insert_NoTriggers() {
-			var table = Query.Access.GetMutableTable(TestTableName);
-
-			Assert.IsNotNull(table);
-
-			var row = table.NewRow();
-			row.SetValue(0, 1);
-			row.SetValue(1, "Antonello");
-			row.SetValue(2, "Provenzano");
-
-			Assert.DoesNotThrow(() => table.AddRow(row));
-			Assert.DoesNotThrow(() => Query.Session.Commit());
-
-			Assert.IsNull(beforeEvent);
-			Assert.IsNull(afterEvent);
-		}
-
-		[Test]
-		public void Insert() {
-			var table = Query.Access.GetMutableTable(TestTableName);
+			var table = testQuery.Access.GetMutableTable(TestTableName);
 
 			Assert.IsNotNull(table);
 
@@ -92,7 +85,25 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(2, "Provenzano");
 
 			table.AddRow(row);
-			Query.Session.Commit();
+			testQuery.Session.Commit();
+
+			Assert.IsNull(beforeEvent);
+			Assert.IsNull(afterEvent);
+		}
+
+		[Test]
+		public void Insert() {
+			var table = testQuery.Access.GetMutableTable(TestTableName);
+
+			Assert.IsNotNull(table);
+
+			var row = table.NewRow();
+			row.SetValue(0, 1);
+			row.SetValue(1, "Antonello");
+			row.SetValue(2, "Provenzano");
+
+			table.AddRow(row);
+			testQuery.Session.Commit();
 
 			Assert.IsNull(beforeEvent);
 			Assert.IsNotNull(afterEvent);
