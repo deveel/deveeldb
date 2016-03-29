@@ -350,9 +350,9 @@ namespace Deveel.Data.Sql.Parser {
 			sqlUnaryExpression.Rule = unaryOp + term;
 			unaryOp.Rule = Key("NOT") | "+" | "-" | "~";
 			sqlBinaryExpression.Rule = sqlSimpleExpression + binaryOp + sqlSimpleExpression;
-			binaryOpSimple.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | ">" | "<" | "=" | "<>" | "<=" | ">=";
+			binaryOpSimple.Rule = ToTerm("+") | "-" | "*" | "/" | "%" | ">" | "<" | "=" | "<>" | "<=" | ">=" | Key("LIKE") | Key("NOT") + Key("LIKE");
 			binaryOp.Rule = binaryOpSimple | allOp | anyOp | logicalOp | subqueryOp;
-			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") | Key("IS") + Key("NOT") + "&" | "|";
+			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") | Key("IS") + Key("NOT") | "&" | "|";
 			subqueryOp.Rule = Key("IN") | Key("NOT") + Key("IN");
 			anyOp.Rule = Key("ANY") + binaryOpSimple;
 			allOp.Rule = Key("ALL") + binaryOpSimple;

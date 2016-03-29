@@ -650,7 +650,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 
 			// if (op.is("like")) {
-			return table.Search(column, ob.ToString());
+			return table.Search(column, ob.Value.ToString());
 		}
 
 		public static ITable EmptySelect(this ITable table) {

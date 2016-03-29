@@ -122,5 +122,13 @@ namespace Deveel.Data {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
 		}
+
+		[Test]
+		public void WhereLikes_Start() {
+			var result = Execute("SELECT * FROM test_table WHERE first_name LIKE 'J%'");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
 	}
 }
