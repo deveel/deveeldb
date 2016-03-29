@@ -74,8 +74,7 @@ namespace Deveel.Data.Sql.Parser {
 		private void GetOperator(ISqlNode node) {
 			var childNode = node.ChildNodes.First();
 			if (childNode.NodeName == "binary_op_simple") {
-				var op = childNode.ChildNodes.First();
-				Operator = ((SqlKeyNode) op).Text;
+				GetBinaryOp(childNode);
 			} else if (childNode.NodeName == "logical_op") {
 				GetLogicalOp(childNode); 
 			} else if (node.NodeName == "any_op" ||
@@ -91,6 +90,18 @@ namespace Deveel.Data.Sql.Parser {
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
 					sb.Append(((SqlKeyNode) childNode).Text);
+					sb.Append(" ");
+				}
+			}
+
+			Operator = sb.ToString().Trim();
+		}
+
+		private void GetBinaryOp(ISqlNode node) {
+			var sb = new StringBuilder();
+			foreach (var childNode in node.ChildNodes) {
+				if (childNode is SqlKeyNode) {
+					sb.Append(((SqlKeyNode)childNode).Text);
 					sb.Append(" ");
 				}
 			}

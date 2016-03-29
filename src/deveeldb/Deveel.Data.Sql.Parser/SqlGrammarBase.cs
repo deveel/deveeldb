@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Parser {
 			RegisterOperators(10, "*", "/", "%");
 			RegisterOperators(9, "+", "-");
 			RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=");
-			RegisterOperators(8, Key("LIKE"), Key("IN"), Key("IS"), Key("IS") + Key("NOT"));
+			RegisterOperators(8, Key("LIKE"), Key("NOT") + Key("LIKE"), Key("IN"), Key("IS"), Key("IS") + Key("NOT"));
 			RegisterOperators(7, "^", "&", "|");
 			RegisterOperators(6, Key("NOT"));
 			RegisterOperators(5, Key("AND"));

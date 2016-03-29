@@ -631,7 +631,7 @@ namespace Deveel.Data.Sql.Tables {
 				//     add to the result list.
 				//   Result is the set of not like rows ordered by the column.
 
-				var likeSet = (List<int>)table.Search(column, ob.ToString());
+				var likeSet = (List<int>)table.Search(column, ob.Value.ToString());
 				// Don't include NULL values
 				var nullCell = Field.Null(ob.Type);
 				IList<int> originalSet = table.SelectRows(column, SqlExpressionType.IsNot, nullCell).ToList();
