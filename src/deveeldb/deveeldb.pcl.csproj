@@ -517,7 +517,6 @@
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IAggregateFunctionConfiguration.cs" />
-    <Compile Include="Deveel.Data.Sql.Fluid\IConfigurationContext.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IFromQueryConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IFromSourceConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IFromTableConfiguration.cs" />
