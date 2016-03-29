@@ -77,7 +77,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static IFunction ResolveFunction(this FunctionProvider resolver, IQuery query, string name, SqlExpression[] args) {
-			var funName = new ObjectName(new ObjectName(resolver.SchemaName), name);
+			var funName = new ObjectName(name);
 			var routine = ((IRoutineResolver) resolver).ResolveRoutine(new Invoke(funName, args), query);
 			if (!(routine is IFunction))
 				throw new InvalidOperationException();

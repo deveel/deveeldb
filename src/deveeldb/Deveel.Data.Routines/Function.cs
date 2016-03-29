@@ -46,18 +46,6 @@ namespace Deveel.Data.Routines {
 			FunctionInfo = functionInfo;
 		}
 
-		protected Function(ObjectName name, RoutineParameter[] parameters, FunctionType functionType) 
-			: this(name, parameters, null, functionType) {
-		}
-
-		protected Function(ObjectName name, RoutineParameter[] parameters, SqlType returnType) 
-			: this(name, parameters, returnType, FunctionType.Static) {
-		}
-
-		protected Function(ObjectName name, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType)
-			: this(new FunctionInfo(name, parameters, returnType, functionType)) {
-		}
-
 		public FunctionType FunctionType {
 			get { return FunctionInfo.FunctionType; }
 		}

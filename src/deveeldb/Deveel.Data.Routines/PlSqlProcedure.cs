@@ -17,25 +17,23 @@
 
 using System;
 
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Routines {
-	/// <summary>
-	/// The form of a database stored <c>PROCEDURE</c>.
-	/// </summary>
-	public enum ProcedureType {
-		/// <summary>
-		/// A procedure that requires no state to be executed.
-		/// </summary>
-		Static = 1,
+	public sealed class PlSqlProcedure : Procedure {
+		public PlSqlProcedure(PlSqlProcedureInfo procedureInfo) 
+			: base(procedureInfo) {
+		}
 
-		/// <summary>
-		/// A stored procedure defined by a user.
-		/// </summary>
-		UserDefined = 2,
+		public PlSqlBlockStatement Body {
+			get { return ((PlSqlProcedureInfo) ProcedureInfo).Body; }
+		}
 
-		/// <summary>
-		/// An external program that is only referenced by the
-		/// procedure information.
-		/// </summary>
-		External = 3
+		public override InvokeResult Execute(InvokeContext context) {
+			var execContext = new ExecutionContext(context.Request, Body);
+			Body.Execute(execContext);
+			return new InvokeResult(context);
+		}
 	}
 }

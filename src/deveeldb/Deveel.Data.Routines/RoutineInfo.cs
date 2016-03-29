@@ -33,7 +33,7 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <param name="routineName">The name uniquely identifying the routine.</param>
 		protected RoutineInfo(ObjectName routineName) 
-			: this(routineName, new RoutineParameter[] {}) {
+			: this(routineName, new RoutineParameter[0]) {
 		}
 
 		/// <summary>
@@ -72,10 +72,6 @@ namespace Deveel.Data.Routines {
 		/// Gets an array of parameters for the routine.
 		/// </summary>
 		public RoutineParameter[] Parameters { get; private set; }
-
-		public ExternalRef ExternalRef { get; set; }
-
-		public PlSqlBlockStatement Body { get; set; }
 
 		public string Owner { get; set; }
 

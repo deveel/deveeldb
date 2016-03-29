@@ -70,10 +70,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			ExternalRef externRef;
 			if (!ExternalRef.TryParse(ExternalReference, out externRef))
-				throw new FormatException(String.Format("The external reference '{0}' is not valid."));
+				throw new FormatException(String.Format("The external reference '{0}' is not valid.", ExternalReference));
 
-			var functionInfo = new FunctionInfo(FunctionName, parameters, ReturnType, FunctionType.UserDefined) {
-				ExternalRef = externRef,
+			var functionInfo = new ExternalFunctionInfo(FunctionName, parameters, ReturnType, externRef) {
 				Owner = context.User.Name
 			};
 

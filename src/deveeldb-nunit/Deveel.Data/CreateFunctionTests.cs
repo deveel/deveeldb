@@ -27,10 +27,10 @@ namespace Deveel.Data {
 
 			var function = Query.Access.GetObject(DbObjectType.Routine, funName);
 			Assert.IsNotNull(function);
-			Assert.IsInstanceOf<UserFunction>(function);
+			Assert.IsInstanceOf<PlSqlFunction>(function);
 
-			var userFunction = (UserFunction) function;
-			Assert.IsNotNull(userFunction.FunctionInfo.Body);
+			var userFunction = (PlSqlFunction) function;
+			Assert.IsNotNull(userFunction.Body);
 		}
 
 		[Test]
@@ -54,8 +54,8 @@ namespace Deveel.Data {
 			Assert.IsInstanceOf<ExternalFunction>(function);
 
 			var externFunction = (ExternalFunction) function;
-			Assert.IsNotNull(externFunction.FunctionInfo.ExternalRef);
-			Assert.AreEqual(typeof(Test), externFunction.FunctionInfo.ExternalRef.Type);
+			Assert.IsNotNull(externFunction.ExternalRef);
+			Assert.AreEqual(typeof(Test), externFunction.ExternalRef.Type);
 		}
 
 		static class Test {

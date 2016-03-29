@@ -23,29 +23,14 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
-	public sealed class ProcedureInfo : RoutineInfo {
-		public ProcedureInfo(ObjectName routineName) 
-			: this(routineName, ProcedureType.Static) {
-		}
-
-		public ProcedureInfo(ObjectName routineName, ProcedureType procedureType) 
-			: this(routineName, procedureType, new RoutineParameter[0]) {
-		}
-
+	public abstract class ProcedureInfo : RoutineInfo {
 		public ProcedureInfo(ObjectName routineName, RoutineParameter[] parameters) 
-			: this(routineName, ProcedureType.Static, parameters) {
-		}
-
-		public ProcedureInfo(ObjectName routineName, ProcedureType procedureType, RoutineParameter[] parameters) 
 			: base(routineName, parameters) {
-			ProcedureType = procedureType;
 		}
 
 		public override RoutineType RoutineType {
 			get { return RoutineType.Procedure; }
 		}
-
-		public ProcedureType ProcedureType { get; private set; }
 
 		internal override bool MatchesInvoke(Invoke invoke, IRequest request) {
 			if (invoke == null)

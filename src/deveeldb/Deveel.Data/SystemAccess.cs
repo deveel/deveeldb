@@ -906,12 +906,11 @@ namespace Deveel.Data {
 		#region Routines
 
 		public bool IsSystemFunction(Invoke invoke, IRequest request) {
-			var info = ResolveFunctionInfo(invoke, request);
-			if (info == null)
+			var function = ResolveFunction(invoke, request);
+			if (function == null)
 				return false;
 
-			return info.FunctionType != FunctionType.External &&
-				   info.FunctionType != FunctionType.UserDefined;
+			return function is ISystemFunction;
 		}
 
 		public bool IsAggregateFunction(Invoke invoke, IRequest request) {

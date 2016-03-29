@@ -22,11 +22,11 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Fluid {
 	public interface IFunctionConfiguration {
-		IFunctionConfiguration Named(ObjectName name);
+		IFunctionConfiguration Named(string name);
 
 		IFunctionConfiguration OfType(FunctionType functionType);
 
-		IFunctionConfiguration WithAlias(ObjectName alias);
+		IFunctionConfiguration WithAlias(string alias);
 
 		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
 

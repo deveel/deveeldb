@@ -56,9 +56,6 @@ namespace Deveel.Data.Routines {
 		/// result is dependent on some other state (a random seed and a 
 		/// sequence value).
 		/// </remarks>
-		StateBased = 3,
-
-		UserDefined = 4,
-		External = 5
+		StateBased = 3
 	}
 }

@@ -23,17 +23,19 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	public sealed class ExternalFunction : Function {
-		public ExternalFunction(FunctionInfo functionInfo) 
+		public ExternalFunction(ExternalFunctionInfo functionInfo) 
 			: base(functionInfo) {
-			if (functionInfo.FunctionType != FunctionType.External)
-				throw new ArgumentException("The information specified are not pointing to any external function.");
-
 			functionInfo.ExternalRef.CheckReference(functionInfo);
 		}
+
+		public ExternalRef ExternalRef {
+			get { return ((ExternalFunctionInfo) FunctionInfo).ExternalRef; }
+		}
+
 		public override InvokeResult Execute(InvokeContext context) {
 			var args = context.EvaluatedArguments;
 
-			var method = FunctionInfo.ExternalRef.GetMethod();
+			var method = ExternalRef.GetMethod();
 
 			var methodArgs = ConvertArguments(method, context.Request, args);
 			var result = method.Invoke(null, methodArgs);
@@ -83,7 +85,7 @@ namespace Deveel.Data.Routines {
 		public override SqlType ReturnType(InvokeContext context) {
 			var returnType = FunctionInfo.ReturnType;
 			if (returnType == null) {
-				var methodReturnType = FunctionInfo.ExternalRef.GetMethod().ReturnType;
+				var methodReturnType = ExternalRef.GetMethod().ReturnType;
 				returnType = PrimitiveTypes.FromType(methodReturnType);
 			}
 

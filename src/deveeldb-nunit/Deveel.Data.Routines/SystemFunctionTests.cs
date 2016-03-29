@@ -38,7 +38,7 @@ namespace Deveel.Data.Routines {
 			IFunction function = null;
 			Assert.DoesNotThrow(() => function = Query.Session.Access.ResolveFunction(Query, new ObjectName("user")));
 			Assert.IsNotNull(function);
-			Assert.AreEqual(SystemSchema.Name, function.FullName.ParentName);
+			Assert.IsNull(function.FullName.ParentName);
 			Assert.AreEqual("user", function.FullName.Name);
 		}
 
@@ -47,7 +47,7 @@ namespace Deveel.Data.Routines {
 			var function = Query.Session.Access.ResolveFunction(Query, ObjectName.Parse("SYSTEM.user"));
 
 			Assert.IsNotNull(function);
-			Assert.AreEqual(SystemSchema.Name, function.FullName.ParentName);
+			Assert.IsNull(function.FullName.ParentName);
 			Assert.AreEqual("user", function.FullName.Name);
 		}
 

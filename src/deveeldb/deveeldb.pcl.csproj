@@ -113,12 +113,20 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ThreadedQueue.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\ExternalProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalRef.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeContext.cs" />
     <Compile Include="Deveel.Data.Routines\InvokeResult.cs" />
+    <Compile Include="Deveel.Data.Routines\ISystemFunction.cs" />
+    <Compile Include="Deveel.Data.Routines\PlSqlFunction.cs" />
+    <Compile Include="Deveel.Data.Routines\PlSqlFunctionInfo.cs" />
+    <Compile Include="Deveel.Data.Routines\PlSqlProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\Procedure.cs" />
-    <Compile Include="Deveel.Data.Routines\UserProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\PlSqlProcedure.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunction.cs" />
+    <Compile Include="Deveel.Data.Routines\SystemFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\KnownUserIdentifications.cs" />
@@ -405,7 +413,6 @@
     <Compile Include="Deveel.Data.Protocol\ServerError.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerCreateRequest.cs" />
     <Compile Include="Deveel.Data.Protocol\TriggerEventNotification.cs" />
-    <Compile Include="Deveel.Data.Routines\AggregateFunction.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunction.cs" />
     <Compile Include="Deveel.Data.Routines\Function.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionExtensions.cs" />
@@ -423,7 +430,6 @@
     <Compile Include="Deveel.Data.Routines\ParameterAttributes.cs" />
     <Compile Include="Deveel.Data.Routines\ParameterDirection.cs" />
     <Compile Include="Deveel.Data.Routines\ProcedureInfo.cs" />
-    <Compile Include="Deveel.Data.Routines\ProcedureType.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineInfo.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
@@ -436,7 +442,6 @@
     <Compile Include="Deveel.Data.Routines\SystemFunctionsProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />
-    <Compile Include="Deveel.Data.Routines\UserFunction.cs" />
     <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\Grant.cs" />
     <Compile Include="Deveel.Data.Security\IHashFunction.cs" />

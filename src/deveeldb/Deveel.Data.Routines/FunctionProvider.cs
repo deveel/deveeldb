@@ -28,7 +28,7 @@ using Deveel.Data.Sql.Types;
 using DryIoc;
 
 namespace Deveel.Data.Routines {
-	public abstract class FunctionProvider : IRoutineResolver, IConfigurationContext, IDisposable {
+	public abstract class FunctionProvider : IRoutineResolver, IDisposable {
 		private Container container;
 
 		protected FunctionProvider() {
@@ -40,27 +40,17 @@ namespace Deveel.Data.Routines {
 			Dispose(false);
 		}
 
-		public abstract string SchemaName { get; }
-
 		private void CallInit() {
 			OnInit();
 		}
 
 		protected abstract void OnInit();
 
-		protected virtual ObjectName NormalizeName(ObjectName name) {
-			var parentName = name.Parent;
-			if (parentName == null)
-				return null;
-
-			return name;
-		}
-
-		protected void Register(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, SqlType> returnType) {
+		protected void Register(SystemFunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, SqlType> returnType) {
 			Register(functionInfo, body, null, returnType);
 		}
 
-		protected void Register(FunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, Field, Field> afterAggregate, Func<InvokeContext, SqlType> returnType) {
+		protected void Register(SystemFunctionInfo functionInfo, Func<InvokeContext, InvokeResult> body, Func<InvokeContext, Field, Field> afterAggregate, Func<InvokeContext, SqlType> returnType) {
 			if (afterAggregate != null &&
 				functionInfo.FunctionType != FunctionType.Aggregate)
 				throw new ArgumentException("Cannot specify an after-aggregation on non-aggregate function.");
@@ -94,13 +84,12 @@ namespace Deveel.Data.Routines {
 		}
 
 		public IFunction ResolveFunction(Invoke invoke, IRequest request) {
-			var name = NormalizeName(invoke.RoutineName);
+			var name = invoke.RoutineName.Name;
 
-			if (name == null ||
-				!name.ParentName.Equals(SchemaName))
+			if (name == null)
 				return null;
 
-			var functionName = name.FullName.ToUpperInvariant();
+			var functionName = name.ToUpperInvariant();
 			var functions = container.ResolveMany<IFunction>(serviceKey:functionName).ToArrayOrSelf();
 			if (functions.Length == 0)
 				return null;
@@ -202,7 +191,7 @@ namespace Deveel.Data.Routines {
 		class FunctionConfiguration : IRoutineConfiguration, IAggregateFunctionConfiguration {
 			private readonly FunctionProvider provider;
 			private readonly Dictionary<string, RoutineParameter> parameters;
-			private List<ObjectName> aliases;
+			private List<string> aliases;
 
 			public FunctionConfiguration(FunctionProvider provider) {
 				this.provider = provider;
@@ -218,17 +207,17 @@ namespace Deveel.Data.Routines {
 
 			public Func<InvokeContext, Field, Field> AfterAggregate { get; private set; } 
 
-			public FunctionInfo[] FunctionInfo {
+			public SystemFunctionInfo[] FunctionInfo {
 				get {
-					var result = new List<FunctionInfo> { new FunctionInfo(FunctionName, parameters.Values.ToArray(), FunctionType) };
+					var result = new List<SystemFunctionInfo> { new SystemFunctionInfo(FunctionName, parameters.Values.ToArray(), FunctionType) };
 					if (aliases != null && aliases.Count > 0)
-						result.AddRange(aliases.Select(name => new FunctionInfo(name, parameters.Values.ToArray(), FunctionType)));
+						result.AddRange(aliases.Select(name => new SystemFunctionInfo(name, parameters.Values.ToArray(), FunctionType)));
 
 					return result.ToArray();
 				}
 			}
 
-			public ObjectName FunctionName { get; private set; }
+			public string FunctionName { get; private set; }
 
 			public RoutineParameter[] Parameters {
 				get { return parameters.Values.ToArray(); }
@@ -242,15 +231,9 @@ namespace Deveel.Data.Routines {
 				return parameters.Values.Any(x => x.IsUnbounded);
 			}
 
-			public IFunctionConfiguration Named(ObjectName name) {
+			public IFunctionConfiguration Named(string name) {
 				if (name == null)
 					throw new ArgumentNullException("name");
-
-				var parent = name.ParentName;
-
-				if (!provider.SchemaName.Equals(parent))
-					throw new ArgumentException(String.Format(
-						"The parent name ({0}) is not valid in this provider schema context ({1})", parent, provider.SchemaName));
 
 				FunctionName = name;
 				return this;
@@ -261,20 +244,15 @@ namespace Deveel.Data.Routines {
 				return this;
 			}
 
-			public IFunctionConfiguration WithAlias(ObjectName alias) {
+			public IFunctionConfiguration WithAlias(string alias) {
 				if (alias == null)
 					throw new ArgumentNullException("alias");
 
 				if (FunctionName == null)
 					throw new ArgumentException("The function has no name configured and cannot be aliased.");
 
-				var parent = alias.ParentName;
-
-				if (!provider.SchemaName.Equals(parent))
-					throw new ArgumentException();
-
 				if (aliases == null)
-					aliases = new List<ObjectName>();
+					aliases = new List<string>();
 
 				aliases.Add(alias);
 
@@ -310,10 +288,6 @@ namespace Deveel.Data.Routines {
 			public IAggregateFunctionConfiguration OnAfterAggregate(Func<InvokeContext, Field, Field> afterAggregate) {
 				AfterAggregate = afterAggregate;
 				return this;
-			}
-
-			public IConfigurationContext Context {
-				get { return provider; }
 			}
 		}
 

@@ -27,37 +27,12 @@ namespace Deveel.Data.Routines {
 	/// a function within a context.
 	/// </summary>
 	/// <seealso cref="RoutineInfo"/>
-	public sealed class FunctionInfo : RoutineInfo {
-		/// <summary>
-		/// Constructs a <see cref="FunctionInfo"/> without arguments.
-		/// </summary>
-		/// <param name="routineName">The name of the function.</param>
-		/// <param name="functionType">The type of function this</param>
-		public FunctionInfo(ObjectName routineName, FunctionType functionType) 
-			: this(routineName, (SqlType)null, functionType) {
-		}
-
-		public FunctionInfo(ObjectName routineName, SqlType returnType) 
-			: this(routineName, returnType, FunctionType.Static) {
-		}
-
+	public abstract class FunctionInfo : RoutineInfo {
 		public FunctionInfo(ObjectName routineName, SqlType returnType, FunctionType functionType) 
 			: base(routineName) {
 			ReturnType = returnType;
 			FunctionType = functionType;
 			AssertUnboundAtEnd();
-		}
-
-		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters) 
-			: this(routineName, parameters, FunctionType.Static) {
-		}
-
-		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, FunctionType functionType) 
-			: this(routineName, parameters, null, functionType) {
-		}
-
-		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, SqlType returnType) 
-			: this(routineName, parameters, returnType, FunctionType.Static) {
 		}
 
 		public FunctionInfo(ObjectName routineName, RoutineParameter[] parameters, SqlType returnType, FunctionType functionType) 

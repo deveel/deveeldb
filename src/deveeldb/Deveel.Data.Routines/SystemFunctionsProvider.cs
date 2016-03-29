@@ -28,17 +28,6 @@ using Deveel.Math;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {
-		public override string SchemaName {
-			get { return SystemSchema.Name; }
-		}
-
-		protected override ObjectName NormalizeName(ObjectName functionName) {
-			if (functionName.Parent == null)
-				return new ObjectName(new ObjectName(SchemaName), functionName.Name);
-
-			return base.NormalizeName(functionName);
-		}
-
 		#region Utils
 
 		private InvokeResult Simple(InvokeContext context, Func<Field[], Field> func) {
@@ -203,9 +192,9 @@ namespace Deveel.Data.Routines {
 
 		#region DistinctCount
 
-		class DistinctCountFucntion : Function {
+		class DistinctCountFucntion : SystemFunction {
 			public DistinctCountFucntion()
-				: base(new ObjectName(SystemSchema.SchemaName, "distinct_count"),
+				: base("distinct_count",
 					new[] { new RoutineParameter("args", Function.DynamicType, ParameterAttributes.Unbounded) }, PrimitiveTypes.Integer(),
 					FunctionType.Aggregate) {
 			}

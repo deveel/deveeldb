@@ -87,8 +87,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (Parameters != null)
 				parameters = Parameters.ToArray();
 
-			var functionInfo = new FunctionInfo(FunctionName, parameters, ReturnType, FunctionType.UserDefined) {
-				Body = Body,
+			var functionInfo = new PlSqlFunctionInfo(FunctionName, parameters, ReturnType, Body) {
 				Owner = context.User.Name
 			};
 

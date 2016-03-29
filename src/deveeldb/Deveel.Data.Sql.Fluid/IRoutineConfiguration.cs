@@ -19,6 +19,5 @@ using System;
 
 namespace Deveel.Data.Sql.Fluid {
 	interface IRoutineConfiguration {
-		IConfigurationContext Context { get; }
 	}
 }

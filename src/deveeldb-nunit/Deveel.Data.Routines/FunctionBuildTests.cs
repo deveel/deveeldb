@@ -63,10 +63,6 @@ namespace Deveel.Data.Routines {
 		#region Factory1
 
 		class Factory1 : FunctionProvider {
-			public override string SchemaName {
-				get { return "APP"; }
-			}
-
 			protected override void OnInit() {
 				Register(config => config.Named("user2")
 					.ReturnsType(PrimitiveTypes.String())
@@ -79,10 +75,6 @@ namespace Deveel.Data.Routines {
 		#region Factory2
 
 		class Factory2 : FunctionProvider {
-			public override string SchemaName {
-				get { return "APP"; }
-			}
-
 			protected override void OnInit() {
 				Register(config => config.Named("add2")
 					.WithNumericParameter("a")

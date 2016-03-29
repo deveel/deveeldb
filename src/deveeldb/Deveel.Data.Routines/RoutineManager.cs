@@ -132,20 +132,20 @@ namespace Deveel.Data.Routines {
 		public void CreateRoutine(RoutineInfo routineInfo) {
 			string routineType = null;
 
-			if (routineInfo.Body != null) {
-				if (routineInfo.RoutineType == RoutineType.Function) {
-					routineType = FunctionType;
-				} else if (routineInfo.RoutineType == RoutineType.Procedure) {
-					routineType = ProcedureType;
-				}
-			} else if (routineInfo.ExternalRef != null) {
-				if (routineInfo.RoutineType == RoutineType.Function) {
+			if (routineInfo is FunctionInfo) {
+				if (routineInfo is ExternalFunctionInfo) {
 					routineType = ExtrernalFunctionType;
-				} else if (routineInfo.RoutineType == RoutineType.Procedure) {
+				} else if (routineInfo is PlSqlFunctionInfo) {
+					routineType = FunctionType;
+				}
+			} else if (routineInfo is ProcedureInfo) {
+				if (routineInfo is PlSqlProcedureInfo) {
+					routineType = ProcedureType;
+				} else if (routineInfo is ExternalProcedureInfo) {
 					routineType = ExternalProcedureType;
 				}
 			} else {
-				throw new ArgumentException("The routine info is invalid.");
+				throw new ArgumentException();
 			}
 
 			if (String.IsNullOrEmpty(routineType))
@@ -162,12 +162,21 @@ namespace Deveel.Data.Routines {
 			row.SetValue(2, routineInfo.RoutineName.Name);
 			row.SetValue(3, routineType);
 
-			if (routineType == ExternalProcedureType ||
-			    routineType == ExtrernalFunctionType) {
-				var location = routineInfo.ExternalRef.ToString();
+			if (routineType == ExternalProcedureType) {
+				var extProcedure = (ExternalProcedureInfo)routineInfo;
+				var location = extProcedure.ExternalRef.ToString();
 				row.SetValue(4, location);
-			} else {
-				var bin = SqlBinary.ToBinary(routineInfo.Body);
+			} else if (routineType == ExtrernalFunctionType) {
+				var extFunction = (ExternalFunctionInfo) routineInfo;
+				var location = extFunction.ExternalRef.ToString();
+				row.SetValue(4, location);
+			} else if (routineType == ProcedureType) {
+				var plsqlProcedure = (PlSqlProcedureInfo) routineInfo;
+				var bin = SqlBinary.ToBinary(plsqlProcedure.Body);
+				row.SetValue(5, bin);
+			} else if (routineType == FunctionType) {
+				var plsqlFunction = (PlSqlFunctionInfo) routineInfo;
+				var bin = SqlBinary.ToBinary(plsqlFunction.Body);
 				row.SetValue(5, bin);
 			}
 
@@ -273,46 +282,51 @@ namespace Deveel.Data.Routines {
 
 			RoutineInfo info;
 
+			SqlType returnType = null;
+
 			if (routineType == FunctionType ||
 				routineType == ExtrernalFunctionType) {
-				var returnType = transaction.Context.ResolveType(returnTypeString);
-				var funcType = routineType == FunctionType ? Routines.FunctionType.UserDefined : Routines.FunctionType.External;
-				info = new FunctionInfo(fullName, parameters, returnType, funcType);
-			} else if (routineType == ProcedureType ||
+				returnType = transaction.Context.ResolveType(returnTypeString);
+			}
+
+			PlSqlBlockStatement body = null;
+			ExternalRef externalRef = null;
+
+			if (routineType == FunctionType ||
+			    routineType == ProcedureType) {
+				var bodyBin = (SqlBinary)t.GetValue(0, 5).Value;
+				body = bodyBin.ToObject<PlSqlBlockStatement>();
+			} else if (routineType == ExtrernalFunctionType ||
 			           routineType == ExternalProcedureType) {
-				var procType = routineType == ExternalProcedureType
-					? Routines.ProcedureType.External
-					: Routines.ProcedureType.UserDefined;
-				info = new ProcedureInfo(fullName, procType, parameters);
+				var location = t.GetValue(0, 4).Value.ToString();
+
+				if (!ExternalRef.TryParse(location, out externalRef))
+					throw new InvalidOperationException(String.Format("The location stored for function '{0}' is invalid: {1}.",
+						routineName, location));
+			}
+
+			if (routineType == FunctionType) {
+				info = new PlSqlFunctionInfo(fullName, parameters, returnType, body);				
+			} else if (routineType == ProcedureType) {
+				info = new PlSqlProcedureInfo(fullName, parameters, body);
+			} else if (routineType == ExtrernalFunctionType) {
+				info = new ExternalFunctionInfo(fullName, parameters, returnType, externalRef);
+			} else if (routineType == ExternalProcedureType) {
+				info = new ExternalProcedureInfo(fullName, parameters, externalRef);
 			} else {
 				throw new InvalidOperationException(String.Format("Invalid routine type '{0}' found in database", routineType));
 			}
 
 			info.Owner = owner;
 
-			if (routineType == ExternalProcedureType ||
-			    routineType == ExtrernalFunctionType) {
-				var location = t.GetValue(0, 4).Value.ToString();
-
-				ExternalRef externRef;
-				if (!ExternalRef.TryParse(location, out externRef))
-					throw new InvalidOperationException(String.Format("The location stored for function '{0}' is invalid: {1}.",
-						routineName, location));
-
-				info.ExternalRef = externRef;
-			} else {
-				var bodyBin = (SqlBinary) t.GetValue(0, 5).Value;
-				info.Body = bodyBin.ToObject<PlSqlBlockStatement>();
-			}
-
-			if (routineType == ExternalProcedureType)
-				return new ExternalProcedure((ProcedureInfo) info);
-			if (routineType == ExtrernalFunctionType)
-				return new ExternalFunction((FunctionInfo) info);
-			if (routineType == FunctionType)
-				return new UserFunction((FunctionInfo)info);
-			if (routineType == ProcedureType)
-				return new UserProcedure((ProcedureInfo) info);
+			if (info is PlSqlFunctionInfo)
+				return new PlSqlFunction((PlSqlFunctionInfo)info);
+			if (info is PlSqlProcedureInfo)
+				return new PlSqlProcedure((PlSqlProcedureInfo)info);
+			if (info is ExternalFunctionInfo)
+				return new ExternalFunction((ExternalFunctionInfo)info);
+			if (info is ExternalProcedureInfo)
+				return new ExternalProcedure((ExternalProcedureInfo)info);
 
 			throw new InvalidOperationException();
 		}

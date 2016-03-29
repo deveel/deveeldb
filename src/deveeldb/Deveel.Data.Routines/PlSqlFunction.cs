@@ -18,23 +18,22 @@
 using System;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public sealed class UserFunction : Function {
-		public UserFunction(FunctionInfo functionInfo) 
+	public sealed class PlSqlFunction : Function {
+		public PlSqlFunction(PlSqlFunctionInfo functionInfo) 
 			: base(functionInfo) {
-			AssertHasBody();
 		}
 
-		private void AssertHasBody() {
-			if (FunctionInfo.Body == null)
-				throw new InvalidOperationException(String.Format("The user function {0} has no body.", FunctionName));
+		public PlSqlBlockStatement Body {
+			get { return ((PlSqlFunctionInfo) FunctionInfo).Body; }
 		}
 
 		public override InvokeResult Execute(InvokeContext context) {
-			var execContext = new ExecutionContext(context.Request, FunctionInfo.Body);
-			FunctionInfo.Body.Execute(execContext);
+			var execContext = new ExecutionContext(context.Request, Body);
+			Body.Execute(execContext);
 
 			if (!execContext.HasResult)
 				throw new InvalidOperationException("The execution of the function has no returns");
