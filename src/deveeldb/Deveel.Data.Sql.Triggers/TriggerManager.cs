@@ -216,7 +216,23 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			// TODO: implement!!!
+			var table = transaction.GetTable(SystemSchema.ViewTableName);
+
+			var schemaName = objName.ParentName;
+			var name = objName.Name;
+			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+			foreach (var row in table) {
+				var schemaValue = row.GetValue(0).Value.ToString();
+				var nameValue = row.GetValue(1).Value.ToString();
+
+				if (!String.Equals(name, nameValue, comparison) ||
+					!String.Equals(schemaName, schemaValue, comparison))
+					continue;
+
+				return new ObjectName(ObjectName.Parse(schemaValue), nameValue);
+			}
+
 			return null;
 		}
 
