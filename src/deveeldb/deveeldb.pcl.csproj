@@ -176,7 +176,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalProcedureStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
@@ -206,6 +205,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\GoToStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IDeclarationStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IPlSqlStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
@@ -220,6 +220,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResultType.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTrigger.cs" />
