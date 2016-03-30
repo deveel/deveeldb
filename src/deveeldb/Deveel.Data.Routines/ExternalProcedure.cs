@@ -27,6 +27,10 @@ namespace Deveel.Data.Routines {
 			procedureInfo.ExternalRef.CheckReference(procedureInfo);
 		}
 
+		public ExternalRef ExternalRef {
+			get { return ((ExternalProcedureInfo) ProcedureInfo).ExternalRef; }
+		}
+
 		public override InvokeResult Execute(InvokeContext context) {
 			throw new NotImplementedException();
 		}

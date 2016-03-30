@@ -54,5 +54,28 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(selectInto.Reference);
 			Assert.IsInstanceOf<SqlTupleExpression>(selectInto.Reference);
 		}
+
+		[Test]
+		public void SelectIntoMultipleVariables() {
+			const string sql = "SELECT a, b INTO :a, :b FROM test_table";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectIntoStatement>(statement);
+
+			var selectInto = (SelectIntoStatement)statement;
+			Assert.IsNotNull(selectInto);
+			Assert.IsNotNull(selectInto.QueryExpression);
+			Assert.IsNotNull(selectInto.Reference);
+			Assert.IsInstanceOf<SqlTupleExpression>(selectInto.Reference);
+		}
 	}
 }

@@ -75,6 +75,9 @@ namespace Deveel.Data {
 			var sqlSouce = sqlQuery.Text;
 			var compiler = query.Context.SqlCompiler();
 
+			if (compiler == null)
+				compiler = new SqlDefaultCompiler();
+
 			var compileResult = compiler.Compile(new SqlCompileContext(query.Context, sqlSouce));
 
 			if (compileResult.HasErrors) {
@@ -555,6 +558,44 @@ namespace Deveel.Data {
 			query.ExecuteStatement(new CreateProcedureStatement(procedureName, parameters, body) {
 				ReplaceIfExists = replace
 			});
+		}
+
+		public static void CreateOrReplaceProcedure(this IQuery query, ObjectName procedureName, PlSqlBlockStatement body) {
+			CreateOrReplaceProcedure(query, procedureName, null, body);
+		}
+
+		public static void CreateOrReplaceProcedure(this IQuery query, ObjectName procedureName,
+			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			query.CreateProcedure(procedureName, parameters, body, true);
+		}
+
+		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName, string externalRef, bool replace) {
+			CreateExternProcedure(query, procedureName, null, externalRef, replace);
+		}
+
+		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName, string externalRef) {
+			CreateExternProcedure(query, procedureName, null, externalRef);
+		}
+
+		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName,
+			IEnumerable<RoutineParameter> parameters, string externalRef) {
+			CreateExternProcedure(query, procedureName, parameters, externalRef, false);
+		}
+
+		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName,
+			IEnumerable<RoutineParameter> parameters, string externalRef, bool replace) {
+			query.ExecuteStatement(new CreateExternalProcedureStatement(procedureName, parameters, externalRef) {
+				ReplaceIfExists = replace
+			});
+		}
+
+		public static void CreateOrReplaceExternProcedure(this IQuery query, ObjectName procedureName, string externalRef) {
+			CreateOrReplaceExternProcedure(query, procedureName, null, externalRef);
+		}
+
+		public static void CreateOrReplaceExternProcedure(this IQuery query, ObjectName procedureName,
+			IEnumerable<RoutineParameter> parameters, string externalRef) {
+			query.CreateExternProcedure(procedureName, parameters, externalRef, true);
 		}
 
 		#endregion

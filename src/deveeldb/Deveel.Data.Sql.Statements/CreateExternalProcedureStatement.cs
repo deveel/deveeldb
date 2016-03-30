@@ -17,8 +17,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateExternalProcedureStatement : SqlStatement {
@@ -44,5 +47,43 @@ namespace Deveel.Data.Sql.Statements {
 		public bool ReplaceIfExists { get; set; }
 
 		public string ExternalReference { get; private set; }
+
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			return base.PrepareExpressions(preparer);
+		}
+
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var schemaName = context.Access.ResolveSchemaName(ProcedureName.ParentName);
+			var functionName = new ObjectName(schemaName, ProcedureName.Name);
+
+			return new CreateExternalProcedureStatement(functionName, Parameters, ExternalReference);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.User.CanCreateInSchema(ProcedureName.ParentName))
+				throw new SecurityException();
+
+			if (context.DirectAccess.RoutineExists(ProcedureName)) {
+				if (!ReplaceIfExists)
+					throw new StatementException(String.Format("A routine named '{0}' already exists in the database.", ProcedureName));
+
+				context.DirectAccess.DeleteRoutine(ProcedureName);
+			}
+
+			var parameters = new RoutineParameter[0];
+			if (Parameters != null)
+				parameters = Parameters.ToArray();
+
+			ExternalRef externRef;
+			if (!ExternalRef.TryParse(ExternalReference, out externRef))
+				throw new FormatException(String.Format("The external reference '{0}' is not valid.", ExternalReference));
+
+			var functionInfo = new ExternalProcedureInfo(ProcedureName, parameters, externRef) {
+				Owner = context.User.Name
+			};
+
+			context.DirectAccess.CreateRoutine(functionInfo);
+			context.DirectAccess.GrantOn(DbObjectType.Routine, ProcedureName, context.User.Name, Privileges.Execute, true);
+		}
 	}
 }
