@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Cursors;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class UpdateFromCursorStatement : SqlStatement, IPlSqlStatement {
@@ -43,26 +42,6 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName), "The source cursor was not found.");
 
-			var tableName = context.Access.ResolveTableName(TableName);
-			if (tableName == null)
-				throw new ObjectNotFoundException(TableName);
-
-			var table = context.Access.GetMutableTable(tableName);
-			if (table == null)
-				throw new ObjectNotFoundException(tableName);
-
-			var columns = table.TableInfo.Select(x => new ObjectName(tableName, x.ColumnName));
-
-			var queryExpression = cursor.QueryExpression;
-			var queryFrom = QueryExpressionFrom.Create(context, queryExpression);
-			
-			var assignments = new List<SqlColumnAssignment>();
-			foreach (var column in columns) {
-				// TODO:
-			}
-
-			// TODO: get the columns from the table and the columns exposed by the cursor
-			//       and then make a set of assignments
 			throw new NotImplementedException();
 		}
 

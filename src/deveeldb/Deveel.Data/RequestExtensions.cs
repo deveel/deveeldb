@@ -390,6 +390,14 @@ namespace Deveel.Data {
 			request.ExecuteStatement(new SelectIntoStatement(query, reference));
 		}
 
+		public static void SelectInto(this IRequest request, SqlQueryExpression query, params string[] variableNames) {
+			request.SelectInto(query, SqlExpression.Tuple(variableNames.Select(SqlExpression.VariableReference).Cast<SqlExpression>().ToArray()));
+		}
+
+		public static void SelectInto(this IRequest request, SqlQueryExpression query, ObjectName tableName) {
+			request.SelectInto(query, SqlExpression.Reference(tableName));
+		}
+
 		#endregion
 
 		#region Show
