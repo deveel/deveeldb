@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Parser {
 			RegisterOperators(10, "*", "/", "%");
 			RegisterOperators(9, "+", "-");
 			RegisterOperators(8, "=", ">", "<", ">=", "<=", "<>", "!=");
-			RegisterOperators(8, "IN", "IS", "LIKE");
+			RegisterOperators(8, "IN", "IS", "LIKE", "ANY", "ALL");
 			RegisterOperators(7, "^", "&", "|");
 			RegisterOperators(6, "NOT");
 			RegisterOperators(5, "AND");
@@ -215,7 +215,12 @@ namespace Deveel.Data.Sql.Parser {
 			return list;
 		}
 
+		//private NonTerminal queryExpression;
+
 		protected NonTerminal SqlQueryExpression() {
+			//if (queryExpression != null)
+			//	return queryExpression;
+
 			var selectIntoOpt = new NonTerminal("select_into_opt");
 			var selectIntoArgs = new NonTerminal("select_into_args");
 			var selectSet = new NonTerminal("select_set");
@@ -239,11 +244,11 @@ namespace Deveel.Data.Sql.Parser {
 			var havingClauseOpt = new NonTerminal("having_clause_opt");
 			var queryCompositeOpt = new NonTerminal("query_composite_opt");
 			var queryComposite = new NonTerminal("query_composite", typeof(QueryCompositeNode));
-			var expression = new NonTerminal("sql_query_expression", typeof(SqlQueryExpressionNode));
+			var queryExpression = new NonTerminal("sql_query_expression", typeof(SqlQueryExpressionNode));
 			var allOpt = new NonTerminal("all_opt");
 			var asOpt = new NonTerminal("as_opt");
 
-			expression.Rule = Key("SELECT") + selectRestrictOpt +
+			queryExpression.Rule = Key("SELECT") + selectRestrictOpt +
 							  selectSet +
 							  selectIntoOpt +
 							  fromClauseOpt +
@@ -266,7 +271,7 @@ namespace Deveel.Data.Sql.Parser {
 			fromSource.Rule = fromTableSource |
 			                  fromQuerySource;
 			fromTableSource.Rule = ObjectName() + selectAsOpt;
-			fromQuerySource.Rule = "(" + expression + ")" + selectAsOpt;
+			fromQuerySource.Rule = "(" + queryExpression + ")" + selectAsOpt;
 
 			joinOpt.Rule = Empty | join;
 			join.Rule = joinType + fromSource + onOpt;
@@ -283,15 +288,15 @@ namespace Deveel.Data.Sql.Parser {
 			groupBy.Rule = Key("GROUP") + Key("BY") + SqlExpressionList() + havingClauseOpt;
 			havingClauseOpt.Rule = Empty | Key("HAVING") + SqlExpression();
 			queryCompositeOpt.Rule = Empty | queryComposite;
-			queryComposite.Rule = Key("UNION") + allOpt + expression |
-								   Key("INTERSECT") + allOpt + expression |
-								   Key("EXCEPT") + allOpt + expression;
+			queryComposite.Rule = Key("UNION") + allOpt + queryExpression |
+								   Key("INTERSECT") + allOpt + queryExpression |
+								   Key("EXCEPT") + allOpt + queryExpression;
 			allOpt.Rule = Empty | Key("ALL");
 			asOpt.Rule = Empty | As;
 
 			MarkTransient(selectSource);
 
-			return expression;
+			return queryExpression;
 		}
 
 		protected NonTerminal SqlExpression() {
@@ -362,8 +367,8 @@ namespace Deveel.Data.Sql.Parser {
 			binaryOp.Rule = binaryOpSimple | logicalOp | allOp | anyOp | subqueryOp;
 			logicalOp.Rule = Key("AND") | Key("OR") | Key("IS") + Key("NOT") | Key("IS") | Key("LIKE") | Key("NOT") + Key("LIKE") | logicalOpSimple;
 			subqueryOp.Rule = Key("IN") | Key("NOT") + Key("IN");
-			anyOp.Rule = Key("ANY") + logicalOpSimple;
-			allOp.Rule = Key("ALL") + logicalOpSimple;
+			anyOp.Rule = logicalOpSimple + Key("ANY");
+			allOp.Rule = logicalOpSimple + Key("ALL");
 			sqlBetweenExpression.Rule = sqlSimpleExpression + notOpt + Key("BETWEEN") + sqlSimpleExpression + Key("AND") +
 										sqlSimpleExpression;
 			sqlCaseExpression.Rule = Key("CASE") + caseTestExpressionOpt + caseWhenThenList + caseElseOpt + Key("END");
@@ -395,6 +400,8 @@ namespace Deveel.Data.Sql.Parser {
 			logicalOpSimple.SetFlag(TermFlags.InheritPrecedence);
 			subqueryOp.SetFlag(TermFlags.InheritPrecedence);
 			unaryOp.SetFlag(TermFlags.InheritPrecedence);
+			allOp.SetFlag(TermFlags.InheritPrecedence);
+			anyOp.SetFlag(TermFlags.InheritPrecedence);
 
 			return sqlExpression;
 		}

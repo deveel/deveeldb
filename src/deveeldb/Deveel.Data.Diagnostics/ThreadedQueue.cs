@@ -126,8 +126,15 @@ namespace Deveel.Data.Diagnostics {
 
 		private void RouteMessages() {
 			while (route) {
+#if !PCL
+				try {
+					reset.WaitOne();
+				} catch (ThreadInterruptedException) {
+					return;
+				}
+#else
 				reset.WaitOne();
-
+#endif
 				TMessage message;
 
 				lock (((ICollection) messageQueue).SyncRoot) {

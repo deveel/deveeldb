@@ -184,5 +184,21 @@ namespace Deveel.Data {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
 		}
+
+		[Test]
+		public void WhereBetween() {
+			var result = Execute("SELECT * FROM test_table WHERE id BETWEEN 1 AND 2");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void WhereAnyGreater() {
+			var result = Execute("SELECT * FROM test_table WHERE id > ANY (1 ,2)");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
 	}
 }

@@ -76,50 +76,57 @@ namespace Deveel.Data.Sql.Parser {
 		private void GetOperator(ISqlNode node) {
 			var childNode = node.ChildNodes.First();
 
-			if (childNode.NodeName == "logical_op" ||
-				childNode.NodeName == "logical_op_simple" ||
-				childNode.NodeName == "binary_op_simple" ||
-				childNode.NodeName == "subquery_op") {
-				GetOp(childNode); 
-			} else if (node.NodeName == "any_op" ||
-			           node.NodeName == "all_op") {
-				GetAnyAllOp(childNode);
-			}
+			Operator = GetOp(childNode);
 		}
 
-		private void GetOp(ISqlNode node) {
+		private string GetOp(ISqlNode node) {
 			var sb = new StringBuilder();
+
 			foreach (var childNode in node.ChildNodes) {
 				if (childNode is SqlKeyNode) {
-					sb.Append(((SqlKeyNode) childNode).Text);
-					sb.Append(" ");
+					var keyNode = (SqlKeyNode) childNode;
+
+					if (String.Equals(keyNode.Text, "ALL", StringComparison.OrdinalIgnoreCase)) {
+						IsAll = true;
+					} else if (String.Equals(keyNode.Text, "ANY", StringComparison.OrdinalIgnoreCase)) {
+						IsAny = true;
+					} else {
+						if (sb.Length > 0)
+							sb.Append(" ");
+
+						sb.Append(keyNode.Text);
+					}
 				} else if (childNode.NodeName == "logical_op_simple" ||
 				           childNode.NodeName == "binary_op_simple") {
-					GetOp(childNode);
-					return;
+
+					var value = GetOp(childNode);
+					if (sb.Length > 0)
+						sb.Append(" ");
+
+					sb.Append(value);
 				}
 			}
 
-			Operator = sb.ToString().Trim();
+			return sb.ToString();
 		}
 
-		private void GetAnyAllOp(ISqlNode node) {
-			var sb = new StringBuilder();
-			foreach (var childNode in node.ChildNodes) {
-				if (childNode is SqlKeyNode) {
-					var anyOrAll = ((SqlKeyNode) childNode).Text;
-					if (String.Equals(anyOrAll, "ALL", StringComparison.OrdinalIgnoreCase)) {
-						IsAll = true;
-					} else if (String.Equals(anyOrAll, "ANY", StringComparison.OrdinalIgnoreCase)) {
-						IsAny = true;
-					}
-				} else if (childNode.NodeName == "logical_op_simple") {
-					var op = childNode.ChildNodes.First();
-					sb.Append(((SqlKeyNode) op).Text);
-				}
-			}
+		//private void GetAnyAllOp(ISqlNode node) {
+		//	var sb = new StringBuilder();
+		//	foreach (var childNode in node.ChildNodes) {
+		//		if (childNode is SqlKeyNode) {
+		//			var anyOrAll = ((SqlKeyNode) childNode).Text;
+		//			if (String.Equals(anyOrAll, "ALL", StringComparison.OrdinalIgnoreCase)) {
+		//				IsAll = true;
+		//			} else if (String.Equals(anyOrAll, "ANY", StringComparison.OrdinalIgnoreCase)) {
+		//				IsAny = true;
+		//			}
+		//		} else if (childNode.NodeName == "logical_op_simple") {
+		//			var op = childNode.ChildNodes.First();
+		//			sb.Append(((SqlKeyNode) op).Text);
+		//		}
+		//	}
 
-			Operator = sb.ToString();
-		}
+		//	Operator = sb.ToString();
+		//}
 	}
 }

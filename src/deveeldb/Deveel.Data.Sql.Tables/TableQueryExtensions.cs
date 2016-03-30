@@ -520,7 +520,7 @@ namespace Deveel.Data.Sql.Tables {
 						var array = (SqlArray) tob.Value;
 						list = array;
 					} else {
-						throw new Exception("Error with format or RHS expression.");
+						throw new Exception("The right side of a sub-query operator must be a tuple or a sub-query.");
 					}
 				} else {
 					list = ((SqlTupleExpression) exp).Expressions;
