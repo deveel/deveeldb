@@ -18,6 +18,7 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
@@ -123,6 +124,20 @@ namespace Deveel.Data.Security {
 				return false;
 
 			return roles.Any(role => role.CanManageSchema());
+		}
+
+		// TODO: this should not be needed to be overridden
+		public override bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+			AssertInContext();
+
+			var routine = Session.Access.ResolveRoutine(invoke, request);
+			if (routine == null)
+				return false;
+
+			if (String.Equals(routine.RoutineInfo.Owner, Name))
+				return true;
+
+			return base.CanExecute(routineType, invoke, request);
 		}
 
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {

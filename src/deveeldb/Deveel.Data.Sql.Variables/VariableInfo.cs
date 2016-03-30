@@ -43,6 +43,10 @@ namespace Deveel.Data.Sql.Variables {
 
 		public SqlExpression DefaultExpression { get; set; }
 
+		string IObjectInfo.Owner {
+			get { return null; }
+		}
+
 		DbObjectType IObjectInfo.ObjectType {
 			get { return DbObjectType.Variable; }
 		}

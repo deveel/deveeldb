@@ -17,9 +17,6 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Sql.Triggers {
 	public static class SystemContextExtensions {
 		public static void UseTriggerListener(this ISystemContext context, ITriggerListener listener) {

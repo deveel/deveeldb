@@ -500,6 +500,11 @@ namespace Deveel.Data {
 			return Session.Context.DropTrigger(triggerName);
 		}
 
+		public bool DropTrigger(ObjectName triggerName) {
+			return DropObject(DbObjectType.Trigger, triggerName);
+		}
+			
+
 		public bool TriggerExists(ObjectName triggerName) {
 			if (Session.Context.TriggerExists(triggerName.FullName))
 				return true;

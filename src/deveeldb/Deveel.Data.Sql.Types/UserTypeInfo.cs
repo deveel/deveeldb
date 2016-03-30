@@ -45,6 +45,8 @@ namespace Deveel.Data.Sql.Types {
 
 		public ObjectName ParentType { get; private set; }
 
+		public string Owner { get; set; }
+
 		public UserTypeMember this[int offset] {
 			get { return members[offset]; }
 		}

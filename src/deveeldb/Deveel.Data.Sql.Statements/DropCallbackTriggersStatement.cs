@@ -18,31 +18,33 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class DropCallbackTriggersStatement : SqlStatement {
-		public DropCallbackTriggersStatement(ObjectName tableName) {
-			if (tableName == null)
-				throw new ArgumentNullException("tableName");
+		public DropCallbackTriggersStatement(string triggerName) {
+			if (String.IsNullOrEmpty(triggerName))
+				throw new ArgumentNullException("triggerName");
 
-			TableName = tableName;
+			TriggerName = triggerName;
 		}
 
 		private DropCallbackTriggersStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
-			TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+			TriggerName = info.GetString("TriggerName");
 		}
 
-		public ObjectName TableName { get; private set; }
+		public string TriggerName { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			base.ExecuteStatement(context);
+			if (!context.DirectAccess.TriggerExists(new ObjectName(TriggerName)))
+				throw new StatementException(String.Format("The callback trigger '{0}' does not exist in the context.", TriggerName));
+
+			if (!context.DirectAccess.DropCallbackTrigger(TriggerName))
+				throw new StatementException(String.Format("Could not drop the callback trigger '{0}' from the context", TriggerName));
 		}
 
 		protected override void GetData(SerializationInfo info) {
-			info.AddValue("TableName", TableName);
+			info.AddValue("TriggerName", TriggerName);
 		}
 	}
 }

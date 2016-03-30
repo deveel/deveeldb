@@ -18,6 +18,7 @@
 using System;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
 using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
@@ -37,8 +38,19 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName TriggerName { get; private set; }
 
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var triggerName = context.Access.ResolveObjectName(DbObjectType.Trigger, TriggerName);
+			return new DropTriggerStatement(TriggerName);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
-			base.ExecuteStatement(context);
+			if (!context.DirectAccess.TriggerExists(TriggerName))
+				throw new ObjectNotFoundException(TriggerName);
+			if (!context.User.CanDrop(DbObjectType.Trigger, TriggerName))
+				throw new SecurityException(String.Format("User '{0}' has not enough rights to drop trigger '{1}'.", context.User.Name, TriggerName));
+
+			context.DirectAccess.DropTrigger(TriggerName);
+			context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Trigger, TriggerName);
 		}
 
 		protected override void GetData(SerializationInfo info) {

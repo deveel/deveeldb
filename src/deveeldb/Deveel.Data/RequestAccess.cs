@@ -47,6 +47,8 @@ namespace Deveel.Data {
 				return true;
 			if (Request.Context.VariableExists(objectName.Name))
 				return true;
+			if (Request.Context.TriggerExists(objectName.Name))
+				return true;
 
 			return base.ObjectExists(objectName);
 		}
@@ -57,6 +59,9 @@ namespace Deveel.Data {
 				return true;
 			if (objectType == DbObjectType.Variable &&
 				Request.Context.VariableExists(objectName.Name))
+				return true;
+			if (objectType == DbObjectType.Trigger &&
+			    Request.Context.TriggerExists(objectName.Name))
 				return true;
 
 			return base.ObjectExists(objectType, objectName);
@@ -75,6 +80,10 @@ namespace Deveel.Data {
 			if (objType == DbObjectType.Table)
 				return GetTable(objName);
 
+			if (objType == DbObjectType.Trigger &&
+			    Request.Context.TriggerExists(objName.Name))
+				return Request.Context.FindTrigger(objName.Name);
+
 			return base.GetObject(objType, objName, accessType);
 		}
 
@@ -85,6 +94,9 @@ namespace Deveel.Data {
 			} else if (objectInfo.ObjectType == DbObjectType.Variable) {
 				var varInfo = (VariableInfo) objectInfo;
 				Request.Context.DeclareVariable(varInfo);
+			} else if (objectInfo is CallbackTriggerInfo) {
+				var triggerInfo = (CallbackTriggerInfo) objectInfo;
+				Request.Context.DeclareTrigger(triggerInfo);
 			} else {
 				base.CreateObject(objectInfo);
 			}
@@ -95,6 +107,9 @@ namespace Deveel.Data {
 				return Request.Context.DropCursor(objectName.Name);
 			if (objectType == DbObjectType.Variable)
 				return Request.Context.DropVariable(objectName.Name);
+			if (objectType == DbObjectType.Trigger &&
+			    Request.Context.DropTrigger(objectName.Name))
+				return true;
 
 			return base.DropObject(objectType, objectName);
 		}
@@ -111,6 +126,11 @@ namespace Deveel.Data {
 			if (objectInfo.ObjectType == DbObjectType.Table) {
 				AlterTable((TableInfo) objectInfo);
 				return;
+			}
+
+			if (objectInfo.ObjectType == DbObjectType.Trigger &&
+			    Request.Context.TriggerExists(objectInfo.FullName.Name)) {
+				// TODO:
 			}
 
 			base.AlterObject(objectInfo);
@@ -130,6 +150,8 @@ namespace Deveel.Data {
 				return new ObjectName(name);
 			if (Request.Context.VariableExists(name))
 				return new ObjectName(name);
+			if (Request.Context.TriggerExists(name))
+				return new ObjectName(name);
 
 			return base.ResolveObjectName(name);
 		}
@@ -140,6 +162,9 @@ namespace Deveel.Data {
 				return new ObjectName(objectName.Name);
 			if (objectType == DbObjectType.Cursor &&
 				Request.Context.VariableExists(objectName.Name))
+				return new ObjectName(objectName.Name);
+			if (objectType == DbObjectType.Trigger &&
+				Request.Context.TriggerExists(objectName.Name))
 				return new ObjectName(objectName.Name);
 
 			return base.ResolveObjectName(objectType, objectName);

@@ -23,8 +23,6 @@ namespace Deveel.Data.Sql.Parser {
 	class DropTriggerStatementNode : SqlStatementNode {
 		public string TriggerName { get; private set; }
 
-		public string TableName { get; private set; }
-
 		public bool CallbackTrigger { get; private set; }
 
 		protected override ISqlNode OnChildNode(ISqlNode node) {
@@ -37,11 +35,11 @@ namespace Deveel.Data.Sql.Parser {
 			} else if (node.NodeName == "drop_callback_trigger") {
 				CallbackTrigger = true;
 
-				var tableNameNode = node.FindNode<ObjectNameNode>();
+				var tableNameNode = node.FindNode<IdentifierNode>();
 				if (tableNameNode == null)
 					throw Error("Could not find the name of the table in a DROP CALLBACK TRIGGER");
 
-				TableName = tableNameNode.Name;
+				TriggerName = tableNameNode.Text;
 			}
 
 			return base.OnChildNode(node);
@@ -49,8 +47,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected override void BuildStatement(SqlStatementBuilder builder) {
 			if (CallbackTrigger) {
-				var tableName = ObjectName.Parse(TableName);
-				builder.AddObject(new DropCallbackTriggersStatement(tableName));
+				builder.AddObject(new DropCallbackTriggersStatement(TriggerName));
 			} else {
 				var triggerName = ObjectName.Parse(TriggerName);
 				builder.AddObject(new DropTriggerStatement(triggerName));

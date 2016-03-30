@@ -26,5 +26,7 @@ namespace Deveel.Data.Sql.Triggers {
 		bool TriggerExists(ObjectName triggerName);
 
 		void FireTriggers(IRequest context, TableEvent tableEvent);
+
+		Trigger GetTrigger(ObjectName triggerName);
 	}
 }

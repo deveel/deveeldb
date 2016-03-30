@@ -22,5 +22,7 @@ namespace Deveel.Data.Sql {
 		DbObjectType ObjectType { get; }
 
 		ObjectName FullName { get; }
+
+		string Owner { get; }
 	}
 }

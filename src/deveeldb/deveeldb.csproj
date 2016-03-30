@@ -208,7 +208,6 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalProcedureStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\CreateExternalTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
@@ -315,7 +314,7 @@
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.new.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />

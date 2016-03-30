@@ -21,7 +21,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class CursorInfo : IObjectInfo {
@@ -47,6 +46,10 @@ namespace Deveel.Data.Sql.Cursors {
 		public ICollection<CursorParameter> Parameters { get; private set; }
 
 		public CursorFlags Flags { get; set; }
+
+		string IObjectInfo.Owner {
+			get { return null; }
+		}
 
 		public bool IsInsensitive {
 			get { return (Flags & CursorFlags.Insensitive) != 0; }

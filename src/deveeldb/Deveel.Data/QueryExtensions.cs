@@ -398,8 +398,8 @@ namespace Deveel.Data {
 			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterDelete);
 		}
 
-		public static void CreateCallbackTrigger(this IQuery query, ObjectName tableName, TriggerEventType eventType) {
-			query.ExecuteStatement(new CreateCallbackTriggerStatement(tableName, eventType));
+		public static void CreateCallbackTrigger(this IQuery query, string triggerName,  ObjectName tableName, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateCallbackTriggerStatement(triggerName, tableName, eventType));
 		}
 
 		#endregion
@@ -410,8 +410,8 @@ namespace Deveel.Data {
 			query.ExecuteStatement(new DropTriggerStatement(triggerName));
 		}
 
-		public static void DropCallbackTrigger(this IQuery query, ObjectName tableName) {
-			query.ExecuteStatement(new DropCallbackTriggersStatement(tableName));
+		public static void DropCallbackTrigger(this IQuery query, string triggerName) {
+			query.ExecuteStatement(new DropCallbackTriggersStatement(triggerName));
 		}
 
 		#endregion

@@ -57,6 +57,18 @@ namespace Deveel.Data.Sql.Triggers {
 			return triggers.ContainsKey(triggerName);
 		}
 
+		Trigger ITriggerManager.GetTrigger(ObjectName triggerName) {
+			return GetTrigger(triggerName.Name);
+		}
+
+		public CallbackTrigger GetTrigger(string name) {
+			CallbackTrigger trigger;
+			if (!triggers.TryGetValue(name, out trigger))
+				return null;
+
+			return trigger;
+		}
+
 		public void FireTriggers(IRequest context, TableEvent tableEvent) {
 			foreach (var trigger in triggers.Values) {
 				if (trigger.CanFire(tableEvent))

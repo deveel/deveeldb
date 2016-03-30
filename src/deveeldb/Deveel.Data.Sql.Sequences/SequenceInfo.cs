@@ -135,6 +135,8 @@ namespace Deveel.Data.Sql.Sequences {
 		/// <seealso cref="MaxValue"/>
 		public bool Cycle { get; private set; }
 
+		public string Owner { get; set; }
+
 		/// <summary>
 		/// Creates an object that describes a native sequence for the table
 		/// having the specified name.

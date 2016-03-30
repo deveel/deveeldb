@@ -228,7 +228,7 @@
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.new.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BooleanType.cs" />

@@ -594,7 +594,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			createTrigger.Rule = createProcedureTrigger | createCallbackTrigger;
 			createCallbackTrigger.Rule = Key("CREATE") + OrReplace() + Key("CALLBACK") + Key("TRIGGER") +
-			                               beforeOrAfter + Key("ON") + ObjectName();
+			                             Identifier + triggerSync + Key("ON") + ObjectName();
 			createProcedureTrigger.Rule = Key("CREATE") + OrReplace() + Key("TRIGGER") + ObjectName() +
 			                                triggerSync + triggerRefOpt +
 			                                Key("FOR") + Key("EACH") + Key("ROW") + triggerBody;
@@ -607,7 +607,7 @@ namespace Deveel.Data.Sql.Parser {
 			triggerRef.Rule = stateTableRef + asOpt + Identifier;
 			asOpt.Rule = Empty | Key("AS");
 			stateTableRef.Rule = Key("OLD") | Key("NEW");
-			triggerBody.Rule = Key("EXECUTE") + Key("PROCEDURE") + ObjectName() + "(" + functionCallArgsList + ")" |
+			triggerBody.Rule = Key("EXECUTE") + Key("PROCEDURE") + ObjectName() + functionCallArgsOpt |
 			                    PlSqlBlock();
 
 			functionCallArgsOpt.Rule = Empty | "(" + functionCallArgsList + ")";
@@ -802,7 +802,7 @@ namespace Deveel.Data.Sql.Parser {
 
 			dropTrigger.Rule = dropProcedureTrigger | dropCallbackTrigger;
 			dropProcedureTrigger.Rule = Key("DROP") + Key("TRIGGER") + ObjectName();
-			dropCallbackTrigger.Rule = Key("DROP") + Key("CALLBACK") + Key("TRIGGER") + Key("FROM") + ObjectName();
+			dropCallbackTrigger.Rule = Key("DROP") + Key("CALLBACK") + Key("TRIGGER") + Identifier;
 			return dropTrigger;
 		}
 

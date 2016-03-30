@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void DropCallbackTrigger() {
-			const string sql = "DROP CALLBACK TRIGGER FROM APP.test_table";
+			const string sql = "DROP CALLBACK TRIGGER trigger1";
 
 			var result = Compile(sql);
 
@@ -47,9 +47,8 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<DropCallbackTriggersStatement>(statement);
 
 			var dropTrigger = (DropCallbackTriggersStatement)statement;
-			var tableName = ObjectName.Parse("APP.test_table");
 
-			Assert.AreEqual(tableName, dropTrigger.TableName);
+			Assert.AreEqual("trigger1", dropTrigger.TriggerName);
 		}
 	}
 }

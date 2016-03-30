@@ -46,6 +46,20 @@ namespace Deveel.Data.Sql.Triggers {
 			return false;
 		}
 
+		public static Trigger FindTrigger(this IContext context, string triggerName) {
+			var current = context;
+			while (current != null) {
+				if (current is ITriggerScope) {
+					var scope = (ITriggerScope)current;
+					return scope.TriggerManager.GetTrigger(ObjectName.Parse(triggerName));
+				}
+
+				current = current.Parent;
+			}
+
+			return null;
+		}
+
 		public static void FireTriggers(this IContext context, IRequest request, TableEvent tableEvent) {
 			var current = context;
 			while (current != null) {

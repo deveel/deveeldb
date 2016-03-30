@@ -52,6 +52,8 @@ namespace Deveel.Data.Security {
 			if (Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges))
 				return true;
 
+			// TODO: Resolve the object info and check if this is the owner
+
 			if (objectName.Parent != null)
 				return HasPrivileges(DbObjectType.Schema, objectName.Parent, privileges);
 
@@ -142,7 +144,7 @@ namespace Deveel.Data.Security {
 			return CanAlter(DbObjectType.Table, tableName);
 		}
 
-		public bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+		public virtual bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
 			AssertInContext();
 
 			if (routineType == RoutineType.Function &&
@@ -154,6 +156,10 @@ namespace Deveel.Data.Security {
 
 		public bool CanExecuteFunction(Invoke invoke, IRequest request) {
 			return CanExecute(RoutineType.Function, invoke, request);
+		}
+
+		public bool CanExecuteProcedure(Invoke invoke, IRequest request) {
+			return CanExecute(RoutineType.Procedure, invoke, request);
 		}
 
 		public override string ToString() {

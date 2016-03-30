@@ -27,6 +27,8 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return DbObjectType.Trigger; }
 		}
 
+		public string Owner { get; set; }
+
 		public bool CanFire(TableEvent tableEvent) {
 			if (!TableName.Equals(tableEvent.Table.FullName))
 				return false;

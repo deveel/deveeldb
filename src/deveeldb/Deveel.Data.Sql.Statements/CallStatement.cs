@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (procedure == null)
 				throw new StatementException(String.Format("Could not retrieve the procedure '{0}': maybe not a procedure.", ProcedureName));
 
-			if (!context.User.CanExecute(RoutineType.Procedure, invoke,context.Request))
+			if (!context.User.CanExecuteProcedure(invoke,context.Request))
 				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
 
 			procedure.Execute(context.Request);

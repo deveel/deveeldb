@@ -79,6 +79,8 @@ namespace Deveel.Data.Sql.Schemas {
 		/// </summary>
 		public string Culture { get; set; }
 
+		public string Owner { get; set; }
+
 		/// <summary>
 		/// Compares two strngs given using the culture set in the schema.
 		/// </summary>

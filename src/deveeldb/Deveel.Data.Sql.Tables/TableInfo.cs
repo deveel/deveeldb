@@ -138,6 +138,8 @@ namespace Deveel.Data.Sql.Tables {
 			get { return SchemaName != null && SchemaName.Parent != null ? SchemaName.Parent.Name : null; }
 		}
 
+		public string Owner { get; set; }
+
 		///// <summary>
 		///// Gets or sets a boolean value that indicates if the column names
 		///// will be resolved in case-insensitive mode.

@@ -22,13 +22,18 @@ using Deveel.Data.Sql.Triggers;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CreateCallbackTriggerStatement : SqlStatement {
-		public CreateCallbackTriggerStatement(ObjectName tableName, TriggerEventType eventType) {
+		public CreateCallbackTriggerStatement(string triggerName, ObjectName tableName, TriggerEventType eventType) {
+			if (String.IsNullOrEmpty(triggerName))
+				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
+			TriggerName = triggerName;
 			TableName = tableName;
 			EventType = eventType;
 		}
+
+		public string TriggerName { get; private set; }
 
 		public ObjectName TableName { get; private set; }
 
@@ -37,20 +42,17 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access.ResolveTableName(TableName);
 
-			return new CreateCallbackTriggerStatement(tableName, EventType);
+			return new CreateCallbackTriggerStatement(TriggerName, tableName, EventType);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.Request.Access.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
 
-			// TODO: Make the trigger name configurable in the statement
-			var triggerName = String.Format("CALLBACK_{0}", TableName.FullName);
-
-			if (context.DirectAccess.TriggerExists(new ObjectName(triggerName)))
+			if (context.DirectAccess.TriggerExists(new ObjectName(TriggerName)))
 				throw new StatementException();
 
-			context.Request.Access.CreateCallbackTrigger(triggerName, TableName, EventType);
+			context.Request.Access.CreateCallbackTrigger(TriggerName, TableName, EventType);
 		}
 	}
 }

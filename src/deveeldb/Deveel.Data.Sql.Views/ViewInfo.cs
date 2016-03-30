@@ -56,6 +56,8 @@ namespace Deveel.Data.Sql.Views {
 
 		public IQueryPlanNode QueryPlan { get; private set; }
 
+		public string Owner { get; set; }
+
 		DbObjectType IObjectInfo.ObjectType {
 			get { return DbObjectType.View; }
 		}

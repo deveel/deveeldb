@@ -313,7 +313,32 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public bool DropTrigger(ObjectName triggerName) {
-			throw new NotImplementedException();
+			if (triggerName == null)
+				throw new ArgumentNullException("triggerName");
+
+			var table = transaction.GetMutableTable(SystemSchema.TriggerTableName);
+
+			var schemaName = triggerName.ParentName;
+			var name = triggerName.Name;
+
+			var schemaCol = table.GetResolvedColumnName(0);
+			var nameCol = table.GetResolvedColumnName(1);
+
+			using (var session = new SystemSession(transaction)) {
+				using (var query = session.CreateQuery()) {
+					var t = table.SimpleSelect(query, nameCol, SqlExpressionType.Equal, SqlExpression.Constant(name));
+					t = t.ExhaustiveSelect(query,
+						SqlExpression.Equal(SqlExpression.Reference(schemaCol), SqlExpression.Constant(schemaName)));
+
+					if (t.RowCount == 0)
+						return false;
+
+					table.Delete(t);
+
+					transaction.Registry.RegisterEvent(new ObjectDroppedEvent(DbObjectType.Trigger, triggerName));
+					return true;
+				}
+			}
 		}
 
 		public bool TriggerExists(ObjectName triggerName) {

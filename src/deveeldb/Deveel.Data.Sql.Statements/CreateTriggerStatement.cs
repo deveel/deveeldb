@@ -71,6 +71,8 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.DirectAccess.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
 
+			// TODO: Discover the accessed objects in the Body and verifies the user has the rights
+
 			if (context.DirectAccess.ObjectExists(DbObjectType.Trigger, TriggerName)) {
 				if (!ReplaceIfExists)
 					throw new StatementException(String.Format("A trigger named '{0}' already exists.", TriggerName));

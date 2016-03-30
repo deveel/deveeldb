@@ -55,10 +55,6 @@ namespace Deveel.Data.Routines {
 		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IRequest request, IVariableResolver resolver, IGroupResolver group) {
 			var invoke = new Invoke(routine.FullName, args);
 
-			if (request != null &&
-			    !request.User().CanExecute(routine.Type, invoke, request))
-				throw new InvalidOperationException();
-
 			var executeContext = new InvokeContext(invoke, routine, resolver, group, request);
 			return routine.Execute(executeContext);
 		}
