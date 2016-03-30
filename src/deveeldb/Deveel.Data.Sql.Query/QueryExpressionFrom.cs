@@ -213,11 +213,11 @@ namespace Deveel.Data.Sql.Query {
 			var referenceName = ResolveReference(name);
 			if (referenceName == null) {
 				if (Parent == null)
-					throw new InvalidOperationException(String.Format("Reference {0} was not found in context.", name));
+					throw new InvalidOperationException(String.Format("Reference '{0}' was not found in context.", name));
 
 				var queryRef = GlobalResolveReference(1, name);
 				if (queryRef == null)
-					throw new InvalidOperationException(String.Format("Reference {0} was not found in context.", name));
+					throw new InvalidOperationException(String.Format("Reference '{0}' was not found in context.", name));
 
 				return queryRef;
 			}

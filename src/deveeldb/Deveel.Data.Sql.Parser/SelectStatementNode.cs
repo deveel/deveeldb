@@ -63,9 +63,15 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected override void BuildStatement(SqlStatementBuilder builder) {
 			var queryExpression = (SqlQueryExpression) ExpressionBuilder.Build(QueryExpression);
-			if (QueryExpression.IntoClause != null) {
-				var refExp = ExpressionBuilder.Build(QueryExpression.IntoClause);
-				builder.AddObject(new SelectIntoStatement(queryExpression, refExp));
+			if (QueryExpression.HasIntoClause) {
+				if (!String.IsNullOrEmpty(QueryExpression.IntoTable)) {
+					var tableName = ObjectName.Parse(QueryExpression.IntoTable);
+					var refExp = SqlExpression.Reference(tableName);
+					builder.AddObject(new SelectIntoStatement(queryExpression, refExp));
+				} else if (QueryExpression.IntoVariables != null) {
+					var refs = QueryExpression.IntoVariables.Select(ExpressionBuilder.Build).ToArray();
+					builder.AddObject(new SelectIntoStatement(queryExpression, SqlExpression.Tuple(refs)));
+				}
 			} else {
 				var orderBy = BuildOrderBy(OrderBy);
 				var statement = new SelectStatement(queryExpression, orderBy);

@@ -217,6 +217,7 @@ namespace Deveel.Data.Sql.Parser {
 
 		protected NonTerminal SqlQueryExpression() {
 			var selectIntoOpt = new NonTerminal("select_into_opt");
+			var selectIntoArgs = new NonTerminal("select_into_args");
 			var selectSet = new NonTerminal("select_set");
 			var selectRestrictOpt = new NonTerminal("select_restrict_opt");
 			var selectItem = new NonTerminal("select_item", typeof(SelectItemNode));
@@ -243,15 +244,16 @@ namespace Deveel.Data.Sql.Parser {
 			var asOpt = new NonTerminal("as_opt");
 
 			expression.Rule = Key("SELECT") + selectRestrictOpt +
-							  selectIntoOpt +
 							  selectSet +
+							  selectIntoOpt +
 							  fromClauseOpt +
 							  whereClauseOpt +
 							  groupByOpt +
 							  queryCompositeOpt;
 
 			selectRestrictOpt.Rule = Empty | Key("ALL") | Key("DISTINCT");
-			selectIntoOpt.Rule = Empty | Key("INTO") + ObjectName();
+			selectIntoOpt.Rule = Empty | Key("INTO") + selectIntoArgs;
+			selectIntoArgs.Rule = ObjectName() | SqlExpressionList();
 			selectSet.Rule = selectItemList | "*";
 			selectItemList.Rule = MakePlusRule(selectItemList, Comma, selectItem);
 			selectItem.Rule = selectSource + selectAsOpt;

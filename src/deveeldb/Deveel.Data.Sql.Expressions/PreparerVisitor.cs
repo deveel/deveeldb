@@ -81,13 +81,13 @@ namespace Deveel.Data.Sql.Expressions {
 			if (from != null)
 				from = (FromClause) ((IPreparable)from).Prepare(preparer);
 
-			query.FromClause = from;
+			newExpression.FromClause = from;
 
 			var nextComposite = query.NextComposite;
 			if (nextComposite != null)
 				nextComposite = (SqlQueryExpression) nextComposite.Prepare(preparer);
 
-			query.NextComposite = nextComposite;
+			newExpression.NextComposite = nextComposite;
 
 			return newExpression;
 		}

@@ -37,7 +37,9 @@ namespace Deveel.Data.Sql.Parser {
 		/// </summary>
 		public bool IsDistinct { get; private set; }
 
-		public SqlReferenceExpressionNode IntoClause { get; private set; }
+		public string IntoTable { get; private set; }
+
+		public IEnumerable<IExpressionNode> IntoVariables { get; private set; } 
 
 		/// <summary>
 		/// Gets a read-only list of <see cref="SelectItemNode">items</see> that
@@ -68,6 +70,8 @@ namespace Deveel.Data.Sql.Parser {
 		/// <seealso cref="QueryCompositeNode"/>
 		public QueryCompositeNode Composite { get; private set; }
 
+		public bool HasIntoClause { get; private set; }
+
 		/// <inheritdoc/>
 		protected override ISqlNode OnChildNode(ISqlNode node) {
 			if (node.NodeName == "select_restrict_opt") {
@@ -87,10 +91,40 @@ namespace Deveel.Data.Sql.Parser {
 				if (composite != null)
 					Composite = (QueryCompositeNode) composite;
 			} else if (node.NodeName == "select_into_opt") {
-				// TODO:
+				GetIntoClause(node);
 			}
 
 			return base.OnChildNode(node);
+		}
+
+		private void GetIntoClause(ISqlNode node) {
+			var argsNode = node.FindByName("select_into_args");
+			if (argsNode == null)
+				throw Error("Expecting an argument for the INTO clause");
+
+			string objectName = null;
+			IEnumerable<IExpressionNode> references = null;
+
+			foreach (var childNode in argsNode.ChildNodes) {
+				if (childNode is ObjectNameNode) {
+					objectName = ((ObjectNameNode) childNode).Name;
+					break;
+				}
+
+				if (childNode.NodeName.Equals("sql_expression_list")) {
+					references = childNode.ChildNodes.OfType<IExpressionNode>();
+				}
+			}
+
+			if (!String.IsNullOrEmpty(objectName)) {
+				IntoTable = objectName;
+				HasIntoClause = true;
+			} else if (references != null) {
+				IntoVariables = references.ToArray();
+				HasIntoClause = true;
+			} else {
+				Error("Invalid INTO clause argument");
+			}
 		}
 
 		private void GetWhereClause(ISqlNode node) {
