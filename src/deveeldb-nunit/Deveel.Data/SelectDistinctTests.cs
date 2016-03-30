@@ -49,7 +49,9 @@ namespace Deveel.Data {
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(s);
 			Assert.IsTrue(query.Distinct);
-			return Query.Select(query);
+			var result = Query.Select(query);
+			result.GetEnumerator().MoveNext();
+			return result.Source;
 		}
 
 		[Test]

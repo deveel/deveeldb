@@ -17,64 +17,75 @@
 
 using System;
 using System.Collections.Generic;
-using System.Resources;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Protocol {
 	public sealed class QueryResult : IDisposable {
 		private QueryResultColumn[] columns;
 
-		private bool resultIsSimpleEnum;
-		private IList<int> rowIndexMap;
-
-		private int locked;
-
-		internal QueryResult(SqlQuery query, ITable result) {
+		internal QueryResult(SqlQuery query, StatementResult result) {
 			Query = query;
 			Result = result;
 			FormColumns(Result);
-
-			locked = 0;
 		}
 
-		private void FormColumns(ITable result) {
-			// HACK: Read the contents of the first row so that we can pick up
-			//   any errors with reading, and also to fix the 'uniquekey' bug
-			//   that causes a new transaction to be started if 'uniquekey' is
-			//   a column and the value is resolved later.
-			var columnCount = result.TableInfo.ColumnCount;
-			using (var rowEnum = result.GetEnumerator()) {
-				if (rowEnum.MoveNext()) {
-					int rowIndex = rowEnum.Current.RowId.RowNumber;
-					for (int c = 0; c < columnCount; ++c) {
-						result.GetValue(rowIndex, c);
+		private void FormColumns(StatementResult result) {
+			if (result.Type == StatementResultType.Exception)
+				return;
+
+			IEnumerator<Row> enumerator = null;
+			if (result.Type == StatementResultType.CursorRef) {
+				enumerator = result.Cursor.GetEnumerator();
+			} else if (result.Type == StatementResultType.Result) {
+				enumerator = result.Result.GetEnumerator();
+			}
+
+			try {
+				if (enumerator != null) {
+					if (enumerator.MoveNext()) {
+						var row = enumerator.Current;
+
+						if (row != null) {
+							for (int c = 0; c < row.ColumnCount; ++c) {
+								row.GetValue(c);
+							}
+						}
 					}
 				}
-
-				// If simple enum, note it here
-				resultIsSimpleEnum = (rowEnum is SimpleRowEnumerator);
+			} finally {
+				if (enumerator != null)
+					enumerator.Dispose();
 			}
 
-			// Build 'row_index_map' if not a simple enum
-			if (!resultIsSimpleEnum) {
-				rowIndexMap = new List<int>(result.RowCount);
 
-				var en = result.GetEnumerator();
-				while (en.MoveNext()) {
-					rowIndexMap.Add(en.Current.RowId.RowNumber);
-				}
+			TableInfo tableInfo;
+			if (result.Type == StatementResultType.CursorRef) {
+				tableInfo = result.Cursor.Source.TableInfo;
+			} else {
+				tableInfo = result.Result.TableInfo;
 			}
 
-			// This is a safe operation provides we are shared.
-			// Copy all the TableField columns from the table to our own
-			// QueryResultColumn array, naming each column by what is returned from
-			// the 'GetResolvedVariable' method.
-			int colCount = result.TableInfo.ColumnCount;
-			columns = new QueryResultColumn[colCount];
-			for (int i = 0; i < colCount; ++i) {
-				var v = result.GetResolvedColumnName(i);
+			var columnCount = tableInfo.ColumnCount;
+
+			ColumnCount = columnCount;
+
+			columns = new QueryResultColumn[columnCount];
+
+			ITable source = null;
+			if (result.Type == StatementResultType.Result) {
+				source = result.Result;
+			} else if (result.Type == StatementResultType.CursorRef) {
+				source = result.Cursor.Source;
+			} else {
+				return;
+			}
+
+			for (int i = 0; i < columnCount; ++i) {
+				var v = source.GetResolvedColumnName(i);
 				string fieldName;
 				if (v.ParentName == null) {
 					// This means the column is an alias
@@ -84,21 +95,19 @@ namespace Deveel.Data.Protocol {
 					fieldName = String.Format("@f{0}", v);
 				}
 
-				columns[i] = new QueryResultColumn(fieldName, result.TableInfo[i]);
+				columns[i] = new QueryResultColumn(fieldName, tableInfo[i]);
 			}
+
+			RowCount = source.RowCount;
 		}
 
 		public SqlQuery Query { get; private set; }
 
-		public ITable Result { get; private set; }
+		public StatementResult Result { get; private set; }
 
-		public int RowCount {
-			get { return Result.RowCount; }
-		}
+		public int RowCount { get; private set; }
 
-		public int ColumnCount {
-			get { return Result.TableInfo.ColumnCount; }
-		}
+		public int ColumnCount { get; private set; }
 
 		public QueryResultColumn GetColumn(int columnOffset) {
 			if (columnOffset < 0 || columnOffset >= ColumnCount)
@@ -107,33 +116,23 @@ namespace Deveel.Data.Protocol {
 			return columns[columnOffset];
 		}
 
-		public void LockRoot() {
-			Result.Lock();
-			locked++;
-		}
-
-		public void Release() {
-			Result.Release();
-			--locked;
-		}
-
 		public void Dispose() {
-			if (locked > 0) {
-				Release();
-			}
-
 			Result = null;
 			Query = null;
 			columns = null;
-			rowIndexMap = null;
 		}
 
 		public Field GetValue(int rowIndex, int columnIndex) {
-			if (locked <= 0)
-				throw new Exception("Table roots not locked!");
+			// TODO: Ensure to fetch the next row
+			if (Result.Type == StatementResultType.CursorRef) {
+				var row = Result.Cursor.Fetch(FetchDirection.Absolute, rowIndex);
+				if (row == null)
+					return Field.Null();
 
-			int realRow = resultIsSimpleEnum ? rowIndex : rowIndexMap[rowIndex];
-			var obj = Result.GetValue(realRow, columnIndex);
+				return row.GetValue(columnIndex);
+			}
+
+			var obj = Result.Result.GetValue(rowIndex, columnIndex);
 
 			// TODO: support large object references
 

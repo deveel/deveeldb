@@ -66,7 +66,7 @@ namespace Deveel.Data {
 
 		#region Execute
 
-		public static ITable[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
+		public static StatementResult[] ExecuteQuery(this IQuery query, SqlQuery sqlQuery) {
 			if (sqlQuery == null)
 				throw new ArgumentNullException("sqlQuery");
 
@@ -95,7 +95,7 @@ namespace Deveel.Data {
 			return result;
 		}
 
-		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource, params QueryParameter[] parameters) {
+		public static StatementResult[] ExecuteQuery(this IQuery query, string sqlSource, params QueryParameter[] parameters) {
 			var sqlQuery = new SqlQuery(sqlSource);
 			if (parameters != null) {
 				foreach (var parameter in parameters) {
@@ -106,7 +106,7 @@ namespace Deveel.Data {
 			return query.ExecuteQuery(sqlQuery);
 		}
 
-		public static ITable[] ExecuteQuery(this IQuery query, string sqlSource) {
+		public static StatementResult[] ExecuteQuery(this IQuery query, string sqlSource) {
 			return query.ExecuteQuery(sqlSource, null);
 		}
 

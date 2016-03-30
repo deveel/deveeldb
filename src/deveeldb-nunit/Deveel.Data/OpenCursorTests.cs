@@ -24,7 +24,7 @@ namespace Deveel.Data {
 		}
 
 		private static void DeclareCursors(IQuery query) {
-			var queryExp1 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
+			var queryExp1 = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM APP.test_table");
 			query.Context.DeclareCursor(query, "c1", queryExp1);
 
 

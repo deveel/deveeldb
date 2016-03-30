@@ -9,6 +9,8 @@ namespace Deveel.Data.Sql.Cursors {
 
 		IRequest Context { get; }
 
+		ITable Source { get; }
+
 		Row Fetch(FetchDirection direction, int offset);
 	}
 }

@@ -95,7 +95,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				var result = context.Request.ExecuteStatement(Select);
-				context.SetResult(result);
+
+				if (result.Type != StatementResultType.CursorRef)
+					throw new StatementException();
+
+				context.SetCursor(result.Cursor);
 			}
 		}
 

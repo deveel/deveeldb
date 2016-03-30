@@ -38,49 +38,88 @@ namespace Deveel.Data {
 
 		#region Statements
 
+		private static int GetResult(StatementResult result) {
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException();
+
+			return GetResult(result.Result);
+		}
+
 		private static int GetResult(ITable table) {
+			var value = GetSingle(table);
+			return value.AsInteger();
+		}
+
+		private static Field GetSingle(StatementResult result) {
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException("The statement has returned a cursor.");
+
+			return GetSingle(result.Result);
+		}
+
+		private static Field GetSingle(ITable table) {
 			if (table.RowCount != 1)
 				throw new InvalidOperationException("Invalid number of rows returned in result");
 			if (table.TableInfo.ColumnCount != 1)
 				throw new InvalidOperationException("Invalid number of columns returned in result");
 
-			var value = table.GetValue(0, 0);
-			return value.AsInteger();
+			return table.GetValue(0, 0);
 		}
 
-		public static ITable ExecuteStatement(this IRequest request, SqlStatement statement) {
+		public static StatementResult ExecuteStatement(this IRequest request, SqlStatement statement) {
 			var results = request.ExecuteStatements(statement);
-			return results[0];
+			if (results == null || results.Length == 0)
+				return null;
+
+			var result = results[0];
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			return result;
 		}
 
-		public static ITable[] ExecuteStatements(this IRequest request, params SqlStatement[] statements) {
+		public static StatementResult[] ExecuteStatements(this IRequest request, params SqlStatement[] statements) {
 			return ExecuteStatements(request, null, statements);
 		}
 
-		public static ITable[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer, params SqlStatement[] statements) {
+		public static StatementResult[] ExecuteStatements(this IRequest request, IExpressionPreparer preparer,
+			params SqlStatement[] statements) {
 			if (statements == null)
 				throw new ArgumentNullException("statements");
 			if (statements.Length == 0)
 				throw new ArgumentException("No statements provided for execution", "statements");
 
-			var results = new ITable[statements.Length];
+			var results = new StatementResult[statements.Length];
 			for (int i = 0; i < statements.Length; i++) {
 				var statement = statements[i];
 
 				var context = new ExecutionContext(request, statement);
+				StatementResult result;
 
-				var prepared = statement.Prepare(request, preparer);
+				try {
+					var prepared = statement.Prepare(request, preparer);
 
-				if (prepared == null)
-					throw new InvalidOperationException(String.Format("The preparation of the statement '{0}' returned a null instance", statement.GetType()));
+					if (prepared == null)
+						throw new InvalidOperationException(String.Format(
+							"The preparation of the statement '{0}' returned a null instance", statement.GetType()));
 
-				prepared.Execute(context);
+					prepared.Execute(context);
 
-				ITable result;
-				if (context.HasResult) {
-					result = context.Result;
-				} else {
-					result = FunctionTable.ResultTable(request, 0);
+
+					if (context.HasResult) {
+						result = new StatementResult(context.Result);
+					} else if (context.HasCursor) {
+						result = new StatementResult(context.Cursor);
+					} else {
+						result = new StatementResult(FunctionTable.ResultTable(request, 0));
+					}
+				} catch (Exception ex) {
+					result = new StatementResult(ex);
 				}
 
 				results[i] = result;
@@ -92,12 +131,7 @@ namespace Deveel.Data {
 		#region Assign
 
 		public static Field Assign(this IRequest request, SqlExpression variable, SqlExpression value) {
-			var result = request.ExecuteStatement(new AssignVariableStatement(variable, value));
-
-			if (result.RowCount != 1)
-				throw new InvalidOperationException();
-
-			return result.GetValue(0, 0);
+			return GetSingle(request.ExecuteStatement(new AssignVariableStatement(variable, value)));
 		}
 
 		public static Field Assign(this IRequest request, string variable, SqlExpression value) {
@@ -151,10 +185,12 @@ namespace Deveel.Data {
 		public static Row Fetch(this IRequest request, string cursorName, FetchDirection direction, SqlExpression offset) {
 			var result = request.ExecuteStatement(new FetchStatement(cursorName, direction, offset));
 
-			if (result.RowCount > 1)
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+			if (result.Type != StatementResultType.Result)
 				throw new InvalidOperationException();
 
-			return result.GetRow(0);
+			return result.Result.GetRow(0);
 		}
 
 		public static Row FetchNext(this IRequest request, string cursorName) {
@@ -304,15 +340,22 @@ namespace Deveel.Data {
 		#region Select
 
 		// TODO: instead of returning a ITable we must return a Cursor
-		public static ITable Select(this IRequest request, SqlQueryExpression query, params SortColumn[] orderBy) {
+		public static ICursor Select(this IRequest request, SqlQueryExpression query, params SortColumn[] orderBy) {
 			return Select(request, query, null, orderBy);
 		}
 
-		public static ITable Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
-			return request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
+		public static ICursor Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
+			var result = request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.CursorRef)
+				throw new InvalidOperationException("The SELECT statement was not executed correctly.");
+
+			return result.Cursor;
 		}
 
-		public static ITable Select(this IRequest request, params SqlExpression[] args) {
+		public static ICursor Select(this IRequest request, params SqlExpression[] args) {
 			if (args == null || args.Length == 0)
 				throw new ArgumentNullException("args");
 
@@ -323,10 +366,16 @@ namespace Deveel.Data {
 
 		#region Select Function
 
-		public static ITable SelectFunction(this IRequest request, ObjectName functionName, params SqlExpression[] args) {
+		public static Field SelectFunction(this IRequest request, ObjectName functionName, params SqlExpression[] args) {
 			var funcExp = SqlExpression.FunctionCall(functionName, args);
 			var query = new SqlQueryExpression(new []{new SelectColumn(funcExp) });
-			return request.Select(query);
+			var result = request.Select(query);
+
+			var row = result.FirstOrDefault();
+			if (row == null)
+				throw new InvalidOperationException();
+
+			return row.GetValue(0);
 		}
 
 		#endregion
@@ -345,27 +394,35 @@ namespace Deveel.Data {
 
 		#region Show
 
-		public static ITable Show(this IRequest request, ShowTarget target) {
+		public static ICursor Show(this IRequest request, ShowTarget target) {
 			return Show(request, target, null);
 		}
 
-		public static ITable Show(this IRequest request, ShowTarget target, ObjectName objectName) {
-			return request.ExecuteStatement(new ShowStatement(target, objectName));
+		public static ICursor Show(this IRequest request, ShowTarget target, ObjectName objectName) {
+		 	var result = request.ExecuteStatement(new ShowStatement(target, objectName));
+
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.CursorRef)
+				throw new InvalidOperationException("The SHOW statement was not executed correctly.");
+
+			return result.Cursor;
 		}
 
-		public static ITable ShowSchema(this IRequest request) {
+		public static ICursor ShowSchema(this IRequest request) {
 			return request.Show(ShowTarget.Schema);
 		}
 
-		public static ITable ShowTables(this IRequest request) {
+		public static ICursor ShowTables(this IRequest request) {
 			return request.Show(ShowTarget.SchemaTables);
 		}
 
-		public static ITable ShowStatus(this IRequest request) {
+		public static ICursor ShowStatus(this IRequest request) {
 			return request.Show(ShowTarget.Status);
 		}
 
-		public static ITable ShowSession(this IRequest request) {
+		public static ICursor ShowSession(this IRequest request) {
 			return request.Show(ShowTarget.Session);
 		}
 

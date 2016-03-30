@@ -218,6 +218,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementResultType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTrigger.cs" />

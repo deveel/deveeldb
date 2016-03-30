@@ -63,8 +63,7 @@ namespace Deveel.Data.Client {
 
 			command.CommandText = "SELECT user()";
 
-			object value = null;
-			Assert.DoesNotThrow(() => value = command.ExecuteScalar());
+			var  value = command.ExecuteScalar();
 			Assert.IsNotNull(value);
 			Assert.IsInstanceOf<string>(value);
 			Assert.AreEqual(AdminUserName, value);

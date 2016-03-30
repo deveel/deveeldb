@@ -174,6 +174,8 @@
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />
@@ -302,6 +304,8 @@
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StatementResultType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTrigger.cs" />

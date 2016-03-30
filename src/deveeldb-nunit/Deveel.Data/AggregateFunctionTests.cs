@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -44,10 +45,11 @@ namespace Deveel.Data {
 
 			var result = Query.Select(query);
 
-			if (result.RowCount > 1)
-				throw new InvalidOperationException("Too many rows");
+			var row = result.FirstOrDefault();
+			if (row == null)
+				throw new InvalidOperationException();
 
-			return result.GetValue(0, 0);
+			return row.GetValue(0);
 		}
 
 		[Test]

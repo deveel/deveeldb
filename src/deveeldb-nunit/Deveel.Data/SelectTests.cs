@@ -65,7 +65,9 @@ namespace Deveel.Data {
 
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression)SqlExpression.Parse(s);
-			return Query.Select(query);
+			var result = Query.Select(query);
+			result.GetEnumerator().MoveNext();
+			return result.Source;
 		}
 
 		[Test]
@@ -84,9 +86,12 @@ namespace Deveel.Data {
 			var result = Query.Select(query, sort);
 
 			Assert.IsNotNull(result);
-			Assert.AreEqual(3, result.RowCount);
 
-			var firstName = result.GetValue(0, 1);
+			Assert.IsTrue(result.GetEnumerator().MoveNext());
+
+			Assert.AreEqual(3, result.Source.RowCount);
+
+			var firstName = result.Source.GetValue(0, 1);
 
 			Assert.AreEqual("Roger", firstName.Value.ToString());
 		}

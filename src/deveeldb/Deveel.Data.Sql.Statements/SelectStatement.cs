@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Transactions;
@@ -100,13 +102,15 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var refNames = QueryPlan.DiscoverTableNames();
-				var refs = refNames.Select(x => context.DirectAccess.FindObject(x));
+				// TODO: Verify if a native cursor is already opened..
+				
+				if (!context.User.CanSelectFrom(QueryPlan))
+					throw new SecurityException(String.Format("The user '{0}' has not enough rights to select from the query.", context.User.Name));
 
-				context.Query.Session.Enter(refs, AccessType.Read);
+				var cursorInfo = new NativeCursorInfo(QueryPlan);
+				var nativeCursor = new NativeCursor(cursorInfo, context.Request);
 
-				var result = QueryPlan.Evaluate(context.Request);
-				context.SetResult(result);
+				context.SetCursor(nativeCursor);
 			}
 		}
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Cursors {
 	class NativeCursor : ICursor {
@@ -12,6 +15,12 @@ namespace Deveel.Data.Sql.Cursors {
 
 			CursorInfo = cursorInfo;
 			Context = context;
+
+			Status = CursorStatus.Open;
+		}
+
+		~NativeCursor() {
+			Dispose(false);
 		}
 
 		public const string NativeCursorName = "##NATIVE##";
@@ -20,12 +29,48 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public IRequest Context { get; private set; }
 
+		public ITable Source {
+			get { return Result; }
+		}
+
+		private IEnumerable<IDbObject> References { get; set; }
+		 
+		private ITable Result { get; set; }
+
+		private bool evaluated;
+		private int currentOffset;
+
+		private void Evaluate() {
+			if (!evaluated) {
+				try {
+					AcquireReferences();
+					Result = CursorInfo.QueryPlan.Evaluate(Context);
+				} finally {
+					evaluated = true;
+				}
+			}
+		}
+
+		private void AcquireReferences() {
+			var refNames = CursorInfo.QueryPlan.DiscoverTableNames();
+			var refs = refNames.Select(x => Context.Access.FindObject(x)).ToArray();
+
+			Context.Query.Session.Enter(refs, AccessType.Read);
+			References = refs;
+		}
+
+		private void ReleaseReferences() {
+			if (References != null) {
+				Context.Query.Session.Exit(References, AccessType.Read);
+			}
+		}
+
 		IObjectInfo IDbObject.ObjectInfo {
 			get { return CursorInfo; }
 		}
 
 		public IEnumerator<Row> GetEnumerator() {
-			throw new NotImplementedException();
+			return new CursorEnumerator(this);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -33,13 +78,109 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
-		public CursorStatus Status { get; }
+		private void Dispose(bool disposing) {
+			if (Status != CursorStatus.Disposed) {
+				if (disposing) {
+					ReleaseReferences();
+
+					if (Result != null)
+						Result.Dispose();
+				}
+
+				Result = null;
+				Context = null;
+				CursorInfo = null;
+				Status = CursorStatus.Disposed;
+			}
+		}
+
+		public CursorStatus Status { get; private set; }
 
 		public Row Fetch(FetchDirection direction, int offset) {
-			throw new NotImplementedException();
+			if (direction != FetchDirection.Absolute &&
+				direction != FetchDirection.Relative &&
+				offset > -1)
+				throw new ArgumentException("Cannot set the offset for a non-relative and non-absolute fetch direction.");
+
+			int realOffset;
+			if (direction == FetchDirection.Next) {
+				realOffset = currentOffset + 1;
+			} else if (direction == FetchDirection.Prior) {
+				realOffset = currentOffset - 1;
+			} else if (direction == FetchDirection.First) {
+				realOffset = 0;
+			} else if (direction == FetchDirection.Last) {
+				realOffset = Result.RowCount - 1;
+			} else if (direction == FetchDirection.Absolute) {
+				realOffset = offset;
+			} else if (direction == FetchDirection.Relative) {
+				realOffset = offset + currentOffset;
+			} else {
+				throw new ArgumentException();
+			}
+
+			if (realOffset >= Result.RowCount || realOffset < 0) {
+				Status = CursorStatus.Closed;
+				return null;
+			}
+
+			var row = Result.GetRow(realOffset);
+			currentOffset = realOffset;
+			Status = CursorStatus.Fetching;
+
+			return row;
 		}
+
+		#region CursorEnumerator
+
+		class CursorEnumerator : IEnumerator<Row> {
+			private int offset = -1;
+			private NativeCursor cursor;
+			private Row currentRow;
+
+			public CursorEnumerator(NativeCursor cursor) {
+				this.cursor = cursor;
+			}
+
+			public Row Current {
+				get {
+					AssertIsEnumerable();
+					return currentRow;
+				}
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+
+			private void AssertIsEnumerable() {
+				if (cursor == null)
+					throw new ObjectDisposedException("CursorEnumerator");
+				if (cursor.Status == CursorStatus.Disposed)
+					throw new ObjectDisposedException("Cursor");				
+			}
+
+			public bool MoveNext() {
+				AssertIsEnumerable();
+				cursor.Evaluate();
+
+				currentRow = cursor.Fetch(FetchDirection.Absolute, ++offset);
+				return cursor.Status == CursorStatus.Fetching;
+			}
+
+			public void Reset() {
+				offset = -1;
+			}
+
+			public void Dispose() {
+				cursor = null;
+			}
+		}
+
+		#endregion
 	}
 }

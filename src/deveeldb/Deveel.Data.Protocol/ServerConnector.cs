@@ -379,8 +379,6 @@ namespace Deveel.Data.Protocol {
 		}
 
 		private int AddResult(QueryResult result) {
-			result.LockRoot();
-
 			int resultId;
 
 			lock (resultMap) {

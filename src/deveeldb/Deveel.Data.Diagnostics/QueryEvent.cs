@@ -19,11 +19,11 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Diagnostics {
 	public sealed class QueryEvent : Event {
-		public QueryEvent(SqlQuery query, QueryEventType eventType, ITable[] result) {
+		public QueryEvent(SqlQuery query, QueryEventType eventType, StatementResult[] result) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
@@ -36,7 +36,7 @@ namespace Deveel.Data.Diagnostics {
 
 		public QueryEventType EventType { get; private set; }
 
-		public ITable[] Result { get; private set; }
+		public StatementResult[] Result { get; private set; }
 
 		protected override void GetEventData(Dictionary<string, object> data) {
 			data["query.text"] = Query.Text;
@@ -53,7 +53,16 @@ namespace Deveel.Data.Diagnostics {
 				i++;
 			}
 
-			// TODO: pass also the results as meta?
+			if (Result != null) {
+				data["query.result.count"] = Result.Length;
+
+				i = 0;
+				foreach (var result in Result) {
+					data[String.Format("query.result[{0}].type", i)] = result.Type.ToString();
+
+					// TODO: pass also the results as meta?
+				}
+			}
 		}
 	}
 }

@@ -18,23 +18,19 @@
 using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
 	public sealed class ExecutionContext {
-		public ExecutionContext(IRequest request, SqlStatement statement)
-			: this(null, request, statement) {
-		}
-
-		private ExecutionContext(ExecutionContext parent, IRequest request, SqlStatement statement) {
+		public ExecutionContext(IRequest request, SqlStatement statement) {
 			if (request == null)
 				throw new ArgumentNullException("request");
 
 			Request = request;
 			Statement = statement;
-			Parent = parent;
 		}
 
 		private SqlStatement Statement { get; set; }
@@ -49,6 +45,10 @@ namespace Deveel.Data.Sql {
 			get { return Result != null; }
 		}
 
+		public ICursor Cursor { get; private set; }
+
+		public bool HasCursor { get; private set; }
+
 		public User User {
 			get { return Request.Query.User(); }
 		}
@@ -60,9 +60,6 @@ namespace Deveel.Data.Sql {
 		public SystemAccess DirectAccess {
 			get { return Request.Access; }
 		}
-
-		private ExecutionContext Parent { get; set; }
-
 
 		private void AssertNotFinished() {
 			if (HasTermination)
@@ -80,6 +77,19 @@ namespace Deveel.Data.Sql {
 
 		public void SetResult(Field value) {
 			SetResult(FunctionTable.ResultTable(Request, value));
+		}
+
+		public void SetCursor(ICursor cursor) {
+			if (cursor == null)
+				throw new ArgumentNullException("cursor");
+
+			if (HasResult)
+				throw new InvalidOperationException("The context has already a result set.");
+			if (HasCursor)
+				throw new InvalidOperationException("A cursor was already set as result of this context.");
+
+			Cursor = cursor;
+			HasCursor = true;
 		}
 
 		internal void Raise(string exceptionName) {
@@ -148,7 +158,7 @@ namespace Deveel.Data.Sql {
 				SetResult(block.Result);
 		}
 
-		public void Return(SqlExpression value) {
+		internal void Return(SqlExpression value) {
 			AssertNotFinished();
 
 			if (value != null)
@@ -179,7 +189,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public ExecutionContext NewBlock(SqlStatement statement) {
-			return new ExecutionContext(this, new Block(Request), statement);
+			return new ExecutionContext(new Block(Request), statement);
 		}
 	}
 }
