@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Cursors {
-	public sealed class CursorState : IDisposable {
+	class CursorState : IDisposable {
 		internal CursorState() {
 			CurrentOffset = -1;
 		}
@@ -36,14 +36,6 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public bool IsClosed {
 			get { return Status == CursorStatus.Closed; }
-		}
-
-		public bool IsOpen {
-			get { return Status == CursorStatus.Open; }
-		}
-
-		public bool IsFetching {
-			get { return Status == CursorStatus.Fetching; }
 		}
 
 		internal ITable Result { get; private set; }

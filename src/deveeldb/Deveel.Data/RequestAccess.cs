@@ -90,7 +90,7 @@ namespace Deveel.Data {
 		public override void CreateObject(IObjectInfo objectInfo) {
 			if (objectInfo.ObjectType == DbObjectType.Cursor) {
 				var cursorInfo = (CursorInfo) objectInfo;
-				Request.Context.DeclareCursor(cursorInfo);
+				Request.Context.DeclareCursor(cursorInfo, Request);
 			} else if (objectInfo.ObjectType == DbObjectType.Variable) {
 				var varInfo = (VariableInfo) objectInfo;
 				Request.Context.DeclareVariable(varInfo);

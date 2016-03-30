@@ -136,6 +136,9 @@
     <Compile Include="Deveel.Data.Security\SystemRoles.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />

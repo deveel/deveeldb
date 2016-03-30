@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new ObjectNotFoundException(new ObjectName(CursorName));
 
-			cursor.Close(context.Request);
+			cursor.Close();
 		}
 
 		protected override void GetData(SerializationInfo info) {

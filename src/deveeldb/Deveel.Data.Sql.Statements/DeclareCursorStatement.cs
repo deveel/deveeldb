@@ -99,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 
-			context.Request.Context.DeclareCursor(cursorInfo);
+			context.Request.Context.DeclareCursor(cursorInfo, context.Request);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

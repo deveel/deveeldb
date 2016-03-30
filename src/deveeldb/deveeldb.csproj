@@ -173,6 +173,7 @@
     <Compile Include="Deveel.Data.Security\Pkcs12UserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
+    <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />

@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
-			DeclareCursor((CursorInfo)objInfo);
+			DeclareCursor((CursorInfo)objInfo, null);
 		}
 
 		bool IObjectManager.RealObjectExists(ObjectName objName) {
@@ -100,7 +100,7 @@ namespace Deveel.Data.Sql.Cursors {
 			return null;
 		}
 
-		public void DeclareCursor(CursorInfo cursorInfo) {
+		public void DeclareCursor(CursorInfo cursorInfo, IRequest context) {
 			if (cursorInfo == null)
 				throw new ArgumentNullException("cursorInfo");
 
@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Cursors {
 				if (cursors.Any(x => x.CursorInfo.CursorName.Equals(cursorName, StringComparison.OrdinalIgnoreCase)))
 					throw new ArgumentException(String.Format("Cursor '{0}' was already declared.", cursorName));
 
-				var cursor = new Cursor(cursorInfo);
+				var cursor = new Cursor(cursorInfo, context);
 				cursors.Add(cursor);
 			}
 		}

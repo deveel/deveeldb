@@ -19,8 +19,8 @@ using System;
 
 namespace Deveel.Data.Sql.Cursors {
 	public static class CursorScopeExtensions {
-		public static void DeclareCursor(this ICursorScope scope, CursorInfo cursorInfo) {
-			scope.CursorManager.DeclareCursor(cursorInfo);
+		public static void DeclareCursor(this ICursorScope scope, CursorInfo cursorInfo, IRequest context) {
+			scope.CursorManager.DeclareCursor(cursorInfo, context);
 		}
 
 		public static Cursor GetCursor(this ICursorScope scope, string cursorName) {

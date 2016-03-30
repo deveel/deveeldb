@@ -86,7 +86,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (cursor == null)
 				throw new StatementException(String.Format("Cursor '{0}' was not found in the context.", CursorName));
 
-			cursor.Open(context.Request, Arguments);
+			cursor.Open(Arguments);
 		}
 	}
 }

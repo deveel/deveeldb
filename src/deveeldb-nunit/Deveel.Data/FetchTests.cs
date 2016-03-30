@@ -34,7 +34,7 @@ namespace Deveel.Data {
 
 			Query.Access.CreateObject(cursorInfo);
 			var c1 = (Cursor) Query.Access.GetObject(DbObjectType.Cursor, new ObjectName("c1"));
-			c1.Open(Query);
+			c1.Open();
 		}
 
 		[Test]

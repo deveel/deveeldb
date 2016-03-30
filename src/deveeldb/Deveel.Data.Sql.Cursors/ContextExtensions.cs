@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Cursors {
 	public static class ContextExtensions {
-		public static bool DeclareCursor(this IContext context, CursorInfo cursorInfo) {
+		public static bool DeclareCursor(this IContext context, CursorInfo cursorInfo, IRequest request) {
 			if (context.CursorExists(cursorInfo.CursorName))
 				throw new InvalidOperationException(String.Format("A cursor named '{0}' was already defined in the context.",
 					cursorInfo.CursorName));
@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Cursors {
 			while (currentContext != null) {
 				if (currentContext is ICursorScope) {
 					var scope = (ICursorScope)currentContext;
-					scope.DeclareCursor(cursorInfo);
+					scope.CursorManager.DeclareCursor(cursorInfo, request);
 					return true;
 				}
 
@@ -41,24 +41,24 @@ namespace Deveel.Data.Sql.Cursors {
 			return false;
 		}
 
-		public static void DeclareCursor(this IContext context, string cursorName, SqlQueryExpression query) {
-			DeclareCursor(context, cursorName, (CursorFlags)0, query);
+		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, SqlQueryExpression query) {
+			DeclareCursor(context, request, cursorName, (CursorFlags)0, query);
 		}
 
-		public static void DeclareCursor(this IContext context, string cursorName, CursorFlags flags, SqlQueryExpression query) {
-			context.DeclareCursor(new CursorInfo(cursorName, flags, query));
+		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, CursorFlags flags, SqlQueryExpression query) {
+			context.DeclareCursor(new CursorInfo(cursorName, flags, query), request);
 		}
 
-		public static void DeclareInsensitiveCursor(this IContext context, string cursorName, SqlQueryExpression query) {
-			DeclareInsensitiveCursor(context, cursorName, query, false);
+		public static void DeclareInsensitiveCursor(this IContext context, IRequest request, string cursorName, SqlQueryExpression query) {
+			DeclareInsensitiveCursor(context, request, cursorName, query, false);
 		}
 
-		public static void DeclareInsensitiveCursor(this IContext context, string cursorName, SqlQueryExpression query, bool withScroll) {
+		public static void DeclareInsensitiveCursor(this IContext context, IRequest request, string cursorName, SqlQueryExpression query, bool withScroll) {
 			var flags = CursorFlags.Insensitive;
 			if (withScroll)
 				flags |= CursorFlags.Scroll;
 
-			context.DeclareCursor(cursorName, flags, query);
+			context.DeclareCursor(request, cursorName, flags, query);
 		}
 
 
@@ -106,24 +106,6 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 
 			return false;
-		}
-
-		public static bool CloseCursor(this IContext context, IRequest request, string cursorName) {
-			var cursor = context.FindCursor(cursorName);
-			if (cursor == null)
-				return false;
-
-			cursor.Close(request);
-			return true;
-		}
-
-		public static bool OpenCursor(this IContext context, IRequest request, string cursorName, params  SqlExpression[] args) {
-			var cursor = context.FindCursor(cursorName);
-			if (cursor == null)
-				return false;
-
-			cursor.Open(request, args);
-			return true;
 		}
 	}
 }
