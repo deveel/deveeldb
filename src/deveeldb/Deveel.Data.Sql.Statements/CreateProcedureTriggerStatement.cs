@@ -17,19 +17,27 @@
 
 using System;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateProcedureTriggerStatement : SqlStatement {
-		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, string procedureName, TriggerEventType eventType) 
-			: this(triggerName, tableName, procedureName, false, eventType) {
+		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, TriggerEventType eventType) 
+			: this(triggerName, tableName, procedureName, new SqlExpression[0], eventType) {
 		}
 
-		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, string procedureName, bool external, TriggerEventType eventType) {
+		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, SqlExpression[] args, TriggerEventType eventType) {
+			if (triggerName == null)
+				throw new ArgumentNullException("triggerName");
+			if (tableName == null)
+				throw new ArgumentNullException("tableName");
+			if (procedureName == null)
+				throw new ArgumentNullException("procedureName");
+
 			TriggerName = triggerName;
 			TableName = tableName;
 			ProcedureName = procedureName;
-			IsExternal = external;
+			ProcedureArguments = args;
 			EventType = eventType;
 		}
 
@@ -39,8 +47,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public TriggerEventType EventType { get; private set; }
 
-		public string ProcedureName { get; private set; }
+		public ObjectName ProcedureName { get; private set; }
 
-		public bool IsExternal { get; private set; }
+		public SqlExpression[] ProcedureArguments { get; private set; }
 	}
 }
