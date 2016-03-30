@@ -52,7 +52,10 @@ namespace Deveel.Data.Security {
 			if (Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges))
 				return true;
 
-			// TODO: Resolve the object info and check if this is the owner
+			var obj = Session.Access.GetObject(objectType, objectName);
+			if (obj != null &&
+			    String.Equals(Name, obj.ObjectInfo.Owner))
+				return true;
 
 			if (objectName.Parent != null)
 				return HasPrivileges(DbObjectType.Schema, objectName.Parent, privileges);
@@ -144,7 +147,7 @@ namespace Deveel.Data.Security {
 			return CanAlter(DbObjectType.Table, tableName);
 		}
 
-		public virtual bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+		public bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
 			AssertInContext();
 
 			if (routineType == RoutineType.Function &&

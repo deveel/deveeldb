@@ -126,20 +126,6 @@ namespace Deveel.Data.Security {
 			return roles.Any(role => role.CanManageSchema());
 		}
 
-		// TODO: this should not be needed to be overridden
-		public override bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
-			AssertInContext();
-
-			var routine = Session.Access.ResolveRoutine(invoke, request);
-			if (routine == null)
-				return false;
-
-			if (String.Equals(routine.RoutineInfo.Owner, Name))
-				return true;
-
-			return base.CanExecute(routineType, invoke, request);
-		}
-
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			if (IsSystem ||
 				IsInRole(SystemRoles.SecureAccessRole))
