@@ -23,16 +23,6 @@ namespace Deveel.Data.Sql {
 	/// a type or a column.
 	/// </summary>
 	public interface IDbObject {
-		/// <summary>
-		/// Gets the fully qualified name of the object used to resolve
-		/// it uniquely within the database.
-		/// </summary>
-		/// <seealso cref="ObjectName"/>
-		ObjectName FullName { get; }
-
-		/// <summary>
-		/// Gets the type of database object that the implementation is for
-		/// </summary>
-		DbObjectType ObjectType { get; }
+		IObjectInfo ObjectInfo { get; }
 	}
 }

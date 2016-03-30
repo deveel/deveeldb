@@ -11,12 +11,8 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public TriggerInfo TriggerInfo { get; private set; }
 
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Trigger; }
-		}
-
-		ObjectName IDbObject.FullName {
-			get { return TriggerInfo.TriggerName; }
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return TriggerInfo; }
 		}
 
 		protected virtual void Dispose(bool disposing) {

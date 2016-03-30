@@ -33,12 +33,8 @@ namespace Deveel.Data.Sql.Tables {
 
 		public IContext Context { get; private set; }
 
-		ObjectName IDbObject.FullName {
-			get { return TableInfo.TableName; }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Table; }
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return TableInfo; }
 		}
 
 		public IEnumerator<Row> GetEnumerator() {

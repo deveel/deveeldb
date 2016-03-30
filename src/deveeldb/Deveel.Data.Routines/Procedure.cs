@@ -34,12 +34,8 @@ namespace Deveel.Data.Routines {
 			get { return ProcedureInfo.RoutineName; }
 		}
 
-		ObjectName IDbObject.FullName {
-			get { return ProcedureInfo.RoutineName; }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Routine; }
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return ProcedureInfo; }
 		}
 
 		RoutineType IRoutine.Type {

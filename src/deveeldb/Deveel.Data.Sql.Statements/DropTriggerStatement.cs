@@ -19,7 +19,6 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -40,7 +39,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var triggerName = context.Access.ResolveObjectName(DbObjectType.Trigger, TriggerName);
-			return new DropTriggerStatement(TriggerName);
+			return new DropTriggerStatement(triggerName);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

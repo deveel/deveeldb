@@ -165,7 +165,7 @@ namespace Deveel.Data.Routines {
 		public void SetOutput(string argName, Field value) {
 			var parameter = GetParameter(argName);
 			if (parameter == null)
-				throw new InvalidOperationException(String.Format("Routine {0} has none parameter named '{1}'.", Routine.FullName, argName));
+				throw new InvalidOperationException(String.Format("Routine {0} has none parameter named '{1}'.", Routine.RoutineInfo.RoutineName, argName));
 			if (!parameter.IsOutput)
 				throw new InvalidOperationException();
 

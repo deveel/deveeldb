@@ -72,6 +72,10 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return TableInfo; }
+		}
+
 		public int RowCount {
 			get {
 				AssertNotDisposed();
@@ -191,14 +195,6 @@ namespace Deveel.Data.Transactions {
 
 		private int TableId {
 			get { return TableSource.TableId; }
-		}
-
-		public ObjectName FullName {
-			get { return TableInfo.TableName; }
-		}
-
-		public DbObjectType ObjectType {
-			get { return DbObjectType.Table; }
 		}
 
 		public IEnumerator<Row> GetEnumerator() {

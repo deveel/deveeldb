@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
 
-			context.Request.Access.GrantTo(Grantee, obj.ObjectType, obj.FullName, Privilege, WithGrant);
+			context.Request.Access.GrantTo(Grantee, obj.ObjectInfo.ObjectType, obj.ObjectInfo.FullName, Privilege, WithGrant);
 		}
 	}
 }

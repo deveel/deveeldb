@@ -56,15 +56,11 @@ namespace Deveel.Data.Sql.Objects {
 			return new SqlTabular(table);
 		}
 
-		ObjectName IDbObject.FullName {
+		IObjectInfo IDbObject.ObjectInfo {
 			get {
 				AssertNotNull();
-				return table.FullName;
+				return table.TableInfo;
 			}
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Table; }
 		}
 
 		public IEnumerator<Row> GetEnumerator() {

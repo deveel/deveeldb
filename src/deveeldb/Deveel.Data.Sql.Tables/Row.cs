@@ -101,12 +101,8 @@ namespace Deveel.Data.Sql.Tables {
 		/// </remarks>
 		public RowId RowId { get; private set; }
 
-		ObjectName IDbObject.FullName {
-			get { return new ObjectName(Table.FullName, RowId.RowNumber.ToString());}
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Row; }
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return null; }
 		}
 
 		/// <summary>
@@ -296,7 +292,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var offset = Table.TableInfo.IndexOfColumn(columnName);
 			if (offset < 0)
-				throw new ArgumentException(String.Format("Could not find column '{0}' in the table '{1}'.", columnName, Table.FullName));
+				throw new ArgumentException(String.Format("Could not find column '{0}' in the table '{1}'.", columnName, Table.TableInfo.TableName));
 
 			return GetValue(offset);
 		}
@@ -307,7 +303,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var offset = Table.TableInfo.IndexOfColumn(columnName);
 			if (offset < 0)
-				throw new ArgumentException(String.Format("Could not find column '{0}' in the table '{1}'.", columnName, Table.FullName));
+				throw new ArgumentException(String.Format("Could not find column '{0}' in the table '{1}'.", columnName, Table.TableInfo.TableName));
 
 			SetValue(offset, value);
 		}
@@ -385,7 +381,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var column = Table.TableInfo[columnOffset];
 			if (!column.HasDefaultExpression)
-				throw new InvalidOperationException(String.Format("Column '{0}' in table '{1}' has no DEFAULT set.", column.ColumnName, Table.FullName));
+				throw new InvalidOperationException(String.Format("Column '{0}' in table '{1}' has no DEFAULT set.", column.ColumnName, Table.TableInfo.TableName));
 
 			var value = Evaluate(column.DefaultExpression, context);
 			SetValue(columnOffset, value);
@@ -460,7 +456,7 @@ namespace Deveel.Data.Sql.Tables {
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);
 				if (colIndex == -1)
-					throw new InvalidOperationException(String.Format("Column '{0}' could not be found in table '{1}'", colName, row.Table.FullName));
+					throw new InvalidOperationException(String.Format("Column '{0}' could not be found in table '{1}'", colName, row.Table.TableInfo.TableName));
 
 				Field value;
 				if (!row.values.TryGetValue(colIndex, out value))

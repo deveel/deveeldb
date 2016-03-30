@@ -65,11 +65,11 @@ namespace Deveel.Data.Sql.Statements {
 			if (obj == null)
 				throw new ObjectNotFoundException(ObjectName);
 
-			if (!context.User.HasGrantOption(obj.ObjectType, obj.FullName, Privileges))
+			if (!context.User.HasGrantOption(obj.ObjectInfo.ObjectType, obj.ObjectInfo.FullName, Privileges))
 				throw new SecurityException(String.Format("User '{0}' cannot revoke '{1}' privilege from '{2}' on '{3}'.",
 					context.User.Name, Privileges, Grantee, ObjectName));
 
-			context.DirectAccess.Revoke(obj.ObjectType, obj.FullName, Grantee, Privileges, GrantOption);
+			context.DirectAccess.Revoke(obj.ObjectInfo.ObjectType, obj.ObjectInfo.FullName, Grantee, Privileges, GrantOption);
 		}
 	}
 }

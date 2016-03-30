@@ -9,7 +9,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public override void Fire(TableEvent tableEvent, IRequest context) {
-			var e = new TriggerEvent(TriggerInfo.TriggerName, tableEvent.Table.FullName, tableEvent.EventType,
+			var e = new TriggerEvent(TriggerInfo.TriggerName, tableEvent.Table.TableInfo.TableName, tableEvent.EventType,
 				tableEvent.OldRowId, tableEvent.NewRow);
 
 			context.Context.RegisterEvent(e);

@@ -1416,14 +1416,6 @@ namespace Deveel.Data.Sql.Tables {
 				this.masterIndex = masterIndex;
 			}
 
-			ObjectName IDbObject.FullName {
-				get { return TableInfo.TableName; }
-			}
-
-			DbObjectType IDbObject.ObjectType {
-				get { return DbObjectType.Table; }
-			}
-
 			public IEnumerator<Row> GetEnumerator() {
 				// NOTE: Returns iterator across master index before journal entry
 				//   changes.
@@ -1477,6 +1469,10 @@ namespace Deveel.Data.Sql.Tables {
 
 			public TableInfo TableInfo {
 				get { return source.TableInfo; }
+			}
+
+			IObjectInfo IDbObject.ObjectInfo {
+				get { return TableInfo; }
 			}
 
 			public int RowCount {

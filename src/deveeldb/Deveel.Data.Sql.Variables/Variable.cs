@@ -17,7 +17,6 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
@@ -31,6 +30,10 @@ namespace Deveel.Data.Sql.Variables {
 		}
 
 		public VariableInfo VariableInfo { get; private set; }
+
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return VariableInfo; }
+		}
 
 		public string Name {
 			get { return VariableInfo.VariableName; }
@@ -54,14 +57,6 @@ namespace Deveel.Data.Sql.Variables {
 
 		public bool IsNotNull {
 			get { return VariableInfo.IsNotNull; }
-		}
-
-		ObjectName IDbObject.FullName {
-			get { return new ObjectName(VariableInfo.VariableName); }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Variable; }
 		}
 
 		public bool Equals(Variable other) {

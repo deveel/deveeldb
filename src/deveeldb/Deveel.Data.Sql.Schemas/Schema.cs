@@ -28,12 +28,8 @@ namespace Deveel.Data.Sql.Schemas {
 
 		public SchemaInfo SchemaInfo { get; private set; }
 
-		ObjectName IDbObject.FullName {
-			get { return new ObjectName(SchemaInfo.Name); }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Schema; }
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return SchemaInfo; }
 		}
 	}
 }

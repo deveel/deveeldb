@@ -701,7 +701,6 @@ namespace Deveel.Data.Sql.Sequences {
 			public Sequence(SequenceManager manager, SqlNumber id, SqlNumber lastValue, SequenceInfo sequenceInfo) {
 				this.manager = manager;
 				Id = id;
-				FullName = sequenceInfo.SequenceName;
 				SequenceInfo = sequenceInfo;
 				LastValue = lastValue;
 				CurrentValue = lastValue;
@@ -709,13 +708,15 @@ namespace Deveel.Data.Sql.Sequences {
 
 			public SqlNumber Id { get; private set; }
 
-			public ObjectName FullName { get; private set; }
+			public SequenceInfo SequenceInfo { get; private set; }
 
-			DbObjectType IDbObject.ObjectType {
-				get { return DbObjectType.Sequence; }
+			public ObjectName FullName {
+				get { return SequenceInfo.SequenceName; }
 			}
 
-			public SequenceInfo SequenceInfo { get; private set; }
+			IObjectInfo IDbObject.ObjectInfo {
+				get { return SequenceInfo; }
+			}
 
 			public SqlNumber LastValue { get; set; }
 

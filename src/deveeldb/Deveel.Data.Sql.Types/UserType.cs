@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Sql;
-
 namespace Deveel.Data.Sql.Types {
 	public sealed class UserType : SqlType, IDbObject {
 		public UserType(UserTypeInfo typeInfo) 
@@ -31,16 +29,16 @@ namespace Deveel.Data.Sql.Types {
 
 		public UserTypeInfo TypeInfo { get; private set; }
 
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return TypeInfo; }
+		}
+
 		public ObjectName FullName {
 			get { return TypeInfo.TypeName; }
 		}
 
 		public override bool IsStorable {
 			get { return true; }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Type; }
 		}
 
 		public override bool IsComparable(SqlType type) {

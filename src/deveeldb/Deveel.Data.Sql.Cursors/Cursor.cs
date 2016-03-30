@@ -42,19 +42,15 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public CursorInfo CursorInfo { get; private set; }
 
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return CursorInfo; }
+		}
+
 		public CursorStatus Status {
 			get { return State.Status; }
 		}
 
 		public CursorState State { get; private set; }
-
-		ObjectName IDbObject.FullName {
-			get { return new ObjectName(CursorInfo.CursorName); }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Cursor; }
-		}
 
 		public SqlQueryExpression QueryExpression {
 			get { return CursorInfo.QueryExpression; }

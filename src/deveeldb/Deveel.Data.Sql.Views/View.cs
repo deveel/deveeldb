@@ -31,20 +31,16 @@ namespace Deveel.Data.Sql.Views {
 
 		public ViewInfo ViewInfo { get; private set; }
 
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return ViewInfo; }
+		}
+
 		public IQueryPlanNode QueryPlan {
 			get { return ViewInfo.QueryPlan; }
 		}
 
 		public SqlQueryExpression QueryExpression {
 			get { return ViewInfo.QueryExpression; }
-		}
-
-		ObjectName IDbObject.FullName {
-			get { return ViewInfo.ViewName; }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.View; }
 		}
 	}
 }

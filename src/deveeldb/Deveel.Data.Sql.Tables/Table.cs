@@ -51,6 +51,10 @@ namespace Deveel.Data.Sql.Tables {
 
 		public abstract TableInfo TableInfo { get; }
 
+		IObjectInfo IDbObject.ObjectInfo {
+			get { return TableInfo; }
+		}
+
 		public bool IsLocked { get; private set; }
 
 		object ILockable.RefId {
@@ -131,14 +135,6 @@ namespace Deveel.Data.Sql.Tables {
 
 		public ColumnIndex GetIndex(int columnOffset) {
 			return GetIndex(columnOffset, columnOffset, this);
-		}
-
-		public ObjectName FullName {
-			get { return TableInfo.TableName; }
-		}
-
-		DbObjectType IDbObject.ObjectType {
-			get { return DbObjectType.Table; }
 		}
 
 		protected int FindColumn(ObjectName columnName) {

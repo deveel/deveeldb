@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Triggers {
 		public string Owner { get; set; }
 
 		public bool CanFire(TableEvent tableEvent) {
-			if (!TableName.Equals(tableEvent.Table.FullName))
+			if (!TableName.Equals(tableEvent.Table.TableInfo.TableName))
 				return false;
 
 			return MatchesEvent(tableEvent.EventType);

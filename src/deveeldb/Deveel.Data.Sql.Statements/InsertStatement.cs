@@ -106,7 +106,7 @@ namespace Deveel.Data.Sql.Statements {
 				var columnName = new ObjectName(tableName, name);
 				var colIndex = table.FindColumn(columnName);
 				if (colIndex < 0)
-					throw new InvalidOperationException(String.Format("Cannot find column '{0}' in table '{1}'", columnName, table.FullName));
+					throw new InvalidOperationException(String.Format("Cannot find column '{0}' in table '{1}'", columnName, table.TableInfo.TableName));
 
 				columnInfos.Add(table.TableInfo[colIndex]);
 			}

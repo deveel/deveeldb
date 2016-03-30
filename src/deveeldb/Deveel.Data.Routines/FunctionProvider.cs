@@ -75,7 +75,7 @@ namespace Deveel.Data.Routines {
 			if (function == null)
 				throw new ArgumentNullException("function");
 
-			var functionName = function.FullName.FullName.ToUpperInvariant();
+			var functionName = function.ObjectInfo.FullName.Name.ToUpperInvariant();
 			container.RegisterInstance(function, serviceKey: functionName,reuse:Reuse.Singleton);
 		}
 
