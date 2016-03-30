@@ -98,6 +98,9 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		private void GetIntoClause(ISqlNode node) {
+			if (!node.ChildNodes.Any())
+				return;
+
 			var argsNode = node.FindByName("select_into_args");
 			if (argsNode == null)
 				throw Error("Expecting an argument for the INTO clause");
