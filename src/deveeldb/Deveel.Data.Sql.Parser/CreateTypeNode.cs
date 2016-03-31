@@ -35,11 +35,9 @@ namespace Deveel.Data.Sql.Parser {
 			var members = Attributes.Select(x => {
 				var type = DataTypeBuilder.Build(builder.TypeResolver, x.Type);
 				return new UserTypeMember(x.Name, type);
-			});
+			}).ToArray();
 
-			builder.AddObject(new CreateTypeStatement(typeName, members) {
-				ReplaceIfExists = ReplaceIfExists
-			});
+			builder.AddObject(new CreateTypeStatement(typeName, members, ReplaceIfExists));
 		}
 	}
 }

@@ -17,8 +17,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Sql;
+
+using DryIoc;
 
 namespace Deveel.Data.Sql.Types {
 	public class UserTypeInfo : IObjectInfo {
@@ -46,6 +49,10 @@ namespace Deveel.Data.Sql.Types {
 		public ObjectName ParentType { get; private set; }
 
 		public string Owner { get; set; }
+
+		public int MemberCount {
+			get { return members == null ? 0 : members.Count; }
+		}
 
 		public UserTypeMember this[int offset] {
 			get { return members[offset]; }
@@ -75,6 +82,37 @@ namespace Deveel.Data.Sql.Types {
 			}
 
 			return -1;
+		}
+
+		public UserTypeMember AddMember(string memberName, SqlType memberType) {
+			if (String.IsNullOrEmpty(memberName))
+				throw new ArgumentNullException("memberName");
+			if (memberType == null)
+				throw new ArgumentNullException("memberType");
+
+			try {
+				var member = new UserTypeMember(memberName, memberType);
+				AddMember(member);
+				return member;
+			} finally {
+				memberNamesCache.Clear();
+			}
+		}
+
+		public void AddMember(UserTypeMember member) {
+			if (member == null)
+				throw new ArgumentNullException("member");
+
+			if (members == null)
+				members = new List<UserTypeMember>();
+
+			if (members.ToDictionary(x => x.MemberName, y => y, StringComparer.OrdinalIgnoreCase)
+				.ContainsKey(member.MemberName))
+				throw new ArgumentException(String.Format("A member named '{0}' is already present in type '{1}'.",
+					member.MemberName, member.MemberType));
+
+			members.Add(member);
+			memberNamesCache.Clear();
 		}
 
 		DbObjectType IObjectInfo.ObjectType {

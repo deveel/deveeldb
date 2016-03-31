@@ -144,6 +144,7 @@
     <Compile Include="Deveel.Data\CreateSequenceTests.cs" />
     <Compile Include="Deveel.Data\CreateTableTests.cs" />
     <Compile Include="Deveel.Data\CreateTriggerTests.cs" />
+    <Compile Include="Deveel.Data\CreateTypeTests.cs" />
     <Compile Include="Deveel.Data\CreateUserTests.cs" />
     <Compile Include="Deveel.Data\CreateViewTests.cs" />
     <Compile Include="Deveel.Data\DatabaseTests.cs" />

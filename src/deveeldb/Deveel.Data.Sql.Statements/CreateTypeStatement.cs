@@ -16,68 +16,81 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
+using Deveel.Data.Security;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class CreateTypeStatement : SqlStatement {
-		public CreateTypeStatement(ObjectName typeName, IEnumerable<UserTypeMember> members) {
+		public CreateTypeStatement(ObjectName typeName, UserTypeMember[] members) 
+			: this(typeName, members, false) {
+		}
+
+		public CreateTypeStatement(ObjectName typeName, UserTypeMember[] members, bool replaceIfExists) {
 			if (typeName == null)
 				throw new ArgumentNullException("typeName");
 			if (members == null)
 				throw new ArgumentNullException("members");
 
-			if (!members.Any())
+			if (members.Length == 0)
 				throw new ArgumentException("At least one member must be specified.");
 
 			TypeName = typeName;
 			Members = members;
+			ReplaceIfExists = replaceIfExists;
+		}
+
+		private CreateTypeStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TypeName = (ObjectName)info.GetValue("TypeName", typeof(ObjectName));
+			Members = (UserTypeMember[])info.GetValue("Members", typeof(UserTypeMember[]));
+			ReplaceIfExists = info.GetBoolean("Replace");
 		}
 
 		public ObjectName TypeName { get; private set; }
 
 		public bool ReplaceIfExists { get; set; }
 
-		public IEnumerable<UserTypeMember> Members { get; private set; }
+		public UserTypeMember[] Members { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			// TODO: resolve the type name
-			return new Prepared(TypeName, Members.ToArray(), ReplaceIfExists);
+			var schemaName = context.Access.ResolveSchemaName(TypeName.ParentName);
+			var typeName = new ObjectName(schemaName, TypeName.Name);
+
+			return new CreateTypeStatement(typeName, Members, ReplaceIfExists);
 		}
 
-		#region Prepared
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.User.CanCreateInSchema(TypeName.ParentName))
+				throw new SecurityException(String.Format("The user '{0}' has no rights to create in schema '{1}'.",
+					context.User.Name, TypeName.ParentName));
 
-		[Serializable]
-		class Prepared : SqlStatement {
-			public Prepared(ObjectName typeName, UserTypeMember[] members, bool replaceIfExists) {
-				TypeName = typeName;
-				Members = members;
-				ReplaceIfExists = replaceIfExists;
+			if (context.DirectAccess.TypeExists(TypeName)) {
+				if (!ReplaceIfExists)
+					throw new StatementException(String.Format("The type '{0}' already exists.", TypeName));
+
+				context.DirectAccess.DropType(TypeName);
 			}
 
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				TypeName = (ObjectName) info.GetValue("TypeName", typeof(ObjectName));
-				Members = (UserTypeMember[]) info.GetValue("Members", typeof(UserTypeMember[]));
-				ReplaceIfExists = info.GetBoolean("Replace");
+			// TODO: support the parent
+
+			var typeInfo = new UserTypeInfo(TypeName);
+			foreach (var member in Members) {
+				typeInfo.AddMember(member);
 			}
 
-			public ObjectName TypeName { get; private set; }
-
-			public UserTypeMember[] Members { get; private set; }
-
-			public bool ReplaceIfExists { get; set; }
-
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("TypeName", TypeName);
-				info.AddValue("Members", Members);
-				info.AddValue("Replace", ReplaceIfExists);
-			}
+			typeInfo.Owner = context.User.Name;
+			
+			context.DirectAccess.CreateType(typeInfo);
+			context.DirectAccess.GrantOn(DbObjectType.Type, TypeName, context.User.Name, Privileges.TableAll, true);
 		}
 
-		#endregion
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("TypeName", TypeName);
+			info.AddValue("Members", Members);
+			info.AddValue("Replace", ReplaceIfExists);
+		}
 	}
 }

@@ -29,6 +29,7 @@ using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Transactions;
 
@@ -510,6 +511,22 @@ namespace Deveel.Data {
 				return true;
 
 			return ObjectExists(DbObjectType.Trigger, triggerName);
+		}
+
+		#endregion
+
+		#region Types
+
+		public bool TypeExists(ObjectName typeName) {
+			return ObjectExists(DbObjectType.Type, typeName);
+		}
+
+		public bool DropType(ObjectName typeName) {
+			return DropObject(DbObjectType.Type, typeName);
+		}
+
+		public void CreateType(UserTypeInfo typeInfo) {
+			CreateObject(typeInfo);
 		}
 
 		#endregion

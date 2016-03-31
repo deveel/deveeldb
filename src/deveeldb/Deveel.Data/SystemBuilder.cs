@@ -31,6 +31,7 @@ using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
@@ -102,6 +103,11 @@ namespace Deveel.Data {
 			ServiceContainer.Bind<IObjectManager>()
 				.To<RoutineManager>()
 				.WithKey(DbObjectType.Routine)
+				.InTransactionScope();
+
+			ServiceContainer.Bind<IObjectManager>()
+				.To<TypeManager>()
+				.WithKey(DbObjectType.Type)
 				.InTransactionScope();
 
 			ServiceContainer.Bind<IStoreSystem>()

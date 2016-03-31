@@ -334,6 +334,14 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Create Type
+
+		public static void CreateType(this IQuery query, ObjectName typeName, params UserTypeMember[] members) {
+			query.ExecuteStatement(new CreateTypeStatement(typeName, members));
+		}
+
+		#endregion
+
 
 		#region Grant Privileges
 
