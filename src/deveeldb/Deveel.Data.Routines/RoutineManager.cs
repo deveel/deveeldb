@@ -87,8 +87,11 @@ namespace Deveel.Data.Routines {
 		}
 
 		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
+			if (phase == SystemCreatePhase.SystemCreate) {
 				Create();
+			} else if (phase == SystemCreatePhase.SystemSetup) {
+				AddForeignKeys();
+			}
 		}
 
 		private void Create() {
@@ -113,9 +116,11 @@ namespace Deveel.Data.Routines {
 			tableInfo.AddColumn("in_out", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
 			transaction.CreateTable(tableInfo);
+		}
 
-			var fkCol = new[] {"routine_id"};
-			var refCol = new[] {"id"};
+		private void AddForeignKeys() {
+			var fkCol = new[] { "routine_id" };
+			var refCol = new[] { "id" };
 			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
 			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
 

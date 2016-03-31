@@ -138,7 +138,7 @@ namespace Deveel.Data.Sql.Tables {
 				Create();
 		}
 
-		public void Create() {
+		private void Create() {
 			// SYSTEM.PKEY_INFO
 			var tableInfo = new TableInfo(SystemSchema.PrimaryKeyInfoTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
