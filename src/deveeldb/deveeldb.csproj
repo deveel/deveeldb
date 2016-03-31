@@ -222,6 +222,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ReturnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEvent.cs" />
@@ -308,8 +309,10 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResultType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\StringFormatterVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\ForeignKeyActionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerManager.cs" />

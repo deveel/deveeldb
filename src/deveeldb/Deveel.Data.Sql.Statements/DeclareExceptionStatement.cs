@@ -18,8 +18,6 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class DeclareExceptionStatement : SqlStatement, IDeclarationStatement {
@@ -38,16 +36,6 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Exception", ExceptionName);
-		}
-
-		void IDeclarationStatement.AppendDeclarationTo(SqlStringBuilder builder) {
-			builder.Append("EXCEPTION ");
-			builder.Append(ExceptionName);
-		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("DECLARE ");
-			(this as IDeclarationStatement).AppendDeclarationTo(builder);
 		}
 	}
 }

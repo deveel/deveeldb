@@ -46,25 +46,5 @@ namespace Deveel.Data.Sql.Statements {
 			// TODO: evaluate the condition against the context and return a boolean
 			return base.Loop(context);
 		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			if (!String.IsNullOrEmpty(Label)) {
-				builder.Append("<<{0}>>", Label);
-				builder.AppendLine();
-			}
-
-			builder.Append("WHILE {0}", ConditionExpression);
-			builder.AppendLine();
-			builder.Append("LOOP");
-			builder.Indent();
-
-			foreach (var statement in Statements) {
-				statement.Append(builder);
-				builder.AppendLine();
-			}
-
-			builder.DeIndent();
-			builder.Append("END LOOP");
-		}
 	}
 }

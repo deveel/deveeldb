@@ -84,25 +84,5 @@ namespace Deveel.Data.Sql.Statements {
 
 			base.GetData(info);
 		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			if (!String.IsNullOrEmpty(Label)) {
-				builder.Append("<<{0}>>", Label);
-				builder.AppendLine();
-			}
-
-			builder.Append("FOR {0} IN {1}", IndexName, CursorName);
-			builder.AppendLine();
-			builder.Append("LOOP");
-			builder.Indent();
-
-			foreach (var statement in Statements) {
-				statement.Append(builder);
-				builder.AppendLine();
-			}
-
-			builder.DeIndent();
-			builder.Append("END LOOP");
-		}
 	}
 }

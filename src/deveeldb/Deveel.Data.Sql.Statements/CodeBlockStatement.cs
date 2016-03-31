@@ -77,23 +77,6 @@ namespace Deveel.Data.Sql.Statements {
 			return list;
 		}
 
-		protected override void AppendTo(SqlStringBuilder builder) {
-			if (!String.IsNullOrEmpty(Label)) {
-				builder.Append("<<{0}>>", Label);
-				builder.AppendLine();
-			}
-
-			builder.AppendLine("BEGIN");
-			builder.Indent();
-
-			foreach (var statement in Statements) {
-				statement.Append(builder);
-			}
-
-			builder.DeIndent();
-			builder.AppendLine("END");
-		}
-
 		private void AssertPlSqlStatement(SqlStatement obj) {
 			if (!(obj is IPlSqlStatement)) {
 				throw new ArgumentException(String.Format("The statement of type '{0}' cannot be inserted into a PL/SQL block.",

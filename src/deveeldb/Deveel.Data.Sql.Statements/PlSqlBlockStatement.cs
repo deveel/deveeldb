@@ -92,48 +92,6 @@ namespace Deveel.Data.Sql.Statements {
 			FireOthersHandler(context, error);
 		}
 
-		protected override void AppendTo(SqlStringBuilder builder) {
-			if (!String.IsNullOrEmpty(Label)) {
-				builder.Append("<<{0}>>", Label);
-				builder.AppendLine();
-			}
-
-			if (Declarations != null) {
-				builder.AppendLine("DECLARE");
-				builder.Indent();
-
-				foreach (var declaration in Declarations.OfType<IDeclarationStatement>()) {
-					declaration.AppendDeclarationTo(builder);
-					builder.AppendLine();
-				}
-
-				builder.DeIndent();
-			}
-
-			builder.AppendLine("BEGIN");
-			builder.Indent();
-
-			foreach (var statement in Statements) {
-				statement.Append(builder);
-				builder.AppendLine();
-			}
-			
-			builder.DeIndent();
-
-			if (ExceptionHandlers != null) {
-				builder.AppendLine("EXCEPTION");
-				builder.Indent();
-
-				foreach (var handler in ExceptionHandlers) {
-					handler.PrintTo(builder);
-				}
-
-				builder.DeIndent();
-			}
-
-			builder.AppendLine("END");
-		}
-
 		#region DeclarationCollection
 
 		class DeclarationCollection : Collection<SqlStatement> {

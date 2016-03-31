@@ -121,32 +121,5 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("False", new SqlStatement[0]);
 			}
 		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("IF ");
-			builder.Append(ConditionExpression.ToString());
-			builder.Append(" THEN");
-			builder.AppendLine();
-
-			builder.Indent();
-
-			foreach (var statement in TrueStatements) {
-				statement.Append(builder);
-			}
-
-			if (FalseStatements != null) {
-				builder.DeIndent();
-
-				builder.Append("ELSE");
-				builder.Indent();
-
-				foreach (var statement in FalseStatements) {
-					statement.Append(builder);
-				}
-			}
-
-			builder.DeIndent();
-			builder.Append("END IF");
-		}
 	}
 }

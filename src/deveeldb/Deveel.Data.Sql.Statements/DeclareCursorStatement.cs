@@ -102,42 +102,6 @@ namespace Deveel.Data.Sql.Statements {
 			context.Request.Context.DeclareCursor(cursorInfo, context.Request);
 		}
 
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("DECLARE ");
-			(this as IDeclarationStatement).AppendDeclarationTo(builder);
-		}
-
-		void IDeclarationStatement.AppendDeclarationTo(SqlStringBuilder builder) {
-			// TODO: Flags ...
-
-			builder.Append(CursorName);
-
-			if (Parameters != null) {
-				var pars = Parameters.ToArray();
-
-				builder.Append(" (");
-
-				for (int i = 0; i < pars.Length; i++) {
-					var p = pars[i];
-
-					builder.Append(p);
-
-					if (i < pars.Length - 1)
-						builder.Append(", ");
-				}
-
-				builder.Append(")");
-			}
-
-			builder.AppendLine();
-			builder.Indent();
-
-			builder.Append(" IS ");
-			builder.Append(QueryExpression);
-
-			builder.DeIndent();
-		}
-
 		#region Serializer
 
 		//internal class Serializer : ObjectBinarySerializer<DeclareCursorStatement> {

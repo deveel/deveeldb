@@ -18,17 +18,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 using System.Text;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -233,17 +230,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public override string ToString() {
-			var builder = new SqlStringBuilder();
-			AppendTo(builder);
-			return builder.ToString();
-		}
-
-		internal void Append(SqlStringBuilder builder) {
-			AppendTo(builder);
-		}
-
-		protected virtual void AppendTo(SqlStringBuilder builder) {
-			builder.Append(GetType().FullName);
+			var visitor = new StringFormatterVisitor();
+			return visitor.Format(this);
 		}
 	}
 }

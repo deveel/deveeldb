@@ -65,24 +65,5 @@ namespace Deveel.Data.Sql.Statements {
 
 			AfterLoop(context);
 		}
-
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			if (!String.IsNullOrEmpty(Label)) {
-				builder.Append("<<{0}>>", Label);
-				builder.AppendLine();
-			}
-
-			builder.AppendLine("LOOP");
-			builder.Indent();
-
-			foreach (var statement in Statements) {
-				statement.Append(builder);
-				builder.AppendLine();
-			}
-
-			builder.DeIndent();
-			builder.AppendLine("END LOOP");
-		}
 	}
 }
