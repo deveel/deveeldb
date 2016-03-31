@@ -26,7 +26,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Views {
-	public sealed class ViewManager : IObjectManager {
+	public sealed class ViewManager : IObjectManager, ISystemCreateCallback {
 		private Dictionary<long, ViewInfo> viewCache;
 		private bool viewTableChanged;
 
@@ -98,7 +98,12 @@ namespace Deveel.Data.Sql.Views {
 			}
 		}
 
-		public void Create() {
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
+		}
+
+		private void Create() {
 			var tableInfo = new TableInfo(SystemSchema.ViewTableName);
 			tableInfo.AddColumn("schema", PrimitiveTypes.String());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());

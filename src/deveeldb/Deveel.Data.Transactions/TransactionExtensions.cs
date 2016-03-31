@@ -21,17 +21,12 @@ using System.Globalization;
 using System.Linq;
 
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
-using Deveel.Data.Sql.Variables;
-using Deveel.Data.Sql.Views;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -44,13 +39,6 @@ namespace Deveel.Data.Transactions {
 		}
 
 		#region Managers
-
-		public static void CreateSystem(this ITransaction transaction) {
-			var managers = transaction.Context.ResolveAllServices<IObjectManager>();
-			foreach (var manager in managers) {
-				manager.Create();
-			}
-		}
 
 		public static TableManager GetTableManager(this ITransaction transaction) {
 			return (TableManager) transaction.Context.ResolveService<IObjectManager>(DbObjectType.Table);
@@ -225,18 +213,6 @@ namespace Deveel.Data.Transactions {
 
 		public static void CreateSchema(this ITransaction transaction, SchemaInfo schemaInfo) {
 			transaction.CreateObject(schemaInfo);
-		}
-
-		// TODO: move this elsewhere
-		public static void CreateSystemSchema(this ITransaction transaction) {
-			transaction.CreateSystem();
-
-			// TODO: get the configured default culture...
-			var culture = CultureInfo.CurrentCulture.Name;
-			var schemaInfo = new SchemaInfo(SystemSchema.Name, SchemaTypes.System);
-			schemaInfo.Culture = culture;
-
-			transaction.CreateSchema(schemaInfo);
 		}
 
 		#endregion

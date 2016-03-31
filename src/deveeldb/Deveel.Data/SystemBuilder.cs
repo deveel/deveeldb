@@ -54,9 +54,7 @@ namespace Deveel.Data {
 		private void RegisterDefaultServices() {
 			ServiceContainer.Register<SecurityModule>();
 
-			ServiceContainer.Bind<IRoutineResolver>()
-				.To<SystemFunctionsProvider>()
-				.InDatabaseScope();
+			ServiceContainer.UseRoutines();
 
 			ServiceContainer.Bind<ISqlCompiler>()
 				.To<SqlDefaultCompiler>()
@@ -75,14 +73,26 @@ namespace Deveel.Data {
 				.WithKey(DbObjectType.Table)
 				.InTransactionScope();
 
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<TableManager>()
+				.InTransactionScope();
+
 			ServiceContainer.Bind<IObjectManager>()
 				.To<ViewManager>()
 				.InTransactionScope()
 				.WithKey(DbObjectType.View);
 
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<ViewManager>()
+				.InTransactionScope();
+
 			ServiceContainer.Bind<IObjectManager>()
 				.To<SequenceManager>()
 				.WithKey(DbObjectType.Sequence)
+				.InTransactionScope();
+
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<SequenceManager>()
 				.InTransactionScope();
 
 			ServiceContainer.Bind<IObjectManager>()
@@ -90,9 +100,17 @@ namespace Deveel.Data {
 				.WithKey(DbObjectType.Trigger)
 				.InTransactionScope();
 
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<TriggerManager>()
+				.InTransactionScope();
+
 			ServiceContainer.Bind<IObjectManager>()
 				.To<SchemaManager>()
 				.WithKey(DbObjectType.Schema)
+				.InTransactionScope();
+
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<SchemaManager>()
 				.InTransactionScope();
 
 			ServiceContainer.Bind<IObjectManager>()
@@ -100,14 +118,17 @@ namespace Deveel.Data {
 				.WithKey(DbObjectType.Variable)
 				.InTransactionScope();
 
-			ServiceContainer.Bind<IObjectManager>()
-				.To<RoutineManager>()
-				.WithKey(DbObjectType.Routine)
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<PersistentVariableManager>()
 				.InTransactionScope();
 
 			ServiceContainer.Bind<IObjectManager>()
 				.To<TypeManager>()
 				.WithKey(DbObjectType.Type)
+				.InTransactionScope();
+
+			ServiceContainer.Bind<ISystemCreateCallback>()
+				.To<TypeManager>()
 				.InTransactionScope();
 
 			ServiceContainer.Bind<IStoreSystem>()

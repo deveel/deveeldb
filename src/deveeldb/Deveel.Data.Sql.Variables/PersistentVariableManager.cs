@@ -21,7 +21,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Variables {
-	public sealed class PersistentVariableManager : IVariableManager, IObjectManager {
+	public sealed class PersistentVariableManager : IVariableManager, IObjectManager, ISystemCreateCallback {
 		public PersistentVariableManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
@@ -33,8 +33,8 @@ namespace Deveel.Data.Sql.Variables {
 			get { return DbObjectType.Variable; }
 		}
 
-		void IObjectManager.Create() {
-			//TODO:
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {

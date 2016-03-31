@@ -17,11 +17,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -347,18 +349,7 @@ namespace Deveel.Data {
 			StateStore.Flush();
 		}
 
-		private void InitSystemSchema() {
-			using (var transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable)) {
-				try {
-					SystemSchema.Setup(transaction);
-					transaction.Commit();
-				} catch (Exception ex) {
-					throw new InvalidOperationException("Transaction Exception initializing tables.", ex);
-				}
-			}
-		}
-
-		internal void MinimalCreate() {
+		private void MinimalCreate() {
 			if (Exists())
 				throw new IOException("Composite already exists");
 
@@ -389,25 +380,58 @@ namespace Deveel.Data {
 			InitObjectStore();
 
 			// Create the system table (but don't initialize)
-			CreateSystemSchema();
+			CreateSystem();
 		}
 
-		private void CreateSystemSchema() {
+		private void InitSystemSchema() {
+			using (var transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable)) {
+				try {
+					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
+						using (var query = session.CreateQuery()) {
+							var callbacks = query.Context.ResolveAllServices<ISystemCreateCallback>();
+							foreach (var callback in callbacks) {
+								callback.Activate(SystemCreatePhase.SystemSetup);
+							}
+						}
+					}
+
+					SystemSchema.Setup(transaction);
+
+					// Commit and close the transaction.
+					transaction.Commit();
+				} catch (TransactionException e) {
+					throw new InvalidOperationException("Transaction Exception initializing the system.", e);
+				}
+			}
+		}
+
+		private void CreateSystem() {
 			// Create the transaction
-			ITransaction transaction = null;
+			using (var transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable)) {
+				try {
+					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
+						using (var query = session.CreateQuery()) {
+							var callbacks = query.Context.ResolveAllServices<ISystemCreateCallback>();
+							foreach (var callback in callbacks) {
+								callback.Activate(SystemCreatePhase.SystemCreate);
+							}
+						}
+					}
 
-			try {
-				transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable);
-				transaction.CreateSystemSchema();
 
-				// Commit and close the transaction.
-				transaction.Commit();
-				transaction = null;
-			} catch (TransactionException e) {
-				throw new InvalidOperationException("Transaction Exception creating composite.", e);
-			} finally {
-				if (transaction != null)
-					transaction.Rollback();
+					// TODO: get the configured default culture...
+					var culture = CultureInfo.CurrentCulture.Name;
+					var schemaInfo = new SchemaInfo(SystemSchema.Name, SchemaTypes.System);
+					schemaInfo.Culture = culture;
+
+					transaction.CreateSchema(schemaInfo);
+
+
+					// Commit and close the transaction.
+					transaction.Commit();
+				} catch (TransactionException e) {
+					throw new InvalidOperationException("Transaction Exception creating composite.", e);
+				}
 			}
 		}
 

@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Sequences {
 	/// a given transaction.
 	/// </summary>
 	/// <seealso cref="ISequenceManager"/>
-	public class SequenceManager : ISequenceManager {
+	public class SequenceManager : ISequenceManager, ISystemCreateCallback {
 		/// <summary>
 		/// A static TObject that represents numeric 1.
 		/// </summary>
@@ -376,6 +376,11 @@ namespace Deveel.Data.Sql.Sequences {
 
 			// Update the row
 			seq.UpdateRow(dataRow);
+		}
+
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
 		}
 
 		public void Create() {

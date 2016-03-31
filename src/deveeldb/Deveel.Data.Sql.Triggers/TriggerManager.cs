@@ -30,7 +30,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Triggers {
-	public sealed class TriggerManager : IObjectManager, ITriggerManager {
+	public sealed class TriggerManager : IObjectManager, ITriggerManager, ISystemCreateCallback {
 		private ITransaction transaction;
 		private bool tableModified;
 		private bool cacheValid;
@@ -116,7 +116,12 @@ namespace Deveel.Data.Sql.Triggers {
 			cacheValid = false;
 		}
 
-		public void Create() {
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
+		}
+
+		private void Create() {
 			var tableInfo = new TableInfo(SystemSchema.TriggerTableName);
 			tableInfo.AddColumn("schema", PrimitiveTypes.String());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());

@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Types {
-	public sealed class TypeManager : IObjectManager, ITypeResolver {
+	public sealed class TypeManager : IObjectManager, ITypeResolver, ISystemCreateCallback {
 		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
@@ -38,6 +38,11 @@ namespace Deveel.Data.Sql.Types {
 
 		private static readonly ObjectName TypeTableName = new ObjectName(SystemSchema.SchemaName, "type");
 		private static readonly ObjectName TypeMemberTableName = new ObjectName(SystemSchema.SchemaName, "type_member");
+
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
+		}
 
 		public void Create() {
 			var tableInfo = new TableInfo(TypeTableName);

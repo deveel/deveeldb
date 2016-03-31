@@ -165,6 +165,7 @@
     <Compile Include="Deveel.Data.Routines\PlSqlProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\Procedure.cs" />
+    <Compile Include="Deveel.Data.Routines\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunction.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Security\ClearTextUserIdentifier.cs" />
@@ -328,6 +329,8 @@
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\ISystemCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Sql\SystemCreatePhase.cs" />
     <Compile Include="Deveel.Data.Store\ScatteringFileStoreDataFactory.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />

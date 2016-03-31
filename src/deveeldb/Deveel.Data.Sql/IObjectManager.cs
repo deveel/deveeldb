@@ -43,15 +43,6 @@ namespace Deveel.Data.Sql {
 		DbObjectType ObjectType { get; }
 
 		/// <summary>
-		/// Initializes the manager into the underlying system.
-		/// </summary>
-		/// <remarks>
-		/// Typically this method generates the tables required to manage the features
-		/// relative to the objects.
-		/// </remarks>
-		void Create();
-
-		/// <summary>
 		/// Create a new object of the <see cref="ObjectType"/> given the
 		/// specifications given.
 		/// </summary>

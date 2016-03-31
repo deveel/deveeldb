@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Security {
-	public class PrivilegeManager : IPrivilegeManager {
+	public class PrivilegeManager : IPrivilegeManager, ISystemCreateCallback {
 		public PrivilegeManager(ISession session) {
 			if (session == null)
 				throw new ArgumentNullException("session");
@@ -34,6 +34,14 @@ namespace Deveel.Data.Security {
 
 		~PrivilegeManager() {
 			Dispose(false);
+		}
+
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate) {
+				using (var query = Session.CreateQuery()) {
+					SystemSchema.CreatePrivilegeTable(query);
+				}
+			}
 		}
 
 		public ISession Session { get; private set; }

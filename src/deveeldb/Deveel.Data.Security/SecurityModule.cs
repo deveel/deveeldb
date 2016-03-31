@@ -41,6 +41,8 @@ namespace Deveel.Data.Security {
 			systemScope.Bind<IUserIdentifier>()
 				.To<ClearTextUserIdentifier>();
 
+			// TODO: Add the system callbacks
+
 #if !PCL
 			systemScope.Bind<IUserIdentifier>()
 				.To<Pkcs12UserIdentifier>();

@@ -265,16 +265,6 @@ namespace Deveel.Data {
 
 			context.Access.AddPrimaryKey(RoleTableName, new[] { "name" }, "SYSTEM_ROLE_PK");
 
-			tableInfo = new TableInfo(GrantsTableName);
-			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("grantee", PrimitiveTypes.String());
-			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("granter", PrimitiveTypes.String());
-			tableInfo = tableInfo.AsReadOnly();
-			context.Access.CreateSystemTable(tableInfo);
-
 			var fkCol = new[] {"user"};
 			var rfkCol = new[] {"role"};
 			var refCol = new[] {"name"};
@@ -285,39 +275,21 @@ namespace Deveel.Data {
 			context.Access.AddForeignKey(UserRoleTableName, rfkCol, RoleTableName, refCol, onDelete, onUpdate, "USER_ROLE_FK");
 		}
 
-		/*
-		private static void CreateRoutineTables(IQueryContext context) {
-			var tableInfo = new TableInfo(RoutineTableName);
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
+		internal static void CreatePrivilegeTable(IQuery context) {
+			var tableInfo = new TableInfo(GrantsTableName);
+			tableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
+			tableInfo.AddColumn("object", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("grantee", PrimitiveTypes.String());
+			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
+			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
-
-			tableInfo = new TableInfo(RoutineParameterTableName);
-			tableInfo.AddColumn("routine_schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("routine_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			tableInfo.AddColumn("flags", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("default", PrimitiveTypes.String());
-			tableInfo = tableInfo.AsReadOnly();
-			context.CreateTable(tableInfo);
-
-			var fkCol = new[] { "routine_schema", "routine_name" };
-			var refCol = new[] { "schema", "name" };
-			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
-			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
-
-			context.AddForeignKey(RoutineParameterTableName, fkCol, RoutineTableName, refCol, onDelete, onUpdate, "ROUTINE_PARAMS_FK");
+			context.Access.CreateSystemTable(tableInfo);
 		}
-		*/
 
 		public static void CreateTables(IQuery context) {
 			CreateSecurityTables(context);
-			//CreateRoutineTables(context);
+			CreatePrivilegeTable(context);
 		}
 
 		public static void GrantToPublic(IQuery context) {

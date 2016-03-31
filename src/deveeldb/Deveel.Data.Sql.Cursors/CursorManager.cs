@@ -61,9 +61,6 @@ namespace Deveel.Data.Sql.Cursors {
 			get { return DbObjectType.Cursor; }
 		}
 
-		void IObjectManager.Create() {
-		}
-
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			DeclareCursor((CursorInfo)objInfo, null);
 		}

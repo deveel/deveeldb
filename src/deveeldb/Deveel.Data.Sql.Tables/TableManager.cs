@@ -25,7 +25,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
-	public sealed class TableManager : IObjectManager {
+	public sealed class TableManager : IObjectManager, ISystemCreateCallback {
 		private readonly List<ITableSource> visibleTables;
 		private List<IMutableTable> accessedTables;
 		private List<ITableSource> selectedTables;
@@ -131,6 +131,11 @@ namespace Deveel.Data.Sql.Tables {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Table; }
+		}
+
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
 		}
 
 		public void Create() {

@@ -19,10 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql;
-
-using DryIoc;
-
 namespace Deveel.Data.Sql.Types {
 	public class UserTypeInfo : IObjectInfo {
 		private readonly Dictionary<string, UserTypeMember> memberNamesCache;

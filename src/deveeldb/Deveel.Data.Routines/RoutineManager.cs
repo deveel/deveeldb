@@ -30,7 +30,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public sealed class RoutineManager : IObjectManager, IRoutineResolver {
+	public sealed class RoutineManager : IObjectManager, IRoutineResolver, ISystemCreateCallback {
 		private const string ProcedureType = "procedure";
 		private const string ExternalProcedureType = "ext_procedure";
 		private const string FunctionType = "function";
@@ -86,7 +86,12 @@ namespace Deveel.Data.Routines {
 			get { return DbObjectType.Routine; }
 		}
 
-		public void Create() {
+		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
+			if (phase == SystemCreatePhase.SystemCreate)
+				Create();
+		}
+
+		private void Create() {
 			// SYSTEM.ROUTINE
 			var tableInfo = new TableInfo(SystemSchema.RoutineTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
