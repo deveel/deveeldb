@@ -23,10 +23,9 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Views {
-	public sealed class ViewManager : IObjectManager, ISystemCreateCallback {
+	public sealed class ViewManager : IObjectManager {
 		private Dictionary<long, ViewInfo> viewCache;
 		private bool viewTableChanged;
 
@@ -40,8 +39,11 @@ namespace Deveel.Data.Sql.Views {
 			transaction.RegisterOnCommit(OnCommit);
 		}
 
+		public static readonly ObjectName ViewTableName = new ObjectName(SystemSchema.SchemaName, "view");
+
+
 		private void OnCommit(TableCommitInfo obj) {
-			if (!obj.TableName.Equals(SystemSchema.ViewTableName))
+			if (!obj.TableName.Equals(ViewTableName))
 				return;
 
 			// If there were changed then invalidate the cache
@@ -76,7 +78,7 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		private ITable FindViewEntry(ObjectName viewName) {
-			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+			var table = Transaction.GetTable(ViewTableName);
 
 			var schemav = table.GetResolvedColumnName(0);
 			var namev = table.GetResolvedColumnName(1);
@@ -96,23 +98,6 @@ namespace Deveel.Data.Sql.Views {
 					return t;
 				}
 			}
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
-				Create();
-		}
-
-		private void Create() {
-			var tableInfo = new TableInfo(SystemSchema.ViewTableName);
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("query", PrimitiveTypes.String());
-			tableInfo.AddColumn("plan", PrimitiveTypes.Binary());
-
-			// TODO: Columns...
-
-			Transaction.CreateTable(tableInfo);
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -144,7 +129,7 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+			var table = Transaction.GetTable(ViewTableName);
 
 			var schemaName = objName.ParentName;
 			var name = objName.Name;
@@ -169,7 +154,7 @@ namespace Deveel.Data.Sql.Views {
 				throw new ArgumentNullException("viewInfo");
 
 			var dataTableInfo = viewInfo.TableInfo;
-			var viewTable = Transaction.GetMutableTable(SystemSchema.ViewTableName);
+			var viewTable = Transaction.GetMutableTable(ViewTableName);
 
 			var viewName = dataTableInfo.TableName;
 			var query = viewInfo.QueryExpression;
@@ -201,7 +186,7 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		public View GetView(ObjectName viewName) {
-			var viewTable = Transaction.GetTable(SystemSchema.ViewTableName);
+			var viewTable = Transaction.GetTable(ViewTableName);
 			var e = viewTable.GetEnumerator();
 			while (e.MoveNext()) {
 				int row = e.Current.RowId.RowNumber;
@@ -234,7 +219,7 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		public bool DropView(ObjectName viewName) {
-			var table = Transaction.GetMutableTable(SystemSchema.ViewTableName);
+			var table = Transaction.GetMutableTable(ViewTableName);
 
 			var t = FindViewEntry(viewName);
 
@@ -251,14 +236,10 @@ namespace Deveel.Data.Sql.Views {
 			return true;
 		}
 
-		public ITableContainer CreateInternalTableInfo() {
-			return new ViewTableContainer(this);
-		}
-
-		private View GetViewAt(int offset) {
-			var table = Transaction.GetTable(SystemSchema.ViewTableName);
+		internal View GetViewAt(int offset) {
+			var table = Transaction.GetTable(ViewTableName);
 			if (table == null)
-				throw new DatabaseSystemException(String.Format("System table '{0}' was not defined.", SystemSchema.ViewTableName));
+				throw new DatabaseSystemException(String.Format("System table '{0}' was not defined.", ViewTableName));
 
 			var e = table.GetEnumerator();
 			int i = 0;
@@ -283,34 +264,5 @@ namespace Deveel.Data.Sql.Views {
 
 			throw new ArgumentOutOfRangeException("offset");
 		}
-
-		#region ViewTableContainer
-
-		class ViewTableContainer : SystemTableContainer {
-			private readonly ViewManager viewManager;
-
-			public ViewTableContainer(ViewManager viewManager)
-				: base(viewManager.Transaction, SystemSchema.ViewTableName) {
-				this.viewManager = viewManager;
-			}
-
-			public override TableInfo GetTableInfo(int offset) {
-				var view = viewManager.GetViewAt(offset);
-				if (view == null)
-					return null;
-
-				return view.ViewInfo.TableInfo;
-			}
-
-			public override string GetTableType(int offset) {
-				return TableTypes.View;
-			}
-
-			public override ITable GetTable(int offset) {
-				throw new NotSupportedException();
-			}
-		}
-
-		#endregion
 	}
 }

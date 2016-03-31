@@ -16,8 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5165D6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb-lucene", "deveeldb-lucene\deveeldb-lucene.csproj", "{DA4265CD-42B3-48DA-97D3-A57CE81A4E25}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PCL", "PCL", "{76DCF4BD-33E5-4ECD-B666-879930D34626}"
-EndProject
 Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "deveeldb.schfb", "deveeldb.schfb\deveeldb.schfb.shfbproj", "{ADBAFCD3-B285-4474-8C24-E476BDA9C598}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\deveeldb.pcl.csproj", "{ADD851E0-1314-46C6-9312-7861F46438D0}"
@@ -113,9 +111,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{ADD851E0-1314-46C6-9312-7861F46438D0} = {76DCF4BD-33E5-4ECD-B666-879930D34626}
 	EndGlobalSection
 	GlobalSection(CodealikeProperties) = postSolution
 		SolutionGuid = e885a04d-3da6-4847-8d1c-ce831651671c

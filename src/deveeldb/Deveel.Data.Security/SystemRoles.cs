@@ -55,13 +55,6 @@ namespace Deveel.Data.Security {
 		/// </remarks>
 		public const string UserManagerRole = "user_manager";
 
-		public static void Create(IQuery context) {
-			context.Access.CreateRole(SecureAccessRole);
-			context.Access.CreateRole(UserManagerRole);
-			context.Access.CreateRole(SchemaManagerRole);
-			context.Access.CreateRole(LockedRole);
-		}
-
 		public static bool IsSystemRole(string groupName) {
 			return String.Equals(groupName, SecureAccessRole) ||
 			       String.Equals(groupName, UserManagerRole) ||

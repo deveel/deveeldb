@@ -27,10 +27,9 @@ using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Triggers {
-	public sealed class TriggerManager : IObjectManager, ITriggerManager, ISystemCreateCallback {
+	public sealed class TriggerManager : IObjectManager, ITriggerManager {
 		private ITransaction transaction;
 		private bool tableModified;
 		private bool cacheValid;
@@ -48,6 +47,8 @@ namespace Deveel.Data.Sql.Triggers {
 		~TriggerManager() {
 			Dispose(false);
 		}
+
+		public static readonly ObjectName TriggerTableName = new ObjectName(SystemSchema.SchemaName, "trigger");
 
 		public void Dispose() {
 			Dispose(true);
@@ -95,7 +96,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		private void BuildTriggerCache() {
 			if (!cacheValid) {
-				var table = transaction.GetTable(SystemSchema.TriggerTableName);
+				var table = transaction.GetTable(TriggerTableName);
 
 				var list =  new List<Trigger>();
 				foreach (var row in table) {
@@ -114,24 +115,6 @@ namespace Deveel.Data.Sql.Triggers {
 
 		private void InvalidateTriggerCache() {
 			cacheValid = false;
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
-				Create();
-		}
-
-		private void Create() {
-			var tableInfo = new TableInfo(SystemSchema.TriggerTableName);
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
-			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
-			transaction.CreateTable(tableInfo);
 		}
 
 		private ITable FindTrigger(ITable table, string schema, string name) {
@@ -153,7 +136,7 @@ namespace Deveel.Data.Sql.Triggers {
 			var fullTableName = tableName.FullName;
 			var eventTypeCode = (int)eventType;
 
-			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			var table = transaction.GetTable(TriggerTableName);
 			if (table == null)
 				return new TriggerInfo[0];
 
@@ -221,7 +204,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			var table = transaction.GetTable(SystemSchema.ViewTableName);
+			var table = transaction.GetTable(TriggerTableName);
 
 			var schemaName = objName.ParentName;
 			var name = objName.Name;
@@ -282,7 +265,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public void CreateTrigger(TriggerInfo triggerInfo) {
-			if (!transaction.TableExists(SystemSchema.TriggerTableName))
+			if (!transaction.TableExists(TriggerTableName))
 				return;
 
 			var schema = triggerInfo.TriggerName.ParentName;
@@ -301,7 +284,7 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 
 			// Insert the entry into the trigger table,
-			var table = transaction.GetMutableTable(SystemSchema.TriggerTableName);
+			var table = transaction.GetMutableTable(TriggerTableName);
 			var row = table.NewRow();
 			row.SetValue(0, Field.String(schema));
 			row.SetValue(1, Field.String(name));
@@ -337,7 +320,7 @@ namespace Deveel.Data.Sql.Triggers {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 
-			var table = transaction.GetMutableTable(SystemSchema.TriggerTableName);
+			var table = transaction.GetMutableTable(TriggerTableName);
 
 			var schemaName = triggerName.ParentName;
 			var name = triggerName.Name;
@@ -363,7 +346,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public bool TriggerExists(ObjectName triggerName) {
-			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			var table = transaction.GetTable(TriggerTableName);
 			var result = FindTrigger(table, triggerName.ParentName, triggerName.Name);
 			if (result.RowCount == 0)
 				return false;
@@ -375,7 +358,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public Trigger GetTrigger(ObjectName triggerName) {
-			var table = transaction.GetTable(SystemSchema.TriggerTableName);
+			var table = transaction.GetTable(TriggerTableName);
 			var result = FindTrigger(table, triggerName.ParentName, triggerName.Name);
 			if (result.RowCount == 0)
 				return null;
@@ -434,7 +417,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public void FireTriggers(IRequest context, TableEvent tableEvent) {
-			if (!transaction.TableExists(SystemSchema.TriggerTableName))
+			if (!transaction.TableExists(TriggerTableName))
 				return;
 
 			BuildTriggerCache();
@@ -450,130 +433,5 @@ namespace Deveel.Data.Sql.Triggers {
 				}
 			}
 		}
-
-		public ITableContainer CreateTriggersTableContainer() {
-			return new TriggersTableContainer(transaction);
-		}
-
-		#region TriggersTableContainer
-
-		class TriggersTableContainer : SystemTableContainer {
-			public TriggersTableContainer(ITransaction transaction) 
-				: base(transaction, SystemSchema.TriggerTableName) {
-			}
-
-			public override TableInfo GetTableInfo(int offset) {
-				var triggerName = GetTableName(offset);
-				return CreateTableInfo(triggerName.ParentName, triggerName.Name);
-			}
-
-			public override string GetTableType(int offset) {
-				return TableTypes.Trigger;
-			}
-
-			private static TableInfo CreateTableInfo(string schema, string name) {
-				var tableInfo = new TableInfo(new ObjectName(new ObjectName(schema), name));
-
-				tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
-				tableInfo.AddColumn("on_object", PrimitiveTypes.String());
-				tableInfo.AddColumn("routine_name", PrimitiveTypes.String());
-				tableInfo.AddColumn("param_args", PrimitiveTypes.String());
-				tableInfo.AddColumn("owner", PrimitiveTypes.String());
-
-				return tableInfo.AsReadOnly();
-			}
-
-
-			public override ITable GetTable(int offset) {
-				var table = Transaction.GetTable(SystemSchema.TriggerTableName);
-				var enumerator = table.GetEnumerator();
-				int p = 0;
-				int i;
-				int rowIndex = -1;
-				while (enumerator.MoveNext()) {
-					i = enumerator.Current.RowId.RowNumber;
-					if (p == offset) {
-						rowIndex = i;
-					} else {
-						++p;
-					}
-				}
-
-				if (p != offset)
-					throw new ArgumentOutOfRangeException("offset");
-
-				var schema = table.GetValue(rowIndex, 0).Value.ToString();
-				var name = table.GetValue(rowIndex, 1).Value.ToString();
-
-				var tableInfo = CreateTableInfo(schema, name);
-
-				var type = table.GetValue(rowIndex, 2);
-				var tableName = table.GetValue(rowIndex, 3);
-				var routine = table.GetValue(rowIndex, 4);
-				var args = table.GetValue(rowIndex, 5);
-				var owner = table.GetValue(rowIndex, 6);
-
-				return new TriggerTable(Transaction, tableInfo) {
-					Type = type,
-					TableName = tableName,
-					Routine = routine,
-					Arguments = args,
-					Owner = owner
-				};
-			}
-
-			#region TriggerTable
-
-			class TriggerTable : GeneratedTable {
-				private TableInfo tableInfo;
-
-				public TriggerTable(ITransaction transaction, TableInfo tableInfo) 
-					: base(transaction.Database.Context) {
-					this.tableInfo = tableInfo;
-				}
-
-				public override TableInfo TableInfo {
-					get { return tableInfo; }
-				}
-
-				public Field Type { get; set; }
-
-				public Field TableName { get; set; }
-
-				public Field Routine { get; set; }
-
-				public Field Arguments { get; set; }
-
-				public Field Owner { get; set; }
-
-				public override int RowCount {
-					get { return 1; }
-				}
-
-				public override Field GetValue(long rowNumber, int columnOffset) {
-					if (rowNumber > 0)
-						throw new ArgumentOutOfRangeException("rowNumber");
-
-					switch (columnOffset) {
-						case 0:
-							return Type;
-						case 1:
-							return TableName;
-						case 2:
-							return Routine;
-						case 3:
-							return Arguments;
-						case 4:
-							return Owner;
-						default:
-							throw new ArgumentOutOfRangeException("columnOffset");
-					}
-				}
-			}
-
-			#endregion
-		}
-
-		#endregion
 	}
 }

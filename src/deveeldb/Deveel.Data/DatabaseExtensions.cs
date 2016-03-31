@@ -96,23 +96,6 @@ namespace Deveel.Data {
 
 		#region Security
 
-		public static void CreateAdminUser(this IDatabase database, IQuery context, string adminName, string adminPassword) {
-			try {
-				context.Access.CreateUser(adminName, adminPassword);
-
-				// This is the admin user so add to the 'secure access' table.
-				context.Access.AddUserToRole(adminName, SystemRoles.SecureAccessRole);
-
-				context.Access.GrantOnSchema(database.Context.DefaultSchema(), adminName, Privileges.SchemaAll, true);
-				context.Access.GrantOnSchema(SystemSchema.Name, adminName, Privileges.SchemaRead);
-				context.Access.GrantOnSchema(InformationSchema.SchemaName, adminName, Privileges.SchemaRead);
-			} catch (DatabaseSystemException) {
-				throw;
-			} catch (Exception ex) {
-				throw new DatabaseSystemException("Could not create the database administrator.", ex);
-			}
-		}
-
 		public static bool Authenticate(this IDatabase database, string username, string password) {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {

@@ -2,6 +2,7 @@
 
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Routines {
 	static class ScopeExtensions {
@@ -12,7 +13,7 @@ namespace Deveel.Data.Routines {
 				.InTransactionScope();
 
 			systemScope.Bind<ISystemCreateCallback>()
-				.To<RoutineManager>()
+				.To<RoutinesSystemCreateCallback>()
 				.InTransactionScope();
 
 			systemScope.Bind<IRoutineResolver>()
@@ -21,6 +22,10 @@ namespace Deveel.Data.Routines {
 
 			systemScope.Bind<IRoutineResolver>()
 				.To<RoutineManager>()
+				.InTransactionScope();
+
+			systemScope.Bind<ITableContainer>()
+				.To<RoutinesTableContainer>()
 				.InTransactionScope();
 		}
 	}

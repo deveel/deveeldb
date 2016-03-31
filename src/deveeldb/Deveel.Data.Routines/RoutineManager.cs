@@ -30,11 +30,11 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public sealed class RoutineManager : IObjectManager, IRoutineResolver, ISystemCreateCallback {
-		private const string ProcedureType = "procedure";
-		private const string ExternalProcedureType = "ext_procedure";
-		private const string FunctionType = "function";
-		private const string ExtrernalFunctionType = "ext_function";
+	public sealed class RoutineManager : IObjectManager, IRoutineResolver {
+		internal const string ProcedureType = "procedure";
+		internal const string ExternalProcedureType = "ext_procedure";
+		internal const string FunctionType = "function";
+		internal const string ExtrernalFunctionType = "ext_function";
 
 		private ITransaction transaction;
 
@@ -45,12 +45,12 @@ namespace Deveel.Data.Routines {
 			this.transaction = transaction;
 		}
 
-		public ITableContainer TableContainer {
-			get { return new RoutinesTableContainer(transaction); }
-		}
+		public static readonly ObjectName RoutineTableName = new ObjectName(SystemSchema.SchemaName, "routine");
+
+		public static readonly ObjectName RoutineParameterTableName = new ObjectName(SystemSchema.SchemaName, "routine_params");
 
 		private ITable FindEntry(ObjectName routineName) {
-			var table = transaction.GetTable(SystemSchema.RoutineTableName);
+			var table = transaction.GetTable(RoutineTableName);
 
 			var schemav = table.GetResolvedColumnName(1);
 			var namev = table.GetResolvedColumnName(2);
@@ -74,7 +74,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		private ITable GetParameters(Field id) {
-			var table = transaction.GetTable(SystemSchema.RoutineParameterTableName);
+			var table = transaction.GetTable(RoutineParameterTableName);
 			return table.SelectEqual(0, id);
 		}
 
@@ -84,48 +84,6 @@ namespace Deveel.Data.Routines {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Routine; }
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate) {
-				Create();
-			} else if (phase == SystemCreatePhase.SystemSetup) {
-				AddForeignKeys();
-			}
-		}
-
-		private void Create() {
-			// SYSTEM.ROUTINE
-			var tableInfo = new TableInfo(SystemSchema.RoutineTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			tableInfo.AddColumn("location", PrimitiveTypes.String());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
-			tableInfo.AddColumn("username", PrimitiveTypes.String());
-			transaction.CreateTable(tableInfo);
-
-			// SYSTEM.ROUTINE_PARAM
-			tableInfo = new TableInfo(SystemSchema.RoutineParameterTableName);
-			tableInfo.AddColumn("routine_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("arg_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("arg_type", PrimitiveTypes.String());
-			tableInfo.AddColumn("arg_attrs", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("in_out", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
-			transaction.CreateTable(tableInfo);
-		}
-
-		private void AddForeignKeys() {
-			var fkCol = new[] { "routine_id" };
-			var refCol = new[] { "id" };
-			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
-			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
-
-			transaction.AddForeignKey(SystemSchema.RoutineParameterTableName, fkCol, SystemSchema.RoutineTableName, refCol,
-				onDelete, onUpdate, "ROUTINE_PARAMS_FK");
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
@@ -161,10 +119,10 @@ namespace Deveel.Data.Routines {
 			if (String.IsNullOrEmpty(routineType))
 				throw new InvalidOperationException("Could not determine the kind of routine.");
 
-			var id = transaction.NextTableId(SystemSchema.RoutineTableName);
+			var id = transaction.NextTableId(RoutineTableName);
 
-			var routine = transaction.GetMutableTable(SystemSchema.RoutineTableName);
-			var routineParams = transaction.GetMutableTable(SystemSchema.RoutineParameterTableName);
+			var routine = transaction.GetMutableTable(RoutineTableName);
+			var routineParams = transaction.GetMutableTable(RoutineParameterTableName);
 
 			var row = routine.NewRow();
 			row.SetValue(0, id);
@@ -229,7 +187,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public bool RoutineExists(ObjectName routineName) {
-			var table = transaction.GetTable(SystemSchema.RoutineTableName);
+			var table = transaction.GetTable(RoutineTableName);
 			var schemav = table.GetResolvedColumnName(1);
 			var namev = table.GetResolvedColumnName(2);
 
@@ -362,8 +320,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		private bool RemoveRoutine(ObjectName routineName) {
-			var routine = transaction.GetMutableTable(SystemSchema.RoutineTableName);
-			var routineParam = transaction.GetMutableTable(SystemSchema.RoutineParameterTableName);
+			var routine = transaction.GetMutableTable(RoutineTableName);
+			var routineParam = transaction.GetMutableTable(RoutineParameterTableName);
 
 			var list = routine.SelectRowsEqual(2, Field.VarChar(routineName.Name), 1, Field.VarChar(routineName.ParentName));
 
@@ -388,7 +346,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			var routine = transaction.GetMutableTable(SystemSchema.RoutineTableName);
+			var routine = transaction.GetMutableTable(RoutineTableName);
 
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
@@ -408,175 +366,5 @@ namespace Deveel.Data.Routines {
 			//TODO: support also invoke match ...
 			return GetRoutine(invoke.RoutineName);
 		}
-
-		#region RoutinesTableContainer
-
-		class RoutinesTableContainer : SystemTableContainer {
-			public RoutinesTableContainer(ITransaction transaction)
-				: base(transaction, SystemSchema.RoutineTableName) {
-			}
-
-			private static TableInfo CreateTableInfo(string schema, string name) {
-				// Create the TableInfo that describes this entry
-				var info = new TableInfo(new ObjectName(new ObjectName(schema), name));
-
-				// Add column definitions
-				info.AddColumn("type", PrimitiveTypes.String());
-				info.AddColumn("location", PrimitiveTypes.String());
-				info.AddColumn("return_type", PrimitiveTypes.String());
-				info.AddColumn("param_args", PrimitiveTypes.String());
-				info.AddColumn("owner", PrimitiveTypes.String());
-
-				return info.AsReadOnly();
-			}
-
-			public override TableInfo GetTableInfo(int offset) {
-				var tableName = GetTableName(offset);
-				if (tableName == null)
-					throw new ArgumentOutOfRangeException("offset");
-
-				return CreateTableInfo(tableName.ParentName, tableName.Name);
-			}
-
-			public override string GetTableType(int offset) {
-				var table = GetTable(offset);
-				if (table == null)
-					throw new ArgumentOutOfRangeException("offset");
-
-				var typeString = table.GetValue(0, 0).Value.ToString();
-				if (String.Equals(typeString, FunctionType, StringComparison.OrdinalIgnoreCase) ||
-					String.Equals(typeString, ExternalProcedureType, StringComparison.OrdinalIgnoreCase))
-					return TableTypes.Function;
-
-				if (String.Equals(typeString, ProcedureType, StringComparison.OrdinalIgnoreCase) ||
-				    String.Equals(typeString, ExternalProcedureType, StringComparison.OrdinalIgnoreCase))
-					return TableTypes.Procedure;
-
-				throw new InvalidOperationException(String.Format("The type {0} is invalid as routine table type.", typeString));
-			}
-
-			public override ITable GetTable(int offset) {
-				var table = Transaction.GetTable(SystemSchema.RoutineTableName);
-				var rowE = table.GetEnumerator();
-				int p = 0;
-				int i;
-				int rowI = -1;
-				while (rowE.MoveNext()) {
-					i = rowE.Current.RowId.RowNumber;
-					if (p == offset) {
-						rowI = i;
-					} else {
-						++p;
-					}
-				}
-
-				if (p != offset)
-					throw new ArgumentOutOfRangeException("offset");
-
-				string schema = table.GetValue(rowI, 0).Value.ToString();
-				string name = table.GetValue(rowI, 1).Value.ToString();
-
-				var paramTypes = GetParameterTypes(schema, name);
-
-				var tableInfo = CreateTableInfo(schema, name);
-				var type = table.GetValue(rowI, 2);
-				var location = table.GetValue(rowI, 3);
-				var returnType = table.GetValue(rowI, 4);				
-				var owner = table.GetValue(rowI, 5);
-
-				return new RoutineTable(Transaction.Database.Context, tableInfo) {
-					Type = type,
-					Location = location,
-					ReturnType = returnType,
-					ParameterTypes = paramTypes,
-					Owner = owner
-				};
-			}
-
-			private Field GetParameterTypes(string schema, string name) {
-				var table = Transaction.GetTable(SystemSchema.RoutineParameterTableName);
-				var rows = table.SelectRowsEqual(1, Field.String(name), 0, Field.String(schema));
-				var types = new List<string>();
-
-				foreach (var rowIndex in rows) {
-					var argName = table.GetValue(rowIndex, 1);
-					var argType = table.GetValue(rowIndex, 2);
-					var inOut = table.GetValue(rowIndex, 3);
-
-					var paramString = BuildParameterString(argName, argType, inOut);
-
-					types.Add(paramString);
-				}
-
-				var args = String.Join(", ", types.ToArray());
-				return Field.String(args);
-			}
-
-			private string BuildParameterString(Field argName, Field argType, Field inOut) {
-				var sb = new StringBuilder();
-				sb.Append(argName.ToString());
-				sb.Append(" ");
-				sb.Append(argType.ToString());
-
-				if (!inOut.IsNull)
-					sb.Append(" ")
-						.Append(inOut.Value);
-
-				return sb.ToString();
-			}
-
-			#region RoutineTable
-
-			class RoutineTable : GeneratedTable {
-				private readonly TableInfo tableInfo;
-
-				public RoutineTable(IDatabaseContext dbContext, TableInfo tableInfo) 
-					: base(dbContext) {
-					this.tableInfo = tableInfo;
-				}
-
-				public override TableInfo TableInfo {
-					get { return tableInfo; }
-				}
-
-				public Field Type { get; set; }
-
-				public Field Location { get; set; }
-
-				public Field ReturnType { get; set; }
-
-				public Field ParameterTypes { get; set; }
-
-				public Field Owner { get; set; }
-
-				public override int RowCount {
-					get { return 1; }
-				}
-
-				public override Field GetValue(long rowNumber, int columnOffset) {
-					if (rowNumber < 0 || rowNumber >= 1)
-						throw new ArgumentOutOfRangeException("rowNumber");
-
-					switch (columnOffset) {
-						case 0:
-							return Type;
-						case 1:
-							return Location;
-						case 2:
-							return ReturnType;
-						case 3:
-							return ParameterTypes;
-						case 4:
-							return Owner;
-						default:
-							throw new ArgumentOutOfRangeException("columnOffset");
-					}
-				}
-			}
-
-			#endregion
-		}
-
-		#endregion
 	}
 }

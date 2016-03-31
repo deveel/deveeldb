@@ -24,7 +24,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Schemas {
-	public sealed class SchemaManager : IObjectManager, ISystemCreateCallback {
+	public sealed class SchemaManager : IObjectManager {
 		public SchemaManager(ITransaction transaction) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
@@ -53,20 +53,6 @@ namespace Deveel.Data.Sql.Schemas {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Schema; }
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate) {
-				// SYSTEM.SCHEMA_INFO
-				var tableInfo = new TableInfo(SystemSchema.SchemaInfoTableName);
-				tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-				tableInfo.AddColumn("name", PrimitiveTypes.String());
-				tableInfo.AddColumn("type", PrimitiveTypes.String());
-				tableInfo.AddColumn("culture", PrimitiveTypes.String());
-				tableInfo.AddColumn("other", PrimitiveTypes.String());
-				tableInfo = tableInfo.AsReadOnly();
-				Transaction.CreateTable(tableInfo);
-			}
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {

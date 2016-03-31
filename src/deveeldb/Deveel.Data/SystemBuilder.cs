@@ -52,9 +52,18 @@ namespace Deveel.Data {
 		private ServiceContainer ServiceContainer { get; set; }
 
 		private void RegisterDefaultServices() {
+#if !MICRO
 			ServiceContainer.Register<SecurityModule>();
+#endif
 
+			ServiceContainer.UseTables();
 			ServiceContainer.UseRoutines();
+			ServiceContainer.UseSchema();
+			ServiceContainer.UseViews();
+			ServiceContainer.UseSequences();
+			ServiceContainer.UseTriggers();
+			ServiceContainer.UseTypes();
+			ServiceContainer.UseVariables();
 
 			ServiceContainer.Bind<ISqlCompiler>()
 				.To<SqlDefaultCompiler>()
@@ -62,74 +71,7 @@ namespace Deveel.Data {
 
 			ServiceContainer.Bind<IQueryPlanner>()
 				.To<QueryPlanner>()
-				.InSystemScope();
-
-			ServiceContainer.Bind<ITableCellCache>()
-				.To<TableCellCache>()
-				.InSystemScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<TableManager>()
-				.WithKey(DbObjectType.Table)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<TableManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<ViewManager>()
-				.InTransactionScope()
-				.WithKey(DbObjectType.View);
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<ViewManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<SequenceManager>()
-				.WithKey(DbObjectType.Sequence)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<SequenceManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<TriggerManager>()
-				.WithKey(DbObjectType.Trigger)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<TriggerManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<SchemaManager>()
-				.WithKey(DbObjectType.Schema)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<SchemaManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<PersistentVariableManager>()
-				.WithKey(DbObjectType.Variable)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<PersistentVariableManager>()
-				.InTransactionScope();
-
-			ServiceContainer.Bind<IObjectManager>()
-				.To<TypeManager>()
-				.WithKey(DbObjectType.Type)
-				.InTransactionScope();
-
-			ServiceContainer.Bind<ISystemCreateCallback>()
-				.To<TypeManager>()
-				.InTransactionScope();
+				.InSystemScope();				
 
 			ServiceContainer.Bind<IStoreSystem>()
 				.To<InMemoryStorageSystem>()

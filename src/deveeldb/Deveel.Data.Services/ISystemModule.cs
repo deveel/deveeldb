@@ -17,9 +17,7 @@
 
 using System;
 
-using Deveel.Data.Services;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Services {
 	public interface ISystemModule {
 		string ModuleName { get; }
 

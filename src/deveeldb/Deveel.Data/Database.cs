@@ -199,15 +199,15 @@ namespace Deveel.Data {
 		/// </summary>
 		public ITable SingleRowTable { get; private set; }
 
-		private void OnDatabaseCreate(IQuery context) {
-			var callbacks = Context.ResolveAllServices<IDatabaseCreateCallback>();
+		private void OnDatabasePhase(IQuery context, SystemCreatePhase phase) {
+			var callbacks = context.Context.ResolveAllServices<ISystemCreateCallback>();
 			if (callbacks != null) {
 				foreach (var callback in callbacks) {
 					try {
 						if (callback != null)
-							callback.OnDatabaseCreate(context);
-					} catch (Exception) {
-						//TODO: Route an error event to the listeners
+							callback.Activate(phase);
+					} catch (Exception ex) {
+						context.OnError(ex);
 					}
 				}
 			}
@@ -257,27 +257,11 @@ namespace Deveel.Data {
 						try {
 							session.CurrentSchema(SystemSchema.Name);
 
-							// Create the schema information tables
-							CreateSchemata(query);
+							OnDatabasePhase(query, SystemCreatePhase.DatabaseCreate);
 
-							// The system tables that are present in every conglomerate.
-							SystemSchema.CreateTables(query);
-							SystemRoles.Create(query);
+							query.CreateAdminUser(adminName, adminPassword);
 
-							query.Access.CreatePublicUser();
-							SystemSchema.GrantToPublic(query);
-
-							// Create the system views
-							InformationSchema.CreateViews(query);
-
-							this.CreateAdminUser(query, adminName, adminPassword);
-
-							SetCurrentDataVersion(query);
-
-							// Set all default system procedures.
-							// TODO: SystemSchema.SetupSystemFunctions(session, username);
-
-							OnDatabaseCreate(query);
+							OnDatabasePhase(query, SystemCreatePhase.DatabaseCreated);
 
 							try {
 								// Close and commit this transaction.
@@ -299,21 +283,6 @@ namespace Deveel.Data {
 				throw;
 			} catch (Exception e) {
 				throw new DatabaseSystemException("An error occurred while creating the database.", e);
-			}
-		}
-
-		private void SetCurrentDataVersion(IQuery context) {
-			// TODO: Get the data version and then set it to the database table 'vars'
-		}
-
-		private void CreateSchemata(IQuery context) {
-			try {
-				context.Access.CreateSchema(InformationSchema.SchemaName, SchemaTypes.System);
-				context.Access.CreateSchema(Context.DefaultSchema(), SchemaTypes.Default);
-			} catch (DatabaseSystemException) {
-				throw;
-			} catch (Exception ex) {
-				throw new DatabaseSystemException("Unable to create the default schema for the database.", ex);
 			}
 		}
 

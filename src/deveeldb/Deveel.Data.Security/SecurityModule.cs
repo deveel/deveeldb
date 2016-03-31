@@ -18,9 +18,10 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
-	class SecurityModule : ISystemModule {
+	public sealed class SecurityModule : ISystemModule {
 		public string ModuleName {
 			get { return "Security Management"; }
 		}
@@ -34,9 +35,17 @@ namespace Deveel.Data.Security {
 				.To<UserManager>()
 				.InSessionScope();
 
+			systemScope.Bind<ISystemCreateCallback>()
+				.To<UserManagerCreateCallback>()
+				.InQueryScope();
+
 			systemScope.Bind<IPrivilegeManager>()
 				.To<PrivilegeManager>()
 				.InSessionScope();
+
+			systemScope.Bind<ISystemCreateCallback>()
+				.To<PrivilegeManagerCreate>()
+				.InQueryScope();
 
 			systemScope.Bind<IUserIdentifier>()
 				.To<ClearTextUserIdentifier>();
@@ -47,6 +56,10 @@ namespace Deveel.Data.Security {
 			systemScope.Bind<IUserIdentifier>()
 				.To<Pkcs12UserIdentifier>();
 #endif
+		}
+
+		public void Unregister(IScope systemScope) {
+			// TODO:
 		}
 	}
 }

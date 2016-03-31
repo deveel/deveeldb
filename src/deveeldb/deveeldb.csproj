@@ -165,6 +165,8 @@
     <Compile Include="Deveel.Data.Routines\PlSqlProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\Procedure.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutinesSystemCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutinesTableContainer.cs" />
     <Compile Include="Deveel.Data.Routines\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunction.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionInfo.cs" />
@@ -173,7 +175,10 @@
     <Compile Include="Deveel.Data.Security\IUserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\Pkcs12UserIdentifier.cs" />
     <Compile Include="Deveel.Data.Security\Privileged.cs" />
+    <Compile Include="Deveel.Data.Security\PrivilegeManagerCreate.cs" />
+    <Compile Include="Deveel.Data.Security\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
+    <Compile Include="Deveel.Data.Security\UserManagerCreateCallback.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />
@@ -207,6 +212,12 @@
     <Compile Include="Deveel.Data.Sql.Parser\NextSequenceValueNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseErrorLevel.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\InfortmationSchemaCreate.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\SchemaSystemCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Sql.Schemas\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\SequencesCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\SequenceTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
@@ -314,20 +325,31 @@
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ForeignKeyActionExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\CallbackTriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITriggerScope.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\PlSqlTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\PlSqlTriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTrigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ProcedureTriggerInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\Trigger.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggersTableContainer.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerSystemCreateCallback.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
+    <Compile Include="Deveel.Data.Sql.Variables\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\SystemCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\ViewsModule.cs" />
+    <Compile Include="Deveel.Data.Sql.Views\ViewTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
     <Compile Include="Deveel.Data.Sql\ISystemCreateCallback.cs" />
     <Compile Include="Deveel.Data.Sql\SystemCreatePhase.cs" />
@@ -335,6 +357,7 @@
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionTableContainer.cs" />
     <Compile Include="Deveel.Data\BlockExecuteContext.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
@@ -360,7 +383,6 @@
     <Compile Include="Deveel.Data.Sql.Query\LimitNode.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\ISequence.cs" />
-    <Compile Include="Deveel.Data.Sql.Sequences\ISequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceManager.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantPrivilegesStatement.cs" />
@@ -439,12 +461,11 @@
     <Compile Include="Deveel.Data\IBlockContext.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InformationSchema.cs" />
-    <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseScanner.cs" />
     <Compile Include="Deveel.Data\IRequest.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\ISystem.cs" />
-    <Compile Include="Deveel.Data\ISystemModule.cs" />
+    <Compile Include="Deveel.Data.Services\ISystemModule.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\ModuleInfo.cs" />
@@ -757,7 +778,6 @@
     <Compile Include="Deveel.Data.Routines\SystemFunctionsProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventType.cs" />
-    <Compile Include="Deveel.Data.Security\AccessPrivilege.cs" />
     <Compile Include="Deveel.Data.Security\CryptoHashExtensions.cs">
       <SubType>Code</SubType>
     </Compile>

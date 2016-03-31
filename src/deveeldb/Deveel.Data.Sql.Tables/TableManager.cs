@@ -134,8 +134,59 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
+			if (phase == SystemCreatePhase.SystemCreate) {
 				Create();
+			} else if (phase == SystemCreatePhase.SystemSetup) {
+				AddForeignKeys();
+			}
+		}
+
+		private void AddForeignKeys() {
+			// -- Primary Keys --
+			// The 'id' columns are primary keys on all the system tables,
+			var idCol = new[] { "id" };
+			Transaction.AddPrimaryKey(SystemSchema.PrimaryKeyInfoTableName, idCol, "SYSTEM_PK_PK");
+			Transaction.AddPrimaryKey(SystemSchema.ForeignKeyInfoTableName, idCol, "SYSTEM_FK_PK");
+			Transaction.AddPrimaryKey(SystemSchema.UniqueKeyInfoTableName, idCol, "SYSTEM_UNIQUE_PK");
+			Transaction.AddPrimaryKey(SystemSchema.CheckInfoTableName, idCol, "SYSTEM_CHECK_PK");
+			Transaction.AddPrimaryKey(SystemSchema.SchemaInfoTableName, idCol, "SYSTEM_SCHEMA_PK");
+
+			// -- Foreign Keys --
+			// Create the foreign key references,
+			var fkCol = new string[1];
+			var fkRefCol = new[] { "id" };
+
+			fkCol[0] = "pk_id";
+			Transaction.AddForeignKey(SystemSchema.PrimaryKeyColumnsTableName, fkCol, SystemSchema.PrimaryKeyInfoTableName, fkRefCol, "SYSTEM_PK_FK");
+
+			fkCol[0] = "fk_id";
+			Transaction.AddForeignKey(SystemSchema.ForeignKeyColumnsTableName, fkCol, SystemSchema.ForeignKeyInfoTableName, fkRefCol, "SYSTEM_FK_FK");
+
+			fkCol[0] = "un_id";
+			Transaction.AddForeignKey(SystemSchema.UniqueKeyColumnsTableName, fkCol, SystemSchema.UniqueKeyInfoTableName, fkRefCol, "SYSTEM_UNIQUE_FK");
+
+			// pkey_info 'schema', 'table' column is a unique set,
+			// (You are only allowed one primary key per table).
+			var columns = new[] { "schema", "table" };
+			Transaction.AddUniqueKey(SystemSchema.PrimaryKeyInfoTableName, columns, "SYSTEM_PKEY_ST_UNIQUE");
+
+			// schema_info 'name' column is a unique column,
+			columns = new String[] { "name" };
+			Transaction.AddUniqueKey(SystemSchema.SchemaInfoTableName, columns, "SYSTEM_SCHEMA_UNIQUE");
+
+			//    columns = new String[] { "name" };
+			columns = new String[] { "name", "schema" };
+			// pkey_info 'name' column is a unique column,
+			Transaction.AddUniqueKey(SystemSchema.PrimaryKeyInfoTableName, columns, "SYSTEM_PKEY_UNIQUE");
+
+			// fkey_info 'name' column is a unique column,
+			Transaction.AddUniqueKey(SystemSchema.ForeignKeyInfoTableName, columns, "SYSTEM_FKEY_UNIQUE");
+
+			// unique_info 'name' column is a unique column,
+			Transaction.AddUniqueKey(SystemSchema.UniqueKeyInfoTableName, columns, "SYSTEM_UNIQUE_UNIQUE");
+
+			// check_info 'name' column is a unique column,
+			Transaction.AddUniqueKey(SystemSchema.CheckInfoTableName, columns, "SYSTEM_CHECK_UNIQUE");
 		}
 
 		private void Create() {

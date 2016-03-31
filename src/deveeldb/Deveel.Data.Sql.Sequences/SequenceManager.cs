@@ -22,15 +22,13 @@ using System.Linq;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Sequences {
 	/// <summary>
 	/// A default implementation of a sequence manager that is backed by 
 	/// a given transaction.
 	/// </summary>
-	/// <seealso cref="ISequenceManager"/>
-	public class SequenceManager : ISequenceManager, ISystemCreateCallback {
+	public sealed class SequenceManager : IObjectManager {
 		/// <summary>
 		/// A static TObject that represents numeric 1.
 		/// </summary>
@@ -51,6 +49,10 @@ namespace Deveel.Data.Sql.Sequences {
 		~SequenceManager() {
 			Dispose(false);
 		}
+
+		public static readonly ObjectName SequenceTableName = new ObjectName(SystemSchema.SchemaName, "sequence");
+
+		public static readonly ObjectName SequenceInfoTableName = new ObjectName(SystemSchema.SchemaName, "sequence_info");
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Sequence; }
@@ -75,267 +77,6 @@ namespace Deveel.Data.Sql.Sequences {
 		/// </summary>
 		private ITransaction Transaction { get; set; }
 
-		public ITableContainer TableContainer {
-			get { return new SequenceTableContainer(this); }
-		}
-
-		#region SequenceTableContainer
-
-		class SequenceTableContainer : ITableContainer {
-			private readonly ITransaction transaction;
-			private readonly SequenceManager manager;
-
-			public SequenceTableContainer(SequenceManager manager) {
-				transaction = manager.Transaction;
-				this.manager = manager;
-			}
-
-			public int TableCount {
-				get {
-					var table = transaction.GetTable(SystemSchema.SequenceTableName);
-					return table != null ? table.RowCount : 0;
-				}
-			}
-
-			private static TableInfo CreateTableInfo(ObjectName schema, string name) {
-				var info = new TableInfo(new ObjectName(schema, name));
-				info.AddColumn("last_value", PrimitiveTypes.Numeric());
-				info.AddColumn("current_value", PrimitiveTypes.Numeric());
-				info.AddColumn("top_value", PrimitiveTypes.Numeric());
-				info.AddColumn("increment_by", PrimitiveTypes.Numeric());
-				info.AddColumn("min_value", PrimitiveTypes.Numeric());
-				info.AddColumn("max_value", PrimitiveTypes.Numeric());
-				info.AddColumn("start", PrimitiveTypes.Numeric());
-				info.AddColumn("cache", PrimitiveTypes.Numeric());
-				info.AddColumn("cycle", PrimitiveTypes.Boolean());
-				info = info.AsReadOnly();
-				return info;
-			}
-
-			public int FindByName(ObjectName tableName) {
-				if (tableName == null)
-					throw new ArgumentNullException("tableName");
-
-				if (tableName.Parent == null)
-					return -1;
-
-				var seqInfo = SystemSchema.SequenceInfoTableName;
-				if (transaction.RealTableExists(seqInfo)) {
-					// Search the table.
-					var table = transaction.GetTable(seqInfo);
-					var name = Field.VarChar(tableName.Name);
-					var schema = Field.VarChar(tableName.Parent.FullName);
-
-					int p = 0;
-					foreach (var row in table) {
-						var seqType = row.GetValue(3);
-						if (!seqType.IsEqualTo(OneValue)) {
-							var obName = row.GetValue(2);
-							if (obName.IsEqualTo(name)) {
-								var obSchema = row.GetValue(1);
-								if (obSchema.IsEqualTo(schema)) {
-									// Match so return this
-									return p;
-								}
-							}
-							++p;
-						}
-					}
-				}
-
-				return -1;
-			}
-
-			public ObjectName GetTableName(int offset) {
-				var seqInfo = SystemSchema.SequenceInfoTableName;
-				if (transaction.RealTableExists(seqInfo)) {
-					var table = transaction.GetTable(seqInfo);
-					int p = 0;
-					foreach (var row in table) {
-						var seqType = row.GetValue(3);
-						if (!seqType.IsEqualTo(OneValue)) {
-							if (offset == p) {
-								var obSchema = row.GetValue(1);
-								var obName = row.GetValue(2);
-								return new ObjectName(ObjectName.Parse(obSchema.Value.ToString()), obName.Value.ToString());
-							}
-							++p;
-						}
-					}
-				}
-
-				throw new ArgumentOutOfRangeException("offset");
-			}
-
-			public TableInfo GetTableInfo(int offset) {
-				var tableName = GetTableName(offset);
-				return CreateTableInfo(tableName.Parent, tableName.Name);
-			}
-
-			public string GetTableType(int offset) {
-				return TableTypes.Sequence;
-			}
-
-			public bool ContainsTable(ObjectName name) {
-				var seqInfo = SystemSchema.SequenceInfoTableName;
-
-				// This set can not contain the table that is backing it, so we always
-				// return false for that.  This check stops an annoying recursive
-				// situation for table name resolution.
-				if (name.Equals(seqInfo))
-					return false;
-
-				return FindByName(name) != -1;
-			}
-
-			public ITable GetTable(int offset) {
-				var table = transaction.GetTable(SystemSchema.SequenceInfoTableName);
-				int p = 0;
-				int rowIndex = -1;
-
-				foreach (var row in table) {
-					var seqType = row.GetValue(3);
-					if (seqType.IsEqualTo(OneValue)) {
-						if (p == offset) {
-							rowIndex = row.RowId.RowNumber;
-							break;
-						}
-
-						p++;
-					}
-				}
-
-				if (rowIndex == -1)
-					throw new ArgumentOutOfRangeException("offset");
-
-				var seqId = table.GetValue(rowIndex, 0);
-				var schema = ObjectName.Parse(table.GetValue(rowIndex, 1).Value.ToString());
-				var name = table.GetValue(rowIndex, 2).Value.ToString();
-
-				var tableName = new ObjectName(schema, name);
-
-				// Find this id in the 'sequence' table
-				var seqTable = transaction.GetTable(SystemSchema.SequenceTableName);
-
-				var index = seqTable.GetIndex(0);
-				var list = index.SelectEqual(seqId);
-
-				if (!list.Any())
-					throw new Exception("No SEQUENCE table entry for sequence.");
-
-				int seqRowI = list.First();
-
-				// Generate the DataTableInfo
-				var tableInfo = CreateTableInfo(schema, name);
-
-				// Last value for this sequence generated by the transaction
-				Field lastValue;
-				try {
-					var sequence = manager.GetSequence(tableName);
-					if (sequence == null)
-						throw new ObjectNotFoundException(tableName);
-
-					lastValue = Field.Number(sequence.GetCurrentValue());
-				} catch (Exception) {
-					lastValue = Field.BigInt(-1);
-				}
-
-				// The current value of the sequence generator
-				var currentValue = Field.Number(manager.GetCurrentValue(tableName));
-
-				// Read the rest of the values from the SEQUENCE table.
-				var topValue = seqTable.GetValue(seqRowI, 1);
-				var incrementBy = seqTable.GetValue(seqRowI, 2);
-				var minValue = seqTable.GetValue(seqRowI, 3);
-				var maxValue = seqTable.GetValue(seqRowI, 4);
-				var start = seqTable.GetValue(seqRowI, 5);
-				var cache = seqTable.GetValue(seqRowI, 6);
-				var cycle = seqTable.GetValue(seqRowI, 7);
-
-
-				return new SequenceTable(transaction.Database.Context, tableInfo) {
-					TopValue = topValue,
-					LastValue = lastValue,
-					CurrentValue = currentValue,
-					Increment = incrementBy,
-					MinValue = minValue,
-					MaxValue = maxValue,
-					Start = start,
-					Cache = cache,
-					Cycle = cycle
-				};
-			}
-		}
-
-		#endregion
-
-		#region SequenceTable
-
-		class SequenceTable : GeneratedTable {
-			private readonly TableInfo tableInfo;
-
-			public SequenceTable(IDatabaseContext dbContext, TableInfo tableInfo) 
-				: base(dbContext) {
-				this.tableInfo = tableInfo;
-			}
-
-			public override TableInfo TableInfo {
-				get { return tableInfo; }
-			}
-
-			public override int RowCount {
-				get { return 1; }
-			}
-
-			public Field TopValue { get; set; }
-
-			public Field LastValue { get; set; }
-
-			public Field CurrentValue { get; set; }
-
-			public Field Increment { get; set; }
-
-			public Field MinValue { get; set; }
-
-			public Field MaxValue { get; set; }
-
-			public Field Start { get; set; }
-
-			public Field Cache { get; set; }
-
-			public Field Cycle { get; set; }
-
-			public override Field GetValue(long rowNumber, int columnOffset) {
-				if (rowNumber != 0)
-					throw new ArgumentOutOfRangeException("rowNumber");
-
-				switch (columnOffset) {
-					case 0:
-						return LastValue;
-					case 1:
-						return CurrentValue;
-					case 2:
-						return TopValue;
-					case 3:
-						return Increment;
-					case 4:
-						return MinValue;
-					case 5:
-						return MaxValue;
-					case 6:
-						return Start;
-					case 7:
-						return Cache;
-					case 8:
-						return Cycle;
-					default:
-						throw new ArgumentOutOfRangeException("columnOffset");
-				}
-			}
-		}
-
-		#endregion
-
 		/// <summary>
 		/// Updates the state of the sequence key in the sequence tables in the
 		/// database.
@@ -348,7 +89,7 @@ namespace Deveel.Data.Sql.Sequences {
 			// We need to update the sequence key state.
 
 			// The sequence table
-			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
+			var seq = Transaction.GetMutableTable(SequenceTableName);
 
 			// Find the row with the id for this sequence.
 			var list = seq.SelectRowsEqual(0, Field.Number(sequence.Id)).ToList();
@@ -378,35 +119,6 @@ namespace Deveel.Data.Sql.Sequences {
 			seq.UpdateRow(dataRow);
 		}
 
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
-				Create();
-		}
-
-		public void Create() {
-			// SYSTEM.SEQUENCE_INFO
-			var tableInfo = new TableInfo(SystemSchema.SequenceInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.SEQUENCE
-			tableInfo = new TableInfo(SystemSchema.SequenceTableName);
-			tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("increment", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("minvalue", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("maxvalue", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("start", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-		}
-
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			var seqInfo = objInfo as SequenceInfo;
 			if (seqInfo == null)
@@ -423,10 +135,10 @@ namespace Deveel.Data.Sql.Sequences {
 			
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (sequenceName.Equals(SystemSchema.SequenceTableName) ||
-				sequenceName.Equals(SystemSchema.SequenceInfoTableName) ||
-				!Transaction.TableExists(SystemSchema.SequenceTableName) ||
-				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
+			if (sequenceName.Equals(SequenceTableName) ||
+				sequenceName.Equals(SequenceInfoTableName) ||
+				!Transaction.TableExists(SequenceTableName) ||
+				!Transaction.TableExists(SequenceInfoTableName)) {
 				return null;
 			}
 
@@ -438,15 +150,15 @@ namespace Deveel.Data.Sql.Sequences {
 
 		private Sequence CreateCustomSequence(ObjectName sequenceName, SequenceInfo sequenceInfo) {
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+			var seq = Transaction.GetMutableTable(SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SequenceInfoTableName);
 
 			var list = seqi.SelectRowsEqual(2, Field.VarChar(sequenceName.Name), 1, Field.VarChar(sequenceName.Parent.FullName));
 			if (list.Any())
 				throw new Exception(String.Format("Sequence generator with name '{0}' already exists.", sequenceName));
 
 			// Generate a unique id for the sequence info table
-			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
+			var uniqueId = Transaction.NextTableId(SequenceInfoTableName);
 
 			// Insert the new row
 			var dataRow = seqi.NewRow();
@@ -472,8 +184,8 @@ namespace Deveel.Data.Sql.Sequences {
 		}
 
 		private ISequence CreateNativeTableSequence(ObjectName tableName) {
-			var table = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
-			var uniqueId = Transaction.NextTableId(SystemSchema.SequenceInfoTableName);
+			var table = Transaction.GetMutableTable(SequenceInfoTableName);
+			var uniqueId = Transaction.NextTableId(SequenceInfoTableName);
 
 			var dataRow = table.NewRow();
 			dataRow.SetValue(0, Field.Number(uniqueId));
@@ -501,8 +213,8 @@ namespace Deveel.Data.Sql.Sequences {
 		public bool DropSequence(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence sequence
-			if (!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+			if (!Transaction.ObjectExists(SequenceTableName) ||
+				!Transaction.ObjectExists(SequenceInfoTableName)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
@@ -513,16 +225,16 @@ namespace Deveel.Data.Sql.Sequences {
 		private bool RemoveNativeTableSequence(ObjectName tableName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// We can't add or remove native tables
-			if (tableName.Equals(SystemSchema.SequenceTableName) ||
-				tableName.Equals(SystemSchema.SequenceInfoTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceTableName) ||
-				!Transaction.ObjectExists(SystemSchema.SequenceInfoTableName)) {
+			if (tableName.Equals(SequenceTableName) ||
+				tableName.Equals(SequenceInfoTableName) ||
+				!Transaction.ObjectExists(SequenceTableName) ||
+				!Transaction.ObjectExists(SequenceInfoTableName)) {
 				return false;
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+			var seq = Transaction.GetMutableTable(SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SequenceInfoTableName);
 
 			var list = seqi.SelectRowsEqual(2, Field.VarChar(tableName.Name), 1, Field.VarChar(tableName.Parent.FullName));
 
@@ -553,14 +265,14 @@ namespace Deveel.Data.Sql.Sequences {
 		public bool SequenceExists(ObjectName sequenceName) {
 			// If the Sequence or SequenceInfo tables don't exist then 
 			// we can't create the sequence generator
-			if (!Transaction.TableExists(SystemSchema.SequenceTableName) ||
-				!Transaction.TableExists(SystemSchema.SequenceInfoTableName)) {
+			if (!Transaction.TableExists(SequenceTableName) ||
+				!Transaction.TableExists(SequenceInfoTableName)) {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
 			// The SEQUENCE and SEQUENCE_INFO table
-			var seq = Transaction.GetMutableTable(SystemSchema.SequenceTableName);
-			var seqi = Transaction.GetMutableTable(SystemSchema.SequenceInfoTableName);
+			var seq = Transaction.GetMutableTable(SequenceTableName);
+			var seqi = Transaction.GetMutableTable(SequenceInfoTableName);
 
 			return seqi.SelectRowsEqual(1, Field.VarChar(sequenceName.ParentName), 2, Field.VarChar(sequenceName.Name)).Any();
 		}
@@ -614,7 +326,7 @@ namespace Deveel.Data.Sql.Sequences {
 			}
 		}
 
-		private SqlNumber GetCurrentValue(ObjectName name) {
+		public SqlNumber GetCurrentValue(ObjectName name) {
 			lock (this) {
 				var sequence = (Sequence) GetSequence(name);
 
@@ -637,7 +349,7 @@ namespace Deveel.Data.Sql.Sequences {
 			if (!sequenceKeyMap.TryGetValue(sequenceName, out sequence)) {
 				// This sequence generator is not in the cache so we need to query the
 				// sequence table for this.
-				var seqi = Transaction.GetTable(SystemSchema.SequenceInfoTableName);
+				var seqi = Transaction.GetTable(SequenceInfoTableName);
 
 				var schemaVal = Field.VarChar(sequenceName.Parent.FullName);
 				var nameVal = Field.VarChar(sequenceName.Name);
@@ -662,7 +374,7 @@ namespace Deveel.Data.Sql.Sequences {
 					sequence = new Sequence(this, (SqlNumber) sid.Value, SequenceInfo.Native(sequenceName));
 				} else {
 					// Query the sequence table.
-					var seq = Transaction.GetTable(SystemSchema.SequenceTableName);
+					var seq = Transaction.GetTable(SequenceTableName);
 
 					list = seq.SelectRowsEqual(0, sid).ToList();
 

@@ -70,6 +70,13 @@ namespace Deveel.Data {
 			}
 		}
 
+		public bool HasSecurity {
+			get {
+				return PrivilegeManager != null &&
+				       UserManager != null;
+			}
+		}
+
 		private ICache PrivilegesCache {
 			get {
 				if (privsCache == null)
@@ -145,17 +152,15 @@ namespace Deveel.Data {
 
 		#region Schemata
 
-		public void CreateSchema(string name, string type) {
-			if (!Session.User.CanManageSchema())
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(name), Privileges.Create);
+		public void CreateSchema(SchemaInfo schemaInfo) {
+			CreateObject(schemaInfo);
+		}
 
+		public void CreateSchema(string name, string type) {
 			CreateObject(new SchemaInfo(name, type));
 		}
 
 		public void DropSchema(string schemaName) {
-			if (!Session.User.CanDropSchema(schemaName))
-				throw new MissingPrivilegesException(Session.User.Name, new ObjectName(schemaName), Privileges.Drop);
-
 			DropObject(DbObjectType.Schema, new ObjectName(schemaName));
 		}
 
@@ -571,19 +576,12 @@ namespace Deveel.Data {
 			return SystemSession.Access.UserManager.UserExists(userName);
 		}
 
-		public void CreatePublicUser() {
-			if (!Session.User.IsSystem)
-				throw new InvalidOperationException("The @PUBLIC user can be created only by the SYSTEM");
-
-			var userName = User.PublicName;
-			var userId = new UserIdentification(KnownUserIdentifications.ClearText, "###");
-			var userInfo = new UserInfo(userName, userId);
-
-			SystemSession.Access.UserManager.CreateUser(userInfo);
-		}
-
 		public void CreateUser(string userName, string password) {
 			CreateUser(userName, KnownUserIdentifications.ClearText, password);
+		}
+
+		public void CreateUser(UserInfo userInfo) {
+			SystemSession.Access.UserManager.CreateUser(userInfo);
 		}
 
 		public void CreateUser(string userName, string identification, string token) {

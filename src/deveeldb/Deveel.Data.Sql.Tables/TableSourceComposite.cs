@@ -343,7 +343,7 @@ namespace Deveel.Data {
 			MinimalCreate();
 
 			// Initialize the conglomerate system tables.
-			InitSystemSchema();
+			SetupSystem();
 
 			// Commit the state
 			StateStore.Flush();
@@ -383,7 +383,7 @@ namespace Deveel.Data {
 			CreateSystem();
 		}
 
-		private void InitSystemSchema() {
+		private void SetupSystem() {
 			using (var transaction = Database.CreateSafeTransaction(IsolationLevel.Serializable)) {
 				try {
 					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
@@ -394,8 +394,6 @@ namespace Deveel.Data {
 							}
 						}
 					}
-
-					SystemSchema.Setup(transaction);
 
 					// Commit and close the transaction.
 					transaction.Commit();
@@ -417,15 +415,6 @@ namespace Deveel.Data {
 							}
 						}
 					}
-
-
-					// TODO: get the configured default culture...
-					var culture = CultureInfo.CurrentCulture.Name;
-					var schemaInfo = new SchemaInfo(SystemSchema.Name, SchemaTypes.System);
-					schemaInfo.Culture = culture;
-
-					transaction.CreateSchema(schemaInfo);
-
 
 					// Commit and close the transaction.
 					transaction.Commit();
