@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
@@ -325,18 +326,14 @@ namespace Deveel.Data.Transactions {
 			return changedTableSource;
 		}
 
-		private void FireChangeEvents(ITransaction checkTransaction, CommitTableInfo[] normalizedChangedTables, Action<TableCommitInfo> commitActions) {
-			if (commitActions == null)
-				return;
-
+		private void FireChangeEvents(CommitTableInfo[] normalizedChangedTables) {
 			foreach (var tableInfo in normalizedChangedTables) {
 				// Get the journal that details the change to the table.
 				TableEventRegistry changeJournal = tableInfo.Journal;
 				if (changeJournal != null) {
 					// Get the table name
 					var tableName = tableInfo.Master.TableName;
-					commitActions(new TableCommitInfo(checkTransaction.CommitId, tableName, tableInfo.NormalizedAddedRows,
-						tableInfo.NormalizedAddedRows));
+					Transaction.OnEvent(new TableCommitEvent(tableName, tableInfo.Master.TableId, tableInfo.NormalizedAddedRows, tableInfo.NormalizedRemovedRows));
 				}
 			}
 		}
@@ -386,7 +383,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal IEnumerable<TableSource> Commit(IList<TransactionObjectState> nameSpaceJournals, Action<TableCommitInfo> commitActions) {
+		internal IEnumerable<TableSource> Commit(IList<TransactionObjectState> nameSpaceJournals) {
 			var changedTablesList = new List<TableSource>();
 
 			// This is a transaction that will represent the view of the database
@@ -457,7 +454,7 @@ namespace Deveel.Data.Transactions {
 				CheckConstraintViolations(checkTransaction, normalizedChangedTables, changedTableSource);
 
 				// Deferred trigger events.
-				FireChangeEvents(checkTransaction, normalizedChangedTables, commitActions);
+				FireChangeEvents(normalizedChangedTables);
 
 				// NOTE: This isn't as fail safe as it could be.  We really need to
 				//  do the commit in two phases.  The first writes updated indices to

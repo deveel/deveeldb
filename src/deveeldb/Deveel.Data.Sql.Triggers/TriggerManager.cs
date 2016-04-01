@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -41,7 +42,7 @@ namespace Deveel.Data.Sql.Triggers {
 		public TriggerManager(ITransaction transaction) {
 			this.transaction = transaction;
 			triggerCache = new List<Trigger>(24);
-			this.transaction.RegisterOnCommit(OnCommit);
+			this.transaction.Context.RouteImmediate<TableCommitEvent>(OnTableCommit, e => e.TableName.Equals(TriggerTableName));
 		}
 
 		~TriggerManager() {
@@ -78,18 +79,6 @@ namespace Deveel.Data.Sql.Triggers {
 			            commitEvent.AddedRows.Any()) ||
 			           (commitEvent.RemovedRows != null &&
 			            commitEvent.RemovedRows.Any())) {
-				InvalidateTriggerCache();
-			}
-		}
-
-		private void OnCommit(TableCommitInfo commitInfo) {
-			if (tableModified) {
-				InvalidateTriggerCache();
-				tableModified = false;
-			} else if ((commitInfo.AddedRows != null &&
-			     commitInfo.AddedRows.Any()) ||
-			    (commitInfo.RemovedRows != null &&
-			     commitInfo.RemovedRows.Any())) {
 				InvalidateTriggerCache();
 			}
 		}
@@ -311,7 +300,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 			InvalidateTriggerCache();
 
-			transaction.Registry.RegisterEvent(new ObjectCreatedEvent(triggerInfo.TriggerName, DbObjectType.Trigger));
+			transaction.OnObjectCreated(DbObjectType.Trigger, triggerInfo.TriggerName);
 
 			tableModified = true;
 		}
@@ -339,7 +328,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 					table.Delete(t);
 
-					transaction.Registry.RegisterEvent(new ObjectDroppedEvent(DbObjectType.Trigger, triggerName));
+					transaction.OnObjectDropped(DbObjectType.Trigger, triggerName);
 					return true;
 				}
 			}

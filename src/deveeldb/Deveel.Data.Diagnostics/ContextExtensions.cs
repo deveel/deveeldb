@@ -44,18 +44,28 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public static void Route<TEvent>(this IContext context, Action<TEvent> router)
-			where TEvent : class, IEvent {
+			where TEvent : IEvent {
 			context.Route(router, null);
 		}
 
 		public static void Route<TEvent>(this IContext context, Action<TEvent> router, Func<TEvent, bool> condition)
-			where TEvent : class, IEvent {
+			where TEvent : IEvent {
 			context.AttachRouter(new DelegateRouter<TEvent>(router, condition));
+		}
+
+		public static void RouteImmediate<TEvent>(this IContext context, Action<TEvent> router, Func<TEvent, bool> condition)
+			where TEvent : IEvent {
+			context.AttachRouter(new ImmediateRouter<TEvent>(router, condition));
+		}
+
+		public static void RouteImmediate<TEvent>(this IContext context, Action<TEvent> router)
+			where TEvent : IEvent {
+			context.RouteImmediate(router, e => true);
 		}
 
 		#region DelegatedRouter
 
-		class DelegateRouter<TEvent> : ThreadedQueue<TEvent>, IEventRouter where TEvent : class, IEvent {
+		class DelegateRouter<TEvent> : ThreadedQueue<TEvent>, IEventRouter where TEvent : IEvent {
 			private Func<TEvent, bool> condition;
 			private Action<TEvent> route;
 
@@ -80,6 +90,31 @@ namespace Deveel.Data.Diagnostics {
 
 			public void RouteEvent(IEvent e) {
 				Enqueue((TEvent)e);
+			}
+		}
+
+		#endregion
+
+		#region ImmediateRouter
+
+		class ImmediateRouter<TEvent> : IEventRouter {
+			private Func<TEvent, bool> condition;
+			private Action<TEvent> router;
+
+			public ImmediateRouter(Action<TEvent> router, Func<TEvent, bool> condition) {
+				this.router = router;
+				this.condition = condition;
+			}
+
+			public bool CanRoute(IEvent @event) {
+				if (!(@event is TEvent))
+					return false;
+
+				return condition((TEvent) @event);
+			}
+
+			public void RouteEvent(IEvent e) {
+				router((TEvent) e);
 			}
 		}
 

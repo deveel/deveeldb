@@ -17,13 +17,14 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// A table was accessed during the transaction.
 	/// </summary>
-	public class TableAccessEvent : ITableEvent {
+	public class TableAccessEvent : Event, ITableEvent {
 		/// <summary>
 		/// Constructs the event object for the table identified
 		/// by the unique number given and its unique name.

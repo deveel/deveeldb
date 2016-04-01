@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 #endif
 
 namespace Deveel.Data.Diagnostics {
-	public abstract class ThreadedQueue<TMessage> : IDisposable where TMessage : class {
+	public abstract class ThreadedQueue<TMessage> : IDisposable {
 		private readonly Queue<TMessage> messageQueue;
 #if PCL
 		private CancellationTokenSource cancellationTokenSource;

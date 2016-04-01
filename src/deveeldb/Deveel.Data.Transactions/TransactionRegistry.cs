@@ -20,26 +20,23 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public sealed class TransactionRegistry : IDisposable {
+	public sealed class TransactionRegistry : IEventRegistry, IDisposable {
 		private List<ITransactionEvent> events;
 		private List<ObjectName> objectsCreated;
 		private List<ObjectName> objectsDropped;
 		private List<int> touchedTables; 
  
-		public TransactionRegistry(ITransaction transaction) {
-			Transaction = transaction;
-
+		internal TransactionRegistry() {
 			events = new List<ITransactionEvent>();
 		}
 
 		~TransactionRegistry() {
 			Dispose(false);
 		}
-
-		public ITransaction Transaction { get; private set; }
 
 		public IEnumerable<ObjectName> ObjectsCreated {
 			get {
@@ -103,6 +100,13 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		void IEventRegistry.RegisterEvent(IEvent e) {
+			if (!(e is ITransactionEvent))
+				return;
+
+			RegisterEvent((ITransactionEvent)e);
+		}
+
 		private void RegisterObjectDropped(ObjectName objName) {
 			bool created = false;
 
@@ -135,7 +139,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void RegisterEvent(ITransactionEvent e) {
+		private void RegisterEvent(ITransactionEvent e) {
 			lock (this) {
 				if (e == null)
 					throw new ArgumentNullException("e");

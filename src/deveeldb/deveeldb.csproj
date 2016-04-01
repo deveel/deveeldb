@@ -969,11 +969,8 @@
     <Compile Include="Deveel.Data.Store\StoreBase.cs" />
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Text\PatternSearch.cs" />
-    <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionFactory.cs" />
-    <Compile Include="Deveel.Data.Transactions\TableCommitCallback.cs" />
-    <Compile Include="Deveel.Data.Transactions\TableCommitInfo.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionObjectState.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionTable.cs" />
     <Compile Include="Deveel.Data.Transactions\LockingMode.cs" />

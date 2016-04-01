@@ -17,10 +17,11 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public class ObjectDroppedEvent : ITransactionEvent {
+	public class ObjectDroppedEvent : Event, ITransactionEvent {
 		public ObjectDroppedEvent(DbObjectType objectType, ObjectName objectName) {
 			ObjectType = objectType;
 			ObjectName = objectName;

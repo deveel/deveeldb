@@ -288,7 +288,7 @@ namespace Deveel.Data.Sql.Tables {
 			AddVisibleTable(source, source.CreateIndexSet());
 
 			int tableId = source.TableId;
-			Transaction.Registry.RegisterEvent(new TableCreatedEvent(tableId, tableName));
+			Transaction.OnTableCreated(tableId, tableName);
 
 			Transaction.CreateNativeSequence(tableName);
 		}
@@ -345,7 +345,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = source.TableId;
-			Transaction.Registry.RegisterEvent(new TableCreatedEvent(tableId, tableName));
+			Transaction.OnTableCreated(tableId, tableName);
 
 			Transaction.CreateNativeSequence(tableName);
 		}
@@ -606,7 +606,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			accessedTables.Add(table);
 
-			Transaction.Registry.RegisterEvent(new TableAccessEvent(source.TableId, source.TableInfo.TableName));
+			Transaction.OnTableAccessed(source.TableId, source.TableInfo.TableName);
 
 			return table;
 		}
@@ -698,8 +698,8 @@ namespace Deveel.Data.Sql.Tables {
 
 					// Notify that this database object has been successfully dropped and
 					// created.
-					Transaction.Registry.RegisterEvent(new TableDroppedEvent(droppedTableId, tableName));
-					Transaction.Registry.RegisterEvent(new TableCreatedEvent(alteredTableId, tableName));
+					Transaction.OnTableDropped(droppedTableId, tableName);
+					Transaction.OnTableCreated(alteredTableId, tableName);
 
 					return true;
 				}
@@ -760,7 +760,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = source.TableId;
-			Transaction.Registry.RegisterEvent(new TableDroppedEvent(tableId, tableName));
+			Transaction.OnTableDropped(tableId, tableName);
 
 			Transaction.RemoveNativeSequence(tableName);
 
@@ -784,10 +784,10 @@ namespace Deveel.Data.Sql.Tables {
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = master.TableId;
 
-			Transaction.Registry.RegisterEvent(new TableAccessEvent(tableId, tableName));
+			Transaction.OnTableAccessed(tableId, tableName);
 
 			// Log in the journal that we dropped this table.
-			Transaction.Registry.RegisterEvent(new TableConstraintAlteredEvent(tableId));
+			Transaction.OnTableConstraintAltered(tableId);
 		}
 
 		public void AddInternalTables(ITableContainer container) {

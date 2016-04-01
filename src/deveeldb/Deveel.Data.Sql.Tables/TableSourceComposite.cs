@@ -532,7 +532,7 @@ namespace Deveel.Data {
 
 		internal void Commit(Transaction transaction, IList<ITableSource> visibleTables,
 						   IEnumerable<ITableSource> selectedFromTables,
-						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal, Action<TableCommitInfo> commitActions) {
+						   IEnumerable<IMutableTable> touchedTables, TransactionRegistry journal) {
 
 			var state = new TransactionWork(this, transaction, selectedFromTables, touchedTables, journal);
 
@@ -543,7 +543,7 @@ namespace Deveel.Data {
 			}
 
 			lock (commitLock) {
-				var changedTablesList = state.Commit(objectStates, commitActions);
+				var changedTablesList = state.Commit(objectStates);
 
 				// Flush the journals up to the minimum commit id for all the tables
 				// that this transaction changed.
@@ -652,20 +652,6 @@ namespace Deveel.Data {
 				// Create the transaction and record it in the open transactions list.
 				return new Transaction(context, Database, thisCommitId, isolation, thisCommittedTables, indexInfo);
 			}
-		}
-
-		private Action<TableCommitInfo> tableCommitCallback; 
-
-		internal void RegisterOnCommit(Action<TableCommitInfo> action) {
-			if (tableCommitCallback == null) {
-				tableCommitCallback = action;
-			} else {
-				tableCommitCallback = (Action<TableCommitInfo>) Delegate.Combine(tableCommitCallback, action);
-			}
-		}
-
-		internal void UnregisterOnCommit(Action<TableCommitInfo> action) {
-			tableCommitCallback = Delegate.Remove(tableCommitCallback, action) as Action<TableCommitInfo>;
 		}
 
 		internal void CloseTransaction(ITransaction transaction) {

@@ -17,16 +17,19 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
-	public class TransactionContext : Context, ITransactionContext	{
+	public class TransactionContext : Context, ITransactionContext, IEventScope	{
 		public TransactionContext (IDatabaseContext databaseContext)
 			: base(databaseContext) {
 			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
+
+			EventRegistry = new TransactionRegistry();
 		}
 
 		protected override string ContextName {
@@ -48,6 +51,12 @@ namespace Deveel.Data.Transactions {
 		public IVariableManager VariableManager { get; private set; }
 
 		public CursorManager CursorManager { get; private set; }
+
+		public TransactionRegistry EventRegistry { get; private set; }
+
+		IEventRegistry IEventScope.EventRegistry {
+			get { return EventRegistry; }
+		}
 
 		protected override void Dispose(bool disposing) {
 			if (disposing) {

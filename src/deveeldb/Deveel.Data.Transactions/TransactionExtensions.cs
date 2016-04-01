@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
@@ -480,6 +481,34 @@ namespace Deveel.Data.Transactions {
 				return false;
 
 			return transaction.Database.Locker.IsLocked(lockable);
+		}
+
+		#endregion
+
+		#region Events
+
+		public static void OnObjectCreated(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
+			transaction.OnEvent(new ObjectCreatedEvent(objectName, objectType));
+		}
+
+		public static void OnObjectDropped(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
+			transaction.OnEvent(new ObjectDroppedEvent(objectType, objectName));
+		}
+
+		public static void OnTableCreated(this ITransaction transaction, int tableId, ObjectName tableName) {
+			transaction.OnEvent(new TableCreatedEvent(tableId, tableName));
+		}
+
+		public static void OnTableDropped(this ITransaction transaction, int tableId, ObjectName tableName) {
+			transaction.OnEvent(new TableDroppedEvent(tableId, tableName));
+		}
+
+		public static void OnTableAccessed(this ITransaction transaction, int tableId, ObjectName tableName) {
+			transaction.OnEvent(new TableAccessEvent(tableId, tableName));
+		}
+
+		public static void OnTableConstraintAltered(this ITransaction transaction, int tableId) {
+			transaction.OnEvent(new TableConstraintAlteredEvent(tableId));
 		}
 
 		#endregion

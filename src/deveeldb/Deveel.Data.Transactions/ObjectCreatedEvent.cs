@@ -17,6 +17,7 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
@@ -30,7 +31,7 @@ namespace Deveel.Data.Transactions {
 	/// </remarks>
 	/// <seealso cref="DbObjectType"/>
 	/// <seealso cref="ObjectName"/>
-	public class ObjectCreatedEvent : ITransactionEvent {
+	public class ObjectCreatedEvent : Event, ITransactionEvent {
 		/// <summary>
 		/// Constructs a new event with the given object name and type.
 		/// </summary>

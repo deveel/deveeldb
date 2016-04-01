@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -36,22 +37,19 @@ namespace Deveel.Data.Sql.Views {
 			Transaction = transaction;
 			viewCache = new Dictionary<long, ViewInfo>();
 
-			transaction.RegisterOnCommit(OnCommit);
+			transaction.Context.RouteImmediate<TableCommitEvent>(OnCommit, e => e.TableName.Equals(ViewTableName));
 		}
 
 		public static readonly ObjectName ViewTableName = new ObjectName(SystemSchema.SchemaName, "view");
 
 
-		private void OnCommit(TableCommitInfo obj) {
-			if (!obj.TableName.Equals(ViewTableName))
-				return;
-
+		private void OnCommit(TableCommitEvent e) {
 			// If there were changed then invalidate the cache
 			if (viewTableChanged) {
 				InvalidateViewCache();
 				viewTableChanged = false;
-			} else if ((obj.AddedRows != null && obj.AddedRows.Any()) ||
-					 (obj.RemovedRows != null && obj.RemovedRows.Any())) {
+			} else if ((e.AddedRows != null && e.AddedRows.Any()) ||
+					 (e.RemovedRows != null && e.RemovedRows.Any())) {
 				// Otherwise, if there were committed added or removed changes also
 				// invalidate the cache,
 				InvalidateViewCache();
@@ -179,7 +177,7 @@ namespace Deveel.Data.Sql.Views {
 			viewTable.AddRow(rdat);
 
 			// Notify that this database object has been successfully created.
-			Transaction.Registry.RegisterEvent(new ObjectCreatedEvent(viewName, DbObjectType.View));
+			Transaction.OnObjectCreated(DbObjectType.View, viewName);
 
 			// Change to the view table
 			viewTableChanged = true;
@@ -229,7 +227,7 @@ namespace Deveel.Data.Sql.Views {
 			table.Delete(t);
 
 			// Notify that this database object has been successfully dropped.
-			Transaction.Registry.RegisterEvent(new ObjectDroppedEvent(DbObjectType.View, viewName));
+			Transaction.OnObjectDropped(DbObjectType.View, viewName);
 
 			viewTableChanged = true;
 

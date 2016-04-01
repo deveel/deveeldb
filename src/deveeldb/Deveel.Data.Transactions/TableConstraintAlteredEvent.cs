@@ -17,12 +17,14 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// A transaction event that caused the alteration of a
 	/// constraints in the table given.
 	/// </summary>
-	public class TableConstraintAlteredEvent : ITableEvent {
+	public class TableConstraintAlteredEvent : Event, ITableEvent {
 		/// <summary>
 		/// Constructs the event object for the table identified
 		/// by the unique number given.

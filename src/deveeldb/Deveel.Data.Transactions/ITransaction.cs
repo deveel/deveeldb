@@ -18,7 +18,6 @@
 using System;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -74,9 +73,5 @@ namespace Deveel.Data.Transactions {
 		/// <seealso cref="Commit"/>
 		/// <seealso cref="TransactionExtensions.ReadOnly(Deveel.Data.Transactions.ITransaction)"/>
 		void Rollback();
-
-		void RegisterOnCommit(Action<TableCommitInfo> action);
-
-		void UnregisterOnCommit(Action<TableCommitInfo> action);
 	}
 }

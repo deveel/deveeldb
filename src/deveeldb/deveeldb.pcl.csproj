@@ -925,7 +925,6 @@
     <Compile Include="Deveel.Data.Store\StoreExtensions.cs" />
     <Compile Include="Deveel.Data.Text\PatternSearch.cs" />
     <Compile Include="Deveel.Data.Transactions\AccessType.cs" />
-    <Compile Include="Deveel.Data.Transactions\ICallbackHandler.cs" />
     <Compile Include="Deveel.Data.Transactions\ILockable.cs" />
     <Compile Include="Deveel.Data.Transactions\IsolationLevel.cs" />
     <Compile Include="Deveel.Data.Transactions\ITableEvent.cs" />
@@ -941,8 +940,6 @@
     <Compile Include="Deveel.Data.Transactions\ObjectCreatedEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\ObjectDroppedEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TableAccessEvent.cs" />
-    <Compile Include="Deveel.Data.Transactions\TableCommitCallback.cs" />
-    <Compile Include="Deveel.Data.Transactions\TableCommitInfo.cs" />
     <Compile Include="Deveel.Data.Transactions\TableConstraintAlteredEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TableCreatedEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TableDroppedEvent.cs" />

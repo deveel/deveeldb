@@ -31,10 +31,8 @@ namespace Deveel.Data.Transactions {
 	/// isolated operations within a database context.
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
-	public sealed class Transaction : ITransaction, ICallbackHandler, ITableStateHandler {
-		private List<TableCommitCallback> callbacks;
-
-		private Action<TableCommitInfo> commitActions; 
+	public sealed class Transaction : ITransaction, ITableStateHandler {
+		//private Action<TableCommitInfo> commitActions; 
 
 		private readonly bool dbReadOnly;
 
@@ -46,7 +44,6 @@ namespace Deveel.Data.Transactions {
 
 			context.RegisterInstance<ITransaction>(this);
 
-			Registry = new TransactionRegistry(this);
 			TableManager.AddVisibleTables(committedTables, indexSets);
 
 			AddInternalTables();
@@ -62,6 +59,8 @@ namespace Deveel.Data.Transactions {
 			this.AutoCommit(database.Context.AutoCommit());
 			this.IgnoreIdentifiersCase(database.Context.IgnoreIdentifiersCase());
 			this.ParameterStyle(QueryParameterStyle.Marker);
+
+			this.OnEvent(new TransactionEvent(commitId, TransactionEventType.Begin));
 		}
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation)
@@ -114,7 +113,9 @@ namespace Deveel.Data.Transactions {
 			get { return Database.TableComposite; }
 		}
 
-		public TransactionRegistry Registry { get; private set; }
+		public TransactionRegistry Registry {
+			get { return ((TransactionContext) Context).EventRegistry; }
+		}
 
 		private TableManager TableManager {
 			get { return this.GetTableManager(); }
@@ -140,25 +141,27 @@ namespace Deveel.Data.Transactions {
 					var touchedTables = TableManager.AccessedTables.ToList();
 					var visibleTables = TableManager.GetVisibleTables().ToList();
 					var selected = TableManager.SelectedTables.ToArray();
-					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry, commitActions);
+					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry);
+
+					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Commit));
 				} finally {
 					Finish();
 				}
 			}
 		}
 
-		public void RegisterOnCommit(Action<TableCommitInfo> action) {
-			if (commitActions == null) {
-				commitActions = action;
-			} else {
-				commitActions = Delegate.Combine(commitActions, action) as Action<TableCommitInfo>;
-			}
-		}
+		//public void RegisterOnCommit(Action<TableCommitInfo> action) {
+		//	if (commitActions == null) {
+		//		commitActions = action;
+		//	} else {
+		//		commitActions = Delegate.Combine(commitActions, action) as Action<TableCommitInfo>;
+		//	}
+		//}
 
-		public void UnregisterOnCommit(Action<TableCommitInfo> action) {
-			if (commitActions != null)
-				commitActions = Delegate.Remove(commitActions, action) as Action<TableCommitInfo>;
-		}
+		//public void UnregisterOnCommit(Action<TableCommitInfo> action) {
+		//	if (commitActions != null)
+		//		commitActions = Delegate.Remove(commitActions, action) as Action<TableCommitInfo>;
+		//}
 
 
 		private void Finish() {
@@ -174,16 +177,7 @@ namespace Deveel.Data.Transactions {
 					this.OnError(ex);
 				}
 
-				Registry = null;
-
-				if (callbacks != null) {
-					foreach (var callback in callbacks) {
-						callback.OnTransactionEnd();
-						callback.DetachFrom(this);
-					}
-				}
-
-				callbacks = null;
+				//callbacks = null;
 				Context = null;
 
 				// Dispose all the objects in the transaction
@@ -197,6 +191,8 @@ namespace Deveel.Data.Transactions {
 				try {
 					var touchedTables = TableManager.AccessedTables.ToList();
 					TableComposite.Rollback(this, touchedTables, Registry);
+
+					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Commit));
 				} finally {
 					IsClosed = true;
 					Finish();
@@ -215,25 +211,6 @@ namespace Deveel.Data.Transactions {
 				//	Rollback();
 				// TODO: review this ...
 				Finish();
-			}
-		}
-
-
-		void ICallbackHandler.OnCallbackAttached(TableCommitCallback callback) {
-			if (callbacks == null)
-				callbacks = new List<TableCommitCallback>();
-
-			callbacks.Add(callback);
-		}
-
-		void ICallbackHandler.OnCallbackDetached(TableCommitCallback callback) {
-			if (callbacks == null)
-				return;
-
-			for (int i = callbacks.Count - 1; i >= 0; i--) {
-				var other = callbacks[i];
-				if (other.TableName.Equals(callback.TableName))
-					callbacks.RemoveAt(i);
 			}
 		}
 	}
