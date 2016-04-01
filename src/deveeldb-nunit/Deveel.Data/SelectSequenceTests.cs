@@ -39,5 +39,15 @@ namespace Deveel.Data {
 
 			Assert.IsInstanceOf<NumericType>(value.Type);
 		}
+
+		[Test]
+		public void IncrementBy() {
+			var value = SelectScalar("increment_by");
+
+			Assert.IsNotNull(value);
+			Assert.IsFalse(Field.IsNullField(value));
+
+			Assert.IsInstanceOf<NumericType>(value.Type);
+		}
 	}
 }
