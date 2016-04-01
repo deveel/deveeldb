@@ -178,7 +178,6 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionTests.cs" />

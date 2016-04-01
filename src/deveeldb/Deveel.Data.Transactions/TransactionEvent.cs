@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Transactions {
-	public sealed class TransactionEvent : Event {
+	public sealed class TransactionEvent : Event, ITransactionEvent {
 		public TransactionEvent(int commitId, TransactionEventType eventType) {
 			CommitId = commitId;
 			EventType = eventType;

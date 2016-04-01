@@ -18,7 +18,6 @@
 using System;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Variables;
 

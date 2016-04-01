@@ -30,5 +30,6 @@ namespace Deveel.Data {
 		public const string Sequence = "SEQUENCE";
 		public const string Procedure = "PROCEDURE";
 		public const string Function = "FUNCTION";
+		public const string Type = "TYPE";
 	}
 }

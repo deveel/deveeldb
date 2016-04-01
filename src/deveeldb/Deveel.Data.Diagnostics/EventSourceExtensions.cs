@@ -41,6 +41,14 @@ namespace Deveel.Data.Diagnostics {
 			source.OnEvent(errorEvent);
 		}
 
+		public static void OnWarning(this IEventSource source, Exception warning) {
+			OnWarning(source, warning, -1);
+		}
+
+		public static void OnWarning(this IEventSource source, Exception warning, int errorCode) {
+			source.OnError(warning, errorCode, ErrorLevel.Warning);
+		}
+
 		public static void OnInformation(this IEventSource source, string message) {
 			source.OnInformation(message, InformationLevel.Information);
 		}

@@ -192,7 +192,7 @@ namespace Deveel.Data.Transactions {
 					var touchedTables = TableManager.AccessedTables.ToList();
 					TableComposite.Rollback(this, touchedTables, Registry);
 
-					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Commit));
+					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Rollback));
 				} finally {
 					IsClosed = true;
 					Finish();

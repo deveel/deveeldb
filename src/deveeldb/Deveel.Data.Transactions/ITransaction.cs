@@ -47,8 +47,6 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		IDatabase Database { get; }
 
-		TransactionRegistry Registry { get; }
-
 		/// <summary>
 		/// Commits all write operation done during the lifetime of 
 		/// this transaction and invalidates it.

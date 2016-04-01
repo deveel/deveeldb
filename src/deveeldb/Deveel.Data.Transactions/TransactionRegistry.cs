@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 

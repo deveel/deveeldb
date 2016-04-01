@@ -189,7 +189,7 @@ namespace Deveel.Data.Sql.Sequences {
 			var cycle = seqTable.GetValue(seqRowI, 7);
 
 
-			return new SequenceTable(transaction.Database.Context, tableInfo) {
+			return new SequenceTable(transaction.Context, tableInfo) {
 				TopValue = topValue,
 				LastValue = lastValue,
 				CurrentValue = currentValue,
@@ -207,7 +207,7 @@ namespace Deveel.Data.Sql.Sequences {
 		class SequenceTable : GeneratedTable {
 			private readonly TableInfo tableInfo;
 
-			public SequenceTable(IDatabaseContext dbContext, TableInfo tableInfo)
+			public SequenceTable(IContext dbContext, TableInfo tableInfo)
 				: base(dbContext) {
 				this.tableInfo = tableInfo;
 			}

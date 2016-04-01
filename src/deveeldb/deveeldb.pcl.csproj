@@ -282,6 +282,7 @@
     <Compile Include="Deveel.Data.Sql.Types\TypeResolveContext.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeResolver.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeSerializer.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\TypesTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Types\UserType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Types\UserTypeMember.cs" />
