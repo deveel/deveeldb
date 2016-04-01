@@ -65,9 +65,7 @@ namespace Deveel.Data {
 			ServiceContainer.UseTypes();
 			ServiceContainer.UseVariables();
 
-			ServiceContainer.Bind<ISqlCompiler>()
-				.To<SqlDefaultCompiler>()
-				.InSystemScope();
+			ServiceContainer.UseDefaultCompiler();
 
 			ServiceContainer.Bind<IQueryPlanner>()
 				.To<QueryPlanner>()

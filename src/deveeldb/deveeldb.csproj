@@ -179,6 +179,7 @@
     <Compile Include="Deveel.Data.Security\QueryExtensions.cs" />
     <Compile Include="Deveel.Data.Security\Role.cs" />
     <Compile Include="Deveel.Data.Security\UserManagerCreateCallback.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />

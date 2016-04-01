@@ -143,6 +143,7 @@
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Services\ISystemModule.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />

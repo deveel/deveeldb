@@ -131,7 +131,7 @@ namespace Deveel.Data.Sql.Sequences {
 
 			foreach (var row in table) {
 				var seqType = row.GetValue(3);
-				if (seqType.IsEqualTo(OneValue)) {
+				if (!seqType.IsEqualTo(OneValue)) {
 					if (p == offset) {
 						rowIndex = row.RowId.RowNumber;
 						break;
