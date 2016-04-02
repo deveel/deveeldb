@@ -726,13 +726,19 @@ namespace Deveel.Data.Store {
 			}
 		}
 
+		public bool IsClosed { get; set; }
+
 		public void Close() {
 			lock (this) {
 				// Mark the file as closed
 				if (!IsReadOnly)
 					Write(16, 0);
 
-				CloseStore();
+				try {
+					CloseStore();
+				} finally {
+					IsClosed = true;
+				}
 			}
 		}
 
@@ -746,7 +752,8 @@ namespace Deveel.Data.Store {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {
-					Close();
+					if (!IsClosed)
+						Close();
 				}
 
 				disposed = true;

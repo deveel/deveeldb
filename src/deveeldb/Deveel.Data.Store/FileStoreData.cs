@@ -23,13 +23,16 @@ namespace Deveel.Data.Store {
 	/// A data store that is backed by a file located at the path given.
 	/// </summary>
 	public sealed class FileStoreData : IStoreData {
-		private LocalFile file;
+		private IFile file;
 		private readonly object objectLock = new object();
 
-		public FileStoreData(string filePath) {
+		public FileStoreData(IFileSystem fileSystem, string filePath) {
 			if (String.IsNullOrEmpty(filePath))
 				throw new ArgumentNullException("filePath");
+			if (fileSystem == null)
+				throw new ArgumentNullException("fileSystem");
 
+			FileSystem = fileSystem;
 			FilePath = filePath;
 			IsOpen = false;
 		}
@@ -37,6 +40,8 @@ namespace Deveel.Data.Store {
 		~FileStoreData() {
 			Dispose(false);
 		}
+
+		public IFileSystem FileSystem { get; private set; }
 
 		public string FilePath { get; private set; }
 
@@ -60,13 +65,13 @@ namespace Deveel.Data.Store {
 		public bool Exists {
 			get {
 				lock (objectLock) {
-					return File.Exists(FilePath);
+					return FileSystem.FileExists(FilePath);
 				}
 			}
 		}
 
 		public long Length {
-			get { return IsOpen ? file.Length : new FileInfo(FilePath).Length; }
+			get { return IsOpen ? file.Length : FileSystem.GetFileSize(FilePath); }
 		}
 
 		public bool IsReadOnly { get; private set; }
@@ -76,7 +81,7 @@ namespace Deveel.Data.Store {
 				return false;
 
 			try {
-				File.Delete(FilePath);
+				FileSystem.DeleteFile(FilePath);
 				return !Exists;
 			} catch (Exception) {
 				return false;
@@ -85,7 +90,12 @@ namespace Deveel.Data.Store {
 
 		public void Open(bool readOnly) {
 			lock (objectLock) {
-				file = new LocalFile(FilePath, readOnly);
+				if (!FileSystem.FileExists(FilePath)) {
+					file = FileSystem.CreateFile(FilePath);
+				} else {
+					file = FileSystem.OpenFile(FilePath, readOnly);
+				}
+
 				IsOpen = true;
 				IsReadOnly = readOnly;
 			}

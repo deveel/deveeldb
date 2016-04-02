@@ -79,7 +79,7 @@ namespace Deveel.Data.Store {
 				fn.Append("0");
 			}
 			fn.Append(i);
-			return Path.Combine(BasePath, fn.ToString());
+			return FileSystem.CombinePath(BasePath, fn.ToString());
 		}
 
 		private long DiscoverSize() {
@@ -139,7 +139,7 @@ namespace Deveel.Data.Store {
 			// Delete each file from back to front
 			for (int i = countFiles - 1; i >= 0; --i) {
 				string f = SliceFileName(i);
-				bool deleteSuccess = new FileStoreData(f).Delete();
+				bool deleteSuccess = new FileStoreData(FileSystem, f).Delete();
 				if (!deleteSuccess)
 					return false;
 			}
@@ -165,7 +165,7 @@ namespace Deveel.Data.Store {
 				}
 
 				// Setup the first file slice
-				var slice = new FileStoreData(f);
+				var slice = new FileStoreData(FileSystem, f);
 				slice.Open(readOnly);
 
 				fileSlices.Add(slice);
@@ -178,7 +178,7 @@ namespace Deveel.Data.Store {
 					string slicePart = SliceFileName(i);
 					while (FileSystem.FileExists(slicePart)) {
 						// Create the new slice information for this part of the file.
-						slice = new FileStoreData(slicePart);
+						slice = new FileStoreData(FileSystem, slicePart);
 						slice.Open(readOnly);
 
 						fileSlices.Add(slice);
@@ -299,7 +299,7 @@ namespace Deveel.Data.Store {
 					if (totalSizeToGrow > 0) {
 						string sliceFile = SliceFileName(last + 1);
 
-						slice = new FileStoreData(sliceFile);
+						slice = new FileStoreData(FileSystem, sliceFile);
 						slice.Open(false);
 
 						fileSlices.Add(slice);

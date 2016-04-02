@@ -22,17 +22,15 @@ namespace Deveel.Data.Store {
 	public sealed class LocalFile : IFile {
 		private System.IO.FileStream fileStream;
 
-		public const int BufferSize = 1024 * 2;
-
-		public LocalFile(string fileName, bool readOnly) {
+		internal LocalFile(string fileName, System.IO.FileStream fileStream) {
 			if (String.IsNullOrEmpty(fileName))
 				throw new ArgumentNullException("fileName");
 
-			var fileMode = readOnly ? FileMode.Open : FileMode.OpenOrCreate;
-			var fileAccess = readOnly ? FileAccess.Read : FileAccess.ReadWrite;
-			// TODO: using the enrypted option uses the user's encryption: should we use a different system?
-			var options = FileOptions.WriteThrough | FileOptions.Encrypted;
-			fileStream = new System.IO.FileStream(fileName, fileMode, fileAccess, FileShare.None, BufferSize, options);
+			if (fileStream == null)
+				throw new ArgumentNullException("fileStream");
+
+			this.fileStream = fileStream;
+			FileName = fileName;
 		}
 
 		public void Dispose() {

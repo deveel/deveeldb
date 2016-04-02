@@ -17,14 +17,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Schemas;
@@ -35,6 +33,7 @@ using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
+using Deveel.Data.Store.Journaled;
 
 namespace Deveel.Data {
 	public class SystemBuilder {
@@ -71,6 +70,8 @@ namespace Deveel.Data {
 				.To<QueryPlanner>()
 				.InSystemScope();				
 
+			ServiceContainer.UseJournaledStore();
+
 			ServiceContainer.Bind<IStoreSystem>()
 				.To<InMemoryStorageSystem>()
 				.WithKey(DefaultStorageSystemNames.Heap)
@@ -84,8 +85,14 @@ namespace Deveel.Data {
 #if !PCL
 			ServiceContainer.Bind<IFileSystem>()
 				.To<LocalFileSystem>()
+				.WithKey("local")
 				.InSystemScope();
 #endif
+
+			ServiceContainer.Bind<IStoreDataFactory>()
+				.To<ScatteringFileStoreDataFactory>()
+				.WithKey("scattering")
+				.InDatabaseScope();
 		}
 
 		private ISystemContext BuildContext(out IEnumerable<ModuleInfo> modules) {

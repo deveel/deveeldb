@@ -20,7 +20,7 @@ namespace Deveel.Data.Store.Journaled {
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 			dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.Journaled);
-			dbConfig.SetValue("database.basePath", Environment.CurrentDirectory);
+			dbConfig.SetValue("database.path", Path.Combine(Environment.CurrentDirectory, DatabaseName));
 			return dbConfig;
 		}
 
@@ -51,13 +51,27 @@ namespace Deveel.Data.Store.Journaled {
 
 			var dirName = Path.Combine(Environment.CurrentDirectory, DatabaseName);
 			if (Directory.Exists(dirName))
-				Directory.Delete(dirName);
+				Directory.Delete(dirName, true);
 		}
 
-		//[Test]
-		//public void CreateNewDatabase() {
-		//	var dbConfig = CreateDatabaseConfig();
-		//	database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
-		//}
+		[Test]
+		public void CreateNewDatabase() {
+			var dbConfig = CreateDatabaseConfig();
+			database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
+
+			var session = database.CreateUserSession(TestAdminUser, TestAdminPass);
+			Assert.IsNotNull(session);
+			session.Dispose();
+		}
+
+		[Test]
+		public void OpenDatabase() {
+			var dbConfig = CreateDatabaseConfig();
+			database = systemContext.OpenDatabase(dbConfig);
+
+			var session = database.CreateUserSession(TestAdminUser, TestAdminPass);
+			Assert.IsNotNull(session);
+			session.Dispose();
+		}
 	}
 }

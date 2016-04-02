@@ -133,24 +133,28 @@ namespace Deveel.Data.Services {
 			if (container == null)
 				throw new InvalidOperationException("The container was not initialized.");
 
-			lock (this) {
-				var serviceType = registration.ServiceType;
-				var service = registration.Instance;
-				var serviceName = registration.ServiceKey;
-				var implementationType = registration.ImplementationType;
+			try {
+				lock (this) {
+					var serviceType = registration.ServiceType;
+					var service = registration.Instance;
+					var serviceName = registration.ServiceKey;
+					var implementationType = registration.ImplementationType;
 
-				var reuse = Reuse.Singleton;
-				if (!String.IsNullOrEmpty(ScopeName))
-					reuse = Reuse.InCurrentNamedScope(ScopeName);
+					var reuse = Reuse.Singleton;
+					if (!String.IsNullOrEmpty(ScopeName))
+						reuse = Reuse.InCurrentNamedScope(ScopeName);
 
-				if (!String.IsNullOrEmpty(registration.Scope))
-					reuse = Reuse.InCurrentNamedScope(registration.Scope);
+					if (!String.IsNullOrEmpty(registration.Scope))
+						reuse = Reuse.InCurrentNamedScope(registration.Scope);
 
-				if (service == null) {
-					container.Register(serviceType, implementationType, serviceKey: serviceName, reuse: reuse);
-				} else {
-					container.RegisterInstance(serviceType, service, serviceKey: serviceName, reuse: reuse);
+					if (service == null) {
+						container.Register(serviceType, implementationType, serviceKey: serviceName, reuse: reuse);
+					} else {
+						container.RegisterInstance(serviceType, service, serviceKey: serviceName, reuse: reuse);
+					}
 				}
+			} catch (Exception ex) {
+				throw new Exception("Error when registering service.", ex);
 			}
 		}
 
