@@ -62,6 +62,12 @@ namespace Deveel.Data.Store {
 			var basePath = config.GetString("database.basePath");
 			var fileName = config.GetString("database.fileName");
 			var fullPath = config.GetString("database.fullPath");
+			var fileSystemName = config.GetString("store.fileSystem", "local");
+
+			FileSystem = context.ResolveService<IFileSystem>(fileSystemName);
+
+			if (FileSystem == null)
+				throw new DatabaseConfigurationException(String.Format("The file-system '{0}' was not found in context.", fileSystemName));
 
 			if (String.IsNullOrEmpty(basePath)) {
 				if (String.IsNullOrEmpty(fullPath)) {
@@ -120,9 +126,7 @@ namespace Deveel.Data.Store {
 
 		public bool IsReadOnly { get; set; }
 
-		private IFileSystem FileSystem {
-			get { return context.ResolveService<IFileSystem>(); }
-		}
+		private IFileSystem FileSystem { get; set; }
 
 		public object CheckPointLock {
 			get { return checkPointLock; }
