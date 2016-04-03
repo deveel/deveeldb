@@ -3,16 +3,15 @@
 DeveelDB 2.0
 ==========
 
-**NOTE**: *This version of the project is still under development. It is in fact a total rewrite since the original version of the project, that has been discontinued. The poor level of coverage, the architectural model, the limits of the parser, and other requirements made it impossible to maintain it. You can still find it as a branch of the project.*
-
 DeveelDB is a complete embeddable SQL-99 RDBMS for .NET/Mono frameworks. The system is designed around the standards ISO/ANSI and supports the following features:
 
 - Transactions: `COMMIT`, `ROLLBACK` (Isolation Level *Serializable*)
 - Data Definition Language (DDL): `CREATE/DROP SCHEMA`, `CREATE/DROP/ALTER TABLE`
-- Data Manipulation Language (DML): `SELECT FROM`, `INSERT INTO`, `DELETE FROM`, `UPDATE`
+- Data Manipulation Language (DML): `SELECT FROM`, `SELECT INTO`, `INSERT INTO`, `DELETE FROM`, `UPDATE`
 - User Management: `CREATE/DROP/ALTER USER`, `CREATE/DROP ROLE`, `GRANT/REVOKE` statements
 - Support for structured variables (eg. `DECLARE var INT(200) NOT NULL`)
 - Procedures and functions
+- User-Defined Types and Sequences
 - Cursors
 - ADO.NET native client
 - Direct Access: programmatically execute SQL statements (without ADO.NET client and text commands)
@@ -30,7 +29,9 @@ For a quick start, I suggest taking a look at [the getting started guide](https:
 Getting It
 ============
 
-The stage of the version 2.0 is not stable yet, so we are not providing any stable build on nuget.org. Anyway, the binaries of the project daily builds of *DeveelDB* can be obtained through the dedicated NuGet feed on MyGet (http://myget.org): the configuration of the sources depends on the environment used to build your project (referer to NuGet Documentation for further information: http://docs.nuget.org/consume/package-restore).
+NuGet Packages
+=============
+It is possible to restore nightly build versions of the library through the stage NuGet source of *DeveelDB* at MyGet.org (http://myget.org): the configuration of the sources depends on the environment used to build your project (referer to NuGet Documentation for further information: http://docs.nuget.org/consume/package-restore).
 
 **NuGet v3**
 
@@ -42,10 +43,15 @@ https://www.myget.org/F/deveeldb/api/v2
 
 
 The feed contains these versions of the library:
-- *deveeldb-anycpu*: this is the generic build, that is suited to be used by any CPU architeture
-- *deveeldb-x86*: a version of the library built specificaly for the x86 (32-bit) architecture
-- *deveeldb-x64*: the build specificaly oriented to the x64 (64-bit) architecture
+- *deveeldb*: this is the generic build, that is suited to be used by any CPU architeture
+- *deveeldb.x86*: a version of the library built specificaly for the x86 (32-bit) architecture
+- *deveeldb.x64*: the build specificaly oriented to the x64 (64-bit) architecture
 
+Alpha versions of *DeveelDB* can also be found at the official NuGet saource (http://nuget.org): only the more stable builds are promoted there.
+
+- *deveeldb*: https://www.nuget.org/packages/deveeldb/
+- *deveeldb.x86*: https://www.nuget.org/packages/deveeldb.x86/
+- *deveeldb.x64*: https://www.nuget.org/packages/deveeldb.x64/
 
 License
 ============
