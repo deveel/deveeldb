@@ -203,15 +203,35 @@ namespace Deveel.Data {
 		/// </summary>
 		public ITable SingleRowTable { get; private set; }
 
-		private void OnDatabasePhase(IQuery context, SystemCreatePhase phase) {
-			var callbacks = context.Context.ResolveAllServices<ISystemCreateCallback>();
+		private void OnDatabaseCreate(IQuery context) {
+			var callbacks = context.Context.ResolveAllServices<IDatabaseCreateCallback>();
 			if (callbacks != null) {
 				foreach (var callback in callbacks) {
+					if (callback == null)
+						continue;
+
 					try {
-						if (callback != null)
-							callback.Activate(phase);
+						callback.OnDatabaseCreate(context);
 					} catch (Exception ex) {
-						context.AsEventSource().OnError(ex);
+						context.AsEventSource()
+							.OnError(new Exception(String.Format("Database-Create callback '{0}' caused an error.", callback.GetType()), ex));
+					}
+				}
+			}
+		}
+
+		private void OnDatabaseCreated(IQuery context) {
+			var callbacks = context.Context.ResolveAllServices<IDatabaseCreatedCallback>();
+			if (callbacks != null) {
+				foreach (var callback in callbacks) {
+					if (callback == null)
+						continue;
+
+					try {
+						callback.OnDatabaseCreated(context);
+					} catch (Exception ex) {
+						context.AsEventSource()
+							.OnError(new Exception(String.Format("Database-Created callback '{0}' caused an error.", callback.GetType()), ex));
 					}
 				}
 			}
@@ -261,11 +281,11 @@ namespace Deveel.Data {
 						try {
 							session.CurrentSchema(SystemSchema.Name);
 
-							OnDatabasePhase(query, SystemCreatePhase.DatabaseCreate);
+							OnDatabaseCreate(query);
 
 							query.CreateAdminUser(adminName, adminPassword);
 
-							OnDatabasePhase(query, SystemCreatePhase.DatabaseCreated);
+							OnDatabaseCreated(query);
 
 							try {
 								// Close and commit this transaction.

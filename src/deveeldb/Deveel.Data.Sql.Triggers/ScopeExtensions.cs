@@ -11,8 +11,8 @@ namespace Deveel.Data.Sql.Triggers {
 				.WithKey(DbObjectType.Trigger)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<TriggerSystemCreateCallback>()
+			scope.Bind<ITableCompositeCreateCallback>()
+				.To<TriggersInit>()
 				.InQueryScope();
 
 			scope.Bind<ITableContainer>()

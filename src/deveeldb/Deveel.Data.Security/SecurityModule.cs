@@ -35,16 +35,16 @@ namespace Deveel.Data.Security {
 				.To<UserManager>()
 				.InSessionScope();
 
-			systemScope.Bind<ISystemCreateCallback>()
-				.To<UserManagerCreateCallback>()
+			systemScope.Bind<IDatabaseCreateCallback>()
+				.To<UsersInit>()
 				.InQueryScope();
 
 			systemScope.Bind<IPrivilegeManager>()
 				.To<PrivilegeManager>()
 				.InSessionScope();
 
-			systemScope.Bind<ISystemCreateCallback>()
-				.To<PrivilegeManagerCreate>()
+			systemScope.Bind<ITableCompositeSetupCallback>()
+				.To<PrivilegesInit>()
 				.InQueryScope();
 
 			systemScope.Bind<IUserIdentifier>()

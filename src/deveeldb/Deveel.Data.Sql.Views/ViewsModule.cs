@@ -17,8 +17,8 @@ namespace Deveel.Data.Sql.Views {
 				.InTransactionScope()
 				.WithKey(DbObjectType.View);
 
-			systemScope.Bind<ISystemCreateCallback>()
-				.To<ViewsSystemCreateCallback>()
+			systemScope.Bind<ITableCompositeCreateCallback>()
+				.To<ViewsInit>()
 				.WithKey("Views")
 				.InTransactionScope();
 

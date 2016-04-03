@@ -21,6 +21,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Schemas;
@@ -388,9 +389,17 @@ namespace Deveel.Data {
 				try {
 					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 						using (var query = session.CreateQuery()) {
-							var callbacks = query.Context.ResolveAllServices<ISystemCreateCallback>();
+							var callbacks = query.Context.ResolveAllServices<ITableCompositeSetupCallback>();
 							foreach (var callback in callbacks) {
-								callback.Activate(SystemCreatePhase.SystemSetup);
+								if (callback == null)
+									continue;
+
+								try {
+									callback.OnTableCompositeSetup(query);
+								} catch (Exception ex) {
+									query.Context.OnError(new Exception(String.Format("Composite-Setup callback '{0}' caused an error.", callback.GetType()), ex));
+									throw;
+								}
 							}
 						}
 					}
@@ -409,9 +418,9 @@ namespace Deveel.Data {
 				try {
 					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 						using (var query = session.CreateQuery()) {
-							var callbacks = query.Context.ResolveAllServices<ISystemCreateCallback>();
+							var callbacks = query.Context.ResolveAllServices<ITableCompositeCreateCallback>();
 							foreach (var callback in callbacks) {
-								callback.Activate(SystemCreatePhase.SystemCreate);
+								callback.OnTableCompositeCreate(query);
 							}
 						}
 					}

@@ -4,19 +4,8 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Sequences {
-	class SequencesCreateCallback : ISystemCreateCallback {
-		private IQuery query;
-
-		public SequencesCreateCallback(IQuery query) {
-			this.query = query;
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
-				Create();
-		}
-
-		private void Create() {
+	class SequencesInit : ITableCompositeCreateCallback {
+		public void OnTableCompositeCreate(IQuery systemQuery) {
 			// SYSTEM.SEQUENCE_INFO
 			var tableInfo = new TableInfo(SequenceManager.SequenceInfoTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
@@ -24,7 +13,7 @@ namespace Deveel.Data.Sql.Sequences {
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
 			tableInfo = tableInfo.AsReadOnly();
-			query.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 
 			// SYSTEM.SEQUENCE
 			tableInfo = new TableInfo(SequenceManager.SequenceTableName);
@@ -37,7 +26,7 @@ namespace Deveel.Data.Sql.Sequences {
 			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
-			query.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 		}
 	}
 }

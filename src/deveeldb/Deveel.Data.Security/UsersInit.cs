@@ -1,35 +1,26 @@
 ﻿using System;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Security {
-	class UserManagerCreateCallback : ISystemCreateCallback {
-		private IQuery query;
+	class UsersInit : IDatabaseCreateCallback {
+		public void OnDatabaseCreate(IQuery query) {
+			CreateTables(query);
 
-		public UserManagerCreateCallback(IQuery query) {
-			this.query = query;
+			CreateSystemRoles(query);
+			CreatePublicUser(query);
+			GrantToPublicUser(query);
 		}
 
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.DatabaseCreate) {
-					CreateTables(query);
-
-					CreateSystemRoles();
-					CreatePublicUser();
-					GrantToPublicUser(query);
-				}
-		}
-
-		private void CreateSystemRoles() {
+		private void CreateSystemRoles(IQuery query) {
 			query.Access().CreateRole(SystemRoles.SecureAccessRole);
 			query.Access().CreateRole(SystemRoles.UserManagerRole);
 			query.Access().CreateRole(SystemRoles.SchemaManagerRole);
 			query.Access().CreateRole(SystemRoles.LockedRole);
 		}
 
-		private void CreatePublicUser() {
+		private void CreatePublicUser(IQuery query) {
 			var userName = User.PublicName;
 			var userId = new UserIdentification(KnownUserIdentifications.ClearText, "###");
 			var userInfo = new UserInfo(userName, userId);

@@ -10,8 +10,8 @@ namespace Deveel.Data.Sql.Types {
 				.WithKey(DbObjectType.Type)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<TypeManager>()
+			scope.Bind<ITableCompositeCreateCallback>()
+				.To<TypesInit>()
 				.InTransactionScope();
 		}
 	}

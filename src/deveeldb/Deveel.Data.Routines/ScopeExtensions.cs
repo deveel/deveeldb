@@ -12,9 +12,13 @@ namespace Deveel.Data.Routines {
 				.WithKey(DbObjectType.Routine)
 				.InTransactionScope();
 
-			systemScope.Bind<ISystemCreateCallback>()
-				.To<RoutinesSystemCreateCallback>()
-				.InTransactionScope();
+			systemScope.Bind<ITableCompositeSetupCallback>()
+				.To<RoutinesInit>()
+				.InQueryScope();
+
+			systemScope.Bind<IDatabaseCreateCallback>()
+				.To<RoutinesInit>()
+				.InQueryScope();
 
 			systemScope.Bind<IRoutineResolver>()
 				.To<SystemFunctionsProvider>()

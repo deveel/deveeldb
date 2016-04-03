@@ -11,8 +11,8 @@ namespace Deveel.Data.Sql.Sequences {
 				.WithKey(DbObjectType.Sequence)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<SequencesCreateCallback>()
+			scope.Bind<ITableCompositeCreateCallback>()
+				.To<SequencesInit>()
 				.InQueryScope();
 
 			scope.Bind<ITableContainer>()

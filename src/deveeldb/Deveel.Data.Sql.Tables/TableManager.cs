@@ -25,7 +25,7 @@ using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
-	public sealed class TableManager : IObjectManager, ISystemCreateCallback {
+	public sealed class TableManager : IObjectManager {
 		private readonly List<ITableSource> visibleTables;
 		private List<IMutableTable> accessedTables;
 		private List<ITableSource> selectedTables;
@@ -131,135 +131,6 @@ namespace Deveel.Data.Sql.Tables {
 
 		DbObjectType IObjectManager.ObjectType {
 			get { return DbObjectType.Table; }
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate) {
-				Create();
-			} else if (phase == SystemCreatePhase.SystemSetup) {
-				AddForeignKeys();
-			}
-		}
-
-		private void AddForeignKeys() {
-			// -- Primary Keys --
-			// The 'id' columns are primary keys on all the system tables,
-			var idCol = new[] { "id" };
-			Transaction.AddPrimaryKey(SystemSchema.PrimaryKeyInfoTableName, idCol, "SYSTEM_PK_PK");
-			Transaction.AddPrimaryKey(SystemSchema.ForeignKeyInfoTableName, idCol, "SYSTEM_FK_PK");
-			Transaction.AddPrimaryKey(SystemSchema.UniqueKeyInfoTableName, idCol, "SYSTEM_UNIQUE_PK");
-			Transaction.AddPrimaryKey(SystemSchema.CheckInfoTableName, idCol, "SYSTEM_CHECK_PK");
-			Transaction.AddPrimaryKey(SystemSchema.SchemaInfoTableName, idCol, "SYSTEM_SCHEMA_PK");
-
-			// -- Foreign Keys --
-			// Create the foreign key references,
-			var fkCol = new string[1];
-			var fkRefCol = new[] { "id" };
-
-			fkCol[0] = "pk_id";
-			Transaction.AddForeignKey(SystemSchema.PrimaryKeyColumnsTableName, fkCol, SystemSchema.PrimaryKeyInfoTableName, fkRefCol, "SYSTEM_PK_FK");
-
-			fkCol[0] = "fk_id";
-			Transaction.AddForeignKey(SystemSchema.ForeignKeyColumnsTableName, fkCol, SystemSchema.ForeignKeyInfoTableName, fkRefCol, "SYSTEM_FK_FK");
-
-			fkCol[0] = "un_id";
-			Transaction.AddForeignKey(SystemSchema.UniqueKeyColumnsTableName, fkCol, SystemSchema.UniqueKeyInfoTableName, fkRefCol, "SYSTEM_UNIQUE_FK");
-
-			// pkey_info 'schema', 'table' column is a unique set,
-			// (You are only allowed one primary key per table).
-			var columns = new[] { "schema", "table" };
-			Transaction.AddUniqueKey(SystemSchema.PrimaryKeyInfoTableName, columns, "SYSTEM_PKEY_ST_UNIQUE");
-
-			// schema_info 'name' column is a unique column,
-			columns = new String[] { "name" };
-			Transaction.AddUniqueKey(SystemSchema.SchemaInfoTableName, columns, "SYSTEM_SCHEMA_UNIQUE");
-
-			//    columns = new String[] { "name" };
-			columns = new String[] { "name", "schema" };
-			// pkey_info 'name' column is a unique column,
-			Transaction.AddUniqueKey(SystemSchema.PrimaryKeyInfoTableName, columns, "SYSTEM_PKEY_UNIQUE");
-
-			// fkey_info 'name' column is a unique column,
-			Transaction.AddUniqueKey(SystemSchema.ForeignKeyInfoTableName, columns, "SYSTEM_FKEY_UNIQUE");
-
-			// unique_info 'name' column is a unique column,
-			Transaction.AddUniqueKey(SystemSchema.UniqueKeyInfoTableName, columns, "SYSTEM_UNIQUE_UNIQUE");
-
-			// check_info 'name' column is a unique column,
-			Transaction.AddUniqueKey(SystemSchema.CheckInfoTableName, columns, "SYSTEM_CHECK_UNIQUE");
-		}
-
-		private void Create() {
-			// SYSTEM.PKEY_INFO
-			var tableInfo = new TableInfo(SystemSchema.PrimaryKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.PKEY_COLS
-			tableInfo = new TableInfo(SystemSchema.PrimaryKeyColumnsTableName);
-			tableInfo.AddColumn("pk_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("column", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.FKEY_INFO
-			tableInfo = new TableInfo(SystemSchema.ForeignKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("ref_schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("ref_table", PrimitiveTypes.String());
-			tableInfo.AddColumn("update_rule", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("delete_rule", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.FKEY_COLS
-			tableInfo = new TableInfo(SystemSchema.ForeignKeyColumnsTableName);
-			tableInfo.AddColumn("fk_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("fcolumn", PrimitiveTypes.String());
-			tableInfo.AddColumn("pcolumn", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.UNIQUE_INFO
-			tableInfo = new TableInfo(SystemSchema.UniqueKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.UNIQUE_COLS
-			tableInfo = new TableInfo(SystemSchema.UniqueKeyColumnsTableName);
-			tableInfo.AddColumn("un_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("column", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
-
-			// SYSTEM.CHECK_INFO
-			tableInfo = new TableInfo(SystemSchema.CheckInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("expression", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("serialized_expression", PrimitiveTypes.Binary());
-			tableInfo = tableInfo.AsReadOnly();
-			Transaction.CreateTable(tableInfo);
 		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {

@@ -10,11 +10,11 @@ namespace Deveel.Data.Sql.Schemas {
 				.WithKey(DbObjectType.Schema)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<SchemaSystemCreateCallback>()
+			scope.Bind<ITableCompositeCreateCallback>()
+				.To<SchemaInit>()
 				.InQueryScope();
 
-			scope.Bind<ISystemCreateCallback>()
+			scope.Bind<IDatabaseCreateCallback>()
 				.To<InfortmationSchemaCreate>()
 				.InTransactionScope();
 		}

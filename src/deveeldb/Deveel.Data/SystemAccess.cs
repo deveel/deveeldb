@@ -242,7 +242,7 @@ namespace Deveel.Data {
 
 		public void AddForeignKey(ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns,
-			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, String constraintName) {
+			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, string constraintName) {
 			AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
@@ -250,6 +250,16 @@ namespace Deveel.Data {
 			ObjectName refTable, string[] refColumns,
 			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, string constraintName) {
 			Session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+		}
+
+		public void AddForeignKey(ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, string constraintName) {
+			AddForeignKey(table, columns, refTable, refColumns, ConstraintDeferrability.InitiallyImmediate, constraintName);
+		}
+
+		public void AddForeignKey(ObjectName table, string[] columns,
+			ObjectName refTable, string[] refColumns, ConstraintDeferrability deferred, string constraintName) {
+			AddForeignKey(table, columns, refTable, refColumns, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, deferred, constraintName);
 		}
 
 		public void AddUniqueKey(ObjectName tableName, string[] columns, string constraintName) {

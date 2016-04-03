@@ -18,12 +18,11 @@
 using System;
 
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Types {
-	public sealed class TypeManager : IObjectManager, ITypeResolver, ISystemCreateCallback {
+	public sealed class TypeManager : IObjectManager, ITypeResolver {
 		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
@@ -39,31 +38,6 @@ namespace Deveel.Data.Sql.Types {
 
 		public static readonly ObjectName TypeTableName = new ObjectName(SystemSchema.SchemaName, "type");
 		public static readonly ObjectName TypeMemberTableName = new ObjectName(SystemSchema.SchemaName, "type_member");
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemCreate)
-				Create();
-		}
-
-		public void Create() {
-			var tableInfo = new TableInfo(TypeTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("parent", PrimitiveTypes.String());
-			tableInfo.AddColumn("sealed", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("owner", PrimitiveTypes.String());
-			Transaction.CreateTable(tableInfo);
-
-			tableInfo = new TableInfo(TypeMemberTableName);
-			tableInfo.AddColumn("type_id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			Transaction.CreateTable(tableInfo);
-
-			Transaction.AddPrimaryKey(TypeTableName, new [] {"id"}, "PK_TYPE");
-			Transaction.AddForeignKey(TypeMemberTableName, new []{"type_id"}, TypeTableName, new[] {"id"}, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_MEMBER_TYPE");
-		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			CreateType((UserTypeInfo) objInfo);

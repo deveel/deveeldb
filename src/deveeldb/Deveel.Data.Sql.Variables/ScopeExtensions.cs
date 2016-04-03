@@ -11,10 +11,6 @@ namespace Deveel.Data.Sql.Variables {
 				.WithKey(DbObjectType.Variable)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<PersistentVariableManager>()
-				.InTransactionScope();
-
 			scope.Bind<ITableCellCache>()
 				.To<TableCellCache>()
 				.InSystemScope();

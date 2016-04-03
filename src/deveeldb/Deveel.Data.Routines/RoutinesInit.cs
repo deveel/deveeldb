@@ -6,23 +6,8 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	class RoutinesSystemCreateCallback : ISystemCreateCallback {
-		private readonly IQuery query;
-
-		public RoutinesSystemCreateCallback(IQuery query) {
-			this.query = query;
-		}
-
-		void ISystemCreateCallback.Activate(SystemCreatePhase phase) {
-			if (phase == SystemCreatePhase.SystemSetup) {
-				Create();
-				AddForeignKeys();
-			} else if (phase == SystemCreatePhase.DatabaseCreate) {
-				GrantToPublic();
-			}
-		}
-
-		private void Create() {
+	class RoutinesInit : ITableCompositeSetupCallback, IDatabaseCreateCallback {
+		private void Create(IQuery systemQuery) {
 			// SYSTEM.ROUTINE
 			var tableInfo = new TableInfo(RoutineManager.RoutineTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
@@ -33,7 +18,7 @@ namespace Deveel.Data.Routines {
 			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
 			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
 			tableInfo.AddColumn("username", PrimitiveTypes.String());
-			query.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 
 			// SYSTEM.ROUTINE_PARAM
 			tableInfo = new TableInfo(RoutineManager.RoutineParameterTableName);
@@ -43,22 +28,31 @@ namespace Deveel.Data.Routines {
 			tableInfo.AddColumn("arg_attrs", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("in_out", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
-			query.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 		}
 
-		private void AddForeignKeys() {
+		private void AddForeignKeys(IQuery systemQuery) {
 			var fkCol = new[] { "routine_id" };
 			var refCol = new[] { "id" };
 			const ForeignKeyAction onUpdate = ForeignKeyAction.NoAction;
 			const ForeignKeyAction onDelete = ForeignKeyAction.Cascade;
 
-			query.Access().AddForeignKey(RoutineManager.RoutineParameterTableName, fkCol, RoutineManager.RoutineTableName, refCol,
+			systemQuery.Access().AddForeignKey(RoutineManager.RoutineParameterTableName, fkCol, RoutineManager.RoutineTableName, refCol,
 				onDelete, onUpdate, "ROUTINE_PARAMS_FK");
 		}
 
-		private void GrantToPublic() {
-			query.Access().GrantOnTable(RoutineManager.RoutineTableName, User.PublicName, Privileges.TableRead);
-			query.Access().GrantOnTable(RoutineManager.RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+		private void GrantToPublic(IQuery systemQuery) {
+			systemQuery.Access().GrantOnTable(RoutineManager.RoutineTableName, User.PublicName, Privileges.TableRead);
+			systemQuery.Access().GrantOnTable(RoutineManager.RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+		}
+
+		public void OnTableCompositeSetup(IQuery systemQuery) {
+			Create(systemQuery);
+			AddForeignKeys(systemQuery);
+		}
+
+		public void OnDatabaseCreate(IQuery systemQuery) {
+			GrantToPublic(systemQuery);
 		}
 	}
 }

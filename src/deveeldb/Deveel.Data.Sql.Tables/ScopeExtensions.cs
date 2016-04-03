@@ -10,8 +10,12 @@ namespace Deveel.Data.Sql.Tables {
 				.WithKey(DbObjectType.Table)
 				.InTransactionScope();
 
-			scope.Bind<ISystemCreateCallback>()
-				.To<TableManager>()
+			scope.Bind<ITableCompositeSetupCallback>()
+				.To<TablesInit>()
+				.InTransactionScope();
+
+			scope.Bind<ITableCompositeCreateCallback>()
+				.To<TablesInit>()
 				.InTransactionScope();
 		}
 	}
