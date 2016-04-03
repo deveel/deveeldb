@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>deveeldb-$platform$</id>
+        <id>deveeldb.$platform$</id>
         <version>$version$</version>
         <title>DeveelDB Kernel ($platform$)</title>
-        <authors>Antonello Provenzano</authors>
-        <owners>antonello</owners>
+        <authors>Deveel, Antonello Provenzano</authors>
+        <owners>deveel, antonello</owners>
         <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.txt</licenseUrl>
         <projectUrl>http://github.com/deveel/deveeldb</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/deveel/deveeldb/master/nuget/icon.png</iconUrl>

@@ -4,8 +4,8 @@
         <id>deveeldb</id>
         <version>$version$</version>
         <title>DeveelDB Kernel </title>
-        <authors>Antonello Provenzano</authors>
-        <owners>antonello</owners>
+        <authors>Deveel, Antonello Provenzano</authors>
+        <owners>deveel, antonello</owners>
         <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.txt</licenseUrl>
         <projectUrl>http://github.com/deveel/deveeldb</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/deveel/deveeldb/master/nuget/icon.png</iconUrl>

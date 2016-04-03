@@ -177,9 +177,7 @@ namespace Deveel.Data.Store.Journaled {
 			var lockFileName = GetFileLockName(lockName);
 
 			if (FileSystem.FileExists(lockFileName)) {
-				context.RegisterEvent(
-					new ErrorEvent(new Exception(String.Format("The lock file '{0}' already exists.", lockFileName)), -1,
-						ErrorLevel.Warning));
+				context.OnWarning(String.Format("The lock file '{0}' already exists.", lockFileName));
 
 				if (!FileSystem.DeleteFile(lockFileName)) {
 					throw new IOException(String.Format("Could not delete the lock file '{0}' from the file-system.", lockFileName));

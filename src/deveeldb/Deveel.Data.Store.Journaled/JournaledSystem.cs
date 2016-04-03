@@ -93,13 +93,11 @@ namespace Deveel.Data.Store.Journaled {
 					JournalSummary summary = jf.OpenForRecovery();
 					// If the journal can be recovered from.
 					if (summary.CanBeRecovered) {
-						Context.RegisterEvent(new InformationEvent(String.Format("Journal '{0}' found: can be recovered", jf),
-							InformationLevel.Information));
+						Context.OnInformation(String.Format("Journal '{0}' found: can be recovered", jf));
 
 						journalFilesList.Add(summary);
 					} else {
-						Context.RegisterEvent(new InformationEvent(String.Format("Deleting journal '{0}': nothing to recover", jf),
-							InformationLevel.Information));
+						Context.OnInformation(String.Format("Deleting journal '{0}': nothing to recover", jf));
 
 						// Otherwise close and delete it
 						jf.CloseAndDelete();
@@ -132,8 +130,7 @@ namespace Deveel.Data.Store.Journaled {
 
 				lastJournalNumber = jf.JournalNumber;
 
-				Context.RegisterEvent(new InformationEvent(String.Format("Recovering '{0}' (8 .. {1})", jf, summary.LastCheckPoint),
-	InformationLevel.Information));
+				Context.OnInformation(String.Format("Recovering '{0}' (8 .. {1})", jf, summary.LastCheckPoint));
 
 				jf.Persist(8, summary.LastCheckPoint);
 				// Then close and delete.
@@ -389,9 +386,7 @@ namespace Deveel.Data.Store.Journaled {
 								// Close and then delete the journal file
 								jf.CloseAndDelete();
 							} catch (IOException e) {
-								system.Context.RegisterEvent(
-									new ErrorEvent(new InvalidOperationException(String.Format("Error persisting journal '{0}", jf), e), -1,
-										ErrorLevel.Error));
+								system.Context.OnError(String.Format("Error persisting journal '{0}", jf), e);
 
 								// If there is an error persisting the best thing to do is
 								// finish

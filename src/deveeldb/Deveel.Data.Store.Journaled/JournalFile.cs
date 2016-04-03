@@ -324,17 +324,16 @@ namespace Deveel.Data.Store.Journaled {
 		}
 
 		internal void Persist(long start, long end) {
-			JournaledSystem.Context.RegisterEvent(new InformationEvent(String.Format("Persisting file {0}", FilePath),
-				InformationLevel.Information));
+			JournaledSystem.Context.OnInformation(String.Format("Persisting file {0}", FilePath));
 
 			using (BinaryReader din = new BinaryReader(File.FileStream, Encoding.Unicode)) {
 				File.FileStream.Seek(start, SeekOrigin.Begin);
 
 				// The list of resources we updated
-				var resources_updated = new List<ResourceBase>();
+				var resourcesUpdated = new List<ResourceBase>();
 
 				// A map from resource id to resource name for this journal.
-				var id_name_map = new Dictionary<long, string>();
+				var idNameMap = new Dictionary<long, string>();
 
 				bool finished = false;
 				long position = start;
@@ -352,39 +351,34 @@ namespace Deveel.Data.Store.Journaled {
 						for (int i = 0; i < len; ++i) {
 							buf.Append(din.ReadChar());
 						}
-						String resource_name = buf.ToString();
-						// Put this input the map
-						id_name_map[id] = resource_name;
 
-						JournaledSystem.Context.RegisterEvent(
-							new InformationEvent(String.Format("Jounral Command: Tag {0} = {1}", id, resource_name),
-								InformationLevel.Information));
+						string resourceName = buf.ToString();
+						// Put this input the map
+						idNameMap[id] = resourceName;
+
+						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Tag {0} = {1}", id, resourceName));
 
 						// Add this to the list of resources we updated.
-						resources_updated.Add(JournaledSystem.GetResource(resource_name));
+						resourcesUpdated.Add(JournaledSystem.GetResource(resourceName));
 					} else if (type == 6) {
 						// Resource delete
 						long id = din.ReadInt64();
-						String resource_name = (String) id_name_map[id];
-						var resource = JournaledSystem.GetResource(resource_name);
+						var resourceName = idNameMap[id];
+						var resource = JournaledSystem.GetResource(resourceName);
 
-						JournaledSystem.Context.RegisterEvent(
-							new InformationEvent(String.Format("Jounral Command: Delete {0}", resource_name),
-								InformationLevel.Information));
+						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Delete {0}", resourceName));
 
 						resource.PersistDelete();
 					} else if (type == 3) {
 						// Resource size change
 						long id = din.ReadInt64();
-						long new_size = din.ReadInt64();
-						var resource_name = id_name_map[id];
-						var resource = JournaledSystem.GetResource(resource_name);
+						long newSize = din.ReadInt64();
+						var resourceName = idNameMap[id];
+						var resource = JournaledSystem.GetResource(resourceName);
 
-						JournaledSystem.Context.RegisterEvent(
-							new InformationEvent(String.Format("Jounral Command: Set Size {0} = {1}", resource_name, new_size),
-								InformationLevel.Information));
+						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Set Size {0} = {1}", resourceName, newSize));
 
-						resource.PersistSetSize(new_size);
+						resource.PersistSetSize(newSize);
 					} else if (type == 1) {
 						// Page modification
 						long id = din.ReadInt64();
@@ -392,22 +386,17 @@ namespace Deveel.Data.Store.Journaled {
 						int off = din.ReadInt32();
 						int len = din.ReadInt32();
 
-						var resourceName = id_name_map[id];
+						var resourceName = idNameMap[id];
 						var resource = JournaledSystem.GetResource(resourceName);
 
-						JournaledSystem.Context.RegisterEvent(
-							new InformationEvent(
-								String.Format("Jounral Command: Page Change {0} page= {1} offset = {2} length = {3}", resourceName, page, off,
-									len),
-								InformationLevel.Information));
+						JournaledSystem.Context.OnInformation(
+							String.Format("Jounral Command: Page Change {0} page= {1} offset = {2} length = {3}", resourceName, page, off, len));
 
 						resource.PersistPageChange(page, off, len, din);
 					} else if (type == 100) {
 						// Checkpoint (end)
 
-						JournaledSystem.Context.RegisterEvent(
-							new InformationEvent("Jounral Command: Check Point",
-								InformationLevel.Information));
+						JournaledSystem.Context.OnInformation("Jounral Command: Check Point");
 
 						if (position == end) {
 							finished = true;
@@ -419,13 +408,11 @@ namespace Deveel.Data.Store.Journaled {
 				} // while (!finished)
 
 				// Synch all the resources that we have updated.
-				int sz = resources_updated.Count;
+				int sz = resourcesUpdated.Count;
 				for (int i = 0; i < sz; ++i) {
-					var r = resources_updated[i];
+					var r = resourcesUpdated[i];
 
-					JournaledSystem.Context.RegisterEvent(
-						new InformationEvent(String.Format("Synch: {0}", r),
-							InformationLevel.Information));
+					JournaledSystem.Context.OnInformation(String.Format("Synch: {0}", r));
 
 					r.Synch();
 				}
