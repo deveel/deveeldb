@@ -223,24 +223,5 @@ namespace Deveel.Data {
 
 			return obj as ITable;
 		}
-
-		public bool IsAggregateFunction(Invoke invoke) {
-			return Session.Access().IsAggregateFunction(invoke, Request);
-		}
-
-		public IRoutine ResolveRoutine(Invoke invoke) {
-			return Session.Access().ResolveRoutine(invoke, Request);
-		}
-
-		public Field InvokeSystemFunction(string functionName, params SqlExpression[] args) {
-			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
-			var invoke = new Invoke(resolvedName, args);
-			return Session.Access().InvokeFunction(Request, invoke);
-		}
-
-		public Field InvokeFunction(Invoke invoke) {
-			return Session.Access().InvokeFunction(Request, invoke);
-		}
-
 	}
 }

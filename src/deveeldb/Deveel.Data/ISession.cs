@@ -29,8 +29,6 @@ namespace Deveel.Data {
 	/// encapsulating the transaction for operations.
 	/// </summary>
 	public interface ISession : IDisposable {
-		//SessionAccess Access { get; }
-
 		/// <summary>
 		/// Gets the name of the current schema of this session.
 		/// </summary>

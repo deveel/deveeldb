@@ -23,6 +23,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DropTableStatement : SqlStatement {
 		public DropTableStatement(ObjectName tableName) 
 			: this(tableName, false) {
@@ -36,9 +37,20 @@ namespace Deveel.Data.Sql.Statements {
 			IfExists = ifExists;
 		}
 
+		private DropTableStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
+			IfExists = info.GetBoolean("IfExists");
+		}
+
 		public ObjectName TableName { get; private set; }
 
 		public bool IfExists { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("IfExists", IfExists);
+		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access().ResolveTableName(TableName);
@@ -46,69 +58,43 @@ namespace Deveel.Data.Sql.Statements {
 			    !IfExists)
 				throw new ObjectNotFoundException(TableName);
 
-			return new Prepared(tableName, IfExists);
+			return new DropTableStatement(tableName, IfExists);
 		}
 
-		#region Prepared
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.User.CanDrop(DbObjectType.Table, TableName))
+				throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
 
-		[Serializable]
-		class Prepared : SqlStatement {
-			public Prepared(ObjectName tableName, bool ifExists) {
-				TableName = tableName;
-				IfExists = ifExists;
+			// Check there are no referential links to any tables being dropped
+			var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);
+			if (refs.Length > 0) {
+				var reference = refs[0];
+				throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
+					String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
+						reference.ConstraintName, TableName, reference.TableName));
 			}
 
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				TableName = (ObjectName) info.GetValue("TableName", typeof (ObjectName));
-				IfExists = info.GetBoolean("IfExists");
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!IfExists) {
+				// If table doesn't exist, throw an error
+				if (!context.Request.Access().TableExists(TableName)) {
+					throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
+						TableName));
+				}
 			}
 
-			public ObjectName TableName { get; private set; }
+			// Does the table already exist?
+			if (context.Request.Access().TableExists(TableName)) {
+				// Drop table in the transaction
+				context.Request.Access().DropObject(DbObjectType.Table, TableName);
 
-			public bool IfExists { get; private set; }
+				// Revoke all the grants on the table
+				context.Request.Access().RevokeAllGrantsOnTable(TableName);
 
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("TableName", TableName);
-				info.AddValue("IfExists", IfExists);
-			}
-
-			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.User.CanDrop(DbObjectType.Table, TableName))
-					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
-
-				// Check there are no referential links to any tables being dropped
-				var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);
-				if (refs.Length > 0) {
-					var reference = refs[0];
-					throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
-						String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
-							reference.ConstraintName, TableName, reference.TableName));
-				}
-
-				// If the 'only if exists' flag is false, we need to check tables to drop
-				// exist first.
-				if (!IfExists) {
-					// If table doesn't exist, throw an error
-					if (!context.Request.Access().TableExists(TableName)) {
-						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
-							TableName));
-					}
-				}
-
-				// Does the table already exist?
-				if (context.Request.Access().TableExists(TableName)) {
-					// Drop table in the transaction
-					context.Request.Access().DropObject(DbObjectType.Table, TableName);
-
-					// Revoke all the grants on the table
-					context.Request.Access().RevokeAllGrantsOnTable(TableName);
-
-					// Drop all constraints from the schema
-					context.Request.Access().DropAllTableConstraints(TableName);
-				}
+				// Drop all constraints from the schema
+				context.Request.Access().DropAllTableConstraints(TableName);
 			}
 		}
-
-		#endregion
 	}
 }

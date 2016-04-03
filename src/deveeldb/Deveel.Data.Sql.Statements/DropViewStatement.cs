@@ -19,10 +19,9 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Views;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class DropViewStatement : SqlStatement {
 		public DropViewStatement(ObjectName viewName) 
 			: this(viewName, false) {
@@ -36,9 +35,20 @@ namespace Deveel.Data.Sql.Statements {
 			IfExists = ifExists;
 		}
 
+		private DropViewStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			ViewName = (ObjectName) info.GetValue("ViewName", typeof (ObjectName));
+			IfExists = info.GetBoolean("IfExists");
+		}
+
 		public ObjectName ViewName { get; private set; }
 
 		public bool IfExists { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("ViewName", ViewName);
+			info.AddValue("IfExists", IfExists);
+		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var viewName = context.Access().ResolveObjectName(DbObjectType.View, ViewName);
@@ -47,57 +57,31 @@ namespace Deveel.Data.Sql.Statements {
 				!context.Access().ViewExists(viewName))
 				throw new ObjectNotFoundException(ViewName);
 
-			return new Prepared(viewName, IfExists);
+			return new DropViewStatement(viewName, IfExists);
 		}
 
-		#region Prepared
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.User.CanDrop(DbObjectType.View, ViewName))
+				throw new MissingPrivilegesException(context.Request.UserName(), ViewName, Privileges.Drop);
 
-		[Serializable]
-		class Prepared : SqlStatement {
-			public ObjectName ViewName { get; set; }
-
-			public bool IfExists { get; set; }
-
-			public Prepared(ObjectName viewName, bool ifExists) {
-				ViewName = viewName;
-				IfExists = ifExists;
-			}
-
-			private Prepared(SerializationInfo info, StreamingContext context) {
-				ViewName = (ObjectName) info.GetValue("ViewName", typeof(ObjectName));
-				IfExists = info.GetBoolean("IfExists");
-			}
-
-			protected override void GetData(SerializationInfo info) {
-				info.AddValue("ViewName", ViewName);
-				info.AddValue("IfExists", IfExists);
-			}
-
-			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.User.CanDrop(DbObjectType.View, ViewName))
-					throw new MissingPrivilegesException(context.Request.UserName(), ViewName, Privileges.Drop);
-
-				// If the 'only if exists' flag is false, we need to check tables to drop
-				// exist first.
-				if (!IfExists) {
-					// If view doesn't exist, throw an error
-					if (!context.Request.Access().ViewExists(ViewName)) {
-						throw new ObjectNotFoundException(ViewName,
-							String.Format("The view '{0}' does not exist and cannot be dropped.", ViewName));
-					}
+			// If the 'only if exists' flag is false, we need to check tables to drop
+			// exist first.
+			if (!IfExists) {
+				// If view doesn't exist, throw an error
+				if (!context.Request.Access().ViewExists(ViewName)) {
+					throw new ObjectNotFoundException(ViewName,
+						String.Format("The view '{0}' does not exist and cannot be dropped.", ViewName));
 				}
+			}
 
-				// Does the table already exist?
-				if (context.Request.Access().ViewExists(ViewName)) {
-					// Drop table in the transaction
-					context.Request.Access().DropObject(DbObjectType.View, ViewName);
+			// Does the table already exist?
+			if (context.Request.Access().ViewExists(ViewName)) {
+				// Drop table in the transaction
+				context.Request.Access().DropObject(DbObjectType.View, ViewName);
 
-					// Revoke all the grants on the table
-					context.Request.Access().RevokeAllGrantsOnView(ViewName);
-				}
+				// Revoke all the grants on the table
+				context.Request.Access().RevokeAllGrantsOnView(ViewName);
 			}
 		}
-
-		#endregion
 	}
 }
