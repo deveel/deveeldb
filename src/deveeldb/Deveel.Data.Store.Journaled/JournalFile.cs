@@ -8,34 +8,13 @@ using Deveel.Data.Util;
 
 namespace Deveel.Data.Store.Journaled {
 	class JournalFile {
-		/// <summary>
-		/// A <see cref="BinaryWriter"/> object used to Write entries to the journal file.
-		/// </summary>
-		private BinaryWriter data_out;
-
-		/// <summary>
-		/// Small buffer.
-		/// </summary>
+		private BinaryWriter dataOut;
 		private byte[] buffer;
 
-		/// <summary>
-		/// A map between a resource name and an id for this journal file.
-		/// </summary>
-		private Dictionary<string, long> resource_id_map;
+		private Dictionary<string, long> resourceIdMap;
 
-		/// <summary>
-		/// The sequence id for resources modified input this log.
-		/// </summary>
 		private long cur_seq_id;
 
-		/// <summary>
-		/// True when open.
-		/// </summary>
-		private bool is_open;
-
-		/// <summary>
-		/// The number of threads currently looking at info input this journal.
-		/// </summary>
 		private int reference_count;
 
 		public JournalFile(JournaledSystem journaledSystem, IFileSystem fileSystem, string path, bool readOnly) {
@@ -44,9 +23,8 @@ namespace Deveel.Data.Store.Journaled {
 			FilePath = path;
 			ReadOnly = readOnly;
 
-			this.is_open = false;
 			buffer = new byte[36];
-			resource_id_map = new Dictionary<string, long>();
+			resourceIdMap = new Dictionary<string, long>();
 			cur_seq_id = 0;
 			reference_count = 1;
 		}
@@ -60,6 +38,8 @@ namespace Deveel.Data.Store.Journaled {
 		public IFileSystem FileSystem { get; private set; }
 
 		public bool ReadOnly { get; private set; }
+
+		private bool IsOpen { get; set; }
 
 		public long JournalNumber { get; private set; }
 
@@ -88,35 +68,33 @@ namespace Deveel.Data.Store.Journaled {
 		}
 
 		public void Open(long journalNumber) {
-			if (is_open) {
-				throw new IOException("Journal file is already open.");
-			}
-			if (FileSystem.FileExists(FilePath)) {
+			if (IsOpen)
+				throw new IOException(String.Format("Journal file '{0}' is already open.", FilePath));
+
+			if (FileSystem.FileExists(FilePath))
 				throw new IOException(String.Format("Journal file '{0}' already exists.", FilePath));
-			}
 
 			JournalNumber = journalNumber;
 			File = new StreamFile(FileSystem, FilePath, ReadOnly);
 #if PCL
-			data_out = new BinaryWriter(File.FileStream, Encoding.Unicode);
+			dataOut = new BinaryWriter(File.FileStream, Encoding.Unicode);
 #else
-			data_out = new BinaryWriter(new BufferedStream(File.FileStream), Encoding.Unicode);
+			dataOut = new BinaryWriter(new BufferedStream(File.FileStream), Encoding.Unicode);
 #endif
-			data_out.Write(journalNumber);
-			is_open = true;
+			dataOut.Write(journalNumber);
+			IsOpen = true;
 		}
 
 		internal JournalSummary OpenForRecovery() {
-			if (is_open) {
-				throw new IOException("Journal file is already open.");
-			}
-			if (!FileSystem.FileExists(FilePath)) {
-				throw new IOException("Journal file does not exists.");
-			}
+			if (IsOpen)
+				throw new IOException(String.Format("Journal file '{0}' is already open.", FilePath));
+
+			if (!FileSystem.FileExists(FilePath))
+				throw new IOException(String.Format("Journal file '{0}' does not exists.", FilePath));
 
 			// Open the random access file to this journal
 			File = new StreamFile(FileSystem, FilePath, ReadOnly);
-			is_open = true;
+			IsOpen = true;
 
 			// Create the summary object (by default, not recoverable).
 			var summary = new JournalSummary(this);
@@ -139,7 +117,6 @@ namespace Deveel.Data.Store.Journaled {
 
 				// Start scan
 				while (true) {
-
 					// If we can't Read 12 bytes ahead, return the summary
 					if (position + 12 > endPointer) {
 						return summary;
@@ -198,8 +175,8 @@ namespace Deveel.Data.Store.Journaled {
 
 		private long WriteResourceName(string resourceName, BinaryWriter output) {
 			long v;
-			lock (resource_id_map) {
-				if (!resource_id_map.TryGetValue(resourceName, out v)) {
+			lock (resourceIdMap) {
+				if (!resourceIdMap.TryGetValue(resourceName, out v)) {
 					++cur_seq_id;
 
 					int len = resourceName.Length;
@@ -213,76 +190,77 @@ namespace Deveel.Data.Store.Journaled {
 					for (int i = 0; i < len; i++) {
 						output.Write(resourceName[i]);
 					}
+
 					// Put this id input the cache
 					v = cur_seq_id;
-					resource_id_map[resourceName] = v;
+					resourceIdMap[resourceName] = v;
 				}
 			}
 
 			return v;
 		}
 
-		public void LogResourceDelete(string resource_name) {
+		public void LogResourceDelete(string resourceName) {
 			lock (this) {
 				// Build the header,
-				long v = WriteResourceName(resource_name, data_out);
+				long v = WriteResourceName(resourceName, dataOut);
 
 				// Write the header
-				long resource_id = v;
-				data_out.Write(6L);
-				data_out.Write(8);
-				data_out.Write(resource_id);
+				long resourceId = v;
+				dataOut.Write(6L);
+				dataOut.Write(8);
+				dataOut.Write(resourceId);
 			}
 		}
 
-		public void LogResourceSizeChange(String resource_name, long new_size) {
+		public void LogResourceSizeChange(string resourceName, long newSize) {
 			lock (this) {
 				// Build the header,
-				long v = WriteResourceName(resource_name, data_out);
+				long v = WriteResourceName(resourceName, dataOut);
 
 				// Write the header
-				long resource_id = v;
-				data_out.Write(3L);
-				data_out.Write(8 + 8);
-				data_out.Write(resource_id);
-				data_out.Write(new_size);
+				long resourceId = v;
+				dataOut.Write(3L);
+				dataOut.Write(8 + 8);
+				dataOut.Write(resourceId);
+				dataOut.Write(newSize);
 			}
 		}
 
 		public void SetCheckPoint() {
 			lock (this) {
-				data_out.Write(100L);
-				data_out.Write(0);
+				dataOut.Write(100L);
+				dataOut.Write(0);
 
 				// Flush and synch the journal file
 				FlushAndSynch();
 			}
 		}
 
-		public JournalEntry LogPageModification(string resourceName, long pageNumber, byte[] buf, int off, int len) {
+		public JournalEntry LogPageModification(string resourceName, long pageNumber, byte[] pageBuffer, int off, int len) {
 			long reference;
 			lock (this) {
 				// Build the header,
-				long v = WriteResourceName(resourceName, data_out);
+				long v = WriteResourceName(resourceName, dataOut);
 
 				//// The absolute position of the page,
 				//long absolute_position = pageNumber * JournaledSystem.PageSize;
 
 				// Write the header
 				long resourceId = v;
-				data_out.Write(1L);
-				data_out.Write((int)8 + 8 + 4 + 4 + len);
-				data_out.Write(resourceId);
-				data_out.Write(pageNumber);
-				data_out.Write(off);
+				dataOut.Write(1L);
+				dataOut.Write((int)8 + 8 + 4 + 4 + len);
+				dataOut.Write(resourceId);
+				dataOut.Write(pageNumber);
+				dataOut.Write(off);
 				//data_out.Write((long)(absolute_position / 8192));
 				//data_out.Write((int)(off + (int)(absolute_position & 8191)));
-				data_out.Write(len);
+				dataOut.Write(len);
 
-				data_out.Write(buf, off, len);
+				dataOut.Write(pageBuffer, off, len);
 
 				// Flush the changes so we can work output the pointer.
-				data_out.Flush();
+				dataOut.Flush();
 				reference = File.Length - len - 36;
 			}
 
@@ -292,21 +270,21 @@ namespace Deveel.Data.Store.Journaled {
 
 		private void FlushAndSynch() {
 			lock (this) {
-				data_out.Flush();
+				((JournalFile) this).dataOut.Flush();
 				File.Synch();
 			}
 		}
 
 		public void Close() {
 			lock (this) {
-				if (!is_open) {
+				if (!IsOpen) {
 					throw new IOException("Journal file is already closed.");
 				}
 
 				File.Close();
 				File.Dispose();
 				File = null;
-				is_open = false;
+				IsOpen = false;
 			}
 		}
 
@@ -316,19 +294,50 @@ namespace Deveel.Data.Store.Journaled {
 				if (reference_count == 0) {
 					// Close and delete the journal file.
 					Close();
-					if (!FileSystem.DeleteFile(FilePath)) {
-						// TODO: notify the system we couldn't delete the file
-					}
+
+					if (!FileSystem.DeleteFile(FilePath))
+						throw new IOException(String.Format("Could not delete the journal file '{0}'.", FilePath));
 				}
 			}
 		}
 
+		private void PersistTag(BinaryReader reader, Dictionary<long, string> idNameMap, List<ResourceBase> resourcesUpdated) {
+			// Resource id tag
+			long id = reader.ReadInt64();
+			int len = reader.ReadInt32();
+			StringBuilder buf = new StringBuilder(len);
+			for (int i = 0; i < len; ++i) {
+				buf.Append(reader.ReadChar());
+			}
+
+			string resourceName = buf.ToString();
+
+			// Put this input the map
+			idNameMap[id] = resourceName;
+
+			JournaledSystem.Context.OnDebug(String.Format("Jounral Command: Tag {0} = {1}", id, resourceName));
+
+			// Add this to the list of resources we updated.
+			resourcesUpdated.Add(JournaledSystem.GetResource(resourceName));
+		}
+
+		private void PersistDelete(BinaryReader reader, Dictionary<long, string> idNameMap) {
+			// Resource delete
+			long id = reader.ReadInt64();
+			var resourceName = idNameMap[id];
+			var resource = JournaledSystem.GetResource(resourceName);
+
+			JournaledSystem.Context.OnDebug(String.Format("Jounral Command: Delete {0}", resourceName));
+
+			resource.PersistDelete();
+		}
+
 		internal void Persist(long start, long end) {
-			JournaledSystem.Context.OnInformation(String.Format("Persisting file {0}", FilePath));
+			JournaledSystem.Context.OnDebug(String.Format("Persisting file {0}", FilePath));
 
-			using (BinaryReader din = new BinaryReader(File.FileStream, Encoding.Unicode)) {
-				File.FileStream.Seek(start, SeekOrigin.Begin);
+			File.FileStream.Seek(start, SeekOrigin.Begin);
 
+			using (BinaryReader reader = new BinaryReader(File.FileStream, Encoding.Unicode)) {
 				// The list of resources we updated
 				var resourcesUpdated = new List<ResourceBase>();
 
@@ -339,64 +348,22 @@ namespace Deveel.Data.Store.Journaled {
 				long position = start;
 
 				while (!finished) {
-					long type = din.ReadInt64();
-					int size = din.ReadInt32();
+					long type = reader.ReadInt64();
+					int size = reader.ReadInt32();
 					position = position + size + 12;
 
 					if (type == 2) {
-						// Resource id tag
-						long id = din.ReadInt64();
-						int len = din.ReadInt32();
-						StringBuilder buf = new StringBuilder(len);
-						for (int i = 0; i < len; ++i) {
-							buf.Append(din.ReadChar());
-						}
-
-						string resourceName = buf.ToString();
-						// Put this input the map
-						idNameMap[id] = resourceName;
-
-						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Tag {0} = {1}", id, resourceName));
-
-						// Add this to the list of resources we updated.
-						resourcesUpdated.Add(JournaledSystem.GetResource(resourceName));
+						PersistTag(reader, idNameMap, resourcesUpdated);
 					} else if (type == 6) {
-						// Resource delete
-						long id = din.ReadInt64();
-						var resourceName = idNameMap[id];
-						var resource = JournaledSystem.GetResource(resourceName);
-
-						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Delete {0}", resourceName));
-
-						resource.PersistDelete();
+						PersistDelete(reader, idNameMap);
 					} else if (type == 3) {
-						// Resource size change
-						long id = din.ReadInt64();
-						long newSize = din.ReadInt64();
-						var resourceName = idNameMap[id];
-						var resource = JournaledSystem.GetResource(resourceName);
-
-						JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Set Size {0} = {1}", resourceName, newSize));
-
-						resource.PersistSetSize(newSize);
+						PersistSizeChange(reader, idNameMap);
 					} else if (type == 1) {
-						// Page modification
-						long id = din.ReadInt64();
-						long page = din.ReadInt64();
-						int off = din.ReadInt32();
-						int len = din.ReadInt32();
-
-						var resourceName = idNameMap[id];
-						var resource = JournaledSystem.GetResource(resourceName);
-
-						JournaledSystem.Context.OnInformation(
-							String.Format("Jounral Command: Page Change {0} page= {1} offset = {2} length = {3}", resourceName, page, off, len));
-
-						resource.PersistPageChange(page, off, len, din);
+						PersistPageModification(reader, idNameMap);
 					} else if (type == 100) {
 						// Checkpoint (end)
 
-						JournaledSystem.Context.OnInformation("Jounral Command: Check Point");
+						JournaledSystem.Context.OnDebug("Jounral Command: Check Point");
 
 						if (position == end) {
 							finished = true;
@@ -408,43 +375,62 @@ namespace Deveel.Data.Store.Journaled {
 				} // while (!finished)
 
 				// Synch all the resources that we have updated.
-				int sz = resourcesUpdated.Count;
-				for (int i = 0; i < sz; ++i) {
-					var r = resourcesUpdated[i];
+				foreach (var resource in resourcesUpdated) {
+					JournaledSystem.Context.OnDebug(String.Format("Synch: {0}", resource.Name));
 
-					JournaledSystem.Context.OnInformation(String.Format("Synch: {0}", r));
-
-					r.Synch();
+					resource.Synch();
 				}
 			}
 		}
 
-		public void BuildPage(long pageNumber, long position, byte[] buf, int offset) {
-			long resource_id;
-			long page_number;
-			int page_offset;
-			int page_length;
+		private void PersistPageModification(BinaryReader reader, Dictionary<long, string> idNameMap) {
+			// Page modification
+			long id = reader.ReadInt64();
+			long page = reader.ReadInt64();
+			int off = reader.ReadInt32();
+			int len = reader.ReadInt32();
 
+			var resourceName = idNameMap[id];
+			var resource = JournaledSystem.GetResource(resourceName);
+
+			JournaledSystem.Context.OnDebug(String.Format(
+				"Jounral Command: Page Change {0} page= {1} offset = {2} length = {3}", resourceName, page, off, len));
+
+			resource.PersistPageChange(page, off, len, reader.BaseStream);
+		}
+
+		private void PersistSizeChange(BinaryReader reader, Dictionary<long, string> idNameMap) {
+			// Resource size change
+			long id = reader.ReadInt64();
+			long newSize = reader.ReadInt64();
+			var resourceName = idNameMap[id];
+			var resource = JournaledSystem.GetResource(resourceName);
+
+			JournaledSystem.Context.OnInformation(String.Format("Jounral Command: Set Size {0} = {1}", resourceName, newSize));
+
+			resource.PersistSetSize(newSize);
+		}
+
+		public void BuildPage(long buildPageNumber, long position, byte[] pageBuffer, int offset) {
 			lock (this) {
 				File.Read(position, buffer, 0, 36);
 
 				var type = ByteBuffer.ReadInt8(buffer, 0);
-				resource_id = ByteBuffer.ReadInt8(buffer, 12);
-				page_number = ByteBuffer.ReadInt8(buffer, 20);
-				page_offset = ByteBuffer.ReadInt4(buffer, 28);
-				page_length = ByteBuffer.ReadInt4(buffer, 32);
+				var resourceId = ByteBuffer.ReadInt8(buffer, 12);
+				var pageNumber = ByteBuffer.ReadInt8(buffer, 20);
+				var pageOffset = ByteBuffer.ReadInt4(buffer, 28);
+				var pageLength = ByteBuffer.ReadInt4(buffer, 32);
 
 				// Some asserts,
-				if (type != 1) {
-					throw new IOException("Invalid page type. type = " + type +
-										  " pos = " + position);
-				}
-				if (page_number != pageNumber) {
-					throw new IOException("Page numbers do not match.");
-				}
+				if (type != 1)
+					throw new IOException(String.Format("Invalid page type '{0}' at position '{1}'", type, position));
+
+				if (pageNumber != buildPageNumber)
+					throw new IOException(String.Format(
+						"The page number '{0}' does not match the number of the page to build ('{1}')", pageNumber, buildPageNumber));
 
 				// Read the content.
-				File.Read(position + 36, buf, offset + page_offset, page_length);
+				File.Read(position + 36, pageBuffer, offset + pageOffset, pageLength);
 			}
 		}
 	}

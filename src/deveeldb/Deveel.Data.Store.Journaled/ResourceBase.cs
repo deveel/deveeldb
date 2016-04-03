@@ -61,18 +61,34 @@ namespace Deveel.Data.Store.Journaled {
 
 		public abstract void Delete();
 
-		internal abstract void PersistOpen(bool readOnly);
+		protected abstract void Persist(PersistCommand command);
 
-		internal abstract void PersistClose();
+		internal void PersistOpen(bool readOnly) {
+			Persist(new PersistOpenCommand(readOnly));
+		}
 
-		internal abstract void PersistDelete();
+		internal void PersistClose() {
+			Persist(new PersistCommand(PersistCommandType.Close));
+		}
 
-		internal abstract void PersistSetSize(long newSize);
+		internal void PersistDelete() {
+			Persist(new PersistCommand(PersistCommandType.Delete));
+		}
 
-		internal abstract void PersistPageChange(long page, int offset, int count, BinaryReader reader);
+		internal void PersistSetSize(long newSize) {
+			Persist(new PersistSetSizeCommand(newSize));
+		}
 
-		internal abstract void Synch();
+		internal void PersistPageChange(long page, int offset, int count, Stream source) {
+			Persist(new PersistPageChangeCommand(page, offset, count, source));
+		}
 
-		internal abstract void OnPostRecover();
+		internal void Synch() {
+			Persist(new PersistCommand(PersistCommandType.Synch));
+		}
+
+		internal void OnPostRecover() {
+			Persist(new PersistCommand(PersistCommandType.PostRecover));
+		}
 	}
 }

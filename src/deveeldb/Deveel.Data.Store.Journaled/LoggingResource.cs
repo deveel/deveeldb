@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Text;
 
 namespace Deveel.Data.Store.Journaled {
 	class LoggingResource : ResourceBase {
@@ -257,15 +259,32 @@ namespace Deveel.Data.Store.Journaled {
 			}
 		}
 
-		internal override void PersistOpen(bool readOnly) {
+		protected override void Persist(PersistCommand command) {
+			if (command is PersistOpenCommand) {
+				OpenCommand((PersistOpenCommand) command);
+			} else if (command is PersistSetSizeCommand) {
+				SetSizeCommand((PersistSetSizeCommand) command);
+			} else if (command is PersistPageChangeCommand) {
+				PageChangeCommand((PersistPageChangeCommand) command);
+			} else if (command.CommandType == PersistCommandType.Close) {
+				CloseCommand();
+			} else if (command.CommandType == PersistCommandType.Delete) {
+				DeleteCommand();
+			} else if (command.CommandType == PersistCommandType.Synch) {
+				SynchCommand();
+			} else if (command.CommandType == PersistCommandType.PostRecover) {
+			}
+		}
+
+		private void OpenCommand(PersistOpenCommand command) {
 			if (!reallyOpen) {
-				Data.Open(readOnly);
+				Data.Open(command.ReadOnly);
 				thereIsBackingData = true;
 				reallyOpen = true;
 			}
 		}
 
-		internal override void PersistClose() {
+		private void CloseCommand() {
 			if (reallyOpen) {
 				// When we close we reset the size attribute.  We do this because of
 				// the roll forward recovery.
@@ -276,7 +295,7 @@ namespace Deveel.Data.Store.Journaled {
 			}
 		}
 
-		internal override void PersistDelete() {
+		private void DeleteCommand() {
 			if (reallyOpen) {
 				PersistClose();
 			}
@@ -284,48 +303,49 @@ namespace Deveel.Data.Store.Journaled {
 			thereIsBackingData = false;
 		}
 
-		internal override void PersistSetSize(long newSize) {
+		private void SetSizeCommand(PersistSetSizeCommand command) {
 			if (!reallyOpen) {
 				PersistOpen(false);
 			}
 
-			if (newSize > Data.Length) {
-				Data.SetLength(newSize);
+			if (command.NewSize > Data.Length) {
+				Data.SetLength(command.NewSize);
 			}
 		}
 
-		internal override void PersistPageChange(long page, int offset, int count, BinaryReader reader) {
+		private void PageChangeCommand(PersistPageChangeCommand command) {
 			if (!reallyOpen) {
 				PersistOpen(false);
 			}
 
 			// Buffer to Read the page content into
 			byte[] buf;
-			if (count <= pageBuffer.Length) {
+			if (command.Count <= pageBuffer.Length) {
 				// If length is smaller or equal to the size of a page then use the
 				// local page buffer.
 				buf = pageBuffer;
 			} else {
 				// Otherwise create a new buffer of the required size (this may happen
 				// if the page size changes between sessions).
-				buf = new byte[count];
+				buf = new byte[command.Count];
 			}
 
 			// Read the change from the input stream
-			reader.Read(buf, 0, count);
+			var reader = new BinaryReader(command.Source, Encoding.Unicode);
+			reader.Read(buf, 0, command.Count);
 
 			// Write the change output to the underlying resource container
-			long pos = page * 8192; //pageSize;
-			Data.Write(pos + offset, buf, 0, count);
+			long pos = command.PageNumber * 8192; //pageSize;
+			Data.Write(pos + command.Offset, buf, 0, command.Count);
 		}
 
-		internal override void Synch() {
+		private void SynchCommand() {
 			if (reallyOpen) {
 				Data.Flush();
 			}
 		}
 
-		internal override void OnPostRecover() {
+		private void PostRecoverCommand() {
 			dataExists = Data.Exists;
 		}
 	}

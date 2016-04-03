@@ -42,25 +42,7 @@ namespace Deveel.Data.Store.Journaled {
 			Data.Delete();
 		}
 
-		internal override void PersistOpen(bool readOnly) {
-		}
-
-		internal override void PersistClose() {
-		}
-
-		internal override void PersistDelete() {
-		}
-
-		internal override void PersistSetSize(long newSize) {
-		}
-
-		internal override void PersistPageChange(long page, int offset, int count, BinaryReader reader) {
-		}
-
-		internal override void Synch() {
-		}
-
-		internal override void OnPostRecover() {
+		protected override void Persist(PersistCommand command) {
 		}
 	}
 }

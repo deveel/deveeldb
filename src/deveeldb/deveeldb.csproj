@@ -362,8 +362,13 @@
     <Compile Include="Deveel.Data.Store.Journaled\JournalFile.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournalSummary.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\LoggingBufferManager.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\PersistCommand.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\PersistCommandType.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\LoggingResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\NonLoggingResource.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\PersistOpenCommand.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\PersistPageChangeCommand.cs" />
+    <Compile Include="Deveel.Data.Store.Journaled\PersistSetSizeCommand.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\ResourceBase.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\StreamFile.cs" />
