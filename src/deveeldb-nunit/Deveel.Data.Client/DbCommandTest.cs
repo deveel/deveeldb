@@ -66,9 +66,8 @@ namespace Deveel.Data.Client {
 
 		[Test]
 		public void AssignWithParameters() {
-			DbCommand command = null;
+			var command = connection.CreateCommand();
 
-			Assert.DoesNotThrow(() => command = connection.CreateCommand());
 			Assert.IsNotNull(command);
 			Assert.IsNotNull(command.Connection);
 
@@ -76,6 +75,48 @@ namespace Deveel.Data.Client {
 			command.Parameters.Add(22);
 
 			Assert.DoesNotThrow(() => command.ExecuteNonQuery());
+		}
+
+		[Test]
+		public void AssignWithSelectScalar() {
+			var command = connection.CreateCommand();
+
+			Assert.IsNotNull(command);
+			Assert.IsNotNull(command.Connection);
+
+			command.CommandText = "a = ?";
+			command.Parameters.Add(22);
+
+			var result = command.ExecuteScalar();
+
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<int>(result);
+			Assert.AreEqual(22, result);
+		}
+
+		[Test]
+		public void SelectTables() {
+			var command = connection.CreateCommand();
+
+			Assert.IsNotNull(command);
+			Assert.IsNotNull(command.Connection);
+
+			command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.Tables";
+
+			var reader = command.ExecuteReader();
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+			Assert.AreEqual(10, reader.FieldCount);
+
+			var col1 = reader.GetName(0);
+			Assert.AreEqual("INFORMATION_SCHEMA.tables.TABLE_CATALOG", col1);
+			var col2 = reader.GetName(1);
+			Assert.AreEqual("INFORMATION_SCHEMA.tables.TABLE_SCHEMA", col2);
+			var col3 = reader.GetName(2);
+			Assert.AreEqual("INFORMATION_SCHEMA.tables.TABLE_NAME", col3);
+
+			var value = reader.GetValue(2);
 		}
 	}
 }
