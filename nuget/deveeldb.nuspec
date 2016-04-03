@@ -19,5 +19,6 @@
     <files>
         <file src="..\dist\$platform$\deveeldb.dll" target="lib\net35\deveeldb.dll" />
         <file src="..\dist\$platform$\deveeldb.pdb" target="lib\net35\deveeldb.pdb" />
+		<file src="..\dist\$platform$\deveeldb.xml" target="lib\net35\deveeldb.xml"/>
     </files>
 </package>
