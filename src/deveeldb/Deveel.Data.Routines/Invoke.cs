@@ -90,7 +90,7 @@ namespace Deveel.Data.Routines {
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
 		public bool IsAggregate(IRequest query) {
-			if (query.Access.IsAggregateFunction(this))
+			if (query.Access().IsAggregateFunction(this, query))
 				return true;
 
 			// Look at parameterss
@@ -120,7 +120,7 @@ namespace Deveel.Data.Routines {
 			if (context == null) {
 				cached = SystemFunctions.Provider.ResolveFunction(this, null);
 			} else {
-				cached = context.Query.Access.ResolveRoutine(this);
+				cached = context.Query.Access().ResolveRoutine(this, context);
 			}
 
 			if (cached == null)

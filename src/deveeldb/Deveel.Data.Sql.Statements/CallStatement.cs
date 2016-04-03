@@ -71,7 +71,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var procedureName = context.Access.ResolveObjectName(DbObjectType.Routine, ProcedureName);
+			var procedureName = context.Access().ResolveObjectName(DbObjectType.Routine, ProcedureName);
 
 			return new CallStatement(procedureName, Arguments);
 		}

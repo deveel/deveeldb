@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 		public ObjectName SequenceName { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var seqName = context.Access.ResolveObjectName(DbObjectType.Sequence, SequenceName);
+			var seqName = context.Access().ResolveObjectName(DbObjectType.Sequence, SequenceName);
 			return new DropSequenceStatement(seqName);
 		}
 

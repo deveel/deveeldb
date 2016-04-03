@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Schemas {
 				tableInfo.AddColumn("culture", PrimitiveTypes.String());
 				tableInfo.AddColumn("other", PrimitiveTypes.String());
 				tableInfo = tableInfo.AsReadOnly();
-				query.Access.CreateTable(tableInfo);
+				query.Access().CreateTable(tableInfo);
 
 				// TODO: Move this to the setup phase?
 				CreateSystemSchema();
@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Schemas {
 		}
 
 		private void CreateSchema(string name, string type) {
-			query.Access.CreateSchema(new SchemaInfo(name, type));
+			query.Access().CreateSchema(new SchemaInfo(name, type));
 		}
 
 		private void CreateSystemSchema() {

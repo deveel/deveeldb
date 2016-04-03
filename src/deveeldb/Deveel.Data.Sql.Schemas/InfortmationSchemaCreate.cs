@@ -215,22 +215,22 @@ namespace Deveel.Data.Sql.Schemas {
 		}
 
 		private static void GrantToPublic(IQuery query) {
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ThisUserSimpleGrantViewName, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ThisUserGrantViewName, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ThisUserSchemaInfoViewName, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ThisUserTableInfoViewName, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ThisUserTableColumnsViewName, User.PublicName, Privileges.TableRead);
 
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.Catalogs, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.Schemata, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.Tables, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.TablePrivileges, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.Columns, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ColumnPrivileges, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.PrimaryKeys, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ImportedKeys, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.ExportedKeys, User.PublicName, Privileges.TableRead);
-			query.Access.GrantOn(DbObjectType.View, InformationSchema.CrossReference, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.Catalogs, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.Schemata, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.Tables, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.TablePrivileges, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.Columns, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ColumnPrivileges, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.PrimaryKeys, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ImportedKeys, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.ExportedKeys, User.PublicName, Privileges.TableRead);
+			query.Access().GrantOn(DbObjectType.View, InformationSchema.CrossReference, User.PublicName, Privileges.TableRead);
 		}
 	}
 }

@@ -18,9 +18,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			Query.Access.CreateTable(tableInfo);
+			Query.Access().CreateTable(tableInfo);
 
-			var table = Query.Access.GetMutableTable(tableName);
+			var table = Query.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
 			row.SetValue(0, 13);

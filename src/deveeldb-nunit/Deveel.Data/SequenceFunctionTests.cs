@@ -15,11 +15,11 @@ namespace Deveel.Data {
 			var info = new SequenceInfo(ObjectName.Parse("APP.seq1"),
 				new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), false);
 
-			Query.Access.CreateObject(info);
+			Query.Access().CreateObject(info);
 		}
 
 		protected override void OnTearDown() {
-			Query.Access.DropObject(DbObjectType.Sequence, ObjectName.Parse("APP.seq1"));
+			Query.Access().DropObject(DbObjectType.Sequence, ObjectName.Parse("APP.seq1"));
 		}
 
 		[Test]

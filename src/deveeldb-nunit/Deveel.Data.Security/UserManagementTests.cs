@@ -27,7 +27,7 @@ namespace Deveel.Data.Security {
 			if (testName == "Authenticate_Success") {
 				using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
 					using (var query = session.CreateQuery()) {
-						query.Access.CreateUser("tester", "123456789");
+						query.Access().CreateUser("tester", "123456789");
 						session.Commit();
 					}
 				}

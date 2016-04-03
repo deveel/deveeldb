@@ -83,8 +83,8 @@ namespace Deveel.Data.Sql.Statements {
 					context.Context.CursorExists(referenceName.Name)) {
 					reference = SqlExpression.VariableReference(referenceName.Name);
 				} else {
-					var tableName = context.Access.ResolveTableName(referenceName);
-					if (!context.Access.TableExists(tableName))
+					var tableName = context.Access().ResolveTableName(referenceName);
+					if (!context.Access().TableExists(tableName))
 						throw new ObjectNotFoundException(tableName, "Reference table for the FETCH INTO clause was not found.");
 
 					reference = SqlExpression.Reference(tableName);

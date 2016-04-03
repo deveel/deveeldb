@@ -49,10 +49,10 @@ namespace Deveel.Data.Security {
 		public virtual bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			AssertInContext();
 
-			if (Session.Access.UserHasPrivilege(Name, objectType, objectName, privileges))
+			if (Session.Access().UserHasPrivilege(Name, objectType, objectName, privileges))
 				return true;
 
-			var obj = Session.Access.GetObject(objectType, objectName);
+			var obj = Session.Access().GetObject(objectType, objectName);
 			if (obj != null &&
 			    String.Equals(Name, obj.ObjectInfo.Owner))
 				return true;
@@ -65,7 +65,7 @@ namespace Deveel.Data.Security {
 
 		public virtual bool HasGrantOption(DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			AssertInContext();
-			return Session.Access.HasGrantOption(Name, objectType, objectName, privileges);
+			return Session.Access().HasGrantOption(Name, objectType, objectName, privileges);
 		}
 
 		public virtual bool CanManageUsers() {
@@ -151,7 +151,7 @@ namespace Deveel.Data.Security {
 			AssertInContext();
 
 			if (routineType == RoutineType.Function &&
-				Session.Access.IsSystemFunction(invoke, request))
+				Session.Access().IsSystemFunction(invoke, request))
 				return true;
 
 			return HasPrivileges(DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);

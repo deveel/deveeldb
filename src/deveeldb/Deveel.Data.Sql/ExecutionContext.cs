@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public SystemAccess DirectAccess {
-			get { return Request.Access; }
+			get { return Request.Access(); }
 		}
 
 		private void AssertNotFinished() {

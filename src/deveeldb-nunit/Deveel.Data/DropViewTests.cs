@@ -20,8 +20,8 @@ namespace Deveel.Data {
 			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
 			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
-			query.Session.Access.CreateTable(tableInfo1);
-			query.Session.Access.AddPrimaryKey(tn1, "id");
+			query.Session.Access().CreateTable(tableInfo1);
+			query.Session.Access().AddPrimaryKey(tn1, "id");
 
 			var exp = SqlExpression.Parse("SELECT * FROM APP.test_table1");
 			query.CreateView(ObjectName.Parse("APP.test_view1"), (SqlQueryExpression)exp);
@@ -33,7 +33,7 @@ namespace Deveel.Data {
 
 			Query.DropView(viewName);
 
-			var exists = Query.Session.Access.ViewExists(viewName);
+			var exists = Query.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -43,7 +43,7 @@ namespace Deveel.Data {
 
 			Query.DropView(viewName, true);
 
-			var exists = Query.Session.Access.ViewExists(viewName);
+			var exists = Query.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -53,7 +53,7 @@ namespace Deveel.Data {
 
 			Query.DropView(viewName, true);
 
-			var exists = Query.Session.Access.ViewExists(viewName);
+			var exists = Query.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 

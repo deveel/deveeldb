@@ -186,7 +186,7 @@ namespace Deveel.Data {
 		public override ITable GetTable(ObjectName tableName) {
 			var table = GetCachedTable(tableName.FullName) as ITable;
 			if (table == null) {
-				table = Session.Access.GetTable(tableName);
+				table = Session.Access().GetTable(tableName);
 				if (table != null) {
 					table = new UserContextTable(Request, table);
 					CacheTable(tableName.FullName, table);
@@ -196,7 +196,7 @@ namespace Deveel.Data {
 			return table;
 		}
 
-		public void CacheTable(string cacheKey, ITable table) {
+		public override void CacheTable(string cacheKey, ITable table) {
 			var tableCache = TableCache;
 			if (tableCache == null)
 				return;
@@ -204,7 +204,7 @@ namespace Deveel.Data {
 			tableCache.Set(cacheKey, table);
 		}
 
-		public void ClearCachedTables() {
+		public override void ClearCachedTables() {
 			var tableCache = TableCache;
 			if (tableCache == null)
 				return;
@@ -212,7 +212,7 @@ namespace Deveel.Data {
 			tableCache.Clear();
 		}
 
-		public ITable GetCachedTable(string cacheKey) {
+		public override ITable GetCachedTable(string cacheKey) {
 			var tableCache = TableCache;
 			if (tableCache == null)
 				return null;
@@ -224,30 +224,23 @@ namespace Deveel.Data {
 			return obj as ITable;
 		}
 
-		public bool VariableExists(string variableName) {
-			return ObjectExists(DbObjectType.Variable, new ObjectName(variableName));
-		}
-
 		public bool IsAggregateFunction(Invoke invoke) {
-			return Session.Access.IsAggregateFunction(invoke, Request);
+			return Session.Access().IsAggregateFunction(invoke, Request);
 		}
 
 		public IRoutine ResolveRoutine(Invoke invoke) {
-			return Session.Access.ResolveRoutine(invoke, Request);
+			return Session.Access().ResolveRoutine(invoke, Request);
 		}
 
 		public Field InvokeSystemFunction(string functionName, params SqlExpression[] args) {
 			var resolvedName = new ObjectName(SystemSchema.SchemaName, functionName);
 			var invoke = new Invoke(resolvedName, args);
-			return Session.Access.InvokeFunction(Request, invoke);
+			return Session.Access().InvokeFunction(Request, invoke);
 		}
 
 		public Field InvokeFunction(Invoke invoke) {
-			return Session.Access.InvokeFunction(Request, invoke);
+			return Session.Access().InvokeFunction(Request, invoke);
 		}
 
-		public void FireTriggers(TableEvent tableEvent) {
-			Session.Access.FireTriggers(Request, tableEvent);
-		}
 	}
 }

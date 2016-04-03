@@ -69,9 +69,9 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
+			var tableName = context.Access().ResolveTableName(TableName);
 
-			if (!context.Access.TableExists(tableName))
+			if (!context.Access().TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExp = new SqlQueryExpression(new SelectColumn[] {SelectColumn.Glob("*") });
@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var deleteTable = context.Request.Access.GetMutableTable(TableName);
+				var deleteTable = context.Request.Access().GetMutableTable(TableName);
 
 				if (deleteTable == null)
 					throw new ObjectNotFoundException(TableName);

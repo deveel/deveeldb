@@ -13,7 +13,7 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class GrantTests : ContextBasedTest {
 		private static void CreateTestUser(IQuery query) {
-			query.Session.Access.CreateUser("test_user", "12345");
+			query.Session.Access().CreateUser("test_user", "12345");
 		}
 
 		private static void CreateTestTable(IQuery query) {
@@ -26,14 +26,14 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
-			query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.Access().CreateTable(tableInfo);
+			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
+			query.Session.Access().CreateTable(tableInfo);
 		}
 
 		protected override void OnSetUp(string testName) {
@@ -43,7 +43,7 @@ namespace Deveel.Data {
 		}
 
 		private void CreateTestRole(IQuery query) {
-			query.Session.Access.CreateRole("test_role");
+			query.Session.Access().CreateRole("test_role");
 		}
 
 		[Test]
@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		public void GrantRoleToUser() {
 			Query.GrantRole("test_user", "test_role");
 
-			var userRoles = Query.Access.GetUserRoles("test_user");
+			var userRoles = Query.Access().GetUserRoles("test_user");
 
 			Assert.IsNotNull(userRoles);
 

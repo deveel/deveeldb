@@ -64,7 +64,7 @@ namespace Deveel.Data.Security {
 
 		public bool UserExists(string userName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(UserTableName);
+				var table = query.Access().GetTable(UserTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All password where UserName = %username%
@@ -86,7 +86,7 @@ namespace Deveel.Data.Security {
 
 			using (var query = Session.CreateQuery()) {
 				// Add to the key 'user' table
-				var table = query.Access.GetMutableTable(UserTableName);
+				var table = query.Access().GetMutableTable(UserTableName);
 				var row = table.NewRow();
 				row[0] = Field.String(userName);
 				table.AddRow(row);
@@ -95,7 +95,7 @@ namespace Deveel.Data.Security {
 				var methodArgs = SerializeArguments(userInfo.Identification.Arguments);
 				var token = userInfo.Identification.Token;
 
-				table = query.Access.GetMutableTable(PasswordTableName);
+				table = query.Access().GetMutableTable(PasswordTableName);
 				row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, method);
@@ -162,7 +162,7 @@ namespace Deveel.Data.Security {
 
 		private string[] QueryUserRoles(string userName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(UserRoleTableName);
+				var table = query.Access().GetTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All 'user_role' where user = %username%
@@ -193,12 +193,12 @@ namespace Deveel.Data.Security {
 				//var t = table.SimpleSelect(QueryContext, c1, SqlExpressionType.Equal, userExpr);
 				//table.Delete(t);
 
-				var table = query.Access.GetMutableTable(PasswordTableName);
+				var table = query.Access().GetMutableTable(PasswordTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 				table.Delete(t);
 
-				table = query.Access.GetMutableTable(UserTableName);
+				table = query.Access().GetMutableTable(UserTableName);
 				c1 = table.GetResolvedColumnName(0);
 				t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 				return table.Delete(t) > 0;
@@ -209,7 +209,7 @@ namespace Deveel.Data.Security {
 			using (var query = Session.CreateQuery()) {
 				var userExpr = SqlExpression.Constant(Field.String(username));
 
-				var table = query.Access.GetMutableTable(UserRoleTableName);
+				var table = query.Access().GetMutableTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 
@@ -226,7 +226,7 @@ namespace Deveel.Data.Security {
 				var userExpr = SqlExpression.Constant(Field.String(userName));
 
 				// Delete the current username from the 'password' table
-				var table = query.Access.GetMutableTable(PasswordTableName);
+				var table = query.Access().GetMutableTable(PasswordTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var t = table.SimpleSelect(query, c1, SqlExpressionType.Equal, userExpr);
 				if (t.RowCount != 1)
@@ -241,7 +241,7 @@ namespace Deveel.Data.Security {
 				var token = userInfo.Identification.Token;
 
 				// Add the new username
-				table = query.Access.GetMutableTable(PasswordTableName);
+				table = query.Access().GetMutableTable(PasswordTableName);
 				var row = table.NewRow();
 				row.SetValue(0, userName);
 				row.SetValue(1, method);
@@ -254,7 +254,7 @@ namespace Deveel.Data.Security {
 		public void SetUserStatus(string userName, UserStatus status) {
 			using (var query = Session.CreateQuery()) {
 				// Internally we implement this by adding the user to the #locked group.
-				var table = query.Access.GetMutableTable(UserRoleTableName);
+				var table = query.Access().GetMutableTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var c2 = table.GetResolvedColumnName(1);
 
@@ -291,7 +291,7 @@ namespace Deveel.Data.Security {
 
 		public UserInfo GetUser(string userName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(PasswordTableName);
+				var table = query.Access().GetTable(PasswordTableName);
 				var unameColumn = table.GetResolvedColumnName(0);
 				var methodColumn = table.GetResolvedColumnName(1);
 				var methodArgsColumn = table.GetResolvedColumnName(2);
@@ -340,7 +340,7 @@ namespace Deveel.Data.Security {
 				throw new ArgumentException(String.Format("Group name '{0}' starts with an invalid character.", roleName));
 
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetMutableTable(RoleTableName);
+				var table = query.Access().GetMutableTable(RoleTableName);
 
 				var row = table.NewRow();
 				row.SetValue(0, roleName);
@@ -351,7 +351,7 @@ namespace Deveel.Data.Security {
 
 		public bool DropRole(string roleName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetMutableTable(RoleTableName);
+				var table = query.Access().GetMutableTable(RoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All password where name = %roleName%
@@ -368,7 +368,7 @@ namespace Deveel.Data.Security {
 
 		public bool RoleExists(string roleName) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(RoleTableName);
+				var table = query.Access().GetTable(RoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 
 				// All password where name = %roleName%
@@ -389,7 +389,7 @@ namespace Deveel.Data.Security {
 
 			if (!IsUserInRole(userName, roleName)) {
 				using (var query = Session.CreateQuery()) {
-					var table = query.Access.GetMutableTable(UserRoleTableName);
+					var table = query.Access().GetMutableTable(UserRoleTableName);
 					var row = table.NewRow();
 					row.SetValue(0, userName);
 					row.SetValue(1, roleName);
@@ -407,7 +407,7 @@ namespace Deveel.Data.Security {
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
-				var table = query.Access.GetTable(UserRoleTableName);
+				var table = query.Access().GetTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var c2 = table.GetResolvedColumnName(1);
 
@@ -425,7 +425,7 @@ namespace Deveel.Data.Security {
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
-				var table = query.Access.GetMutableTable(UserRoleTableName);
+				var table = query.Access().GetMutableTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var c2 = table.GetResolvedColumnName(1);
 
@@ -448,7 +448,7 @@ namespace Deveel.Data.Security {
 			using (var query = Session.CreateQuery()) {
 				// This is a special query that needs to access the lowest level of ITable, skipping
 				// other security controls
-				var table = query.Access.GetTable(UserRoleTableName);
+				var table = query.Access().GetTable(UserRoleTableName);
 				var c1 = table.GetResolvedColumnName(0);
 				var c2 = table.GetResolvedColumnName(1);
 

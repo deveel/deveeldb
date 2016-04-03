@@ -41,8 +41,8 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
-			if (!context.Access.TableExists(tableName) &&
+			var tableName = context.Access().ResolveTableName(TableName);
+			if (!context.Access().TableExists(tableName) &&
 			    !IfExists)
 				throw new ObjectNotFoundException(TableName);
 
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Statements {
 					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
 
 				// Check there are no referential links to any tables being dropped
-				var refs = context.Request.Access.QueryTableImportedForeignKeys(TableName);
+				var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);
 				if (refs.Length > 0) {
 					var reference = refs[0];
 					throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
@@ -89,22 +89,22 @@ namespace Deveel.Data.Sql.Statements {
 				// exist first.
 				if (!IfExists) {
 					// If table doesn't exist, throw an error
-					if (!context.Request.Access.TableExists(TableName)) {
+					if (!context.Request.Access().TableExists(TableName)) {
 						throw new InvalidOperationException(String.Format("The table '{0}' does not exist and cannot be dropped.",
 							TableName));
 					}
 				}
 
 				// Does the table already exist?
-				if (context.Request.Access.TableExists(TableName)) {
+				if (context.Request.Access().TableExists(TableName)) {
 					// Drop table in the transaction
-					context.Request.Access.DropObject(DbObjectType.Table, TableName);
+					context.Request.Access().DropObject(DbObjectType.Table, TableName);
 
 					// Revoke all the grants on the table
-					context.Request.Access.RevokeAllGrantsOnTable(TableName);
+					context.Request.Access().RevokeAllGrantsOnTable(TableName);
 
 					// Drop all constraints from the schema
-					context.Request.Access.DropAllTableConstraints(TableName);
+					context.Request.Access().DropAllTableConstraints(TableName);
 				}
 			}
 		}

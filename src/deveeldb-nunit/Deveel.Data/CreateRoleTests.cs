@@ -12,7 +12,7 @@ namespace Deveel.Data {
 		public void NewRole() {
 			Query.CreateRole("db_admin");
 
-			var exists = Query.Access.RoleExists("db_admin");
+			var exists = Query.Access().RoleExists("db_admin");
 			Assert.IsTrue(exists);
 		}
 

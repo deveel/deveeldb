@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 		public ObjectName TriggerName { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var triggerName = context.Access.ResolveObjectName(DbObjectType.Trigger, TriggerName);
+			var triggerName = context.Access().ResolveObjectName(DbObjectType.Trigger, TriggerName);
 			return new DropTriggerStatement(triggerName);
 		}
 

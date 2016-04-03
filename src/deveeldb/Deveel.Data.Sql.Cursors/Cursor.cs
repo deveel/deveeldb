@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Cursors {
 				var queryPlan = Context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(Context, prepared));
 				var refNames = queryPlan.DiscoverTableNames();
 
-				refs = refNames.Select(x => Context.Access.FindObject(x)).ToArray();
+				refs = refNames.Select(x => Context.Access().FindObject(x)).ToArray();
 				Context.Query.Session.Enter(refs, AccessType.Read);
 
 				return queryPlan.Evaluate(Context);
@@ -217,7 +217,7 @@ namespace Deveel.Data.Sql.Cursors {
 			if (reference == null)
 				throw new ArgumentNullException("reference");
 
-			var table = Context.Access.GetMutableTable(reference);
+			var table = Context.Access().GetMutableTable(reference);
 			if (table == null)
 				throw new ObjectNotFoundException(reference);
 

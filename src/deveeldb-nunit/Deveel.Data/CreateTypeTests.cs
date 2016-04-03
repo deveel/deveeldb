@@ -13,7 +13,7 @@ namespace Deveel.Data {
 			var typeName = ObjectName.Parse("APP.type1");
 			Query.CreateType(typeName, new[] {new UserTypeMember("a", PrimitiveTypes.String())});
 
-			var exists = Query.Access.TypeExists(typeName);
+			var exists = Query.Access().TypeExists(typeName);
 
 			Assert.IsTrue(exists);
 		}

@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var schemaName = context.Access.ResolveSchemaName(ProcedureName.ParentName);
+			var schemaName = context.Access().ResolveSchemaName(ProcedureName.ParentName);
 			var functionName = new ObjectName(schemaName, ProcedureName.Name);
 
 			return new CreateExternalProcedureStatement(functionName, Parameters, ExternalReference);

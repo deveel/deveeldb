@@ -12,7 +12,7 @@ namespace Deveel.Data {
 
 		protected override void OnSetUp(string testName) {
 			triggerName = ObjectName.Parse("APP.trigger1");
-			Query.Access.CreateTrigger(new ProcedureTriggerInfo(triggerName, ObjectName.Parse("APP.table1"),
+			Query.Access().CreateTrigger(new ProcedureTriggerInfo(triggerName, ObjectName.Parse("APP.table1"),
 				TriggerEventType.AfterDelete, ObjectName.Parse("APP.proc1")));
 
 			base.OnSetUp(testName);
@@ -26,7 +26,7 @@ namespace Deveel.Data {
 		public void ExistingTrigger() {
 			Query.DropTrigger(triggerName);
 
-			var exists = Query.Access.TriggerExists(triggerName);
+			var exists = Query.Access().TriggerExists(triggerName);
 
 			Assert.IsFalse(exists);
 		}

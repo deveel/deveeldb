@@ -50,8 +50,8 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<SqlColumnAssignment> Assignments { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
-			if (!context.Access.TableExists(tableName))
+			var tableName = context.Access().ResolveTableName(TableName);
+			if (!context.Access().TableExists(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			var queryExpression = new SqlQueryExpression(new[]{SelectColumn.Glob("*") });

@@ -56,10 +56,10 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var schemaName = context.Access.ResolveSchemaName(TriggerName.ParentName);
+			var schemaName = context.Access().ResolveSchemaName(TriggerName.ParentName);
 			var triggerName = new ObjectName(schemaName, TriggerName.Name);
 
-			var tableName = context.Access.ResolveTableName(TableName);
+			var tableName = context.Access().ResolveTableName(TableName);
 
 			return new CreateTriggerStatement(triggerName, tableName, Body, EventType);
 		}

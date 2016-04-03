@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		private void AddTestData() {
-			var table = Query.Access.GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
+			var table = Query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
 
 			var row = table.NewRow();
 			row["person_id"] = Field.Integer(1);
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 			row["age"] = Field.Integer(56);
 			table.AddRow(row);
 
-			table = Query.Access.GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
+			table = Query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
 			row = table.NewRow();
 			row["person_id"] = Field.Integer(1);
 			row["code"] = Field.String("123456");
@@ -56,11 +56,11 @@ namespace Deveel.Data.Sql {
 
 		private void CreateTestTables() {
 			var tableInfo = CreateFirstTable();
-			Query.Session.Access.CreateTable(tableInfo, false);
-			Query.Session.Access.AddPrimaryKey(tableInfo.TableName, "person_id");
+			Query.Session.Access().CreateTable(tableInfo, false);
+			Query.Session.Access().AddPrimaryKey(tableInfo.TableName, "person_id");
 
 			tableInfo = CreateSecondTable();
-			Query.Session.Access.CreateTable(tableInfo, false);
+			Query.Session.Access().CreateTable(tableInfo, false);
 		}
 
 		private TableInfo CreateSecondTable() {

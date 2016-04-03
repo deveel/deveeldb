@@ -41,10 +41,10 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Access.ResolveObjectName(DbObjectType.View, ViewName);
+			var viewName = context.Access().ResolveObjectName(DbObjectType.View, ViewName);
 
 			if (!IfExists &&
-				!context.Access.ViewExists(viewName))
+				!context.Access().ViewExists(viewName))
 				throw new ObjectNotFoundException(ViewName);
 
 			return new Prepared(viewName, IfExists);
@@ -81,19 +81,19 @@ namespace Deveel.Data.Sql.Statements {
 				// exist first.
 				if (!IfExists) {
 					// If view doesn't exist, throw an error
-					if (!context.Request.Access.ViewExists(ViewName)) {
+					if (!context.Request.Access().ViewExists(ViewName)) {
 						throw new ObjectNotFoundException(ViewName,
 							String.Format("The view '{0}' does not exist and cannot be dropped.", ViewName));
 					}
 				}
 
 				// Does the table already exist?
-				if (context.Request.Access.ViewExists(ViewName)) {
+				if (context.Request.Access().ViewExists(ViewName)) {
 					// Drop table in the transaction
-					context.Request.Access.DropObject(DbObjectType.View, ViewName);
+					context.Request.Access().DropObject(DbObjectType.View, ViewName);
 
 					// Revoke all the grants on the table
-					context.Request.Access.RevokeAllGrantsOnView(ViewName);
+					context.Request.Access().RevokeAllGrantsOnView(ViewName);
 				}
 			}
 		}

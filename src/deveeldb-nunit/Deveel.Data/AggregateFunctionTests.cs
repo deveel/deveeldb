@@ -24,9 +24,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			Query.Access.CreateObject(tableInfo);
+			Query.Access().CreateObject(tableInfo);
 
-			var table = Query.Access.GetMutableTable(tableName);
+			var table = Query.Access().GetMutableTable(tableName);
 			for (int i = 0; i < 15; i++) {
 				var aValue = Field.Integer(i * i);
 				var bValue = Field.String(i.ToString());
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 		protected override void OnTearDown() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			Query.Access.DropObject(DbObjectType.Table, tableName);
+			Query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		private Field SelectAggregate(string functionName, params SqlExpression[] args) {

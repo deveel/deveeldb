@@ -17,9 +17,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.Access.CreateTable(tableInfo);
+			Query.Session.Access().CreateTable(tableInfo);
 
-			var table = Query.Access.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = Query.Access().GetMutableTable(ObjectName.Parse("APP.test_table"));
 			for (int i = 0; i < 10; i++) {
 				var row = table.NewRow();
 				row.SetValue(0, i);
@@ -32,8 +32,8 @@ namespace Deveel.Data {
 			var cursorInfo = new CursorInfo("c1", query);
 			cursorInfo.Flags = CursorFlags.Scroll;
 
-			Query.Access.CreateObject(cursorInfo);
-			var c1 = (Cursor) Query.Access.GetObject(DbObjectType.Cursor, new ObjectName("c1"));
+			Query.Access().CreateObject(cursorInfo);
+			var c1 = (Cursor) Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
 			c1.Open();
 		}
 

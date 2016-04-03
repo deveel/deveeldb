@@ -18,7 +18,7 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public override void Fire(TableEvent tableEvent, IRequest context) {
-			var procedure = context.Access.GetObject(DbObjectType.Routine, ProcedureName) as IProcedure;
+			var procedure = context.Access().GetObject(DbObjectType.Routine, ProcedureName) as IProcedure;
 
 			if (procedure == null)
 				throw new TriggerException(String.Format("The procedure '{0}' was not found.", ProcedureName));

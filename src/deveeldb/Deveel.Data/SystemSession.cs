@@ -25,8 +25,8 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	class SystemSession : ISession {
-		private DateTimeOffset startedOn;
+	class SystemSession : ISession, ISystemDirectAccess {
+		private readonly DateTimeOffset startedOn;
 
 		public SystemSession(ITransaction transaction) 
 			: this(transaction, transaction.CurrentSchema()) {
@@ -58,7 +58,11 @@ namespace Deveel.Data {
 
 		public string CurrentSchema { get; private set; }
 
-		public SessionAccess Access { get; private set; }
+		private SessionAccess Access { get; set; }
+
+		SystemAccess ISystemDirectAccess.DirectAccess {
+			get { return Access; }
+		}
 
 		public User User { get; private set; }
 

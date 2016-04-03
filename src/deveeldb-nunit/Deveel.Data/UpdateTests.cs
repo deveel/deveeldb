@@ -27,12 +27,12 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			context.Session.Access.CreateTable(tableInfo);
-			context.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			context.Session.Access().CreateTable(tableInfo);
+			context.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private static void AddTestData(IQuery context) {
-			var table = context.Access.GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = context.Access().GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 			row.SetValue("id", Field.Integer(0));
 			row.SetValue("first_name", Field.String("John"));

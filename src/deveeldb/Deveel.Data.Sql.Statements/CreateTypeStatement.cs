@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 		public UserTypeMember[] Members { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var schemaName = context.Access.ResolveSchemaName(TypeName.ParentName);
+			var schemaName = context.Access().ResolveSchemaName(TypeName.ParentName);
 			var typeName = new ObjectName(schemaName, TypeName.Name);
 
 			return new CreateTypeStatement(typeName, Members, ReplaceIfExists);

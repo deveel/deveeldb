@@ -22,7 +22,7 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
-	public sealed class Query : IQuery {
+	public sealed class Query : IQuery, ISystemDirectAccess {
 		private Dictionary<string, object> metadata;
 
 		internal Query(ISession session) 
@@ -75,6 +75,10 @@ namespace Deveel.Data {
 		public SqlQuery SourceQuery { get; private set; }
 		
 		public RequestAccess Access { get; private set; }
+
+		SystemAccess ISystemDirectAccess.DirectAccess {
+			get { return Access; }
+		}
 
 		public void Dispose() {
 			Dispose(true);

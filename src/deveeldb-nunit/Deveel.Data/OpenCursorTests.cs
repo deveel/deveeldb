@@ -20,7 +20,7 @@ namespace Deveel.Data {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			query.Session.Access.CreateTable(tableInfo);
+			query.Session.Access().CreateTable(tableInfo);
 		}
 
 		private static void DeclareCursors(IQuery query) {

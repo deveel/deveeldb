@@ -24,7 +24,7 @@ namespace Deveel.Data.Sql.Sequences {
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
 			tableInfo = tableInfo.AsReadOnly();
-			query.Access.CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 
 			// SYSTEM.SEQUENCE
 			tableInfo = new TableInfo(SequenceManager.SequenceTableName);
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Sequences {
 			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
 			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
-			query.Access.CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 		}
 	}
 }

@@ -40,19 +40,19 @@ namespace Deveel.Data.Sql.Statements {
 		public TriggerEventType EventType { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
+			var tableName = context.Access().ResolveTableName(TableName);
 
 			return new CreateCallbackTriggerStatement(TriggerName, tableName, EventType);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.Request.Access.TableExists(TableName))
+			if (!context.Request.Access().TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
 
 			if (context.DirectAccess.TriggerExists(new ObjectName(TriggerName)))
 				throw new StatementException();
 
-			context.Request.Access.CreateCallbackTrigger(TriggerName, TableName, EventType);
+			context.Request.Access().CreateCallbackTrigger(TriggerName, TableName, EventType);
 		}
 	}
 }

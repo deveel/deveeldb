@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (Target == ShowTarget.Table &&
 			    TableName != null) {
-				tableName = context.Access.ResolveTableName(TableName);
+				tableName = context.Access().ResolveTableName(TableName);
 			}
 
 			if (Target == ShowTarget.Schema)

@@ -79,7 +79,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var schemaName = context.Access.ResolveSchemaName(SequenceName.ParentName);
+			var schemaName = context.Access().ResolveSchemaName(SequenceName.ParentName);
 			var seqName = new ObjectName(schemaName, SequenceName.Name);
 
 			return new CreateSequenceStatement(seqName) {
@@ -125,7 +125,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new InvalidOperationException("The start value cannot be out of the mim/max range.");
 
 			var seqInfo = new SequenceInfo(SequenceName, startValue, incrementBy, minValue, maxValue, cache, cycle);
-			context.Request.Access.CreateObject(seqInfo);
+			context.Request.Access().CreateObject(seqInfo);
 		}
 	}
 }

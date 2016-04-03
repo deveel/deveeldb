@@ -42,6 +42,7 @@ using Deveel.Data;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("96b0916e-83a6-46b7-88c5-8bf9b245812b")]
+[assembly: InternalsVisibleTo("deveeldb-nunit")]
 #endif
 
 // Version information for an assembly consists of the following four values:

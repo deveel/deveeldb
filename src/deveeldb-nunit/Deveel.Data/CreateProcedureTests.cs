@@ -20,11 +20,11 @@ namespace Deveel.Data {
 			var externRef = ExternalRef.MakeRef(typeof(Test), "Procedure(int, int)");
 			Query.CreateExternProcedure(procName, parameters, externRef.ToString());
 
-			var exists = Query.Access.RoutineExists(procName);
+			var exists = Query.Access().RoutineExists(procName);
 
 			Assert.IsTrue(exists);
 
-			var procedure = Query.Access.GetObject(DbObjectType.Routine, procName);
+			var procedure = Query.Access().GetObject(DbObjectType.Routine, procName);
 
 			Assert.IsNotNull(procedure);
 			Assert.IsInstanceOf<ExternalProcedure>(procedure);

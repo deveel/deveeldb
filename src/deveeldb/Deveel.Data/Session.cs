@@ -29,10 +29,11 @@ namespace Deveel.Data {
 	/// This is a session that is constructed around a given user and a transaction,
 	/// to the given database.
 	/// </summary>
-	public sealed class Session : ISession {
+	public sealed class Session : ISession, ISystemDirectAccess {
 		private List<LockHandle> lockHandles;
 		private bool disposed;
-		private DateTimeOffset startedOn;
+		private readonly DateTimeOffset startedOn;
+		private SystemAccess access;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -58,7 +59,7 @@ namespace Deveel.Data {
 			Context.RegisterInstance(this);
 			Context.Route<QueryEvent>(OnQueryCommand);
 
-			Access = new SessionAccess(this);
+			access = new SessionAccess(this);
 
 			transaction.Database.Sessions.Add(this);
 
@@ -83,7 +84,9 @@ namespace Deveel.Data {
 
 		public User User { get; private set; }
 
-		public SessionAccess Access { get; private set; }
+		SystemAccess ISystemDirectAccess.DirectAccess {
+			get { return access; }
+		}
 
 		IEventSource IEventSource.ParentSource {
 			get { return Transaction; }
@@ -260,11 +263,12 @@ namespace Deveel.Data {
 				if (disposing) {
 					try {
 						Rollback();
-					} catch (Exception) {
-						// TODO: Notify the underlying system
+					} catch (Exception ex) {
+						this.OnError(new Exception("Error while rolling back on Dispose", ex));
 					}
 				}
 
+				access = null;
 				lockHandles = null;
 				disposed = true;
 			}

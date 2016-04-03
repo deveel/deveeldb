@@ -208,6 +208,17 @@ namespace Deveel.Data {
 			return GetTable(tableName) as IMutableTable;
 		}
 
+		public virtual void CacheTable(string key, ITable table) {
+			
+		}
+
+		public virtual ITable GetCachedTable(string key) {
+			return null;
+		}
+
+		public virtual void ClearCachedTables() {
+		}
+
 		#region Constraints
 
 		public void AddPrimaryKey(ObjectName tableName, string column) {
@@ -387,7 +398,7 @@ namespace Deveel.Data {
 			public ObjectName AliasName { get; set; }
 
 			public IQueryPlanNode QueryPlanNode {
-				get { return Session.Access.CreateQueryPlan(TableName, AliasName); }
+				get { return Session.Access().CreateQueryPlan(TableName, AliasName); }
 			}
 		}
 
@@ -536,28 +547,36 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Variables
+
+		public bool VariableExists(string variableName) {
+			return ObjectExists(DbObjectType.Variable, new ObjectName(variableName));
+		}
+
+		#endregion
+
 		#region Security
 
 		#region Role Management
 
 		public void CreateRole(string roleName) {
-			SystemSession.Access.UserManager.CreateRole(roleName);
+			SystemSession.Access().UserManager.CreateRole(roleName);
 		}
 
 		public bool RoleExists(string roleName) {
-			return SystemSession.Access.UserManager.RoleExists(roleName);
+			return SystemSession.Access().UserManager.RoleExists(roleName);
 		}
 
 		public bool DropRole(string roleName) {
 			try {
-				return SystemSession.Access.UserManager.DropRole(roleName);
+				return SystemSession.Access().UserManager.DropRole(roleName);
 			} finally {
 				RevokeAllGrantsFrom(roleName);
 			}
 		}
 
 		public void SetRoleAdmin(string roleName, string userName) {
-			SystemSession.Access.UserManager.SetRoleAdmin(roleName, userName);
+			SystemSession.Access().UserManager.SetRoleAdmin(roleName, userName);
 		}
 
 		#endregion
@@ -565,15 +584,15 @@ namespace Deveel.Data {
 		#region User Management
 
 		public void SetUserStatus(string username, UserStatus status) {
-			SystemSession.Access.UserManager.SetUserStatus(username, status);
+			SystemSession.Access().UserManager.SetUserStatus(username, status);
 		}
 
 		public UserStatus GetUserStatus(string userName) {
-			return SystemSession.Access.UserManager.GetUserStatus(userName);
+			return SystemSession.Access().UserManager.GetUserStatus(userName);
 		}
 
 		public bool UserExists(string userName) {
-			return SystemSession.Access.UserManager.UserExists(userName);
+			return SystemSession.Access().UserManager.UserExists(userName);
 		}
 
 		public void CreateUser(string userName, string password) {
@@ -581,7 +600,7 @@ namespace Deveel.Data {
 		}
 
 		public void CreateUser(UserInfo userInfo) {
-			SystemSession.Access.UserManager.CreateUser(userInfo);
+			SystemSession.Access().UserManager.CreateUser(userInfo);
 		}
 
 		public void CreateUser(string userName, string identification, string token) {
@@ -613,7 +632,7 @@ namespace Deveel.Data {
 			var userId = identifier.CreateIdentification(token);
 			var userInfo = new UserInfo(userName, userId);
 
-			SystemSession.Access.UserManager.CreateUser(userInfo);
+			SystemSession.Access().UserManager.CreateUser(userInfo);
 		}
 
 		public void AlterUserPassword(string username, string token) {
@@ -633,7 +652,7 @@ namespace Deveel.Data {
 			var userId = identifier.CreateIdentification(token);
 			var userInfo = new UserInfo(username, userId);
 
-			SystemSession.Access.UserManager.AlterUser(userInfo);
+			SystemSession.Access().UserManager.AlterUser(userInfo);
 		}
 
 		public bool DeleteUser(string userName) {
@@ -641,7 +660,7 @@ namespace Deveel.Data {
 				throw new ArgumentNullException("userName");
 
 			try {
-				return SystemSession.Access.UserManager.DropUser(userName);
+				return SystemSession.Access().UserManager.DropUser(userName);
 			} finally {
 				RevokeAllGrantsFrom(userName);
 			}
@@ -659,7 +678,7 @@ namespace Deveel.Data {
 				if (String.IsNullOrEmpty(password))
 					throw new ArgumentNullException("password");
 
-				var userInfo = SystemSession.Access.UserManager.GetUser(username);
+				var userInfo = SystemSession.Access().UserManager.GetUser(username);
 
 				if (userInfo == null)
 					return false;
@@ -912,7 +931,7 @@ namespace Deveel.Data {
 			try {
 				var revoker = Session.User.Name;
 				var grant = new Grant(privileges, objectName, objectType, grantee, revoker, grantOption);
-				SystemSession.Access.PrivilegeManager.Revoke(grant);
+				SystemSession.Access().PrivilegeManager.Revoke(grant);
 			} finally {
 				var key = new GrantCacheKey(grantee, objectType, objectName.FullName, grantOption, false);
 				PrivilegesCache.Remove(key);
@@ -1008,11 +1027,11 @@ namespace Deveel.Data {
 		}
 
 		public bool DeleteRoutine(ObjectName routineName) {
-			return SystemSession.Access.DropObject(DbObjectType.Routine, routineName);
+			return SystemSession.Access().DropObject(DbObjectType.Routine, routineName);
 		}
 
 		public void CreateRoutine(RoutineInfo routineInfo) {
-			SystemSession.Access.CreateObject(routineInfo);
+			SystemSession.Access().CreateObject(routineInfo);
 		}
 
 		#endregion

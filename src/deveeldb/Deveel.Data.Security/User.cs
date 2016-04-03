@@ -60,25 +60,25 @@ namespace Deveel.Data.Security {
 		public UserStatus Status {
 			get {
 				AssertInContext();
-				return Session.Access.GetUserStatus(Name);
+				return Session.Access().GetUserStatus(Name);
 			}
 		}
 
 		public Role[] Roles {
 			get {
 				AssertInContext();
-				return Session.Access.GetUserRoles(Name);
+				return Session.Access().GetUserRoles(Name);
 			}
 		}
 
 		public bool IsRoleAdmin(string roleName) {
 			AssertInContext();
-			return Session.Access.UserIsRoleAdmin(Name, roleName);
+			return Session.Access().UserIsRoleAdmin(Name, roleName);
 		}
 
 		public bool IsInRole(string roleName) {
 			AssertInContext();
-			return Session.Access.UserIsInRole(Name, roleName);
+			return Session.Access().UserIsInRole(Name, roleName);
 		}
 
 		public bool CanGrantRole(string roleName) {

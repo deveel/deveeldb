@@ -11,7 +11,7 @@ namespace Deveel.Data {
 	public sealed class DropSequenceTests : ContextBasedTest {
 		protected override void OnSetUp(string testName) {
 			var seqName = ObjectName.Parse("APP.seq1");
-			Query.Access.CreateObject(new SequenceInfo(seqName, SqlNumber.Zero, SqlNumber.One, SqlNumber.Zero,
+			Query.Access().CreateObject(new SequenceInfo(seqName, SqlNumber.Zero, SqlNumber.One, SqlNumber.Zero,
 				new SqlNumber(Int64.MaxValue), Int32.MaxValue));
 		}
 
@@ -21,7 +21,7 @@ namespace Deveel.Data {
 
 			Query.DropSequence(seqName);
 
-			var exists = Query.Access.ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = Query.Access().ObjectExists(DbObjectType.Sequence, seqName);
 			Assert.IsFalse(exists);
 		}
 	}

@@ -27,7 +27,7 @@ namespace Deveel.Data.Security {
 			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
 			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.Access.CreateSystemTable(tableInfo);
+			context.Access().CreateSystemTable(tableInfo);
 		}
 	}
 }

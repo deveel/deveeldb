@@ -13,7 +13,7 @@ namespace Deveel.Data {
 		public void SimpleVariableInQueryContext() {
 			Query.DeclareVariable("a", PrimitiveTypes.String());
 
-			var obj = Query.Access.GetObject(DbObjectType.Variable, new ObjectName("a"));
+			var obj = Query.Access().GetObject(DbObjectType.Variable, new ObjectName("a"));
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<Variable>(obj);

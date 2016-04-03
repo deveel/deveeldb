@@ -487,6 +487,7 @@
     <Compile Include="Deveel.Data.Services\ISystemModule.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
+    <Compile Include="Deveel.Data\ISystemDirectAccess.cs" />
     <Compile Include="Deveel.Data\ModuleInfo.cs" />
     <Compile Include="Deveel.Data\Query.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />

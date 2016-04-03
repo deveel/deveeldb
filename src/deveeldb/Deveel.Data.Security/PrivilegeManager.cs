@@ -118,7 +118,7 @@ namespace Deveel.Data.Security {
 		private void UpdateUserGrants(DbObjectType objectType, ObjectName objectName, string granter, string grantee,
 			Privileges privileges, bool withOption) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
+				var grantTable = query.Access().GetMutableTable(SystemSchema.GrantsTableName);
 
 				UpdateGrants(query, grantTable, objectType, objectName, granter, grantee, privileges, withOption);
 			}
@@ -143,7 +143,7 @@ namespace Deveel.Data.Security {
 		private void RevokeAllGrantsFrom(DbObjectType objectType, ObjectName objectName, string revoker, string grantee,
 			bool withOption = false) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
+				var grantTable = query.Access().GetMutableTable(SystemSchema.GrantsTableName);
 
 				var objectCol = grantTable.GetResolvedColumnName(1);
 				var paramCol = grantTable.GetResolvedColumnName(2);
@@ -194,7 +194,7 @@ namespace Deveel.Data.Security {
 
 		public Grant[] GetGrants(string grantee, bool withPublic) {
 			using (var query = Session.CreateQuery()) {
-				var table = query.Access.GetTable(SystemSchema.GrantsTableName);
+				var table = query.Access().GetTable(SystemSchema.GrantsTableName);
 
 				var granteeColumn = table.GetResolvedColumnName(3);
 
@@ -288,7 +288,7 @@ namespace Deveel.Data.Security {
 			bool withOption, bool withPublic) {
 			using (var query = Session.CreateQuery()) {
 				// The system grants table.
-				var grantTable = query.Access.GetTable(SystemSchema.GrantsTableName);
+				var grantTable = query.Access().GetTable(SystemSchema.GrantsTableName);
 				return QueryPrivileges(query, grantTable, userName, objectType, objectName, withOption, withPublic);
 			}
 		}
@@ -327,7 +327,7 @@ namespace Deveel.Data.Security {
 
 		public Grant[] GetGrantsOn(DbObjectType objectType, ObjectName objectName) {
 			using (var query = Session.CreateQuery()) {
-				var grantTable = query.Access.GetMutableTable(SystemSchema.GrantsTableName);
+				var grantTable = query.Access().GetMutableTable(SystemSchema.GrantsTableName);
 
 				var objectTypeColumn = grantTable.GetResolvedColumnName(1);
 				var objectNameColumn = grantTable.GetResolvedColumnName(2);

@@ -26,14 +26,14 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
-			query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.Access().CreateTable(tableInfo);
+			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		private void InsertTestData(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			var table = query.Access.GetMutableTable(tableName);
+			var table = query.Access().GetMutableTable(tableName);
 			var row = table.NewRow();
 			row.SetValue("first_name", Field.String("Antonello"));
 			row.SetValue("last_name", Field.String("Provenzano"));
@@ -59,7 +59,7 @@ namespace Deveel.Data {
 			var count = Query.Delete(tableName, expr);
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access.GetTable(tableName);
+			var table = Query.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -72,7 +72,7 @@ namespace Deveel.Data {
 			var count = Query.Delete(tableName, expr);
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access.GetTable(tableName);
+			var table = Query.Access().GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
 		}

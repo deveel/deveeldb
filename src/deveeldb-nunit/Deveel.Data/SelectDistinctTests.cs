@@ -17,9 +17,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 
-			Query.Access.CreateObject(tableInfo);
+			Query.Access().CreateObject(tableInfo);
 
-			var table = Query.Access.GetMutableTable(tableName);
+			var table = Query.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
 			row.SetValue(0, "Antonello");

@@ -26,14 +26,14 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
-			query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.Access().CreateTable(tableInfo);
+			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
+			query.Session.Access().CreateTable(tableInfo);
 		}
 
 		[Test]
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			Query.CreateCallbackTrigger("trigger1", tableName, TriggerEventType.BeforeInsert);
 
-			var trigger = Query.Access.GetObject(DbObjectType.Trigger, new ObjectName("trigger1")) as Trigger;
+			var trigger = Query.Access().GetObject(DbObjectType.Trigger, new ObjectName("trigger1")) as Trigger;
 
 			Assert.IsNotNull(trigger);
 			Assert.AreEqual("trigger1", trigger.TriggerInfo.TriggerName.FullName);
@@ -58,7 +58,7 @@ namespace Deveel.Data {
 
 			Query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterInsert);
 
-			var exists = Query.Access.TriggerExists(ObjectName.Parse("APP.trigger1"));
+			var exists = Query.Access().TriggerExists(ObjectName.Parse("APP.trigger1"));
 
 			Assert.IsTrue(exists);
 		}

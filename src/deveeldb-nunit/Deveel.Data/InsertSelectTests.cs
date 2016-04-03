@@ -24,8 +24,8 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime(), false);
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			query.Session.Access.CreateTable(tableInfo);
-			query.Session.Access.AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Session.Access().CreateTable(tableInfo);
+			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		[Test]
@@ -38,7 +38,7 @@ namespace Deveel.Data {
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access.GetTable(tableName);
+			var table = Query.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -52,7 +52,7 @@ namespace Deveel.Data {
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access.GetTable(tableName);
+			var table = Query.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 

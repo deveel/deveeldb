@@ -97,8 +97,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber UniqueKey(IRequest request, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = request.Access.ResolveTableName(tableNameString);
-			return request.Access.GetNextValue(resolvedName);
+			var resolvedName = request.Access().ResolveTableName(tableNameString);
+			return request.Access().GetNextValue(resolvedName);
 		}
 
 		public static Field CurrentKey(IRequest request, Field tableName) {
@@ -109,8 +109,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber CurrentKey(IRequest request, SqlString tableName) {
 			var tableNameString = tableName.ToString();
-			var resolvedName = request.Access.ResolveTableName(tableNameString);
-			return request.Access.GetCurrentValue(resolvedName);
+			var resolvedName = request.Access().ResolveTableName(tableNameString);
+			return request.Access().GetCurrentValue(resolvedName);
 		}
 
 		public static Field CurrentValue(IRequest query, Field tableName) {
@@ -121,8 +121,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber CurrentValue(IRequest query, SqlString sequenceName) {
 			var objName = ObjectName.Parse(sequenceName.ToString());
-			var resolvedName = query.Access.ResolveObjectName(DbObjectType.Sequence, objName);
-			return query.Access.GetCurrentValue(resolvedName);
+			var resolvedName = query.Access().ResolveObjectName(DbObjectType.Sequence, objName);
+			return query.Access().GetCurrentValue(resolvedName);
 		}
 
 		public static Field NextValue(IRequest request, Field sequenceName) {
@@ -133,8 +133,8 @@ namespace Deveel.Data.Routines {
 
 		public static SqlNumber NextValue(IRequest request, SqlString sequenceName) {
 			var objName = ObjectName.Parse(sequenceName.ToString());
-			var resolvedName = request.Access.ResolveObjectName(DbObjectType.Sequence, objName);
-			return request.Access.GetNextValue(resolvedName);
+			var resolvedName = request.Access().ResolveObjectName(DbObjectType.Sequence, objName);
+			return request.Access().GetNextValue(resolvedName);
 		}
 
 		#endregion

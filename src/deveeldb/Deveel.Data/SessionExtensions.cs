@@ -27,6 +27,13 @@ namespace Deveel.Data {
 			return session.Transaction.Database;
 		}
 
+		internal static SystemAccess Access(this ISession session) {
+			if (!(session is ISystemDirectAccess))
+				throw new InvalidOperationException("The session does not provide direct access to the system.");
+
+			return ((ISystemDirectAccess) session).DirectAccess;
+		}
+
 		// TODO: In a future version of deveeldb the transaction will be a child of
 		//       the session's wrapped one
 		public static ISession Begin(this ISession session, IsolationLevel isolation) {

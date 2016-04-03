@@ -17,7 +17,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.Access.CreateTable(tableInfo);
+			Query.Session.Access().CreateTable(tableInfo);
 		}
 
 		[Test]

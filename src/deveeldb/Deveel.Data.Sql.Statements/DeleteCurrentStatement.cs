@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
+			var tableName = context.Access().ResolveTableName(TableName);
 			return new DeleteCurrentStatement(tableName, CursorName);
 		}
 

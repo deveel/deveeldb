@@ -27,9 +27,6 @@ namespace Deveel.Data.Sql.Statements {
 		public DropUserStatement(string userName) {
 			if (String.IsNullOrEmpty(userName))
 				throw new ArgumentNullException("userName");
-			if (String.Equals(userName, User.PublicName, StringComparison.OrdinalIgnoreCase) ||
-				String.Equals(userName, User.SystemName, StringComparison.OrdinalIgnoreCase))
-				throw new ArgumentException(String.Format("User '{0}' is reserved and cannot be dropped.", userName));
 
 			UserName = userName;
 		}

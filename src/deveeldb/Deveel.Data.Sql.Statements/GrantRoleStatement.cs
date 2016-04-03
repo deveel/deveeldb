@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", context.User.Name));
 
 			if (!context.User.IsInRole(Role)) {
-				context.Request.Access.AddUserToRole(UserName, Role, WithAdmin);
+				context.Request.Access().AddUserToRole(UserName, Role, WithAdmin);
 			} else if (WithAdmin &&
 			           !context.User.IsRoleAdmin(Role)) {
 				throw new NotImplementedException();

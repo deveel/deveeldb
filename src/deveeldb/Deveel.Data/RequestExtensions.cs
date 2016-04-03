@@ -36,6 +36,13 @@ namespace Deveel.Data {
 			return request.User().Name;
 		}
 
+		internal static SystemAccess Access(this IRequest request) {
+			if (!(request is ISystemDirectAccess))
+				throw new InvalidOperationException("The request does not provide direct access to the system");
+
+			return ((ISystemDirectAccess) request).DirectAccess;
+		}
+
 		#region Statements
 
 		private static int GetResult(StatementResult result) {

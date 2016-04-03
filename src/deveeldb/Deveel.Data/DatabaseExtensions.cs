@@ -100,7 +100,7 @@ namespace Deveel.Data {
 			// Create a temporary connection for authentication only...
 			using (var session = database.CreateSystemSession()) {
 				session.CurrentSchema(SystemSchema.Name);
-				return session.Access.Authenticate(username, password);
+				return session.Access().Authenticate(username, password);
 			}
 		}
 

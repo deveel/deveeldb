@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (Reference is SqlReferenceExpression) {
 				var objName = ((SqlReferenceExpression) Reference).ReferenceName;
-				objName = context.Access.ResolveObjectName(objName);
+				objName = context.Access().ResolveObjectName(objName);
 
 				return new SelectIntoTable(objName, queryPlan);
 			}
@@ -152,7 +152,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				var cursor = new NativeCursor(new NativeCursorInfo(QueryPlan), context.Request);
 
-				var table = context.Request.Access.GetMutableTable(TableName);
+				var table = context.Request.Access().GetMutableTable(TableName);
 				if (table == null)
 					throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", TableName));
 

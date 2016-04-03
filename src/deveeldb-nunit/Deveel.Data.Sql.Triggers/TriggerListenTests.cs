@@ -36,18 +36,18 @@ namespace Deveel.Data.Sql.Triggers {
 			testQuery = testSession.CreateQuery();
 
 			// TODO: this is a bug: since the session is new, the table should not exist
-			if (testQuery.Access.TableExists(TestTableName))
-				testQuery.Access.DropObject(DbObjectType.Table, TestTableName);
+			if (testQuery.Access().TableExists(TestTableName))
+				testQuery.Access().DropObject(DbObjectType.Table, TestTableName);
 
 			var tableInfo = new TableInfo(TestTableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer(), true);
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 
-			testQuery.Access.CreateTable(tableInfo);
+			testQuery.Access().CreateTable(tableInfo);
 
 			if (!testName.EndsWith("_NoTriggers")) {
-				testQuery.Access.CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
+				testQuery.Access().CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
 			}
 
 			System.Context.ListenTriggers(trigger => {
@@ -75,7 +75,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		[Test]
 		public void Insert_NoTriggers() {
-			var table = testQuery.Access.GetMutableTable(TestTableName);
+			var table = testQuery.Access().GetMutableTable(TestTableName);
 
 			Assert.IsNotNull(table);
 
@@ -93,7 +93,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 		[Test]
 		public void Insert() {
-			var table = testQuery.Access.GetMutableTable(TestTableName);
+			var table = testQuery.Access().GetMutableTable(TestTableName);
 
 			Assert.IsNotNull(table);
 

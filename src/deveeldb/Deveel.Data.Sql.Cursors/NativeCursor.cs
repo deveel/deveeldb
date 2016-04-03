@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Cursors {
 
 		private void AcquireReferences() {
 			var refNames = CursorInfo.QueryPlan.DiscoverTableNames();
-			var refs = refNames.Select(x => Context.Access.FindObject(x)).ToArray();
+			var refs = refNames.Select(x => Context.Access().FindObject(x)).ToArray();
 
 			var accessType = AccessType.Read;
 			if (CursorInfo.ForUpdate)

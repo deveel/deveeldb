@@ -14,7 +14,7 @@ namespace Deveel.Data {
 	public sealed class SelectSequenceTests : ContextBasedTest {
 		protected override void OnSetUp(string testName) {
 			var seqName = ObjectName.Parse("APP.seq1");
-			Query.Access.CreateObject(new SequenceInfo(seqName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0),
+			Query.Access().CreateObject(new SequenceInfo(seqName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0),
 				new SqlNumber(Int16.MaxValue), 256));
 		}
 

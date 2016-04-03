@@ -14,11 +14,8 @@
 //    limitations under the License.
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
@@ -26,17 +23,17 @@ namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class SystemFunctionTests : ContextBasedTest {
 		private Field InvokeFunction(string name) {
-			return Query.Access.InvokeSystemFunction(name);
+			return Query.Access().InvokeSystemFunction(Query, name);
 		}
 
 		private Field InvokeFunction(string name, Field arg) {
-			return Query.Access.InvokeSystemFunction(name, SqlExpression.Constant(arg));
+			return Query.Access().InvokeSystemFunction(Query, name, SqlExpression.Constant(arg));
 		}
 
 		[Test]
 		public void ResolveSystemFunctionWithNoSchema() {
 			IFunction function = null;
-			Assert.DoesNotThrow(() => function = Query.Session.Access.ResolveFunction(Query, new ObjectName("user")));
+			Assert.DoesNotThrow(() => function = Query.Session.Access().ResolveFunction(Query, new ObjectName("user")));
 			Assert.IsNotNull(function);
 			Assert.IsNull(function.RoutineInfo.RoutineName.ParentName);
 			Assert.AreEqual("user", function.RoutineInfo.RoutineName.Name);
@@ -44,7 +41,7 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void ResolveSystemFunctionFullyQualified() {
-			var function = Query.Session.Access.ResolveFunction(Query, ObjectName.Parse("SYSTEM.user"));
+			var function = Query.Session.Access().ResolveFunction(Query, ObjectName.Parse("SYSTEM.user"));
 
 			Assert.IsNotNull(function);
 			Assert.IsNull(function.RoutineInfo.RoutineName.ParentName);

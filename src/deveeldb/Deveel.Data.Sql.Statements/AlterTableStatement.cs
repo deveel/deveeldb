@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 		public IAlterTableAction Action { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var tableName = context.Access.ResolveTableName(TableName);
+			var tableName = context.Access().ResolveTableName(TableName);
 			return new AlterTableStatement(tableName, Action);
 		}
 
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.User.CanAlterTable(TableName))
 				throw new InvalidAccessException(context.Request.UserName(), TableName);
 
-			var table = context.Request.Access.GetTable(TableName);
+			var table = context.Request.Access().GetTable(TableName);
 			if (table == null)
 				throw new ObjectNotFoundException(TableName);
 
@@ -117,24 +117,24 @@ namespace Deveel.Data.Sql.Statements {
 				} else if (Action.ActionType == AlterTableActionType.DropColumn &&
 						   CheckColumnNamesMatch(context.Request, ((DropColumnAction)Action).ColumnName, columnName)) {
 					// Check there are no referential links to this column
-					var refs = context.Request.Access.QueryTableImportedForeignKeys(TableName);
+					var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);
 					foreach (var reference in refs) {
 						CheckColumnConstraint(columnName, reference.ForeignColumnNames, reference.ForeignTable, reference.ConstraintName);
 					}
 
 					// Or from it
-					refs = context.Request.Access.QueryTableForeignKeys(TableName);
+					refs = context.Request.Access().QueryTableForeignKeys(TableName);
 					foreach (var reference in refs) {
 						CheckColumnConstraint(columnName, reference.ColumnNames, reference.TableName, reference.ConstraintName);
 					}
 
 					// Or that it's part of a primary key
-					var primaryKey = context.Request.Access.QueryTablePrimaryKey(TableName);
+					var primaryKey = context.Request.Access().QueryTablePrimaryKey(TableName);
 					if (primaryKey != null)
 						CheckColumnConstraint(columnName, primaryKey.ColumnNames, TableName, primaryKey.ConstraintName);
 
 					// Or that it's part of a unique set
-					var uniques = context.Request.Access.QueryTableUniqueKeys(TableName);
+					var uniques = context.Request.Access().QueryTableUniqueKeys(TableName);
 					foreach (var unique in uniques) {
 						CheckColumnConstraint(columnName, unique.ColumnNames, TableName, unique.ConstraintName);
 					}
@@ -179,11 +179,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			if (Action.ActionType == AlterTableActionType.DropConstraint) {
 				string constraintName = ((DropConstraintAction)Action).ConstraintName;
-				int dropCount = context.Request.Access.DropTableConstraint(TableName, constraintName);
+				int dropCount = context.Request.Access().DropTableConstraint(TableName, constraintName);
 				if (dropCount == 0)
 					throw new InvalidOperationException("Named constraint to drop on table " + TableName + " was not found: " + constraintName);
 			} else if (Action.ActionType == AlterTableActionType.DropPrimaryKey) {
-				if (!context.Request.Access.DropTablePrimaryKey(TableName, null))
+				if (!context.Request.Access().DropTablePrimaryKey(TableName, null))
 					throw new InvalidOperationException("No primary key to delete on table " + TableName);
 			}
 
@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				ObjectName refTname = null;
 				if (foreignConstraint) {
-					refTname = context.Request.Access.ResolveTableName(constraint.ReferenceTable);
+					refTname = context.Request.Access().ResolveTableName(constraint.ReferenceTable);
 				}
 
 				var columnNames = checker.StripColumnList(TableName.FullName, constraint.Columns);
@@ -216,7 +216,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (constraint.ConstraintType == ConstraintType.Check)
 					newConstraint.CheckExpression = expression;
 
-				context.Request.Access.AddConstraint(TableName, newConstraint);
+				context.Request.Access().AddConstraint(TableName, newConstraint);
 			}
 
 			// Alter the existing table to the new format...
@@ -229,7 +229,7 @@ namespace Deveel.Data.Sql.Statements {
 				// If the table wasn't physically altered, check the constraints.
 				// Calling this method will also make the transaction check all
 				// deferred constraints during the next commit.
-				context.Request.Access.CheckConstraintViolations(TableName);
+				context.Request.Access().CheckConstraintViolations(TableName);
 			}
 		}
 

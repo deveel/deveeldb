@@ -11,7 +11,7 @@ namespace Deveel.Data {
 
 			Query.CreateSchema(schemaName);
 
-			var exists = Query.Session.Access.SchemaExists(schemaName);
+			var exists = Query.Session.Access().SchemaExists(schemaName);
 
 			Assert.IsTrue(exists);
 		}

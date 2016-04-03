@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool ReplaceIfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var viewName = context.Access.ResolveTableName(ViewName);
+			var viewName = context.Access().ResolveTableName(ViewName);
 
 			var queryFrom = QueryExpressionFrom.Create(context, QueryExpression);
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression));
@@ -144,20 +144,20 @@ namespace Deveel.Data.Sql.Statements {
 						throw new InvalidAccessException(context.User.Name, tableName);
 				}
 
-				if (context.Request.Access.ViewExists(viewInfo.ViewName)) {
+				if (context.Request.Access().ViewExists(viewInfo.ViewName)) {
 					if (!replaceIfExists)
 						throw new InvalidOperationException(
 							String.Format("The view {0} already exists and the REPLCE clause was not specified.", viewInfo.ViewName));
 
-					context.Request.Access.DropObject(DbObjectType.View, viewInfo.ViewName);
+					context.Request.Access().DropObject(DbObjectType.View, viewInfo.ViewName);
 				}
 
-				context.Request.Access.CreateObject(viewInfo);
+				context.Request.Access().CreateObject(viewInfo);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.
 				// TODO: Verify if we need a system session to assign this...
-				context.Request.Access.GrantOn(DbObjectType.View, viewInfo.ViewName, context.User.Name, Privileges.TableAll);
+				context.Request.Access().GrantOn(DbObjectType.View, viewInfo.ViewName, context.User.Name, Privileges.TableAll);
 			}
 
 		}
