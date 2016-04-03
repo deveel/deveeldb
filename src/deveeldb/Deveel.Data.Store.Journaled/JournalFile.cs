@@ -259,24 +259,24 @@ namespace Deveel.Data.Store.Journaled {
 			}
 		}
 
-		public JournalEntry LogPageModification(string resource_name, long page_number, byte[] buf, int off, int len) {
+		public JournalEntry LogPageModification(string resourceName, long pageNumber, byte[] buf, int off, int len) {
 			long reference;
 			lock (this) {
 				// Build the header,
-				long v = WriteResourceName(resource_name, data_out);
+				long v = WriteResourceName(resourceName, data_out);
 
-				// The absolute position of the page,
-				long absolute_position = page_number * JournaledSystem.PageSize;
+				//// The absolute position of the page,
+				//long absolute_position = pageNumber * JournaledSystem.PageSize;
 
 				// Write the header
-				long resource_id = v;
+				long resourceId = v;
 				data_out.Write(1L);
-				data_out.Write(8 + 8 + 4 + 4 + len);
-				data_out.Write(resource_id);
-				//        data_out.Write(page_number);
-				//        data_out.Write(off);
-				data_out.Write((long)(absolute_position / 8192));
-				data_out.Write((int)(off + (int)(absolute_position & 8191)));
+				data_out.Write((int)8 + 8 + 4 + 4 + len);
+				data_out.Write(resourceId);
+				data_out.Write(pageNumber);
+				data_out.Write(off);
+				//data_out.Write((long)(absolute_position / 8192));
+				//data_out.Write((int)(off + (int)(absolute_position & 8191)));
 				data_out.Write(len);
 
 				data_out.Write(buf, off, len);
@@ -287,7 +287,7 @@ namespace Deveel.Data.Store.Journaled {
 			}
 
 			// Returns a JournalEntry object
-			return new JournalEntry(this, resource_name, reference, page_number);
+			return new JournalEntry(this, resourceName, reference, pageNumber);
 		}
 
 		private void FlushAndSynch() {
@@ -419,8 +419,7 @@ namespace Deveel.Data.Store.Journaled {
 			}
 		}
 
-		public void BuildPage(long pageNumber, long position, byte[] buffer, int offset) {
-			long type;
+		public void BuildPage(long pageNumber, long position, byte[] buf, int offset) {
 			long resource_id;
 			long page_number;
 			int page_offset;
@@ -429,7 +428,7 @@ namespace Deveel.Data.Store.Journaled {
 			lock (this) {
 				File.Read(position, buffer, 0, 36);
 
-				type = ByteBuffer.ReadInt8(buffer, 0);
+				var type = ByteBuffer.ReadInt8(buffer, 0);
 				resource_id = ByteBuffer.ReadInt8(buffer, 12);
 				page_number = ByteBuffer.ReadInt8(buffer, 20);
 				page_offset = ByteBuffer.ReadInt4(buffer, 28);
@@ -445,7 +444,7 @@ namespace Deveel.Data.Store.Journaled {
 				}
 
 				// Read the content.
-				File.Read(position + 36, buffer, offset + page_offset, page_length);
+				File.Read(position + 36, buf, offset + page_offset, page_length);
 			}
 		}
 	}

@@ -7,8 +7,14 @@ using Deveel.Data.Sql.Types;
 using NUnit.Framework;
 
 namespace Deveel.Data.Deveel.Data {
-	[TestFixture]
+	[TestFixture(StorageType.InMemory)]
+	[TestFixture(StorageType.SingleFile)]
+	[TestFixture(StorageType.JournaledFile)]
 	public sealed class DropTableTests : ContextBasedTest {
+		public DropTableTests(StorageType storageType)
+			: base(storageType) {
+		}
+
 		protected override void OnSetUp(string testName) {
 			CreateTestTables(Query);
 		}

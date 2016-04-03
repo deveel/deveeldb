@@ -10,8 +10,14 @@ using Deveel.Data.Sql.Types;
 using NUnit.Framework;
 
 namespace Deveel.Data {
-	[TestFixture]
+	[TestFixture(StorageType.InMemory)]
+	[TestFixture(StorageType.JournaledFile)]
+	[TestFixture(StorageType.SingleFile)]
 	public sealed class AggregateFunctionTests : FunctionTestBase {
+		public AggregateFunctionTests(StorageType storageType)
+			: base(storageType) {
+		}
+
 		protected override void OnSetUp(string testName) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);

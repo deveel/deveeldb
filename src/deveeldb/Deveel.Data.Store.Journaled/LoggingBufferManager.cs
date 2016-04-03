@@ -206,7 +206,7 @@ namespace Deveel.Data.Store.Journaled {
 			}
 
 			try {
-				Context.RegisterEvent(new InformationEvent("Checkpoint requested", InformationLevel.Debug));
+				Context.OnDebug("Checkpoint requested");
 
 				lock (pageMap) {
 					// Flush all the pages out to the log.

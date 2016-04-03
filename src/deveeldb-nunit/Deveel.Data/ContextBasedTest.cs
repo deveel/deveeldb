@@ -13,23 +13,30 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 using System;
+using System.IO;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Services;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
-	[TestFixture]
 	public abstract class ContextBasedTest {
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
 
-		//protected virtual bool SingleContext {
-		//	get { return false; }
-		//}
+		protected ContextBasedTest(StorageType storageType) {
+			StorageType = storageType;
+		}
+
+		protected ContextBasedTest()
+			: this(StorageType.InMemory) {
+		}
+
+		protected StorageType StorageType { get; private set; }
 
 		protected IQuery Query { get; private set; }
 
@@ -87,6 +94,16 @@ namespace Deveel.Data {
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 
+			if (StorageType == StorageType.InMemory) {
+				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.Heap);
+			} else if (StorageType == StorageType.JournaledFile) {
+				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.Journaled);
+				dbConfig.SetValue("database.path", Path.Combine(Environment.CurrentDirectory, DatabaseName));
+			} else if (StorageType == StorageType.SingleFile) {
+				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.SingleFile);
+				dbConfig.SetValue("database.basePath", Environment.CurrentDirectory);
+			}
+
 			Database = CreateDatabase(System, dbConfig);
 
 			OnFixtureSetUp();
@@ -120,6 +137,16 @@ namespace Deveel.Data {
 
 			if (System != null)
 				System.Dispose();
+
+			if (StorageType == StorageType.JournaledFile) {
+				var dataDir = Path.Combine(Environment.CurrentDirectory, DatabaseName);
+				if (Directory.Exists(dataDir))
+					Directory.Delete(dataDir, true);
+			} else if (StorageType == StorageType.SingleFile) {
+				var fileName = Path.Combine(Environment.CurrentDirectory, String.Format("{0}.db", DatabaseName));
+				if (File.Exists(fileName))
+					File.Delete(fileName);
+			}
 		}
 
 		protected virtual void OnFixtureSetUp() {

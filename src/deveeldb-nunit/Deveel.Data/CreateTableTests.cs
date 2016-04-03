@@ -8,8 +8,14 @@ using Deveel.Data.Sql.Types;
 using NUnit.Framework;
 
 namespace Deveel.Data {
-	[TestFixture]
+	[TestFixture(StorageType.InMemory)]
+	[TestFixture(StorageType.SingleFile)]
+	[TestFixture(Data.StorageType.JournaledFile)]
 	public sealed class CreateTableTests : ContextBasedTest {
+		public CreateTableTests(StorageType storageType)
+			: base(storageType) {
+		}
+
 		[Test]
 		public void SimpleCreate() {
 			var tableName = ObjectName.Parse("APP.test");
