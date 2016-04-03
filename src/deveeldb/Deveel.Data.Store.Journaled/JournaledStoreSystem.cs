@@ -96,7 +96,6 @@ namespace Deveel.Data.Store.Journaled {
 						bufferManager.Stop();
 						bufferManager.Dispose();
 					} catch (IOException e) {
-						var dummy = false;
 						// TODO: log the issue
 					}
 				}

@@ -8,6 +8,7 @@
         <owners>antonello</owners>
         <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.txt</licenseUrl>
         <projectUrl>http://github.com/deveel/deveeldb</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/deveel/deveeldb/master/nuget/icon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>This is the kernel library of DeveelDB SQL System for $platform$ Architecture.
 		
