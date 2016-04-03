@@ -24,7 +24,7 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
 
 namespace Deveel.Data {
-	public sealed class DatabaseSystem : ISystem {
+	public sealed class DatabaseSystem : ISystem, IEventSource {
 		private IDictionary<string, object> metadata;
 
 		private IDictionary<string, IDatabase> databases; 

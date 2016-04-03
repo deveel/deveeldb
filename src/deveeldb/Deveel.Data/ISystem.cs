@@ -19,13 +19,12 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
-	public interface ISystem : IDatabaseHandler, IEventSource, IDisposable {
+	public interface ISystem : IDatabaseHandler, IDisposable {
 		IEnumerable<ModuleInfo> Modules { get; }
 		 
-		new ISystemContext Context { get; }
+		ISystemContext Context { get; }
 
 		IEnumerable<string> GetDatabases();
 			

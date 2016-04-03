@@ -37,7 +37,7 @@ namespace Deveel.Data {
 	/// and services, provides functionalities for the management of data
 	/// in the relational model.
 	/// </remarks>
-	public sealed class Database : IDatabase {
+	public sealed class Database : IDatabase, IEventSource {
 		internal Database(DatabaseSystem system, IDatabaseContext context) {
 			System = system;
 			Context = context;
@@ -80,6 +80,10 @@ namespace Deveel.Data {
 
 		public DatabaseSystem System { get; private set; }
 
+		ISystem IDatabase.System {
+			get { return System; }
+		}
+
 		public ActiveSessionList Sessions { get; private set; }
 
 		public Locker Locker { get; private set; }
@@ -91,7 +95,7 @@ namespace Deveel.Data {
 		public ITransactionFactory TransactionFactory { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
-			get { return System; }
+			get { return System.AsEventSource(); }
 		}
 
 		IContext IEventSource.Context {
@@ -207,7 +211,7 @@ namespace Deveel.Data {
 						if (callback != null)
 							callback.Activate(phase);
 					} catch (Exception ex) {
-						context.OnError(ex);
+						context.AsEventSource().OnError(ex);
 					}
 				}
 			}

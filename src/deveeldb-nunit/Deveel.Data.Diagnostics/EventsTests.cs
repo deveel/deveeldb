@@ -23,7 +23,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			Query.OnError(new Exception("Test Error"));
+			Query.AsEventSource().OnError(new Exception("Test Error"));
 
 			reset.WaitOne();
 
@@ -41,7 +41,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			Query.OnVerbose("Test Message");
+			Query.AsEventSource().OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 
@@ -71,7 +71,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			});
 
-			Query.OnVerbose("Test Message");
+			Query.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -98,7 +98,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			}, e => e.Level == InformationLevel.Debug);
 
-			Query.OnVerbose("Test Message");
+			Query.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -125,7 +125,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			});
 
-			Query.OnVerbose("Test Message");
+			Query.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -148,7 +148,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			Query.OnVerbose("Test Message");
+			Query.AsEventSource().OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 

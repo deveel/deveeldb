@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// This is a session that is constructed around a given user and a transaction,
 	/// to the given database.
 	/// </summary>
-	public sealed class Session : ISession, ISystemDirectAccess {
+	public sealed class Session : ISession, IEventSource, ISystemDirectAccess {
 		private List<LockHandle> lockHandles;
 		private bool disposed;
 		private readonly DateTimeOffset startedOn;
@@ -89,7 +89,7 @@ namespace Deveel.Data {
 		}
 
 		IEventSource IEventSource.ParentSource {
-			get { return Transaction; }
+			get { return Transaction.AsEventSource(); }
 		}
 
 		IContext IEventSource.Context {

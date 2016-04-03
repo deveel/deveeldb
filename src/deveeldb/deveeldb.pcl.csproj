@@ -97,6 +97,7 @@
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
     <Compile Include="Deveel.Data.Diagnostics\InformationEvent.cs" />
@@ -327,6 +328,7 @@
     <Compile Include="Deveel.Data\QueryContext.cs" />
     <Compile Include="Deveel.Data\SessionAccess.cs" />
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data\SystemExtensions.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\Header.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\HeaderHandler.cs" />

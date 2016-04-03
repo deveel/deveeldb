@@ -66,16 +66,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		internal void Execute(ExecutionContext context) {
 			try {
-				context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+				context.Request.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
 
 				ExecuteStatement(context);
 
-				context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
+				context.Request.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
 			} catch (ErrorException ex) {
-				context.Request.OnError(ex);
+				context.Request.AsEventSource().OnError(ex);
 				throw;
 			} catch (Exception ex) {
-				context.Request.OnError(ex);
+				context.Request.AsEventSource().OnError(ex);
 				throw new StatementException("Statement execution caused an error", ex);
 			}
 		}
@@ -123,7 +123,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		internal SqlStatement Prepare(IRequest context, IExpressionPreparer preparer) {
 			try {
-				context.OnEvent(new StatementEvent(this, StatementEventType.BeforePrepare));
+				context.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.BeforePrepare));
 
 				var prepared = PrepareExpressions(preparer);
 				if (prepared == null)
@@ -131,14 +131,14 @@ namespace Deveel.Data.Sql.Statements {
 
 				prepared = prepared.PrepareStatement(context);
 
-				context.OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
+				context.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
 
 				return prepared;
 			} catch (ErrorException ex) {
-				context.OnError(ex);
+				context.AsEventSource().OnError(ex);
 				throw;
 			} catch (Exception ex) {
-				context.OnError(ex);
+				context.AsEventSource().OnError(ex);
 				throw new StatementException("Preparation of the statement caused an error.", ex);
 			}
 		}

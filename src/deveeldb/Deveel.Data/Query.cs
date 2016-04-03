@@ -22,7 +22,7 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
-	public sealed class Query : IQuery, ISystemDirectAccess {
+	public sealed class Query : IQuery, IEventSource, ISystemDirectAccess {
 		private Dictionary<string, object> metadata;
 
 		internal Query(ISession session) 
@@ -100,7 +100,7 @@ namespace Deveel.Data {
 		}
 
 		IEventSource IEventSource.ParentSource {
-			get { return Session; }
+			get { return Session.AsEventSource(); }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {

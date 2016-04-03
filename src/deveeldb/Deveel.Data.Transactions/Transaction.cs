@@ -31,7 +31,7 @@ namespace Deveel.Data.Transactions {
 	/// isolated operations within a database context.
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
-	public sealed class Transaction : ITransaction, ITableStateHandler {
+	public sealed class Transaction : ITransaction, IEventSource, ITableStateHandler {
 		//private Action<TableCommitInfo> commitActions; 
 
 		private readonly bool dbReadOnly;
@@ -60,7 +60,7 @@ namespace Deveel.Data.Transactions {
 			this.IgnoreIdentifiersCase(database.Context.IgnoreIdentifiersCase());
 			this.ParameterStyle(QueryParameterStyle.Marker);
 
-			this.OnEvent(new TransactionEvent(commitId, TransactionEventType.Begin));
+			this.AsEventSource().OnEvent(new TransactionEvent(commitId, TransactionEventType.Begin));
 		}
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation)
@@ -92,7 +92,7 @@ namespace Deveel.Data.Transactions {
 		public Database Database { get; private set; }
 
 		IEventSource IEventSource.ParentSource {
-			get { return Database; }
+			get { return Database.AsEventSource(); }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {

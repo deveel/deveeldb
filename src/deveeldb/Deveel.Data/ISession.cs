@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface ISession : IEventSource, IDisposable {
+	public interface ISession : IDisposable {
 		//SessionAccess Access { get; }
 
 		/// <summary>

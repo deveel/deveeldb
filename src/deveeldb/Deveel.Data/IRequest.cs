@@ -20,7 +20,7 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
-	public interface IRequest : IEventSource, IDisposable {
+	public interface IRequest : IDisposable {
 		IQuery Query { get; }
 
 		new IBlockContext Context { get; }

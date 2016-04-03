@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
@@ -38,7 +36,7 @@ namespace Deveel.Data {
 	/// </list>
 	/// </para>
 	/// </remarks>
-	public interface IDatabase : IEventSource, IDisposable {
+	public interface IDatabase : IDisposable {
 		/// <summary>
 		/// Gets the name of the database.
 		/// </summary>
@@ -48,7 +46,9 @@ namespace Deveel.Data {
 		/// Gets the context that contains this database.
 		/// </summary>
 		/// <seealso cref="IDatabaseContext"/>
-		new IDatabaseContext Context { get; }
+		IDatabaseContext Context { get; }
+
+		ISystem System { get; }
 
 		/// <summary>
 		/// Gets an object that is used to create new transactions to this database

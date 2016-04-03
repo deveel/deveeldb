@@ -70,25 +70,6 @@ namespace Deveel.Data {
 
         public ISessionContext Context { get; private set; }
 
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return GetMetaData(); }
-		}
-
-		IEventSource IEventSource.ParentSource {
-			get { return Transaction; }
-		}
-
-		IContext IEventSource.Context {
-			get { return Context; }
-		}
-
-		private IEnumerable<KeyValuePair<string, object>> GetMetaData() {
-			return new Dictionary<string, object> {
-				{ "session.user", User.SystemName },
-				{ "session.startTime", startedOn }
-			};
-		} 
-
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
 			throw new NotSupportedException();
 		}

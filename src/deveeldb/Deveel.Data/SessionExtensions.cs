@@ -19,6 +19,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -34,6 +35,17 @@ namespace Deveel.Data {
 			return ((ISystemDirectAccess) session).DirectAccess;
 		}
 
+		public static IEventSource AsEventSource(this ISession session) {
+			if (session == null)
+				throw new ArgumentNullException("session");
+
+			var source = session as IEventSource;
+			if (source == null)
+				source = new EventSource(session.Context, session.Transaction.AsEventSource());
+
+			return source;
+		}
+
 		// TODO: In a future version of deveeldb the transaction will be a child of
 		//       the session's wrapped one
 		public static ISession Begin(this ISession session, IsolationLevel isolation) {
@@ -44,10 +56,12 @@ namespace Deveel.Data {
 		#region Metadata
 
 		private static T GetMeta<T>(this ISession session, string key) {
-			if (session.Metadata == null)
+			var eventSource = session.AsEventSource();
+			if (eventSource == null ||
+				eventSource.Metadata == null)
 				return default(T);
 
-			var dict = session.Metadata.ToDictionary(x => x.Key, y => y.Value);
+			var dict = eventSource.Metadata.ToDictionary(x => x.Key, y => y.Value);
 			object value;
 			if (!dict.TryGetValue(key, out value))
 				return default(T);
@@ -62,7 +76,11 @@ namespace Deveel.Data {
 		}
 
 		private static bool HasMeta(this ISession session, string key) {
-			return session.Metadata != null && session.Metadata.Any(x => x.Key == key);
+			var eventSource = session.AsEventSource();
+			if (eventSource == null)
+				return false;
+
+			return eventSource.Metadata != null && eventSource.Metadata.Any(x => x.Key == key);
 		}
 
 		public static bool HasCommandTime(this ISession session) {

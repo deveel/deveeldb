@@ -17,12 +17,22 @@
 
 using System;
 
-using Deveel.Data.Security;
-using Deveel.Data.Sql.Schemas;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class DatabaseExtensions {
+		public static IEventSource AsEventSource(this IDatabase database) {
+			if (database == null)
+				throw new ArgumentNullException("database");
+
+			var source = database as IEventSource;
+			if (source != null)
+				return source;
+
+			return new EventSource(database.Context, database.System.AsEventSource());
+		}
+
 		#region Transactions
 
 		public static ITransaction CreateTransaction(this IDatabase database, IsolationLevel isolation) {

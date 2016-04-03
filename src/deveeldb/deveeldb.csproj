@@ -141,6 +141,7 @@
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventRegistry.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\EventSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
     <Compile Include="Deveel.Data.Diagnostics\InformationEvent.cs" />
@@ -540,6 +541,7 @@
     <Compile Include="Deveel.Data\SessionAccess.cs" />
     <Compile Include="Deveel.Data\SystemAccess.cs" />
     <Compile Include="Deveel.Data\SystemBuilder.cs" />
+    <Compile Include="Deveel.Data\SystemExtensions.cs" />
     <Compile Include="Deveel.Data\SystemTableContainer.cs" />
     <Compile Include="Deveel.Data\SystemContext.cs" />
     <Compile Include="Deveel.Data\SystemContextExtensions.cs" />

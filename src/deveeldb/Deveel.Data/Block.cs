@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
-	public class Block : IBlock, ISystemDirectAccess {
+	public class Block : IBlock, IEventSource, ISystemDirectAccess {
 		private IQuery query;
 
 		public Block(IRequest request) {
@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		}
 
 		IEventSource IEventSource.ParentSource {
-			get { return Parent; }
+			get { return Parent.AsEventSource(); }
 		}
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
