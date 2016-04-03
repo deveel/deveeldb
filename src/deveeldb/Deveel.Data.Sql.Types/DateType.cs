@@ -103,6 +103,26 @@ namespace Deveel.Data.Sql.Types {
 			return TypeCode.GetHashCode();
 		}
 
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			if (!(obj is SqlDateTime))
+				throw new NotSupportedException();
+
+			if (obj.IsNull)
+				return null;
+
+			if (destType == typeof (DateTime?) ||
+			    destType == typeof (DateTimeOffset?))
+				destType = Nullable.GetUnderlyingType(destType);
+
+			var dateTime = (SqlDateTime) obj;
+			if (destType == typeof (DateTime))
+				return dateTime.ToDateTime();
+			if (destType == typeof (DateTimeOffset))
+				return dateTime.ToDateTimeOffset();
+
+			return base.ConvertTo(obj, destType);
+		}
+
 		public override bool IsComparable(SqlType type) {
 			return type is DateType || type is NullType;
 		}

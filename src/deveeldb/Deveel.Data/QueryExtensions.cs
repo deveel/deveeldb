@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Mapping;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -149,6 +150,19 @@ namespace Deveel.Data {
 			var statement = new CreateTableStatement(tableName, columns);
 			statement.Temporary = true;
 			query.ExecuteStatement(statement);
+		}
+
+		public static void CreateTable(this IQuery query, Type type) {
+			var mapInfo = Mapper.GetMapInfo(type);
+			query.CreateTable(mapInfo.TableName, mapInfo.Columns.ToArray());
+
+			foreach (var constraint in mapInfo.Constraints) {
+				query.AlterTable(mapInfo.TableName, constraint.AsAddConstraintAction());
+			}
+		}
+
+		public static void CreateTable<T>(this IQuery query) where T : class {
+			query.CreateTable(typeof(T));
 		}
 
 		#endregion

@@ -957,5 +957,9 @@ namespace Deveel.Data.Sql {
 		public void SerializeValueTo(Stream stream, ISystemContext systemContext) {
 			Type.SerializeObject(stream, Value);
 		}
+
+		public object ConvertTo(Type destType) {
+			return Type.ConvertTo(Value, destType);
+		}
 	}
 }

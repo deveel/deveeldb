@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
@@ -388,6 +389,15 @@ namespace Deveel.Data {
 			var columns = args.Select(x => new SelectColumn(x));
 			var query = new SqlQueryExpression(columns);
 			return request.Select(query);
+		}
+
+		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) where T : class {
+			return request.Select(query).Select(x => x.ToObject<T>());
+		}
+
+		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) where T : class {
+			var query = (SqlQueryExpression) SqlExpression.Parse(queryText);
+			return request.Select<T>(query);
 		}
 
 		#region Select Function

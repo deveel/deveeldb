@@ -679,5 +679,12 @@ namespace Deveel.Data.Sql.Objects {
 
 			return value.Value.DateTime;
 		}
+
+		public DateTimeOffset ToDateTimeOffset() {
+			if (value == null)
+				throw new InvalidCastException();
+
+			return value.Value;
+		}
 	}
 }

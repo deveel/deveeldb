@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Mapping;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
@@ -45,6 +46,40 @@ namespace Deveel.Data {
 			Query.CreateTable(tableName, columns);
 
 			// TODO: Assert it exists and has the structure desired...
+		}
+
+		[Test]
+		public void FromMap() {
+			Query.CreateTable<TestClass>();
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var tableInfo = Query.Access().GetTableInfo(tableName);
+
+			Assert.IsNotNull(tableInfo);
+			Assert.AreEqual(3, tableInfo.ColumnCount);
+
+			var idColumn = tableInfo[0];
+			Assert.IsNotNull(idColumn);
+			Assert.AreEqual("Id", idColumn.ColumnName);
+			Assert.IsNotNull(idColumn.DefaultExpression);
+
+			var primaryKey = Query.Access().QueryTablePrimaryKey(tableName);
+			Assert.IsNotNull(primaryKey);
+		}
+
+		[TableName("test_table")]
+		class TestClass {
+			[Column, Identity]
+			public int Id { get; set; }
+
+			[Column]
+			public string FirstName { get; set; }
+
+			[Column(Null = true)]
+			public string LastName { get; set; }
+
+			[Mapping.Ignore]
+			public int Dummy { get; set; }
 		}
 	}
 }
