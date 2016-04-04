@@ -4,7 +4,9 @@ namespace System.Runtime.Serialization {
 	public interface IFormatterConverter {
 		object Convert(object value, Type type);
 
+#if !PCL
 		object Convert(object value, TypeCode typeCode);
+#endif
 
 		bool ToBoolean(object value);
 

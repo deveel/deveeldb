@@ -64,8 +64,10 @@ namespace Deveel.Data.Diagnostics {
 				return ((DateTime) value).ToString(Settings.DateFormat);
 			}
 
+#if !PCL
 			if (!(value is IConvertible))
 				return String.Empty;
+#endif
 
 			return (string) Convert.ChangeType(value, typeof (string), CultureInfo.InvariantCulture);
 		}

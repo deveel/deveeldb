@@ -110,14 +110,22 @@ namespace Deveel.Data {
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 
+#if PCL
+			var dbPath = FileSystem.Local.CombinePath(".", DatabaseName);
+#else
+			var dbPath = Path.Combine(Environment.CurrentDirectory, DatabaseName);
+#endif
 			if (StorageType == StorageType.InMemory) {
 				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.Heap);
 			} else if (StorageType == StorageType.JournaledFile) {
 				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.Journaled);
-				dbConfig.SetValue("database.path", Path.Combine(Environment.CurrentDirectory, DatabaseName));
+				dbConfig.SetValue("database.path", dbPath);
 			} else if (StorageType == StorageType.SingleFile) {
+				if (!FileSystem.Local.DirectoryExists(dbPath))
+					FileSystem.Local.CreateDirectory(dbPath);
+
 				dbConfig.SetValue("database.storageSystem", DefaultStorageSystemNames.SingleFile);
-				dbConfig.SetValue("database.basePath", Environment.CurrentDirectory);
+				dbConfig.SetValue("database.basePath", dbPath);
 			}
 
 			Database = CreateDatabase(System, dbConfig);
@@ -164,14 +172,26 @@ namespace Deveel.Data {
 				System.Dispose();
 
 			if (StorageType == StorageType.JournaledFile) {
+#if PCL
+				var dataDir = FileSystem.Local.CombinePath(".", DatabaseName);
+				if (FileSystem.Local.DirectoryExists(dataDir))
+					FileSystem.Local.CreateDirectory(dataDir);
+#else
 				var dataDir = Path.Combine(Environment.CurrentDirectory, DatabaseName);
 				if (Directory.Exists(dataDir)) {
 					Directory.Delete(dataDir, true);
 				}
+#endif
 			} else if (StorageType == StorageType.SingleFile) {
+#if PCL
+				var fileName = FileSystem.Local.CombinePath(".", String.Format("{0}.db", DatabaseName));
+				if (FileSystem.Local.FileExists(fileName))
+					FileSystem.Local.DeleteFile(fileName);
+#else
 				var fileName = Path.Combine(Environment.CurrentDirectory, String.Format("{0}.db", DatabaseName));
 				if (File.Exists(fileName))
 					File.Delete(fileName);
+#endif
 			}
 		}
 

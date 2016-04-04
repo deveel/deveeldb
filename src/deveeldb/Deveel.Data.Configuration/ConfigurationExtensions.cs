@@ -21,6 +21,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+using DryIoc;
+
 namespace Deveel.Data.Configuration {
 	public static class ConfigurationExtensions {
 		#region Get Values
@@ -67,11 +69,13 @@ namespace Deveel.Data.Configuration {
 				value is string)
 				return (T)ConvertToBoolean((string)value);
 
-			if (typeof(T).IsEnum)
+			if (typeof(T).IsEnum())
 				return ConvertToEnum<T>(value);
 
+#if !PCL
 			if (!(value is IConvertible))
 				throw new InvalidCastException();
+#endif
 
 			return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
 		}
@@ -212,11 +216,11 @@ namespace Deveel.Data.Configuration {
 			return config.GetValue<double>(propertyKey, defaultValue);
 		}
 
-		#endregion
+#endregion
 
-		#endregion
+#endregion
 
-		#region Load / Save
+#region Load / Save
 
 		public static void Load(this IConfiguration config, IConfigSource source) {
 			config.Load(source, new PropertiesConfigFormatter());
@@ -334,7 +338,7 @@ namespace Deveel.Data.Configuration {
 			config.Save(new StreamConfigSource(outputStream), level, formatter);
 		}
 
-		#endregion
+#endregion
 
 		public static IConfiguration MergeWith(this IConfiguration configuration, IConfiguration other) {
 			var newConfig = new Configuration(configuration);

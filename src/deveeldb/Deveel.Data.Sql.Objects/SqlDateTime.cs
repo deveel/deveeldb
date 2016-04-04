@@ -20,7 +20,11 @@ using System.Globalization;
 using System.Reflection;
 
 namespace Deveel.Data.Sql.Objects {
-	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IConvertible, IComparable<SqlDateTime>, IFormattable {
+	public struct SqlDateTime : ISqlObject, IEquatable<SqlDateTime>, IComparable<SqlDateTime>, IFormattable
+#if !PCL
+		, IConvertible
+#endif
+		{
 		private readonly DateTimeOffset? value;
 
 		public static readonly SqlDateTime Null = new SqlDateTime(true);
@@ -246,6 +250,7 @@ namespace Deveel.Data.Sql.Objects {
 			return other is SqlDateTime;
 		}
 
+#if !PCL
 		TypeCode IConvertible.GetTypeCode() {
 			return TypeCode.DateTime;
 		}
@@ -329,6 +334,8 @@ namespace Deveel.Data.Sql.Objects {
 
 			throw new InvalidCastException();
 		}
+
+#endif
 
 		public bool Equals(SqlDateTime other) {
 			if (IsNull && other.IsNull)

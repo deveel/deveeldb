@@ -40,7 +40,11 @@ namespace Deveel.Data.Sql.Objects {
 	/// </remarks>
 	/// <seealso cref="ISqlString"/>
 	[Serializable]
-	public struct SqlString : ISqlString, IEquatable<SqlString>, IConvertible, ISerializable {
+	public struct SqlString : ISqlString, IEquatable<SqlString>, ISerializable
+#if !PCL
+		, IConvertible
+#endif
+		{
 		/// <summary>
 		/// The maximum length of characters a <see cref="SqlString"/> can handle.
 		/// </summary>
@@ -321,7 +325,7 @@ namespace Deveel.Data.Sql.Objects {
 			return bytes.Length;
 		}
 
-		#region StringEnumerator
+#region StringEnumerator
 
 		class StringEnumerator : IEnumerator<char> {
 			private readonly SqlString sqlString;
@@ -358,12 +362,13 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
-		#endregion
+#endregion
 
 		public override string ToString() {
 			return Value;
 		}
 
+#if !PCL
 		TypeCode IConvertible.GetTypeCode() {
 			return TypeCode.String;
 		}
@@ -470,6 +475,8 @@ namespace Deveel.Data.Sql.Objects {
 
 			throw new InvalidCastException(String.Format("Cannot convet SQL STRING to {0}", conversionType.FullName));
 		}
+
+#endif
 
 		public SqlBoolean ToBoolean() {
 			SqlBoolean value;

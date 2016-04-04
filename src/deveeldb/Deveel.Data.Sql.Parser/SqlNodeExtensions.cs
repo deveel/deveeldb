@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using DryIoc;
+
 namespace Deveel.Data.Sql.Parser {
 	/// <summary>
 	/// Extension methods to <see cref="ISqlNode"/> for diagnostics and other purposes.
@@ -36,7 +38,11 @@ namespace Deveel.Data.Sql.Parser {
 
 		public static ISqlNode FindNode(this ISqlNode node, Type nodeType) {
 			foreach (var childNode in node.ChildNodes) {
+#if PCL
+				if (nodeType.IsTypeOf(childNode))
+#else
 				if (nodeType.IsInstanceOfType(childNode))
+#endif
 					return childNode;
 
 				var foundNode = childNode.FindNode(nodeType);
@@ -85,9 +91,12 @@ namespace Deveel.Data.Sql.Parser {
 			var nodes = new List<ISqlNode>();
 
 			foreach (var childNode in node.ChildNodes) {
-				if (nodeType.IsInstanceOfType(childNode)) {
+#if PCL
+				if (nodeType.IsTypeOf(childNode))
+#else
+				if (nodeType.IsInstanceOfType(childNode))
+#endif
 					nodes.Add(childNode);
-				}
 
 				nodes.AddRange(childNode.FindNodes(nodeType).Cast<ISqlNode>());
 			}

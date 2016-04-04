@@ -82,12 +82,7 @@ namespace Deveel.Data {
 				.WithKey(DefaultStorageSystemNames.SingleFile)
 				.InDatabaseScope();
 
-#if !PCL
-			ServiceContainer.Bind<IFileSystem>()
-				.To<LocalFileSystem>()
-				.WithKey("local")
-				.InSystemScope();
-#endif
+			ServiceContainer.UseLocalFileSystem();
 
 			ServiceContainer.Bind<IStoreDataFactory>()
 				.To<ScatteringFileStoreDataFactory>()

@@ -7,6 +7,8 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
+using DryIoc;
+
 namespace Deveel.Data.Mapping {
 	public sealed class Mapper {
 		public static TypeMapInfo GetMapInfo(Type type) {
@@ -38,6 +40,20 @@ namespace Deveel.Data.Mapping {
 		}
 
 		private static ObjectName GetTableName(Type type) {
+#if PCL
+			var attribute = type.GetTypeInfo().GetCustomAttribute<TableNameAttribute>();
+			if (attribute != null) {
+				ObjectName name;
+
+				if (!String.IsNullOrEmpty(attribute.Schema)) {
+					name = new ObjectName(new ObjectName(attribute.Schema), attribute.Name);
+				} else {
+					name = ObjectName.Parse(attribute.Name);
+				}
+
+				return name;
+			}
+#else
 			if (Attribute.IsDefined(type, typeof (TableNameAttribute))) {
 				var attribute = (TableNameAttribute) Attribute.GetCustomAttribute(type, typeof (TableNameAttribute));
 				ObjectName name;
@@ -50,17 +66,27 @@ namespace Deveel.Data.Mapping {
 
 				return name;
 			}
+#endif
 
 			return new ObjectName(type.Name);
 		}
 
 		private static IEnumerable<MemberMapInfo> GetMembersMapInfo(Type type, TypeMapInfo typeMapInfo) {
+#if PCL
+			var members = type.GetAllMembers().Where(x => !x.IsStatic());
+#else
 			var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 			var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
 			var members = properties.Cast<MemberInfo>().Union(fields);
+#endif
 			foreach (var memberInfo in members) {
+#if PCL
+				if (memberInfo.IsDefined(typeof(IgnoreAttribute)))
+					continue;
+#else
 				if (Attribute.IsDefined(memberInfo, typeof(IgnoreAttribute)))
 					continue;
+#endif
 
 				if (!(memberInfo is FieldInfo) &&
 					!(memberInfo is PropertyInfo))
@@ -80,8 +106,13 @@ namespace Deveel.Data.Mapping {
 			object defaultValue = null;
 			bool defaultIsExpression = false;
 
-			if (Attribute.IsDefined(memberInfo, typeof(ColumnAttribute))) {
-				var attribute = (ColumnAttribute)Attribute.GetCustomAttribute(memberInfo, typeof(ColumnAttribute));
+#if PCL
+			if (memberInfo.IsDefined(typeof(ColumnAttribute))) {
+				var attribute = memberInfo.GetCustomAttribute<ColumnAttribute>();
+#else
+			if (Attribute.IsDefined(memberInfo, typeof (ColumnAttribute))) {
+				var attribute = (ColumnAttribute) Attribute.GetCustomAttribute(memberInfo, typeof (ColumnAttribute));
+#endif
 				if (!String.IsNullOrEmpty(attribute.Name))
 					columnName = attribute.Name;
 
@@ -106,12 +137,21 @@ namespace Deveel.Data.Mapping {
 			}
 
 			ConstraintMapInfo constraint = null;
+#if PCL
+			if (memberInfo.IsDefined(typeof (ConstraintAttribute))) {
+				var attribute = memberInfo.GetCustomAttribute<ConstraintAttribute>();
+#else
 			if (Attribute.IsDefined(memberInfo, typeof (ConstraintAttribute))) {
 				var attribute = (ConstraintAttribute) Attribute.GetCustomAttribute(memberInfo, typeof (ConstraintAttribute));
+#endif
 				constraint = new ConstraintMapInfo(memberInfo, columnName, attribute.Type, attribute.Expression);
 			}
 
+#if PCL
+			if (memberInfo.IsDefined(typeof (IdentityAttribute))) {
+#else
 			if (Attribute.IsDefined(memberInfo, typeof (IdentityAttribute))) {
+#endif
 				if (constraint != null)
 					throw new InvalidOperationException("Cannot specify an identity for a column that already defines a constraint.");
 
@@ -140,7 +180,7 @@ namespace Deveel.Data.Mapping {
 				return false;
 			}
 
-			if (memberType.IsValueType) {
+			if (memberType.IsValueType()) {
 				var underlyingType = Nullable.GetUnderlyingType(memberType);
 				if (underlyingType != null) {
 					var nullableType = typeof (Nullable<>).MakeGenericType(underlyingType);
@@ -149,7 +189,7 @@ namespace Deveel.Data.Mapping {
 				return false;
 			}
 
-			return memberType.IsClass;
+			return !memberType.IsValueType();
 		}
 
 		private static SqlType GetSqlType(MemberInfo memberInfo) {

@@ -57,10 +57,10 @@ namespace Deveel.Data.Services {
 			if (serviceType == null)
 				throw new ArgumentNullException("serviceType");
 
-			if (!serviceType.IsClass)
+			if (serviceType.IsValueType())
 				throw new ArgumentException(String.Format("The service type '{0}' to register is not a class.", serviceType));
 
-			var interfaces = serviceType.GetInterfaces();
+			var interfaces = serviceType.GetImplementedInterfaces();
 			foreach (var interfaceType in interfaces) {
 				scope.Register(interfaceType, serviceType, serviceKey);
 			}
@@ -110,7 +110,7 @@ namespace Deveel.Data.Services {
 		}
 
 		public static void RegisterInstance<TService>(this IScope scope, TService instance, object serviceKey) where TService : class {
-			var interfaces = typeof (TService).GetInterfaces();
+			var interfaces = typeof (TService).GetImplementedInterfaces();
 			foreach (var interfaceType in interfaces) {
 				scope.RegisterInstance(interfaceType, instance, serviceKey);
 			}

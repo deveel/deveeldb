@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
@@ -112,8 +113,12 @@ namespace Deveel.Data {
 		}
 
 		private void DiscoverDataVersion() {
+#if PCL
+			var dataVerion = typeof(Database).GetTypeInfo().Assembly.GetCustomAttribute<DataVersionAttribute>();
+#else
 			var dataVerion = Attribute.GetCustomAttribute(typeof (Database).Assembly, typeof (DataVersionAttribute))
 				as DataVersionAttribute;
+#endif
 			if (dataVerion != null)
 				Version = dataVerion.Version;
 		}
@@ -423,7 +428,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		#region DatabaseTransactionFactory
+#region DatabaseTransactionFactory
 
 		class DatabaseTransactionFactory : ITransactionFactory {
 			private readonly Database database;
@@ -452,6 +457,6 @@ namespace Deveel.Data {
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

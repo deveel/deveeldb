@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+
+using DryIoc;
 
 namespace System.Runtime.Serialization {
 	public sealed class SerializationInfo : IEnumerable<SerializationEntry> {
@@ -19,7 +22,11 @@ namespace System.Runtime.Serialization {
 				throw new ArgumentNullException("converter");
 
 			ObjectType = type;
+#if PCL
+			assemblyName = type.GetTypeInfo().Assembly.FullName;
+#else
 			assemblyName = type.Assembly.FullName;
+#endif
 			typeName = type.FullName;
 
 			entries = new Dictionary<string, SerializationEntry>();
@@ -66,7 +73,11 @@ namespace System.Runtime.Serialization {
 				throw new ArgumentNullException("type");
 
 			typeName = type.FullName;
+#if PCL
+			assemblyName = type.GetTypeInfo().Assembly.FullName;
+#else
 			assemblyName = type.Assembly.FullName;
+#endif
 			ObjectType = type;
 			IsAssemblyNameSetExplicit = false;
 			IsFullTypeNameSetExplicit = false;
@@ -96,9 +107,13 @@ namespace System.Runtime.Serialization {
 
 			var value = entry.Value;
 
+#if !PCL
 			if (value != null && !type.IsInstanceOfType(value))
 				value = converter.Convert(value, type);
-
+#else
+			if (value != null && !type.IsTypeOf(value))
+				value = converter.Convert(value, type);
+#endif
 			return value;
 		}
 

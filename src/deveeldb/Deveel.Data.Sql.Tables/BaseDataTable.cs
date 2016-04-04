@@ -23,6 +23,8 @@ using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Services;
 
+using DryIoc;
+
 namespace Deveel.Data.Sql.Tables {
 	public abstract class BaseDataTable : RootTable {
 		private readonly IContext context;
@@ -94,7 +96,11 @@ namespace Deveel.Data.Sql.Tables {
 
 			if (indexType == null) {
 				indexType = typeof (BlindSearchIndex);
+#if PCL
+			} else if (!indexType.IsAssignableTo(typeof(ColumnIndex))) {
+#else
 			} else if (!typeof (ColumnIndex).IsAssignableFrom(indexType)) {
+#endif
 				throw new InvalidOperationException(String.Format("The type '{0}' is not a valid table index.", indexType));
 			}
 

@@ -23,6 +23,8 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
+using DryIoc;
+
 namespace Deveel.Data.Serialization {
 	public sealed class BinarySerializer {
 		public BinarySerializer() {
@@ -50,10 +52,18 @@ namespace Deveel.Data.Serialization {
 			if (graphType == null)
 				throw new InvalidOperationException("No type found in the graph stream");
 
+#if PCL
+			if (!graphType.GetTypeInfo().IsDefined(typeof(SerializableAttribute)))
+#else
 			if (!Attribute.IsDefined(graphType, typeof (SerializableAttribute)))
+#endif
 				throw new ArgumentException(String.Format("The type '{0}' is not marked as serializable.", graphType));
 
+#if PCL
+			if (graphType.IsAssignableTo(typeof(ISerializable)))
+#else
 			if (typeof (ISerializable).IsAssignableFrom(graphType))
+#endif
 				return CustomDeserialize(reader, graphType);
 
 			return DeserializeType(reader, graphType);
@@ -62,7 +72,11 @@ namespace Deveel.Data.Serialization {
 		private object DeserializeType(BinaryReader reader, Type graphType) {
 			object obj;
 
+#if !PCL
 			if (graphType.IsValueType) {
+#else
+			if (graphType.IsValueType()) {
+#endif
 				obj = Activator.CreateInstance(graphType);
 			} else {
 				var ctor = GetDefaultConstructor(graphType);
@@ -72,10 +86,17 @@ namespace Deveel.Data.Serialization {
 				obj = ctor.Invoke(new object[0]);
 			}
 
+#if PCL
+			var fields = graphType.GetRuntimeFields().Where(x => !x.IsStatic && !x.IsDefined(typeof(NonSerializedAttribute)));
+			var properties =
+				graphType.GetRuntimeProperties()
+					.Where(x => !x.IsStatic() && x.CanWrite && !x.IsDefined(typeof (NonSerializedAttribute)));
+#else
 			var fields = graphType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.Where(member => !member.IsDefined(typeof (NonSerializedAttribute), false));
 			var properties = graphType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.Where(member => member.CanWrite && !member.IsDefined(typeof (NonSerializedAttribute), false));
+#endif
 
 			var members = new List<MemberInfo>();
 			members.AddRange(fields.Cast<MemberInfo>());
@@ -105,6 +126,9 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private ConstructorInfo GetDefaultConstructor(Type type) {
+#if PCL
+			return type.GetConstructorOrNull(true);
+#else
 			var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			foreach (var ctor in ctors) {
 				if (ctor.GetParameters().Length == 0)
@@ -112,6 +136,7 @@ namespace Deveel.Data.Serialization {
 			}
 
 			return null;
+#endif
 		}
 
 		private object CustomDeserialize(BinaryReader reader, Type graphType) {
@@ -210,6 +235,9 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private ConstructorInfo GetSpecialConstructor(Type type) {
+#if PCL
+			return type.GetConstructorOrNull(true, typeof (SerializationInfo), typeof (StreamingContext));
+#else
 			var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			foreach (var ctor in ctors) {
 				var paramTypes = ctor.GetParameters().Select(x => x.ParameterType).ToArray();
@@ -220,6 +248,7 @@ namespace Deveel.Data.Serialization {
 			}
 
 			return null;
+#endif
 		}
 
 		public void Serialize(Stream stream, object obj) {
@@ -241,13 +270,21 @@ namespace Deveel.Data.Serialization {
 
 			var objType = obj.GetType();
 
+#if !PCL
 			if (!Attribute.IsDefined(objType, typeof(SerializableAttribute)))
+#else
+			if (!objType.GetTypeInfo().IsDefined(typeof(SerializableAttribute)))
+#endif
 				throw new ArgumentException(String.Format("The type '{0} is not serializable", objType.FullName));
 
 			var graph = new SerializationInfo(objType, new FormatterConverter());
 			var context = new StreamingContext();
 
+#if PCL
+			if (objType.IsTypeOf(typeof(ISerializable))) {
+#else
 			if (typeof (ISerializable).IsAssignableFrom(objType)) {
+#endif
 				((ISerializable) obj).GetObjectData(graph, context);
 			} else {
 				GetObjectValues(objType, obj, graph);
@@ -257,10 +294,18 @@ namespace Deveel.Data.Serialization {
 		}
 
 		private static void GetObjectValues(Type objType, object obj, SerializationInfo graph) {
+#if PCL
+			var fields =
+				objType.GetRuntimeFields()
+					.Where(x => !x.IsStatic && !x.IsDefined(typeof (NonSerializedAttribute)) && !x.Name.EndsWith("_BackingField"));
+			var properties = objType.GetRuntimeProperties()
+				.Where(x => !x.IsStatic() && x.CanWrite && !x.IsDefined(typeof (NonSerializedAttribute)));
+#else
 			var fields = objType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
 				.Where(x => !x.IsDefined(typeof (NonSerializedAttribute), false) && !x.Name.EndsWith("_BackingField"));
 			var properties = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.Where(x => !x.IsDefined(typeof (NonSerializedAttribute), false) && x.CanRead);
+#endif
 
 			var members = new List<MemberInfo>();
 			members.AddRange(fields.Cast<MemberInfo>());
@@ -305,9 +350,13 @@ namespace Deveel.Data.Serialization {
 				var value = en.Value;
 				var objType = en.ObjectType;
 
+#if PCL
+				if (objType.IsAbstract() && value != null)
+#else
 				if ((objType.IsAbstract ||
 				     objType.IsInterface) &&
 				    value != null)
+#endif
 					objType = value.GetType();
 
 				SerializeValue(writer, encoding, objType, value);
@@ -329,7 +378,11 @@ namespace Deveel.Data.Serialization {
 			if (type.IsArray)
 				return ArrayType;
 
+#if PCL
+			if (type.IsPrimitive()) {
+#else
 			if (type.IsPrimitive) {
+#endif
 				if (type == typeof(bool))
 					return BooleanType;
 				if (type == typeof(byte))
@@ -349,7 +402,11 @@ namespace Deveel.Data.Serialization {
 			if (type == typeof (string))
 				return StringType;
 
+#if PCL
+			if (type.GetTypeInfo().IsDefined(typeof(SerializableAttribute)))
+#else
 			if (Attribute.IsDefined(type, typeof(SerializableAttribute)))
+#endif
 				return ObjectType;
 
 			return null;

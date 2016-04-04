@@ -32,7 +32,11 @@ namespace Deveel.Data.Sql.Objects {
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public struct SqlBoolean : ISqlObject, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, IConvertible, ISerializable {
+	public struct SqlBoolean : ISqlObject, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, ISerializable
+#if !PCL
+		, IConvertible
+#endif
+		{
 		private readonly byte? value;
 
 		/// <summary>
@@ -231,6 +235,7 @@ namespace Deveel.Data.Sql.Objects {
 			return value == null ? 0 : value.Value.GetHashCode();
 		}
 
+#if !PCL
 		TypeCode IConvertible.GetTypeCode() {
 			return TypeCode.Boolean;
 		}
@@ -307,6 +312,8 @@ namespace Deveel.Data.Sql.Objects {
 
 			throw new InvalidCastException(String.Format("Cannot convert a SQL BOOLEAN to {0}", conversionType.FullName));
 		}
+
+#endif
 
 		/// <inheritdoc/>
 		public int CompareTo(SqlBoolean other) {

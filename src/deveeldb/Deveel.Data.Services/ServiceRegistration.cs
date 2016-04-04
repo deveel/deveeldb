@@ -17,6 +17,8 @@
 
 using System;
 
+using DryIoc;
+
 namespace Deveel.Data.Services {
 	public sealed class ServiceRegistration {
 		private object instance;
@@ -27,7 +29,7 @@ namespace Deveel.Data.Services {
 			if (implementationType == null)
 				throw new ArgumentNullException("implementationType");
 
-			if (!serviceType.IsAssignableFrom(implementationType))
+			if (!implementationType.IsAssignableTo(serviceType))
 				throw new ArgumentException(
 					String.Format("The implementation type '{0} is not assignable from the service type '{1}'.",
 						implementationType, serviceType));
@@ -48,7 +50,7 @@ namespace Deveel.Data.Services {
 			get { return instance; }
 			set {
 				if (value != null &&
-					!ServiceType.IsInstanceOfType(value))
+					!ServiceType.IsTypeOf(value))
 					throw new ArgumentException(String.Format("The instance is not assignable from '{0}'.", ServiceType));
 
 				instance = value;

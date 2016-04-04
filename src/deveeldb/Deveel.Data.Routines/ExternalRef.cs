@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 
 using Deveel.Data.Sql.Types;
 
@@ -154,7 +155,12 @@ namespace Deveel.Data.Routines {
 
 				MethodInfo foundMethod = null;
 
+#if PCL
+				var methods = type.GetRuntimeMethods().Where(x => x.IsPublic && x.IsStatic);
+#else
 				var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+#endif
+
 				foreach (var method in methods) {
 					if (!String.Equals(method.Name, methodName))
 						continue;
@@ -371,8 +377,13 @@ namespace Deveel.Data.Routines {
 
 			string assemblyName = null;
 
+#if PCL
+			if (includeAssembly)
+				assemblyName = type.GetTypeInfo().Assembly.FullName;
+#else
 			if (includeAssembly)
 				assemblyName = type.Assembly.FullName;
+#endif
 
 			var typeName = type.FullName;
 

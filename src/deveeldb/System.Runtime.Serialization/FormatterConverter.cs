@@ -7,9 +7,11 @@ namespace System.Runtime.Serialization {
 			return System.Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
 		}
 
+#if !PCL
 		public object Convert(object value, TypeCode typeCode) {
 			throw new NotImplementedException();
 		}
+#endif
 
 		public bool ToBoolean(object value) {
 			return System.Convert.ToBoolean(value);

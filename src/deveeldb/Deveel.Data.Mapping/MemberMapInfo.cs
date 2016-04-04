@@ -100,7 +100,7 @@ namespace Deveel.Data.Mapping {
 			if (Field.IsNullField(value)) {
 				if (!IsNullable)
 					throw new InvalidOperationException(String.Format("Cannot set NULL to the non-nullable field '{0}' of {1}.",
-						Member.Name, Member.ReflectedType));
+						Member.Name, Member.DeclaringType));
 			}
 
 			var memberValue = value.ConvertTo(MemberType);

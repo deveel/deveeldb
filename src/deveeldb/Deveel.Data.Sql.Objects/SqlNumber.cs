@@ -22,7 +22,11 @@ using Deveel.Math;
 
 namespace Deveel.Data.Sql.Objects {
 	[Serializable]
-	public struct SqlNumber : ISqlObject, IComparable<SqlNumber>, IConvertible, IEquatable<SqlNumber>, ISerializable {
+	public struct SqlNumber : ISqlObject, IComparable<SqlNumber>, IEquatable<SqlNumber>, ISerializable
+#if !PCL
+		, IConvertible
+#endif
+		{
 		private readonly BigDecimal innerValue;
 		private readonly int byteCount;
 		private readonly long valueAsLong;
@@ -262,6 +266,7 @@ namespace Deveel.Data.Sql.Objects {
 			return (State - other.State);
 		}
 
+#if !PCL
 		TypeCode IConvertible.GetTypeCode() {
 			if (CanBeInt32)
 				return TypeCode.Int32;
@@ -362,8 +367,9 @@ namespace Deveel.Data.Sql.Objects {
 
 			throw new InvalidCastException(System.String.Format("Cannot convert NUMERIC to {0}", conversionType));
 		}
+#endif
 
-				public byte[] ToByteArray() {
+		public byte[] ToByteArray() {
 			return State == NumericState.None
 				? innerValue.MovePointRight(innerValue.Scale).ToBigInteger().ToByteArray()
 				: new byte[0];

@@ -7,6 +7,8 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
+using DryIoc;
+
 namespace Deveel.Data.Mapping {
 	public sealed class TypeMapInfo {
 		private readonly List<MemberMapInfo> members;
@@ -38,8 +40,12 @@ namespace Deveel.Data.Mapping {
 		}
 
 		public object ToObject(Row row) {
+#if PCL
+			var ctor = Type.GetConstructorOrNull(true);
+#else
 			var ctor = Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
 				.FirstOrDefault(x => x.GetParameters().Length == 0);
+#endif
 
 			if (ctor == null)
 				throw new InvalidOperationException(String.Format("The type '{0}' has no default constructor.", Type));

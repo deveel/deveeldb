@@ -74,10 +74,14 @@ namespace Deveel.Data {
 			if (value is T)
 				return (T) value;
 
+#if !PCL
 			if (value is IConvertible)
 				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 
 			throw new InvalidCastException();
+#else
+			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
+#endif
 		}
 
 		private static bool HasMeta(this ISession session, string key) {
@@ -110,6 +114,6 @@ namespace Deveel.Data {
 			return new TimeSpan(0, hours, minutes, 0);
 		}
 
-		#endregion
+#endregion
 	}
 }

@@ -19,7 +19,11 @@ using System;
 
 namespace Deveel.Data.Sql.Objects {
 	[Serializable]
-	public struct SqlNull : ISqlObject, IConvertible {
+	public struct SqlNull : ISqlObject
+#if !PCL
+		, IConvertible
+#endif
+		{
 		public static readonly SqlNull Value = new SqlNull();
 
 		int IComparable.CompareTo(object obj) {
@@ -64,6 +68,7 @@ namespace Deveel.Data.Sql.Objects {
 			return !(a == b);
 		}
 
+#if !PCL
 		TypeCode IConvertible.GetTypeCode() {
 			return TypeCode.Object;
 		}
@@ -131,6 +136,7 @@ namespace Deveel.Data.Sql.Objects {
 		object IConvertible.ToType(Type conversionType, IFormatProvider provider) {
 			throw new InvalidCastException();
 		}
+#endif
 
 		public override string ToString() {
 			return "NULL";

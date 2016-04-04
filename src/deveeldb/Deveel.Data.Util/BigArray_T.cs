@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Deveel.Data.Util {
 	public sealed class BigArray<T> : IBigList<T>, IDisposable {

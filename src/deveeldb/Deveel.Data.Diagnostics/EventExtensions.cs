@@ -31,10 +31,14 @@ namespace Deveel.Data.Diagnostics {
 			if (value is T)
 				return (T) value;
 
+#if !PCL
 			if (value is IConvertible)
 				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 
 			throw new InvalidCastException();
+#else
+			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
+#endif
 		}
 
 		public static string UserName(this IEvent @event) {

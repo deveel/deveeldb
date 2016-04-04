@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Linq;
 using System.Reflection;
 
 using Deveel.Data;
@@ -32,8 +33,12 @@ namespace Deveel.Data.Util {
 		public static ProductInfo Current {
 			get {
 				if (current == null)
+#if !PCL
 					current = GetProductInfo(typeof(Database).Assembly);
-				return current;
+#else
+					current = GetProductInfo(typeof (Database).GetTypeInfo().Assembly);
+#endif
+					return current;
 			}
 		}
 
@@ -50,7 +55,11 @@ namespace Deveel.Data.Util {
 		private static ProductInfo GetProductInfo(Assembly assembly) {
 			ProductInfo productInfo = new ProductInfo();
 
-			object[] attributes = assembly.GetCustomAttributes(false);
+#if PCL
+			var attributes = assembly.GetCustomAttributes().ToArray();
+#else
+			var attributes = assembly.GetCustomAttributes(false).ToArray();
+#endif
 			for (int i = 0; i < attributes.Length; i++) {
 				object attr = attributes[i];
 				if (attr is AssemblyCopyrightAttribute)
