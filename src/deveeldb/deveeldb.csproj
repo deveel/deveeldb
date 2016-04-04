@@ -65,12 +65,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.Math, Version=1.5.70.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\dmath.1.5.70\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+    <Reference Include="Deveel.Math, Version=1.5.71.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dmath.1.5.71\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="DryIoc, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DryIoc.dll.2.3.0\lib\net35\DryIoc.dll</HintPath>
+    <Reference Include="DryIoc, Version=2.0.0.356, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.0.0\lib\net35\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
@@ -78,10 +78,8 @@
       <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>

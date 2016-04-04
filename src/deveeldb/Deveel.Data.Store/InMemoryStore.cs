@@ -36,10 +36,6 @@ namespace Deveel.Data.Store {
 			uniqueIdKey = 0;
 		}
 
-		~InMemoryStore() {
-			Dispose(false);
-		}
-
 		/// <summary>
 		/// Gets the unique name of the store within the application.
 		/// </summary>
@@ -56,14 +52,9 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		private void Dispose(bool disposing) {
+		public void Dispose() {
 			fixedAreaBlock = null;
 			areaMap = null;
-		}
-
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 
 		private InMemoryBlock GetBlock(long pointer) {

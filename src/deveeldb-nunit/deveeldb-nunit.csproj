@@ -64,8 +64,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Deveel.Math, Version=1.5.69.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\dmath.1.5.69\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
+    <Reference Include="Deveel.Math, Version=1.5.71.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dmath.1.5.71\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
@@ -208,13 +208,16 @@
     <None Include="packages.deveeldb-nunit.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Deveel.Data.Sql.Parser\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\deveeldb\deveeldb.csproj">
       <Project>{a14222ae-1b48-4863-a0ca-1d6c2ab2190b}</Project>
       <Name>deveeldb</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Sql.Parser\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
