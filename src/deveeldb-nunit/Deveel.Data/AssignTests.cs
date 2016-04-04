@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class AssignTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnAfterSetup(string testName) {
 			Query.Access().CreateObject(new VariableInfo("a", PrimitiveTypes.Integer(), false));
 			Query.Access().CreateObject(new VariableInfo("b", PrimitiveTypes.Integer(), true) {
 				DefaultExpression = SqlExpression.Constant(56)

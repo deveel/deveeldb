@@ -18,7 +18,6 @@ using System.IO;
 using Deveel.Data.Configuration;
 using Deveel.Data.Services;
 using Deveel.Data.Store;
-using Deveel.Data.Transactions;
 
 using NUnit.Framework;
 
@@ -70,21 +69,38 @@ namespace Deveel.Data {
 			return Database.CreateUserSession(userName, password);
 		}
 
-		protected virtual void OnSetUp(string testName) {
+		protected virtual void OnSetUp(string testName, IQuery query) {
 			
 		}
 
-		protected virtual void OnTearDown() {
+		protected virtual void OnAfterSetup(string testName) {
+		}
 
+		protected virtual void OnTearDown(string testName, IQuery query) {
+
+		}
+
+		protected virtual void OnBeforeTearDown(string testName) {
+			
 		}
 
 		[SetUp]
 		public void TestSetUp() {
 			//if (!SingleContext)
-			CreateContext();
 
 			var testName = TestContext.CurrentContext.Test.Name;
-			OnSetUp(testName);
+
+			using (var session = CreateAdminSession(Database)) {
+				using (var query = session.CreateQuery()) {
+					OnSetUp(testName, query);
+
+					query.Commit();
+				}
+			}
+
+			CreateContext();
+
+			OnAfterSetup(testName);
 		}
 
 		[TestFixtureSetUp]
@@ -124,7 +140,16 @@ namespace Deveel.Data {
 
 		[TearDown]
 		public void TestTearDown() {
-			OnTearDown();
+			var testName = TestContext.CurrentContext.Test.Name;
+
+			using (var session = CreateAdminSession(Database)) {
+				using (var query = session.CreateQuery()) {
+					OnTearDown(testName, query);
+					query.Commit();
+				}
+			}
+
+			OnBeforeTearDown(testName);
 			DisposeContext();
 		}
 
@@ -140,8 +165,9 @@ namespace Deveel.Data {
 
 			if (StorageType == StorageType.JournaledFile) {
 				var dataDir = Path.Combine(Environment.CurrentDirectory, DatabaseName);
-				if (Directory.Exists(dataDir))
+				if (Directory.Exists(dataDir)) {
 					Directory.Delete(dataDir, true);
+				}
 			} else if (StorageType == StorageType.SingleFile) {
 				var fileName = Path.Combine(Environment.CurrentDirectory, String.Format("{0}.db", DatabaseName));
 				if (File.Exists(fileName))

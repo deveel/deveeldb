@@ -52,12 +52,6 @@ namespace Deveel.Data.Store.Journaled {
 		}
 
 		protected override void Dispose(bool disposing) {
-			if (disposing) {
-				if (resource != null)
-					resource.Dispose();
-			}
-
-			resource = null;
 
 			base.Dispose(disposing);
 		}

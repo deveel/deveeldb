@@ -22,7 +22,7 @@ namespace Deveel.Data.Store {
 	public sealed class LocalFile : IFile {
 		private System.IO.FileStream fileStream;
 
-		internal LocalFile(string fileName, System.IO.FileStream fileStream) {
+		internal LocalFile(string fileName, System.IO.FileStream fileStream, bool readOnly) {
 			if (String.IsNullOrEmpty(fileName))
 				throw new ArgumentNullException("fileName");
 
@@ -31,6 +31,7 @@ namespace Deveel.Data.Store {
 
 			this.fileStream = fileStream;
 			FileName = fileName;
+			IsReadOnly = readOnly;
 		}
 
 		public void Dispose() {
@@ -91,6 +92,9 @@ namespace Deveel.Data.Store {
 			try {
 				File.Delete(FileName);
 			} finally {
+				if (fileStream != null)
+					fileStream.Dispose();
+
 				fileStream = null;
 			}
 			

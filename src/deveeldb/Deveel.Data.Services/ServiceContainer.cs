@@ -61,7 +61,9 @@ namespace Deveel.Data.Services {
 				}
 			}
 
-			container = null;
+			lock (this) {
+				container = null;
+			}
 		}
 
 		private string ScopeName { get; set; }
@@ -122,7 +124,12 @@ namespace Deveel.Data.Services {
 				throw new InvalidOperationException("The container was not initialized.");
 
 			lock (this) {
-				return container.ResolveMany<object>(serviceType);
+				try {
+					return container.ResolveMany<object>(serviceType);
+				} catch (NullReferenceException) {
+					// this means that the container is out of sync in the dispose
+					return new object[0];
+				}
 			}
 		}
 

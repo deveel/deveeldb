@@ -180,6 +180,12 @@ namespace Deveel.Data {
 				if (stateStore != null)
 					stateStore.Dispose();
 
+				if (tableSources != null) {
+					foreach (var tableSource in tableSources) {
+						tableSource.Value.Dispose();
+					}
+				}
+
 				if (tempStoreSystem != null)
 					tempStoreSystem.Dispose();
 

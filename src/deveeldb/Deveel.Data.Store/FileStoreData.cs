@@ -85,6 +85,11 @@ namespace Deveel.Data.Store {
 				return !Exists;
 			} catch (Exception) {
 				return false;
+			} finally {
+				if (file != null)
+					file.Dispose();
+
+				file = null;
 			}
 		}
 

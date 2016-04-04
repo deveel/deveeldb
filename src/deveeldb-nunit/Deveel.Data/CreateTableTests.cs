@@ -17,6 +17,18 @@ namespace Deveel.Data {
 			: base(storageType) {
 		}
 
+		protected override void OnTearDown(string testName, IQuery query) {
+			if (testName == "SimpleCreate" ||
+			    testName == "WithColumnDefault") {
+				var tableName = ObjectName.Parse("APP.test");
+				query.Access().DropObject(DbObjectType.Table, tableName);
+			} else {
+				var tableName = ObjectName.Parse("APP.test_table");
+				query.Access().DropAllTableConstraints(tableName);
+				query.Access().DropObject(DbObjectType.Table, tableName);
+			}
+		}
+
 		[Test]
 		public void SimpleCreate() {
 			var tableName = ObjectName.Parse("APP.test");

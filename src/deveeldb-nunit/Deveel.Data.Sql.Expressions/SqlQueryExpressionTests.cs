@@ -26,32 +26,33 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTable();
-			AddTestData();
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTable(query);
+			AddTestData(query);
 		}
 
-		private void CreateTestTable() {
+		private void CreateTestTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] {SqlExpression.Reference(tableInfo.TableName)});
+				new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)});
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			Query.Session.Access().CreateTable(tableInfo, false);
-			Query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().CreateTable(tableInfo, false);
+			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
-		private void AddTestData() {
-			var table = Query.Access().GetMutableTable(ObjectName.Parse("APP.test_table"));
+		private void AddTestData(IQuery query) {
+			var table = query.Access().GetMutableTable(ObjectName.Parse("APP.test_table"));
 			var row = table.NewRow();
 			row.SetValue("first_name", Field.String("John"));
 			row.SetValue("last_name", Field.String("Doe"));
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1977, 01, 01)));
 			row.SetValue("active", Field.Boolean(false));
+			row.SetDefault(query);
 			table.AddRow(row);
 
 			row = table.NewRow();
@@ -59,6 +60,7 @@ namespace Deveel.Data.Sql.Expressions {
 			row.SetValue("last_name", Field.String("Doe"));
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1978, 11, 01)));
 			row.SetValue("active", Field.Boolean(true));
+			row.SetDefault(query);
 			table.AddRow(row);
 
 			row = table.NewRow();
@@ -66,7 +68,14 @@ namespace Deveel.Data.Sql.Expressions {
 			row.SetValue("last_name", Field.String("Rabbit"));
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", Field.Boolean(true));
+			row.SetDefault(query);
 			table.AddRow(row);
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().DropAllTableConstraints(tableName);
+			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		[Test]

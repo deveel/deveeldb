@@ -12,8 +12,8 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class InsertTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTable(Query);
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTable(query);
 		}
 
 		private static void CreateTestTable(IQuery query) {

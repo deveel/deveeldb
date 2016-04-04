@@ -8,7 +8,7 @@ namespace Deveel.Data.Client {
 	public sealed class DbCommandTest : ContextBasedTest {
 		private DeveelDbConnection connection;
 
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var connString = new DeveelDbConnectionStringBuilder {
 				UserName = AdminUserName,
 				Password = AdminPassword,

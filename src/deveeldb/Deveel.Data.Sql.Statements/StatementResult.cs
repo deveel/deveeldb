@@ -33,6 +33,10 @@ namespace Deveel.Data.Sql.Statements {
 			Error = error;
 		}
 
+		public StatementResult() {
+			Type = StatementResultType.Empty;
+		}
+
 		public ICursor Cursor { get; private set; }
 
 		public ITable Result { get; private set; }

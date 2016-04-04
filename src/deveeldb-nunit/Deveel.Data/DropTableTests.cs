@@ -15,8 +15,8 @@ namespace Deveel.Data.Deveel.Data {
 			: base(storageType) {
 		}
 
-		protected override void OnSetUp(string testName) {
-			CreateTestTables(Query);
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTables(query);
 		}
 
 		private static void CreateTestTables(IQuery context) {
@@ -37,6 +37,22 @@ namespace Deveel.Data.Deveel.Data {
 			context.Session.Access().AddPrimaryKey(tn2, "id");
 			context.Session.Access().AddForeignKey(tn2, new[] { "other_id" }, tn1, new[] { "id" }, ForeignKeyAction.Cascade,
 				ForeignKeyAction.Cascade, null);
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tn1 = ObjectName.Parse("APP.test_table1");
+			var tn2 = ObjectName.Parse("APP.test_table2");
+
+			if (query.Access().TableExists(tn2)) {
+				query.Access().DropAllTableConstraints(tn2);
+			}
+
+			if (query.Access().TableExists(tn1)) {
+				query.Access().DropAllTableConstraints(tn1);
+			}
+
+			query.Access().DropObject(DbObjectType.Table, tn2);
+			query.Access().DropObject(DbObjectType.Table, tn1);
 		}
 
 		[Test]

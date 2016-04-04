@@ -12,11 +12,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class AlterTableTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTable();
-		}
-
-		private void CreateTestTable() {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -26,19 +22,25 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			Query.Session.Access().CreateTable(tableInfo);
-			Query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().CreateTable(tableInfo);
+			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			Query.Session.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 
-			if (TestContext.CurrentContext.Test.Name == "DropConstraint") {
-				Query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
+			if (testName == "DropConstraint") {
+				query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
 					new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			query.Access().DropAllTableConstraints(ObjectName.Parse("APP.test_table"));
+			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table"));
+			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table2"));
 		}
 
 		[Test]

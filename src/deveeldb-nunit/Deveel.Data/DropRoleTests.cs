@@ -8,8 +8,12 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DropRoleTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			Query.Access().CreateRole("test_role");
+		protected override void OnSetUp(string testName, IQuery query) {
+			query.Access().CreateRole("test_role");
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			query.Access().DropRole("test_role");
 		}
 
 		[Test]

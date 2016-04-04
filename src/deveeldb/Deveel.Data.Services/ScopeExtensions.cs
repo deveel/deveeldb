@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using DryIoc;
+
 namespace Deveel.Data.Services {
 	public static class ScopeExtensions {
 		public static object Resolve(this IScope scope, Type serviceType) {
@@ -35,6 +37,9 @@ namespace Deveel.Data.Services {
 		}
 
 		public static IEnumerable<TService> ResolveAll<TService>(this IScope scope) {
+			if (scope == null)
+				return new TService[0];
+
 			return scope.ResolveAll(typeof (TService)).Cast<TService>();
 		}
 
@@ -101,7 +106,7 @@ namespace Deveel.Data.Services {
 		}
 
 		public static void RegisterInstance<TService>(this IScope scope, TService instance) where TService : class {
-			RegisterInstance(scope, instance, null);
+			RegisterInstance<TService>(scope, instance, null);
 		}
 
 		public static void RegisterInstance<TService>(this IScope scope, TService instance, object serviceKey) where TService : class {

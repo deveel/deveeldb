@@ -33,17 +33,29 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
-			query.Session.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 		}
 
-		protected override void OnSetUp(string testName) {
-			CreateTestUser(Query);
-			CreateTestRole(Query);
-			CreateTestTable(Query);
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestUser(query);
+			CreateTestRole(query);
+			CreateTestTable(query);
 		}
 
 		private void CreateTestRole(IQuery query) {
 			query.Session.Access().CreateRole("test_role");
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			query.Access().DeleteUser("test_user");
+			query.Access().DropRole("test_role");
+
+			var tableName1 = ObjectName.Parse("APP.test_table");
+			var tableName2 = ObjectName.Parse("APP.test_table2");
+
+			query.Access().DropAllTableConstraints(tableName1);
+			query.Access().DropObject(DbObjectType.Table, tableName1);
+			query.Access().DropObject(DbObjectType.Table, tableName2);
 		}
 
 		[Test]

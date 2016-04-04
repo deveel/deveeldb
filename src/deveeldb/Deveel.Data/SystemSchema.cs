@@ -16,16 +16,8 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Tables;
-using Deveel.Data.Transactions;
-using Deveel.Data.Sql.Types;
-using Deveel.Data.Util;
 
 namespace Deveel.Data {
 	/// <summary>

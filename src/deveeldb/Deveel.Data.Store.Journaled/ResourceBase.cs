@@ -25,7 +25,12 @@ namespace Deveel.Data.Store.Journaled {
 		protected IStoreData Data { get; private set; }
 
 		protected virtual void Dispose(bool disposing) {
-			
+			if (disposing) {
+				if (Data != null)
+					Data.Dispose();
+			}
+
+			Data = null;
 		}
 
 		public void Dispose() {

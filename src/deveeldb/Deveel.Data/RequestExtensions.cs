@@ -38,7 +38,14 @@ namespace Deveel.Data {
 			return request.User().Name;
 		}
 
+		public static bool IsInSession(this IRequest request) {
+			return !request.Query.Session.IsFinished();
+		}
+
 		internal static SystemAccess Access(this IRequest request) {
+			if (request == null)
+				throw new ArgumentNullException("request");
+
 			if (!(request is ISystemDirectAccess))
 				throw new InvalidOperationException("The request does not provide direct access to the system");
 
@@ -142,8 +149,10 @@ namespace Deveel.Data {
 						result = new StatementResult(context.Result);
 					} else if (context.HasCursor) {
 						result = new StatementResult(context.Cursor);
-					} else {
+					} else if (context.IsInSession) {
 						result = new StatementResult(FunctionTable.ResultTable(request, 0));
+					} else {
+						result = new StatementResult();
 					}
 				} catch (Exception ex) {
 					result = new StatementResult(ex);

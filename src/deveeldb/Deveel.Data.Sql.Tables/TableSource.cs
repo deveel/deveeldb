@@ -63,6 +63,10 @@ namespace Deveel.Data.Sql.Tables {
 			StoreIdentity = MakeSourceIdentity(composite.DatabaseContext.SystemContext, tableId, sourceName);
 		}
 
+		~TableSource() {
+			Dispose(false);
+		}
+
 		public TableSourceComposite Composite { get; private set; }
 
 		public IDatabaseContext DatabaseContext {
@@ -168,6 +172,20 @@ namespace Deveel.Data.Sql.Tables {
 
 		public bool CellCaching {
 			get { return CellCache != null; }
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (Store != null)
+					Store.Dispose();
+			}
+
+			Store = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			System.GC.SuppressFinalize(this);
 		}
 
 		public bool Exists() {

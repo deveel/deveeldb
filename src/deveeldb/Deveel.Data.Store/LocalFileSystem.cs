@@ -33,8 +33,8 @@ namespace Deveel.Data.Store {
 				throw new IOException(string.Format("The file '{0}' does not exist: cannot be opened", fileName));
 
 			var access = readOnly ? FileAccess.Read : FileAccess.ReadWrite;
-			var stream = File.Open(fileName, FileMode.Open, access, FileShare.None);
-			return new LocalFile(fileName, stream);
+			var stream = File.Open(fileName, FileMode.Open, access);
+			return new LocalFile(fileName, stream, readOnly);
 		}
 
 		IFile IFileSystem.CreateFile(string path) {
@@ -49,7 +49,7 @@ namespace Deveel.Data.Store {
 				throw new IOException(string.Format("The file '{0}' already exists: cannot create.", fileName));
 
 			var stream = File.Create(fileName, 2048, FileOptions.WriteThrough);
-			return new LocalFile(fileName, stream);
+			return new LocalFile(fileName, stream, false);
 		}
 
 		public bool DeleteFile(string path) {

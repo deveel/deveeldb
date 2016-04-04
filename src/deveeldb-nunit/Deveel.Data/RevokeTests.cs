@@ -10,18 +10,18 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class RevokeTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 
-			Query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 
-			Query.Access().CreateUser("test_user", "0123456789");
-			Query.Access().GrantOnTable(tableName, "test_user", Privileges.Alter);
+			query.Access().CreateUser("test_user", "0123456789");
+			query.Access().GrantOnTable(tableName, "test_user", Privileges.Alter);
 
-			Query.Access().CreateRole("test_role");
-			Query.Access().AddUserToRole("test_user", "test_role");
+			query.Access().CreateRole("test_role");
+			query.Access().AddUserToRole("test_user", "test_role");
 		}
 
 		[Test]

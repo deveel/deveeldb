@@ -23,14 +23,9 @@ using NUnit.Framework;
 namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			if (testName == "Authenticate_Success") {
-				using (var session = Database.CreateUserSession(AdminUserName, AdminPassword)) {
-					using (var query = session.CreateQuery()) {
-						query.Access().CreateUser("tester", "123456789");
-						session.Commit();
-					}
-				}
+				query.Access().CreateUser("tester", "123456789");
 			}
 		}
 

@@ -42,7 +42,7 @@ namespace Deveel.Data {
 		/// </summary>
 		ITransaction Transaction { get; }
 
-        new ISessionContext Context { get; }
+        ISessionContext Context { get; }
 
 
 		///// <summary>

@@ -67,8 +67,12 @@ namespace Deveel.Data.Store {
 		public bool IsOpen { get; private set; }
 
 		private string SliceFileName(int i) {
+			var fileExt = FileExtention;
+			if (fileExt[0] == '.')
+				fileExt = fileExt.Substring(1);
+
 			if (i == 0)
-				return FileSystem.CombinePath(BasePath, String.Format("{0}.{1}", FileName, FileExtention));
+				return FileSystem.CombinePath(BasePath, String.Format("{0}.{1}", FileName, fileExt));
 
 			var fn = new StringBuilder();
 			fn.Append(FileName);

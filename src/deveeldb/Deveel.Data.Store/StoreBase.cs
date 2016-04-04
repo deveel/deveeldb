@@ -68,6 +68,7 @@ namespace Deveel.Data.Store {
 			WildernessOffset = -1;
 
 			IsReadOnly = isReadOnly;
+			IsClosed = true;
 		}
 
 		~StoreBase() {

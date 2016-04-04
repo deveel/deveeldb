@@ -329,6 +329,7 @@
     <Compile Include="Deveel.Data.Transactions\TableCommitEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
+    <Compile Include="Deveel.Data.Transactions\TransactionState.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionTableContainer.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreatedCallback.cs" />

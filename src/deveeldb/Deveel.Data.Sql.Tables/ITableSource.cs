@@ -18,11 +18,10 @@
 using System;
 
 using Deveel.Data.Index;
-using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource {
+	public interface ITableSource : IDisposable {
 		void SetUniqueId(long value);
 
 		long GetNextUniqueId();

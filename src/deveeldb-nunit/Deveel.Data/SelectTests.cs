@@ -13,9 +13,9 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTable(query);
+			AddTestData(query);
 		}
 
 		private static void CreateTestTable(IQuery context) {
@@ -63,6 +63,13 @@ namespace Deveel.Data {
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+
+			query.Access().DropAllTableConstraints(tableName);
+			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		private ITable Execute(string s) {

@@ -7,8 +7,8 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DropSchemaTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			Query.Session.Access().CreateSchema("test", SchemaTypes.User);
+		protected override void OnSetUp(string testName, IQuery query) {
+			query.Access().CreateSchema("test", SchemaTypes.User);
 		}
 
 		[Test]

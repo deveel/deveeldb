@@ -12,29 +12,37 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class FetchTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+		protected override void OnSetUp(string testName, IQuery systemQuery) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 
-			var table = Query.Access().GetMutableTable(ObjectName.Parse("APP.test_table"));
+			var table = systemQuery.Access().GetMutableTable(tableName);
 			for (int i = 0; i < 10; i++) {
 				var row = table.NewRow();
 				row.SetValue(0, i);
 				row.SetValue(1, String.Format("ID: {0}", i));
 				table.AddRow(row);
 			}
+		}
 
+		protected override void OnAfterSetup(string testName) {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
 
 			var cursorInfo = new CursorInfo("c1", query);
 			cursorInfo.Flags = CursorFlags.Scroll;
 
 			Query.Access().CreateObject(cursorInfo);
-			var c1 = (Cursor) Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
+			var c1 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
 			c1.Open();
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		[Test]

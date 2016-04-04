@@ -42,6 +42,8 @@ namespace Deveel.Data.Transactions {
 		/// <seealso cref="IsolationLevel"/>
 		IsolationLevel Isolation { get; }
 
+		TransactionState State { get; }
+
 		/// <summary>
 		/// Gets the database this transaction belongs to.
 		/// </summary>

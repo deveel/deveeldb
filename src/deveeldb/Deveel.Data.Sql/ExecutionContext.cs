@@ -57,6 +57,10 @@ namespace Deveel.Data.Sql {
 			get { return Request.Query; }
 		}
 
+		public bool IsInSession {
+			get { return Query.IsInSession(); }
+		}
+
 		public SystemAccess DirectAccess {
 			get { return Request.Access(); }
 		}
@@ -72,11 +76,13 @@ namespace Deveel.Data.Sql {
 		}
 
 		public void SetResult(int value) {
-			SetResult(FunctionTable.ResultTable(Request, value));
+			if (IsInSession)
+				SetResult(FunctionTable.ResultTable(Request, value));
 		}
 
 		public void SetResult(Field value) {
-			SetResult(FunctionTable.ResultTable(Request, value));
+			if (IsInSession)
+				SetResult(FunctionTable.ResultTable(Request, value));
 		}
 
 		public void SetCursor(ICursor cursor) {

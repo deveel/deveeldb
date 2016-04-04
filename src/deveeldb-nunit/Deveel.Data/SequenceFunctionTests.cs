@@ -11,15 +11,15 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SequenceFunctionTests : FunctionTestBase {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var info = new SequenceInfo(ObjectName.Parse("APP.seq1"),
 				new SqlNumber(0), new SqlNumber(1), new SqlNumber(0), new SqlNumber(Int64.MaxValue), false);
 
-			Query.Access().CreateObject(info);
+			query.Access().CreateObject(info);
 		}
 
-		protected override void OnTearDown() {
-			Query.Access().DropObject(DbObjectType.Sequence, ObjectName.Parse("APP.seq1"));
+		protected override void OnTearDown(string testName, IQuery query) {
+			query.Access().DropObject(DbObjectType.Sequence, ObjectName.Parse("APP.seq1"));
 		}
 
 		[Test]

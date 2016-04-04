@@ -8,11 +8,11 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public abstract class FunctionTestBase : ContextBasedTest {
-		protected FunctionTestBase(StorageType storageType)
-			: base(storageType) {	
+		protected FunctionTestBase() {
 		}
 
-		protected FunctionTestBase() {
+		protected FunctionTestBase(StorageType storageType)
+			: base(storageType) {
 		}
 
 		protected Field Select(ObjectName functionName, params SqlExpression[] args) {

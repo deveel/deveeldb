@@ -17,7 +17,7 @@ namespace Deveel.Data.Store.Journaled {
 
 		public JournaledStoreSystem(IDatabaseContext context) {
 			this.context = context;
-			Configure(context);
+			Configure();
 		}
 
 		~JournaledStoreSystem() {
@@ -32,7 +32,7 @@ namespace Deveel.Data.Store.Journaled {
 			return String.Format("{0}{1}", resourceName, FileLockExtension);
 		}
 
-		private void Configure(IContext context) {
+		private void Configure() {
 			var configuration = context.ResolveService<IConfiguration>();
 
 			if (configuration == null)

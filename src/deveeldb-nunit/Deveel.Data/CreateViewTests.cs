@@ -10,14 +10,12 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CreateViewTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.Access().CreateTable(tableInfo);
-
-			base.OnSetUp(testName);
+			query.Access().CreateTable(tableInfo);
 		}
 
 		[Test]

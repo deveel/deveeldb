@@ -270,7 +270,7 @@ namespace Deveel.Data.Store.Journaled {
 
 		private void FlushAndSynch() {
 			lock (this) {
-				((JournalFile) this).dataOut.Flush();
+				dataOut.Flush();
 				File.Synch();
 			}
 		}

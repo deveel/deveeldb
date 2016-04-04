@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
 
@@ -32,7 +33,7 @@ namespace Deveel.Data.Diagnostics {
 			Context = context;
 
 			var config = context.ResolveService<IConfiguration>();
-			threadCount = config.GetInt32("system.events.threadCount", 4);
+			threadCount = config.GetInt32("system.events.threadCount", 2);
 		}
 
 		~EventRegistry() {
@@ -49,8 +50,21 @@ namespace Deveel.Data.Diagnostics {
 			Enqueue(@event);
 		}
 
+		private IEnumerable<IEventRouter> GetAllRouters() {
+			var list = new List<IEventRouter>();
+			var context = Context;
+			while (context != null) {
+				var routers = context.ResolveAllServices<IEventRouter>();
+				list.AddRange(routers);
+				context = context.Parent;
+			}
+
+			return list;
+		} 
+
 		protected override void Consume(IEvent message) {
-			var routers = Context.ResolveAllServices<IEventRouter>();
+			var routers = GetAllRouters();
+
 			foreach (var router in routers) {
 				try {
 					if (router.CanRoute(message))

@@ -12,7 +12,7 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Store.Journaled {
 	class JournaledSystem : IDisposable {
-		private readonly Dictionary<string, ResourceBase> allResources;
+		private Dictionary<string, ResourceBase> allResources;
 		private long seqId;
 		private readonly List<JournalFile> journalArchives;
 		private JournalFile topJournalFile;
@@ -229,8 +229,21 @@ namespace Deveel.Data.Store.Journaled {
 						TopJournal.Close();
 						// Scan for journals and make the changes.
 						RollForwardRecover();
+
+						DisposeResources();
 					}
 				}
+			}
+		}
+
+		private void DisposeResources() {
+			if (allResources != null) {
+				foreach (var resource in allResources.Values) {
+					if (resource != null)
+						resource.Dispose();
+				}
+
+				allResources.Clear();
 			}
 		}
 
@@ -258,6 +271,16 @@ namespace Deveel.Data.Store.Journaled {
 
 			// Return the resource
 			return resource;
+		}
+
+		internal ResourceBase GetResource(string resourceName) {
+			lock (allResources) {
+				ResourceBase resource;
+				if (!allResources.TryGetValue(resourceName, out resource))
+					return null;
+
+				return resource;
+			}
 		}
 
 		public void SetCheckPoint(bool flushJournals) {
@@ -300,6 +323,7 @@ namespace Deveel.Data.Store.Journaled {
 					Stop();
 			}
 
+			allResources = null;
 			FileSystem = null;
 			Context = null;
 		}
@@ -309,15 +333,6 @@ namespace Deveel.Data.Store.Journaled {
 			GC.SuppressFinalize(this);
 		}
 
-		internal ResourceBase GetResource(string resourceName) {
-			lock (allResources) {
-				ResourceBase resource;
-				if (!allResources.TryGetValue(resourceName, out resource))
-					return null;
-
-				return resource;
-			}
-		}
 
 		#region JounralingThread
 

@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Triggers {
 		private ISession testSession;
 		private IQuery testQuery;
 
-		protected override void OnSetUp(string testName) {
+		protected override void OnAfterSetup(string testName) {
 			testSession = Database.CreateUserSession(AdminUserName, AdminPassword);
 			testQuery = testSession.CreateQuery();
 
@@ -57,11 +57,9 @@ namespace Deveel.Data.Sql.Triggers {
 					beforeEvent = trigger;
 				}
 			});
-
-			base.OnSetUp(testName);
 		}
 
-		protected override void OnTearDown() {
+		protected override void OnBeforeTearDown(string testName) {
 			beforeEvent = null;
 			afterEvent = null;
 

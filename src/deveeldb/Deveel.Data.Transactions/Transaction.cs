@@ -54,6 +54,8 @@ namespace Deveel.Data.Transactions {
 
 			Database.TransactionFactory.OpenTransactions.AddTransaction(this);
 
+			State = TransactionState.Open;
+
 			this.CurrentSchema(database.Context.DefaultSchema());
 			this.ReadOnly(database.Context.ReadOnly());
 			this.AutoCommit(database.Context.AutoCommit());
@@ -74,6 +76,8 @@ namespace Deveel.Data.Transactions {
 		public int CommitId { get; private set; }
 
 		public IsolationLevel Isolation { get; private set; }
+
+		public TransactionState State { get; private set; }
 
 		private bool IsClosed { get; set; }
 
@@ -138,6 +142,8 @@ namespace Deveel.Data.Transactions {
 		public void Commit() {
 			if (!IsClosed) {
 				try {
+					State = TransactionState.Commit;
+
 					var touchedTables = TableManager.AccessedTables.ToList();
 					var visibleTables = TableManager.GetVisibleTables().ToList();
 					var selected = TableManager.SelectedTables.ToArray();
@@ -183,12 +189,15 @@ namespace Deveel.Data.Transactions {
 				// Dispose all the objects in the transaction
 			} finally {
 				IsClosed = true;
+				State = TransactionState.Finished;
 			}
 		}
 
 		public void Rollback() {
 			if (!IsClosed) {
 				try {
+					State = TransactionState.Rollback;
+
 					var touchedTables = TableManager.AccessedTables.ToList();
 					TableComposite.Rollback(this, touchedTables, Registry);
 

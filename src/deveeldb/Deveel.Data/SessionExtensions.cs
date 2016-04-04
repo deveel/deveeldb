@@ -35,6 +35,11 @@ namespace Deveel.Data {
 			return ((ISystemDirectAccess) session).DirectAccess;
 		}
 
+		public static bool IsFinished(this ISession session) {
+			return session.Transaction == null ||
+			       session.Transaction.State == TransactionState.Finished;
+		}
+
 		public static IEventSource AsEventSource(this ISession session) {
 			if (session == null)
 				throw new ArgumentNullException("session");

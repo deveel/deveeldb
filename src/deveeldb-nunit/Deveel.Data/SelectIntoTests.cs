@@ -12,15 +12,15 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectIntoTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			Query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
 
-			var table = Query.Access().GetMutableTable(tableName);
+			var table = query.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
 			row.SetValue(0, 13);
@@ -31,13 +31,16 @@ namespace Deveel.Data {
 			row.SetValue(0, 38);
 			row.SetValue(1, "greetings");
 			table.AddRow(row);
+		}
 
+		protected override void OnAfterSetup(string testName) {
 			Query.Context.DeclareVariable("a", PrimitiveTypes.String());
 			Query.Context.DeclareVariable("b", PrimitiveTypes.Integer());
 		}
 
-		protected override void OnTearDown() {
-			base.OnTearDown();
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			query.DropTable(tableName);
 		}
 
 		[Test]

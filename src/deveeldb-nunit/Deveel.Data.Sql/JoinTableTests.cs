@@ -26,13 +26,13 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class JoinTableTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTables();
-			AddTestData();
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTables(query);
+			AddTestData(query);
 		}
 
-		private void AddTestData() {
-			var table = Query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
+		private void AddTestData(IQuery query) {
+			var table = query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "persons"));
 
 			var row = table.NewRow();
 			row["person_id"] = Field.Integer(1);
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql {
 			row["age"] = Field.Integer(56);
 			table.AddRow(row);
 
-			table = Query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
+			table = query.Access().GetMutableTable(new ObjectName(new ObjectName("APP"), "codes"));
 			row = table.NewRow();
 			row["person_id"] = Field.Integer(1);
 			row["code"] = Field.String("123456");
@@ -54,13 +54,13 @@ namespace Deveel.Data.Sql {
 			table.AddRow(row);
 		}
 
-		private void CreateTestTables() {
+		private void CreateTestTables(IQuery query) {
 			var tableInfo = CreateFirstTable();
-			Query.Session.Access().CreateTable(tableInfo, false);
-			Query.Session.Access().AddPrimaryKey(tableInfo.TableName, "person_id");
+			query.Session.Access().CreateTable(tableInfo, false);
+			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "person_id");
 
 			tableInfo = CreateSecondTable();
-			Query.Session.Access().CreateTable(tableInfo, false);
+			query.Session.Access().CreateTable(tableInfo, false);
 		}
 
 		private TableInfo CreateSecondTable() {
@@ -79,6 +79,16 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 
 			return tableInfo;
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			var tn1 = new ObjectName(new ObjectName("APP"), "persons");
+			var tn2 = new ObjectName(new ObjectName("APP"), "codes");
+
+			query.Access().DropAllTableConstraints(tn1);
+			query.Access().DropAllTableConstraints(tn2);
+			query.Access().DropObject(DbObjectType.Table, tn1);
+			query.Access().DropObject(DbObjectType.Table, tn2);
 		}
 
 		[Test]

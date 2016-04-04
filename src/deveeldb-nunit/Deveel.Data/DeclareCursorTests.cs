@@ -12,12 +12,16 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DeclareCursorTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
+		protected override void OnSetUp(string testName, IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Session.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(tableInfo);
+		}
+
+		protected override void OnTearDown(string testName, IQuery query) {
+			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table"));
 		}
 
 		[Test]

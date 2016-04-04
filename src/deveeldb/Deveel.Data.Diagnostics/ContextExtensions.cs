@@ -115,16 +115,18 @@ namespace Deveel.Data.Diagnostics {
 			context.OnInformation(message, InformationLevel.Debug);
 		}
 
-		public static void AttachRouter(this IContext context, IEventRouter router) {
+		public static void AttachRouter<TRouter>(this IContext context, TRouter router) where TRouter : class, IEventRouter {
 			var currentContext = context;
 			while (currentContext != null) {
 				if (currentContext is IEventScope) {
 					currentContext.RegisterInstance(router);
-					break;
+					return;
 				}
 
 				currentContext = currentContext.Parent;
 			}
+
+			throw new InvalidOperationException("No event scope was found in context tree.");
 		}
 
 		public static void Route<TEvent>(this IContext context, Action<TEvent> router)

@@ -12,9 +12,9 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class UpdateTests : ContextBasedTest {
-		protected override void OnSetUp(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+		protected override void OnSetUp(string testName, IQuery query) {
+			CreateTestTable(query);
+			AddTestData(query);
 		}
 
 		private static void CreateTestTable(IQuery context) {
