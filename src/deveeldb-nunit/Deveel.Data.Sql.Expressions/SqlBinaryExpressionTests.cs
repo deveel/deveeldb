@@ -22,7 +22,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public sealed class SqlBinaryExpressionTests : SqlExpressionTestBase {
+	public sealed class SqlBinaryExpressionTests  {
 		[Test]
 		public void NumericAndNumericAdd() {
 			var exp1 = SqlExpression.Constant(Field.Number(new SqlNumber(4566, 10)));

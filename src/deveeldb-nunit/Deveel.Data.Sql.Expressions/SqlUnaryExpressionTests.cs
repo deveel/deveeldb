@@ -21,7 +21,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public class SqlUnaryExpressionTests : SqlExpressionTestBase {
+	public class SqlUnaryExpressionTests {
 		[TestCase(4637377, 4637377)]
 		[TestCase(-1929934, -1929934)]
 		public void NumericPlus(double a, double expected) {

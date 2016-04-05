@@ -21,7 +21,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public class SqlBetweenEspressionTests : SqlExpressionTestBase {
+	public class SqlBetweenEspressionTests {
 		[Test]
 		public void BetweenNumerics() {
 			const string sql = "22 BETWEEN 10 AND 54";

@@ -124,10 +124,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlExpressionTestBase.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
-    <Compile Include="Deveel.Data.Types\DataTypeTestBase.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />

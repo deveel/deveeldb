@@ -17,14 +17,12 @@ using System;
 using System.Globalization;
 using System.Text;
 
-using Deveel.Data.Types;
-
 using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Types {
 	[TestFixture]
 	[Category("Data Types")]
-	public class StringTypeTests : DataTypeTestBase {
+	public class StringTypeTests {
 		[Test]
 		public void BasicVarChar_Create() {
 			var type = PrimitiveTypes.String(SqlTypeCode.VarChar);
