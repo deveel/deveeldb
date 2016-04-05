@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Deveel.Data.Diagnostics {
 	public abstract class ThreadedQueue<TMessage> : IDisposable {
-		private readonly Queue<TMessage> messageQueue;
+		private Queue<TMessage> messageQueue;
 #if PCL
 		private CancellationTokenSource cancellationTokenSource;
 		private CancellationToken cancellationToken;
@@ -169,6 +169,10 @@ namespace Deveel.Data.Diagnostics {
 			if (!disposed) {
 				if (disposing) {
 					Stop();
+
+					lock (((ICollection)messageQueue).SyncRoot) {
+						messageQueue.Clear();
+					}
 				}
 
 #if PCL
@@ -176,6 +180,7 @@ namespace Deveel.Data.Diagnostics {
 #else
 				threads = null;
 #endif
+				messageQueue = null;
 				disposed = true;
 			}
 		}

@@ -37,9 +37,7 @@ namespace Deveel.Data.Services {
 
 				ScopeName = scopeName;
 			} else {
-				container = new Container(Rules.Default
-					.WithDefaultReuseInsteadOfTransient(Reuse.Singleton)
-					.WithoutThrowOnRegisteringDisposableTransient());
+				container = new Container(Rules.Default);
 			}
 
 			registrationProviders = new List<IRegistrationConfigurationProvider>();

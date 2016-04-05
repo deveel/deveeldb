@@ -26,16 +26,20 @@ namespace System.Runtime.Serialization {
 
 		long ToInt64(object value);
 
+		[CLSCompliant(false)]
 		sbyte ToSByte(object value);
 
 		float ToSingle(object value);
 
 		string ToString(object value);
 
+		[CLSCompliant(false)]
 		ushort ToUInt16(object value);
 
+		[CLSCompliant(false)]
 		uint ToUInt32(object value);
 
+		[CLSCompliant(false)]
 		ulong ToUInt64(object value);
 	}
 }

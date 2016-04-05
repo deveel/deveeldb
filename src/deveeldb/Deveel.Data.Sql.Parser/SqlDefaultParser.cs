@@ -26,21 +26,43 @@ using Irony.Ast;
 using Irony.Parsing;
 
 namespace Deveel.Data.Sql.Parser {
-	class SqlDefaultParser : ISqlParser {
-		private LanguageData languageData;
+	 class SqlDefaultParser : ISqlParser {
 		private Irony.Parsing.Parser parser;
 
 		public SqlDefaultParser(SqlGrammarBase grammar) {
-			languageData = new LanguageData(grammar);
-			parser = new Irony.Parsing.Parser(languageData);
+			parser = new Irony.Parsing.Parser(grammar);
 
-			if (!languageData.CanParse())
+			if (!parser.Language.CanParse())
 				throw new InvalidOperationException();
 		}
 
+		 ~SqlDefaultParser() {
+			 Dispose(false);
+		 }
+
 		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (parser != null) {
+					try {
+						if (parser.Data != null &&
+						    parser.Data.States != null) {
+							parser.Data.States.Clear();
+						}
+
+						if (parser.Scanner != null) {
+							if (parser.Scanner.Data != null) {
+								parser.Scanner.Data.MultilineTerminals.Clear();
+								parser.Scanner.Data.NoPrefixTerminals.Clear();
+								parser.Scanner.Data.TerminalsLookup.Clear();
+								parser.Scanner.Data.NonGrammarTerminalsLookup.Clear();
+							}
+						}
+					} catch (Exception) {
+					}
+				}
+			}
+
 			parser = null;
-			languageData = null;
 		}
 
 		public void Dispose() {
@@ -49,7 +71,7 @@ namespace Deveel.Data.Sql.Parser {
 		}
 
 		public string Dialect {
-			get { return ((SqlGrammarBase) languageData.Grammar).Dialect; }
+			get { return ((SqlGrammarBase)parser.Language.Grammar).Dialect; }
 		}
 
 		public SqlParseResult Parse(string input) {
@@ -82,7 +104,7 @@ namespace Deveel.Data.Sql.Parser {
 				return null;
 			}
 
-			var astContext = new AstContext(languageData) {
+			var astContext = new AstContext(parser.Language) {
 				DefaultNodeType = typeof (SqlNode),
 				DefaultIdentifierNodeType = typeof (IdentifierNode)
 			};

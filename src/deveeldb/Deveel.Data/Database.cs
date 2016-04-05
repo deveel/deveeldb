@@ -143,6 +143,10 @@ namespace Deveel.Data {
 					if (TableComposite != null)
 						TableComposite.Dispose();
 
+					if (TransactionFactory != null &&
+	(TransactionFactory is IDisposable))
+						(TransactionFactory as IDisposable).Dispose();
+
 					if (Context != null)
 						Context.Dispose();
 
@@ -150,6 +154,7 @@ namespace Deveel.Data {
 						System.RemoveDatabase(this);
 				}
 
+				TransactionFactory = null;
 				Locker = null;
 				System = null;
 				TableComposite = null;
@@ -430,12 +435,16 @@ namespace Deveel.Data {
 
 #region DatabaseTransactionFactory
 
-		class DatabaseTransactionFactory : ITransactionFactory {
-			private readonly Database database;
+		class DatabaseTransactionFactory : ITransactionFactory, IDisposable {
+			private Database database;
 
 			public DatabaseTransactionFactory(Database database) {
 				this.database = database;
 				OpenTransactions = new TransactionCollection();
+			}
+
+			~DatabaseTransactionFactory() {
+				Dispose(false);
 			}
 
 			public TransactionCollection OpenTransactions { get; private set; }
@@ -454,6 +463,27 @@ namespace Deveel.Data {
 
 					return transaction;
 				}
+			}
+
+			private void Dispose(bool disposing) {
+				if (disposing) {
+					if (OpenTransactions != null) {
+						foreach (var transaction in OpenTransactions) {
+							if (transaction != null)
+								transaction.Dispose();
+						}
+
+						OpenTransactions.Clear();
+					}
+				}
+
+				database = null;
+				OpenTransactions = null;
+			}
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
 			}
 		}
 

@@ -228,6 +228,7 @@ namespace Deveel.Data.Transactions {
 				indexRebuilds = null;
 				indexSet = null;
 				Transaction = null;
+				TableSource = null;
 				disposed = true;
 			}
 		}

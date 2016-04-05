@@ -21,7 +21,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public class SqlCastExpressionTests {
+	public class SqlCastExpressionTests : SqlExpressionTestBase {
 		[Test]
 		public void CastStringToInteger() {
 			var exp = SqlExpression.Cast(SqlExpression.Constant(Field.String("1234")), PrimitiveTypes.Integer());

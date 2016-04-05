@@ -24,7 +24,7 @@ using System.Text;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public class ExternalRef {
+	public sealed class ExternalRef {
 		private Type[] argTypes;
 		private MethodInfo methodInfo;
 

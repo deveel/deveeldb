@@ -180,6 +180,7 @@ namespace Deveel.Data.Sql.Tables {
 					Store.Dispose();
 			}
 
+			ObjectStore = null;
 			Store = null;
 		}
 
@@ -1426,8 +1427,8 @@ namespace Deveel.Data.Sql.Tables {
 		#region MinimalTable
 
 		class MinimalTable : ITable {
-			private readonly TableSource source;
-			private readonly IIndex masterIndex;
+			private TableSource source;
+			private IIndex masterIndex;
 
 			public MinimalTable(TableSource source, IIndex masterIndex) {
 				this.source = source;
@@ -1478,7 +1479,8 @@ namespace Deveel.Data.Sql.Tables {
 			}
 
 			public void Dispose() {
-				
+				source = null;
+				masterIndex = null;
 			}
 
 			public IContext Context {

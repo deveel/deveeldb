@@ -32,6 +32,7 @@ namespace Deveel.Data {
 		internal DatabaseSystem(ISystemContext context, IEnumerable<ModuleInfo> modules) {
 			Context = context;
 			Modules = modules;
+			OnCreated();
 			CreateMetadata();
 		}
 
@@ -90,6 +91,28 @@ namespace Deveel.Data {
 			GC.SuppressFinalize(this);
 		}
 
+		private void OnCreated() {
+			var callbacks = Context.ResolveAllServices<ISystemCreateCallback>();
+			foreach (var callback in callbacks) {
+				try {
+					callback.OnCreated(this);
+				} catch (Exception ex) {
+					this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
+				}
+			}
+		}
+
+		private void OnDispose() {
+			var callbacks = Context.ResolveAllServices<ISystemDisposeCallback>();
+			foreach (var callback in callbacks) {
+				try {
+					callback.OnDispose(this);
+				} catch (Exception ex) {
+					this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
+				}
+			}
+		}
+
 		private void Dispose(bool disposing) {
 			if (disposing) {
 				lock (this) {
@@ -101,6 +124,8 @@ namespace Deveel.Data {
 
 						databases.Clear();
 					}
+
+					OnDispose();
 
 					if (Context != null)
 						Context.Dispose();

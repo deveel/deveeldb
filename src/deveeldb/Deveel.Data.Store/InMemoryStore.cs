@@ -36,6 +36,10 @@ namespace Deveel.Data.Store {
 			uniqueIdKey = 0;
 		}
 
+		~InMemoryStore() {
+			Dispose(false);
+		}
+
 		/// <summary>
 		/// Gets the unique name of the store within the application.
 		/// </summary>
@@ -53,6 +57,19 @@ namespace Deveel.Data.Store {
 		}
 
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (areaMap != null) {
+					for (int i = 0; i < areaMap.Length; i++) {
+						areaMap[i] = null;
+					}
+				}
+			}
+
 			fixedAreaBlock = null;
 			areaMap = null;
 		}

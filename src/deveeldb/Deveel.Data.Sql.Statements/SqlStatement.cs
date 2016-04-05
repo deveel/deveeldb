@@ -175,20 +175,20 @@ namespace Deveel.Data.Sql.Statements {
 		public static IEnumerable<SqlStatement> Parse(IContext context, string sqlSource) {
 			return Parse(context, new SqlQuery(sqlSource));
 		}
-
-		private static readonly ISqlCompiler DefaultCompiler = new SqlDefaultCompiler();
-
 		
 
 		public static IEnumerable<SqlStatement> Parse(IContext context, SqlQuery query) {
 			if (query == null)
 				throw new ArgumentNullException("query");
 
-			var compiler = DefaultCompiler;
+			ISqlCompiler compiler = null;
 
 			if (context != null) {
 				compiler = context.ResolveService<ISqlCompiler>();
 			}
+
+			if (compiler == null)
+				compiler = new SqlDefaultCompiler();
 
 			try {
 				var compileContext = new SqlCompileContext(context, query.Text);

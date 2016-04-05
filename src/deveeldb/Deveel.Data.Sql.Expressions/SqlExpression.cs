@@ -578,8 +578,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		class ExpressionParser : IExpressionParser {
 			public SqlExpression Parse(string s) {
-				var compiler = SqlParsers.Expression;
-				var result = compiler.Parse(s);
+				var result = SqlParsers.Expression.Parse(s);
 
 				if (result.HasErrors) {
 					throw new FormatException();

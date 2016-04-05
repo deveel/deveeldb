@@ -86,6 +86,8 @@ namespace Deveel.Data.Sql.Tables {
 				foreach (var tableIndex in tableIndices) {
 					tableIndex.Dispose();
 				}
+
+				tableIndices.Clear();
 			} catch (Exception) {
 				// TODO: Report the error ...
 			}
@@ -98,10 +100,12 @@ namespace Deveel.Data.Sql.Tables {
 						IIndexSet indexSet = (IIndexSet) cleanupQueue[i + 1];
 						indexSet.Dispose();
 					}
+
+					cleanupQueue.Clear();
 				}
 			} catch (Exception) {
 				// TODO: Report the error
-			} finally {
+			} finally { 
 				cleanupQueue = null;
 			}
 		}

@@ -383,7 +383,7 @@ namespace Deveel.Data.Store.Journaled {
 #else
 								try {
 									Monitor.Wait(this);
-								} catch (ThreadInterruptedException e) { /* ignore */ }
+								} catch (ThreadInterruptedException) { /* ignore */ }
 #endif
 							}
 						}
@@ -464,7 +464,7 @@ namespace Deveel.Data.Store.Journaled {
 #else
 						try {
 							Monitor.Wait(this);
-						} catch (ThreadInterruptedException e) {
+						} catch (ThreadInterruptedException) {
 							/* ignore */
 						}
 #endif

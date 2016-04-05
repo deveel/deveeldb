@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			try {
 				var sqlSource = context.SourceText;
-				var result = SqlParsers.Default.Parse(sqlSource);
+				var result = SqlParsers.PlSql.Parse(sqlSource);
 
 				foreach (var error in result.Errors) {
 					var location = new SourceLocation(error.Line, error.Column);

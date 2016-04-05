@@ -52,6 +52,12 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		public void Clear() {
+			lock (this) {
+				transactions.Clear();
+			}
+		}
+
 		public void RemoveTransaction(ITransaction transaction) {
 			lock (this) {
 				int size = transactions.Count;

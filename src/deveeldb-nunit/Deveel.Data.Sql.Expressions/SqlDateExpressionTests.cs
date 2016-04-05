@@ -21,7 +21,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public class SqlDateExpressionTests {
+	public class SqlDateExpressionTests : SqlExpressionTestBase {
 		[Test]
 		public void StringToDate() {
 			var toDate = SqlExpression.FunctionCall("TODATE", new[] {SqlExpression.Constant(Field.String("2016-01-20"))});

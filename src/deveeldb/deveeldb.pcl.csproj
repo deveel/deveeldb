@@ -171,6 +171,7 @@
     <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseErrorLevel.cs" />
+    <Compile Include="Deveel.Data.Sql.Parser\SqlParsers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
@@ -326,7 +327,9 @@
     <Compile Include="Deveel.Data.Transactions\TransactionTableContainer.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreateCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseCreatedCallback.cs" />
+    <Compile Include="Deveel.Data\ISystemCreateCallback.cs" />
     <Compile Include="Deveel.Data\ISystemDirectAccess.cs" />
+    <Compile Include="Deveel.Data\ISystemDisposeCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeCreateCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeSetupCallback.cs" />
     <Compile Include="Deveel.Data\SystemAccess.cs" />
@@ -725,7 +728,6 @@
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseError.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseException.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlParseResult.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParsers.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlQueryExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlReferenceExpressionNode.cs" />
     <Compile Include="Deveel.Data.Sql.Parser\SqlUnaryExpressionNode.cs" />

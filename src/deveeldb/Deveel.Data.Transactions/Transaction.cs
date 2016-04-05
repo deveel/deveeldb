@@ -34,8 +34,6 @@ namespace Deveel.Data.Transactions {
 	public sealed class Transaction : ITransaction, IEventSource, ITableStateHandler {
 		//private Action<TableCommitInfo> commitActions; 
 
-		private readonly bool dbReadOnly;
-
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
 			Database = database;
@@ -185,6 +183,7 @@ namespace Deveel.Data.Transactions {
 
 				//callbacks = null;
 				Context = null;
+				Database = null;
 
 				// Dispose all the objects in the transaction
 			} finally {

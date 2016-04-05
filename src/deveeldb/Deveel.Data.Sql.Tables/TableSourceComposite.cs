@@ -188,10 +188,11 @@ namespace Deveel.Data {
 
 				if (tempStoreSystem != null)
 					tempStoreSystem.Dispose();
-
-				tempStoreSystem = null;
-				lobStore = null;
 			}
+
+			tempStoreSystem = null;
+			lobStore = null;
+			Database = null;
 		}
 
 		public void Dispose() {

@@ -50,8 +50,6 @@ namespace Deveel.Data {
 			Access = new SessionAccess(this);
 		}
 
-		private bool committed;
-
 		public void Dispose() {
 			Transaction = null;
 		}

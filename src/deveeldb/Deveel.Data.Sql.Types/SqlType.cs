@@ -339,10 +339,8 @@ namespace Deveel.Data.Sql.Types {
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(IContext context, string s) {
-			var sqlCompiler = SqlParsers.DataType;
-
 			try {
-				var result = sqlCompiler.Parse(s);
+				var result = SqlParsers.DataType.Parse(s);
 				if (result.HasErrors)
 					throw new FormatException(result.Errors.First().Message);
 

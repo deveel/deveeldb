@@ -21,7 +21,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
-	public sealed class SqlExpressionParseException {
+	public sealed class SqlExpressionParseException : SqlExpressionTestBase {
 		[Test]
 		public void SimpleNumericAdd() {
 			const string s = "6578 + 76.32";
