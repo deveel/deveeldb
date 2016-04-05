@@ -76,7 +76,7 @@ namespace Deveel.Data.Caching {
 			MaxCellSize = config.GetInt32("system.tableCellCache.maxCellSize", DefaultMaxCellSize);
 
 			var baseCache = new SizeLimitedCache(maxSize);
-			cache = new Cache(this, baseCache, hashSize, maxSize);
+			cache = new Cache(this, baseCache, hashSize);
 		}
 
 		public void Set(CachedCell cell) {
@@ -163,7 +163,7 @@ namespace Deveel.Data.Caching {
 			private TableCellCache tableCache;
 			private int hashSize;
 
-			public Cache(TableCellCache tableCache, ICache baseCache, int hashSize, int maxSize) 
+			public Cache(TableCellCache tableCache, ICache baseCache, int hashSize) 
 				: base(baseCache) {
 				this.tableCache = tableCache;
 				this.hashSize = hashSize;

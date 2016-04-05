@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Objects {
 	/// Implements a <c>BINARY</c> object that handles a limited number
 	/// of bytes, not exceding <see cref="MaxLength"/>.
 	/// </summary>
-	public struct SqlBinary : ISqlBinary {
-		private readonly byte[] bytes;
+	public sealed class SqlBinary : ISqlBinary {
+		private byte[] bytes;
 		public static readonly SqlBinary Null = new SqlBinary(null);
 
 		/// <summary>
@@ -46,8 +46,7 @@ namespace Deveel.Data.Sql.Objects {
 			: this(source, 0, length) {
 		}
 
-		public SqlBinary(byte[] source, int offset, int length)
-			: this() {
+		public SqlBinary(byte[] source, int offset, int length) {
 			if (source == null) {
 				bytes = null;
 			} else {
