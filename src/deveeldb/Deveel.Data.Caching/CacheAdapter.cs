@@ -37,6 +37,11 @@ namespace Deveel.Data.Caching {
 			return BaseCache.Remove(key);
 		}
 
+		protected override void Dispose(bool disposing) {
+			BaseCache = null;
+			base.Dispose(disposing);
+		}
+
 		public override void Clear() {
 			BaseCache.Clear();
 			base.Clear();

@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Tables {
 	public class SimpleRowEnumerator : IEnumerator<Row> {
-		private readonly ITable source;
+		private ITable source;
 		private int index = -1;
 		private int rowCount;
 
@@ -33,7 +33,17 @@ namespace Deveel.Data.Sql.Tables {
 			rowCount = source.RowCount;
 		}
 
+		~SimpleRowEnumerator() {
+			Dispose(false);
+		}
+
+		private void Dispose(bool disposing) {
+			source = null;
+		}
+
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public bool MoveNext() {

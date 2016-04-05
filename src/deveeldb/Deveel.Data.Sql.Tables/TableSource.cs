@@ -1452,9 +1452,19 @@ namespace Deveel.Data.Sql.Tables {
 					this.enumerator = enumerator;
 				}
 
-				public void Dispose() {
+				~RowEnumerator() {
+					Dispose(false);
+				}
+
+				private void Dispose(bool disposing) {
 					table = null;
 					enumerator = null;
+
+				}
+
+				public void Dispose() {
+					Dispose(true);
+					System.GC.SuppressFinalize(this);
 				}
 
 				public bool MoveNext() {

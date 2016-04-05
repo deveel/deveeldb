@@ -41,6 +41,11 @@ namespace Deveel.Data.Store {
 			if (disposing) {
 				if (nameStoreMap != null) {
 					lock (this) {
+						foreach (var store in nameStoreMap.Values) {
+							if (store != null)
+								store.Dispose();
+						}
+
 						nameStoreMap.Clear();
 					}
 				}
@@ -113,7 +118,14 @@ namespace Deveel.Data.Store {
 				throw new ArgumentNullException("store");
 
 			lock (this) {
-				return nameStoreMap.Remove(store.Name);
+				InMemoryStore removed;
+				if (!nameStoreMap.TryGetValue(store.Name, out removed))
+					return false;
+
+				if (removed != null)
+					removed.Dispose();
+
+				return true;
 			}
 		}
 

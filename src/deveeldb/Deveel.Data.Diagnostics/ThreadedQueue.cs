@@ -111,6 +111,8 @@ namespace Deveel.Data.Diagnostics {
 				} catch (TaskCanceledException) {
 				}
 			}
+
+			tasks.Clear();
 #else
 			foreach (var thread in threads) {
 				try {
@@ -119,6 +121,8 @@ namespace Deveel.Data.Diagnostics {
 				} catch (ThreadInterruptedException) {
 				}
 			}
+
+			threads.Clear();
 #endif
 
 			started = false;

@@ -340,6 +340,8 @@
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
     <Compile Include="Deveel.Data\SystemExtensions.cs" />
     <Compile Include="Deveel.Data\UserSessionExtensions.cs" />
+    <Compile Include="DryIoc\Container.cs" />
+    <Compile Include="DryIoc\ImTools.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\Header.cs" />
     <Compile Include="System.Runtime.Remoting.Messaging\HeaderHandler.cs" />
     <Compile Include="System.Runtime.Serialization.Formatters\FormatterAssemblyStyle.cs" />

@@ -160,13 +160,18 @@ namespace Deveel.Data.Caching {
 #region Cache
 
 		class Cache : CacheAdapter {
-			private readonly TableCellCache tableCache;
+			private TableCellCache tableCache;
 			private int hashSize;
 
 			public Cache(TableCellCache tableCache, ICache baseCache, int hashSize, int maxSize) 
 				: base(baseCache) {
 				this.tableCache = tableCache;
 				this.hashSize = hashSize;
+			}
+
+			protected override void Dispose(bool disposing) {
+				tableCache = null;
+				base.Dispose(disposing);
 			}
 
 			public void ChangeSize(int newSize) {
