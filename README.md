@@ -53,6 +53,12 @@ Alpha versions of *DeveelDB* can also be found at the official NuGet saource (ht
 - *deveeldb.x86*: https://www.nuget.org/packages/deveeldb.x86/
 - *deveeldb.x64*: https://www.nuget.org/packages/deveeldb.x64/
 
+Since the versions of DeveelDB 2.0 deployed on NuGet.org are still in pre-release, you must specify the  *-Pre* suffix
+
+```
+PM> Install-Package deveeldb -Pre
+```
+
 License
 ============
 
