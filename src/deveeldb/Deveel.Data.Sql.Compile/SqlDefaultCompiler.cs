@@ -22,6 +22,11 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class SqlDefaultCompiler : ISqlCompiler {
+		public static void Init() {
+			if (SqlParsers.PlSql == null)
+				SqlParsers.PlSql = new SqlDefaultParser(new SqlGrammar());
+		}
+
 		public SqlCompileResult Compile(SqlCompileContext context) {
 			if (context == null)
 				throw new ArgumentNullException("context");
