@@ -53,10 +53,23 @@ Alpha versions of *DeveelDB* can also be found at the official NuGet saource (ht
 - *deveeldb.x86*: https://www.nuget.org/packages/deveeldb.x86/
 - *deveeldb.x64*: https://www.nuget.org/packages/deveeldb.x64/
 
+Since the versions of DeveelDB 2.0 deployed on NuGet.org are still in pre-release, you must specify the  *-Pre* suffix
+
+```
+PM> Install-Package deveeldb -Pre
+```
+
+
+Binary Packages
+===============
+
+We also produce a set of binary packages that we release on GitHub: you can download the latest one for your platform checking [the latest release](https://github.com/deveel/deveeldb/releases/latest)
+
+
 License
 ============
 
-*DeveelDB* is released under the [Apache 2.0][http://www.apache.org/licenses/LICENSE-2.0] license. This is a very permissive licensing, that allows anyone to use the core library into commercial and non-commercial project. Other libraries (such as he GIS extension) are released under different licensing, due to commercial reasons or to dependencies from external tools.
+*DeveelDB* is released under the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) license. This is a very permissive licensing, that allows anyone to use the core library into commercial and non-commercial project. Other libraries (such as he GIS extension) are released under different licensing, due to commercial reasons or to dependencies from external tools.
 
 
 Status and Issues
