@@ -10,31 +10,24 @@ namespace Deveel.Data.Sql.Compile {
 				.To<SqlDefaultCompiler>()
 				.InSystemScope();
 
-			//scope.Bind<ISystemDisposeCallback>()
-			//	.To<SqlParsersDispose>();
+			scope.Bind<ISystemDisposeCallback>()
+				.To<SqlParsersDispose>();
 
-			//scope.Bind<ISystemCreateCallback>()
-			//	.To<SqlParsersCreate>();
+			scope.Bind<ISystemCreateCallback>()
+				.To<SqlParsersCreate>();
 		}
 
-		//class SqlParsersDispose : ISystemDisposeCallback {
-		//	public void OnDispose(ISystem system) {
-		//		SqlParsers.Expression.Dispose();
-		//		SqlParsers.DataType.Dispose();
-		//		SqlParsers.PlSql.Dispose();
+		class SqlParsersDispose : ISystemDisposeCallback {
+			public void OnDispose(ISystem system) {
+				SqlParsers.PlSql.Dispose();
+				SqlParsers.PlSql = null;
+			}
+		}
 
-		//		SqlParsers.Expression = null;
-		//		SqlParsers.DataType = null;
-		//		SqlParsers.PlSql = null;
-		//	}
-		//}
-
-		//class SqlParsersCreate : ISystemCreateCallback {
-		//	public void OnCreated(ISystem system) {
-		//		SqlParsers.Expression = new SqlDefaultParser(new SqlExpressionGrammar());
-		//		SqlParsers.DataType = new SqlDefaultParser(new SqlDataTypeGrammar());
-		//		SqlParsers.PlSql = new SqlDefaultParser(new SqlGrammar());
-		//	}
-		//}
+		class SqlParsersCreate : ISystemCreateCallback {
+			public void OnCreated(ISystem system) {
+				SqlParsers.PlSql = new SqlDefaultParser(new SqlGrammar());
+			}
+		}
 	}
 }
