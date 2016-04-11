@@ -10,12 +10,12 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
 	public sealed class MemberMapInfo {
-		internal MemberMapInfo(MemberInfo member, string columnName, SqlType columnType, bool nullable, ConstraintMapInfo constraint) {
+		internal MemberMapInfo(MemberInfo member, string columnName, SqlType columnType, bool nullable, ConstraintMapInfo[] constraints) {
 			Member = member;
 			ColumnName = columnName;
 			ColumnType = columnType;
 			IsNullable = nullable;
-			Constraint = constraint;
+			Constraints = constraints;
 
 			if (member is PropertyInfo) {
 				MemberType = ((PropertyInfo) member).PropertyType;
@@ -40,7 +40,7 @@ namespace Deveel.Data.Mapping {
 
 		public bool DefaultIsExpression { get; private set; }
 
-		internal ConstraintMapInfo Constraint { get; private set; }
+		internal ConstraintMapInfo[] Constraints { get; private set; }
 
 		internal void SetDefault(object value, bool isExpression) {
 			if (isExpression &&

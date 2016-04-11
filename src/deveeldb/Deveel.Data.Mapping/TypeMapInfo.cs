@@ -32,7 +32,7 @@ namespace Deveel.Data.Mapping {
 		}
 
 		public IEnumerable<ConstraintMapInfo> Constraints {
-			get { return Members.Where(x => x.Constraint != null).Select(x => x.Constraint); }
+			get { return Members.Where(x => x.Constraints != null).SelectMany(x => x.Constraints); }
 		} 
 
 		internal void AddMember(MemberMapInfo member) {

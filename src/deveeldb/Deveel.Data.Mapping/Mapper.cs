@@ -163,7 +163,7 @@ namespace Deveel.Data.Mapping {
 				defaultIsExpression = true;
 			}
 
-			var mapInfo = new MemberMapInfo(memberInfo, columnName, columnType, nullable, constraint);
+			var mapInfo = new MemberMapInfo(memberInfo, columnName, columnType, nullable, new[] {constraint});
 			if (defaultValue != null) {
 				mapInfo.SetDefault(defaultValue, defaultIsExpression);
 			}
