@@ -136,15 +136,15 @@ namespace Deveel.Data.Mapping {
 				columnType = GetSqlType(memberInfo);
 			}
 
-			ConstraintMapInfo constraint = null;
+			ConstraintMapInfo[] constraints = null;
 #if PCL
 			if (memberInfo.IsDefined(typeof (ConstraintAttribute))) {
-				var attribute = memberInfo.GetCustomAttribute<ConstraintAttribute>();
+				var attributes = memberInfo.GetCustomAttributes<ConstraintAttribute>();
 #else
 			if (Attribute.IsDefined(memberInfo, typeof (ConstraintAttribute))) {
-				var attribute = (ConstraintAttribute) Attribute.GetCustomAttribute(memberInfo, typeof (ConstraintAttribute));
+				var attributes = (ConstraintAttribute[]) Attribute.GetCustomAttributes(memberInfo, typeof (ConstraintAttribute));
 #endif
-				constraint = new ConstraintMapInfo(memberInfo, columnName, attribute.Type, attribute.Expression);
+				constraints = attributes.Select(x => new ConstraintMapInfo(memberInfo, columnName, x.Type, x.Expression)).ToArray();
 			}
 
 #if PCL
@@ -152,18 +152,19 @@ namespace Deveel.Data.Mapping {
 #else
 			if (Attribute.IsDefined(memberInfo, typeof (IdentityAttribute))) {
 #endif
-				if (constraint != null)
+				if (constraints != null &&
+					constraints.Length > 0)
 					throw new InvalidOperationException("Cannot specify an identity for a column that already defines a constraint.");
 
 				if (defaultValue != null)
 					throw new InvalidOperationException("Cannot specify an identity for a column that defines a default expression.");
 
-				constraint = new ConstraintMapInfo(memberInfo, columnName, ConstraintType.PrimaryKey, null);
+				constraints = new[] {new ConstraintMapInfo(memberInfo, columnName, ConstraintType.PrimaryKey, null)};
 				defaultValue = String.Format("UNIQUEKEY('{0}')", typeMapInfo.TableName);
 				defaultIsExpression = true;
 			}
 
-			var mapInfo = new MemberMapInfo(memberInfo, columnName, columnType, nullable, new[] {constraint});
+			var mapInfo = new MemberMapInfo(memberInfo, columnName, columnType, nullable, constraints);
 			if (defaultValue != null) {
 				mapInfo.SetDefault(defaultValue, defaultIsExpression);
 			}
