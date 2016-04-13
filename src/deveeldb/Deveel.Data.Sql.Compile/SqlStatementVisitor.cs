@@ -9,6 +9,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlStatementVisitor : PlSqlParserBaseVisitor<SqlStatement> {
@@ -57,7 +58,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitCreateSequenceStatement(PlSqlParser.CreateSequenceStatementContext context) {
-			return base.VisitCreateSequenceStatement(context);
+			return SequenceStatements.Create(context);
 		}
 
 		public override SqlStatement VisitDmlStatement(PlSqlParser.DmlStatementContext context) {
@@ -97,11 +98,72 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitBody(PlSqlParser.BodyContext context) {
-			return base.VisitBody(context);
+			var block = new PlSqlBody();
+
+			// TODO: support labels
+			var statements = context.seq_of_statements().statement().Select(Visit);
+			foreach (var statement in statements) {
+				block.Statements.Add(statement);
+			}
+
+			var exceptionClause = context.exceptionClause();
+			if (exceptionClause != null) {
+				var handlers = exceptionClause.exceptionHandler().Select(BuildExceptionHandler);
+				foreach (var handler in handlers) {
+					block.ExceptionHandlers.Add(handler);
+				}
+			}
+
+			return block;
+		}
+
+		private ExceptionHandler BuildExceptionHandler(PlSqlParser.ExceptionHandlerContext context) {
+			HandledExceptions handled;
+			if (context.OTHERS() != null) {
+				handled = HandledExceptions.Others;
+			} else {
+				var handledExceptions = context.id().Select(Name.Simple).ToArray();
+				handled = new HandledExceptions(handledExceptions);
+			}
+
+			var handler = new ExceptionHandler(handled);
+
+			// TODO: support labels
+			var statements = context.seq_of_statements().statement().Select(Visit);
+			foreach (var statement in statements) {
+				handler.Statements.Add(statement);
+			}
+
+			return handler;
 		}
 
 		public override SqlStatement VisitBlock(PlSqlParser.BlockContext context) {
-			return base.VisitBlock(context);
+			var declarations = context.declaration().Select(Visit);
+
+			var block = new PlSqlBlockStatement();
+
+			foreach (var declaration in declarations) {
+				block.Declarations.Add(declaration);
+			}
+
+			var body = Visit(context.body());
+			if (body is PlSqlBody) {
+				var plsqlBody = (PlSqlBody) body;
+				foreach (var statement in plsqlBody.Statements) {
+					block.Statements.Add(statement);
+				}
+
+				foreach (var handler in plsqlBody.ExceptionHandlers) {
+					block.ExceptionHandlers.Add(handler);
+				}
+			} else if (body is SequenceOfStatements) {
+				var seq = (SequenceOfStatements) body;
+				foreach (var statement in seq.Statements) {
+					block.Statements.Add(statement);
+				}
+			}
+
+			return block;
 		}
 
 		public override SqlStatement VisitAssignmentStatement(PlSqlParser.AssignmentStatementContext context) {
@@ -297,6 +359,71 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitTransactionControlStatement(context);
 		}
 
+		public override SqlStatement VisitSetIgnoreCase(PlSqlParser.SetIgnoreCaseContext context) {
+			bool ignoreCase = true;
+			if (context.ON() != null) {
+				ignoreCase = true;
+			} else if (context.OFF() != null) {
+				ignoreCase = false;
+			}
+
+			return new SetStatement(TransactionSettingKeys.IgnoreIdentifiersCase, SqlExpression.Constant(ignoreCase));
+		}
+
+		public override SqlStatement VisitSetIsolationLevel(PlSqlParser.SetIsolationLevelContext context) {
+			string level;
+			if (context.SERIALIZABLE() != null) {
+				level = "Serializable";
+			} else if (context.READ() != null) {
+				if (context.COMMITTED() != null) {
+					level = "ReadCommitted";
+				} else if (context.UNCOMMITTED() != null) {
+					level = "ReadUncommitted";
+				} else {
+					throw new ParseCanceledException();
+				}
+			} else {
+				throw new ParseCanceledException("Invalid isolation level.");
+			}
+
+			return new SetStatement(TransactionSettingKeys.IsolationLevel, SqlExpression.Constant(level));
+		}
+
+		public override SqlStatement VisitSetTransactionAccess(PlSqlParser.SetTransactionAccessContext context) {
+			bool readOnly = true;
+			if (context.READ() != null &&
+			    context.WRITE() != null) {
+				readOnly = false;
+			} else if (context.READ() != null &&
+			           context.ONLY() != null) {
+				readOnly = true;
+			}
+
+			return new SetStatement(TransactionSettingKeys.ReadOnly, SqlExpression.Constant(readOnly));
+		}
+
+		public override SqlStatement VisitShowStatement(PlSqlParser.ShowStatementContext context) {
+			ShowTarget target;
+			ObjectName tableName = null;
+			if (context.SCHEMA() != null) {
+				target = ShowTarget.Schema;
+			} else if (context.TABLES() != null) {
+				target = ShowTarget.SchemaTables;
+			} else if (context.TABLE() != null) {
+				target = ShowTarget.Table;
+				tableName = Name.Object(context.objectName());
+			} else if (context.OPEN() != null &&
+			           context.SESSIONS() != null) {
+				target = ShowTarget.OpenSessions;
+			} else if (context.SESSION() != null) {
+				target = ShowTarget.Session;
+			} else {
+				throw new NotSupportedException();
+			}
+
+			return new ShowStatement(target, tableName);
+		}
+
 		public override SqlStatement VisitInsertStatement(PlSqlParser.InsertStatementContext context) {
 			if (context.multiTableInsert() != null)
 				throw new NotImplementedException();
@@ -447,6 +574,11 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlStatement VisitCursorDeclaration(PlSqlParser.CursorDeclarationContext context) {
 			return Cursor.Declare(context);
+		}
+
+		public override SqlStatement VisitExceptionDeclaration(PlSqlParser.ExceptionDeclarationContext context) {
+			var exceptionName = Name.Simple(context.id());
+			return new DeclareExceptionStatement(exceptionName);
 		}
 
 		public override SqlStatement VisitVariableDeclaration(PlSqlParser.VariableDeclarationContext context) {

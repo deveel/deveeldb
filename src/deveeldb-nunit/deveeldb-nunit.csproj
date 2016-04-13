@@ -68,10 +68,6 @@
       <HintPath>..\packages\dmath.1.5.71\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Irony, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ca48ace7223ead47, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\irony.net35\Irony.dll</HintPath>
-    </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -119,7 +115,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTriggerTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />

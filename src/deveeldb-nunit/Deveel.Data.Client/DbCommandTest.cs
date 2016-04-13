@@ -71,7 +71,7 @@ namespace Deveel.Data.Client {
 			Assert.IsNotNull(command);
 			Assert.IsNotNull(command.Connection);
 
-			command.CommandText = "a = ?";
+			command.CommandText = "a := ?";
 			command.Parameters.Add(22);
 
 			Assert.DoesNotThrow(() => command.ExecuteNonQuery());
@@ -84,7 +84,7 @@ namespace Deveel.Data.Client {
 			Assert.IsNotNull(command);
 			Assert.IsNotNull(command.Connection);
 
-			command.CommandText = "a = ?";
+			command.CommandText = "a := ?";
 			command.Parameters.Add(22);
 
 			var result = command.ExecuteScalar();

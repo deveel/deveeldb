@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitUnaryminus_expression(PlSqlParser.Unaryminus_expressionContext context) {
-			return SqlExpression.Unary(SqlExpressionType.Subtract, Visit(context.unary_expression()));
+			return SqlExpression.Unary(SqlExpressionType.Negate, Visit(context.unary_expression()));
 		}
 
 		private SqlExpressionType GetBinaryOperator(string s) {
@@ -98,10 +98,60 @@ namespace Deveel.Data.Sql.Compile {
 				return left;
 			}
 
-			var right = Visit(context.right);
 			var expType = GetBinaryOperator(op);
+			var right = Visit(context.right);
+
+			if (right is QuantifiedExpression) {
+				var quantified = (QuantifiedExpression) right;
+
+				if (quantified.IsAny) {
+					expType = MakeAny(expType);
+				} else if (quantified.IsAll) {
+					expType = MakeAll(expType);
+				}
+
+				right = quantified.Argument;
+			}
 
 			return SqlExpression.Binary(left, expType, right);
+		}
+
+		private SqlExpressionType MakeAny(SqlExpressionType expressionType) {
+			switch (expressionType) {
+				case SqlExpressionType.Equal:
+					return SqlExpressionType.AnyEqual;
+				case SqlExpressionType.NotEqual:
+					return SqlExpressionType.AnyNotEqual;
+				case SqlExpressionType.GreaterThan:
+					return SqlExpressionType.AnyGreaterThan;
+				case SqlExpressionType.SmallerThan:
+					return SqlExpressionType.AnySmallerThan;
+				case SqlExpressionType.GreaterOrEqualThan:
+					return SqlExpressionType.AnyGreaterOrEqualThan;
+				case SqlExpressionType.SmallerOrEqualThan:
+					return SqlExpressionType.AnySmallerOrEqualThan;
+				default:
+					throw new ParseCanceledException("Cannot turn a non-relational operator into ANY.");
+			}
+		}
+
+		private SqlExpressionType MakeAll(SqlExpressionType expressionType) {
+			switch (expressionType) {
+				case SqlExpressionType.Equal:
+					return SqlExpressionType.AllEqual;
+				case SqlExpressionType.NotEqual:
+					return SqlExpressionType.AllNotEqual;
+				case SqlExpressionType.GreaterThan:
+					return SqlExpressionType.AllGreaterThan;
+				case SqlExpressionType.SmallerThan:
+					return SqlExpressionType.AllSmallerThan;
+				case SqlExpressionType.GreaterOrEqualThan:
+					return SqlExpressionType.AllGreaterOrEqualThan;
+				case SqlExpressionType.SmallerOrEqualThan:
+					return SqlExpressionType.AllSmallerOrEqualThan;
+				default:
+					throw new ParseCanceledException("Cannot turn a non-relational operator into ALL.");
+			}
 		}
 
 		public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
@@ -109,13 +159,28 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitQuantifiedExpression(PlSqlParser.QuantifiedExpressionContext context) {
-			var query = Subquery.Form(context.subquery());
+			SqlExpression arg;
+			if (context.subquery() != null) {
+				arg = Subquery.Form(context.subquery());
+			} else if (context.expression_list() != null) {
+				var elements = context.expression_list().expression().Select(Visit).ToArray();
+				arg = SqlExpression.Constant(Field.Array(elements));
+			} else {
+				throw new ParseCanceledException("Invalid argument in a quantified expression.");
+			}
+
 			if (context.EXISTS() != null) {
-				
-			} else if (context.ALL() != null) {
-				
-			} else if (context.ANY() != null) {
-				
+				if (!(arg is SqlQueryExpression))
+					throw new ParseCanceledException("The EXISTS function can be evaluated only against a sub-query.");
+
+				return SqlExpression.FunctionCall("EXISTS", new[] {arg});
+			}
+			if (context.ALL() != null) {
+				return new QuantifiedExpression { IsAll = true, Argument = arg };
+			}
+			if (context.ANY() != null ||
+			    context.SOME() != null) {
+				return new QuantifiedExpression { IsAny = true, Argument = arg };
 			}
 
 			return base.VisitQuantifiedExpression(context);
@@ -302,7 +367,7 @@ namespace Deveel.Data.Sql.Compile {
 				var min = Visit(context.min);
 				var max = Visit(context.max);
 				var lowerBound = SqlExpression.GreaterOrEqualThan(left, min);
-				var upperBound = SqlExpression.SmallerThan(left, max);
+				var upperBound = SqlExpression.SmallerOrEqualThan(left, max);
 				return SqlExpression.And(lowerBound, upperBound);
 			}
 
@@ -310,7 +375,7 @@ namespace Deveel.Data.Sql.Compile {
 				var op = isNot ? SqlExpressionType.AllNotEqual : SqlExpressionType.AnyEqual;
 				var right = Visit(context.in_elements());
 
-				SqlExpression.Binary(left, op, right);
+				return SqlExpression.Binary(left, op, right);
 			}
 
 			return left;
