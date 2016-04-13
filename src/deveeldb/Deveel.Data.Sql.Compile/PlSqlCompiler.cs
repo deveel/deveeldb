@@ -10,51 +10,52 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	public sealed class PlSqlCompiler : ISqlCompiler {
-		private PlSqlParser plSqlParser;
-		private List<SqlCompileMessage> messages; 
+		//private PlSqlParser plSqlParser;
+		//private List<SqlCompileMessage> messages; 
 
 		public PlSqlCompiler() {
-			plSqlParser = MakeParser(String.Empty, message => messages.Add(message));
-			messages = new List<SqlCompileMessage>(12);
+			//plSqlParser = MakeParser(String.Empty, message => messages.Add(message));
+			//messages = new List<SqlCompileMessage>(12);
 		}
 
-		~PlSqlCompiler() {
-			Dispose(false);
-		}
+		//~PlSqlCompiler() {
+		//	Dispose(false);
+		//}
 
 		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
+			//Dispose(true);
+			//GC.SuppressFinalize(this);
 		}
 
-		private void Dispose(bool disposing) {
-			if (disposing) {
-				if (messages != null)
-					messages.Clear();
-			}
+		//private void Dispose(bool disposing) {
+		//	if (disposing) {
+		//		if (messages != null)
+		//			messages.Clear();
+		//	}
 
-			plSqlParser = null;
-			messages = null;
-		}
+		//	//plSqlParser = null;
+		//	messages = null;
+		//}
 
-		private void SetInput(string inputString) {
-			plSqlParser.SetInputStream(new BufferedTokenStream(new PlSqlLexer(new AntlrInputStream(inputString))));
-			messages.Clear();
-		}
+		//private void SetInput(string inputString) {
+		//	plSqlParser.SetInputStream(new BufferedTokenStream(new PlSqlLexer(new AntlrInputStream(inputString))));
+		//	messages.Clear();
+		//}
 
 		public SqlCompileResult Compile(SqlCompileContext context) {
 			var result = new SqlCompileResult(context);
 
 			try {
-				SetInput(context.SourceText);
+				//SetInput(context.SourceText);
 
+				var plSqlParser = MakeParser(context.SourceText, message => result.Messages.Add(message));
 				var parseResult = plSqlParser.compilationUnit();
 
-				if (messages.Count > 0) {
-					foreach (var message in messages) {
-						result.Messages.Add(message);
-					}
-				}
+				//if (messages.Count > 0) {
+				//	foreach (var message in messages) {
+				//		result.Messages.Add(message);
+				//	}
+				//}
 
 				var visitor = new SqlStatementVisitor();
 				var statement = visitor.Visit(parseResult);
@@ -105,7 +106,8 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public SqlExpression ParseExpression(string text) {
-			SetInput(text);
+			//SetInput(text);
+			var plSqlParser = MakeParser(text, null);
 			var parseResult = plSqlParser.expression_unit();
 
 			var visitor = new SqlExpressionVisitor();
@@ -114,7 +116,8 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public DataTypeInfo ParseDataType(string s) {
-			SetInput(s);
+			// SetInput(s);
+			var plSqlParser = MakeParser(s, null);
 			var parseResult = plSqlParser.datatype();
 
 			var visitor = new DataTypeVisitor();

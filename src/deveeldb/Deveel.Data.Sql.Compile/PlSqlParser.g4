@@ -41,10 +41,12 @@ unitStatement
 	| assignmentStatement
 	| cursorStatement
 	| dmlStatement
-	| declareStatement
-	| block
 
+	| showStatement
 	| transactionControlStatement
+
+	| block
+	| declareStatement
     ;
 
 dmlStatement
@@ -265,9 +267,9 @@ defaultValuePart
 // $<PL/SQL Elements Declarations
 
 declaration
-    : variableDeclaration
+    : exceptionDeclaration
+	| variableDeclaration
     | cursorDeclaration
-    | exceptionDeclaration
     | pragmaDeclaration
     ;
 
@@ -335,6 +337,7 @@ labelDeclaration
 statement
     : body
     | block
+	| dmlStatement
     | assignmentStatement
     | continueStatement
     | exitStatement
@@ -545,7 +548,7 @@ functionCall
     ;
 
 body
-    : BEGIN seq_of_statements exceptionClause? END id?
+    : BEGIN seq_of_statements exceptionClause? END labelName?
     ;
 
 // $<Body - Specific Clause
@@ -555,7 +558,7 @@ exceptionClause
     ;
 
 exceptionHandler
-    : WHEN id (OR id)* THEN seq_of_statements
+    : WHEN ( OTHERS | id (OR id)* ) THEN seq_of_statements
     ;
 
 // $>
@@ -592,6 +595,14 @@ openForStatement
 
 // $>
 
+showStatement
+    : SHOW (   SCHEMA
+	         | TABLES 
+	         | TABLE objectName
+			 | OPEN SESSIONS
+			 | CURRENT SESSION )
+	;
+
 // $<SQL PL/SQL Statements
 
 sql_statement
@@ -615,18 +626,28 @@ dynamic_returning_clause
 // $<Transaction Control SQL PL/SQL Statements
 
 transactionControlStatement
-    : set_transaction_command
+    : setTransactionCommand
     | set_constraint_command
     | commitStatement
     | rollbackStatement
     ;
 
-set_transaction_command
+setTransactionCommand
     : SET TRANSACTION 
-      ( READ (ONLY | WRITE) | 
-	    ISOLATION LEVEL (SERIALIZABLE | READ COMMITTED | READ UNCOMMITTED ) )?
-      (NAME quoted_string)?
+      ( setTransactionAccess | setIsolationLevel | setIgnoreCase )
     ;
+
+setTransactionAccess
+   : READ ( ONLY | WRITE)
+   ;
+
+setIsolationLevel
+   : ISOLATION LEVEL (SERIALIZABLE | READ COMMITTED | READ UNCOMMITTED )
+   ;
+
+setIgnoreCase
+   : IGNORE IDENTIFIERS? CASE (ON | OFF)?
+   ;
 
 set_constraint_command
     : SET (CONSTRAINT | CONSTRAINTS) (ALL | constraint_name (',' constraint_name)*) (IMMEDIATE | DEFERRED)
@@ -1050,7 +1071,7 @@ caseStatement
 // $<CASE - Specific Clauses
 
 simpleCaseStatement
-    : id? CASE atom simpleCaseWhenPart+  caseElsePart? END CASE? id?
+    : labelName? CASE atom simpleCaseWhenPart+  caseElsePart? END CASE? labelName?
     ;
 
 simpleCaseWhenPart
@@ -1058,7 +1079,7 @@ simpleCaseWhenPart
     ;
 
 searchedCaseStatement
-    : id? CASE searchedCaseWhenPart+ caseElsePart? END CASE? id?
+    : labelName? CASE searchedCaseWhenPart+ caseElsePart? END CASE? labelName?
     ;
 
 searchedCaseWhenPart
@@ -1093,7 +1114,7 @@ vector_expr
     ;
 
 quantifiedExpression
-    : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | '(' expression_wrapper ')')
+    : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | expression_list )
     ;
 
 standard_function
@@ -1199,7 +1220,8 @@ binary_type
 	;
 
 string_type
-    : (CLOB | VARCHAR | CHAR | long_varchar | STRING) ( '(' numeric ')' )?
+    : (CLOB | VARCHAR | CHAR | long_varchar | STRING) ( '(' numeric ')' )? 
+	     (LOCALE locale=CHAR_STRING)? (ENCODING encoding=CHAR_STRING)? 
 	;
 
 
@@ -1488,6 +1510,8 @@ regular_id
     //| HAVING
     | HOUR
     //| IF
+	| IDENTIFIED
+	| IDENTIFIERS
 	| IDENTITY
     | IGNORE
     | IMMEDIATE
@@ -1518,6 +1542,7 @@ regular_id
     // | LIKE
     | LIMIT
     | LOCAL
+	| LOCALE
     //| LOCK
     | LOCKED
     | LONG
@@ -1566,6 +1591,7 @@ regular_id
     //| OPTION
     //| OR
     //| ORDER
+	| OTHER
     | OUT
     | OUTER
     //| PERCENT_ROWTYPE
@@ -1617,6 +1643,8 @@ regular_id
     // | SEQUENCE
     | SEQUENTIAL
     | SERIALIZABLE
+	| SESSION
+	| SESSIONS
     | SESSIONTIMEZONE
     | SET
     | SETS
@@ -1641,6 +1669,7 @@ regular_id
     | SUCCESS
     | SUSPEND
     //| TABLE
+	| TABLES
     //| THE
     //| THEN
     | TIME

@@ -9,27 +9,10 @@ namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
 	public sealed class PlSqlCodeBlockTests : SqlCompileTestBase {
 		[Test]
-		public void EmptyBlock() {
-			const string sql = @"BEGIN END";
-
-			var result = Compile(sql);
-
-			Assert.IsNotNull(result);
-			Assert.IsFalse(result.HasErrors);
-
-			Assert.AreEqual(1, result.Statements.Count);
-
-			var obj = result.Statements.ElementAt(0);
-
-			Assert.IsNotNull(obj);
-			Assert.IsInstanceOf<PlSqlBlockStatement>(obj);
-		}
-
-		[Test]
 		public void SelectInBlock() {
 			const string sql = @"BEGIN
 							SELECT * FROM test WHERE a = 90 AND
-													 b > 12.922
+													 b > 12.922;
 						END";
 
 			var result = Compile(sql);
@@ -59,13 +42,19 @@ namespace Deveel.Data.Sql.Compile {
 		public void DeclarationsBeforeBlock() {
 			const string sql = @"DECLARE a INT := 23
 								BEGIN
-									SELECT * FROM test WHERE a < test.a
+									SELECT * FROM test WHERE a < test.a;
 								END";
 
 			var result = Compile(sql);
 
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<PlSqlBlockStatement>(statement);
 		}
 	}
 }

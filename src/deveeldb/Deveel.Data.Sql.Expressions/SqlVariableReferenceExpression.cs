@@ -39,6 +39,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public string VariableName { get; private set; }
 
+		public bool IsParameterReference {
+			get { return VariableName == "?"; }
+		}
+
 		public override bool CanEvaluate {
 			get { return true; }
 		}

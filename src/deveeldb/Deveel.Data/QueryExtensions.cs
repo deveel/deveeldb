@@ -664,30 +664,23 @@ namespace Deveel.Data {
 
 			public bool CanPrepare(SqlExpression expression) {
 				return query.Parameters.Count > 0 &&
-				       (expression is SqlVariableReferenceExpression ||
-				        expression is SqlParameterExpression);
+				       (expression is SqlVariableReferenceExpression);
 			}
 
 			public SqlExpression Prepare(SqlExpression expression) {
 				QueryParameter parameter = null;
 
-				if (expression is SqlParameterExpression) {
-					var param = (SqlParameterExpression)expression;
-					var paramName = param.ParameterName;
+				var varRef = (SqlVariableReferenceExpression) expression;
 
-					if (String.Equals(paramName, QueryParameter.Marker)) {
-						if (paramStyle != QueryParameterStyle.Marker)
-							return null;
+				if (varRef.IsParameterReference) {
+					if (paramStyle != QueryParameterStyle.Marker)
+						return expression;
 
-						parameter = query.Parameters.ElementAt(++paramOffset);
-					} else {
-						if (paramStyle != QueryParameterStyle.Named)
-							return null;
+					parameter = query.Parameters.ElementAt(++paramOffset);
+				} else {
+					if (paramStyle != QueryParameterStyle.Named)
+						return expression;
 
-						parameter = query.Parameters.FindParameter(paramName);
-					}
-				} else if (expression is SqlVariableReferenceExpression) {
-					var varRef = (SqlVariableReferenceExpression) expression;
 					var varName = varRef.VariableName;
 
 					parameter = query.Parameters.FindParameter(varName);

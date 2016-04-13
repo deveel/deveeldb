@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -81,7 +82,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override DataTypeInfo VisitString_type(PlSqlParser.String_typeContext context) {
-			var size = Number.PositiveInteger(context.numeric()) ?? -1;
+			var size = Number.PositiveInteger(context.numeric());
 
 			SqlTypeCode typeCode;
 			if (context.CHAR() != null) {
@@ -98,14 +99,23 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid string type");
 			}
 
-			// TODO: Support COLLATE
-			var meta = new[] {
-				new DataTypeMeta("Size", size.ToString()),
-				new DataTypeMeta("Encoding", "utf-8"),
-				new DataTypeMeta("Collate", "invariant")  
-			};
+			string encoding = null;
+			if (context.ENCODING() != null)
+				encoding = InputString.AsNotQuoted(context.encoding.Text);
 
-			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), meta);
+			string locale = null;
+			if (context.LOCALE() != null)
+				locale = InputString.AsNotQuoted(context.locale.Text);
+
+			var meta = new List<DataTypeMeta>();
+			if (size != null)
+				meta.Add(new DataTypeMeta("MaxSize", size.Value.ToString()));
+			if (locale != null)
+				meta.Add(new DataTypeMeta("Locale", locale));
+			if (encoding != null)
+				meta.Add(new DataTypeMeta("Encoding", encoding));
+
+			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), meta.ToArray());
 		}
 
 		public override DataTypeInfo VisitBinary_type(PlSqlParser.Binary_typeContext context) {

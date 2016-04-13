@@ -340,7 +340,10 @@ namespace Deveel.Data.Sql.Types {
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(IContext context, string s) {
 			try {
-				var parser = context.ResolveService<IDataTypeParser>();
+				IDataTypeParser parser = null;
+				if (context != null)
+					parser = context.ResolveService<IDataTypeParser>();
+
 				if (parser == null)
 					parser = new DefaultDataTypeParser();
 

@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
 	public static class Name {
+		[CLSCompliant(false)]
 		public static ObjectName Object(PlSqlParser.ObjectNameContext context) {
 			if (context == null)
 				return null;
@@ -23,18 +24,22 @@ namespace Deveel.Data.Sql.Compile {
 			return name;
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.IdContext context) {
 			return InputString.AsNotQuoted(context.GetText());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Column_aliasContext context) {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.LabelNameContext context) {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.UserNameContext context) {
 			if (context == null)
 				return null;
@@ -42,6 +47,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.GranteeNameContext context) {
 			if (context.userName() != null)
 				return Simple(context.userName());
@@ -49,6 +55,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.roleName());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.RoleNameContext context) {
 			if (context == null)
 				return null;
@@ -56,6 +63,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.ColumnNameContext context) {
 			if (context == null)
 				return null;
@@ -63,6 +71,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Cursor_nameContext context) {
 			if (context == null)
 				return null;
@@ -70,6 +79,7 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Regular_idContext context) {
 			if (context == null)
 				return null;
@@ -77,6 +87,7 @@ namespace Deveel.Data.Sql.Compile {
 			return context.GetText();
 		}
 
+		[CLSCompliant(false)]
 		public static ObjectName Select(PlSqlParser.ObjectNameContext context, bool glob) {
 			var name = Object(context);
 			if (glob)
@@ -84,6 +95,7 @@ namespace Deveel.Data.Sql.Compile {
 			return name;
 		}
 
+		[CLSCompliant(false)]
 		public static string Variable(PlSqlParser.Bind_variableContext context) {
 			var text = context.GetText();
 			if (String.IsNullOrEmpty(text))
@@ -95,6 +107,7 @@ namespace Deveel.Data.Sql.Compile {
 			return text;
 		}
 
+		[CLSCompliant(false)]
 		public static string Variable(PlSqlParser.Variable_nameContext context) {
 			if (context.bind_variable() != null)
 				return Variable(context.bind_variable());
@@ -102,10 +115,12 @@ namespace Deveel.Data.Sql.Compile {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Parameter_nameContext context) {
 			return Simple(context.id());
 		}
 
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Variable_nameContext context) {
 			return Simple(context.id());
 		}

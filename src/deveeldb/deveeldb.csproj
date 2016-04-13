@@ -202,6 +202,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\ColumnConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTableBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Cursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\PlSqlBody.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\QuantifiedExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlTypeParser.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DataTypeVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeleteBuilder.cs" />
@@ -232,7 +234,6 @@
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\FunctionParameterConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Fluid\IAggregateFunctionConfiguration.cs" />

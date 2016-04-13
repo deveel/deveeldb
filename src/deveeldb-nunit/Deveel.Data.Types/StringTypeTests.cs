@@ -77,8 +77,7 @@ namespace Deveel.Data.Sql.Types {
 		[Test]
 		public void SizedVarChar_Parse() {
 			const string typeString = "VARCHAR(255)";
-			SqlType sqlType = null;
-			Assert.DoesNotThrow(() => sqlType = SqlType.Parse(typeString));
+			var sqlType = SqlType.Parse(typeString);
 			Assert.IsNotNull(sqlType);
 			Assert.IsInstanceOf<StringType>(sqlType);
 			Assert.AreEqual(SqlTypeCode.VarChar, sqlType.TypeCode);
