@@ -10,7 +10,7 @@ namespace Deveel.Data.Sql.Compile {
     public sealed class DeleteTests : SqlCompileTestBase {
         [Test]
         public void FromTable() {
-            const string sql = "DELETE FROM table WHERE a = 1";
+            const string sql = "DELETE FROM table1 WHERE a = 1";
 
             var result = Compile(sql);
 
@@ -27,14 +27,14 @@ namespace Deveel.Data.Sql.Compile {
             var delete = (DeleteStatement) statement;
 
             Assert.IsNotNull(delete.TableName);
-            Assert.AreEqual("table", delete.TableName.Name);
+            Assert.AreEqual("table1", delete.TableName.Name);
             Assert.IsNotNull(delete.WhereExpression);
             Assert.AreEqual(-1, delete.Limit);
         }
 
         [Test]
         public void CurrentFromCursor() {
-            const string sql = "DELETE FROM table WHERE CURRENT OF cursor";
+            const string sql = "DELETE FROM table1 WHERE CURRENT OF cursor";
 
 			var result = Compile(sql);
 
@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Compile {
 	        var deleteCurrent = (DeleteCurrentStatement) statement;
 
 			Assert.IsNotNull(deleteCurrent.TableName);
-			Assert.AreEqual("table", deleteCurrent.TableName.Name);
+			Assert.AreEqual("table1", deleteCurrent.TableName.Name);
 			Assert.AreEqual("cursor", deleteCurrent.CursorName);
         }
 	}

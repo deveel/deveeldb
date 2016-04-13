@@ -16,15 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5165D6
 EndProject
 Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "deveeldb.schfb", "deveeldb.schfb\deveeldb.schfb.shfbproj", "{ADBAFCD3-B285-4474-8C24-E476BDA9C598}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl", "deveeldb\deveeldb.pcl.csproj", "{ADD851E0-1314-46C6-9312-7861F46438D0}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuspec", "nuspec", "{508A8A13-279F-42AC-8E82-9842107126A0}"
 	ProjectSection(SolutionItems) = preProject
 		..\nuget\deveeldb-platform.nuspec = ..\nuget\deveeldb-platform.nuspec
 		..\nuget\deveeldb.nuspec = ..\nuget\deveeldb.nuspec
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.pcl.nunit", "deveeldb-nunit\deveeldb.pcl.nunit.csproj", "{A8FB9505-89BC-42E4-A2C7-65305D586769}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -96,42 +92,6 @@ Global
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|ARM.ActiveCfg = Release|Any CPU
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|x64.ActiveCfg = Release|Any CPU
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|x86.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|ARM.ActiveCfg = Debug|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|ARM.Build.0 = Debug|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|x64.Build.0 = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|ARM.ActiveCfg = Release|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|ARM.Build.0 = Release|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x64.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release|x86.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|Any CPU.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|Any CPU.Build.0 = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|ARM.ActiveCfg = Release|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|ARM.Build.0 = Release|ARM
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|x64.ActiveCfg = Release|Any CPU
-		{ADD851E0-1314-46C6-9312-7861F46438D0}.Release-PCL|x86.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|ARM.ActiveCfg = Debug|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|ARM.Build.0 = Debug|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|x64.Build.0 = Debug|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release|ARM.ActiveCfg = Release|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release|ARM.Build.0 = Release|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release|x64.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release|x86.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|Any CPU.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|Any CPU.Build.0 = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|ARM.ActiveCfg = Release|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|ARM.Build.0 = Release|ARM
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|x64.ActiveCfg = Release|Any CPU
-		{A8FB9505-89BC-42E4-A2C7-65305D586769}.Release-PCL|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

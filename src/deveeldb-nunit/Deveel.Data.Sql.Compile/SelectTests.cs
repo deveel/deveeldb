@@ -11,7 +11,7 @@ namespace Deveel.Data.Sql.Compile {
 	public sealed class SelectTests : SqlCompileTestBase {
 		[Test]
 		public void WithFromClause() {
-			const string sql = "SELECT col1 AS a FROM table";
+			const string sql = "SELECT col1 AS a FROM table1";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
@@ -83,7 +83,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void WithOrderByClause() {
-			const string sql = "SELECT col1 AS a FROM table ORDER BY a ASC";
+			const string sql = "SELECT col1 AS a FROM table1 ORDER BY a ASC";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void CountAll() {
-			const string sql = "SELECT COUNT(*) FROM table";
+			const string sql = "SELECT COUNT(*) FROM table1";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
@@ -137,7 +137,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void FromGlobbedTable() {
-			const string sql = "SELECT table.* FROM table";
+			const string sql = "SELECT table1.* FROM table1";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(item);
 			Assert.IsNotNull(item.ReferenceName);
 			Assert.IsTrue(item.IsGlob);
-			Assert.AreEqual("table", item.TableName.FullName);
+			Assert.AreEqual("table1", item.TableName.FullName);
 		}
 	}
 }

@@ -28,17 +28,5 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.AreEqual("tester", dropUser.UserName);
 		}
-
-		[Test]
-		public void DropMultipleUsers() {
-			const string sql = "DROP USER tester1, tester2";
-
-			var result = Compile(sql);
-
-			Assert.IsNotNull(result);
-			Assert.IsFalse(result.HasErrors);
-
-			Assert.AreEqual(2, result.Statements.Count);
-		}
 	}
 }

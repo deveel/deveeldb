@@ -77,7 +77,7 @@ namespace Deveel.Data {
 			var compiler = query.Context.SqlCompiler();
 
 			if (compiler == null)
-				compiler = new SqlDefaultCompiler();
+				compiler = new PlSqlCompiler();
 
 			var compileResult = compiler.Compile(new SqlCompileContext(query.Context, sqlSouce));
 

@@ -11,7 +11,7 @@ namespace Deveel.Data.Sql.Compile {
 	public sealed class GrantTests : SqlCompileTestBase {
 		[Test]
 		public void ParseGrantToOneUserToOneTable() {
-			const string sql = "GRANT SELECT, DELETE, UPDATE PRIVILEGE ON test_table TO test_user";
+			const string sql = "GRANT SELECT, DELETE, UPDATE ON test_table TO test_user";
 
 			var result = Compile(sql);
 

@@ -52,13 +52,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\deveeldb\deveeldb.pcl.csproj">
-      <Project>{add851e0-1314-46c6-9312-7861f46438d0}</Project>
-      <Name>deveeldb.pcl</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Deveel.Data\AssignTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\StorageType.cs" />

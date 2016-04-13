@@ -63,8 +63,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.AreEqual(2, createTable.Columns.Count);
 			Assert.IsTrue(createTable.Columns[0].IsIdentity);
-			Assert.IsNotNull(createTable.Columns[0].DefaultExpression);
-			Assert.IsInstanceOf<SqlFunctionCallExpression>(createTable.Columns[0].DefaultExpression);
+			Assert.IsNull(createTable.Columns[0].DefaultExpression);
 		}
 
 		[Test]
@@ -130,7 +129,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void WithConstraints() {
-			const string sql = "CREATE TABLE test (id INT NOT NULL, UNIQUE(id))";
+			const string sql = "CREATE TABLE test (id INT NOT NULL, UNIQUE_IX UNIQUE(id))";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);

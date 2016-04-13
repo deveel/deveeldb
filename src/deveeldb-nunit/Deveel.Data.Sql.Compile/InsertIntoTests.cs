@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void InsertSelect() {
-			const string sql = "INSERT INTO test_table FROM (SELECT * FROM table2 WHERE arg1 = 1)";
+			const string sql = "INSERT INTO test_table SELECT * FROM table2 WHERE arg1 = 1";
 
 			var result = Compile(sql);
 

@@ -120,7 +120,7 @@ namespace Deveel.Data.Routines {
 			var offset = parameter.Offset;
 			if (parameter.IsUnbounded) {
 				// TODO: Copy all arguments starting at the given offset and make an Array
-				var tuple = SqlExpression.Tuple(new SqlExpression[0]);
+				var tuple = SqlExpression.Constant(Field.Array(new SqlExpression[0]));
 				value = tuple;
 			} else {
 				value = Invoke.Arguments[offset];
