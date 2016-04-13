@@ -10,7 +10,7 @@ namespace Deveel.Data.Serialization {
 	public class StatementSerializationTests : SerializationTestBase {
 		[Test]
 		public void SerializeSelect() {
-			var expression = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM table WHERE a = 1");
+			var expression = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM table1 WHERE a = 1");
 			var statement = new SelectStatement(expression);
 
 			SerializeAndAssert(statement, (serialized, deserialized) => {

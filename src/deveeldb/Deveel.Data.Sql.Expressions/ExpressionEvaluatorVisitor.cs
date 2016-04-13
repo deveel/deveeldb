@@ -294,10 +294,10 @@ namespace Deveel.Data.Sql.Expressions {
 			if (list == null)
 				return SqlExpression.Constant(new Field(new ArrayType(-1), SqlArray.Null));
 
-			// This is not an array, but a subquery
+			// This is not an array, but a subquery or a constant
 			if (list.Length == 1 &&
-				list[0].ExpressionType == SqlExpressionType.Constant &&
-				((SqlConstantExpression)list[0]).Value.Type is QueryType)
+				list[0].ExpressionType == SqlExpressionType.Constant /*&&
+				((SqlConstantExpression)list[0]).Value.Type is QueryType*/)
 				return list[0];
 
 			return SqlExpression.Constant(new Field(new ArrayType(list.Length), new SqlArray(list)));

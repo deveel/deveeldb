@@ -20,7 +20,7 @@ using System.IO;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Parser;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -578,18 +578,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		class ExpressionParser : IExpressionParser {
 			public SqlExpression Parse(string s) {
-				var result = SqlParsers.Expression.Parse(s);
-
-				if (result.HasErrors) {
-					throw new FormatException();
-				}
-
-				var expNode = result.RootNode as IExpressionNode;
-				if (expNode == null)
-					throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
-						"The parse of the text did not result into an expression.");
-
-				return ExpressionBuilder.Build(expNode);
+				return new PlSqlCompiler().ParseExpression(s);
 			}
 		}
 

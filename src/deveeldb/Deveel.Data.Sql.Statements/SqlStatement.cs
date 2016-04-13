@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Compile;
-using Deveel.Data.Sql.Parser;
 using Deveel.Data.Sql.Expressions;
 using System.Text;
 
@@ -188,7 +187,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			if (compiler == null)
-				compiler = new SqlDefaultCompiler();
+				compiler = new PlSqlCompiler();
 
 			try {
 				var compileContext = new SqlCompileContext(context, query.Text);
@@ -219,8 +218,6 @@ namespace Deveel.Data.Sql.Statements {
 				}
 
 				return statements;
-			} catch (SqlParseException) {
-				throw;
 			} catch (Exception ex) {
 				var messages = new StringBuilder();
 				messages.AppendFormat ("The input string '{0}'" + Environment.NewLine, query.Text);

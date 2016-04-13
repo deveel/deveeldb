@@ -10,7 +10,7 @@ namespace Deveel.Data.Sql.Compile {
 	public class UpdateTests : SqlCompileTestBase {
 		[Test]
 		public void SimpleUpdate() {
-			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1";
+			const string sql = "UPDATE table1 SET col1 = 'testUpdate', col2 = 22 WHERE id = 1";
 
 			var result = Compile(sql);
 
@@ -27,7 +27,7 @@ namespace Deveel.Data.Sql.Compile {
 			var update = (UpdateStatement) statement;
 
 			Assert.IsNotNull(update.TableName);
-			Assert.AreEqual("table", update.TableName.FullName);
+			Assert.AreEqual("table1", update.TableName.FullName);
 
 			Assert.IsNotEmpty(update.Assignments);
 			Assert.IsNotNull(update.WherExpression);
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void SimpleUpdateWithLimit() {
-			const string sql = "UPDATE table SET col1 = 'testUpdate', col2 = 22 WHERE id = 1 LIMIT 20";
+			const string sql = "UPDATE table1 SET col1 = 'testUpdate', col2 = 22 WHERE id = 1 LIMIT 20";
 
 			var result = Compile(sql);
 
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Compile {
 			var update = (UpdateStatement) statement;
 
 			Assert.IsNotNull(update.TableName);
-			Assert.AreEqual("table", update.TableName.FullName);
+			Assert.AreEqual("table1", update.TableName.FullName);
 
 			Assert.IsNotEmpty(update.Assignments);
 			Assert.IsNotNull(update.WherExpression);

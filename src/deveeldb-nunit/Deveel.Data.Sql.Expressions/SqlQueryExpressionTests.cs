@@ -102,7 +102,7 @@ namespace Deveel.Data.Sql.Expressions {
 		[Test]
 		[Category("SQL Parse")]
 		public void ParseSelectWithFromClause() {
-			const string sql = "SELECT col1 AS a FROM table";
+			const string sql = "SELECT col1 AS a FROM table1";
 
 			var expression = SqlExpression.Parse(sql);
 			Assert.IsNotNull(expression);
@@ -114,7 +114,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.AreEqual("a", queryExpression.SelectColumns.First().Alias);
 			Assert.IsNotNull(queryExpression.FromClause);
 			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
-			Assert.AreEqual("table", queryExpression.FromClause.AllTables.First().Name);
+			Assert.AreEqual("table1", queryExpression.FromClause.AllTables.First().Name);
 		}
 
 		[Test]
@@ -204,7 +204,7 @@ namespace Deveel.Data.Sql.Expressions {
 		[Test]
 		[Category("SQL Parse")]
 		public void ParseSimpleQuery() {
-			const string sql = "SELECT col1 AS a FROM table";
+			const string sql = "SELECT col1 AS a FROM table1";
 
 			SqlExpression expression = null;
 			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));
@@ -217,13 +217,13 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.AreEqual("a", queryExpression.SelectColumns.First().Alias);
 			Assert.IsNotNull(queryExpression.FromClause);
 			Assert.AreEqual(1, queryExpression.FromClause.AllTables.Count());
-			Assert.AreEqual("table", queryExpression.FromClause.AllTables.First().Name);
+			Assert.AreEqual("table1", queryExpression.FromClause.AllTables.First().Name);
 		}
 
 		[Test]
 		[Category("SQL Parse")]
 		public void ParseSelectGroupBy() {
-			const string sql = "SELECT col1 AS a, AVG(col2) b FROM table WHERE b > 2 GROUP BY a";
+			const string sql = "SELECT col1 AS a, AVG(col2) b FROM table1 WHERE b > 2 GROUP BY a";
 
 			SqlExpression expression = null;
 			Assert.DoesNotThrow(() => expression = SqlExpression.Parse(sql));

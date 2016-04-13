@@ -21,7 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Sql.Parser;
+using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
 
@@ -340,20 +340,36 @@ namespace Deveel.Data.Sql.Types {
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(IContext context, string s) {
 			try {
-				var result = SqlParsers.DataType.Parse(s);
-				if (result.HasErrors)
-					throw new FormatException(result.Errors.First().Message);
+				var parser = context.ResolveService<IDataTypeParser>();
+				if (parser == null)
+					parser = new DefaultDataTypeParser();
 
-				var node = (DataTypeNode) result.RootNode;
+				var info = parser.Parse(s);
 
-				if (context == null && !node.IsPrimitive)
-					throw new NotSupportedException(String.Format("The type '{0}' is not primitive and no resolve context is provided.", node.TypeName));
+				if (info == null)
+					throw new InvalidOperationException("Invalid response from parser.");
 
-				return DataTypeBuilder.Build(context.TypeResolver(), node);
-			} catch (SqlParseException) {
-				throw new FormatException("Unable to parse the given string to a valid data type.");
+				if (info.IsPrimitive)
+					return PrimitiveTypes.Resolve(info.TypeName, info.Metadata);
+
+				if (context == null)
+					throw new NotSupportedException(String.Format("The type '{0}' is not primitive and no resolve context is provided.", info.TypeName));
+
+				return context.TypeResolver().ResolveType(new TypeResolveContext(SqlTypeCode.Unknown, info.TypeName, info.Metadata));
+			} catch (Exception ex) {
+				throw new FormatException(String.Format("Unable to parse the string '{0}' to a valid data type.", s), ex);
 			}
 		}
+
+		#region DefaultDataTypeParser
+
+		class DefaultDataTypeParser : IDataTypeParser {
+			public DataTypeInfo Parse(string s) {
+				return new PlSqlCompiler().ParseDataType(s);
+			}
+		}
+
+		#endregion
 
 		/// <inheritdoc/>
 		public virtual int Compare(ISqlObject x, ISqlObject y) {
@@ -439,37 +455,12 @@ namespace Deveel.Data.Sql.Types {
 			throw new NotSupportedException(String.Format("The type {0} does not support runtime object conversion.", ToString()));
 		}
 
-		public static SqlType Resolve(SqlTypeCode typeCode) {
-			return Resolve(typeCode, new DataTypeMeta[0]);
-		}
-
 		public static SqlType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta) {
 			return Resolve(typeCode, meta, null);
 		}
 
 		public static SqlType Resolve(SqlTypeCode typeCode, DataTypeMeta[] meta, ITypeResolver resolver) {
 			return Resolve(typeCode, typeCode.ToString().ToUpperInvariant(), meta, resolver);
-		}
-
-		public static SqlType Resolve(SqlTypeCode typeCode, string name) {
-			return Resolve(typeCode, name, new DataTypeMeta[0]);
-		}
-
-		public static SqlType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta) {
-			return Resolve(typeCode, name, meta, null);
-		}
-
-		public static SqlType Resolve(string name) {
-			return Resolve(name, new DataTypeMeta[0]);
-		}
-
-		public static SqlType Resolve(string name, DataTypeMeta[] meta) {
-			return Resolve(name, meta, null);
-		}
-
-		public static SqlType Resolve(string name, DataTypeMeta[] meta, ITypeResolver resolver) {
-			var typeCode = ResolveTypeCode(name);
-			return Resolve(typeCode, name, meta, resolver);
 		}
 
 		public static SqlType Resolve(SqlTypeCode typeCode, string name, DataTypeMeta[] meta, ITypeResolver resolver) {

@@ -12,7 +12,7 @@ namespace Deveel.Data.Sql.Compile {
 	public sealed class AlterUserTests : SqlCompileTestBase {
 		[Test]
 		public void SetPassword() {
-			const string sql = "ALTER USER test SET PASSWORD '5674hgr'";
+			const string sql = "ALTER USER test IDENTIFIED BY PASSWORD '5674hgr'";
 
 			var result = Compile(sql);
 
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		[Test]
 		public void SetLockedStatus() {
-			const string sql = "ALTER USER test SET ACCOUNT LOCK";
+			const string sql = "ALTER USER test ACCOUNT LOCK";
 
 			var result = Compile(sql);
 

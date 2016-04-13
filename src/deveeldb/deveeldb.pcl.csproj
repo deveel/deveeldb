@@ -59,23 +59,15 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Antlr4.Runtime.portable-net45">
+      <HintPath>..\..\lib\antlr4\Antlr4.Runtime.portable-net45.dll</HintPath>
+    </Reference>
     <Reference Include="Deveel.Math, Version=1.5.70.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\dmath-pcl.1.5.70\lib\portable-net45+win+wpa81+wp80\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="DryIoc, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DryIoc.dll.2.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Irony.Shared">
-      <HintPath>..\..\lib\irony.pcl\Irony.Shared.dll</HintPath>
-    </Reference>
-    <Reference Include="PCLStorage, Version=1.0.2.0, Culture=neutral, PublicKeyToken=286fe515a2c35b64, processorArchitecture=MSIL">
-      <HintPath>..\packages\PCLStorage.1.0.2\lib\portable-net45+wp8+wpa81+win8+monoandroid+monotouch+Xamarin.iOS+Xamarin.Mac\PCLStorage.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PCLStorage.Abstractions, Version=1.0.2.0, Culture=neutral, PublicKeyToken=286fe515a2c35b64, processorArchitecture=MSIL">
-      <HintPath>..\packages\PCLStorage.1.0.2\lib\portable-net45+wp8+wpa81+win8+monoandroid+monotouch+Xamarin.iOS+Xamarin.Mac\PCLStorage.Abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -141,40 +133,44 @@
     <Compile Include="Deveel.Data.Security\UsersInit.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Services\ISystemModule.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTableBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Assignment.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ColumnConstraint.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateTableBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Cursor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DataTypeVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeleteBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropTableBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ElementNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Expression.Build.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\FunctionArgumentNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\InputString.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\IntoClause.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\LoopControlBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Name.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Number.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Parameter.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\PlSqlCompiler.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\RoleStatements.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ScopeExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SelectBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SequenceStatements.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\SqlStatementVisitor.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\Subquery.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\TableColumn.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\TableConstraint.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\UpdateBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\UserStatements.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\ViewStatements.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\WhereClause.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\ICursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\NativeCursorInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlParameterExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlTabular.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ArrayNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AssignStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CastExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateSchemaNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateSequenceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateTypeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CurrentTimeFunctionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DeleteStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropSchemaStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropTriggerStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropTypeStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropUserStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\FetchStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IRootNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\LoopStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\NextSequenceValueNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\RevokeStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetTransactionVariableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetVariableStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ShowStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParameterReferenceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParseErrorLevel.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParsers.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlStatementBuilder.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\TypeAttributeNode.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InfortmationSchemaCreate.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaInit.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\ScopeExtensions.cs" />
@@ -226,6 +222,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokePrivilegesStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SequenceOfStatements.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SetUserRolesAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
@@ -379,6 +376,18 @@
     <Compile Include="Deveel.Data.Sql.Query\QueryInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InformationSchema.cs" />
     <None Include="app.config" />
+    <Antlr4 Include="Deveel.Data.Sql.Compile\PlSqlLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Deveel.Data.Sql.Compile</CustomToolNamespace>
+      <Visitor>True</Visitor>
+      <Listener>False</Listener>
+    </Antlr4>
+    <Antlr4 Include="Deveel.Data.Sql.Compile\PlSqlParser.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Deveel.Data.Sql.Compile</CustomToolNamespace>
+      <Visitor>True</Visitor>
+      <Listener>False</Listener>
+    </Antlr4>
     <None Include="packages.deveeldb.pcl.config" />
   </ItemGroup>
   <ItemGroup>
@@ -546,7 +555,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileContext.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileMessage.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileResult.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\SqlDefaultCompiler.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\Cursor.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorFlags.cs" />
     <Compile Include="Deveel.Data.Sql.Cursors\CursorInfo.cs" />
@@ -625,122 +633,6 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlString.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlYearToMonth.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AddColumnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AddConstraintNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterColumnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterTableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\AlterUserStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CaseSwitchNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CloseCursorStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ColumnConstraintNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ColumnSetNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CommitStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CompileErrorCodes.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ConstraintTypeNames.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ContinueStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateTableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateTriggerNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateUserStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CreateViewNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\CursorParameterNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DataTypeBuilder.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DataTypeMetaNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DataTypeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DeclareCursorNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DeclareExceptionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DeclarePragmaNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DeclareVariableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropColumnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropConstraintNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropCoulmnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropDefaultNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropPrimaryKeyNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropTableStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\DropViewStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ExceptionHandlerNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ExitStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ExpressionBuilder.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\FromClauseNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\FromQuerySourceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\FromTableSourceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\GotoStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\GrantRoleStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\GrantStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\GroupByNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IAlterActionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IAlterUserActionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IDeclareNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IdentifiedByPasswordNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IdentifierNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IFromSourceNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\InsertStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\InsertValueNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IntegerLiteralNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlChildNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlNodeVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlParser.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlParserResolver.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ISqlVisitableNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ITableElementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\IUserIdentificatorNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\JoinNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\LabelNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\LimitNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\NumerLiteralNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ObjectNameNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\OpenCursorStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\OrderByNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\PlSqlBlockNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\PlSqlCodeBlockNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\PrivilegeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\QueryCompositeNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\QueryInsertNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\QueryUpdateNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\RaiseStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ReturnStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\RollbackStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SelectItemNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SelectStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SequenceOfStatementsNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetAccountStatusNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetDefaultNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetGroupsNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetInsertNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SetPasswordNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SimpleUpdateNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlBetweenExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlBinaryExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlCaseExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlConstantExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlDataTypeGrammar.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlDefaultParser.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlExpressionGrammar.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlExpressionTupleNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlFunctionCallExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlGrammar.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlGrammarBase.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlGrammar_Keys.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlKeyNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlNodeExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlNodeVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParseError.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParseException.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlParseResult.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlQueryExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlReferenceExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlUnaryExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\SqlVariableRefExpressionNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\StringLiteralNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\TableColumnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\TableConstraintNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\Token.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\UpdateColumnNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\UpdateStatementNode.cs" />
-    <Compile Include="Deveel.Data.Sql.Parser\ValuesInsertNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\BranchQueryPlanNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\CachePointNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\CompositeNode.cs" />

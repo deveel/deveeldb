@@ -8,6 +8,11 @@ namespace Deveel.Data.Mapping {
 		public MapBuilder() {
 			types = new Dictionary<string, ITypeMap>();
 		}
+
+		public void AddMap<TType>(TypeMap<TType> typeMap) where TType : class {
+			var typeName = typeof(TType).Name;
+			types[typeName] = typeMap;
+		}
 		 
 		public TypeMap<TType> Type<TType>() where TType : class {
 			var typeName = typeof (TType).Name;
