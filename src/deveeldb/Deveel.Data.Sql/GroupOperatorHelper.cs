@@ -53,8 +53,7 @@ namespace Deveel.Data.Sql {
 
 				// The ANY operation
 				var revPlainOp = plainType.Reverse();
-				// TODO: return t.ColumnMatchesValue(0, revPlainOp, ob1);
-				throw new NotImplementedException();
+				return Field.Boolean(t.AnyRowMatchesColumnValue(0, revPlainOp, ob1));
 			}
 
 			if (ob2.Type is ArrayType) {
@@ -71,7 +70,7 @@ namespace Deveel.Data.Sql {
 					// If null value, return null if there isn't otherwise a match found.
 					if (evalItem.Value.IsNull) {
 						retVal = Field.BooleanNull;
-					} else if (IsTrue(Evaluate(ob1, plainType, evalItem.Value, context))) {
+					} else if (IsTrue(Evaluate(ob1, plainType, evalItem.Value, context, false, true))) {
 						// If there is a match, the ANY set test is true
 						return Field.BooleanTrue;
 					}
@@ -127,7 +126,7 @@ namespace Deveel.Data.Sql {
 					// be false.
 					if (evalItem.Value.IsNull) {
 						retVal = Field.BooleanNull;
-					} else if (!IsTrue(Evaluate(ob1, plainType, evalItem.Value, context))) {
+					} else if (!IsTrue(Evaluate(ob1, plainType, evalItem.Value, context, true, false))) {
 						// If it doesn't match return false
 						return Field.BooleanFalse;
 					}
@@ -141,11 +140,11 @@ namespace Deveel.Data.Sql {
 			throw new InvalidOperationException("Unknown RHS of ALL.");
 		}
 
-		private static Field Evaluate(Field left, SqlExpressionType binaryType, Field right, EvaluateContext context) {
-			if (binaryType.IsAll())
-				return left.Any(binaryType.SubQueryPlainType(), right, context);
-			if (binaryType.IsAny())
-				return left.All(binaryType.SubQueryPlainType(), right, context);
+		private static Field Evaluate(Field left, SqlExpressionType binaryType, Field right, EvaluateContext context, bool isAll, bool isAny) {
+			if (isAny)
+				return left.Any(binaryType, right, context);
+			if (isAll)
+				return left.All(binaryType, right, context);
 
 			switch (binaryType) {
 				case SqlExpressionType.Add:

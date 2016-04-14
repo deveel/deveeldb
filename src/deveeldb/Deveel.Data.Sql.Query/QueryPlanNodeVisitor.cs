@@ -124,7 +124,7 @@ namespace Deveel.Data.Sql.Query {
 			if (right != null)
 				right = VisitNode(right);
 
-			return new NonCorrelatedAnyAllNode(left, right, node.LeftColumnNames, node.SubQueryType);
+			return new NonCorrelatedAnyAllNode(left, right, node.LeftColumnNames, node.SubQueryType, node.IsAll);
 		}
 
 		protected virtual IQueryPlanNode VisitLogicalUnion(LogicalUnionNode node) {

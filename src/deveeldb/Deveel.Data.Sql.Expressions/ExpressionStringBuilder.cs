@@ -90,30 +90,6 @@ namespace Deveel.Data.Sql.Expressions {
 					return "LIKE";
 				case SqlExpressionType.NotLike:
 					return "NOT LIKE";
-				case SqlExpressionType.AllEqual:
-					return "= ALL";
-				case SqlExpressionType.AllNotEqual:
-					return "<> ALL";
-				case SqlExpressionType.AllGreaterThan:
-					return "> ALL";
-				case SqlExpressionType.AllGreaterOrEqualThan:
-					return ">= ALL";
-				case SqlExpressionType.AllSmallerThan:
-					return "< ALL";
-				case SqlExpressionType.AllSmallerOrEqualThan:
-					return "<= ALL";
-				case SqlExpressionType.AnyEqual:
-					return "= ANY";
-				case SqlExpressionType.AnyNotEqual:
-					return "<> ANY";
-				case SqlExpressionType.AnyGreaterThan:
-					return "> ANY";
-				case SqlExpressionType.AnyGreaterOrEqualThan:
-					return ">= ANY";
-				case SqlExpressionType.AnySmallerThan:
-					return "< ANY";
-				case SqlExpressionType.AnySmallerOrEqualThan:
-					return "<= ANY";
 				case SqlExpressionType.Or:
 					return "OR";
 				case SqlExpressionType.And:

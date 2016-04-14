@@ -101,58 +101,46 @@ namespace Deveel.Data.Sql.Compile {
 			var expType = GetBinaryOperator(op);
 			var right = Visit(context.right);
 
-			if (right is QuantifiedExpression) {
-				var quantified = (QuantifiedExpression) right;
-
-				if (quantified.IsAny) {
-					expType = MakeAny(expType);
-				} else if (quantified.IsAll) {
-					expType = MakeAll(expType);
-				}
-
-				right = quantified.Argument;
-			}
-
 			return SqlExpression.Binary(left, expType, right);
 		}
 
-		private SqlExpressionType MakeAny(SqlExpressionType expressionType) {
-			switch (expressionType) {
-				case SqlExpressionType.Equal:
-					return SqlExpressionType.AnyEqual;
-				case SqlExpressionType.NotEqual:
-					return SqlExpressionType.AnyNotEqual;
-				case SqlExpressionType.GreaterThan:
-					return SqlExpressionType.AnyGreaterThan;
-				case SqlExpressionType.SmallerThan:
-					return SqlExpressionType.AnySmallerThan;
-				case SqlExpressionType.GreaterOrEqualThan:
-					return SqlExpressionType.AnyGreaterOrEqualThan;
-				case SqlExpressionType.SmallerOrEqualThan:
-					return SqlExpressionType.AnySmallerOrEqualThan;
-				default:
-					throw new ParseCanceledException("Cannot turn a non-relational operator into ANY.");
-			}
-		}
+		//private SqlExpressionType MakeAny(SqlExpressionType expressionType) {
+		//	switch (expressionType) {
+		//		case SqlExpressionType.Equal:
+		//			return SqlExpressionType.AnyEqual;
+		//		case SqlExpressionType.NotEqual:
+		//			return SqlExpressionType.AnyNotEqual;
+		//		case SqlExpressionType.GreaterThan:
+		//			return SqlExpressionType.AnyGreaterThan;
+		//		case SqlExpressionType.SmallerThan:
+		//			return SqlExpressionType.AnySmallerThan;
+		//		case SqlExpressionType.GreaterOrEqualThan:
+		//			return SqlExpressionType.AnyGreaterOrEqualThan;
+		//		case SqlExpressionType.SmallerOrEqualThan:
+		//			return SqlExpressionType.AnySmallerOrEqualThan;
+		//		default:
+		//			throw new ParseCanceledException("Cannot turn a non-relational operator into ANY.");
+		//	}
+		//}
 
-		private SqlExpressionType MakeAll(SqlExpressionType expressionType) {
-			switch (expressionType) {
-				case SqlExpressionType.Equal:
-					return SqlExpressionType.AllEqual;
-				case SqlExpressionType.NotEqual:
-					return SqlExpressionType.AllNotEqual;
-				case SqlExpressionType.GreaterThan:
-					return SqlExpressionType.AllGreaterThan;
-				case SqlExpressionType.SmallerThan:
-					return SqlExpressionType.AllSmallerThan;
-				case SqlExpressionType.GreaterOrEqualThan:
-					return SqlExpressionType.AllGreaterOrEqualThan;
-				case SqlExpressionType.SmallerOrEqualThan:
-					return SqlExpressionType.AllSmallerOrEqualThan;
-				default:
-					throw new ParseCanceledException("Cannot turn a non-relational operator into ALL.");
-			}
-		}
+		//private SqlExpressionType MakeAll(SqlExpressionType expressionType) {
+		//	switch (expressionType) {
+		//		case SqlExpressionType.Equal:
+		//			return SqlExpressionType.AllEqual;
+		//		case SqlExpressionType.NotEqual:
+		//			return SqlExpressionType.AllNotEqual;
+		//		case SqlExpressionType.GreaterThan:
+		//			return SqlExpressionType.AllGreaterThan;
+		//		case SqlExpressionType.SmallerThan:
+		//			return SqlExpressionType.AllSmallerThan;
+		//		case SqlExpressionType.GreaterOrEqualThan:
+		//			return SqlExpressionType.AllGreaterOrEqualThan;
+		//		case SqlExpressionType.SmallerOrEqualThan:
+		//			return SqlExpressionType.AllSmallerOrEqualThan;
+		//		default:
+		//			throw new ParseCanceledException("Cannot turn a non-relational operator into ALL.");
+		//	}
+		//}
 
 		public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
 			return Subquery.Form(context);
@@ -176,11 +164,11 @@ namespace Deveel.Data.Sql.Compile {
 				return SqlExpression.FunctionCall("EXISTS", new[] {arg});
 			}
 			if (context.ALL() != null) {
-				return new QuantifiedExpression { IsAll = true, Argument = arg };
+				return SqlExpression.All(arg);
 			}
 			if (context.ANY() != null ||
 			    context.SOME() != null) {
-				return new QuantifiedExpression { IsAny = true, Argument = arg };
+				return SqlExpression.Any(arg);
 			}
 
 			return base.VisitQuantifiedExpression(context);
@@ -372,8 +360,18 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			if (context.IN() != null) {
-				var op = isNot ? SqlExpressionType.AllNotEqual : SqlExpressionType.AnyEqual;
-				var right = Visit(context.in_elements());
+				var arg = Visit(context.in_elements());
+
+				SqlExpression right;
+				SqlExpressionType op;
+
+				if (isNot) {
+					right = SqlExpression.All(arg);
+					op = SqlExpressionType.NotEqual;
+				} else {
+					right = SqlExpression.Any(arg);
+					op = SqlExpressionType.Equal;
+				}
 
 				return SqlExpression.Binary(left, op, right);
 			}

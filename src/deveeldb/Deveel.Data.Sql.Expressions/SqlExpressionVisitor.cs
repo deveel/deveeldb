@@ -55,18 +55,6 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.SmallerOrEqualThan:
 				case SqlExpressionType.Is:
 				case SqlExpressionType.IsNot:
-				case SqlExpressionType.AllEqual:
-				case SqlExpressionType.AllNotEqual:
-				case SqlExpressionType.AllGreaterThan:
-				case SqlExpressionType.AllSmallerThan:
-				case SqlExpressionType.AllGreaterOrEqualThan:
-				case SqlExpressionType.AllSmallerOrEqualThan:
-				case SqlExpressionType.AnyEqual:
-				case SqlExpressionType.AnyNotEqual:
-				case SqlExpressionType.AnyGreaterThan:
-				case SqlExpressionType.AnySmallerThan:
-				case SqlExpressionType.AnyGreaterOrEqualThan:
-				case SqlExpressionType.AnySmallerOrEqualThan:
 					return VisitBinary((SqlBinaryExpression) expression);
 				case SqlExpressionType.Negate:
 				case SqlExpressionType.Not:
@@ -90,6 +78,9 @@ namespace Deveel.Data.Sql.Expressions {
 					return VisitQuery((SqlQueryExpression) expression);
 				case SqlExpressionType.Tuple:
 					return VisitTuple((SqlTupleExpression) expression);
+				case SqlExpressionType.All:
+				case SqlExpressionType.Any:
+					return VisitQuantified((SqlQuantifiedExpression) expression);
 				default:
 					return expression.Accept(this);
 			}
@@ -280,6 +271,14 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 
 			return query;
+		}
+
+		public virtual SqlExpression VisitQuantified(SqlQuantifiedExpression expression) {
+			var arg = expression.ValueExpression;
+			if (arg != null)
+				arg = Visit(arg);
+
+			return SqlExpression.Quantified(expression.ExpressionType, arg);
 		}
 
 		private FromClause VisitFromClause(FromClause fromClause) {
