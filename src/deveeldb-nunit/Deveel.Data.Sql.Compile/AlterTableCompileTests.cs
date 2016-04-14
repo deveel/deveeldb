@@ -112,5 +112,62 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.IsInstanceOf<DropColumnAction>(alter.Action);
 		}
+
+		[Test]
+		public void DropConstraint() {
+			const string sql = "ALTER TABLE test DROP CONSTRAINT test_UNIQUE_IX";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alter = (AlterTableStatement)statement;
+
+			Assert.IsInstanceOf<DropConstraintAction>(alter.Action);
+		}
+
+		[Test]
+		public void DropPrimaryKey() {
+			const string sql = "ALTER TABLE test DROP PRIMARY KEY";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alter = (AlterTableStatement)statement;
+
+			Assert.IsInstanceOf<DropPrimaryKeyAction>(alter.Action);
+		}
+
+		[Test]
+		public void DropDefault() {
+			const string sql = "ALTER TABLE test ALTER col1 DROP DEFAULT";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alter = (AlterTableStatement)statement;
+
+			Assert.IsInstanceOf<DropDefaultAction>(alter.Action);
+		}
 	}
 }

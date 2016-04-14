@@ -985,7 +985,7 @@ equality_expression
 
 relational_expression
     : left=compound_expression
-      (( op='=' | not_equal_op | op='<' | op='>' | less_than_or_equals_op | greater_than_or_equals_op ) right=compound_expression)*
+      (( op='=' | notEqual | op='<' | op='>' | lessThanOrEquals | greaterThanOrEquals ) right=compound_expression)*
     ;
 
 compound_expression
@@ -1007,7 +1007,7 @@ in_elements
     ;
 
 concatenation
-    : left=additive_expression (op=concatenation_op right=additive_expression)*
+    : left=additive_expression (op=concat right=additive_expression)*
     ;
 
 concatenation_wrapper
@@ -1358,24 +1358,24 @@ id
     | DELIMITED_ID
     ;
 
-not_equal_op
+notEqual
     : NOT_EQUAL_OP
     | '<' '>'
     | '!' '='
     | '^' '='
     ;
 
-greater_than_or_equals_op
+greaterThanOrEquals
     : '>='
     | '>' '='
     ;
 
-less_than_or_equals_op
+lessThanOrEquals
     : '<='
     | '<' '='
     ;
 
-concatenation_op
+concat
     : '||'
     | '|' '|'
     ;

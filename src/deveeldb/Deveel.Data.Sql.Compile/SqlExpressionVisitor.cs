@@ -83,9 +83,9 @@ namespace Deveel.Data.Sql.Compile {
 			var left = Visit(context.left);
 
 			string op;
-			var neOp = context.not_equal_op();
-			var geOp = context.greater_than_or_equals_op();
-			var leOp = context.less_than_or_equals_op();
+			var neOp = context.notEqual();
+			var geOp = context.greaterThanOrEquals();
+			var leOp = context.lessThanOrEquals();
 			if (context.op != null) {
 				op = context.op.Text;
 			} else if (neOp.Length > 0) {
