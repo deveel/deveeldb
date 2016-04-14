@@ -342,11 +342,6 @@ namespace Deveel.Data.Sql.Expressions {
 			if (expressionType == SqlExpressionType.XOr)
 				return XOr(left, right);
 
-			if (expressionType.IsAny())
-				return Any(left, expressionType.SubQueryPlainType(), right);
-			if (expressionType.IsAll())
-				return All(left, expressionType.SubQueryPlainType(), right);
-
 			throw new ArgumentException(String.Format("Expression type {0} is not a Binary", expressionType));
 		}
 
@@ -422,98 +417,20 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlBinaryExpression(left, SqlExpressionType.Modulo, right);
 		}
 
-		public static SqlBinaryExpression Any(SqlExpression left, SqlExpressionType anyType, SqlExpression right) {
-			if (anyType == SqlExpressionType.Equal ||
-			    anyType == SqlExpressionType.AnyEqual)
-				return AnyEqual(left, right);
-			if (anyType == SqlExpressionType.NotEqual ||
-			    anyType == SqlExpressionType.AnyNotEqual)
-				return AnyNotEqual(left, right);
-			if (anyType == SqlExpressionType.AnyGreaterThan ||
-			    anyType == SqlExpressionType.GreaterThan)
-				return AnyGreaterThan(left, right);
-			if (anyType == SqlExpressionType.SmallerThan ||
-			    anyType == SqlExpressionType.AnySmallerThan)
-				return AnySmallerThan(left, right);
-			if (anyType == SqlExpressionType.GreaterOrEqualThan ||
-			    anyType == SqlExpressionType.AnyGreaterOrEqualThan)
-				return AnyGreaterOrEqualThan(left, right);
-			if (anyType == SqlExpressionType.GreaterOrEqualThan ||
-			    anyType == SqlExpressionType.AnySmallerOrEqualThan)
-				return AnySmallerOrEqualThan(left, right);
+		public static SqlQuantifiedExpression Quantified(SqlExpressionType expressionType, SqlExpression value) {
+			if (expressionType != SqlExpressionType.Any &&
+				expressionType != SqlExpressionType.All)
+				throw new ArgumentException("Invalid quantified expression type.");
 
-			throw new ArgumentException(String.Format("The type '{0}' cannot be part of an ANY operator.", anyType));
+			return new SqlQuantifiedExpression(expressionType, value);
 		}
 
-		public static SqlBinaryExpression AnyEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyEqual, right);
+		public static SqlQuantifiedExpression Any(SqlExpression value) {
+			return Quantified(SqlExpressionType.Any, value);
 		}
 
-		public static SqlBinaryExpression AnyNotEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyNotEqual, right);
-		}
-
-		public static SqlBinaryExpression AnyGreaterThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyGreaterThan, right);
-		}
-
-		public static SqlBinaryExpression AnyGreaterOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnyGreaterOrEqualThan, right);
-		}
-
-		public static SqlBinaryExpression AnySmallerThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnySmallerThan, right);
-		}
-
-		public static SqlBinaryExpression AnySmallerOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AnySmallerOrEqualThan, right);
-		}
-
-		public static SqlBinaryExpression All(SqlExpression left, SqlExpressionType allType, SqlExpression right) {
-			if (allType == SqlExpressionType.Equal ||
-			    allType == SqlExpressionType.AllEqual)
-				return AllEqual(left, right);
-			if (allType == SqlExpressionType.NotEqual ||
-			    allType == SqlExpressionType.AllNotEqual)
-				return AllNotEqual(left, right);
-			if (allType == SqlExpressionType.GreaterThan ||
-			    allType == SqlExpressionType.AllGreaterThan)
-				return AllGreaterThan(left, right);
-			if (allType == SqlExpressionType.SmallerThan ||
-			    allType == SqlExpressionType.AllSmallerThan)
-				return AllSmallerThan(left, right);
-			if (allType == SqlExpressionType.GreaterOrEqualThan ||
-			    allType == SqlExpressionType.AllGreaterOrEqualThan)
-				return AllGreaterOrEqualThan(left, right);
-			if (allType == SqlExpressionType.SmallerOrEqualThan ||
-			    allType == SqlExpressionType.AllSmallerOrEqualThan)
-				return AllSmallerOrEqualThan(left, right);
-
-			throw new ArgumentException(String.Format("The type '{0}' cannot be part of an ALL operator.", allType));
-		}
-
-		public static SqlBinaryExpression AllEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllEqual, right);
-		}
-
-		public static SqlBinaryExpression AllNotEqual(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllNotEqual, right);
-		}
-
-		public static SqlBinaryExpression AllGreaterThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllGreaterThan, right);
-		}
-
-		public static SqlBinaryExpression AllGreaterOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllGreaterOrEqualThan, right);
-		}
-
-		public static SqlBinaryExpression AllSmallerThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllSmallerThan, right);
-		}
-
-		public static SqlBinaryExpression AllSmallerOrEqualThan(SqlExpression left, SqlExpression right) {
-			return new SqlBinaryExpression(left, SqlExpressionType.AllSmallerOrEqualThan, right);
+		public static SqlQuantifiedExpression All(SqlExpression value) {
+			return Quantified(SqlExpressionType.All, value);
 		}
 
 		#endregion

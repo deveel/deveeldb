@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Expressions {
 				.ToArray();
 		}
 
-		private SqlExpression EvaluateBinary(SqlExpression left, SqlExpressionType binaryType, SqlExpression right) {
+		private SqlExpression EvaluateBinary(SqlExpression left, SqlExpressionType binaryType, SqlExpression right, bool isAll, bool isAny) {
 			if (left.ExpressionType != SqlExpressionType.Constant)
 				throw new ExpressionEvaluateException("The evaluated left side of a binary expression is not constant");
 			if (right.ExpressionType != SqlExpressionType.Constant)
@@ -70,16 +70,16 @@ namespace Deveel.Data.Sql.Expressions {
 			var value1 = ((SqlConstantExpression) left).Value;
 			var value2 = ((SqlConstantExpression) right).Value;
 
-			var result = EvaluateBinary(value1, binaryType, value2);
+			var result = EvaluateBinary(value1, binaryType, value2, isAll, isAny);
 
 			return SqlExpression.Constant(result);
 		}
 
-		private Field EvaluateBinary(Field left, SqlExpressionType binaryType, Field right) {
-			if (binaryType.IsAll())
-				return left.Any(binaryType.SubQueryPlainType(), right, context);
-			if (binaryType.IsAny())
-				return left.All(binaryType.SubQueryPlainType(), right, context);
+		private Field EvaluateBinary(Field left, SqlExpressionType binaryType, Field right, bool isAll, bool isAny) {
+			if (isAny)
+				return left.Any(binaryType, right, context);
+			if (isAll)
+				return left.All(binaryType, right, context);
 
 			switch (binaryType) {
 				case SqlExpressionType.Add:
@@ -130,7 +130,15 @@ namespace Deveel.Data.Sql.Expressions {
 			var newLeft = sides[0];
 			var newRight = sides[1];
 
-			return EvaluateBinary(newLeft, binaryEpression.ExpressionType, newRight);
+			bool isAll = false, isAny = false;
+			if (newRight is SqlQuantifiedExpression) {
+				var quantified = (SqlQuantifiedExpression) newRight;
+				isAll = quantified.ExpressionType == SqlExpressionType.All;
+				isAny = quantified.ExpressionType == SqlExpressionType.Any;
+				newRight = quantified.ValueExpression;
+			}
+
+			return EvaluateBinary(newLeft, binaryEpression.ExpressionType, newRight, isAll, isAny);
 		}
 
 		public override SqlExpression VisitCast(SqlCastExpression castExpression) {
@@ -143,34 +151,6 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Constant(casted);
 		}
 
-		//public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-		//	var value = constant.Value;
-		//	if (value.IsNull)
-		//		return constant;
-
-		//	var obj = value.Value;
-		//	if (obj is SqlQueryObject) {
-		//		return EvaluateQueryPlan((SqlQueryObject) obj);
-		//	}
-
-		//	return base.VisitConstant(constant);
-		//}
-
-		//private SqlConstantExpression EvaluateQueryPlan(SqlQueryObject obj) {
-		//	if (context.QueryContext == null)
-		//		throw new ExpressionEvaluateException("A query context is required to evaluate a query.");
-
-		//	try {
-		//		var plan = obj.QueryPlan;
-		//		var result = plan.Evaluate(context.QueryContext);
-
-		//		return SqlExpression.Constant(new Field(new TabularType(), SqlTabular.From(result)));
-		//	} catch (ExpressionEvaluateException) {
-		//		throw;
-		//	} catch (Exception ex) {
-		//		throw new ExpressionEvaluateException("Could not evaluate a query.", ex);
-		//	}
-		//}
 
 		public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 			try {

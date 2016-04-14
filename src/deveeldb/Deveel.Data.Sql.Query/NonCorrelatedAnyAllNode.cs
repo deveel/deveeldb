@@ -26,10 +26,11 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Query {
 	[Serializable]
 	class NonCorrelatedAnyAllNode : BranchQueryPlanNode {
-		public NonCorrelatedAnyAllNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumnNames, SqlExpressionType subQueryType) 
+		public NonCorrelatedAnyAllNode(IQueryPlanNode left, IQueryPlanNode right, ObjectName[] leftColumnNames, SqlExpressionType subQueryType, bool isAll) 
 			: base(left, right) {
 			LeftColumnNames = leftColumnNames;
 			SubQueryType = subQueryType;
+			IsAll = isAll;
 		}
 
 		private NonCorrelatedAnyAllNode(SerializationInfo info, StreamingContext context)
@@ -42,6 +43,8 @@ namespace Deveel.Data.Sql.Query {
 
 		public SqlExpressionType SubQueryType { get; private set; }
 
+		public bool IsAll { get; private set; }
+
 		public override ITable Evaluate(IRequest context) {
 			// Solve the left branch result
 			var leftResult = Left.Evaluate(context);
@@ -50,7 +53,7 @@ namespace Deveel.Data.Sql.Query {
 
 			// Solve the sub query on the left columns with the right plan and the
 			// given operator.
-			return leftResult.SelectAnyAllNonCorrelated(LeftColumnNames, SubQueryType, rightResult);
+			return leftResult.SelectAnyAllNonCorrelated(LeftColumnNames, SubQueryType, IsAll, rightResult);
 		}
 
 		protected override void GetData(SerializationInfo info, StreamingContext context) {

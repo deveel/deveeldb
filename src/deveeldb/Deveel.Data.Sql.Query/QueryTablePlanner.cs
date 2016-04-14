@@ -537,7 +537,7 @@ namespace Deveel.Data.Sql.Query {
 				bool exhaustive;
 
 				var op = expression.ExpressionType;
-				if (op.IsSubQuery()) {
+				if (expression.Right is SqlQuantifiedExpression) {
 					// Must be an exhaustive sub-command
 					exhaustive = true;
 				} else {
@@ -620,7 +620,7 @@ namespace Deveel.Data.Sql.Query {
 				SqlExpressionType op = expression.ExpressionType;
 				SqlExpression left = expression.Left, right = expression.Right;
 
-				if (op.IsSubQuery()) {
+				if (expression.Right is SqlQuantifiedExpression) {
 					singleVar = expression.Left.AsReferenceName();
 
 					if (singleVar != null) {
@@ -1013,12 +1013,20 @@ namespace Deveel.Data.Sql.Query {
 			public override void AddToPlanTree() {
 				var op = expression.ExpressionType;
 				var columnName = expression.Left.AsReferenceName();
-				var queryPlan = expression.Right.AsQueryPlan();
+				var right = expression.Right;
+				bool isAll = false;
+				if (right is SqlQuantifiedExpression) {
+					var quantified = (SqlQuantifiedExpression) right;
+					isAll = quantified.ExpressionType == SqlExpressionType.All;
+					right = quantified.ValueExpression;
+				}
+
+				var queryPlan = right.AsQueryPlan();
 
 				var tablePlan = planner.FindPlan(columnName);
 				var leftPlan = tablePlan.Plan;
 
-				tablePlan.UpdatePlan(new NonCorrelatedAnyAllNode(leftPlan, queryPlan, new []{columnName}, op));
+				tablePlan.UpdatePlan(new NonCorrelatedAnyAllNode(leftPlan, queryPlan, new []{columnName}, op, isAll));
 			}
 		}
 

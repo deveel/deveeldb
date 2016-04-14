@@ -212,9 +212,6 @@ namespace Deveel.Data.Index {
 				int sz = ranges.Count;
 				var list = ranges.GetRange(0, sz);
 
-				if (op.IsSubQuery())
-					op = op.SubQueryPlainType();
-
 				if (op == SqlExpressionType.NotEqual ||
 				    op == SqlExpressionType.IsNot) {
 					bool nullCheck = op == SqlExpressionType.NotEqual;

@@ -505,17 +505,19 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentException(String.Format("Unable to find the column {0} in the condition.", columnName.Name));
 
 			// If we are doing a sub-query search
-			if (op.IsSubQuery()) {
+			if (exp is SqlQuantifiedExpression) {
 				// We can only handle constant expressions in the RHS expression, and
 				// we must assume that the RHS is a Expression[] array.
-				if (exp.ExpressionType != SqlExpressionType.Constant &&
-				    exp.ExpressionType != SqlExpressionType.Tuple)
+				var quantified = (SqlQuantifiedExpression) exp;
+				if (!quantified.IsArrayValue &&
+				    !quantified.IsTupleValue)
 					throw new ArgumentException();
 
 				IEnumerable<SqlExpression> list;
+				bool isAll = quantified.ExpressionType == SqlExpressionType.All;
 
-				if (exp.ExpressionType == SqlExpressionType.Constant) {
-					var tob = ((SqlConstantExpression) exp).Value;
+				if (quantified.IsArrayValue) {
+					var tob = ((SqlConstantExpression) quantified.ValueExpression).Value;
 					if (tob.Type is ArrayType) {
 						var array = (SqlArray) tob.Value;
 						list = array;
@@ -523,7 +525,7 @@ namespace Deveel.Data.Sql.Tables {
 						throw new Exception("The right side of a sub-query operator must be a tuple or a sub-query.");
 					}
 				} else {
-					list = ((SqlTupleExpression) exp).Expressions;
+					list = ((SqlTupleExpression) quantified.ValueExpression).Expressions;
 				}
 
 				// Construct a temporary table with a single column that we are
@@ -542,7 +544,7 @@ namespace Deveel.Data.Sql.Tables {
 
 				// Perform the any/all sub-query on the constant table.
 
-				return table.SelectAnyAllNonCorrelated(new[] { columnName }, op, ttable);
+				return table.SelectAnyAllNonCorrelated(new[] { columnName }, op, isAll, ttable);
 			}
 
 			{
@@ -750,7 +752,12 @@ namespace Deveel.Data.Sql.Tables {
 			return rows.Count() == table.RowCount;
 		}
 
-		public static ITable SelectAnyAllNonCorrelated(this ITable table, ObjectName[] leftColumns, SqlExpressionType op, ITable rightTable) {
+		public static bool AnyRowMatchesColumnValue(this ITable table, int columnOffset, SqlExpressionType op, Field value) {
+			var rows = table.SelectRows(columnOffset, op, value);
+			return rows.Count() > 0;
+		}
+
+		public static ITable SelectAnyAllNonCorrelated(this ITable table, ObjectName[] leftColumns, SqlExpressionType op, bool all, ITable rightTable) {
 			if (rightTable.TableInfo.ColumnCount != leftColumns.Length) {
 				throw new ArgumentException(String.Format("The right table has {0} columns that is different from the specified column names ({1})",
 					rightTable.TableInfo.ColumnCount, leftColumns.Length));
@@ -783,10 +790,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			IEnumerable<int> rows;
 
-			if (!op.IsSubQuery())
-				throw new ArgumentException(String.Format("The operator {0} is not a sub-query form.", op));
-
-			if (op.IsAll()) {
+			if (all) {
 				// ----- ALL operation -----
 				// We work out as follows:
 				//   For >, >= type ALL we find the highest value in 'table' and
@@ -800,21 +804,21 @@ namespace Deveel.Data.Sql.Tables {
 				//   empty table.
 				//   For <> type ALL we use the 'not in' algorithm.
 
-				if (op == SqlExpressionType.AllGreaterThan || 
-				    op == SqlExpressionType.AllGreaterOrEqualThan) {
+				if (op == SqlExpressionType.GreaterThan || 
+				    op == SqlExpressionType.GreaterOrEqualThan) {
 					// Select the last from the set (the highest value),
 					var highestCells = rightTable.GetLastValues(rightColMap);
 					// Select from the source table all rows that are > or >= to the
 					// highest cell,
 					rows = table.SelectRows(leftColMap, op, highestCells);
-				} else if (op == SqlExpressionType.AllSmallerThan || 
-				           op == SqlExpressionType.AllSmallerOrEqualThan) {
+				} else if (op == SqlExpressionType.SmallerThan || 
+				           op == SqlExpressionType.SmallerOrEqualThan) {
 					// Select the first from the set (the lowest value),
 					var lowestCells = rightTable.GetFirstValues(rightColMap);
 					// Select from the source table all rows that are < or <= to the
 					// lowest cell,
 					rows = table.SelectRows(leftColMap, op, lowestCells);
-				} else if (op == SqlExpressionType.AllEqual) {
+				} else if (op == SqlExpressionType.Equal) {
 					// Select the single value from the set (if there is one).
 					var singleCell = rightTable.GetSingleValues(rightColMap);
 					if (singleCell != null) {
@@ -825,11 +829,11 @@ namespace Deveel.Data.Sql.Tables {
 						// a value in RHS).
 						return table.EmptySelect();
 					}
-				} else if (op == SqlExpressionType.AllNotEqual) {
+				} else if (op == SqlExpressionType.NotEqual) {
 					// Equiv. to NOT IN
 					rows = table.SelectRowsNotIn(rightTable, leftColMap, rightColMap);
 				} else {
-					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ALL functions.", op.SubQueryPlainType()));
+					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ALL functions.", op));
 				}
 			} else {
 				// ----- ANY operation -----
@@ -844,24 +848,24 @@ namespace Deveel.Data.Sql.Tables {
 				//   For <> type ANY we iterate through 'source' only including those
 				//   rows that a <> query on 'table' returns size() != 0.
 
-				if (op == SqlExpressionType.AnyGreaterThan || 
-				    op == SqlExpressionType.AnyGreaterOrEqualThan) {
+				if (op == SqlExpressionType.GreaterThan || 
+				    op == SqlExpressionType.GreaterOrEqualThan) {
 					// Select the first from the set (the lowest value),
 					var lowestCells = rightTable.GetFirstValues(rightColMap);
 					// Select from the source table all rows that are > or >= to the
 					// lowest cell,
 					rows = table.SelectRows(leftColMap, op, lowestCells);
-				} else if (op == SqlExpressionType.AnySmallerThan || 
-				           op == SqlExpressionType.AnySmallerOrEqualThan) {
+				} else if (op == SqlExpressionType.SmallerThan || 
+				           op == SqlExpressionType.SmallerOrEqualThan) {
 					// Select the last from the set (the highest value),
 					var highestCells = rightTable.GetLastValues(rightColMap);
 					// Select from the source table all rows that are < or <= to the
 					// highest cell,
 					rows = table.SelectRows(leftColMap, op, highestCells);
-				} else if (op == SqlExpressionType.AnyEqual) {
+				} else if (op == SqlExpressionType.Equal) {
 					// Equiv. to IN
 					rows = table.SelectRowsIn(rightTable, leftColMap, rightColMap);
-				} else if (op == SqlExpressionType.AnyNotEqual) {
+				} else if (op == SqlExpressionType.NotEqual) {
 					// Select the value that is the same of the entire column
 					var cells = rightTable.GetSingleValues(rightColMap);
 					if (cells != null) {
@@ -873,7 +877,7 @@ namespace Deveel.Data.Sql.Tables {
 						return table;
 					}
 				} else {
-					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ANY functions.", op.SubQueryPlainType()));
+					throw new ArgumentException(String.Format("Operator of type {0} is not valid in ANY functions.", op));
 				}
 			}
 
