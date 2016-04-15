@@ -109,9 +109,10 @@ namespace Deveel.Data.Sql.Statements {
 			if (OffsetExpression != null)
 				offset = OffsetExpression.EvaluateToConstant(context.Request, null);
 
-			var fetchContext = new FetchContext(context.Request, Direction, ReferenceExpression) {
-				Offset = offset
-			};
+			var fetchContext = new FetchContext(context.Request, Direction, ReferenceExpression);
+			if (Direction == FetchDirection.Absolute ||
+			    Direction == FetchDirection.Relative)
+				fetchContext.Offset = offset;
 
 			cursor.FetchInto(fetchContext);
 		}

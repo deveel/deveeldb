@@ -189,28 +189,44 @@ namespace Deveel.Data.Sql.Cursors {
 
 				FetchIntoReference(fetchRow, reference);
 			} else if (context.IsVariableReference) {
-				var varName = ((SqlVariableReferenceExpression) context.Reference).VariableName;
-				FetchIntoVatiable(fetchRow, varName);
+				var varNames = context.VariableNames;
+				FetchIntoVatiable(fetchRow, varNames);
 			}
 		}
 
-		private void FetchIntoVatiable(Row row, string varName) {
-			var variable = Context.Context.FindVariable(varName);
-			if (variable == null)
-				throw new InvalidOperationException(String.Format("Variable '{0}' was not found in current scope.", varName));
+		private void FetchIntoVatiable(Row row, string[] varNames) {
+			if (row.ColumnCount != varNames.Length)
+				throw new InvalidOperationException("The destination number of variables does not match the source number of columns.");
 
-			if (variable.Type is TabularType) {
-				var tabular = (TabularType) variable.Type;
-				// TODO: check if the table info is compatible with the row info
-			} else {
-				if (row.ColumnCount != 1)
-					throw new NotSupportedException();
+			for (int i = 0; i < varNames.Length; i++) {
+				var varName = varNames[i];
 
-				// TODO: find the variable type and cast the source type
-				// TODO: set the value from the row into the variable
+				var variable = Context.Context.FindVariable(varName);
+				if (variable == null)
+					throw new InvalidOperationException(String.Format("Variable '{0}' was not found in current scope.", varName));
+
+				if (variable.IsConstant)
+					throw new InvalidOperationException(String.Format("The variable '{0}' is constant and cannot be set.", varName));
+
+				if (variable.Type is TabularType) {
+					var tabular = (TabularType)variable.Type;
+					// TODO: check if the table info is compatible with the row info
+
+					throw new NotImplementedException();
+				}
+
+				var columnInfo = row.Table.TableInfo[i];
+				var columnType = columnInfo.ColumnType;
+				if (!variable.Type.IsComparable(columnType))
+					throw new InvalidOperationException(
+						String.Format("The value of column '{0}' is not compatible with the type of the destination variable '{1}'.",
+							columnInfo.FullColumnName, varName));
+
+				var sourceValue = row.GetValue(i);
+				var destValue = sourceValue.CastTo(variable.Type);
+
+				variable.SetValue(destValue);
 			}
-
-			throw new NotImplementedException();
 		}
 
 		private void FetchIntoReference(Row row, ObjectName reference) {

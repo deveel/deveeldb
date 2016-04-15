@@ -19,6 +19,7 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class FetchContext {
@@ -35,6 +36,7 @@ namespace Deveel.Data.Sql.Cursors {
 				throw new ArgumentNullException("reference");
 
 			if (reference.ExpressionType != SqlExpressionType.VariableReference &&
+				reference.ExpressionType != SqlExpressionType.Tuple &&
 				reference.ExpressionType != SqlExpressionType.Reference)
 				throw new ArgumentException("Invalid reference expression type.");
 
@@ -45,10 +47,44 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public FetchDirection Direction { get; private set; }
 
-		public SqlExpression Reference { get; set; }
+		public SqlExpression Reference { get; private set; }
 
 		public bool IsVariableReference {
-			get { return Reference.ExpressionType == SqlExpressionType.VariableReference; }
+			get {
+				return Reference.ExpressionType == SqlExpressionType.VariableReference ||
+				       Reference.ExpressionType == SqlExpressionType.Tuple;
+			}
+		}
+
+		private string[] variables;
+
+		public string[] VariableNames {
+			get {
+				if (variables == null) {
+					if (!IsVariableReference)
+						return new string[0];
+
+					var varNames = new string[0];
+					if (Reference is SqlVariableReferenceExpression) {
+						varNames = new[] {((SqlVariableReferenceExpression) Reference).VariableName};
+					} else if (Reference is SqlTupleExpression) {
+						var varExpressions = ((SqlTupleExpression) Reference).Expressions;
+
+						varNames = new string[varExpressions.Length];
+						for (int i = 0; i < varNames.Length; i++) {
+							var varRef = varExpressions[i] as SqlVariableReferenceExpression;
+							if (varRef == null)
+								throw new InvalidOperationException();
+
+							varNames[i] = varRef.VariableName;
+						}
+					}
+
+					variables = varNames;
+				}
+
+				return variables;
+			}
 		}
 
 		public bool IsGlobalReference {

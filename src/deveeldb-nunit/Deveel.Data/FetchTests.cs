@@ -6,6 +6,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 using NUnit.Framework;
 
@@ -38,6 +39,20 @@ namespace Deveel.Data {
 			Query.Access().CreateObject(cursorInfo);
 			var c1 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
 			c1.Open();
+
+			if (testName.StartsWith("FetchInto")) {
+				var query2 = (SqlQueryExpression)SqlExpression.Parse("SELECT a FROM APP.test_table");
+
+				var cursorInfo2 = new CursorInfo("c2", query2);
+				cursorInfo2.Flags = CursorFlags.Scroll;
+
+				Query.Access().CreateObject(cursorInfo2);
+				var c2 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c2"));
+				c2.Open();
+
+				Query.Access().CreateObject(new VariableInfo("var1", PrimitiveTypes.BigInt(), false));
+				Query.Access().CreateObject(new VariableInfo("var2", PrimitiveTypes.String(), false));
+			}
 		}
 
 		protected override void OnTearDown(string testName, IQuery query) {
@@ -83,6 +98,36 @@ namespace Deveel.Data {
 
 			var id = ((SqlNumber)val1.Value).ToInt32();
 			Assert.AreEqual(5, id);
+		}
+
+		[Test]
+		public void FetchIntoOneVar() {
+			Query.FetchNextInto("c2", SqlExpression.VariableReference("var1"));
+
+			var var1 = (Variable) Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
+
+			Assert.IsNotNull(var1);
+			Assert.IsNotNull(var1.Value);
+			Assert.IsFalse(Field.IsNullField(var1.Value));
+
+			var value = ((SqlNumber) var1.Value.Value).ToInt32();
+			Assert.AreEqual(0, value);
+		}
+
+		[Test]
+		public void FetchIntoTwoVars() {
+			var tuple = SqlExpression.Tuple(SqlExpression.VariableReference("var1"), SqlExpression.VariableReference("var2"));
+
+			Query.FetchNextInto("c1", tuple);
+
+			var var1 = (Variable)Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
+
+			Assert.IsNotNull(var1);
+			Assert.IsNotNull(var1.Value);
+			Assert.IsFalse(Field.IsNullField(var1.Value));
+
+			var value = ((SqlNumber)var1.Value.Value).ToInt32();
+			Assert.AreEqual(0, value);
 		}
 	}
 }

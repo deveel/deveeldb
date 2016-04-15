@@ -165,14 +165,10 @@
     <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\IMapResolver.cs" />
     <Compile Include="Deveel.Data.Mapping\ITypeMap.cs" />
-    <Compile Include="Deveel.Data.Mapping\MapContext.cs" />
     <Compile Include="Deveel.Data.Mapping\IMemberMap.cs" />
-    <Compile Include="Deveel.Data.Mapping\MapBuilder.cs" />
     <Compile Include="Deveel.Data.Mapping\Mapper.cs" />
-    <Compile Include="Deveel.Data.Mapping\MemberMap.cs" />
     <Compile Include="Deveel.Data.Mapping\MemberMapInfo.cs" />
     <Compile Include="Deveel.Data.Mapping\TableNameAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMap.cs" />
     <Compile Include="Deveel.Data.Mapping\TypeMapInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
