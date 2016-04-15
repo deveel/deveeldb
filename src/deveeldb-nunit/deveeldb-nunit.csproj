@@ -156,6 +156,7 @@
     <Compile Include="Deveel.Data\GrantTests.cs" />
     <Compile Include="Deveel.Data\InsertSelectTests.cs" />
     <Compile Include="Deveel.Data\InsertTests.cs" />
+    <Compile Include="Deveel.Data\LoopTests.cs" />
     <Compile Include="Deveel.Data\OpenCursorTests.cs" />
     <Compile Include="Deveel.Data\PlSqlBlockTests.cs" />
     <Compile Include="Deveel.Data\RevokeTests.cs" />

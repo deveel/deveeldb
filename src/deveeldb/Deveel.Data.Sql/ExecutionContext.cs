@@ -25,10 +25,15 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
 	public sealed class ExecutionContext {
-		public ExecutionContext(IRequest request, SqlStatement statement) {
+		public ExecutionContext(IRequest request, SqlStatement statement)
+			: this(null, request, statement) {
+		}
+
+		private ExecutionContext(ExecutionContext parent, IRequest request, SqlStatement statement) {
 			if (request == null)
 				throw new ArgumentNullException("request");
 
+			Parent = parent;
 			Request = request;
 			Statement = statement;
 		}
@@ -61,6 +66,8 @@ namespace Deveel.Data.Sql {
 			get { return Query.IsInSession(); }
 		}
 
+		private ExecutionContext Parent { get; set; }
+
 		public SystemAccess DirectAccess {
 			get { return Request.Access(); }
 		}
@@ -68,6 +75,13 @@ namespace Deveel.Data.Sql {
 		private void AssertNotFinished() {
 			if (HasTermination)
 				throw new InvalidOperationException("The context has already terminated.");
+		}
+
+		private void Terminate() {
+			HasTermination = true;
+
+			if (Parent != null)
+				Parent.Terminate();
 		}
 
 		public void SetResult(ITable result) {
@@ -116,7 +130,7 @@ namespace Deveel.Data.Sql {
 					statement = statement.Parent;
 				}
 			} finally {
-				HasTermination = true;
+				Terminate();
 			}
 		}
 
@@ -170,7 +184,7 @@ namespace Deveel.Data.Sql {
 			if (value != null)
 				SetResult(FunctionTable.ResultTable(Request, value));
 
-			HasTermination = true;
+			Terminate();
 		}
 
 		private SqlStatement FindInTree(SqlStatement root, string label) {
@@ -195,7 +209,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public ExecutionContext NewBlock(SqlStatement statement) {
-			return new ExecutionContext(new Block(Request), statement);
+			return new ExecutionContext(this, new Block(Request), statement);
 		}
 	}
 }

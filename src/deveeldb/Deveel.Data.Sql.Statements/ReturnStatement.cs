@@ -47,6 +47,10 @@ namespace Deveel.Data.Sql.Statements {
 			return new ReturnStatement(expression);
 		}
 
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			return new ReturnStatement(ReturnExpression);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Return(ReturnExpression);
 		}

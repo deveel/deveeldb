@@ -42,17 +42,37 @@ namespace Deveel.Data.Sql.Statements {
 
 		// TODO: Review the logic to control the loop...
 		protected virtual bool Loop(ExecutionContext context) {
-			return !Exit;
+			return !Exit && !context.HasTermination;
 		}
 
 		protected virtual bool CanExecute(ExecutionContext context) {
-			return !Continue;
+			return !Continue && !context.HasTermination;
 		}
 
 		protected virtual void BeforeLoop(ExecutionContext context) {
 		}
 
 		protected virtual void AfterLoop(ExecutionContext context) {
+		}
+
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			if (!LoopBreakChecker.HasBreak(this))
+				throw new InvalidOperationException("The loop has no possible exit");
+
+			var loop = new LoopStatement {
+				Label = Label
+			};
+
+			foreach (var statement in Statements) {
+				var prepared = statement.Prepare(context);
+
+				if (prepared == null)
+					throw new InvalidOperationException("The preparation of a child statement was invalid.");
+
+				loop.Statements.Add(prepared);
+			}
+			
+			return loop;
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

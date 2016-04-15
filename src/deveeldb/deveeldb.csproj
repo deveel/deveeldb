@@ -274,6 +274,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopBreakChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SequenceOfStatements.cs" />

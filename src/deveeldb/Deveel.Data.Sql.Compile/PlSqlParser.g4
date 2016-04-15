@@ -45,6 +45,7 @@ unitStatement
 	| showStatement
 	| transactionControlStatement
 
+	| loopStatement
 	| block
 	| declareStatement
     ;
