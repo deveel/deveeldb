@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Query {
 		public void SetAliasParentName(ObjectName parentName) {
 			var aliases = new ObjectName[AliasColumnNames.Length];
 			for (int i = 0; i < aliases.Length; i++) {
-				aliases[i] = new ObjectName(parentName, aliases[i].Name);
+				aliases[i] = new ObjectName(parentName, AliasColumnNames[i].Name);
 			}
 
 			AliasColumnNames = aliases;

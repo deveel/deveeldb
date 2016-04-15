@@ -73,8 +73,12 @@ namespace Deveel.Data {
 		}
 
 		private ITable Execute(string s) {
+			return Execute(s, null);
+		}
+
+		private ITable Execute(string s, QueryLimit limit) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(s);
-			var result = Query.Select(query);
+			var result = Query.Select(query, limit);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}
@@ -211,6 +215,29 @@ namespace Deveel.Data {
 		}
 
 		[Test]
+		public void LimitToOne() {
+			var result = Execute("SELECT * FRPM test_table", new QueryLimit(1));
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+		}
+
+		[Test]
+		public void LiimitToTwoFromSecond() {
+			var result = Execute("SELECT * FROM test_table", new QueryLimit(1, 2));
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void SelectSubQuery() {
+			var result = Execute("SELECT * FROM (SELECT * FROM test_table WHERE id > 1) AS q");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
 		public void FromMap() {
 			var result = Query.Select<TestClass>("SELECT * FROM test_table");
 
@@ -225,6 +252,7 @@ namespace Deveel.Data {
 			Assert.AreEqual("Doe", first.LastName);
 			Assert.AreEqual(new DateTime(1977, 01, 01), first.BirthDate);
 		}
+
 
 		[TableName("test_table")]
 		class TestClass {

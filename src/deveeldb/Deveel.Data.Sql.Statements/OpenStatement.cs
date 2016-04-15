@@ -61,13 +61,13 @@ namespace Deveel.Data.Sql.Statements {
 
 			var cursor = context.Context.FindCursor(CursorName);
 			if (cursor == null)
-				throw new StatementPrepareException(String.Format("Cursor '{0}' was not found.", CursorName));
+				throw new StatementException(String.Format("Cursor '{0}' was not found.", CursorName));
 
 			if (args != null) {
 				var orderedParams = cursor.CursorInfo.Parameters.OrderBy(x => x.Offset).ToArray();
 
 				if (args.Length != orderedParams.Length)
-					throw new StatementPrepareException(String.Format("Invalid number of arguments for cursor '{0}' OPEN statement.", CursorName));
+					throw new StatementException(String.Format("Invalid number of arguments for cursor '{0}' OPEN statement.", CursorName));
 
 				// TODO: Cast to the parameter type here?
 			}

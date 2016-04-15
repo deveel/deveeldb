@@ -165,8 +165,10 @@ namespace Deveel.Data {
 		public void TestFixtureTearDown() {
 			OnFixtureTearDown();
 
-			if (Database != null)
+			if (Database != null) {
+				Database.Close();
 				Database.Dispose();
+			}
 
 			if (System != null)
 				System.Dispose();

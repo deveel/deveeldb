@@ -38,12 +38,19 @@ namespace Deveel.Data.Caching {
 		}
 
 		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (BaseCache != null)
+					BaseCache.Clear();
+			}
+
 			BaseCache = null;
 			base.Dispose(disposing);
 		}
 
 		public override void Clear() {
-			BaseCache.Clear();
+			if (BaseCache != null)
+				BaseCache.Clear();
+
 			base.Clear();
 		}
 	}

@@ -70,13 +70,13 @@ namespace Deveel.Data.Sql.Statements {
 			if (Reference is SqlTupleExpression) {
 				var exps = ((SqlTupleExpression) Reference).Expressions;
 				if (exps == null || exps.Length == 0)
-					throw new StatementPrepareException("Empty tuple in SELECT INTO");
+					throw new StatementException("Empty tuple in SELECT INTO");
 
 				var variables = new List<string>();
 
 				for (int i = 0; i < exps.Length; i++) {
 					if (!(exps[i] is SqlVariableReferenceExpression))
-						throw new StatementPrepareException("Found an invalid expression in the tuple.");
+						throw new StatementException("Found an invalid expression in the tuple.");
 
 					var varName = ((SqlVariableReferenceExpression) exps[i]).VariableName;
 					variables.Add(varName);
@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql.Statements {
 
 				var table = context.Request.Access().GetMutableTable(TableName);
 				if (table == null)
-					throw new StatementPrepareException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", TableName));
+					throw new StatementException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", TableName));
 
 				var addedd = InsertIntoTable(table, cursor);
 

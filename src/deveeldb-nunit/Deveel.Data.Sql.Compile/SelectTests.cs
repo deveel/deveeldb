@@ -165,5 +165,26 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsTrue(item.IsGlob);
 			Assert.AreEqual("table1", item.TableName.FullName);
 		}
+
+		[Test]
+		public void SelectLimit() {
+			const string sql = "SELECT * FROM table1 LIMIT 1,2";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
 	}
 }
