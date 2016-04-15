@@ -17,14 +17,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
@@ -169,7 +167,7 @@ namespace Deveel.Data {
 		//	}
 
 		//}
-
+		
 		private void Dispose(bool disposing) {
 			if (disposing) {
 				if (!IsClosed)
@@ -495,7 +493,7 @@ namespace Deveel.Data {
 			return CreateTableSource(tableInfo, temporary);
 		}
 
-		internal TableSource CreateTableSource(TableInfo tableInfo, bool temporary) {
+		private TableSource CreateTableSource(TableInfo tableInfo, bool temporary) {
 			lock (commitLock) {
 				try {
 					int tableId = NextTableId();
@@ -536,6 +534,14 @@ namespace Deveel.Data {
 
 				return source;
 			}
+		}
+
+		public ILargeObject CreateLargeObject(long maxSize, bool compressed) {
+			return LargeObjectStore.CreateNewObject(maxSize, compressed);
+		}
+
+		public ILargeObject GetLargeObject(ObjectId objectId) {
+			return LargeObjectStore.GetObject(objectId);
 		}
 
 		public int NextTableId() {

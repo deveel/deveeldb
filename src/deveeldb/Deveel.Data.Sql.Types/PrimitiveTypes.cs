@@ -77,6 +77,22 @@ namespace Deveel.Data.Sql.Types {
 			return new StringType(sqlType, maxSize, encoding, locale);
 		}
 
+		public static StringType Clob() {
+			return Clob(Int16.MaxValue);
+		}
+
+		public static StringType Clob(int maxSize) {
+			return Clob(Encoding.ASCII, maxSize);
+		}
+
+		public static StringType Clob(Encoding encoding) {
+			return Clob(encoding, Int16.MaxValue);
+		}
+
+		public static StringType Clob(Encoding encoding, int maxSize) {
+			return String(SqlTypeCode.Clob, maxSize, encoding);
+		}
+
 		public static StringType VarChar() {
 			return VarChar(StringType.DefaultMaxSize);
 		}

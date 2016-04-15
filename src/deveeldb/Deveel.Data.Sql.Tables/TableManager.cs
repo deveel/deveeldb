@@ -57,7 +57,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		public ITransaction Transaction { get; private set; }
 
-		private ITableSourceComposite Composite { get; set; }
+		internal ITableSourceComposite Composite { get; set; }
 
 		internal IEnumerable<IMutableTable> AccessedTables {
 			get { return accessedTables; }

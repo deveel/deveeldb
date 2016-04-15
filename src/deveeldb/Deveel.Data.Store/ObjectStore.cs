@@ -17,6 +17,8 @@
 
 using System;
 using System.IO;
+
+using Deveel.Data.Util;
 #if !PCL
 using System.IO.Compression;
 #endif
@@ -367,9 +369,19 @@ namespace Deveel.Data.Store {
 			if ((type & CompressedFlag) != 0) {
 				// Yes, compression
 #if !PCL
-				var deflateStream = new DeflateStream(new MemoryStream(buffer, off, length), CompressionMode.Compress, false);
-				toWrite = new byte[PageSize * 1024];
-				writeLength = deflateStream.Read(toWrite, 0, toWrite.Length);
+				using (var input = new MemoryStream(buffer, off, length)) {
+					using (var output = new MemoryStream(PageSize * 1024)) {
+						using (var deflateStream = new DeflateStream(output, CompressionMode.Compress, false)) {
+							input.CopyTo(deflateStream);
+							deflateStream.Flush();
+							deflateStream.Close();
+
+							toWrite = output.ToArray();
+							writeLength = toWrite.Length;
+						}
+					}
+					
+				}
 #else
 				throw new NotSupportedException("Compression not supported in PCL.");
 #endif
@@ -469,16 +481,35 @@ namespace Deveel.Data.Store {
 				byte[] pageBuf = new byte[pageSize];
 				int readCount = pageArea.Read(pageBuf, 0, pageSize);
 
-				var deflateStream = new DeflateStream(new MemoryStream(pageBuf, 0, pageSize), CompressionMode.Decompress, false);
-				try {
-					int resultLength = deflateStream.Read(buffer, off, length);
-					if (resultLength != length)
-						throw new Exception("Assert failed: decompressed length is incorrect.");
+				using (var input = new MemoryStream(pageBuf, 0, readCount)) {
+					using (var output = new MemoryStream()) {
+						using (var deflateStream = new DeflateStream(output, CompressionMode.Decompress, false)) {
+							input.CopyTo(deflateStream);
 
-					return readCount;
-				} catch(InvalidDataException e) {
-					throw new IOException("ZIP Data Format Error: " + e.Message);
+							deflateStream.Flush();
+							deflateStream.Close();
+
+							output.Seek(0, SeekOrigin.Begin);
+
+							var resultLenght = output.Length;
+							if (resultLenght != length)
+								throw new IOException("Uncompressed length is invalid.");
+
+							return output.Read(buffer, off, length);
+						}
+					}
 				}
+
+				//var deflateStream = new DeflateStream(new MemoryStream(pageBuf, 0, pageSize), CompressionMode.Decompress, false);
+				//try {
+				//	int resultLength = deflateStream.Read(buffer, off, length);
+				//	if (resultLength != length)
+				//		throw new Exception("Assert failed: decompressed length is incorrect.");
+
+				//	return readCount;
+				//} catch(InvalidDataException e) {
+				//	throw new IOException("ZIP Data Format Error: " + e.Message);
+				//}
 #else
 				throw new NotSupportedException("Compression not supported in PCL.");
 #endif

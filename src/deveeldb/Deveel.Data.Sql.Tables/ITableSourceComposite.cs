@@ -19,11 +19,16 @@ using System;
 
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
+using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Tables {
 	public interface ITableSourceComposite : IDisposable {
 		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
 
 		ITableSource CopySourceTable(ITableSource tableSource, IIndexSet indexSet);
+
+		ILargeObject CreateLargeObject(long maxSize, bool compressed);
+
+		ILargeObject GetLargeObject(ObjectId objectId);
 	}
 }

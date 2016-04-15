@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
@@ -67,6 +66,14 @@ namespace Deveel.Data {
 		public ITransaction Transaction { get; private set; }
 
         public ISessionContext Context { get; private set; }
+
+		public ILargeObject CreateLargeObject(int tableId, long maxSize, bool compressed) {
+			throw new NotSupportedException();
+		}
+
+		public ILargeObject GetLargeObject(int tableId, ObjectId objectId) {
+			throw new NotSupportedException();
+		}
 
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
 			throw new NotSupportedException();

@@ -242,6 +242,8 @@ namespace Deveel.Data.Sql.Statements {
 						row.EvaluateAssignment(expression, context.Request);
 					}
 
+					row.SetDefault(context.Request);
+
 					table.AddRow(row);
 					insertCount++;
 				}

@@ -18,9 +18,9 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -45,28 +45,9 @@ namespace Deveel.Data {
         ISessionContext Context { get; }
 
 
-		///// <summary>
-		///// Allocates a given amount of memory on the underlying storage system
-		///// for the handling of a large-object.
-		///// </summary>
-		///// <param name="size">The byte size of the object to create.</param>
-		///// <param name="compressed">A flag to indicate if the object will handle compressed
-		///// data when read or write.</param>
-		///// <returns>
-		///// Returns an instance of a <see cref="ILargeObject"/> that references the created
-		///// object on the underlying storage system.
-		///// </returns>
-		///// <seealso cref="SqlLongString"/>
-		///// <seealso cref="SqlLongBinary"/>
-		//ILargeObject CreateLargeObject(long size, bool compressed);
+		ILargeObject CreateLargeObject(long maxSize, bool compressed);
 
-		///// <summary>
-		///// Gets a large object referenced by the given unique identifier.
-		///// </summary>
-		///// <param name="objId">The unique identifier of the object to retrieve.</param>
-		///// <returns></returns>
-		///// <seealso cref="ObjectId"/>
-		//ILargeObject GetLargeObject(ObjectId objId);
+		ILargeObject GetLargeObject(ObjectId objectId);
 
 		void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
 

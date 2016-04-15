@@ -124,7 +124,7 @@ namespace Deveel.Data.Sql.Types {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			var sb = new StringBuilder(Name);
+			var sb = new StringBuilder(TypeCode.ToString().ToUpperInvariant());
 			if (MaxSize >= 0)
 				sb.AppendFormat("({0})", MaxSize);
 
@@ -330,7 +330,9 @@ namespace Deveel.Data.Sql.Types {
 			return destType.TypeCode != SqlTypeCode.Array &&
 			       destType.TypeCode != SqlTypeCode.ColumnType &&
 			       destType.TypeCode != SqlTypeCode.RowType &&
-			       destType.TypeCode != SqlTypeCode.Object;
+			       destType.TypeCode != SqlTypeCode.Object &&
+				   destType.TypeCode != SqlTypeCode.Clob &&
+				   destType.TypeCode != SqlTypeCode.Blob;
 		}
 
 		/// <inheritdoc/>
@@ -405,7 +407,6 @@ namespace Deveel.Data.Sql.Types {
 				case (SqlTypeCode.DateTime):
 					castedValue = ToDateTime(str);
 					break;
-				case (SqlTypeCode.Blob):
 				case (SqlTypeCode.Binary):
 				case (SqlTypeCode.VarBinary):
 				case (SqlTypeCode.LongVarBinary):
@@ -413,10 +414,6 @@ namespace Deveel.Data.Sql.Types {
 					break;
 				case (SqlTypeCode.Null):
 					castedValue = SqlNull.Value;
-					break;
-				case (SqlTypeCode.Clob):
-					// TODO: have a context where to get a new CLOB
-					castedValue = new SqlString(str);
 					break;
 				default:
 					throw new InvalidCastException();

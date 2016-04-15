@@ -605,6 +605,10 @@ namespace Deveel.Data.Sql {
 			return new Field(PrimitiveTypes.String(SqlTypeCode.String), s);
 		}
 
+		public static Field Clob(SqlLongString s) {
+			return new Field(PrimitiveTypes.Clob(s.Encoding, (int) s.Length), s);
+		}
+
 		public static Field Date(DateTimeOffset value) {
 			var offset = new SqlDayToSecond(value.Offset.Days, value.Offset.Hours, value.Offset.Minutes, value.Offset.Seconds, value.Offset.Milliseconds);
 			var sqlDate = new SqlDateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, offset);
@@ -711,6 +715,14 @@ namespace Deveel.Data.Sql {
 
 				return String(s);
 			}
+			if (value is SqlLongString) {
+				var clob = (SqlLongString) value;
+				if (clob.IsNull)
+					return Null(PrimitiveTypes.Clob());
+
+				return Clob(clob);
+			}
+			
 
 			if (value == null)
 				return Null();

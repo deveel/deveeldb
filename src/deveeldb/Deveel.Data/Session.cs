@@ -22,6 +22,7 @@ using System.Linq;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -256,6 +257,22 @@ namespace Deveel.Data {
 
 		public IQuery CreateQuery() {
 			return new Query(this);
+		}
+
+		public ILargeObject CreateLargeObject(long maxSize, bool compressed) {
+			var composite = Transaction.GetTableManager().Composite;
+			if (composite == null)
+				return null;
+
+			return composite.CreateLargeObject(maxSize, compressed);
+		}
+
+		public ILargeObject GetLargeObject(ObjectId objectId) {
+			var composite = Transaction.GetTableManager().Composite;
+			if (composite == null)
+				return null;
+
+			return composite.GetLargeObject(objectId);
 		}
 
 		private void Dispose(bool disposing) {

@@ -18,13 +18,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
-using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 

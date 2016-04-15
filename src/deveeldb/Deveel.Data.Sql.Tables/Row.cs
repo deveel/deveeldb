@@ -381,10 +381,17 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var column = Table.TableInfo[columnOffset];
-			if (!column.HasDefaultExpression)
+			if (!column.HasDefaultExpression &&
+				column.IsNotNull)
 				throw new InvalidOperationException(String.Format("Column '{0}' in table '{1}' has no DEFAULT set.", column.ColumnName, Table.TableInfo.TableName));
 
-			var value = Evaluate(column.DefaultExpression, context);
+			Field value;
+			if (column.HasDefaultExpression) {
+				value = Evaluate(column.DefaultExpression, context);
+			} else {
+				value = Field.Null(column.ColumnType);
+			}
+
 			SetValue(columnOffset, value);
 		}
 

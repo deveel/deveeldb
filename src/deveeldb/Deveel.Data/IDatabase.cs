@@ -104,25 +104,6 @@ namespace Deveel.Data {
 		ITable SingleRowTable { get; }
 
 		/// <summary>
-		/// Creates the database in the context given, granting the administrative
-		/// control to the user identified by the given name and password.
-		/// </summary>
-		/// <param name="adminName">The name of the administrator.</param>
-		/// <param name="adminPassword">The password used to identify the administrator.</param>
-		/// <remarks>
-		/// <para>
-		/// The properties used to create the database are extracted from
-		/// the underlying context (<see cref="DatabaseContext"/>).
-		/// </para>
-		/// <para>
-		/// This method does not automatically open the database: to make it accessible
-		/// a call to <see cref="Open"/> is required.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="IDatabaseContext.Configuration"/>
-		void Create(string adminName, string adminPassword);
-
-		/// <summary>
 		/// Opens the database making it ready to be accessed.
 		/// </summary>
 		/// <remarks>

@@ -954,6 +954,14 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
+		public ILargeObject CreateLargeObject(long maxSize, bool compressed) {
+			return ObjectStore.CreateNewObject(maxSize, compressed);
+		}
+
+		public ILargeObject GetLargeObject(ObjectId objectId) {
+			return ObjectStore.GetObject(objectId);
+		}
+
 		public int AddRow(Row row) {
 			int rowNumber;
 
