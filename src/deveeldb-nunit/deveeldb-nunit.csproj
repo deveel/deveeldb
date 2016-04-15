@@ -142,6 +142,8 @@
     <Compile Include="Deveel.Data\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data\DeclareVariableTests.cs" />
     <Compile Include="Deveel.Data\DeleteTests.cs" />
+    <Compile Include="Deveel.Data\DropFunctionTests.cs" />
+    <Compile Include="Deveel.Data\DropProcedureTests.cs" />
     <Compile Include="Deveel.Data\DropRoleTests.cs" />
     <Compile Include="Deveel.Data\DropSchemaTests.cs" />
     <Compile Include="Deveel.Data\DropSequenceTests.cs" />
@@ -202,9 +204,7 @@
     <None Include="deveeldb-nunit.snk" />
     <None Include="packages.deveeldb-nunit.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Sql.Parser\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

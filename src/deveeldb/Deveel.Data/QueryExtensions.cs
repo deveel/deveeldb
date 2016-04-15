@@ -478,32 +478,32 @@ namespace Deveel.Data {
 
 		#region Create Function
 
-		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body) {
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, SqlStatement body) {
 			CreateFunction(query, functionName, returnType, null, body);
 		}
 
 		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			IEnumerable<RoutineParameter> parameters, SqlStatement body) {
 			CreateFunction(query, functionName, returnType, parameters, body, false);
 		}
 
-		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body, bool replace) {
+		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType, SqlStatement body, bool replace) {
 			CreateFunction(query, functionName, returnType, null, body, replace);
 		}
 
 		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body, bool replace) {
+			IEnumerable<RoutineParameter> parameters, SqlStatement body, bool replace) {
 			query.ExecuteStatement(new CreateFunctionStatement(functionName, returnType, parameters, body) {
 				ReplaceIfExists = replace
 			});
 		}
 
-		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType, PlSqlBlockStatement body) {
+		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType, SqlStatement body) {
 			CreateOrReplaceFunction(query, functionName, returnType, null, body);
 		}
 
 		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-	IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+	IEnumerable<RoutineParameter> parameters, SqlStatement body) {
 			query.CreateFunction(functionName, returnType, parameters, body, true);
 		}
 
@@ -549,9 +549,7 @@ namespace Deveel.Data {
 		}
 
 		public static void DropFunction(this IQuery query, ObjectName functionName, bool ifExists) {
-			query.ExecuteStatement(new DropFunctionStatement(functionName) {
-				IfExists = ifExists
-			});
+			query.ExecuteStatement(new DropFunctionStatement(functionName, ifExists));
 		}
 
 		public static void DropFunctionIfExists(this IQuery query, ObjectName functionName) {
@@ -624,10 +622,12 @@ namespace Deveel.Data {
 
 		#region Drop Procedure
 
+		public static void DropProcedure(this IQuery query, ObjectName procedureName) {
+			DropProcedure(query, procedureName, false);
+		}
+
 		public static void DropProcedure(this IQuery query, ObjectName procedureName, bool ifExists) {
-			query.ExecuteStatement(new DropProcedureStatement(procedureName) {
-				IfExists = ifExists
-			});
+			query.ExecuteStatement(new DropProcedureStatement(procedureName, ifExists));
 		}
 
 		#endregion

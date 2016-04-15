@@ -17,18 +17,50 @@
 
 using System;
 
+using Deveel.Data.Routines;
+using Deveel.Data.Security;
+
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class DropProcedureStatement : SqlStatement {
-		public DropProcedureStatement(ObjectName procedureName) {
+		public DropProcedureStatement(ObjectName procedureName) 
+			: this(procedureName, false) {
+		}
+
+		public DropProcedureStatement(ObjectName procedureName, bool ifExists) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 
 			ProcedureName = procedureName;
+			IfExists = ifExists;
 		}
 
 		public ObjectName ProcedureName { get; private set; }
 
 		public bool IfExists { get; set; }
+
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var procedureName = context.Access().ResolveObjectName(ProcedureName);
+			return new DropProcedureStatement(procedureName, IfExists);
+		}
+
+		protected override void ExecuteStatement(ExecutionContext context) {
+			if (!context.DirectAccess.ObjectExists(DbObjectType.Routine, ProcedureName)) {
+				if (IfExists)
+					return;
+
+				throw new ObjectNotFoundException(ProcedureName);
+			}
+
+			if (!context.User.CanDrop(DbObjectType.Routine, ProcedureName))
+				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Drop);
+
+			var routine = context.DirectAccess.GetObject(DbObjectType.Routine, ProcedureName);
+			if (!(routine is IProcedure))
+				throw new InvalidOperationException(String.Format("The routine '{0}' is not a procedure.", ProcedureName));
+
+			if (!context.DirectAccess.DropObject(DbObjectType.Routine, ProcedureName))
+				throw new InvalidOperationException(String.Format("Unable to drop the procedure '{0}' from the system.", ProcedureName));
+		}
 	}
 }

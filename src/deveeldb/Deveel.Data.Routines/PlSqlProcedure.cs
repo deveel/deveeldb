@@ -26,7 +26,7 @@ namespace Deveel.Data.Routines {
 			: base(procedureInfo) {
 		}
 
-		public PlSqlBlockStatement Body {
+		public SqlStatement Body {
 			get { return ((PlSqlProcedureInfo) ProcedureInfo).Body; }
 		}
 

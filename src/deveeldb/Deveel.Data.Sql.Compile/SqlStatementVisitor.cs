@@ -513,7 +513,7 @@ namespace Deveel.Data.Sql.Compile {
 				if (!(plsqlBody is PlSqlBlockStatement))
 					throw new ParseCanceledException("Invalid procedure body.");
 
-				return new CreateProcedureStatement(procedureName, parameters, (PlSqlBlockStatement) plsqlBody) {
+				return new CreateProcedureStatement(procedureName, parameters, plsqlBody) {
 					ReplaceIfExists = orReplace
 				};
 			}

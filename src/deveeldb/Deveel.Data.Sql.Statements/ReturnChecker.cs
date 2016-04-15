@@ -14,5 +14,10 @@ namespace Deveel.Data.Sql.Statements {
 			returnFound = true;
 			return base.VisitReturn(statement);
 		}
+
+		public static bool HasReturn(SqlStatement statement) {
+			var visitor = new ReturnChecker();
+			return visitor.Verify(statement);
+		}
 	}
 }

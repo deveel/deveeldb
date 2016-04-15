@@ -27,11 +27,11 @@ using Deveel.Data.Sql.Types;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CreateFunctionStatement : SqlStatement {
-		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, PlSqlBlockStatement body) 
+		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, SqlStatement body) 
 			: this(functionName, returnType, null, body) {
 		}
 
-		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, IEnumerable<RoutineParameter> parameters, SqlStatement body) {
 			if (functionName == null)
 				throw new ArgumentNullException("functionName");
 			if (returnType == null)
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		public PlSqlBlockStatement Body { get; set; }
+		public SqlStatement Body { get; set; }
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var body = (PlSqlBlockStatement) Body.Prepare(preparer);

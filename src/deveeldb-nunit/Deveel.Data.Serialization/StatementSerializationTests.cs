@@ -20,5 +20,47 @@ namespace Deveel.Data.Serialization {
 				Assert.IsNotNull(deserialized.QueryExpression);
 			});
 		}
+
+		[Test]
+		public void Goto() {
+			var statement = new GoToStatement("test");
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.AreEqual(serialized.Label, deserialized.Label);
+			});
+		}
+
+		[Test]
+		public void Exit() {
+			var statement = new ExitStatement();
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNull(deserialized.Label);
+				Assert.IsNull(serialized.WhenExpression);
+			});
+		}
+
+		[Test]
+		public void ExitLabel() {
+			var statement = new ExitStatement("test");
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.Label);
+				Assert.AreEqual(serialized.Label, deserialized.Label);
+				Assert.IsNull(deserialized.WhenExpression);
+			});
+		}
+
+		[Test]
+		public void ExitWhen() {
+			var statement = new ExitStatement(SqlExpression.Constant(true));
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNull(deserialized.Label);
+				Assert.IsNotNull(deserialized.WhenExpression);
+				Assert.IsInstanceOf<SqlConstantExpression>(deserialized.WhenExpression);
+			});
+		}
 	}
 }

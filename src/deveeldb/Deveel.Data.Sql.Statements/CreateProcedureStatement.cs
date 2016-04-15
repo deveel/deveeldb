@@ -25,11 +25,11 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateProcedureStatement : SqlStatement {
-		public CreateProcedureStatement(ObjectName procedureName, PlSqlBlockStatement body) 
+		public CreateProcedureStatement(ObjectName procedureName, SqlStatement body) 
 			: this(procedureName, null, body) {
 		}
 
-		public CreateProcedureStatement(ObjectName procedureName, IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+		public CreateProcedureStatement(ObjectName procedureName, IEnumerable<RoutineParameter> parameters, SqlStatement body) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 			if (body == null)
@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public bool ReplaceIfExists { get; set; }
 
-		public PlSqlBlockStatement Body { get; private set; }
+		public SqlStatement Body { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var schemaName = context.Access().ResolveSchemaName(ProcedureName.ParentName);

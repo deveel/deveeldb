@@ -5,7 +5,7 @@ using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Routines {
 	public sealed class PlSqlProcedureInfo : ProcedureInfo {
-		public PlSqlProcedureInfo(ObjectName procedureName, RoutineParameter[] parameters, PlSqlBlockStatement body)
+		public PlSqlProcedureInfo(ObjectName procedureName, RoutineParameter[] parameters, SqlStatement body)
 			: base(procedureName, parameters) {
 			if (body == null)
 				throw new ArgumentNullException("body");
@@ -13,6 +13,6 @@ namespace Deveel.Data.Routines {
 			Body = body;
 		}
 
-		public PlSqlBlockStatement Body { get; private set; }
+		public SqlStatement Body { get; private set; }
 	}
 }

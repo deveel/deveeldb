@@ -27,7 +27,7 @@ namespace Deveel.Data.Routines {
 			: base(functionInfo) {
 		}
 
-		public PlSqlBlockStatement Body {
+		public SqlStatement Body {
 			get { return ((PlSqlFunctionInfo) FunctionInfo).Body; }
 		}
 

@@ -257,7 +257,7 @@ namespace Deveel.Data.Routines {
 				returnType = transaction.Context.ResolveType(returnTypeString);
 			}
 
-			PlSqlBlockStatement body = null;
+			SqlStatement body = null;
 			ExternalRef externalRef = null;
 
 			if (routineType == FunctionType ||
