@@ -19,7 +19,6 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class FetchContext {
