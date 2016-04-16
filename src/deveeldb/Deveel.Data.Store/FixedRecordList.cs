@@ -20,10 +20,10 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace Deveel.Data.Store {
-	public sealed class FixedRecordList {
+	public sealed class FixedRecordList : IDisposable {
 		private const int Magic = 0x087131AA;
 
-		private readonly IStore store;
+		private IStore store;
 		private readonly int elementSize;
 
 		private long headerAreaId;
@@ -40,10 +40,29 @@ namespace Deveel.Data.Store {
 			blockAreas = new IArea[64];
 		}
 
+		~FixedRecordList() {
+			Dispose(false);
+		}
+
 		public int BlockCount { get; private set; }
 
 		public long NodeCount {
 			get { return BlockFirstPosition(BlockCount); }
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (headerArea != null)
+					headerArea.Dispose();
+			}
+
+			headerArea = null;
+			store = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		private void UpdateListHeaderArea() {

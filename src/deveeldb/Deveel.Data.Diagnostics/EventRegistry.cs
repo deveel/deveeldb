@@ -76,7 +76,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		protected override void Dispose(bool disposing) {
-			if (disposed) {
+			if (!disposed) {
 				Context = null;
 				disposed = true;
 			}

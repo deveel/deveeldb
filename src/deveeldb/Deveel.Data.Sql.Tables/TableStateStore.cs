@@ -24,7 +24,7 @@ using System.Text;
 using Deveel.Data.Store;
 
 namespace Deveel.Data {
-	class TableStateStore {
+	class TableStateStore : IDisposable {
 		private IArea headerArea;
 
 		private long delAreaPointer;
@@ -46,7 +46,32 @@ namespace Deveel.Data {
 			Store = store;
 		}
 
+		~TableStateStore() {
+			Dispose(false);
+		}
+
 		public IStore Store { get; private set; }
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (headerArea != null)
+					headerArea.Dispose();
+				
+				if (visibleList != null)
+					visibleList.Clear();
+				
+				if (deleteList != null)
+					deleteList.Clear();		
+			}
+
+			headerArea = null;
+			Store = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
 		private void ReadStateResourceList(IList<TableState> list, long pointer) {
 			using (var reader = new BinaryReader(Store.GetAreaInputStream(pointer), Encoding.Unicode)) {
@@ -83,50 +108,54 @@ namespace Deveel.Data {
 		private long WriteListToStore(IEnumerable<TableState> list) {
 			var bytes = SerializeResources(list);
 
-			var area = Store.CreateArea(bytes.Length);
-			long listP = area.Id;
-			area.Write(bytes, 0, bytes.Length);
-			area.Flush();
+			using (var area = Store.CreateArea(bytes.Length)) {
+				long listP = area.Id;
+				area.Write(bytes, 0, bytes.Length);
+				area.Flush();
 
-			return listP;
+				return listP;
+			}
 		}
 
 		public long Create() {
 			lock (this) {
 				// Allocate empty visible and deleted tables area
-				var visTablesArea = Store.CreateArea(12);
-				var delTablesArea = Store.CreateArea(12);
-				visAreaPointer = visTablesArea.Id;
-				delAreaPointer = delTablesArea.Id;
+				using (var visTablesArea = Store.CreateArea(12)) {
+					using (var delTablesArea = Store.CreateArea(12)) {
+						visAreaPointer = visTablesArea.Id;
+						delAreaPointer = delTablesArea.Id;
 
-				// Write empty entries for both of these
-				visTablesArea.WriteInt4(1);
-				visTablesArea.WriteInt8(0);
-				visTablesArea.Flush();
-				delTablesArea.WriteInt4(1);
-				delTablesArea.WriteInt8(0);
-				delTablesArea.Flush();
+						// Write empty entries for both of these
+						visTablesArea.WriteInt4(1);
+						visTablesArea.WriteInt8(0);
+						visTablesArea.Flush();
+						delTablesArea.WriteInt4(1);
+						delTablesArea.WriteInt8(0);
+						delTablesArea.Flush();
 
-				// Now allocate an empty state header
-				var headerWriter = Store.CreateArea(32);
-				long headerP = headerWriter.Id;
-				headerWriter.WriteInt4(Magic);
-				headerWriter.WriteInt4(0);
-				headerWriter.WriteInt8(0);
-				headerWriter.WriteInt8(visAreaPointer);
-				headerWriter.WriteInt8(delAreaPointer);
-				headerWriter.Flush();
+						// Now allocate an empty state header
+						using (var headerWriter = Store.CreateArea(32)) {
+							long headerP = headerWriter.Id;
+							headerWriter.WriteInt4(Magic);
+							headerWriter.WriteInt4(0);
+							headerWriter.WriteInt8(0);
+							headerWriter.WriteInt8(visAreaPointer);
+							headerWriter.WriteInt8(delAreaPointer);
+							headerWriter.Flush();
 
-				headerArea = Store.GetArea(headerP, false);
+							headerArea = Store.GetArea(headerP, false);
 
-				// Reset currentTableId
-				currentTableId = 0;
+							// Reset currentTableId
+							currentTableId = 0;
 
-				visibleList = new List<TableState>();
-				deleteList = new List<TableState>();
+							visibleList = new List<TableState>();
+							deleteList = new List<TableState>();
 
-				// Return pointer to the header area
-				return headerP;
+							// Return pointer to the header area
+							return headerP;
+						}
+					}
+				}
 			}
 		}
 

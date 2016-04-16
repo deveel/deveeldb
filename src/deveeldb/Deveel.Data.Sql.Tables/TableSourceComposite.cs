@@ -182,12 +182,19 @@ namespace Deveel.Data {
 					foreach (var tableSource in tableSources) {
 						tableSource.Value.Dispose();
 					}
+
+					tableSources.Clear();
 				}
+
+				if (StateStore != null)
+					StateStore.Dispose();
 
 				if (tempStoreSystem != null)
 					tempStoreSystem.Dispose();
 			}
 
+			tableSources = null;
+			StateStore = null;
 			tempStoreSystem = null;
 			lobStore = null;
 			Database = null;

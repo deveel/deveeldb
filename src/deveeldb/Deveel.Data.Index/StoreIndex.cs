@@ -170,15 +170,18 @@ namespace Deveel.Data.Index {
 				// The number of bytes per entry
 				int entrySize = CompactType;
 				// The total size of the entry.
-				int areaSize = (Count * entrySize);
+				int areaSize = (Count*entrySize);
 
 				// Allocate the destination area
-				var dest = destStore.CreateArea(areaSize);
-				long destOffset = dest.Id;
-				Store.GetArea(BlockPointer).CopyTo(dest, areaSize);
-				dest.Flush();
+				using (var dest = destStore.CreateArea(areaSize)) {
+					long destOffset = dest.Id;
+					using (var source = Store.GetArea(BlockPointer)) {
+						source.CopyTo(dest, areaSize);
+						dest.Flush();
+					}
 
-				return destOffset;
+					return destOffset;
+				}
 			}
 
 			public long Flush() {
@@ -227,11 +230,12 @@ namespace Deveel.Data.Index {
 				}
 
 				// Create an area to store this
-				var a = Store.CreateArea(areaSize);
-				BlockPointer = a.Id;
+				using (var a = Store.CreateArea(areaSize)) {
+					BlockPointer = a.Id;
 
-				a.Write(arr, 0, areaSize);
-				a.Flush();
+					a.Write(arr, 0, areaSize);
+					a.Flush();
+				}
 
 				// Once written, the block is invalidated
 				blockLock = null;

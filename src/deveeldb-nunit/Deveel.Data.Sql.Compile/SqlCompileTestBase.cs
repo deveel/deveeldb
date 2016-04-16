@@ -9,5 +9,12 @@ namespace Deveel.Data.Sql.Compile {
 			var compiler=new PlSqlCompiler();
 			return compiler.Compile(new SqlCompileContext(sql));
 		}
+
+		[TestFixtureTearDown]
+		public void TestFixtureTearDown() {
+			GC.Collect();
+			GC.WaitForFullGCComplete(-1);
+			GC.WaitForPendingFinalizers();
+		}
 	}
 }

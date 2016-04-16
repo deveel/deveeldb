@@ -54,8 +54,9 @@ namespace Deveel.Data.Services {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				lock (this) {
-					if (container != null)
+					if (container != null) {
 						container.Dispose();
+					}
 				}
 			}
 

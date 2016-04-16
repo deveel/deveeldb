@@ -22,13 +22,17 @@ using System.Linq;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Sql.Tables {
-	class VersionedTableIndexList {
-		private readonly List<TableEventRegistry> eventRegistries;
+	class VersionedTableIndexList : IDisposable {
+		private List<TableEventRegistry> eventRegistries;
  
 		public VersionedTableIndexList(TableSource tableSource) {
 			TableSource = tableSource;
 
 			eventRegistries = new List<TableEventRegistry>();
+		}
+
+		~VersionedTableIndexList() {
+			Dispose(false);
 		}
 
 		public IDatabaseContext DatabaseContext {
@@ -39,6 +43,21 @@ namespace Deveel.Data.Sql.Tables {
 
 		public bool HasChangesPending {
 			get { return eventRegistries.Any(); }
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (eventRegistries != null)
+					eventRegistries.Clear();
+			}
+
+			eventRegistries = null;
+			TableSource = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public void AddRegistry(TableEventRegistry registry) {

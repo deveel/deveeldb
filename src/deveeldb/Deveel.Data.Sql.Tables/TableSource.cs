@@ -176,12 +176,28 @@ namespace Deveel.Data.Sql.Tables {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
+				if (headerArea != null)
+					headerArea.Dispose();
+
+				if (recordList != null)
+					recordList.Dispose();
+
+				if (tableIndices != null)
+					tableIndices.Dispose();
+
+				if (indexSetStore != null)
+					indexSetStore.Dispose();
+
 				StoreSystem.CloseStore(Store);
 
 				if (Store != null)
 					Store.Dispose();
 			}
 
+			headerArea = null;
+			recordList = null;
+			tableIndices = null;
+			indexSetStore = null;
 			ObjectStore = null;
 			Store = null;
 		}
@@ -549,49 +565,53 @@ namespace Deveel.Data.Sql.Tables {
 				Store.Lock();
 
 				// Allocate an 80 byte header
-				var headerWriter = Store.CreateArea(80);
-				long headerPointer = headerWriter.Id;
-				// Allocate space to store the DataTableInfo serialization
-				var dataTableDefWriter = Store.CreateArea(tableInfoBuf.Length);
-				long tableInfoOffset = dataTableDefWriter.Id;
-				// Allocate space to store the DataIndexSetInfo serialization
-				var indexSetWriter = Store.CreateArea(indexSetInfoBuf.Length);
-				long indexSetInfoPointer = indexSetWriter.Id;
+				using (var headerWriter = Store.CreateArea(80)) {
+					long headerPointer = headerWriter.Id;
+					// Allocate space to store the DataTableInfo serialization
+					using (var dataTableDefWriter = Store.CreateArea(tableInfoBuf.Length)) {
+						long tableInfoOffset = dataTableDefWriter.Id;
+						// Allocate space to store the DataIndexSetInfo serialization
+						using (var indexSetWriter = Store.CreateArea(indexSetInfoBuf.Length)) {
+							long indexSetInfoPointer = indexSetWriter.Id;
 
-				// Allocate space for the list header
-				listHeaderOffset = recordList.Create();
-				recordList.WriteDeleteHead(-1);
-				firstDeleteChainRecord = -1;
+							// Allocate space for the list header
+							listHeaderOffset = recordList.Create();
+							recordList.WriteDeleteHead(-1);
+							firstDeleteChainRecord = -1;
 
-				// Create the index store
-				indexSetStore = new IndexSetStore(DatabaseContext, Store);
-				indexHeaderOffset = indexSetStore.Create();
+							// Create the index store
+							indexSetStore = new IndexSetStore(Store);
+							indexHeaderOffset = indexSetStore.Create();
 
-				// Write the main header
-				headerWriter.WriteInt4(1);                       // Version
-				headerWriter.WriteInt4(TableId);                 // table id
-				headerWriter.WriteInt8(sequenceId);              // initial sequence id
-				headerWriter.WriteInt8(tableInfoOffset);     // pointer to DataTableInfo
-				headerWriter.WriteInt8(indexSetInfoPointer);  // pointer to DataIndexSetInfo
-				headerWriter.WriteInt8(indexHeaderOffset);      // index header pointer
-				headerWriter.WriteInt8(listHeaderOffset);       // list header pointer
-				headerWriter.Flush();
+							// Write the main header
+							headerWriter.WriteInt4(1); // Version
+							headerWriter.WriteInt4(TableId); // table id
+							headerWriter.WriteInt8(sequenceId); // initial sequence id
+							headerWriter.WriteInt8(tableInfoOffset); // pointer to DataTableInfo
+							headerWriter.WriteInt8(indexSetInfoPointer); // pointer to DataIndexSetInfo
+							headerWriter.WriteInt8(indexHeaderOffset); // index header pointer
+							headerWriter.WriteInt8(listHeaderOffset); // list header pointer
+							headerWriter.Flush();
 
-				// Write the table info
-				dataTableDefWriter.Write(tableInfoBuf, 0, tableInfoBuf.Length);
-				dataTableDefWriter.Flush();
+							// Write the table info
+							dataTableDefWriter.Write(tableInfoBuf, 0, tableInfoBuf.Length);
+							dataTableDefWriter.Flush();
 
-				// Write the index set info
-				indexSetWriter.Write(indexSetInfoBuf, 0, indexSetInfoBuf.Length);
-				indexSetWriter.Flush();
+							// Write the index set info
+							indexSetWriter.Write(indexSetInfoBuf, 0, indexSetInfoBuf.Length);
+							indexSetWriter.Flush();
 
-				// Set the pointer to the header input the reserved area.
-				var fixedArea = Store.GetArea(-1);
-				fixedArea.WriteInt8(headerPointer);
-				fixedArea.Flush();
+							// Set the pointer to the header input the reserved area.
+							using (var fixedArea = Store.GetArea(-1)) {
+								fixedArea.WriteInt8(headerPointer);
+								fixedArea.Flush();
+							}
 
-				// Set the header area
-				headerArea = Store.GetArea(headerPointer);
+							// Set the header area
+							headerArea = Store.GetArea(headerPointer);
+						}
+					}
+				}
 			} finally {
 				Store.Unlock();
 			}
@@ -643,14 +663,14 @@ namespace Deveel.Data.Sql.Tables {
 			firstDeleteChainRecord = recordList.ReadDeleteHead();
 
 			// Init the index store
-			indexSetStore = new IndexSetStore(DatabaseContext, Store);
+			indexSetStore = new IndexSetStore(Store);
 			try {
 				indexSetStore.Open(indexHeaderOffset);
 			} catch (IOException) {
 				// If this failed try writing output a new empty index set.
 				// ISSUE: Should this occur here?  This is really an attempt at repairing
 				//   the index store.
-				indexSetStore = new IndexSetStore(DatabaseContext, Store);
+				indexSetStore = new IndexSetStore(Store);
 				indexHeaderOffset = indexSetStore.Create();
 				indexSetStore.PrepareIndexLists(TableInfo.ColumnCount + 1, 1, 1024);
 				headerArea.Position = 32;
@@ -1125,57 +1145,58 @@ namespace Deveel.Data.Sql.Tables {
 				}
 
 				// Allocate space for the record,
-				var area = Store.CreateArea(allRecordsSize + (rowCells * 8) + 4);
-				long recordPointer = area.Id;
+				using (var area = Store.CreateArea(allRecordsSize + (rowCells*8) + 4)) {
+					long recordPointer = area.Id;
 
-				// The record output stream
-				using (var areaStream = new AreaStream(area)) {
-					var writer = new BinaryWriter(areaStream);
+					// The record output stream
+					using (var areaStream = new AreaStream(area)) {
+						var writer = new BinaryWriter(areaStream);
 
-					// Write the record header first,
-					writer.Write(0);        // reserved for future use
-					int cellSkip = 0;
-					for (int i = 0; i < rowCells; ++i) {
-						writer.Write(cellTypes[i]);
-						writer.Write(cellSkip);
-						cellSkip += cellSizes[i];
-					}
-
-					// Now Write a serialization of the cells themselves,
-					for (int i = 0; i < rowCells; ++i) {
-						var obj = data.GetValue(i);
-						int cellType = cellTypes[i];
-						if (cellType == 1) {
-							// Regular object
-							obj.SerializeValueTo(areaStream, SystemContext);
-						} else if (cellType == 2) {
-							// This is a binary large object and must be represented as a ref
-							// to a blob input the BlobStore.
-							var largeObjectRef = (IObjectRef)obj.Value;
-							if (largeObjectRef == null) {
-								// null value
-								writer.Write(1);
-								writer.Write(0);                  // Reserved for future use
-								writer.Write(-1L);
-							} else {
-								writer.Write(0);
-								writer.Write(0);                  // Reserved for future use
-								writer.Write(largeObjectRef.ObjectId.Id);
-							}
-						} else {
-							throw new IOException("Unrecognised cell type.");
+						// Write the record header first,
+						writer.Write(0); // reserved for future use
+						int cellSkip = 0;
+						for (int i = 0; i < rowCells; ++i) {
+							writer.Write(cellTypes[i]);
+							writer.Write(cellSkip);
+							cellSkip += cellSizes[i];
 						}
+
+						// Now Write a serialization of the cells themselves,
+						for (int i = 0; i < rowCells; ++i) {
+							var obj = data.GetValue(i);
+							int cellType = cellTypes[i];
+							if (cellType == 1) {
+								// Regular object
+								obj.SerializeValueTo(areaStream, SystemContext);
+							} else if (cellType == 2) {
+								// This is a binary large object and must be represented as a ref
+								// to a blob input the BlobStore.
+								var largeObjectRef = (IObjectRef) obj.Value;
+								if (largeObjectRef == null) {
+									// null value
+									writer.Write(1);
+									writer.Write(0); // Reserved for future use
+									writer.Write(-1L);
+								} else {
+									writer.Write(0);
+									writer.Write(0); // Reserved for future use
+									writer.Write(largeObjectRef.ObjectId.Id);
+								}
+							} else {
+								throw new IOException("Unrecognised cell type.");
+							}
+						}
+
+						// Flush the output
+						writer.Flush();
 					}
 
-					// Flush the output
-					writer.Flush();
+					// Finish the record
+					area.Flush();
+
+					// Return the record
+					return recordPointer;
 				}
-
-				// Finish the record
-				area.Flush();
-
-				// Return the record
-				return recordPointer;
 			} finally {
 				Store.Unlock();
 			}

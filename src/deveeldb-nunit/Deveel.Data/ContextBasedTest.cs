@@ -195,6 +195,16 @@ namespace Deveel.Data {
 					File.Delete(fileName);
 #endif
 			}
+
+			GC.Collect(0, GCCollectionMode.Optimized);
+			GC.Collect(1, GCCollectionMode.Forced);
+			GC.Collect(2, GCCollectionMode.Forced);
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			var status = GC.WaitForFullGCComplete(-1);
+			if (status == GCNotificationStatus.Timeout) {
+				Console.Error.WriteLine("GC timed-out");
+			}
 		}
 
 		protected virtual void OnFixtureSetUp() {

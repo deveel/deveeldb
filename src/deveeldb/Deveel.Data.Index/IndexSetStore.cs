@@ -19,13 +19,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Schema;
 
 using Deveel.Data;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.Index {
-	class IndexSetStore {
+	class IndexSetStore : IDisposable {
 		private IArea startArea;
 
 		private long indexHeaderPointer;
@@ -37,7 +36,7 @@ namespace Deveel.Data.Index {
 
 		private const int Magic = 0x0CA90291;
 
-		public IndexSetStore(IDatabaseContext databaseContext, IStore store) {
+		public IndexSetStore(IStore store) {
 			Store = store;
 		}
 
@@ -62,28 +61,49 @@ namespace Deveel.Data.Index {
 			}
 		}
 
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (indexHeaderArea != null)
+					indexHeaderArea.Dispose();
+
+				if (startArea != null)
+					startArea.Dispose();
+			}
+
+			indexHeaderArea = null;
+			Store = null;
+			startArea = null;
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
 		private long CreateNewBlock() {
 			// Allocate the area
-			var a = Store.CreateArea(16);
-			long indexBlockP = a.Id;
-			// Setup the header
-			a.WriteInt4(1);     // version
-			a.WriteInt4(0);     // reserved
-			a.WriteInt8(0);    // block entries
-			a.Flush();
+			using (var a = Store.CreateArea(16)) {
+				long indexBlockP = a.Id;
+				// Setup the header
+				a.WriteInt4(1); // version
+				a.WriteInt4(0); // reserved
+				a.WriteInt8(0); // block entries
+				a.Flush();
 
-			return indexBlockP;
+				return indexBlockP;
+			}
 		}
 
 		public long Create() {
 			lock (this) {
 				// Create an empty index header area
-				var a = Store.CreateArea(16);
-				indexHeaderPointer = a.Id;
-				a.WriteInt4(1); // version
-				a.WriteInt4(0); // reserved
-				a.WriteInt8(0); // number of indexes in the set
-				a.Flush();
+				using (var a = Store.CreateArea(16)) {
+					indexHeaderPointer = a.Id;
+					a.WriteInt4(1); // version
+					a.WriteInt4(0); // reserved
+					a.WriteInt8(0); // number of indexes in the set
+					a.Flush();
+				}
 
 				// Set up the local IArea object for the index header
 				indexHeaderArea = Store.GetArea(indexHeaderPointer);
@@ -91,20 +111,21 @@ namespace Deveel.Data.Index {
 				indexBlocks = new IndexBlock[0];
 
 				// Allocate the starting header
-				var sa = Store.CreateArea(32);
-				long startPointer = sa.Id;
-				// The magic
-				sa.WriteInt4(Magic);
-				// The version
-				sa.WriteInt4(1);
-				// Pointer to the index header
-				sa.WriteInt8(indexHeaderPointer);
-				sa.Flush();
+				using (var sa = Store.CreateArea(32)) {
+					long startPointer = sa.Id;
+					// The magic
+					sa.WriteInt4(Magic);
+					// The version
+					sa.WriteInt4(1);
+					// Pointer to the index header
+					sa.WriteInt8(indexHeaderPointer);
+					sa.Flush();
 
-				// Set the 'start_area' value.
-				startArea = Store.GetArea(startPointer);
+					// Set the 'start_area' value.
+					startArea = Store.GetArea(startPointer);
 
-				return startPointer;
+					return startPointer;
+				}
 			}
 		}
 
@@ -178,62 +199,63 @@ namespace Deveel.Data.Index {
 
 					// Allocate a new area for the list
 					int newSize = 16 + ((indexBlocks.Length + count) * 16);
-					var newIndexArea = Store.CreateArea(newSize);
-					long newIndexPointer = newIndexArea.Id;
-					var newIndexBlocks = new IndexBlock[(indexBlocks.Length + count)];
+					using (var newIndexArea = Store.CreateArea(newSize)) {
+						long newIndexPointer = newIndexArea.Id;
+						var newIndexBlocks = new IndexBlock[(indexBlocks.Length + count)];
 
-					// Copy the existing area
-					indexHeaderArea.Position = 0;
-					int version = indexHeaderArea.ReadInt4();
-					int reserved = indexHeaderArea.ReadInt4();
-					long icount = indexHeaderArea.ReadInt8();
-					newIndexArea.WriteInt4(version);
-					newIndexArea.WriteInt4(reserved);
-					newIndexArea.WriteInt8(icount + count);
+						// Copy the existing area
+						indexHeaderArea.Position = 0;
+						int version = indexHeaderArea.ReadInt4();
+						int reserved = indexHeaderArea.ReadInt4();
+						long icount = indexHeaderArea.ReadInt8();
+						newIndexArea.WriteInt4(version);
+						newIndexArea.WriteInt4(reserved);
+						newIndexArea.WriteInt8(icount + count);
 
-					for (int i = 0; i < indexBlocks.Length; ++i) {
-						int itype = indexHeaderArea.ReadInt4();
-						int iblockSize = indexHeaderArea.ReadInt4();
-						long indexBlockP = indexHeaderArea.ReadInt8();
+						for (int i = 0; i < indexBlocks.Length; ++i) {
+							int itype = indexHeaderArea.ReadInt4();
+							int iblockSize = indexHeaderArea.ReadInt4();
+							long indexBlockP = indexHeaderArea.ReadInt8();
 
-						newIndexArea.WriteInt4(itype);
-						newIndexArea.WriteInt4(iblockSize);
-						newIndexArea.WriteInt8(indexBlockP);
+							newIndexArea.WriteInt4(itype);
+							newIndexArea.WriteInt4(iblockSize);
+							newIndexArea.WriteInt8(indexBlockP);
 
-						newIndexBlocks[i] = indexBlocks[i];
+							newIndexBlocks[i] = indexBlocks[i];
+						}
+
+						// Add the new entries
+						for (int i = 0; i < count; ++i) {
+							long newBlankBlockP = CreateNewBlock();
+
+							newIndexArea.WriteInt4(type);
+							newIndexArea.WriteInt4(blockSize);
+							newIndexArea.WriteInt8(newBlankBlockP);
+
+							var newBlock = new IndexBlock(this, indexBlocks.Length + i, blockSize, newBlankBlockP);
+							newBlock.AddReference();
+							newIndexBlocks[indexBlocks.Length + i] = newBlock;
+						}
+
+						// Finished initializing the index.
+						newIndexArea.Flush();
+
+						// The old index header pointer
+						long oldIndexHeaderP = indexHeaderPointer;
+
+						// Update the state of this object,
+						indexHeaderPointer = newIndexPointer;
+						indexHeaderArea = Store.GetArea(newIndexPointer);
+						indexBlocks = newIndexBlocks;
+
+						// Update the start pointer
+						startArea.Position = 8;
+						startArea.WriteInt8(newIndexPointer);
+						startArea.Flush();
+
+						// Free the old header
+						Store.DeleteArea(oldIndexHeaderP);
 					}
-
-					// Add the new entries
-					for (int i = 0; i < count; ++i) {
-						long newBlankBlockP = CreateNewBlock();
-
-						newIndexArea.WriteInt4(type);
-						newIndexArea.WriteInt4(blockSize);
-						newIndexArea.WriteInt8(newBlankBlockP);
-
-						var newBlock = new IndexBlock(this, indexBlocks.Length + i, blockSize, newBlankBlockP);
-						newBlock.AddReference();
-						newIndexBlocks[indexBlocks.Length + i] = newBlock;
-					}
-
-					// Finished initializing the index.
-					newIndexArea.Flush();
-
-					// The old index header pointer
-					long oldIndexHeaderP = indexHeaderPointer;
-
-					// Update the state of this object,
-					indexHeaderPointer = newIndexPointer;
-					indexHeaderArea = Store.GetArea(newIndexPointer);
-					indexBlocks = newIndexBlocks;
-
-					// Update the start pointer
-					startArea.Position = 8;
-					startArea.WriteInt8(newIndexPointer);
-					startArea.Flush();
-
-					// Free the old header
-					Store.DeleteArea(oldIndexHeaderP);
 				} finally {
 					Store.Unlock();
 				}
@@ -258,21 +280,23 @@ namespace Deveel.Data.Index {
 		private void CommitIndexHeader() {
 			lock (this) {
 				// Make a new index header area for the changed set.
-				var a = Store.CreateArea(16 + (indexBlocks.Length * 16));
-				long aOffset = a.Id;
+				long aOffset;
+				using (var a = Store.CreateArea(16 + (indexBlocks.Length*16))) {
+					aOffset = a.Id;
 
-				a.WriteInt4(1); // version
-				a.WriteInt4(0); // reserved
-				a.WriteInt8(indexBlocks.Length); // count
+					a.WriteInt4(1); // version
+					a.WriteInt4(0); // reserved
+					a.WriteInt8(indexBlocks.Length); // count
 
-				foreach (var indBlock in indexBlocks) {
-					a.WriteInt4(1);
-					a.WriteInt4(indBlock.BlockSize);
-					a.WriteInt8(indBlock.StartOffset);
+					foreach (var indBlock in indexBlocks) {
+						a.WriteInt4(1);
+						a.WriteInt4(indBlock.BlockSize);
+						a.WriteInt8(indBlock.StartOffset);
+					}
+
+					// Finish creating the updated header
+					a.Flush();
 				}
-
-				// Finish creating the updated header
-				a.Flush();
 
 				// The old index header pointer
 				long oldIndexHeaderP = indexHeaderPointer;
@@ -313,45 +337,47 @@ namespace Deveel.Data.Index {
 							var blocks = index.AllBlocks.ToList();
 
 							// Make up a new block list for this index set.
-							var area = Store.CreateArea(16 + (blocks.Count * 28));
-							long blockP = area.Id;
-							area.WriteInt4(1);               // version
-							area.WriteInt4(0);               // reserved
-							area.WriteInt8(blocks.Count);  // block count
+							long blockP;
+							using (var area = Store.CreateArea(16 + (blocks.Count*28))) {
+								blockP = area.Id;
+								area.WriteInt4(1); // version
+								area.WriteInt4(0); // reserved
+								area.WriteInt8(blocks.Count); // block count
 
-							foreach (var block in blocks) {
-								var mappedBlock = (IMappedBlock)block;
+								foreach (var block in blocks) {
+									var mappedBlock = (IMappedBlock) block;
 
-								long bottomInt = 0;
-								long topInt = 0;
-								int blockSize = mappedBlock.Count;
-								if (blockSize > 0) {
-									bottomInt = mappedBlock.Bottom;
-									topInt = mappedBlock.Top;
+									long bottomInt = 0;
+									long topInt = 0;
+									int blockSize = mappedBlock.Count;
+									if (blockSize > 0) {
+										bottomInt = mappedBlock.Bottom;
+										topInt = mappedBlock.Top;
+									}
+
+									long blockPointer = mappedBlock.BlockPointer;
+
+									// Is the block new or was it changed?
+									if (blockPointer == -1 || mappedBlock.HasChanged) {
+										// If this isn't -1 then write this sector on the list of
+										// sectors to delete during GC.
+										if (blockPointer != -1)
+											curIndexBlock.AddDeletedArea(blockPointer);
+
+										// This is a new block or a block that's been changed
+										// Write the block to the file system
+										blockPointer = mappedBlock.Flush();
+									}
+
+									area.WriteInt8(bottomInt);
+									area.WriteInt8(topInt);
+									area.WriteInt8(blockPointer);
+									area.WriteInt4(blockSize | (((int) mappedBlock.CompactType) << 24));
 								}
 
-								long blockPointer = mappedBlock.BlockPointer;
-
-								// Is the block new or was it changed?
-								if (blockPointer == -1 || mappedBlock.HasChanged) {
-									// If this isn't -1 then write this sector on the list of
-									// sectors to delete during GC.
-									if (blockPointer != -1)
-										curIndexBlock.AddDeletedArea(blockPointer);
-
-									// This is a new block or a block that's been changed
-									// Write the block to the file system
-									blockPointer = mappedBlock.Flush();
-								}
-
-								area.WriteInt8(bottomInt);
-								area.WriteInt8(topInt);
-								area.WriteInt8(blockPointer);
-								area.WriteInt4(blockSize | (((int)mappedBlock.CompactType) << 24));
+								// Finish initializing the area
+								area.Flush();
 							}
-
-							// Finish initializing the area
-							area.Flush();
 
 							// Add the deleted blocks
 							var deletedBlocks = index.DeletedBlocks.ToArray();

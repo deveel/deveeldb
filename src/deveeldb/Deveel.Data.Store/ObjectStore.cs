@@ -32,8 +32,8 @@ namespace Deveel.Data.Store {
 
 		private const int PageSize = 64;
 
-		private readonly IStore store;
-		private readonly FixedRecordList fixedList;
+		private IStore store;
+		private FixedRecordList fixedList;
 
 		private long firstDeleteChainRecord;
 
@@ -174,6 +174,18 @@ namespace Deveel.Data.Store {
 		}
 
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (fixedList != null)
+					fixedList.Dispose();
+			}
+
+			fixedList = null;
+			store = null;
 		}
 
 		public int Id { get; private set; }

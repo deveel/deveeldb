@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Deveel.Data.Store {
@@ -225,7 +226,7 @@ namespace Deveel.Data.Store {
 		#region InMemoryArea
 
 		class InMemoryArea : IArea {
-			private readonly byte[] data;
+			private byte[] data;
 			private long position;
 			private readonly int startPosition;
 			private readonly int endPosition;
@@ -239,6 +240,10 @@ namespace Deveel.Data.Store {
 
 				Id = id;
 				IsReadOnly = readOnly;
+			}
+
+			~InMemoryArea() {
+				Dispose(false);
 			}
 
 			public long Id { get; private set; }
@@ -271,6 +276,15 @@ namespace Deveel.Data.Store {
 				var oldPos = position;
 				position = newPos;
 				return oldPos;
+			}
+
+			private void Dispose(bool disposing) {
+				data = null;
+			}
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
 			}
 
 			public void CopyTo(IArea destArea, int size) {

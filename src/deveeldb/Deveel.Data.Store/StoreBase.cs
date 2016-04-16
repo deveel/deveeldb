@@ -932,6 +932,10 @@ namespace Deveel.Data.Store {
 				EndOffset = StartOffset + fixedSize;
 			}
 
+			~StoreArea() {
+				Dispose(false);
+			}
+
 			public long Id { get; private set; }
 
 			private long StartOffset { get; set; }
@@ -984,6 +988,20 @@ namespace Deveel.Data.Store {
 					size -= toCopy;
 					toCopy = System.Math.Min(size, bufferSize);
 				}
+			}
+
+			protected virtual void Dispose(bool disposing) {
+				if (disposing) {
+					// TODO:
+				}
+
+				buffer = null;
+				Store = null;
+			}
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
 			}
 
 			public int Read(byte[] buffer, int offset, int length) {

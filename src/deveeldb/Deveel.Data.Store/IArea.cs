@@ -21,7 +21,7 @@ namespace Deveel.Data.Store {
 	/// <summary>
 	/// An interface for access the contents of an area of a store.
 	/// </summary>
-	public interface IArea {
+	public interface IArea : IDisposable {
 		/// <summary>
 		/// Returns the unique identifier that represents this area.
 		/// </summary>
