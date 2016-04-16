@@ -65,6 +65,10 @@ namespace Deveel.Data.Store {
 			if (disposing) {
 				if (areaMap != null) {
 					for (int i = 0; i < areaMap.Length; i++) {
+						var block = areaMap[i];
+						if (block != null)
+							block.Dispose();
+
 						areaMap[i] = null;
 					}
 				}
@@ -190,8 +194,8 @@ namespace Deveel.Data.Store {
 
 		#region InMemoryBlock
 
-		class InMemoryBlock {
-			private readonly byte[] block;
+		class InMemoryBlock : IDisposable {
+			private byte[] block;
 
 			public InMemoryBlock(long id, int size) {
 				Id = id;
@@ -201,6 +205,15 @@ namespace Deveel.Data.Store {
 			public long Id { get; private set; }
 
 			public InMemoryBlock Next { get; set; }
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
+			}
+
+			private void Dispose(bool disposing) {
+				block = null;
+			}
 
 			public IArea GetArea(bool readOnly) {
 				return new InMemoryArea(Id, readOnly, block, 0, block.Length);

@@ -176,6 +176,8 @@ namespace Deveel.Data.Sql.Tables {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
+				StoreSystem.CloseStore(Store);
+
 				if (Store != null)
 					Store.Dispose();
 			}

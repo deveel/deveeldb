@@ -35,11 +35,16 @@ namespace Deveel.Data.Sql.Compile {
 					messages.Clear();
 
 				if (lexer != null) {
-					lexer.Interpreter = new LexerATNSimulator(new ATN(lexer.Atn.grammarType, 1));
+					lexer.Interpreter.ClearDFA();
+					lexer.Reset();
+					lexer.Interpreter = new LexerATNSimulator(new ATN(ATNType.Lexer, 2));
 				}
 
-				if (plSqlParser != null)
-					plSqlParser.Interpreter = new ParserATNSimulator(new ATN(ATNType.Parser, 1));
+				if (plSqlParser != null) {
+					plSqlParser.Interpreter.ClearDFA();
+					plSqlParser.Reset();
+					plSqlParser.Interpreter = new ParserATNSimulator(new ATN(ATNType.Parser, 2));
+				}
 			}
 
 			lexer = null;

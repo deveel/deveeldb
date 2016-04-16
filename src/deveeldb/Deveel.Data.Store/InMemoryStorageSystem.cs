@@ -122,6 +122,8 @@ namespace Deveel.Data.Store {
 				if (!nameStoreMap.TryGetValue(store.Name, out removed))
 					return false;
 
+				nameStoreMap.Remove(store.Name);
+
 				if (removed != null)
 					removed.Dispose();
 
