@@ -15,10 +15,6 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitIntervalType(context);
 		}
 
-		public override DataTypeInfo VisitRefDataType(PlSqlParser.RefDataTypeContext context) {
-			return base.VisitRefDataType(context);
-		}
-
 		public override DataTypeInfo VisitUserDataType(PlSqlParser.UserDataTypeContext context) {
 			var name = Name.Object(context.objectName());
 			var args = context.type_argument();

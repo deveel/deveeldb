@@ -100,7 +100,11 @@ namespace Deveel.Data.Sql.Compile {
 		public override SqlStatement VisitBody(PlSqlParser.BodyContext context) {
 			var block = new PlSqlBody();
 
-			// TODO: support labels
+			if (context.labelDeclaration() != null) {
+				var labelName = Name.Simple(context.labelDeclaration().id());
+				block.Label = labelName;
+			}
+			
 			var statements = context.seq_of_statements().statement().Select(Visit);
 			foreach (var statement in statements) {
 				block.Statements.Add(statement);
@@ -149,6 +153,9 @@ namespace Deveel.Data.Sql.Compile {
 			var body = Visit(context.body());
 			if (body is PlSqlBody) {
 				var plsqlBody = (PlSqlBody) body;
+
+				block.Label = plsqlBody.Label;
+
 				foreach (var statement in plsqlBody.Statements) {
 					block.Statements.Add(statement);
 				}
@@ -188,7 +195,31 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitLoopStatement(PlSqlParser.LoopStatementContext context) {
-			return base.VisitLoopStatement(context);
+			LoopStatement loop;
+
+			if (context.WHILE() != null) {
+				var condition = Expression.Build(context.condition());
+				loop = new WhileLoopStatement(condition);
+			} else if (context.FOR() != null) {
+				throw new NotImplementedException();
+			} else {
+				loop = new LoopStatement();
+			}
+
+			if (context.labelDeclaration() != null) {
+				var labelName = Name.Simple(context.labelDeclaration().id());
+				loop.Label = labelName;
+			}
+
+			var seqOfStatements = context.seq_of_statements();
+			if (seqOfStatements != null) {
+				var statements = seqOfStatements.statement().Select(Visit);
+				foreach (var statement in statements) {
+					loop.Statements.Add(statement);
+				}
+			}
+
+			return loop;
 		}
 
 		public override SqlStatement VisitDropTableStatement(PlSqlParser.DropTableStatementContext context) {
@@ -487,7 +518,22 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitIfStatement(PlSqlParser.IfStatementContext context) {
-			return base.VisitIfStatement(context);
+			var condition = Expression.Build(context.condition());
+			var ifTrue = context.seq_of_statements().statement().Select(Visit).ToArray();
+
+			SqlStatement[] ifFalse = null;
+
+			var elsif = context.elsifPart();
+			if (elsif != null && elsif.Length > 0) {
+				// TODO: !!!
+				throw new NotImplementedException();
+			}
+
+			if (context.elsePart() != null) {
+				ifFalse = context.elsePart().seq_of_statements().statement().Select(Visit).ToArray();
+			}
+
+			return new ConditionStatement(condition, ifTrue, ifFalse);
 		}
 
 		public override SqlStatement VisitCreateFunctionBody(PlSqlParser.CreateFunctionBodyContext context) {
@@ -583,7 +629,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlStatement VisitVariableDeclaration(PlSqlParser.VariableDeclarationContext context) {
 			var name = Name.Simple(context.variable_name());
-			var type = SqlTypeParser.Parse(context.type_spec());
+			var type = SqlTypeParser.Parse(context.datatype());
 
 			bool notNull = context.NOT() != null && context.NULL() != null;
 			bool constant = context.CONSTANT() != null;

@@ -11,16 +11,16 @@ using Deveel.Data.Sql.Types;
 namespace Deveel.Data.Sql.Compile {
 	static class TableColumn {
 		public static SqlTableColumn Form(PlSqlParser.TableColumnContext context, List<ColumnConstraint> constraints) {
-			bool notNull = context.NOT() != null && context.NULL() != null;
 
 			var columnName = Name.Simple(context.columnName());
-			var columnType = SqlTypeParser.Parse(context.type_spec());
+			var columnType = SqlTypeParser.Parse(context.datatype());
 
 			if (columnType == null)
 				throw new ParseCanceledException("No type was found for table.");
 
 			SqlExpression defaultExpression = null;
 			bool identity = false;
+			bool nullable = true;
 
 			if (context.IDENTITY() != null) {
 				if (!(columnType is NumericType))
@@ -42,6 +42,9 @@ namespace Deveel.Data.Sql.Compile {
 								Type = ConstraintType.Unique,
 								ColumnName = columnName
 							});
+						} else if (constraintContext.NOT() != null &&
+						           constraintContext.NULL() != null) {
+							nullable = false;
 						}
 					}
 				}
@@ -52,7 +55,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return new SqlTableColumn(columnName, columnType) {
-				IsNotNull = notNull,
+				IsNotNull = !nullable,
 				IsIdentity = identity,
 				DefaultExpression = defaultExpression
 			};

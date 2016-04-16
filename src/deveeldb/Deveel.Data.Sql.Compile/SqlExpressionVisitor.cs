@@ -449,7 +449,7 @@ namespace Deveel.Data.Sql.Compile {
 			if (context.MULTISET() != null)
 				throw new NotImplementedException();
 
-			var destType = SqlTypeParser.Parse(context.type_spec());
+			var destType = SqlTypeParser.Parse(context.datatype());
 			var destTypeString = destType.ToString();
 
 			var value = Visit(context.concatenation_wrapper());

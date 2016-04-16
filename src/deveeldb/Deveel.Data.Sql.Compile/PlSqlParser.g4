@@ -87,7 +87,7 @@ dropSchemaStatement
 
 createFunctionBody
     : ( CREATE (OR REPLACE)? )? FUNCTION objectName ('(' parameter (',' parameter)* ')')?
-      RETURN type_spec (DETERMINISTIC)*
+      RETURN datatype (DETERMINISTIC)*
       ( (IS | AS) (DECLARE? declaration* body | call_spec) ) SEMICOLON?
     ;
 
@@ -120,11 +120,11 @@ columnOrConstraint
 	;
 
 tableColumn
-    : columnName type_spec (IDENTITY | (NOT? NULL)? columnConstraint* (defaultValuePart)? )?
+    : columnName datatype (IDENTITY | columnConstraint* (defaultValuePart)? )?
 	;
 
 columnConstraint
-    : ( PRIMARY KEY? | UNIQUE KEY? )
+    : ( PRIMARY KEY? | UNIQUE KEY? | NOT? NULL )
 	;
 
 tableConstraint
@@ -258,7 +258,7 @@ queryLimitClause
 // $>
 
 parameter
-    : parameter_name ( IN | OUT | INOUT )* type_spec? defaultValuePart?
+    : parameter_name ( IN | OUT | INOUT )* datatype? defaultValuePart?
     ;
 
 defaultValuePart
@@ -280,7 +280,7 @@ declareStatement
 
 //incorporates constant_declaration
 variableDeclaration
-    : variable_name CONSTANT? type_spec (NOT NULL)? defaultValuePart? SEMICOLON?
+    : variable_name CONSTANT? datatype (NOT NULL)? defaultValuePart? SEMICOLON?
     ;
 
 //cursor_declaration incorportates curscursor_body and cursor_spec
@@ -289,7 +289,7 @@ cursorDeclaration
     ;
 
 parameter_spec
-    : parameter_name (IN? type_spec)? defaultValuePart?
+    : parameter_name (IN? datatype)? defaultValuePart?
     ;
 
 exceptionDeclaration 
@@ -328,7 +328,7 @@ updateLimitClause
 // $<PL/SQL Statements
 
 seq_of_statements
-    : (statement (';' | EOF) | labelDeclaration)+
+    : statement ( (';' | EOF) statement)*
     ;
 
 labelDeclaration
@@ -499,7 +499,7 @@ elsePart
     ;
 
 loopStatement
-    : labelName? (WHILE condition | FOR cursorLoopParam)? LOOP seq_of_statements END LOOP labelName?
+    : labelDeclaration? (WHILE condition | FOR cursorLoopParam)? LOOP seq_of_statements END LOOP
     ;
 
 // $<Loop - Specific Clause
@@ -549,7 +549,7 @@ functionCall
     ;
 
 body
-    : BEGIN seq_of_statements exceptionClause? END labelName?
+    : labelDeclaration? BEGIN seq_of_statements exceptionClause? END
     ;
 
 // $<Body - Specific Clause
@@ -981,7 +981,7 @@ negated_expression
     ;
 
 equality_expression
-    : relational_expression (IS NOT? (NULL | NAN | PRESENT | A_LETTER SET | EMPTY | OF TYPE? '(' ONLY? type_spec (',' type_spec)* ')'))*
+    : relational_expression (IS NOT? (NULL | NAN | PRESENT | A_LETTER SET | EMPTY | OF TYPE? '(' ONLY? datatype (',' datatype)* ')'))*
     ;
 
 relational_expression
@@ -1072,7 +1072,7 @@ caseStatement
 // $<CASE - Specific Clauses
 
 simpleCaseStatement
-    : labelName? CASE atom simpleCaseWhenPart+  caseElsePart? END CASE? labelName?
+    : CASE atom simpleCaseWhenPart+  caseElsePart? END CASE?
     ;
 
 simpleCaseWhenPart
@@ -1080,7 +1080,7 @@ simpleCaseWhenPart
     ;
 
 searchedCaseStatement
-    : labelName? CASE searchedCaseWhenPart+ caseElsePart? END CASE? labelName?
+    : CASE searchedCaseWhenPart+ caseElsePart? END CASE?
     ;
 
 searchedCaseWhenPart
@@ -1125,11 +1125,11 @@ standard_function
 	| CURRENT_DATE #CurrentDateFunction
 	| NEXT VALUE FOR objectName #NextValueFunction
 	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenation_wrapper)) ')' #CountFunction
-    | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS type_spec ')' #CastFunction
+    | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS datatype ')' #CastFunction
     | EXTRACT '(' regular_id FROM concatenation_wrapper ')' #ExtractFunction
     | (FIRST_VALUE | LAST_VALUE) function_argument_analytic respect_or_ignore_nulls?
       '(' expression_wrapper (',' expression_wrapper)* ')' #FirstLastFunction
-    | TREAT '(' expression_wrapper AS REF? type_spec ')' #TreatFunction
+    | TREAT '(' expression_wrapper AS REF? datatype ')' #TreatFunction
     | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation_wrapper ')' #TrimFunction
     ;
    
@@ -1178,11 +1178,6 @@ respect_or_ignore_nulls
 
 argument
     : (id '=' '>')? expression_wrapper
-    ;
-
-type_spec
-    : datatype #DataTypeSpec
-    | REF? objectName (PERCENT_ROWTYPE | PERCENT_TYPE)?  #RefDataType
     ;
 
 datatype

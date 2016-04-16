@@ -43,7 +43,7 @@ namespace Deveel.Data.Sql.Compile {
 		static class Parameter {
 			public static CursorParameter Form(PlSqlParser.Parameter_specContext context) {
 				var paramName = Name.Simple(context.parameter_name());
-				var type = SqlTypeParser.Parse(context.type_spec());
+				var type = SqlTypeParser.Parse(context.datatype());
 
 				return new CursorParameter(paramName, type);
 			}

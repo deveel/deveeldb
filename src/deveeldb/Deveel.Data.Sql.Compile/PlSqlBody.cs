@@ -12,6 +12,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public List<SqlStatement> Statements { get; private set; }
 		
-		public List<ExceptionHandler> ExceptionHandlers { get; private set; }		
+		public List<ExceptionHandler> ExceptionHandlers { get; private set; }
+		public string Label { get; set; }
 	}
 }

@@ -7,7 +7,7 @@ namespace Deveel.Data.Sql.Compile {
 	static class Parameter {
 		public static RoutineParameter Routine(PlSqlParser.ParameterContext context) {
 			var paramName = Name.Simple(context.parameter_name());
-			var paramType = SqlTypeParser.Parse(context.type_spec());
+			var paramType = SqlTypeParser.Parse(context.datatype());
 
 			var paramDir = ParameterDirection.Input;
 			if (context.IN() != null) {
