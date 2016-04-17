@@ -8,19 +8,21 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class AlterUserTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			query.Access().CreateUser("test_user", "0123456789");
 			query.Access().CreateRole("test_role1");
 			query.Access().CreateRole("role2");
 
 			if (testName == "Unlock")
 				query.Access().SetUserStatus("test_user", UserStatus.Locked);
+			return true;
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DropRole("role2");
 			query.Access().DropRole("test_role1");
 			query.Access().DeleteUser("test_user");
+			return true;
 		}
 
 		[Test]

@@ -69,14 +69,15 @@ namespace Deveel.Data {
 			return Database.CreateUserSession(userName, password);
 		}
 
-		protected virtual void OnSetUp(string testName, IQuery query) {
-			
+		protected virtual bool OnSetUp(string testName, IQuery query) {
+			return false;
 		}
 
 		protected virtual void OnAfterSetup(string testName) {
 		}
 
-		protected virtual void OnTearDown(string testName, IQuery query) {
+		protected virtual bool OnTearDown(string testName, IQuery query) {
+			return false;
 
 		}
 
@@ -92,9 +93,8 @@ namespace Deveel.Data {
 
 			using (var session = CreateAdminSession(Database)) {
 				using (var query = session.CreateQuery()) {
-					OnSetUp(testName, query);
-
-					query.Commit();
+					if(OnSetUp(testName, query))
+						query.Commit();
 				}
 			}
 
@@ -152,8 +152,8 @@ namespace Deveel.Data {
 
 			using (var session = CreateAdminSession(Database)) {
 				using (var query = session.CreateQuery()) {
-					OnTearDown(testName, query);
-					query.Commit();
+					if (OnTearDown(testName, query))
+						query.Commit();
 				}
 			}
 

@@ -186,5 +186,68 @@ namespace Deveel.Data.Sql.Compile {
 
 			var queryExpression = selectStatement.QueryExpression;
 		}
+
+		[Test]
+		public void SelectFunctionOnly() {
+			const string sql = "SELECT func()";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void SelectFunctionInTable() {
+			const string sql = "SELECT a, func() FROM table1";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void NaturalJoin() {
+			const string sql = "SELECT a.*, b.two FROM table1 AS a, table2 b WHERE a.id = b.a_id";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
 	}
 }

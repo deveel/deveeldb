@@ -12,15 +12,17 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectSequenceTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			var seqName = ObjectName.Parse("APP.seq1");
 			query.Access().CreateObject(new SequenceInfo(seqName, new SqlNumber(0), new SqlNumber(1), new SqlNumber(0),
 				new SqlNumber(Int16.MaxValue), 256));
+			return true;
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			var seqName = ObjectName.Parse("APP.seq1");
 			query.Access().DropObject(DbObjectType.Sequence, seqName);
+			return true;
 		}
 
 		private Field SelectScalar(string column) {

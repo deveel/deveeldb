@@ -26,9 +26,9 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
-			CreateTestTable(query);
-			AddTestData(query);
+		protected override void OnAfterSetup(string testName) {
+			CreateTestTable(Query);
+			AddTestData(Query);
 		}
 
 		private void CreateTestTable(IQuery query) {
@@ -70,12 +70,6 @@ namespace Deveel.Data.Sql.Expressions {
 			row.SetValue("active", Field.Boolean(true));
 			row.SetDefault(query);
 			table.AddRow(row);
-		}
-
-		protected override void OnTearDown(string testName, IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-			query.Access().DropAllTableConstraints(tableName);
-			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		[Test]

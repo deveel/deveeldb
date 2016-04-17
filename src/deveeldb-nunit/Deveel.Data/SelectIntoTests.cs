@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectIntoTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
@@ -31,6 +31,7 @@ namespace Deveel.Data {
 			row.SetValue(0, 38);
 			row.SetValue(1, "greetings");
 			table.AddRow(row);
+			return true;
 		}
 
 		protected override void OnAfterSetup(string testName) {
@@ -38,9 +39,10 @@ namespace Deveel.Data {
 			Query.Context.DeclareVariable("b", PrimitiveTypes.Integer());
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.DropTable(tableName);
+			return true;
 		}
 
 		[Test]

@@ -36,17 +36,18 @@ namespace Deveel.Data {
 			query.Access().CreateTable(tableInfo);
 		}
 
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			CreateTestUser(query);
 			CreateTestRole(query);
 			CreateTestTable(query);
+			return true;
 		}
 
 		private void CreateTestRole(IQuery query) {
 			query.Session.Access().CreateRole("test_role");
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DeleteUser("test_user");
 			query.Access().DropRole("test_role");
 
@@ -56,6 +57,7 @@ namespace Deveel.Data {
 			query.Access().DropAllTableConstraints(tableName1);
 			query.Access().DropObject(DbObjectType.Table, tableName1);
 			query.Access().DropObject(DbObjectType.Table, tableName2);
+			return true;
 		}
 
 		[Test]

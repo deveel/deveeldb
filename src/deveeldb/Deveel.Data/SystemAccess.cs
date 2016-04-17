@@ -769,6 +769,19 @@ namespace Deveel.Data {
 			}
 		}
 
+		public bool RemoveUserFromRole(string username, string role) {
+			if (String.IsNullOrEmpty(role))
+				throw new ArgumentNullException("role");
+			if (String.IsNullOrEmpty(username))
+				throw new ArgumentNullException("username");
+
+			try {
+				return UserManager.RemoveUserFromRole(username, role);
+			} finally {
+				UserRolesCache.Remove(username);
+			}
+		}
+
 		private Privileges GetPrivileges(string grantee, DbObjectType objectType, ObjectName objectName, bool withOption) {
 			object privsObj;
 			Privileges privs;

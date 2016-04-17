@@ -12,9 +12,10 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class UpdateTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			CreateTestTable(query);
 			AddTestData(query);
+			return true;
 		}
 
 		private static void CreateTestTable(IQuery context) {
@@ -56,6 +57,12 @@ namespace Deveel.Data {
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1985, 05, 05)));
 			row.SetValue("active", Field.Boolean(true));
 			table.AddRow(row);
+		}
+
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().DropObject(DbObjectType.Table, tableName);
+			return true;
 		}
 
 		[Test]

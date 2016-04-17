@@ -26,9 +26,9 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class JoinTableTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
-			CreateTestTables(query);
-			AddTestData(query);
+		protected override void OnAfterSetup(string testName) {
+			CreateTestTables(Query);
+			AddTestData(Query);
 		}
 
 		private void AddTestData(IQuery query) {
@@ -79,16 +79,6 @@ namespace Deveel.Data.Sql {
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 
 			return tableInfo;
-		}
-
-		protected override void OnTearDown(string testName, IQuery query) {
-			var tn1 = new ObjectName(new ObjectName("APP"), "persons");
-			var tn2 = new ObjectName(new ObjectName("APP"), "codes");
-
-			query.Access().DropAllTableConstraints(tn1);
-			query.Access().DropAllTableConstraints(tn2);
-			query.Access().DropObject(DbObjectType.Table, tn1);
-			query.Access().DropObject(DbObjectType.Table, tn2);
 		}
 
 		[Test]

@@ -18,7 +18,7 @@ namespace Deveel.Data {
 			: base(storageType) {
 		}
 
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
@@ -37,11 +37,14 @@ namespace Deveel.Data {
 
 				table.AddRow(row);
 			}
+
+			return true;
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.Access().DropObject(DbObjectType.Table, tableName);
+			return true;
 		}
 
 		private Field SelectAggregate(string functionName, params SqlExpression[] args) {

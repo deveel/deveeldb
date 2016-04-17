@@ -10,8 +10,9 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DropViewTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			CreateTestView(query);
+			return true;
 		}
 
 		private static void CreateTestView(IQuery query) {
@@ -27,13 +28,14 @@ namespace Deveel.Data {
 			query.CreateView(ObjectName.Parse("APP.test_view1"), (SqlQueryExpression)exp);
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			var tn1 = ObjectName.Parse("APP.test_table1");
 			var viewName = ObjectName.Parse("APP.test_view1");
 
 			query.Access().DropAllTableConstraints(tn1);
 			query.Access().DropObject(DbObjectType.View, viewName);
 			query.Access().DropObject(DbObjectType.Table, tn1);
+			return true;
 		}
 
 		[Test]

@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DropFunctionTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			var funcName = ObjectName.Parse("APP.func1");
 			var returnType = PrimitiveTypes.String();
 			var body = new PlSqlBlockStatement();
@@ -20,7 +20,7 @@ namespace Deveel.Data {
 			var funtionInfo = new PlSqlFunctionInfo(funcName, new RoutineParameter[0], returnType, body);
 			query.Access().CreateObject(funtionInfo);
 
-			base.OnSetUp(testName, query);
+			return true;
 		}
 
 		[Test]

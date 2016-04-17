@@ -10,14 +10,17 @@ namespace Deveel.Data {
 	public sealed class DropTriggerTests : ContextBasedTest {
 		private ObjectName triggerName;
 
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			triggerName = ObjectName.Parse("APP.trigger1");
 			query.Access().CreateTrigger(new ProcedureTriggerInfo(triggerName, ObjectName.Parse("APP.table1"),
 				TriggerEventType.AfterDelete, ObjectName.Parse("APP.proc1")));
+
+			return true;
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DropTrigger(triggerName);
+			return true;
 		}
 
 		[Test]

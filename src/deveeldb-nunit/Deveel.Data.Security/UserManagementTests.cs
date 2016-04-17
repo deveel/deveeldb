@@ -23,10 +23,12 @@ using NUnit.Framework;
 namespace Deveel.Data.Security {
 	[TestFixture]
 	public class UserManagementTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			if (testName == "Authenticate_Success") {
 				query.Access().CreateUser("tester", "123456789");
 			}
+
+			return true;
 		}
 
 		[Test]

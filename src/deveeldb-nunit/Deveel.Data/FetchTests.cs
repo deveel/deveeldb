@@ -13,24 +13,22 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class FetchTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery systemQuery) {
+		protected override void OnAfterSetup(string testName) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			systemQuery.Access().CreateTable(tableInfo);
+			Query.Access().CreateTable(tableInfo);
 
-			var table = systemQuery.Access().GetMutableTable(tableName);
+			var table = Query.Access().GetMutableTable(tableName);
 			for (int i = 0; i < 10; i++) {
 				var row = table.NewRow();
 				row.SetValue(0, i);
 				row.SetValue(1, String.Format("ID: {0}", i));
 				table.AddRow(row);
 			}
-		}
 
-		protected override void OnAfterSetup(string testName) {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
 
 			var cursorInfo = new CursorInfo("c1", query);
@@ -53,11 +51,6 @@ namespace Deveel.Data {
 				Query.Access().CreateObject(new VariableInfo("var1", PrimitiveTypes.BigInt(), false));
 				Query.Access().CreateObject(new VariableInfo("var2", PrimitiveTypes.String(), false));
 			}
-		}
-
-		protected override void OnTearDown(string testName, IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		[Test]

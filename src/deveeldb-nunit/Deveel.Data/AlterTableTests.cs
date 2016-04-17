@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class AlterTableTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -35,12 +35,15 @@ namespace Deveel.Data {
 				query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
 					new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
+
+			return true;
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DropAllTableConstraints(ObjectName.Parse("APP.test_table"));
 			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table"));
 			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table2"));
+			return true;
 		}
 
 		[Test]

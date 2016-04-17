@@ -11,15 +11,12 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class OpenCursorTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
-			CreateTable(query);
-		}
-
-		private static void CreateTable(IQuery query) {
+		protected override void OnAfterSetup(string testName) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			query.Access().CreateTable(tableInfo);
+			Query.Access().CreateTable(tableInfo);
+			DeclareCursors(Query);
 		}
 
 		private static void DeclareCursors(IQuery query) {
@@ -31,10 +28,6 @@ namespace Deveel.Data {
 			var cursorInfo = new CursorInfo("c2", queryExp2);
 			cursorInfo.Parameters.Add(new CursorParameter("a", PrimitiveTypes.Integer()));
 			query.Context.DeclareCursor(cursorInfo,query);
-		}
-
-		protected override void OnAfterSetup(string testName) {
-			DeclareCursors(Query);
 		}
 
 		[Test]

@@ -12,8 +12,9 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CreateTriggerTests : ContextBasedTest {
-		protected override void OnSetUp(string testName, IQuery query) {
+		protected override bool OnSetUp(string testName, IQuery query) {
 			CreateTestTable(query);
+			return true;
 		}
 
 		private static void CreateTestTable(IQuery query) {
@@ -36,13 +37,14 @@ namespace Deveel.Data {
 			query.Access().CreateTable(tableInfo);
 		}
 
-		protected override void OnTearDown(string testName, IQuery query) {
+		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName1 = ObjectName.Parse("APP.test_table");
 			var tableName2 = ObjectName.Parse("APP.test_table2");
 
 			query.Access().DropAllTableConstraints(tableName1);
 			query.Access().DropObject(DbObjectType.Table, tableName2);
 			query.Access().DropObject(DbObjectType.Table, tableName1);
+			return true;
 		}
 
 		[Test]
