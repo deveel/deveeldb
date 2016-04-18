@@ -16,7 +16,6 @@ using System;
 
 using Deveel.Data;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 

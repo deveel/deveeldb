@@ -17,8 +17,14 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Fluid {
-	public interface IJoinConfiguration {
-		IJoinWithTableConfiguration WithTable(ObjectName tableName);
+using Deveel.Data.Sql.Types;
+
+namespace Deveel.Data.Routines {
+	public interface IFunctionParameterConfiguration {
+		IFunctionParameterConfiguration Named(string name);
+
+		IFunctionParameterConfiguration OfType(SqlType type);
+
+		IFunctionParameterConfiguration Unbounded(bool flag);
 	}
 }

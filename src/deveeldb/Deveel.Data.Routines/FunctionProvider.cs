@@ -22,7 +22,6 @@ using System.Linq.Expressions;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Fluid;
 using Deveel.Data.Sql.Types;
 
 using DryIoc;
@@ -188,7 +187,7 @@ namespace Deveel.Data.Routines {
 
 		#region FunctionConfiguration
 
-		class FunctionConfiguration : IRoutineConfiguration, IAggregateFunctionConfiguration {
+		class FunctionConfiguration : IAggregateFunctionConfiguration {
 			private readonly FunctionProvider provider;
 			private readonly Dictionary<string, RoutineParameter> parameters;
 			private List<string> aliases;

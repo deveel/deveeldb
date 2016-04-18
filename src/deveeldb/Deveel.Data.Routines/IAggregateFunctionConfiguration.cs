@@ -17,10 +17,10 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Fluid {
-	public interface IFromSourceConfiguration {
-		IFromTableConfiguration Table(ObjectName tableName);
+using Deveel.Data.Sql;
 
-		IFromQueryConfiguration SubQuery();
+namespace Deveel.Data.Routines {
+	public interface IAggregateFunctionConfiguration : IFunctionConfiguration {
+		IAggregateFunctionConfiguration OnAfterAggregate(Func<InvokeContext, Field, Field> afterAggregate);
 	}
 }

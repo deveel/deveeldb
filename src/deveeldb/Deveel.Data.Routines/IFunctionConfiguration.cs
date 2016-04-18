@@ -17,8 +17,20 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Fluid {
-	public interface IOrderByExpressionConfiguration {
-		IOrderByConfiguration Ascending(bool flag);
+using Deveel.Data.Sql.Types;
+
+namespace Deveel.Data.Routines {
+	public interface IFunctionConfiguration {
+		IFunctionConfiguration Named(string name);
+
+		IFunctionConfiguration OfType(FunctionType functionType);
+
+		IFunctionConfiguration WithAlias(string alias);
+
+		IFunctionConfiguration WithParameter(Action<IFunctionParameterConfiguration> config);
+
+		IFunctionConfiguration ReturnsType(Func<InvokeContext, SqlType> returns);
+
+		IFunctionConfiguration WhenExecute(Func<InvokeContext, InvokeResult> execute);
 	}
 }
