@@ -104,43 +104,13 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.Binary(left, expType, right);
 		}
 
-		//private SqlExpressionType MakeAny(SqlExpressionType expressionType) {
-		//	switch (expressionType) {
-		//		case SqlExpressionType.Equal:
-		//			return SqlExpressionType.AnyEqual;
-		//		case SqlExpressionType.NotEqual:
-		//			return SqlExpressionType.AnyNotEqual;
-		//		case SqlExpressionType.GreaterThan:
-		//			return SqlExpressionType.AnyGreaterThan;
-		//		case SqlExpressionType.SmallerThan:
-		//			return SqlExpressionType.AnySmallerThan;
-		//		case SqlExpressionType.GreaterOrEqualThan:
-		//			return SqlExpressionType.AnyGreaterOrEqualThan;
-		//		case SqlExpressionType.SmallerOrEqualThan:
-		//			return SqlExpressionType.AnySmallerOrEqualThan;
-		//		default:
-		//			throw new ParseCanceledException("Cannot turn a non-relational operator into ANY.");
-		//	}
-		//}
+		public override SqlExpression VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
+			return base.VisitSimpleCaseStatement(context);
+		}
 
-		//private SqlExpressionType MakeAll(SqlExpressionType expressionType) {
-		//	switch (expressionType) {
-		//		case SqlExpressionType.Equal:
-		//			return SqlExpressionType.AllEqual;
-		//		case SqlExpressionType.NotEqual:
-		//			return SqlExpressionType.AllNotEqual;
-		//		case SqlExpressionType.GreaterThan:
-		//			return SqlExpressionType.AllGreaterThan;
-		//		case SqlExpressionType.SmallerThan:
-		//			return SqlExpressionType.AllSmallerThan;
-		//		case SqlExpressionType.GreaterOrEqualThan:
-		//			return SqlExpressionType.AllGreaterOrEqualThan;
-		//		case SqlExpressionType.SmallerOrEqualThan:
-		//			return SqlExpressionType.AllSmallerOrEqualThan;
-		//		default:
-		//			throw new ParseCanceledException("Cannot turn a non-relational operator into ALL.");
-		//	}
-		//}
+		public override SqlExpression VisitSearchedCaseStatement(PlSqlParser.SearchedCaseStatementContext context) {
+			return base.VisitSearchedCaseStatement(context);
+		}
 
 		public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
 			return Subquery.Form(context);
