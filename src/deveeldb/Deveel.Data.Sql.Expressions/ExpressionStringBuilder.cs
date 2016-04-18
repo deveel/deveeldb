@@ -274,13 +274,11 @@ namespace Deveel.Data.Sql.Expressions {
 					builder.Append(source.Alias);
 				}
 
-				if (i < tables.Count - 1) {
-					if (joinPart == null) {
-						builder.Append(", ");
-					} else {
-						builder.Append(" ON ");
-						Visit(joinPart.OnExpression);
-					}
+				if (joinPart == null) {
+					builder.Append(", ");
+				} else {
+					builder.Append(" ON ");
+					Visit(joinPart.OnExpression);
 				}
 			}
 		}

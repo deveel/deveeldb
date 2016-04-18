@@ -14,9 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.Linq;
-
-using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
 
