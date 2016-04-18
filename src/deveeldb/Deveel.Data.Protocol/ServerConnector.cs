@@ -197,43 +197,6 @@ namespace Deveel.Data.Protocol {
 			return true;
 		}
 
-		//private IQueryContext OnAuthenticate(string defaultSchema, string username, string password) {
-		//	var user = Database.Authenticate(username, password);
-
-		//	if (user == null)
-		//		return null;
-
-		//	var session = Database.CreateUserSession(user);
-
-		//	// Put the connection in exclusive mode
-		//	session.ExclusiveLock();
-
-		//	var context = new SessionQueryContext(session);
-
-		//	try {
-		//		// By default, connections are auto-commit
-		//		session.AutoCommit(true);
-
-		//		// Set the default schema for this connection if it exists
-		//		if (context.SchemaExists(defaultSchema)) {
-		//			context.CurrentSchema(defaultSchema);
-		//		} else {
-		//			// TODO: Log the warning..
-
-		//			// If we can't change to the schema then change to the APP schema
-		//			session.CurrentSchema(Database.DatabaseContext.DefaultSchema());
-		//		}
-		//	} finally {
-		//		try {
-		//			session.Commit();
-		//		} catch (TransactionException) {
-		//			// TODO: Log the warning
-		//		}
-		//	}
-
-		//	return context;
-		//}
-
 		private IQuery OpenQueryContext(long commitId) {
 			var transaction = Database.TransactionFactory.OpenTransactions.FindById((int)commitId);
 			if (transaction == null)
@@ -342,7 +305,7 @@ namespace Deveel.Data.Protocol {
 			foreach (var result in results) {
 				QueryResult queryResult;
 				try {
-					queryResult = new QueryResult(query, result);
+					queryResult = new QueryResult(query, result, context.AutoCommit());
 					resultId = AddResult(queryResult);
 				} catch (Exception) {
 					if (resultId != -1)
