@@ -83,7 +83,7 @@ namespace Deveel.Data {
 		public void GrantRoleToUser() {
 			Query.GrantRole("test_user", "test_role");
 
-			var inRole = Query.Access().UserIsInRole("tes_user", "test_role");
+			var inRole = Query.Access().UserIsInRole("test_user", "test_role");
 			Assert.IsTrue(inRole);
 		}
 	}
