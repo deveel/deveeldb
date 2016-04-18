@@ -27,6 +27,9 @@ namespace Deveel.Data {
 
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().RevokeAllGrantsOn(DbObjectType.Table, tableName);
+			query.Access().DropRole("test_role");
+			query.Access().DeleteUser("test_user");
 			query.Access().DropObject(DbObjectType.Table, tableName);
 			return true;
 		}
