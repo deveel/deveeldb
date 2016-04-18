@@ -33,6 +33,8 @@ namespace Deveel.Data.Sql.Compile {
 						throw new ParseCanceledException("Invalid composite function.");
 					}
 
+					bool isAll = part.ALL() != null;
+
 					var next = Form(part.subquery_basic_elements());
 					var prev = query.NextComposite;
 
@@ -40,9 +42,10 @@ namespace Deveel.Data.Sql.Compile {
 						prev = next;
 					} else {
 						prev.NextComposite = next;
-						prev.CompositeFunction = function;
 					}
 
+					query.IsCompositeAll = isAll;
+					query.CompositeFunction = function;
 					query.NextComposite = prev;
 				}
 			}

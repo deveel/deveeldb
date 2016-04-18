@@ -100,5 +100,30 @@ namespace Deveel.Data {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
 		}
+
+		[Test]
+		public void LeftOuterJoin() {
+			var result = Execute("SELECT a.name, b.code FROM persons a LEFT OUTER JOIN codes b ON a.person_id = b.person_id");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(3, result.RowCount);
+		}
+
+
+		[Test]
+		public void RightOuterJoin() {
+			var result = Execute("SELECT a.name, b.code FROM persons a RIGHT OUTER JOIN codes b ON a.person_id = b.person_id");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void JoinWithSubquery() {
+			var result = Execute("SELECT a.name, b.code FROM persons a, (SELECT * FROM codes) b WHERE a.person_id = b.person_id");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
 	}
 }

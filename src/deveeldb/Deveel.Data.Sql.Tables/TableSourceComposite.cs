@@ -189,6 +189,9 @@ namespace Deveel.Data {
 				if (StateStore != null)
 					StateStore.Dispose();
 
+				if (LargeObjectStore != null)
+					LargeObjectStore.Dispose();
+
 				if (tempStoreSystem != null)
 					tempStoreSystem.Dispose();
 			}

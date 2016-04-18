@@ -65,14 +65,6 @@ namespace Deveel.Data {
 			table.AddRow(row);
 		}
 
-		protected override bool OnTearDown(string testName, IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-
-			query.Access().DropAllTableConstraints(tableName);
-			query.Access().DropObject(DbObjectType.Table, tableName);
-			return true;
-		}
-
 		private ITable Execute(string s) {
 			return Execute(s, null);
 		}
