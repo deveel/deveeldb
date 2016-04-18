@@ -39,5 +39,13 @@ namespace Deveel.Data {
 			var hasPrivs = Query.Access().UserHasPrivilege("test_user", DbObjectType.Table, tableName, Privileges.Alter);
 			Assert.IsFalse(hasPrivs);
 		}
+
+		[Test]
+		public void RoleFromUser() {
+			Query.RevokeRole("test_user", "test_role");
+
+			var inRole = Query.Access().UserIsInRole("test_user", "test_role");
+			Assert.IsFalse(inRole);
+		}
 	}
 }

@@ -20,6 +20,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string RoleName { get; private set; }
 
+		public bool Admin { get; set; }
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.RoleExists(RoleName))
 				throw new StatementException(String.Format("The role '{0}' does not exist", RoleName));
@@ -27,9 +29,14 @@ namespace Deveel.Data.Sql.Statements {
 				!context.DirectAccess.RoleExists(Grantee))
 				throw new StatementException(String.Format("User or role '{0}' does not exist.", Grantee));
 
-			if (!context.DirectAccess.UserIsRoleAdmin(context.Request.UserName(), RoleName))
-				throw new SecurityException(String.Format("User '{0}' has no role administration rights for '{1}'.",
-					context.User.Name, RoleName));
+			if (!context.User.CanRevokeRole(RoleName))
+				throw new SecurityException(String.Format("User '{0}' has no role rights to revoke role '{1}' from '{2'}'.",
+					context.User.Name, RoleName, Grantee));
+
+			if (Admin) {
+				// TODO:
+				throw new NotImplementedException();
+			}
 
 			context.DirectAccess.RemoveUserFromRole(Grantee, RoleName);
 		}

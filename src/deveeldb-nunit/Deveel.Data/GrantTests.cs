@@ -83,14 +83,8 @@ namespace Deveel.Data {
 		public void GrantRoleToUser() {
 			Query.GrantRole("test_user", "test_role");
 
-			var userRoles = Query.Access().GetUserRoles("test_user");
-
-			Assert.IsNotNull(userRoles);
-
-			var roleNames = userRoles.Select(x => x.Name).ToArray();
-
-			Assert.AreEqual(1, roleNames.Length);
-			Assert.Contains("test_role", roleNames);
+			var inRole = Query.Access().UserIsInRole("tes_user", "test_role");
+			Assert.IsTrue(inRole);
 		}
 	}
 }

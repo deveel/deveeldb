@@ -383,7 +383,17 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitRevokeRoleStatement(PlSqlParser.RevokeRoleStatementContext context) {
-			throw new NotImplementedException("Missing RevokeRoleStatement class in DeveelDB");
+			var grantee = Name.Simple(context.granteeName());
+			var roleNames = context.roleName().Select(Name.Simple).ToArray();
+			if (roleNames.Length == 1)
+				return new RevokeRoleStatement(grantee, roleNames[0]);
+
+			var seq = new SequenceOfStatements();
+			foreach (var roleName in roleNames) {
+				seq.Statements.Add(new RevokeRoleStatement(grantee, roleName));
+			}
+
+			return seq;
 		}
 
 		public override SqlStatement VisitTransactionControlStatement(PlSqlParser.TransactionControlStatementContext context) {
