@@ -43,9 +43,9 @@ namespace Deveel.Data {
 			var variable = Query.Context.FindVariable("a");
 			Assert.IsNotNull(variable);
 			Assert.IsNotNull(variable.Expression);
-			Assert.IsNotNull(variable.GetValue(Query));
+			Assert.IsNotNull(variable.Evaluate(Query));
 
-			var value = ((SqlNumber) variable.GetValue(Query).Value).ToDouble();
+			var value = ((SqlNumber) variable.Evaluate(Query).Value).ToDouble();
 			Assert.AreEqual(7689, value);
 		}
 
@@ -59,9 +59,9 @@ namespace Deveel.Data {
 			var variable = Query.Context.FindVariable("c");
 			Assert.IsNotNull(variable);
 			Assert.IsNotNull(variable.Expression);
-			Assert.IsNotNull(variable.GetValue(Query));
+			Assert.IsNotNull(variable.Evaluate(Query));
 
-			var value = ((SqlNumber)variable.GetValue(Query).Value).ToDouble();
+			var value = ((SqlNumber)variable.Evaluate(Query).Value).ToDouble();
 			Assert.AreEqual(7689, value);
 		}
 

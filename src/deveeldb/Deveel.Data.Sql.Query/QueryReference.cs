@@ -38,7 +38,7 @@ namespace Deveel.Data.Sql.Query {
 
 		public Field Evaluate(IVariableResolver resolver, IRequest context) {
 			var variable = resolver.Resolve(Name);
-			Value = variable.GetValue(context);
+			Value = variable.Evaluate(context);
 			return Value;
 		}
 	}

@@ -71,8 +71,10 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (context.Request.Access().VariableExists(VariableName))
-				throw new InvalidOperationException(String.Format("A variable named '{0}' was already defined in the context.", VariableName));
+			if (context.DirectAccess.VariableExists(VariableName)) {
+				throw new InvalidOperationException(String.Format("A variable named '{0}' was already defined in the context.",
+					VariableName));
+			}
 
 			// TODO: Should this check also for objects of other type than variable to exist with the same name?
 
@@ -81,7 +83,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (DefaultExpression != null)
 				varInfo.DefaultExpression = DefaultExpression;
 
-			context.Request.Access().CreateObject(varInfo);
+			context.DirectAccess.CreateObject(varInfo);
 		}
 	}
 }

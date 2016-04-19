@@ -69,10 +69,10 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<NumericType>(variable.Type);
-			Assert.IsFalse(variable.GetValue(Query).IsNull);
-			Assert.IsInstanceOf<SqlNumber>(variable.GetValue(Query).Value);
+			Assert.IsFalse(variable.Evaluate(Query).IsNull);
+			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(Query).Value);
 
-			var number = (SqlNumber) variable.GetValue(Query).Value;
+			var number = (SqlNumber) variable.Evaluate(Query).Value;
 			Assert.AreEqual(new SqlNumber(13), number);
 		}
 
@@ -85,10 +85,10 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<NumericType>(variable.Type);
-			Assert.IsFalse(variable.GetValue(Query).IsNull);
-			Assert.IsInstanceOf<SqlNumber>(variable.GetValue(Query).Value);
+			Assert.IsFalse(variable.Evaluate(Query).IsNull);
+			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(Query).Value);
 
-			var number = (SqlNumber)variable.GetValue(Query).Value;
+			var number = (SqlNumber)variable.Evaluate(Query).Value;
 			Assert.AreEqual(new SqlNumber(13), number);
 		}
 	}

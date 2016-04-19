@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			variable.SetValue(ValueExpression);
 
-			context.SetResult(variable.GetValue(context.Request));
+			context.SetResult(variable.Evaluate(context.Request));
 		}
 	}
 }

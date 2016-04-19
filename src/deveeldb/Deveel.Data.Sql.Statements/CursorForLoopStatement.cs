@@ -69,7 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void AfterLoop(ExecutionContext context) {
 			var variable = context.Request.Context.FindVariable(IndexName);
-			var value = variable.GetValue(context.Request).Add(Field.BigInt(1));
+			var value = variable.Evaluate(context.Request).Add(Field.BigInt(1));
 			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
 
 			var cursor = context.Request.Context.FindCursor(CursorName);

@@ -82,11 +82,13 @@ namespace Deveel.Data.Sql.Statements {
 			BeforeLoop(context);
 
 			while (Loop(context)) {
-				if (CanExecute(context))
-					base.ExecuteBlock(context);
-			}
+				var loopBlock = context.NewBlock(this);
 
-			AfterLoop(context);
+				if (CanExecute(loopBlock))
+					base.ExecuteBlock(loopBlock);
+
+				AfterLoop(context);
+			}
 		}
 	}
 }

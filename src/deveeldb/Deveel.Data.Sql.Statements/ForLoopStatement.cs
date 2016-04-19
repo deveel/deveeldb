@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void AfterLoop(ExecutionContext context) {
 			var variable = context.Request.Context.FindVariable(IndexName);
-			var value = variable.GetValue(context.Request).Add(Field.BigInt(1));
+			var value = variable.Evaluate(context.Request).Add(Field.BigInt(1));
 			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
 
 			base.AfterLoop(context);
@@ -86,9 +86,9 @@ namespace Deveel.Data.Sql.Statements {
 			var lowerBound = ((SqlConstantExpression) LowerBound).Value;
 
 			if (Reverse)
-				return variable.GetValue(context.Request) >= lowerBound;
+				return variable.Evaluate(context.Request) >= lowerBound;
 
-			return variable.GetValue(context.Request) < upperBound;
+			return variable.Evaluate(context.Request) < upperBound;
 		}
 	}
 }

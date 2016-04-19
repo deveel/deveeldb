@@ -18,11 +18,19 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data {
-	public sealed class BlockContext : Context, IBlockContext {
+	public sealed class BlockContext : Context, IBlockContext, IVariableScope {
+		private VariableManager variableManager;
+
 		internal BlockContext(IContext parent)
 			: base(parent) {
+			variableManager = new VariableManager(this);
+		}
+
+		IVariableManager IVariableScope.VariableManager {
+			get { return variableManager; }
 		}
 
 		protected override string ContextName {
@@ -31,6 +39,16 @@ namespace Deveel.Data {
 
 		public IBlockContext CreateBlockContext() {
 			return new BlockContext(this);
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (variableManager != null)
+					variableManager.Dispose();
+			}
+
+			variableManager = null;
+			base.Dispose(disposing);
 		}
 	}
 }

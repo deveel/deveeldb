@@ -201,7 +201,7 @@ namespace Deveel.Data.Sql.Statements {
 						throw new ObjectNotFoundException(new ObjectName(VariableNames[0]));
 
 					if (variable.Type is TabularType) {
-						var tabular = ((SqlTabular) variable.GetValue(context.Request).Value);
+						var tabular = ((SqlTabular) variable.Evaluate(context.Request).Value);
 						throw new NotImplementedException("Support insert into a tabular variable");
 					}
 				}

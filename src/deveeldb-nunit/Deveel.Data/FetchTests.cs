@@ -115,10 +115,10 @@ namespace Deveel.Data {
 			var var1 = (Variable) Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
 
 			Assert.IsNotNull(var1);
-			Assert.IsNotNull(var1.GetValue(Query));
-			Assert.IsFalse(Field.IsNullField(var1.GetValue(Query)));
+			Assert.IsNotNull(var1.Evaluate(Query));
+			Assert.IsFalse(Field.IsNullField(var1.Evaluate(Query)));
 
-			var value = ((SqlNumber) var1.GetValue(Query).Value).ToInt32();
+			var value = ((SqlNumber) var1.Evaluate(Query).Value).ToInt32();
 			Assert.AreEqual(0, value);
 		}
 
@@ -131,10 +131,10 @@ namespace Deveel.Data {
 			var var1 = (Variable)Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
 
 			Assert.IsNotNull(var1);
-			Assert.IsNotNull(var1.GetValue(Query));
-			Assert.IsFalse(Field.IsNullField(var1.GetValue(Query)));
+			Assert.IsNotNull(var1.Evaluate(Query));
+			Assert.IsFalse(Field.IsNullField(var1.Evaluate(Query)));
 
-			var value = ((SqlNumber)var1.GetValue(Query).Value).ToInt32();
+			var value = ((SqlNumber)var1.Evaluate(Query).Value).ToInt32();
 			Assert.AreEqual(0, value);
 		}
 	}

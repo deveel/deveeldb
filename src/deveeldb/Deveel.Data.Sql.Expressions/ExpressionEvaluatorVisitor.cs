@@ -164,6 +164,9 @@ namespace Deveel.Data.Sql.Expressions {
 					groupResolver = context.GroupResolver;
 				}
 
+				if (variableResolver == null && request != null)
+					variableResolver = request.Context.VariableResolver();
+
 				// TODO: if we don't have a return value (PROCEDURES) what should w return?
 				var result = invoke.Execute(request, variableResolver, groupResolver);
 				if (!result.HasReturnValue)
@@ -203,7 +206,7 @@ namespace Deveel.Data.Sql.Expressions {
 				if (variable == null)
 					throw new ExpressionEvaluateException(String.Format("Variable '{0}' not found in the current context.", refName));
 
-				return SqlExpression.Constant(variable.GetValue(context.Request));
+				return SqlExpression.Constant(variable.Evaluate(context.Request));
 			} catch (ExpressionEvaluateException) {
 				throw;
 			} catch (Exception ex) {
@@ -289,17 +292,19 @@ namespace Deveel.Data.Sql.Expressions {
 		public override SqlExpression VisitVariableReference(SqlVariableReferenceExpression reference) {
 			var refName = reference.VariableName;
 
+			var resolver = context.VariableResolver;
+
 			if (context.Request == null)
 				throw new ExpressionEvaluateException(String.Format("Cannot dereference variable {0} outside a query context", refName));
-			if (context.VariableResolver == null)
-				throw new ExpressionEvaluateException("The query context does not handle variables.");
 
+			if (resolver == null)
+				resolver = context.Request.Context.VariableResolver();
 			
-			var variable = context.Request.Context.FindVariable(refName);
+			var variable = resolver.Resolve(new ObjectName(refName));
 			if (variable == null)
 				return SqlExpression.Constant(Field.Null());
 
-			return SqlExpression.Constant(variable.GetValue(context.Request));
+			return SqlExpression.Constant(variable.Evaluate(context.Request));
 		}
 
 		public override SqlExpression VisitConditional(SqlConditionalExpression conditional) {

@@ -137,7 +137,7 @@ namespace Deveel.Data.Routines {
 				if (v != null) {
 					for (int i = 0; i < size; ++i) {
 						var variable = context.GroupResolver.Resolve(v.ReferenceName, i);
-						val = variable.GetValue(context.Request);
+						val = variable.Evaluate(context.Request);
 
 						var invokeResult = functionBody(context.New(new SqlExpression[] {
 							SqlExpression.Constant(result),

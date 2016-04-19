@@ -14,7 +14,9 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
@@ -46,8 +48,15 @@ namespace Deveel.Data {
 				new ConditionStatement(SqlExpression.Equal(SqlExpression.VariableReference("i"), SqlExpression.Constant(200)),
 					new SqlStatement[] {new ReturnStatement(SqlExpression.VariableReference("a"))}));
 
-			// TODO: Temporary (not to fail the whole build): mst fix the AssignStatement
-			Assert.Throws<ExpressionEvaluateException>(() =>  Query.ExecuteStatement(loop));
+			 var result = Query.ExecuteStatement(loop);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(StatementResultType.Result, result.Type);
+
+			var value = result.Result.GetValue(0, 0);
+			Assert.IsNotNull(value);
+			Assert.IsFalse(Field.IsNullField(value));
+			// TODO: the context should return the value of RETURN statement
 		}
 	}
 }

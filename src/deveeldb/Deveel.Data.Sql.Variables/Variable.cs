@@ -105,7 +105,7 @@ namespace Deveel.Data.Sql.Variables {
 			SetValue(SqlExpression.Constant(value));
 		}
 
-		public Field GetValue(IRequest context) {
+		public Field Evaluate(IRequest context) {
 			if (Expression == null)
 				return Field.Null(Type);
 
