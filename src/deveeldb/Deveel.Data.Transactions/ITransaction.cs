@@ -16,8 +16,10 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -48,6 +50,10 @@ namespace Deveel.Data.Transactions {
 		/// Gets the database this transaction belongs to.
 		/// </summary>
 		IDatabase Database { get; }
+
+		void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
+
+		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
 
 		/// <summary>
 		/// Commits all write operation done during the lifetime of 

@@ -16,10 +16,12 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -56,6 +58,18 @@ namespace Deveel.Data {
 		public static ISession Begin(this ISession session, IsolationLevel isolation) {
 			var transaction = session.Database().TransactionFactory.CreateTransaction(isolation);
 			return new Session(transaction, session.User.Name);
+		}
+
+		public static void Enter(this ISession session, IEnumerable<IDbObject> objects, AccessType accessType) {
+			// If a transaction is null, no reference can be acquired anymore
+			if (session.Transaction != null)
+				session.Transaction.Enter(objects, accessType);
+		}
+
+		public static void Exit(this ISession session, IEnumerable<IDbObject> objects, AccessType accessType) {
+			// If a transaction is null, all references have already been released
+			if (session.Transaction != null)
+				session.Transaction.Exit(objects, accessType);
 		}
 
 		#region Metadata

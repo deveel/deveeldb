@@ -49,12 +49,6 @@ namespace Deveel.Data {
 
 		ILargeObject GetLargeObject(ObjectId objectId);
 
-		void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
-
-		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
-
-		void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode);
-
 		IQuery CreateQuery();
 
 

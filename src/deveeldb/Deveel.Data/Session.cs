@@ -31,7 +31,6 @@ namespace Deveel.Data {
 	/// to the given database.
 	/// </summary>
 	public sealed class Session : ISession, IEventSource, ISystemDirectAccess {
-		private List<LockHandle> lockHandles;
 		private bool disposed;
 		private readonly DateTimeOffset startedOn;
 		private SystemAccess access;
@@ -129,89 +128,8 @@ namespace Deveel.Data {
 				throw new ObjectDisposedException("Session");
 		}
 
-		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
-			if (Database == null)
-				return;
-
-			lock (Database) {
-				var lockables = objects.OfType<ILockable>().ToArray();
-				if (lockables.Length == 0)
-					return;
-
-				CheckAccess(lockables, accessType);
-
-				var isolation = Transaction.Isolation;
-
-				LockHandle handle;
-
-				if (isolation == IsolationLevel.Serializable) {
-					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
-				} else {
-					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.", isolation));
-				}
-
-				if (handle != null) {
-					if (lockHandles == null)
-						lockHandles = new List<LockHandle>();
-
-					lockHandles.Add(handle);
-				}
-			}
-		}
-
-		public void Exit(IEnumerable<IDbObject> objects, AccessType accessType) {
-			// Only SERIALIZABLE isolation is supported, that means locks for read and write
-			//    are acquired on access and released only at the end of the session/transaction
-			throw new NotImplementedException("The Exit mechanism is not implemented");
-		}
-
-		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
-			lock (Database) {
-				var lockables = objects.OfType<ILockable>().ToArray();
-				if (lockables.Length == 0)
-					return;
-
-				// Before we can lock the objects, we must wait for them
-				//  to be available...
-				CheckAccess(lockables, accessType);
-
-				var handle = Database.Locker.Lock(lockables, accessType, mode);
-
-				if (lockHandles == null)
-					lockHandles = new List<LockHandle>();
-
-				lockHandles.Add(handle);
-			}
-		}
-
-		private void CheckAccess(ILockable[] lockables, AccessType accessType) {
-			if (lockHandles == null || lockables == null)
-				return;
-
-			foreach (var handle in lockHandles) {
-				foreach (var lockable in lockables) {
-					if (handle.IsHandled(lockable))
-						handle.CheckAccess(lockable, accessType);
-				}
-			}
-		}
-
-		private void ReleaseLocks() {
-			if (Database == null)
-				return;
-
-			lock (Database) {
-				if (lockHandles != null) {
-					foreach (var handle in lockHandles) {
-						if (handle != null)
-							handle.Release();
-					}
-				}
-			}
-		}
-
 	    public IDatabase Database {
-	        get { return Transaction.Database; }
+	        get { return Transaction == null ? null : Transaction.Database; }
 	    }
 
 		private void OnQueryCommand(QueryEvent e) {
@@ -247,8 +165,6 @@ namespace Deveel.Data {
 		}
 
 		private void DisposeTransaction() {
-			ReleaseLocks();
-
 			if (Database != null)
 				Database.Sessions.Remove(this);
 
@@ -286,7 +202,6 @@ namespace Deveel.Data {
 				}
 
 				access = null;
-				lockHandles = null;
 				disposed = true;
 			}
 		}

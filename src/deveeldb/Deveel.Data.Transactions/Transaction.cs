@@ -32,7 +32,7 @@ namespace Deveel.Data.Transactions {
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
 	public sealed class Transaction : ITransaction, IEventSource, ITableStateHandler {
-		//private Action<TableCommitInfo> commitActions; 
+		private List<LockHandle> lockHandles;
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
 			CommitId = commitId;
@@ -137,6 +137,114 @@ namespace Deveel.Data.Transactions {
 				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
 		}
 
+		private void CheckAccess(ILockable[] lockables, AccessType accessType) {
+			if (lockHandles == null || lockables == null)
+				return;
+
+			foreach (var handle in lockHandles) {
+				foreach (var lockable in lockables) {
+					if (handle.IsHandled(lockable))
+						handle.CheckAccess(lockable, accessType);
+				}
+			}
+		}
+
+		private void ReleaseLocks() {
+			if (Database == null)
+				return;
+
+			lock (Database) {
+				if (lockHandles != null) {
+					foreach (var handle in lockHandles) {
+						if (handle != null)
+							handle.Release();
+					}
+
+					lockHandles.Clear();
+				}
+
+				lockHandles = null;
+			}
+		}
+
+		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
+			lock (Database) {
+				var lockables = objects.OfType<ILockable>().ToArray();
+				if (lockables.Length == 0)
+					return;
+
+				// Before we can lock the objects, we must wait for them
+				//  to be available...
+				CheckAccess(lockables, accessType);
+
+				var handle = Database.Locker.Lock(lockables, accessType, mode);
+
+				if (lockHandles == null)
+					lockHandles = new List<LockHandle>();
+
+				lockHandles.Add(handle);
+			}
+		}
+
+		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
+			if (Database == null)
+				return;
+
+			lock (Database) {
+				var lockables = objects.OfType<ILockable>().ToArray();
+				if (lockables.Length == 0)
+					return;
+
+				CheckAccess(lockables, accessType);
+
+				LockHandle handle;
+
+				if (Isolation == IsolationLevel.Serializable) {
+					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
+				} else {
+					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.", Isolation));
+				}
+
+				if (handle != null) {
+					if (lockHandles == null)
+						lockHandles = new List<LockHandle>();
+
+					lockHandles.Add(handle);
+				}
+			}
+		}
+
+		public void Exit(IEnumerable<IDbObject> objects, AccessType accessType) {
+			if (Database == null)
+				return;
+
+			lock (Database) {
+				var lockables = objects.OfType<ILockable>().ToArray();
+				if (lockables.Length == 0)
+					return;
+
+				if (lockHandles != null) {
+					for (int i = lockables.Length - 1; i >= 0; i--) {
+						var handle = lockHandles[i];
+
+						bool handled = true;
+						foreach (var lockable in lockables) {
+							if (!handle.IsHandled(lockable)) {
+								handled = false;
+								break;
+							}
+						}
+
+						if (handled) {
+							Database.Locker.Unlock(handle);
+							lockHandles.RemoveAt(i);
+						}
+					}
+				}
+			}
+		}
+
+
 		public void Commit() {
 			if (!IsClosed) {
 				try {
@@ -154,25 +262,15 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		//public void RegisterOnCommit(Action<TableCommitInfo> action) {
-		//	if (commitActions == null) {
-		//		commitActions = action;
-		//	} else {
-		//		commitActions = Delegate.Combine(commitActions, action) as Action<TableCommitInfo>;
-		//	}
-		//}
-
-		//public void UnregisterOnCommit(Action<TableCommitInfo> action) {
-		//	if (commitActions != null)
-		//		commitActions = Delegate.Remove(commitActions, action) as Action<TableCommitInfo>;
-		//}
-
 
 		private void Finish() {
 			try {
 				// Dispose all the table we touched
 				try {
-					TableManager.Dispose();
+					ReleaseLocks();
+
+					if (TableManager != null)
+						TableManager.Dispose();
 
 					if (Context != null)
 						Context.Dispose();
@@ -181,11 +279,7 @@ namespace Deveel.Data.Transactions {
 					this.OnError(ex);
 				}
 
-				//callbacks = null;
 				Context = null;
-				Database = null;
-
-				// Dispose all the objects in the transaction
 			} finally {
 				IsClosed = true;
 				State = TransactionState.Finished;
