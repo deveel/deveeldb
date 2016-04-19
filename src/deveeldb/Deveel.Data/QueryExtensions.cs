@@ -393,6 +393,14 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Revoke Role
+
+		public static void RevokeRole(this IQuery query, string grantee, string roleName) {
+			query.ExecuteStatement(new RevokeRoleStatement(grantee, roleName));
+		}
+
+		#endregion
+
 		#region Create Trigger
 
 		public static void CreateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventType eventType) {

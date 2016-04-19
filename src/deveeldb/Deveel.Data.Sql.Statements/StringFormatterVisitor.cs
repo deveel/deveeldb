@@ -4,7 +4,6 @@ using System.Linq;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
 	class StringFormatterVisitor : StatementVisitor {

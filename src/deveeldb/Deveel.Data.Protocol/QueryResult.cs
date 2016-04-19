@@ -26,11 +26,34 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Protocol {
 	public sealed class QueryResult : IDisposable {
 		private QueryResultColumn[] columns;
+		private TemporaryTable localTable;
 
-		internal QueryResult(SqlQuery query, StatementResult result) {
+		internal QueryResult(SqlQuery query, StatementResult result, bool readAll) {
 			Query = query;
 			Result = result;
+
 			FormColumns(Result);
+
+			if (readAll && Result.Type == StatementResultType.CursorRef)
+				ReadAll();
+		}
+
+		~QueryResult() {
+			Dispose(false);
+		}
+
+		private void ReadAll() {
+			if (Result.Type == StatementResultType.CursorRef) {
+				var tableInfo = Result.Cursor.Source.TableInfo;
+				localTable = new TemporaryTable("##LOCAL##", tableInfo);
+
+				foreach (var row in Result.Cursor) {
+					var rowIndex = localTable.NewRow();
+					for (int i = 0; i < row.ColumnCount; i++) {
+						localTable.SetValue(rowIndex, i, row.GetValue(i));
+					}
+				}
+			}
 		}
 
 		private void FormColumns(StatementResult result) {
@@ -116,15 +139,29 @@ namespace Deveel.Data.Protocol {
 			return columns[columnOffset];
 		}
 
-		public void Dispose() {
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (localTable != null)
+					localTable.Dispose();
+				if (Result != null)
+					Result.Dispose();
+			}
+
 			Result = null;
 			Query = null;
 			columns = null;
 		}
 
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
 		public Field GetValue(int rowIndex, int columnIndex) {
 			// TODO: Ensure to fetch the next row
-			if (Result.Type == StatementResultType.CursorRef) {
+			if (localTable != null) {
+				return localTable.GetValue(rowIndex, columnIndex);
+			} else if (Result.Type == StatementResultType.CursorRef) {
 				var row = Result.Cursor.Fetch(FetchDirection.Absolute, rowIndex);
 				if (row == null)
 					return Field.Null();
