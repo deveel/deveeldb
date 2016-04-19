@@ -113,9 +113,6 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private void AssertPlSqlObject(SqlStatement obj) {
-				if (obj.Parent != null)
-					throw new ArgumentException("The statement has already a parent");
-
 				block.AssertAllowedObject(obj);
 			}
 

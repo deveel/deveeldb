@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Variables;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Defines a contract used by grouping functions to find information 
@@ -45,7 +47,7 @@ namespace Deveel.Data.Sql {
 		/// and 9.  Return types must be either a String, BigDecimal or Boolean.
 		/// </remarks>
 		/// <returns></returns>
-		Field Resolve(ObjectName variable, int setIndex);
+		Variable Resolve(ObjectName variable, int setIndex);
 
 		/// <summary>
 		/// Returns a <see cref="IVariableResolver"/> that can be used to 

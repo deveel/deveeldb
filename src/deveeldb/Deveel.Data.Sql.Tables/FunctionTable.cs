@@ -23,6 +23,7 @@ using Deveel.Data.Caching;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Tables {
 	class FunctionTable : BaseDataTable {
@@ -454,7 +455,7 @@ namespace Deveel.Data.Sql.Tables {
 				}
 			}
 
-			public Field Resolve(ObjectName variable, int setIndex) {
+			public Variable Resolve(ObjectName variable, int setIndex) {
 				int colIndex = Table.ReferenceTable.FindColumn(variable);
 				if (colIndex == -1)
 					throw new InvalidOperationException(String.Format("Column {0} not found in table {1}.", variable, Table.TableName));
@@ -465,7 +466,9 @@ namespace Deveel.Data.Sql.Tables {
 				if (group != null)
 					rowIndex = group[setIndex];
 
-				return Table.ReferenceTable.GetValue(rowIndex, colIndex);
+				var varType = Table.ReferenceTable.TableInfo[colIndex].ColumnType;
+				var value = Table.ReferenceTable.GetValue(rowIndex, colIndex);
+				return new Variable(new VariableInfo(variable.FullName, varType, true), value);
 			}
 
 			private ITableVariableResolver CreateVariableResolver() {
@@ -511,7 +514,7 @@ namespace Deveel.Data.Sql.Tables {
 					this.rowIndex = rowIndex;
 				}
 
-				public Field Resolve(ObjectName variable) {
+				public Variable Resolve(ObjectName variable) {
 					if (rowIndex < 0)
 						throw new InvalidOperationException();
 

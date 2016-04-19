@@ -54,7 +54,15 @@ namespace Deveel.Data.Sql.Statements {
 			var lower = LowerBound.Prepare(preparer);
 			var upper = UpperBound.Prepare(preparer);
 
-			return new ForLoopStatement(IndexName, lower, upper);
+			var loop = new ForLoopStatement(IndexName, lower, upper) {Reverse = Reverse};
+			foreach (var statement in Statements) {
+				loop.Statements.Add(statement);
+			}
+			return loop;
+		}
+
+		protected override LoopStatement CreateNew() {
+			return new ForLoopStatement(IndexName, LowerBound, UpperBound) { Reverse = Reverse };
 		}
 
 		protected override void BeforeLoop(ExecutionContext context) {
@@ -66,16 +74,21 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void AfterLoop(ExecutionContext context) {
 			var variable = context.Request.Context.FindVariable(IndexName);
-			var value = variable.Value.Add(Field.BigInt(1));
+			var value = variable.GetValue(context.Request).Add(Field.BigInt(1));
 			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
 
 			base.AfterLoop(context);
 		}
 
 		protected override bool Loop(ExecutionContext context) {
-			// TODO: Evaluate the upper and lower bound against the context
-			// TODO: Evaluate the index and check it is contained within upper and lower bounds
-			return base.Loop(context);
+			var variable = context.Request.Context.FindVariable(IndexName);
+			var upperBound = ((SqlConstantExpression) UpperBound).Value;
+			var lowerBound = ((SqlConstantExpression) LowerBound).Value;
+
+			if (Reverse)
+				return variable.GetValue(context.Request) >= lowerBound;
+
+			return variable.GetValue(context.Request) < upperBound;
 		}
 	}
 }

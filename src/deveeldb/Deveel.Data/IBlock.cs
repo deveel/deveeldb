@@ -24,7 +24,5 @@ namespace Deveel.Data {
 		IBlock Parent { get; }
 
 		IBlock Next { get; }
-
-		void Execute(BlockExecuteContext context);
 	}
 }

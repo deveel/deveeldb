@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql {
 				if (list.Count > 0) {
 					// Set the correlated variables from the IVariableResolver
 					foreach (var variable in list) {
-						variable.Evaluate(context.VariableResolver);
+						variable.Evaluate(context.VariableResolver, context.Request);
 					}
 
 					// Clear the cache in the context
@@ -96,7 +96,7 @@ namespace Deveel.Data.Sql {
 				if (list.Count > 0) {
 					// Set the correlated variables from the IVariableResolver
 					foreach (var variable in list) {
-						variable.Evaluate(context.VariableResolver);
+						variable.Evaluate(context.VariableResolver, context.Request);
 					}
 
 					// Clear the cache in the context

@@ -110,7 +110,7 @@ namespace Deveel.Data.Sql.Variables {
 			return false;
 		}
 
-		Field IVariableResolver.Resolve(ObjectName variable) {
+		Variable IVariableResolver.Resolve(ObjectName variable) {
 			if (!VariableExists(variable.Name))
 				return null;
 

@@ -18,6 +18,7 @@
 using System;
 
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
@@ -33,7 +34,7 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <returns></returns>
-		Field Resolve(ObjectName variable);
+		Variable Resolve(ObjectName variable);
 
 		/// <summary>
 		/// Returns the <see cref="SqlType"/> of object the given variable is.

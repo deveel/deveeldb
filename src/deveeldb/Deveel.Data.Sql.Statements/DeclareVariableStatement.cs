@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DeclareVariableStatement : SqlStatement, IDeclarationStatement {
+	public sealed class DeclareVariableStatement : SqlStatement, IDeclarationStatement, IPlSqlStatement {
 		public DeclareVariableStatement(string variableName, SqlType variableType) {
 			if (String.IsNullOrEmpty(variableName))
 				throw new ArgumentNullException("variableName");

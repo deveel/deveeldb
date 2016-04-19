@@ -12,6 +12,7 @@
 //    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
+
 using System;
 using System.IO;
 
@@ -128,6 +129,8 @@ namespace Deveel.Data {
 				dbConfig.SetValue("database.basePath", dbPath);
 			}
 
+			DeleteFiles();
+
 			Database = CreateDatabase(System, dbConfig);
 
 			OnFixtureSetUp();
@@ -161,18 +164,7 @@ namespace Deveel.Data {
 			DisposeContext();
 		}
 
-		[TestFixtureTearDown]
-		public void TestFixtureTearDown() {
-			OnFixtureTearDown();
-
-			if (Database != null) {
-				Database.Close();
-				Database.Dispose();
-			}
-
-			if (System != null)
-				System.Dispose();
-
+		private void DeleteFiles() {
 			if (StorageType == StorageType.JournaledFile) {
 #if PCL
 				var dataDir = FileSystem.Local.CombinePath(".", DatabaseName);
@@ -195,6 +187,21 @@ namespace Deveel.Data {
 					File.Delete(fileName);
 #endif
 			}
+		}
+
+		[TestFixtureTearDown]
+		public void TestFixtureTearDown() {
+			OnFixtureTearDown();
+
+			if (Database != null) {
+				Database.Close();
+				Database.Dispose();
+			}
+
+			if (System != null)
+				System.Dispose();
+
+			DeleteFiles();
 
 			GC.Collect(0, GCCollectionMode.Optimized);
 			GC.Collect(1, GCCollectionMode.Forced);

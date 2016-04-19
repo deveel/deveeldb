@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		private SqlExpression VisitQueryReference(QueryReferenceExpression expression) {
 			var reference = expression.QueryReference;
-			var value = reference.Evaluate(context.VariableResolver);
+			var value = reference.Evaluate(context.VariableResolver, context.Request);
 			return SqlExpression.Constant(value);
 		}
 
@@ -199,8 +199,11 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new ExpressionEvaluateException(String.Format("A resolver is required to dereference variable '{0}'.", refName));
 
 			try {
-				var value = context.VariableResolver.Resolve(refName);
-				return SqlExpression.Constant(value);
+				var variable = context.VariableResolver.Resolve(refName);
+				if (variable == null)
+					throw new ExpressionEvaluateException(String.Format("Variable '{0}' not found in the current context.", refName));
+
+				return SqlExpression.Constant(variable.GetValue(context.Request));
 			} catch (ExpressionEvaluateException) {
 				throw;
 			} catch (Exception ex) {
@@ -296,7 +299,7 @@ namespace Deveel.Data.Sql.Expressions {
 			if (variable == null)
 				return SqlExpression.Constant(Field.Null());
 
-			return SqlExpression.Constant(variable.Value);
+			return SqlExpression.Constant(variable.GetValue(context.Request));
 		}
 
 		public override SqlExpression VisitConditional(SqlConditionalExpression conditional) {

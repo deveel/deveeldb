@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using Deveel.Data.Index;
 using Deveel.Data.Transactions;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Tables {
 	public abstract class Table : IQueryTable, ILockable {
@@ -191,8 +192,12 @@ namespace Deveel.Data.Sql.Tables {
 				return colIndex;
 			}
 
-			public Field Resolve(ObjectName columnName) {
-				return table.GetValue(rowIndex, FindColumnName(columnName));
+			public Variable Resolve(ObjectName columnName) {
+				var columnIndex = FindColumnName(columnName);
+				var columnType = table.TableInfo[columnIndex].ColumnType;
+				var value = table.GetValue(rowIndex, columnIndex);
+
+				return new Variable(new VariableInfo(columnName.FullName, columnType, true), value);
 			}
 
 			public SqlType ReturnType(ObjectName columnName) {

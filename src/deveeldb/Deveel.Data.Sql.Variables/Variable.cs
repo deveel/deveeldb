@@ -22,10 +22,19 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Variables {
 	public sealed class Variable : IDbObject, IEquatable<Variable> {
-		public Variable(VariableInfo variableInfo) {
+		public Variable(VariableInfo variableInfo) 
+			: this(variableInfo, (SqlExpression) null) {
+		}
+
+		public Variable(VariableInfo variableInfo, Field value)
+			: this(variableInfo, SqlExpression.Constant(value)) {
+		}
+
+		public Variable(VariableInfo variableInfo, SqlExpression value) {
 			if (variableInfo == null)
 				throw new ArgumentNullException("variableInfo");
 
+			Expression = value;
 			VariableInfo = variableInfo;
 		}
 
@@ -45,11 +54,6 @@ namespace Deveel.Data.Sql.Variables {
 
 		public SqlExpression Expression { get; private set; }
 
-		public bool ValueFromExpression {
-			get { return Expression != null; }
-		}
-
-		public Field Value { get; private set; }
 
 		public bool IsConstant {
 			get { return VariableInfo.IsConstant; }
@@ -67,50 +71,45 @@ namespace Deveel.Data.Sql.Variables {
 				!Type.Equals(other.Type))
 				return false;
 
-			if (ValueFromExpression &&
-			    other.ValueFromExpression) {
-				// TODO: Determine if the two expressions are equal!
+			if (Expression == null &&
+			    other.Expression == null)
 				return true;
-			}
+			if (Expression == null)
+				return false;
 
-			return Value.Equals(other.Value);
+			return Expression.Equals(other.Expression);
 		}
 
-		public void SetValue(IRequest context, SqlExpression expression) {
+		public void SetValue(SqlExpression expression) {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 
 			if (IsConstant)
 				throw new InvalidOperationException(String.Format("The variable '{0}' is constant and cannot be assigned.", Name));
 
-			if (!expression.IsConstant())
-				throw new ArgumentException("The value is not constant.");
-
 			Expression = expression;
-
-			var exp = expression.Evaluate(context, null);
-			if (exp.ExpressionType != SqlExpressionType.Constant)
-				throw new InvalidOperationException("The evaluation of the assignment value is not constant.");
-
-			var value = ((SqlConstantExpression) exp).Value;
-			SetValue(value);
 		}
 
 		public void SetValue(Field value) {
-			if (IsConstant)
-				throw new InvalidOperationException();
-
-			if (!IsNotNull && value.IsNull)
-				throw new ArgumentException();
+			if (!IsNotNull && 
+				(value.IsNull || Field.IsNullField(value)))
+				throw new ArgumentException(String.Format("The variable '{0}' cannot be assigned to NULL", Name));
 
 			if (!Type.Equals(value.Type)) {
 				if (!value.Type.CanCastTo(Type))
-					throw new ArgumentException();
+					throw new ArgumentException(String.Format("Trying to assign a value of type '{0}' to a variable of type '{1}'.", value.Type, Type));
 
 				value = value.CastTo(Type);
 			}
 
-			Value = value;
+			SetValue(SqlExpression.Constant(value));
+		}
+
+		public Field GetValue(IRequest context) {
+			if (Expression == null)
+				return Field.Null(Type);
+
+			return Expression.EvaluateToConstant(context, null);
 		}
 	}
 }

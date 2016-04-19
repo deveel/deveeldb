@@ -136,7 +136,9 @@ namespace Deveel.Data.Routines {
 				// routine,
 				if (v != null) {
 					for (int i = 0; i < size; ++i) {
-						val = context.GroupResolver.Resolve(v.ReferenceName, i);
+						var variable = context.GroupResolver.Resolve(v.ReferenceName, i);
+						val = variable.GetValue(context.Request);
+
 						var invokeResult = functionBody(context.New(new SqlExpression[] {
 							SqlExpression.Constant(result),
 							SqlExpression.Constant(val)

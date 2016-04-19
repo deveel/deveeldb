@@ -68,7 +68,7 @@ namespace Deveel.Data.Sql.Variables {
 			if (variable == null)
 				return false;
 
-			return variable.Value.AsBoolean();
+			return variable.GetValue(null).AsBoolean();
 		}
 
 		public static string GetStringVariable(this IVariableScope transaction, string name) {
@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Variables {
 			if (variable == null)
 				return null;
 
-			return variable.Value;
+			return variable.GetValue(null).AsVarChar();
 		}
 	}
 }

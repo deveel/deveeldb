@@ -55,13 +55,16 @@ namespace Deveel.Data.Sql.Statements {
 		protected virtual void AfterLoop(ExecutionContext context) {
 		}
 
+		protected virtual LoopStatement CreateNew() {
+			return new LoopStatement { Label = Label };
+		}
+
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			if (!LoopBreakChecker.HasBreak(this))
 				throw new InvalidOperationException("The loop has no possible exit");
 
-			var loop = new LoopStatement {
-				Label = Label
-			};
+
+			var loop = CreateNew();
 
 			foreach (var statement in Statements) {
 				var prepared = statement.Prepare(context);
@@ -75,12 +78,12 @@ namespace Deveel.Data.Sql.Statements {
 			return loop;
 		}
 
-		protected override void ExecuteStatement(ExecutionContext context) {
+		protected override void ExecuteBlock(ExecutionContext context) {
 			BeforeLoop(context);
 
 			while (Loop(context)) {
 				if (CanExecute(context))
-					base.ExecuteStatement(context);
+					base.ExecuteBlock(context);
 			}
 
 			AfterLoop(context);

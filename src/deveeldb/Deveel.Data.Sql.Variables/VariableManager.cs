@@ -74,12 +74,12 @@ namespace Deveel.Data.Sql.Variables {
 			return variables.Remove(name);
 		}
 
-		Field IVariableResolver.Resolve(ObjectName variableName) {
+		Variable IVariableResolver.Resolve(ObjectName variableName) {
 			Variable variable;
 			if (!variables.TryGetValue(variableName.Name, out variable))
 				return null;
 
-			return variable.Value;
+			return variable;
 		}
 
 		SqlType IVariableResolver.ReturnType(ObjectName variableName) {

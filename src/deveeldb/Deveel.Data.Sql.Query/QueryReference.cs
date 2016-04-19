@@ -36,8 +36,9 @@ namespace Deveel.Data.Sql.Query {
 			get { return Value == null ? null : Value.Type; }
 		}
 
-		public Field Evaluate(IVariableResolver resolver) {
-			Value = resolver.Resolve(Name);
+		public Field Evaluate(IVariableResolver resolver, IRequest context) {
+			var variable = resolver.Resolve(Name);
+			Value = variable.GetValue(context);
 			return Value;
 		}
 	}

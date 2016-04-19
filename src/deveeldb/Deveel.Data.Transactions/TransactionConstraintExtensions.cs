@@ -27,6 +27,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Transactions {
 	public static class TransactionConstraintExtensions {
@@ -1054,9 +1055,11 @@ namespace Deveel.Data.Transactions {
 				get { return rowIndex; }
 			}
 
-			public Field Resolve(ObjectName variable) {
+			public Variable Resolve(ObjectName variable) {
 				int colIndex = FindColumnName(variable);
-				return table.GetValue(rowIndex, colIndex);
+				var value = table.GetValue(rowIndex, colIndex);
+				var varType = table.TableInfo[colIndex].ColumnType;
+				return new Variable(new VariableInfo(variable.FullName, varType, true), value);
 			}
 
 			public SqlType ReturnType(ObjectName variable) {

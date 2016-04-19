@@ -27,7 +27,7 @@ using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DeclareCursorStatement : SqlStatement, IDeclarationStatement {
+	public sealed class DeclareCursorStatement : SqlStatement, IDeclarationStatement, IPlSqlStatement {
 		public DeclareCursorStatement(string cursorName, SqlQueryExpression queryExpression) 
 			: this(cursorName, null, queryExpression) {
 		}

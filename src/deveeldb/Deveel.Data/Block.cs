@@ -95,14 +95,6 @@ namespace Deveel.Data {
 			get { return Context; }
 		}
 
-		void IBlock.Execute(BlockExecuteContext context) {
-			ExecuteBlock(context);
-		}
-
-		protected virtual void ExecuteBlock(BlockExecuteContext context) {
-			// default implementation is an empty block, that does nothing
-		}
-
 		public virtual IBlock CreateBlock() {
 			return new Block(this);
 		}

@@ -23,6 +23,7 @@ using Deveel.Data.Mapping;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Tables {
 	/// <summary>
@@ -475,7 +476,7 @@ namespace Deveel.Data.Sql.Tables {
 				get { return assignmentCount; }
 			}
 
-			public Field Resolve(ObjectName columnName) {
+			public Variable Resolve(ObjectName columnName) {
 				string colName = columnName.Name;
 
 				int colIndex = row.Table.TableInfo.IndexOfColumn(colName);
@@ -486,7 +487,8 @@ namespace Deveel.Data.Sql.Tables {
 				if (!row.values.TryGetValue(colIndex, out value))
 					throw new InvalidOperationException("Column " + colName + " hasn't been set yet.");
 
-				return value;
+				var columnType = row.Table.TableInfo[colIndex].ColumnType;
+				return new Variable(new VariableInfo(columnName.FullName, columnType, true), value);
 			}
 
 			public SqlType ReturnType(ObjectName columnName) {

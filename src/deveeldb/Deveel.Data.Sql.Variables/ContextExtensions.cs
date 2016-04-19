@@ -145,12 +145,12 @@ namespace Deveel.Data.Sql.Variables {
 				this.context = context;
 			}
 
-			public Field Resolve(ObjectName variableName) {
+			public Variable Resolve(ObjectName variableName) {
 				var variable = context.FindVariable(variableName.Name);
 				if (variable == null)
 					return null;
 
-				return variable.Value;
+				return variable;
 			}
 
 			public SqlType ReturnType(ObjectName variableName) {
