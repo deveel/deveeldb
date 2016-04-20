@@ -14,6 +14,7 @@ unitStatement
 	| createViewStatement
 	| createSequenceStatement
 	| createTriggerStatement
+	| createCallbackTriggerStatement
 	| createFunctionBody
 	| createProcedureBody
 	| createUserStatement
@@ -246,8 +247,8 @@ sequenceStartClause
 
 selectStatement
     : subquery 
-	  ( order_by_clause? for_update_clause?
-	  | for_update_clause? order_by_clause? )
+	  ( orderByClause? forUpdateClause?
+	  | forUpdateClause? orderByClause? )
 	  queryLimitClause? SEMICOLON?
     ;
 
@@ -345,7 +346,6 @@ statement
     | gotoStatement
     | ifStatement
     | loopStatement
-    | forallStatement
     | nullStatement
     | raiseStatement
     | returnStatement
@@ -504,31 +504,19 @@ loopStatement
 
 // $<Loop - Specific Clause
 
-cursorLoopParam
-    : id IN REVERSE? lower_bound '..' upper_bound
+cursorLoopParam	
+    : id IN REVERSE? lowerBound DOUBLE_PERIOD upperBound
     | record_name IN ( cursor_name expression_list? | '(' selectStatement ')')
     ;
 
 // $>
 
-forallStatement
-    : FORALL id IN bounds_clause sql_statement
-    ;
 
-bounds_clause
-    : lower_bound '..' upper_bound
-    | VALUES OF id
-    ;
-
-between_bound
-    : BETWEEN lower_bound AND upper_bound
-    ;
-
-lower_bound
+lowerBound
     : concatenation
     ;
 
-upper_bound
+upperBound
     : concatenation
     ;
 
@@ -607,19 +595,9 @@ showStatement
 // $<SQL PL/SQL Statements
 
 sql_statement
-    : executeImmediate
-    | dmlStatement
+    : dmlStatement
     | cursorStatement
     | transactionControlStatement
-    ;
-
-executeImmediate
-    : EXECUTE IMMEDIATE expression (into_clause | dynamic_returning_clause)?
-    ;
-
-// $<Execute Immediate - Specific Clause
-dynamic_returning_clause
-    : (RETURNING | RETURN) into_clause
     ;
 
 // $>
@@ -628,7 +606,6 @@ dynamic_returning_clause
 
 transactionControlStatement
     : setTransactionCommand
-    | set_constraint_command
     | commitStatement
     | rollbackStatement
     ;
@@ -649,10 +626,6 @@ setIsolationLevel
 setIgnoreCase
    : IGNORE IDENTIFIERS? CASE (ON | OFF)?
    ;
-
-set_constraint_command
-    : SET (CONSTRAINT | CONSTRAINTS) (ALL | constraint_name (',' constraint_name)*) (IMMEDIATE | DEFERRED)
-    ;
 
 commitStatement
     : COMMIT WORK? 
@@ -689,44 +662,40 @@ triggerRenameAction
 	;
 
 createTriggerStatement
-    : CREATE ( OR REPLACE )? CALLBACK? TRIGGER objectName
-    (simple_dml_trigger | compound_dml_trigger | non_dml_trigger)
-    (ENABLE | DISABLE)? trigger_when_clause? trigger_body SEMICOLON?
+    : CREATE ( OR REPLACE )? TRIGGER objectName
+    (simpleDmlTrigger | nonDmlTrigger)
+    (ENABLE | DISABLE)? triggerWhenClause? triggerBody SEMICOLON?
     ;
 
-trigger_when_clause
+createCallbackTriggerStatement
+    : CREATE ( OR REPLACE )? CALLBACK TRIGGER objectName
+	   (simpleDmlTrigger | nonDmlTrigger) SEMICOLON?
+	;
+
+triggerWhenClause
     : WHEN '(' condition ')'
     ;
 
 // $<Create Trigger- Specific Clauses
-simple_dml_trigger
-    : (BEFORE | AFTER | INSTEAD OF) dml_event_clause for_each_row?
+simpleDmlTrigger
+    : (BEFORE | AFTER | INSTEAD OF) dmlEventClause forEachRow?
     ;
 
-for_each_row
+forEachRow
     : FOR EACH ROW
     ;
 
-compound_dml_trigger
-    : FOR dml_event_clause
-    ;
-
-non_dml_trigger
+nonDmlTrigger
     : (BEFORE | AFTER) non_dml_event (OR non_dml_event)* ON (DATABASE | (schema_name '.')? SCHEMA)
     ;
 
-trigger_body
-    : COMPOUND TRIGGER
-    | CALL id
-    | trigger_block
+triggerBody
+    : CALL objectName function_argument?
+    | triggerBlock
     ;
 
-trigger_block
+triggerBlock
     : (DECLARE? declaration+)? body
-    ;
-
-routine_clause
-    : objectName function_argument?
     ;
 
 non_dml_event
@@ -745,12 +714,12 @@ non_dml_event
     | SCHEMA
     ;
 
-dml_event_clause
-    : dml_event_element (OR dml_event_element)* ON objectName
+dmlEventClause
+    : dmlEventElement (OR dmlEventElement)* ON objectName
     ;
 
-dml_event_element
-    : (DELETE|INSERT|UPDATE) (OF id (',' id)*)?
+dmlEventElement
+    : (DELETE|INSERT|UPDATE)
     ;
 
 
@@ -835,108 +804,89 @@ block
 
 // $<Select - Specific Clauses
 
-factoring_element
-    : query_name ('(' id (',' id)* ')')? AS '(' subquery order_by_clause? ')'
-    ;
-
-
 subquery
-    : subquery_basic_elements subquery_operation_part*
+    : subqueryBasicElements subquery_operation_part*
     ;
 
 subquery_operation_part
-    : (UNION ALL? | INTERSECT | ( MINUS | EXCEPT) ) subquery_basic_elements
+    : (UNION ALL? | INTERSECT | ( MINUS | EXCEPT) ) subqueryBasicElements
     ;
 
-subquery_basic_elements
-    : query_block
+subqueryBasicElements
+    : queryBlock
     | '(' subquery ')'
     ;
 
-query_block
+queryBlock
     : SELECT (DISTINCT | UNIQUE | ALL)? (all='*' | selectedElement (',' selectedElement)*)
-      into_clause? from_clause? whereClause? (group_by_clause | group_max_clause)?
+      into_clause? fromClause? whereClause? (groupByClause | groupMaxClause)? 
     ;
 
 selectedElement
     : (expression | selectedColumn ) column_alias?
     ;
 
-from_clause
-    : FROM table_ref_list
+fromClause
+    : FROM tableRefList
     ;
 
 selectedColumn
     : objectName ('.' glob= '*')?
 	;
 
-table_ref_list
-    : table_ref (',' table_ref)*
+tableRefList
+    : tableRef (',' tableRef)*
     ;
 
-table_ref
-    : dml_table_expression_clause join_clause*
+tableRef
+    : dml_table_expression_clause joinClause*
     ;
 
 
-join_clause
-    : (CROSS | NATURAL)? (INNER | outer_join_type)? 
-      JOIN dml_table_expression_clause join_on_part
+joinClause
+    : (INNER | outerJoinType)? 
+      JOIN dml_table_expression_clause joinOnPart
     ;
 
-join_on_part
+joinOnPart
     : ON condition
     ;
 
-outer_join_type
+outerJoinType
     : (FULL | LEFT | RIGHT) OUTER?
     ;
 
-start_part
-    : START WITH condition
+groupByClause
+    : GROUP BY groupByElements havingClause?
+    | havingClause (GROUP BY groupByElements )?
     ;
 
-group_by_clause
-    : GROUP BY group_by_elements (',' group_by_elements)* having_clause?
-    | having_clause (GROUP BY group_by_elements (',' group_by_elements)*)?
-    ;
-
-group_max_clause
+groupMaxClause
     : GROUP MAX objectName
 	;
 
-group_by_elements
-    : expression
+groupByElements
+    : expression (',' expression )*
     ;
 
-having_clause
+havingClause
     : HAVING condition
     ;
 
-return_rows_clause
-    : RETURN (UPDATED | ALL) ROWS
+orderByClause
+    : ORDER BY orderByElements
     ;
 
-order_by_clause
-    : ORDER BY order_by_elements (',' order_by_elements)*
+orderByElements
+    : orderByElement (',' orderByElement)*
+	;
+
+orderByElement
+    : expression (ASC | DESC)?
     ;
 
-order_by_elements
-    : expression (ASC | DESC)? (NULLS (FIRST | LAST))?
-    ;
-
-for_update_clause
-    : FOR UPDATE for_update_of_part? for_update_options?
-    ;
-
-for_update_of_part
-    : OF id (',' id)*
-    ;
-
-for_update_options
-    : SKIP LOCKED
-    | NOWAIT
-    | WAIT expression
+forUpdateClause
+    : FOR UPDATE
     ;
 
 // $>
@@ -1127,8 +1077,6 @@ standard_function
 	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenation_wrapper)) ')' #CountFunction
     | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS datatype ')' #CastFunction
     | EXTRACT '(' regular_id FROM concatenation_wrapper ')' #ExtractFunction
-    | (FIRST_VALUE | LAST_VALUE) function_argument_analytic respect_or_ignore_nulls?
-      '(' expression_wrapper (',' expression_wrapper)* ')' #FirstLastFunction
     | TREAT '(' expression_wrapper AS REF? datatype ')' #TreatFunction
     | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation_wrapper ')' #TrimFunction
     ;
@@ -1168,14 +1116,6 @@ function_argument
     : '(' argument? (',' argument )* ')'
     ;
 
-function_argument_analytic
-    : '(' (argument respect_or_ignore_nulls?)? (',' argument respect_or_ignore_nulls?)* ')'
-    ;
-
-respect_or_ignore_nulls
-    : (RESPECT | IGNORE) NULLS
-    ;
-
 argument
     : (id '=' '>')? expression_wrapper
     ;
@@ -1191,7 +1131,7 @@ type_argument
 	;
 
 type_argument_spec
-    : ( id '=' '>' )? (numeric | quoted_string )
+    : ( id '=' )? (numeric | quoted_string )
 	;
 
 
@@ -1269,17 +1209,10 @@ parameter_name
     : id
     ;
 
-main_model_name
-    : id
-    ;
-
 query_name
     : id
     ;
 
-constraint_name
-    : id ('.' id)* ('@' link_name)?
-    ;
 
 variable_name
     : id

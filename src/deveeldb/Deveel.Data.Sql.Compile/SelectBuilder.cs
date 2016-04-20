@@ -43,11 +43,11 @@ namespace Deveel.Data.Sql.Compile {
 
 			var statement = new SelectStatement(query);
 
-			var orderBy = context.order_by_clause();
-			var forUpdate = context.for_update_clause();
+			var orderBy = context.orderByClause();
+			var forUpdate = context.forUpdateClause();
 
 			if (orderBy != null) {
-				var sortColumns = orderBy.order_by_elements().Select(x => {
+				var sortColumns = orderBy.orderByElements().orderByElement().Select(x => {
 					bool asc = x.DESC() == null;
 					var exp = Expression.Build(x.expression());
 					return new SortColumn(exp, asc);

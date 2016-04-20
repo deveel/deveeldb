@@ -22,6 +22,7 @@ namespace Deveel.Data.Sql.Cursors {
 		Closed = 0,
 		Open = 1,
 		Fetching = 2,
-		Disposed = 3
+		NotFetching = 3,
+		Disposed = 4
 	}
 }

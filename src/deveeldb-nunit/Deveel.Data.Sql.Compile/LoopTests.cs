@@ -41,5 +41,25 @@ namespace Deveel.Data.Sql.Compile {
 			var statement = result.Statements.ElementAt(0);
 			Assert.IsInstanceOf<LoopStatement>(statement);
 		}
+
+		[Test]
+		public void EmptyForLoop() {
+			const string sql = @"FOR i IN 32..56 LOOP
+									IF a = 33 THEN
+                                      EXIT;
+                                    END IF 
+								 END LOOP";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+			Assert.IsInstanceOf<ForLoopStatement>(statement);
+		}
+
 	}
 }

@@ -207,10 +207,6 @@ namespace Deveel.Data.Sql.Compile {
 			return new GoToStatement(label);
 		}
 
-		public override SqlStatement VisitForallStatement(PlSqlParser.ForallStatementContext context) {
-			return base.VisitForallStatement(context);
-		}
-
 		public override SqlStatement VisitLoopStatement(PlSqlParser.LoopStatementContext context) {
 			LoopStatement loop;
 
@@ -218,7 +214,20 @@ namespace Deveel.Data.Sql.Compile {
 				var condition = Expression.Build(context.condition());
 				loop = new WhileLoopStatement(condition);
 			} else if (context.FOR() != null) {
-				throw new NotImplementedException();
+				var param = context.cursorLoopParam();
+				if (param.lowerBound() != null &&
+				    param.upperBound() != null) {
+					var lower = Expression.Build(param.lowerBound());
+					var upper = Expression.Build(param.upperBound());
+					var indexName = Name.Simple(param.id());
+
+					var reverse = param.REVERSE() != null;
+					loop = new ForLoopStatement(indexName, lower, upper) {
+						Reverse = reverse
+					};
+				} else {
+					throw new NotImplementedException();
+				}
 			} else {
 				loop = new LoopStatement();
 			}

@@ -74,18 +74,18 @@ namespace Deveel.Data.Sql.Cursors {
 				rowOffset = CurrentOffset + offset;
 			} else {
 				// Should never happen
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("Invalid fetch direction");
 			}
 
-			if (rowOffset < 0 || rowOffset >= table.RowCount)
-				throw new IndexOutOfRangeException(
-					String.Format("The fetch offset '{0}' is smaller than zero or greater than the result set ({1}).", rowOffset,
-						table.RowCount));
+			if (rowOffset < 0 || rowOffset >= table.RowCount) {
+				Status = CursorStatus.NotFetching;
+				CurrentRow = null;
+			} else {
+				Status = CursorStatus.Fetching;
+				CurrentRow = table.GetRow(rowOffset);
+			}
 
 			CurrentOffset = rowOffset;
-			Status = CursorStatus.Fetching;
-
-			CurrentRow = table.GetRow(rowOffset);
 			return CurrentRow;
 		}
 

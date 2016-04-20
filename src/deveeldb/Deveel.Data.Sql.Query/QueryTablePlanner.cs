@@ -55,12 +55,12 @@ namespace Deveel.Data.Sql.Query {
 			// Merge the variable list
 			var newVarList = new ObjectName[left.ColumnNames.Length + right.ColumnNames.Length];
 			Array.Copy(left.ColumnNames, 0, newVarList, 0, left.ColumnNames.Length);
-			Array.Copy(right.ColumnNames, 0, newVarList, left.ColumnNames.Length - 1, right.ColumnNames.Length);
+			Array.Copy(right.ColumnNames, 0, newVarList, left.ColumnNames.Length, right.ColumnNames.Length);
 
 			// Merge the unique table names list
 			var newUniqueList = new string[left.UniqueNames.Length + right.UniqueNames.Length];
 			Array.Copy(left.UniqueNames, 0, newUniqueList, 0, left.UniqueNames.Length);
-			Array.Copy(right.UniqueNames, 0, newUniqueList, left.UniqueNames.Length - 1, right.UniqueNames.Length);
+			Array.Copy(right.UniqueNames, 0, newUniqueList, left.UniqueNames.Length, right.UniqueNames.Length);
 
 			// Return the new table source plan.
 			return new TablePlan(plan, newVarList, newUniqueList);

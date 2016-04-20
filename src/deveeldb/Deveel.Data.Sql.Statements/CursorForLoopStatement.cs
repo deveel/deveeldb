@@ -61,19 +61,23 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override bool Loop(ExecutionContext context) {
-			// TODO: Check if it can still enumerate
 			var cursor = context.Request.Context.FindCursor(CursorName);
+			if (cursor == null)
+				throw new StatementException(String.Format("The cursor '{0}' could not be found in the context.", CursorName));
 
-			return base.Loop(context);
+			if (cursor.Status == CursorStatus.Closed ||
+				cursor.Status == CursorStatus.Disposed)
+				throw new StatementException(String.Format("The cursor '{0}' is disposed or closed.", CursorName));
+
+			cursor.Fetch(FetchDirection.Next);
+
+			return cursor.Status == CursorStatus.Fetching;
 		}
 
 		protected override void AfterLoop(ExecutionContext context) {
 			var variable = context.Request.Context.FindVariable(IndexName);
 			var value = variable.Evaluate(context.Request).Add(Field.BigInt(1));
 			context.Request.Context.SetVariable(IndexName, SqlExpression.Constant(value));
-
-			var cursor = context.Request.Context.FindCursor(CursorName);
-			cursor.Fetch(context.Request, FetchDirection.Next);
 
 			base.AfterLoop(context);
 		}

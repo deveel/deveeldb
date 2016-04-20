@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public static SqlQueryExpression Form(PlSqlParser.SubqueryContext context, out IntoClause into) {
-			var query = Form(context.subquery_basic_elements(), out into);
+			var query = Form(context.subqueryBasicElements(), out into);
 
 			var opPart = context.subquery_operation_part();
 
@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Compile {
 
 					bool isAll = part.ALL() != null;
 
-					var next = Form(part.subquery_basic_elements());
+					var next = Form(part.subqueryBasicElements());
 					var prev = query.NextComposite;
 
 					if (prev == null) {
@@ -70,21 +70,21 @@ namespace Deveel.Data.Sql.Compile {
 			return query;
 		}
 
-		private static SqlQueryExpression Form(PlSqlParser.Subquery_basic_elementsContext context) {
+		private static SqlQueryExpression Form(PlSqlParser.SubqueryBasicElementsContext context) {
 			IntoClause into;
 			return Form(context, out into);
 		}
 
-		private static SqlQueryExpression Form(PlSqlParser.Subquery_basic_elementsContext context, out IntoClause into) {
+		private static SqlQueryExpression Form(PlSqlParser.SubqueryBasicElementsContext context, out IntoClause into) {
 			var sub = context.subquery();
 			if (sub != null && !sub.IsEmpty)
 				return Form(sub, out into);
 
-			return Form(context.query_block(), out into);
+			return Form(context.queryBlock(), out into);
 		}
 
-		private static SqlQueryExpression Form(PlSqlParser.Query_blockContext context, out IntoClause into) {
-			var fromClause = FromClauseBuilder.Build(context.from_clause());
+		private static SqlQueryExpression Form(PlSqlParser.QueryBlockContext context, out IntoClause into) {
+			var fromClause = FromClauseBuilder.Build(context.fromClause());
 
 			SelectColumn[] columns;
 
@@ -98,7 +98,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			into = null;
 
-			if (context.DISTINCT() != null)
+			if (context.DISTINCT() != null ||
+				context.UNIQUE() != null)
 				query.Distinct = true;
 
 			var intoClause = context.into_clause();
@@ -115,16 +116,16 @@ namespace Deveel.Data.Sql.Compile {
 			if (fromClause != null)
 				query.FromClause = fromClause;
 
-			var groupBy = context.group_by_clause();
+			var groupBy = context.groupByClause();
 			if (groupBy != null && !groupBy.IsEmpty) {
-				query.GroupBy = groupBy.group_by_elements().Select(x => new SqlExpressionVisitor().Visit(x));
+				query.GroupBy = groupBy.groupByElements().expression().Select(x => new SqlExpressionVisitor().Visit(x));
 
-				var having = groupBy.having_clause();
+				var having = groupBy.havingClause();
 				if (having != null)
 					query.HavingExpression = new SqlExpressionVisitor().Visit(having.condition());
 			}
 
-			var groupMax = context.group_max_clause();
+			var groupMax = context.groupMaxClause();
 			if (groupMax != null && !groupMax.IsEmpty) {
 				var maxColumn = Name.Object(groupMax.objectName());
 				query.GroupMax = maxColumn;
@@ -147,17 +148,17 @@ namespace Deveel.Data.Sql.Compile {
 		#region FromClauseBuilder
 
 		static class FromClauseBuilder {
-			public static FromClause Build(PlSqlParser.From_clauseContext context) {
+			public static FromClause Build(PlSqlParser.FromClauseContext context) {
 				if (context == null)
 					return null;
 
 				var clause = new FromClause();
 
-				var list = context.table_ref_list();
+				var list = context.tableRefList();
 				if (list.IsEmpty)
 					throw new ParseCanceledException("No source set in FROM clause");
 
-				var tableRefs = list.table_ref().Select(FormTableRef);
+				var tableRefs = list.tableRef().Select(FormTableRef);
 
 				bool joinSeen = false;
 				bool first = true;
@@ -227,16 +228,16 @@ namespace Deveel.Data.Sql.Compile {
 
 			#endregion
 
-			private static JoinNode FormJoinNode(PlSqlParser.Join_clauseContext context) {
+			private static JoinNode FormJoinNode(PlSqlParser.JoinClauseContext context) {
 				JoinType joinType;
 				if (context.INNER() != null) {
 					joinType = JoinType.Inner;
-				} else if (!context.outer_join_type().IsEmpty) {
-					if (context.outer_join_type().FULL() != null) {
+				} else if (!context.outerJoinType().IsEmpty) {
+					if (context.outerJoinType().FULL() != null) {
 						joinType = JoinType.Full;
-					} else if (context.outer_join_type().LEFT() != null) {
+					} else if (context.outerJoinType().LEFT() != null) {
 						joinType = JoinType.Left;
-					} else if (context.outer_join_type().RIGHT() != null) {
+					} else if (context.outerJoinType().RIGHT() != null) {
 						joinType = JoinType.Right;
 					} else {
 						throw new ParseCanceledException("Invalid outer join type");
@@ -245,7 +246,7 @@ namespace Deveel.Data.Sql.Compile {
 					throw new ParseCanceledException("Invalid join type");
 				}
 
-				var onPart = context.join_on_part();
+				var onPart = context.joinOnPart();
 				if (onPart.IsEmpty)
 					throw new ParseCanceledException("None ON expression found in JOIN clause");
 
@@ -259,9 +260,9 @@ namespace Deveel.Data.Sql.Compile {
 				};
 			}
 
-			private static TableRef FormTableRef(PlSqlParser.Table_refContext context) {
+			private static TableRef FormTableRef(PlSqlParser.TableRefContext context) {
 				var source = FormSource(context.dml_table_expression_clause());
-				var joinNodes = context.join_clause().Select(FormJoinNode);
+				var joinNodes = context.joinClause().Select(FormJoinNode);
 
 				return new TableRef {
 					Source = source,
