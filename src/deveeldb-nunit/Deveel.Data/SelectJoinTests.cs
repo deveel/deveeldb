@@ -140,5 +140,13 @@ namespace Deveel.Data {
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
 		}
+
+		[Test]
+		public void SimpleNaturalJoin() {
+			var result = Execute("SELECT * FROM persons, codes");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(6, result.RowCount);
+		}
 	}
 }

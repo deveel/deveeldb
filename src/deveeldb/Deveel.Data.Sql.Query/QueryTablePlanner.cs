@@ -184,7 +184,7 @@ namespace Deveel.Data.Sql.Query {
 
 				// Else we must assume a non-dependent join (not an outer join).
 				// Perform a natural join
-				IQueryPlanNode node1 = new NaturalJoinNode(plan1.Plan, plan2.Plan);
+				var node1 = new NaturalJoinNode(plan1.Plan, plan2.Plan);
 				return MergePlans(plan1, plan2, node1);
 			}
 
