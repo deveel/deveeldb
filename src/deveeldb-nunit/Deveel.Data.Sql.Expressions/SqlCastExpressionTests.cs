@@ -155,7 +155,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
 			Assert.AreEqual(SqlTypeCode.String, value.Type.TypeCode);
-			Assert.AreEqual(new SqlString("False"), value.Value);
+			Assert.AreEqual(new SqlString("false"), value.Value);
 		}
 
 		[Test]
@@ -171,7 +171,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(value.Value);
 			Assert.IsInstanceOf<StringType>(value.Type);
 			Assert.AreEqual(SqlTypeCode.String, value.Type.TypeCode);
-			Assert.AreEqual(new SqlString("True"), value.Value);
+			Assert.AreEqual(new SqlString("true"), value.Value);
 		}
 
 		[Test]

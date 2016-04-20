@@ -193,7 +193,7 @@ namespace Deveel.Data.Sql.Types {
 		[TestCase("789919992", 789919992, false, true)]
 		[TestCase("56.0993", 56.0993, false, false)]
 		[TestCase("-67378", -67378, true, true)]
-		public void CastToSimpleNumeric(string s, SqlTypeCode typeCode, double expected, bool canBeInt, bool canBeLong) {
+		public void CastToSimpleNumeric(string s, double expected, bool canBeInt, bool canBeLong) {
 			var type = PrimitiveTypes.String();
 			var value = new SqlString(s);
 

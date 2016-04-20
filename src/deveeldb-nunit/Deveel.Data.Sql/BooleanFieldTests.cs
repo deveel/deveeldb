@@ -69,12 +69,12 @@ namespace Deveel.Data.Sql {
 
 			var s = (SqlString) v.Value;
 
-			Assert.AreEqual("True", s.Value);
+			Assert.AreEqual("true", s.Value);
 		}
 
 		[Test]
 		public static void ToVarChar_False() {
-			var value = Field.BooleanTrue;
+			var value = Field.BooleanFalse;
 			var v = value.AsVarChar();
 
 			Assert.IsNotNull(v);
@@ -84,7 +84,7 @@ namespace Deveel.Data.Sql {
 
 			var s = (SqlString)v.Value;
 
-			Assert.AreEqual("True", s.Value);
+			Assert.AreEqual("false", s.Value);
 		}
 
 		[Test]
