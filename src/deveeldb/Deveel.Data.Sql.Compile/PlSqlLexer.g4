@@ -74,6 +74,7 @@ CYCLE:                        C Y C L E;
 DATA:                         D A T A;
 DATABASE:                     D A T A B A S E;
 DATE:                         D A T E;
+DATETIME:                     D A T E T I M E;
 DAY:                          D A Y;
 DBTIMEZONE:                   D B T I M E Z O N E;
 DEC:                          D E C;

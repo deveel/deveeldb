@@ -58,5 +58,46 @@ namespace Deveel.Data.Sql.Types {
 			Assert.DoesNotThrow(() => result = type.Compare(SqlBoolean.True, new SqlNumber(22)));
 			Assert.AreEqual(1, result);
 		}
+
+		[TestCase(SqlTypeCode.Bit, true, "1")]
+		[TestCase(SqlTypeCode.Bit, false, "0")]
+		[TestCase(SqlTypeCode.Boolean, true, "true")]
+		[TestCase(SqlTypeCode.Boolean, false, "false")]
+		public void CastToString(SqlTypeCode typeCode, bool value, string expected) {
+			var type = PrimitiveTypes.Boolean(typeCode);
+
+			var boolean = new SqlBoolean(value);
+
+			var casted = type.CastTo(boolean, PrimitiveTypes.String());
+
+			Assert.IsInstanceOf<SqlString>(casted);
+			Assert.AreEqual(expected, casted.ToString());
+		}
+
+		[TestCase(true, 1)]
+		[TestCase(false, 0)]
+		public void CastToNumber(bool value, int expected) {
+			var type = PrimitiveTypes.Boolean();
+			var boolean = new SqlBoolean(value);
+
+			var casted = type.CastTo(boolean, PrimitiveTypes.Numeric());
+
+			Assert.IsInstanceOf<SqlNumber>(casted);
+			Assert.AreEqual(expected, ((SqlNumber)casted).ToInt32());
+		}
+
+		[TestCase(true, 1)]
+		[TestCase(false, 0)]
+		public void CastToBinary(bool value, byte expected) {
+			var type = PrimitiveTypes.Boolean();
+			var boolean = new SqlBoolean(value);
+
+			var casted = type.CastTo(boolean, PrimitiveTypes.Binary());
+
+			var expectedArray = new[] {expected};
+
+			Assert.IsInstanceOf<SqlBinary>(casted);
+			Assert.AreEqual(expectedArray, ((SqlBinary)casted).ToByteArray());
+		}
 	}
 }

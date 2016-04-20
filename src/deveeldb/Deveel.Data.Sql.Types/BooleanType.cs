@@ -92,8 +92,16 @@ namespace Deveel.Data.Sql.Types {
 		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
 			var bValue = ((SqlBoolean) value);
 			if (destType is StringType) {
-				var s = Convert.ToString(bValue);
-				// TODO: Provide a method in StringType to build a string specific to the type
+				if (bValue.IsNull)
+					return SqlString.Null;
+
+				string s;
+				if (TypeCode == SqlTypeCode.Bit) {
+					s = bValue ? "1" : "0";
+				} else {
+					s = bValue ? "true" : "false";
+				}
+
 				return new SqlString(s);
 			}
 			if (destType is NumericType) {
@@ -109,9 +117,10 @@ namespace Deveel.Data.Sql.Types {
 				return num;
 			}
 			if (destType is BinaryType) {
-				var bytes = (byte[]) Convert.ChangeType(bValue, typeof (byte[]), CultureInfo.InvariantCulture);
+				var bytes = new[] {bValue ? (byte)1 : (byte)0};
 				return new SqlBinary(bytes);
 			}
+
 			if (destType is BooleanType)
 				return value;
 

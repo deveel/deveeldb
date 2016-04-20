@@ -18,6 +18,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Objects {
+	[Serializable]
 	public struct SqlDayToSecond : ISqlObject, IComparable<SqlDayToSecond>, IEquatable<SqlDayToSecond> {
 		private readonly TimeSpan? value;
 
@@ -169,6 +170,10 @@ namespace Deveel.Data.Sql.Objects {
 
 		public static bool operator !=(SqlDayToSecond a, SqlDayToSecond b) {
 			return !(a == b);
+		}
+
+		public override string ToString() {
+			return value == null ? "NULL" : value.Value.ToString();
 		}
 	}
 }

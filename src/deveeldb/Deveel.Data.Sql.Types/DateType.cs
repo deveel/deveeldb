@@ -139,7 +139,8 @@ namespace Deveel.Data.Sql.Types {
 				return dateTime.ToDateString();
 			if (TypeCode == SqlTypeCode.Time)
 				return dateTime.ToTimeString();
-			if (TypeCode == SqlTypeCode.TimeStamp)
+			if (TypeCode == SqlTypeCode.TimeStamp ||
+				TypeCode == SqlTypeCode.DateTime)
 				return dateTime.ToTimeStampString();
 
 			return SqlString.Null;
@@ -237,6 +238,36 @@ namespace Deveel.Data.Sql.Types {
 			       sqlType == SqlTypeCode.Time ||
 			       sqlType == SqlTypeCode.TimeStamp ||
 				   sqlType == SqlTypeCode.DateTime;
+		}
+
+		public override ISqlObject Add(ISqlObject a, ISqlObject b) {
+			var date = (SqlDateTime) a;
+
+			if (b is SqlDayToSecond) {
+				var interval = (SqlDayToSecond) b;
+				return date.Add(interval);
+			}
+			if (b is SqlYearToMonth) {
+				var interval = (SqlYearToMonth) b;
+				return date.Add(interval);
+			}
+
+			throw new InvalidOperationException("Only YEAR TO MONTH and DAY TO SECOND can be added to a date");
+		}
+
+		public override ISqlObject Subtract(ISqlObject a, ISqlObject b) {
+			var date = (SqlDateTime)a;
+
+			if (b is SqlDayToSecond) {
+				var interval = (SqlDayToSecond)b;
+				return date.Subtract(interval);
+			}
+			if (b is SqlYearToMonth) {
+				var interval = (SqlYearToMonth)b;
+				return date.Subtract(interval);
+			}
+
+			throw new InvalidOperationException("Only YEAR TO MONTH and DAY TO SECOND can be subtracted from a date");
 		}
 	}
 }

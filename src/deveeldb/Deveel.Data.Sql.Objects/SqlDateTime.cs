@@ -577,7 +577,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
 			DateTimeOffset date;
-			if (DateTimeOffset.TryParseExact(s, SqlTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+			if (DateTimeOffset.TryParseExact(s, SqlTimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out date)) {
 				var offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes,0);
 				value = new SqlDateTime(1, 1, 1, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
 				return true;
@@ -591,7 +591,7 @@ namespace Deveel.Data.Sql.Objects {
 
 			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
 			DateTimeOffset date;
-			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) {
+			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out date)) {
 				var offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes, 0);
 				value = new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
 				return true;

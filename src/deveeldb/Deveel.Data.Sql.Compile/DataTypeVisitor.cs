@@ -17,11 +17,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 
 using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
 
 using Deveel.Data.Sql.Types;
 
@@ -29,6 +26,16 @@ namespace Deveel.Data.Sql.Compile {
 	class DataTypeVisitor : PlSqlParserBaseVisitor<DataTypeInfo> {
 
 		public override DataTypeInfo VisitIntervalType(PlSqlParser.IntervalTypeContext context) {
+			if (context.DAY() != null &&
+				context.TO() != null &&
+				context.SECOND() != null)
+				return new DataTypeInfo("DAY TO SECOND");
+
+			if (context.YEAR() != null &&
+				context.TO() != null &&
+				context.MONTH() != null)
+				return new DataTypeInfo("YEAR TO MONTH");
+
 			return base.VisitIntervalType(context);
 		}
 
@@ -166,12 +173,14 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override DataTypeInfo VisitTime_type(PlSqlParser.Time_typeContext context) {
 			SqlTypeCode typeCode;
-			if (context.DATE() != null) {
+			if (context.DATETIME() != null) {
+				typeCode = SqlTypeCode.DateTime;
+			} else if (context.DATE() != null) {
 				typeCode = SqlTypeCode.Date;
-			} else if (context.TIME() != null) {
-				typeCode = SqlTypeCode.Time;
 			} else if (context.TIMESTAMP() != null) {
 				typeCode = SqlTypeCode.TimeStamp;
+			} else if (context.TIME() != null) {
+				typeCode = SqlTypeCode.Time;
 			} else {
 				throw new ParseCanceledException("Invalid date type");
 			}

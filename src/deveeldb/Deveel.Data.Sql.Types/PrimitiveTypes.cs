@@ -285,7 +285,8 @@ namespace Deveel.Data.Sql.Types {
 
 			if (name.Equals("DATE", StringComparison.OrdinalIgnoreCase) ||
 			    name.Equals("TIME", StringComparison.OrdinalIgnoreCase) ||
-			    name.Equals("TIMESTAMP", StringComparison.OrdinalIgnoreCase))
+			    name.Equals("TIMESTAMP", StringComparison.OrdinalIgnoreCase) ||
+				name.Equals("DATETIME", StringComparison.OrdinalIgnoreCase))
 				return true;
 
 			if (name.Equals("YEAR TO MONTH", StringComparison.OrdinalIgnoreCase) ||
@@ -316,6 +317,10 @@ namespace Deveel.Data.Sql.Types {
 				typeName = "longvarchar";
 			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
 				typeName = "longvarbinary";
+			if (System.String.Equals("day to second", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "daytosecond";
+			if (System.String.Equals("year to month", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "yeartomonth";
 
 			SqlTypeCode typeCode;
 
@@ -432,6 +437,10 @@ namespace Deveel.Data.Sql.Types {
 			    sqlType == SqlTypeCode.TimeStamp ||
 			    sqlType == SqlTypeCode.DateTime)
 				return DateTime(sqlType);
+
+			if (sqlType == SqlTypeCode.YearToMonth ||
+			    sqlType == SqlTypeCode.DayToSecond)
+				return Interval(sqlType);
 
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);

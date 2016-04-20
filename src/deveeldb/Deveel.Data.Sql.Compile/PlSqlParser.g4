@@ -1230,7 +1230,7 @@ long_varbinary
 	;
 
 time_type
-    : (DATE | TIME | TIMESTAMP) (WITH local=LOCAL? TIME ZONE)?
+    : (DATE | TIMESTAMP | TIME | DATETIME ) (WITH local=LOCAL? TIME ZONE)?
 	;
 
 bind_variable
