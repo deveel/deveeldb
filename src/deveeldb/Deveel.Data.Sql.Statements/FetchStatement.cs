@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
@@ -39,6 +40,13 @@ namespace Deveel.Data.Sql.Statements {
 			CursorName = cursorName;
 			Direction = direction;
 			OffsetExpression = offsetExpression;
+		}
+
+		private FetchStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			CursorName = info.GetString("CursorName");
+			Direction = (FetchDirection) info.GetInt32("Direction");
+			OffsetExpression = (SqlExpression) info.GetValue("Offset", typeof(SqlExpression));
 		}
 
 		public string CursorName { get; private set; }
@@ -76,6 +84,12 @@ namespace Deveel.Data.Sql.Statements {
 				var result = new VirtualTable(row.Table, new List<int> {row.RowId.RowNumber});
 				context.SetResult(result);
 			}
+		}
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("CursorName", CursorName);
+			info.AddValue("Direction", (int)Direction);
+			info.AddValue("Offset", OffsetExpression);
 		}
 	}
 }

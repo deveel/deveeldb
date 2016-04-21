@@ -124,15 +124,6 @@ namespace Deveel.Data.Sql.Cursors {
 			return cursors.FirstOrDefault(x => x.CursorInfo.CursorName.Equals(cursorName, comparison));
 		}
 
-		internal void DisposeCursor(Cursor cursor) {
-			var name = cursor.CursorInfo.CursorName;
-			for (int i = cursors.Count - 1; i >= 0; i--) {
-				var cursorName = cursors[i].CursorInfo.CursorName;
-				if (cursorName.Equals(name, StringComparison.OrdinalIgnoreCase))
-					cursors.RemoveAt(i);
-			}
-		}
-
 		public bool DropCursor(string cursorName) {
 			var ignoreCase = Scope.IgnoreCase;
 			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;

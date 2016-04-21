@@ -40,6 +40,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		private ForLoopStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
+			IndexName = info.GetString("Index");
+			LowerBound = (SqlExpression) info.GetValue("LowerBound", typeof(SqlExpression));
+			UpperBound = (SqlExpression) info.GetValue("UpperBound", typeof(SqlExpression));
+			Reverse = info.GetBoolean("Reverse");
 		}
 
 		public string IndexName { get; private set; }
@@ -89,6 +93,14 @@ namespace Deveel.Data.Sql.Statements {
 				return variable.Evaluate(context.Request) >= lowerBound;
 
 			return variable.Evaluate(context.Request) < upperBound;
+		}
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Index", IndexName);
+			info.AddValue("LowerBound", LowerBound);
+			info.AddValue("UpperBound", UpperBound);
+			info.AddValue("Reverse", Reverse);
+			base.GetData(info);
 		}
 	}
 }

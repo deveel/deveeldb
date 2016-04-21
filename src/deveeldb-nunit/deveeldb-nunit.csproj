@@ -84,6 +84,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
+    <Compile Include="Deveel.Data.Serialization\ObjectNameSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializationTestBase.cs" />
     <Compile Include="Deveel.Data.Serialization\StatementSerializationTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />
     <Compile Include="Deveel.Data\AssignTests.cs" />
+    <Compile Include="Deveel.Data\CloseTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\ConversionFunctionTests.cs" />
     <Compile Include="Deveel.Data\CreateFunctionTests.cs" />

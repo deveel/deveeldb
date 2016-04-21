@@ -29,12 +29,13 @@ using System.Text;
 using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class InsertStatement : SqlStatement, IPlSqlStatement {
 		public InsertStatement(ObjectName tableName, IEnumerable<SqlExpression[]> values) 
 			: this(tableName, null, values) {
 		}
 
-		public InsertStatement(ObjectName tableName, IEnumerable<string> columnNames, IEnumerable<SqlExpression[]> values) {
+		public InsertStatement(ObjectName tableName, string[] columnNames, IEnumerable<SqlExpression[]> values) {
 			if (values == null)
 				throw new ArgumentNullException("values");
 			if (tableName == null)
@@ -45,9 +46,16 @@ namespace Deveel.Data.Sql.Statements {
 			Values = values;
 		}
 
+		private InsertStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			TableName = (ObjectName) info.GetValue("TableName", typeof(ObjectName));
+			ColumnNames = (string[]) info.GetValue("Columns", typeof(string[]));
+			Values = (SqlExpression[][]) info.GetValue("Values", typeof(SqlExpression[][]));
+		}
+
 		public ObjectName TableName { get; private set; }
 
-		public IEnumerable<string> ColumnNames { get; private set; } 
+		public string[] ColumnNames { get; private set; } 
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; }
 
@@ -182,6 +190,11 @@ namespace Deveel.Data.Sql.Statements {
 			throw new InvalidOperationException("Negative total matches");
 		}
 
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("TableName", TableName);
+			info.AddValue("Columns", ColumnNames);
+			info.AddValue("Values", Values);
+		}
 
 		#region Prepared
 
