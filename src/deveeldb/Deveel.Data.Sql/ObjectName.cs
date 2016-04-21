@@ -17,7 +17,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -282,51 +281,6 @@ namespace Deveel.Data.Sql {
 				code ^= Parent.GetHashCode();
 
 			return code;
-		}
-
-		public static void Serialize(ObjectName objectName, Stream stream) {
-			using (var writer = new BinaryWriter(stream, Encoding.Unicode)) {
-				Serialize(objectName, writer);
-			}
-		}
-
-		public static void Serialize(ObjectName objectName, BinaryWriter writer) {
-			if (objectName == null) {
-				writer.Write((byte) 0);
-				return;
-			}
-
-			writer.Write((byte)1);
-
-			if (objectName.Parent != null) {
-				writer.Write((byte) 1);
-				Serialize(objectName.Parent, writer);
-			} else {
-				writer.Write((byte)0);
-			}
-
-			writer.Write(objectName.Name);
-		}
-
-		public static ObjectName Deserialize(Stream stream) {
-			using (var reader = new BinaryReader(stream, Encoding.Unicode)) {
-				return Deserialize(reader);
-			}
-		}
-
-		public static ObjectName Deserialize(BinaryReader reader) {
-			var status = reader.ReadByte();
-			if (status == 0)
-				return null;
-
-			ObjectName parent = null;
-
-			var parentStatus = reader.ReadByte();
-			if (parentStatus == 1)
-				parent = Deserialize(reader);
-
-			var name = reader.ReadString();
-			return new ObjectName(parent, name);
 		}
 	}
 }

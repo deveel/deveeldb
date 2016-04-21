@@ -120,6 +120,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Sql\ArrayFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
     <Compile Include="Deveel.Data.Types\DateTypeTests.cs" />

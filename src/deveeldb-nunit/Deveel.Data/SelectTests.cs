@@ -246,6 +246,30 @@ namespace Deveel.Data {
 		}
 
 		[Test]
+		public void SelectOr() {
+			var result = Execute("SELECT * FROM test_table WHERE id = 1 OR id > 2");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void GroupBy() {
+			var result = Execute("SELECT * FROM test_table GROUP BY last_name");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(2, result.RowCount);
+		}
+
+		[Test]
+		public void GroupByAndHaving() {
+			var result = Execute("SELECT * FROM test_table GROUP BY last_name HAVING first_name = 'John'");
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.RowCount);
+		}
+
+		[Test]
 		public void FromMap() {
 			var result = Query.Select<TestClass>("SELECT * FROM test_table");
 
