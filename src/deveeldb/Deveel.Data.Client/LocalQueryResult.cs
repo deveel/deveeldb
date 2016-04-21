@@ -164,7 +164,7 @@ namespace Deveel.Data.Protocol {
         /// Returns a zero-based index representing the position of the column 
         /// with the given name among those in the result.
         /// </returns>
-        /// <exception cref="DatabaseException">
+        /// <exception cref="DeveelDbException">
         /// If no column with the given name was found within the result.
         /// </exception>
 		public int FindColumnIndex(string name) {

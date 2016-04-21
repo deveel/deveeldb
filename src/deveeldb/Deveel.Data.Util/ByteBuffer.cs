@@ -272,7 +272,7 @@ namespace Deveel.Data.Util {
 		/// <param name="number">The number to shift.</param>
 		/// <param name="bits">The number of bits to shift the given number.</param>
 		/// <returns>
-		/// Returns an <see cref="Deveel.Data.Int32">int</see> representing the shifted
+		/// Returns an <see cref="int"/> representing the shifted
 		/// number.
 		/// </returns>
 		public static int URShift(int number, int bits) {

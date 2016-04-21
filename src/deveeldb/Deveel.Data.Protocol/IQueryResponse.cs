@@ -19,8 +19,8 @@ using System;
 
 namespace Deveel.Data.Protocol {
 	///<summary>
-	/// The response to a command executed via the <see cref="IDatabaseInterface.ExecuteQuery"/>
-	/// method in the <see cref="IDatabaseInterface"/> interface.
+	/// The response to a command executed to a remote database that
+	/// holds the result of the execution for transferring to the client side.
 	///</summary>
 	/// <remarks>
 	/// This contains general information about the result of the command.

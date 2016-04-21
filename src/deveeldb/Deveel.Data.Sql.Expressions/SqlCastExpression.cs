@@ -19,6 +19,7 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Serialization;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -54,7 +55,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the destination type of the conversion
 		/// </summary>
-		/// <seealso cref="SqlType.CastTo(Field, SqlType)"/>
+		/// <seealso cref="SqlType.CastTo(ISqlObject, SqlType)"/>
 		/// <seealso cref="SqlType.CanCastTo"/>
 		public SqlType SqlType { get; private set; }
 

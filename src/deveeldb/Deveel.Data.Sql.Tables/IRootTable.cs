@@ -23,9 +23,9 @@ namespace Deveel.Data.Sql.Tables {
 	/// </summary>
 	/// <remarks>
 	/// A root table is a non-virtual table that represents table data 
-	/// in its lowest form.  When the <see cref="Table.ResolveToRawTable"/>
+	/// in its lowest form.  When the <see cref="IQueryTable.GetRawTableInfo"/>
 	/// method is called, if it encounters a table that implements 
-	/// <see cref="IRootTable"/> then it does not attempt to decend further 
+	/// <see cref="IRootTable"/> then it does not attempt to descend further 
 	/// to extract the underlying tables.
 	/// <para>
 	/// This interface is used for unions.

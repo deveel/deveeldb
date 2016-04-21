@@ -21,6 +21,15 @@ using System.Collections.Generic;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// Provides a default implementation of <see cref="IBlock"/> contract
+	/// </summary>
+	/// <remarks>
+	/// This block instance is also an <see cref="IEventSource">event source</see>
+	/// that provides diagnostic information to the listeners.
+	/// </remarks>
+	/// <seealso cref="IBlock"/>
+	/// <seealso cref="IEventSource"/>
 	public class Block : IBlock, IEventSource, ISystemDirectAccess {
 		private IQuery query;
 

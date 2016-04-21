@@ -343,33 +343,13 @@ namespace Deveel.Data.Transactions {
 		}
 
 		/// <summary>
-		/// Alters the table with the given name within this transaction to the
-		/// specified table definition.
-		/// </summary>
-		/// <param name="transaction"></param>
-		/// <param name="tableInfo"></param>
-		/// <remarks>
-		/// This should only be called under an exclusive lock on the connection.
-		/// </remarks>
-		/// <exception cref="StatementException">
-		/// If the table does not exist.
-		/// </exception>
-		public static void AlterTable(this ITransaction transaction, TableInfo tableInfo) {
-			transaction.AlterObject(tableInfo);
-		}
-
-		public static bool DropTable(this ITransaction transaction, ObjectName tableName) {
-			return transaction.DropObject(DbObjectType.Table, tableName);
-		}
-
-		/// <summary>
 		/// Sets the current value of a table native sequence.
 		/// </summary>
 		/// <param name="transaction"></param>
 		/// <param name="tableName">The table name.</param>
 		/// <param name="value">The current value of the native sequence.</param>
 		/// <seealso cref="ISequence"/>
-		/// <seealso cref="ISequenceManager"/>
+		/// <seealso cref="SequenceManager"/>
 		/// <returns>
 		/// Returns the current table sequence value after the set.
 		/// </returns>

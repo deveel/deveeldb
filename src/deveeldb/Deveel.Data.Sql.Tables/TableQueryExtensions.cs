@@ -921,7 +921,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <param name="column1"></param>
 		/// <param name="column2"></param>
 		/// <returns>
-		/// Returns the rows selected from <paramref name="table1"/>.
+		/// Returns the rows selected from <paramref name="other"/>.
 		/// </returns>
 		public static IEnumerable<int> SelectRowsIn(this ITable table, ITable other, int column1, int column2) {
 			// First pick the the smallest and largest table.  We only want to iterate
@@ -1053,7 +1053,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <summary>
 		/// A multi-column version of NOT IN.
 		/// </summary>
-		/// <param name="table1"></param>
+		/// <param name="table"></param>
 		/// <param name="other"></param>
 		/// <param name="t1Cols"></param>
 		/// <param name="t2Cols"></param>

@@ -315,10 +315,12 @@ namespace Deveel.Data {
 			return GetResult(request.ExecuteStatement(new InsertStatement(tableName, columnNames, values)));
 		}
 
+		[CLSCompliant(false)]
 		public static int Insert(this IRequest request, ObjectName tableName, SqlExpression[] values) {
 			return Insert(request, tableName, new string[0], values);
 		}
 
+		[CLSCompliant(false)]
 		public static int Insert(this IRequest request, ObjectName tableName, string[] columnNames, SqlExpression[] values) {
 			return request.Insert(tableName, columnNames, new SqlExpression[][] { values});
 		}

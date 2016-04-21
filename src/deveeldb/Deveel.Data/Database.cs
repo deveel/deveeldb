@@ -269,7 +269,6 @@ namespace Deveel.Data {
 		/// a call to <see cref="Open" /> is required.
 		/// </para>
 		/// </remarks>
-		/// <seealso cref="IDatabaseContext.Configuration" />
 		public void Create(string adminName, string adminPassword) {
 			if (Context.ReadOnly())
 				throw new DatabaseSystemException("Cannot create database in read-only mode.");

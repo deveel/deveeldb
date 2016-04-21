@@ -34,6 +34,7 @@ namespace Deveel.Data.Security {
 		/// <param name="objectName">The fully qualified name of the object on which
 		/// to grant the given access privileges to the user.</param>
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
+		/// <param name="grantee">The name of the grantee (user or role).</param>
 		/// <param name="granterName">The name of the user that granted.</param>
 		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string grantee, string granterName) 
 			: this(privileges, objectName, objectType, grantee, granterName, false) {
@@ -48,6 +49,7 @@ namespace Deveel.Data.Security {
 		/// <param name="objectName">The fully qualified name of the object on which
 		/// to grant the given access privileges to the user.</param>
 		/// <param name="objectType">The <see cref="DbObjectType">type of the object</see>.</param>
+		/// <param name="grantee">The name of the grantee (user or role).</param>
 		/// <param name="granterName">The name of the user that granted.</param>
 		/// <param name="withOption"></param>
 		public Grant(Privileges privileges, ObjectName objectName, DbObjectType objectType, string grantee, string granterName, bool withOption) {

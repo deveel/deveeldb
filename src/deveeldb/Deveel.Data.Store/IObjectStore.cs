@@ -24,11 +24,6 @@ namespace Deveel.Data.Store {
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// Object stores manage a variety of <see cref="ObjectType"/> and must
-	/// allow the creation and establishments of different type of objects
-	/// (strings or binaries).
-	/// </para>
-	/// <para>
 	/// Every object store has a unique identifier that is used
 	/// to resolve the final address of a large object.
 	/// </para>

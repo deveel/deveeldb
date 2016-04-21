@@ -21,7 +21,6 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]

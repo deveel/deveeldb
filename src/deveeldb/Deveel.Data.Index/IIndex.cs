@@ -23,7 +23,7 @@ namespace Deveel.Data.Index {
 	/// </summary>
 	/// <remarks>
 	/// The index may or may not be sorted or may be sorted over an 
-	/// <see cref="IIndexComparer"/>.
+	/// <see cref="IIndexComparer{T}"/>.
 	/// <para>
 	/// This interface exposes general index querying/inserting/removing methods.
 	/// </para>
@@ -32,7 +32,7 @@ namespace Deveel.Data.Index {
 	/// the interface.
 	/// </para>
 	/// <para>
-	/// An example of an implementation is <see cref="BlockIndex"/>.
+	/// An example of an implementation is <see cref="BlockIndex{T}"/>.
 	/// </para>
 	/// </remarks>
 	public interface IIndex : IIndex<int> {

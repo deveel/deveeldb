@@ -87,7 +87,6 @@ namespace Deveel.Data {
 		/// Gets a boolean value indicating if the database exists within the
 		/// context given.
 		/// </summary>
-		/// <seealso cref="Create"/>
 		bool Exists { get; }
 
 		/// <summary>

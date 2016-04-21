@@ -329,13 +329,23 @@ namespace Deveel.Data.Sql.Types {
 		/// Parses a SQL formatted string that defines a data-type into
 		/// a constructed <see cref="SqlType"/> object equivalent.
 		/// </summary>
-		/// <param name="query"></param>
+		/// <param name="context">A context used to resolve the SQL parser.</param>
 		/// <param name="s">The SQL formatted data-type string, defining the properties of the type.</param>
 		/// <remarks>
-		/// This method only supports primitive types.
+		/// If the <paramref name="context"/> is not provided, this will fail in case of
+		/// non-primitive types.
 		/// </remarks>
 		/// <returns>
+		/// Returns an instance of <see cref="SqlType"/> that corresponds to the
+		/// string provided.
 		/// </returns>
+		/// <exception cref="FormatException">
+		/// If the provided string does not resolve to any valid <see cref="SqlType"/>
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// If the string does not resolve to any primitive types and the <paramref name="context"/>
+		/// is <c>null</c> or the type is not found in the context.
+		/// </exception>
 		/// <seealso cref="PrimitiveTypes.IsPrimitive(SqlTypeCode)"/>
 		/// <seealso cref="ToString()"/>
 		public static SqlType Parse(IContext context, string s) {

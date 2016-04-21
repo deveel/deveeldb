@@ -17,7 +17,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql {
+namespace Deveel.Data.Sql.Sequences {
 	/// <summary>
 	/// The form of a <see cref="ISequence"/> object in a transaction.
 	/// </summary>

@@ -427,7 +427,6 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Increments the sequence and returns the computed value.
 		/// </summary>
-		/// <param name="context"></param>
 		/// <param name="sequenceName">The name of the sequence to increment and
 		/// whose incremented value must be returned.</param>
 		/// <returns>
@@ -448,7 +447,6 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the current value of the sequence.
 		/// </summary>
-		/// <param name="context"></param>
 		/// <param name="sequenceName">The name of the sequence whose current value
 		/// must be obtained.</param>
 		/// <returns>

@@ -119,7 +119,7 @@ namespace Deveel.Data.Store {
 		/// </summary>
 		/// <remarks>
 		/// This Lock mechanism is intended to inform the store when it is not safe to
-		/// <see cref="CheckPoint">checkpoint</see> the data in a log, ensuring that no 
+		/// checkpoint the data in a log, ensuring that no 
 		/// partial updates are committed to a transaction log and the data can be 
 		/// restored in a consistant manner.
 		/// <para>

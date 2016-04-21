@@ -19,7 +19,7 @@ using System;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
-	/// The possible types of actions in a <see cref="AlterTableAction"/>
+	/// The possible types of actions in a <see cref="IAlterTableAction"/>
 	/// expression.
 	/// </summary>
 	public enum AlterTableActionType {

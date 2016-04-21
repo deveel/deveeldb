@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Index {
 	/// <summary>
-	/// A block contained in a <see cref="BlockIndex"/>.
+	/// A block contained in a <see cref="BlockIndex{T}"/>.
 	/// </summary>
 	/// <remarks>
 	/// This exposes the contents of a block of the list.

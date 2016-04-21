@@ -85,7 +85,7 @@ namespace Deveel.Data.Configuration {
 		/// this method will add the key at this level of configuration
 		/// </para>
 		/// <para>
-		/// Setting a value for a given <see cref="key"/> that was already
+		/// Setting a value for a given <paramref name="key"/> that was already
 		/// defined by a parent object will override that value: a subsequent call
 		/// to <see cref="GetValue"/> will return the current value of the setting,
 		/// without removing the parent value setting.

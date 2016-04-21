@@ -150,7 +150,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns a list of <see cref="SqlStatement"/> objects resulting from
 		/// the parsing of the input string.
 		/// </returns>
-		/// <exception cref="SqlParseException">
+		/// <exception cref="FormatException">
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>
@@ -167,7 +167,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Returns a list of <see cref="SqlStatement"/> objects resulting from
 		/// the parsing of the input string.
 		/// </returns>
-		/// <exception cref="SqlParseException">
+		/// <exception cref="FormatException">
 		/// Thrown if the input string is of an invalid format and cannot form
 		/// into a valid statement.
 		/// </exception>

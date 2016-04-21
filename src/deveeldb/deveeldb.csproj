@@ -25,8 +25,9 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>0162,0168</NoWarn>
+    <NoWarn>0162,0168,1591</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\deveeldb.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\deveeldb.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>deveeldb.snk</AssemblyOriginatorKeyFile>
@@ -44,12 +47,16 @@
     <OutputPath>bin\x86\Debug\</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>bin\x86\Debug\deveeldb.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <PlatformTarget>x86</PlatformTarget>
     <OutputPath>bin\x86\Release\</OutputPath>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\x86\Release\deveeldb.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -57,6 +64,8 @@
     <DefineConstants>X64</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>bin\x64\Debug\deveeldb.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -64,6 +73,8 @@
     <Optimize>true</Optimize>
     <DefineConstants>X64</DefineConstants>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\x64\Release\deveeldb.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Antlr4.Runtime.net35, Version=4.3.0.0, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
@@ -852,7 +863,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\JoinType.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SelectColumn.cs" />
     <Compile Include="Deveel.Data.Index\ColumnIndex.cs" />
-    <Compile Include="Deveel.Data.Sql\SequenceType.cs" />
+    <Compile Include="Deveel.Data.Sql.Sequences\SequenceType.cs" />
     <Compile Include="Deveel.Data.Sql\SqlErrorException.cs" />
     <Compile Include="Deveel.Data.Sql\SqlModelErrorCodes.cs" />
     <Compile Include="Deveel.Data.Sql\SqlQuery.cs" />

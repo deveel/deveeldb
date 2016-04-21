@@ -29,8 +29,6 @@ namespace Deveel.Data.Store {
 	public sealed class SingleFileStoreSystem : IStoreSystem {
 		private IDatabaseContext context;
 
-		private bool disposed;
-
 		private readonly object checkPointLock = new object();
 
 		private IDictionary<int, SingleFileStore> stores;
@@ -119,7 +117,6 @@ namespace Deveel.Data.Store {
 				}
 			}
 
-			disposed = true;
 			storeInfo = null;
 			stores = null;
 		}

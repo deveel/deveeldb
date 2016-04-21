@@ -20,9 +20,31 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// Represents a generic request for execution of a 
+	/// command in a system.
+	/// </summary>
+	/// <remarks>
+	/// This object represents a nesting state of the execution
+	/// in a hierarchy.
+	/// </remarks>
+	/// <seealso cref="IBlock"/>
+	/// <seealso cref="IQuery"/>
 	public interface IRequest : IDisposable {
+		/// <summary>
+		/// Gets the query that provides the request.
+		/// </summary>
+		/// <remarks>
+		/// If the request is a <see cref="IQuery"/>, this
+		/// property returns the query itself.
+		/// </remarks>
 		IQuery Query { get; }
 
-		new IBlockContext Context { get; }
+		/// <summary>
+		/// Gets the isolated context of the request.
+		/// </summary>
+		/// <seealso cref="IContext"/>
+		/// <seealso cref="IBlockContext"/>
+		IBlockContext Context { get; }
 	}
 }

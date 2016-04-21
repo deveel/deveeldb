@@ -20,11 +20,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data {
 	/// <summary>
-	/// Manages all the open sessions towards a single database within
-	/// as system.
+	/// Manages all the open sessions towards a single database.
 	/// </summary>
+	/// <remarks>
+	/// Since <see cref="ITransaction">transactions</see> are wrapped in
+	/// <see cref="ISession"/> objects, in a one-to-one equivalence, this 
+	/// list is also a container of all the open transactions to a database.
+	/// </remarks>
+	/// <seealso cref="ISession"/>
 	public sealed class ActiveSessionList : IEnumerable<ISession> {
 		private readonly List<ISession> sessions;
 

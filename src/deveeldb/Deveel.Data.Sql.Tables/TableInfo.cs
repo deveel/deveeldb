@@ -48,7 +48,6 @@ namespace Deveel.Data.Sql.Tables {
 		/// </summary>
 		/// <param name="tableName">The unique name of the table within
 		/// the database system.</param>
-		/// <param name="id">The unique identifier of the table in the database.</param>
 		/// <exception cref="ArgumentNullException">
 		/// If the provided <paramref name="tableName"/> is <c>null</c>.
 		/// </exception>
@@ -110,7 +109,10 @@ namespace Deveel.Data.Sql.Tables {
 		/// <summary>
 		/// Gets a value that indicates if the table is permanent.
 		/// </summary>
-		/// <seealso cref="ITransaction.CreateTable"/>
+		/// <remarks>
+		/// A permanent table is persisted in the storage system: virtual
+		/// or temporary tables are not persisted.
+		/// </remarks>
 		public bool IsPermanent { get; private set; }
 
 		/// <summary>

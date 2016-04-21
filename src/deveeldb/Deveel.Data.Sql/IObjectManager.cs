@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql {
 		/// database object was found for the unique name given.
 		/// </returns>
 		/// <exception cref="ArgumentNullException">
-		/// If the given <see cref="objInfo"/> object is <c>null</c>.
+		/// If the given <paramref name="objInfo"/> object is <c>null</c>.
 		/// </exception>
 		/// <exception cref="ArgumentException">
 		/// If the type of the object specified (<see cref="IObjectInfo.ObjectType"/>) is different than the
