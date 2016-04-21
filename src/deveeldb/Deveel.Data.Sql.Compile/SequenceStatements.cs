@@ -18,12 +18,48 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Compile {
 	static class SequenceStatements {
 		public static SqlStatement Create(PlSqlParser.CreateSequenceStatementContext context) {
-			throw new NotImplementedException();
+			var seqName = Name.Object(context.objectName());
+
+			var statement = new CreateSequenceStatement(seqName);
+
+			var startWith = context.sequenceStartClause();
+			if (startWith != null) {
+				statement.StartWith = SqlExpression.Constant(Number.PositiveInteger(startWith.UNSIGNED_INTEGER()));
+			}
+
+			var specs = context.sequenceSpec();
+			if (specs != null && specs.Length > 0) {
+				foreach (var spec in specs) {
+					if (spec.INCREMENT() != null &&
+					    spec.BY() != null) {
+						statement.IncrementBy = SqlExpression.Constant(Number.PositiveInteger(spec.UNSIGNED_INTEGER()));
+					} else if (spec.MAXVALUE() != null) {
+						statement.MaxValue = SqlExpression.Constant(Number.PositiveInteger(spec.UNSIGNED_INTEGER()));
+					} else if (spec.NOMAXVALUE() != null) {
+						statement.MaxValue = SqlExpression.Constant(null);
+					} else if (spec.MINVALUE() != null) {
+						statement.MinValue = SqlExpression.Constant(Number.PositiveInteger(spec.UNSIGNED_INTEGER()));
+					} else if (spec.NOMINVALUE() != null) {
+						statement.MinValue = SqlExpression.Constant(null);
+					} else if (spec.CACHE() != null) {
+						statement.Cache = SqlExpression.Constant(Number.PositiveInteger(spec.UNSIGNED_INTEGER()));
+					} else if (spec.NOCACHE() != null) {
+						statement.Cache = SqlExpression.Constant(null);
+					} else if (spec.CYCLE() != null) {
+						statement.Cycle = true;
+					} else if (spec.NOCYCLE() != null) {
+						statement.Cycle = false;
+					}
+				}
+			}
+
+			return statement;
 		}
 
 		public static SqlStatement Drop(PlSqlParser.DropSequenceStatementContext context) {

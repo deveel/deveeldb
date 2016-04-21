@@ -18,6 +18,7 @@
 using System;
 
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 
 namespace Deveel.Data.Sql.Compile {
 	class Number {
@@ -26,6 +27,18 @@ namespace Deveel.Data.Sql.Compile {
 				return null;
 
 			var text = context.GetText();
+			int value;
+			if (!Int32.TryParse(text, out value))
+				throw new ParseCanceledException(String.Format("Numeric '{0}' is not a positive integer.", text));
+
+			return value;
+		}
+
+		public static int? PositiveInteger(ITerminalNode node) {
+			if (node == null)
+				return null;
+
+			var text = node.GetText();
 			int value;
 			if (!Int32.TryParse(text, out value))
 				throw new ParseCanceledException(String.Format("Numeric '{0}' is not a positive integer.", text));

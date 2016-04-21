@@ -643,7 +643,6 @@
     <Compile Include="Deveel.Data.Routines\IRoutineProvider.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\RoutineManager.cs" />
-    <Compile Include="Deveel.Data.Routines\RoutineNotFouncException.cs" />
     <Compile Include="Deveel.Data.Routines\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedureProvider.cs" />
     <Compile Include="Deveel.Data.Routines\SystemProcedures.cs" />

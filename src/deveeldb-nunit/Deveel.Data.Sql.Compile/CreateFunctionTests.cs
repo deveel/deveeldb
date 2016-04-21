@@ -15,6 +15,8 @@ namespace Deveel.Data.Sql.Compile {
                                  BEGIN
                                      c INT := a + CAST(b AS INTEGER);
                                      RETURN :c;
+                                     EXCEPTION WHEN OTHERS THEN
+                                        RETURN NULL;
                                  END";
 
 			var result = Compile(sql);
