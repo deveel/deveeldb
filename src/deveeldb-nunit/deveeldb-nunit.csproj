@@ -92,6 +92,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CastFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateProcedureTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateSchemaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CurrentTimeTests.cs" />

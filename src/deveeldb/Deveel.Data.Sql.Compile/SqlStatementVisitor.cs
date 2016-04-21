@@ -26,6 +26,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Compile {
@@ -169,17 +170,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var body = Visit(context.body());
 			if (body is PlSqlBody) {
-				var plsqlBody = (PlSqlBody) body;
-
-				block.Label = plsqlBody.Label;
-
-				foreach (var statement in plsqlBody.Statements) {
-					block.Statements.Add(statement);
-				}
-
-				foreach (var handler in plsqlBody.ExceptionHandlers) {
-					block.ExceptionHandlers.Add(handler);
-				}
+				block = ((PlSqlBody) body).AsPlSqlStatement();
 			} else if (body is SequenceOfStatements) {
 				var seq = (SequenceOfStatements) body;
 				foreach (var statement in seq.Statements) {
@@ -572,11 +563,66 @@ namespace Deveel.Data.Sql.Compile {
 			return new ConditionStatement(condition, ifTrue, ifFalse);
 		}
 
-		public override SqlStatement VisitCreateFunctionBody(PlSqlParser.CreateFunctionBodyContext context) {
-			return base.VisitCreateFunctionBody(context);
+		public override SqlStatement VisitCreateFunctionStatement(PlSqlParser.CreateFunctionStatementContext context) {
+			var functionName = Name.Object(context.objectName());
+			bool orReplace = context.OR() != null && context.REPLACE() != null;
+
+			var body = context.body();
+			var call = context.call_spec();
+
+			SqlType returnType;
+
+			var returnTypeSpec = context.functionReturnType();
+			if (returnTypeSpec.TABLE() != null) {
+				throw new NotImplementedException();
+			} else if (returnTypeSpec.DETERMINISTIC() != null) {
+				returnType = Function.DynamicType;
+			} else {
+				var typeInfo = new DataTypeVisitor().Visit(returnTypeSpec.primitive_type());
+				if (!typeInfo.IsPrimitive)
+					throw new NotSupportedException(String.Format("The return type of function '{0}' ('{1}') is not primitive.",
+						functionName, typeInfo));
+
+				returnType = PrimitiveTypes.Resolve(typeInfo.TypeName, typeInfo.Metadata);
+			}
+
+			RoutineParameter[] parameters = null;
+			if (context.parameter() != null &&
+				context.parameter().Length > 0) {
+				parameters = context.parameter().Select(Parameter.Routine).ToArray();
+			}
+
+			if (body != null) {
+				var functionBody = Visit(body);
+
+				if (!(functionBody is PlSqlBody))
+					throw new ParseCanceledException("Invalid function body.");
+
+				var plsqlBody = ((PlSqlBody)functionBody).AsPlSqlStatement();
+
+				var declarationArray = context.declaration();
+				if (declarationArray != null && declarationArray.Length > 0) {
+					foreach (var declContext in declarationArray) {
+						var declaration = Visit(declContext);
+						plsqlBody.Declarations.Add(declaration);
+					}
+				}
+
+				return new CreateFunctionStatement(functionName, returnType, parameters, plsqlBody) {
+					ReplaceIfExists = orReplace
+				};
+			}
+
+			var typeString = InputString.AsNotQuoted(call.dotnet_spec().typeString.Text);
+			var assemblyToken = InputString.AsNotQuoted(call.dotnet_spec().assemblyString);
+			if (assemblyToken != null) {
+				typeString = String.Format("{0}, {1}", typeString, assemblyToken);
+			}
+
+			return new CreateExternalFunctionStatement(functionName, returnType, parameters, typeString);
 		}
 
-		public override SqlStatement VisitCreateProcedureBody(PlSqlParser.CreateProcedureBodyContext context) {
+		public override SqlStatement VisitCreateProcedureStatement(PlSqlParser.CreateProcedureStatementContext context) {
 			var procedureName = Name.Object(context.objectName());
 			bool orReplace = context.OR() != null && context.REPLACE() != null;
 
@@ -592,16 +638,26 @@ namespace Deveel.Data.Sql.Compile {
 			if (body != null) {
 				var plsqlBody = Visit(body);
 
-				if (!(plsqlBody is PlSqlBlockStatement))
+				if (!(plsqlBody is PlSqlBody))
 					throw new ParseCanceledException("Invalid procedure body.");
 
-				return new CreateProcedureStatement(procedureName, parameters, plsqlBody) {
+				var block = ((PlSqlBody) plsqlBody).AsPlSqlStatement();
+
+				var declarationArray = context.declaration();
+				if (declarationArray != null && declarationArray.Length > 0) {
+					foreach (var declContext in declarationArray) {
+						var declaration = Visit(declContext);
+						block.Declarations.Add(declaration);
+					}
+				}
+
+				return new CreateProcedureStatement(procedureName, parameters, block) {
 					ReplaceIfExists = orReplace
 				};
 			}
 
-			var typeString = call.dotnet_spec().typeString.Text;
-			var assemblyToken = call.dotnet_spec().assemblyString;
+			var typeString =  InputString.AsNotQuoted(call.dotnet_spec().typeString.Text);
+			var assemblyToken = InputString.AsNotQuoted(call.dotnet_spec().assemblyString);
 			if (assemblyToken != null) {
 				typeString = String.Format("{0}, {1}", typeString, assemblyToken);
 			}

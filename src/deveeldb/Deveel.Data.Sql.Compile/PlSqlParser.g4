@@ -15,8 +15,8 @@ unitStatement
 	| createSequenceStatement
 	| createTriggerStatement
 	| createCallbackTriggerStatement
-	| createFunctionBody
-	| createProcedureBody
+	| createFunctionStatement
+	| createProcedureStatement
 	| createUserStatement
 
 	| alterTableStatement
@@ -86,11 +86,17 @@ dropSchemaStatement
     : DROP SCHEMA id
 	;
 
-createFunctionBody
+createFunctionStatement
     : ( CREATE (OR REPLACE)? )? FUNCTION objectName ('(' parameter (',' parameter)* ')')?
-      RETURN datatype (DETERMINISTIC)*
+      RETURN functionReturnType
       ( (IS | AS) (DECLARE? declaration* body | call_spec) ) SEMICOLON?
     ;
+
+functionReturnType
+    : TABLE
+	| DETERMINISTIC
+	| primitive_type
+	;
 
 // $<Procedure DDLs
 
@@ -98,7 +104,7 @@ dropProcedureStatement
     : DROP PROCEDURE objectName ';'
     ;
 
-createProcedureBody
+createProcedureStatement
     : (CREATE (OR REPLACE)?)? PROCEDURE objectName ('(' parameter (',' parameter)* ')')? 
       invoker_rights_clause? (IS | AS)
       (DECLARE? declaration* body | call_spec) SEMICOLON?
@@ -259,7 +265,7 @@ queryLimitClause
 // $>
 
 parameter
-    : parameter_name ( IN | OUT | INOUT )* datatype? defaultValuePart?
+    : parameter_name ( IN | OUT | INOUT )* datatype (NOT NULL)? defaultValuePart?
     ;
 
 defaultValuePart
@@ -352,6 +358,8 @@ statement
     | caseStatement/*[true]*/
     | sql_statement
     | functionCall
+
+	| variableDeclaration
     ;
 
 createStatement
@@ -1124,6 +1132,8 @@ datatype
     : primitive_type #PrimitiveDataType
     | INTERVAL (top=YEAR | top=DAY) ('(' expression_wrapper ')')? TO (bottom=MONTH | bottom=SECOND) ('(' expression_wrapper ')')? #IntervalType
 	| objectName type_argument? #UserDataType
+	| rowRefType #RowType
+	| columnRefType #ColumnType
     ;
 
 type_argument
@@ -1133,7 +1143,6 @@ type_argument
 type_argument_spec
     : ( id '=' )? (numeric | quoted_string )
 	;
-
 
 primitive_type
     : (integer_type | numeric_type | boolean_type | string_type | binary_type | time_type)
@@ -1171,6 +1180,14 @@ long_varbinary
 
 time_type
     : (DATE | TIMESTAMP | TIME | DATETIME ) (WITH local=LOCAL? TIME ZONE)?
+	;
+
+rowRefType
+    : objectName PERCENT_ROWTYPE
+	;
+
+columnRefType
+    : objectName PERCENT_TYPE
 	;
 
 bind_variable

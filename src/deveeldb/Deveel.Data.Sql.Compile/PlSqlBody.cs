@@ -31,5 +31,21 @@ namespace Deveel.Data.Sql.Compile {
 		
 		public List<ExceptionHandler> ExceptionHandlers { get; private set; }
 		public string Label { get; set; }
+
+		public PlSqlBlockStatement AsPlSqlStatement() {
+			var statement = new PlSqlBlockStatement {
+				Label = Label
+			};
+
+			foreach (var sqlStatement in Statements) {
+				statement.Statements.Add(sqlStatement);				
+			}
+
+			foreach (var handler in ExceptionHandlers) {
+				statement.ExceptionHandlers.Add(handler);
+			}
+
+			return statement;
+		}
 	}
 }

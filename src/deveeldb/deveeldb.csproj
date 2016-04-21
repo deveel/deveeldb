@@ -86,7 +86,6 @@
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\Cache.cs" />
     <Compile Include="Deveel.Data.Caching\CacheAdapter.cs" />
-    <Compile Include="Deveel.Data.Caching\CacheConfigKeys.cs" />
     <Compile Include="Deveel.Data.Caching\CachedCell.cs" />
     <Compile Include="Deveel.Data.Caching\CellKey.cs" />
     <Compile Include="Deveel.Data.Caching\ICache.cs" />
@@ -121,7 +120,6 @@
     <Compile Include="Deveel.Data.Client\LocalQueryResult.cs" />
     <Compile Include="Deveel.Data.Client\LocalRowCache.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigKey.cs" />
     <Compile Include="Deveel.Data.Configuration\Configuration.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
@@ -158,7 +156,6 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\CompiledMap.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />
     <Compile Include="Deveel.Data.Mapping\IdentityAttribute.cs" />

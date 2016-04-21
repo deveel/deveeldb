@@ -17,6 +17,8 @@
 
 using System;
 
+using Antlr4.Runtime;
+
 namespace Deveel.Data.Sql.Compile {
 	static class InputString {
 		public static string AsNotQuoted(string s) {
@@ -35,6 +37,13 @@ namespace Deveel.Data.Sql.Compile {
 
 		public static string AsNotQuoted(PlSqlParser.Quoted_stringContext context) {
 			return AsNotQuoted(context.GetText());
+		}
+
+		public static string AsNotQuoted(IToken token) {
+			if (token == null)
+				return null;
+
+			return AsNotQuoted(token.Text);
 		}
 	}
 }
