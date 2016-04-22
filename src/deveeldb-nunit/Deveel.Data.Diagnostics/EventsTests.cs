@@ -24,7 +24,7 @@ namespace Deveel.Data.Diagnostics {
 		[Test]
 		public void AttachRouter() {
 			IEvent firedEvent = null;
-			Assert.DoesNotThrow(() => Query.Route<ErrorEvent>(@event => firedEvent = @event));
+			Assert.DoesNotThrow(() => Query.Context.Route<ErrorEvent>(@event => firedEvent = @event));
 			Assert.IsNull(firedEvent);
 		}
 
@@ -33,7 +33,7 @@ namespace Deveel.Data.Diagnostics {
 			var reset = new AutoResetEvent(false);
 
 			IEvent firedEvent = null;
-			Query.Route<ErrorEvent>(e => {
+			Query.Context.Route<ErrorEvent>(e => {
 				firedEvent = e;
 				reset.Set();
 			});

@@ -292,6 +292,16 @@ namespace Deveel.Data.Serialization {
 		}
 
 		[Test]
+		public void Raise() {
+			var statement = new RaiseStatement("error1");
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.AreEqual("error1", deserialized.ExceptionName);
+			});
+		}
+
+		[Test]
 		public void CreateSimpleType() {
 			var typeName = ObjectName.Parse("APP.type1");
 			var members = new UserTypeMember[] {
@@ -321,6 +331,21 @@ namespace Deveel.Data.Serialization {
 				Assert.IsNotNull(deserialized);
 				Assert.IsNotNull(deserialized.TypeName);
 				Assert.AreEqual(typeName, deserialized.TypeName);
+			});
+		}
+
+		[Test]
+		public void WhileLoop() {
+			var whileLoop =
+				new WhileLoopStatement(SqlExpression.SmallerOrEqualThan(SqlExpression.VariableReference("a"),
+					SqlExpression.Constant(20)));
+			whileLoop.Statements.Add(new ExitStatement());
+
+			SerializeAndAssert(whileLoop, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.ConditionExpression);
+				Assert.IsNotNull(deserialized.Statements);
+				Assert.IsNotEmpty(deserialized.Statements);
 			});
 		}
 	}

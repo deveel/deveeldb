@@ -84,6 +84,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
+    <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectNameSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializationTestBase.cs" />
     <Compile Include="Deveel.Data.Serialization\StatementSerializationTests.cs" />

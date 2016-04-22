@@ -86,6 +86,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		private void AssertNotLoopControl(SqlStatement obj) {
 			if (obj is LoopControlStatement) {
+				if (this is LoopStatement)
+					return;
+
 				var statement = obj.Parent;
 				while (statement != null) {
 					if (statement is LoopStatement)

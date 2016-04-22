@@ -80,8 +80,12 @@ namespace Deveel.Data.Sql {
 		private void Terminate() {
 			HasTermination = true;
 
-			if (Parent != null)
+			if (Parent != null) {
+				Parent.Cursor = Cursor;
+				Parent.HasCursor = HasCursor;
+				Parent.Result = Result;
 				Parent.Terminate();
+			}
 		}
 
 		public void SetResult(ITable result) {

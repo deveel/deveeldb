@@ -44,7 +44,7 @@ namespace Deveel.Data.Routines {
 			if (returnType is TabularType)
 				return new InvokeResult(context, Field.Table(result));
 
-			if (result.RowCount != 0)
+			if (result.RowCount == 0)
 				throw new InvalidOperationException("The execution of the function has no returns");
 
 			var retunValue = result.GetValue(0, 0);

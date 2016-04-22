@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
@@ -34,6 +33,9 @@ namespace Deveel.Data {
 		private bool disposed;
 		private readonly DateTimeOffset startedOn;
 		private SystemAccess access;
+
+		private DateTimeOffset? lastCommandTime;
+		private SqlQuery lastCommand;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -57,7 +59,7 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
-			Context.Route<QueryEvent>(OnQueryCommand);
+			Context.RouteImmediate<QueryEvent>(OnQueryCommand);
 
 			access = new SessionAccess(this);
 
@@ -65,6 +67,8 @@ namespace Deveel.Data {
 
 			User = new User(this, userName);
 			startedOn = DateTimeOffset.UtcNow;
+
+			this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.Begin));
 		}
 
 		~Session() {
@@ -105,7 +109,9 @@ namespace Deveel.Data {
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
 			var meta = new Dictionary<string, object> {
 				{KnownEventMetadata.UserName, User.Name},
-				{ KnownEventMetadata.SessionStartTime, startedOn }
+				{KnownEventMetadata.SessionStartTime, startedOn},
+				{KnownEventMetadata.LastCommandTime, lastCommandTime},
+				{KnownEventMetadata.LastCommand, lastCommand != null ? lastCommand.Text : null}
 			};
 
 			if (Metadata != null) {
@@ -133,34 +139,43 @@ namespace Deveel.Data {
 	    }
 
 		private void OnQueryCommand(QueryEvent e) {
-			if (Metadata == null)
-				Metadata = new Dictionary<string, object>();
-
-			Metadata[KnownEventMetadata.LastCommandTime] = e.TimeStamp;
-			Metadata[KnownEventMetadata.LastCommand] = e.Query.Text;
+			lastCommandTime = e.TimeStamp;
+			lastCommand = e.Query;
 		}
 
 		public void Commit() {
 			AssertNotDisposed();
 
-			if (Transaction != null) {
-				try {
-					Transaction.Commit();
-				} finally {
-					DisposeTransaction();
+			try {
+				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.BeforeCommit));
+
+				if (Transaction != null) {
+					try {
+						Transaction.Commit();
+					} finally {
+						DisposeTransaction();
+					}
 				}
+			} finally {
+				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.AfterCommit));
 			}
 		}
 
 		public void Rollback() {
 			AssertNotDisposed();
 
-			if (Transaction != null) {
-				try {
-					Transaction.Rollback();
-				} finally {
-					DisposeTransaction();
+			try {
+				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.BeforeRollback));
+
+				if (Transaction != null) {
+					try {
+						Transaction.Rollback();
+					} finally {
+						DisposeTransaction();
+					}
 				}
+			} finally {
+				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.AfterRollback));
 			}
 		}
 

@@ -111,5 +111,27 @@ namespace Deveel.Data {
 			Assert.IsNotNull(value);
 			Assert.IsFalse(Field.IsNullField(value));
 		}
+
+		[Test]
+		public void WhileLoop() {
+			var loop = new WhileLoopStatement(SqlExpression.SmallerThan(SqlExpression.VariableReference("a"), SqlExpression.Constant(33)));
+			loop.Statements.Add(new DeclareVariableStatement("b", PrimitiveTypes.Integer()));
+			loop.Statements.Add(new AssignVariableStatement(SqlExpression.VariableReference("b"),
+				SqlExpression.Add(SqlExpression.VariableReference("a"), SqlExpression.Constant(40))));
+			loop.Statements.Add(new AssignVariableStatement(SqlExpression.VariableReference("a"),
+				SqlExpression.Add(SqlExpression.VariableReference("a"), SqlExpression.Constant(1))));
+
+			var block = new PlSqlBlockStatement();
+			block.Declarations.Add(new DeclareVariableStatement("a", PrimitiveTypes.Integer()));
+
+			var result = Query.ExecuteStatement(block);
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(StatementResultType.Result, result.Type);
+
+			var value = result.Result.GetValue(0, 0);
+			Assert.IsNotNull(value);
+			Assert.IsFalse(Field.IsNullField(value));
+		}
 	}
 }

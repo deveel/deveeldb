@@ -61,5 +61,24 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<ForLoopStatement>(statement);
 		}
 
+		[Test]
+		public void WhileLoop() {
+			const string sql = @"WHILE a < 33 LOOP
+                                     IF b + a > 100 THEN
+                                        EXIT
+                                     END IF
+                                 END LOOP";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<WhileLoopStatement>(statement);
+		}
 	}
 }

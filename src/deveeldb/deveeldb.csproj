@@ -145,7 +145,6 @@
     <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />
@@ -162,10 +161,8 @@
     <Compile Include="Deveel.Data.Diagnostics\PerformanceEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\QueryEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />

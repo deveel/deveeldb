@@ -110,6 +110,7 @@ namespace Deveel.Data.Sql.Objects {
 				innerValue = new BigDecimal(new BigInteger(bytes), scale, new MathContext(precision));
 			}
 
+			valueAsLong = info.GetInt64("LongValue");
 			State = state;
 		}
 
@@ -141,6 +142,7 @@ namespace Deveel.Data.Sql.Objects {
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("State", (byte)State);
+			info.AddValue("LongValue", valueAsLong);
 
 			if (State == NumericState.None) {
 				var bytes = innerValue.UnscaledValue.ToByteArray();

@@ -20,13 +20,33 @@ using System;
 using Deveel.Data.Services;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The base implementation of a <see cref="IContext"/> that
+	/// defines a scope where to services are stored.
+	/// </summary>
+	/// <remarks>
+	/// This object is convenient for the implementation of other
+	/// contexts, since it handles the initialization and disposal
+	/// of the <see cref="IScope"/> that it wraps.
+	/// </remarks>
 	public abstract class Context : IContext {
 		private IScope scope;
 
+		/// <summary>
+		/// Constructs a new context that has no parent.
+		/// </summary>
 		protected Context() 
 			: this(null) {
 		}
 
+		/// <summary>
+		/// Constructs a context that is the child of the given other context.
+		/// </summary>
+		/// <param name="parent">The optional parent context.</param>
+		/// <remarks>
+		/// The <paramref name="parent"/> context is not required to be <c>not null</c>:
+		/// if <c>null</c> then this context will have no parent.
+		/// </remarks>
 		protected Context(IContext parent) {
 			ParentContext = parent;
 			InitScope();
@@ -36,6 +56,10 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
+		/// <summary>
+		/// When overridden by a derived class, this property returns
+		/// a unique name that identifies the context within a global scope.
+		/// </summary>
 		protected abstract string ContextName { get; }
 
 		protected virtual IScope ContextScope { 
