@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Caching;
@@ -559,6 +560,14 @@ namespace Deveel.Data {
 
 		public void CreateType(UserTypeInfo typeInfo) {
 			CreateObject(typeInfo);
+		}
+
+		public IEnumerable<ObjectName> GetChildTypes(ObjectName typeName) {
+			var manager = Session.Transaction.GetObjectManager(DbObjectType.Type) as TypeManager;
+			if (manager == null)
+				return new ObjectName[0];
+
+			return manager.GetChildTypes(typeName);
 		}
 
 		#endregion

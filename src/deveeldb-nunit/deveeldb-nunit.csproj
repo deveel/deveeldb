@@ -159,6 +159,7 @@
     <Compile Include="Deveel.Data\DropSequenceTests.cs" />
     <Compile Include="Deveel.Data\DropTableTests.cs" />
     <Compile Include="Deveel.Data\DropTriggerTests.cs" />
+    <Compile Include="Deveel.Data\DropTypeTests.cs" />
     <Compile Include="Deveel.Data\DropUserTests.cs" />
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />

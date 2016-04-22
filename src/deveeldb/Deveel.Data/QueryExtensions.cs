@@ -362,6 +362,18 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region DropType
+
+		public static void DropType(this IQuery query, ObjectName typeName) {
+			DropType(query, typeName, false);
+		}
+
+		public static void DropType(this IQuery query, ObjectName typeName, bool ifExists) {
+			query.ExecuteStatement(new DropTypeStatement(typeName, ifExists));
+		}
+
+		#endregion
+
 
 		#region Grant Privileges
 

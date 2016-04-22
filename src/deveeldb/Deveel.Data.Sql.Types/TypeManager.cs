@@ -16,6 +16,8 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -128,8 +130,29 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public bool DropType(ObjectName typeName) {
-			// TODO:
-			return false;
+			var typeTable = Transaction.GetMutableTable(TypeTableName);
+			var memberTable = Transaction.GetMutableTable(TypeMemberTableName);
+
+			var schemaName = typeName.ParentName;
+			var name = typeName.Name;
+
+			var list = typeTable.SelectRowsEqual(2, Field.VarChar(name), 1, Field.VarChar(schemaName));
+
+			bool deleted = false;
+
+			foreach (var rowIndex in list) {
+				var id = typeTable.GetValue(rowIndex, 0);
+
+				var list2 = memberTable.SelectRowsEqual(0, id);
+				foreach (var rowIndex2 in list2) {
+					memberTable.RemoveRow(rowIndex2);
+				}
+
+				typeTable.RemoveRow(rowIndex);
+				deleted = true;
+			}
+
+			return deleted;
 		}
 
 		bool IObjectManager.DropObject(ObjectName objName) {
@@ -233,6 +256,11 @@ namespace Deveel.Data.Sql.Types {
 			}
 
 			return new UserType(typeInfo);
+		}
+
+		public IEnumerable<ObjectName> GetChildTypes(ObjectName typeName) {
+			// TODO:
+			return new ObjectName[0];
 		}
 	}
 }
