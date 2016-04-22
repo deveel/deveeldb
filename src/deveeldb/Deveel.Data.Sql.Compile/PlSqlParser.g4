@@ -704,7 +704,7 @@ createTriggerStatement
     ;
 
 createCallbackTriggerStatement
-    : CREATE ( OR REPLACE )? CALLBACK TRIGGER objectName
+    : CREATE ( OR REPLACE )? CALLBACK TRIGGER id
 	   (simpleDmlTrigger | nonDmlTrigger) SEMICOLON?
 	;
 

@@ -26,6 +26,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
@@ -72,7 +73,69 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitCreateTriggerStatement(PlSqlParser.CreateTriggerStatementContext context) {
-			return base.VisitCreateTriggerStatement(context);
+			var triggerName = Name.Object(context.objectName());
+			var orReplace = context.OR() != null && context.REPLACE() != null;
+
+			var simpleDml = context.simpleDmlTrigger();
+			var nonDml = context.nonDmlTrigger();
+
+			ObjectName onObject = null;
+			TriggerEventType eventType = new TriggerEventType();
+
+			if (simpleDml != null) {
+				bool before = simpleDml.BEFORE() != null;
+				bool after = simpleDml.AFTER() != null;
+
+				if (simpleDml.INSTEAD() != null && simpleDml.OF() != null)
+					throw new NotSupportedException("The INSTEAD OF clause not yet supported.");
+
+				var events = simpleDml.dmlEventClause().dmlEventElement().Select(x => {
+					if (x.DELETE() != null)
+						return TriggerEventType.Delete;
+					if (x.UPDATE() != null)
+						return TriggerEventType.Update;
+					if (x.INSERT() != null)
+						return TriggerEventType.Insert;
+
+					throw new InvalidOperationException();
+				});
+
+				foreach (var type in events) {
+					eventType |= type;
+				}
+
+				if (before) {
+					eventType |= TriggerEventType.Before;
+				} else if (after) {
+					eventType |= TriggerEventType.After;
+				}
+
+				onObject = Name.Object(simpleDml.dmlEventClause().objectName());
+			} else if (nonDml != null) {
+				throw new NotSupportedException();
+			}
+
+			var triggerBody = context.triggerBody();
+			if (triggerBody.triggerBlock() != null) {
+				var declarations = triggerBody.triggerBlock().declaration().Select(Visit);
+				var body = (PlSqlBody) Visit(triggerBody.triggerBlock().body());
+
+				var plsqlBody = body.AsPlSqlStatement();
+				foreach (var declaration in declarations) {
+					plsqlBody.Declarations.Add(declaration);
+				}
+
+				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventType);
+			}
+
+			var procName = Name.Object(triggerBody.objectName());
+			IEnumerable<FunctionArgumentNode> funcArgs = new FunctionArgumentNode[0];
+			if (triggerBody.function_argument() != null)
+				funcArgs = triggerBody.function_argument().argument().Select(FunctionArgumentNode.Form);
+
+			var args = funcArgs.Select(x => x.Expression).ToArray();
+
+			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventType);
 		}
 
 		public override SqlStatement VisitCreateTypeStatement(PlSqlParser.CreateTypeStatementContext context) {

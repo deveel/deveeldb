@@ -43,6 +43,9 @@ namespace Deveel.Data.Sql.Compile {
 
 		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.IdContext context) {
+			if (context == null)
+				return null;
+
 			return InputString.AsNotQuoted(context.GetText());
 		}
 
