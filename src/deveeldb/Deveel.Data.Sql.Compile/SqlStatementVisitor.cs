@@ -75,12 +75,53 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitCreateTriggerStatement(context);
 		}
 
-		public override SqlStatement VisitCreateSequenceStatement(PlSqlParser.CreateSequenceStatementContext context) {
-			return SequenceStatements.Create(context);
+		public override SqlStatement VisitCreateTypeStatement(PlSqlParser.CreateTypeStatementContext context) {
+			var orReplace = context.OR() != null && context.REPLACE() != null;
+			var typeName = Name.Object(context.objectName());
+			ObjectName parentType = null;
+
+			if (context.underClause() != null)
+				parentType = Name.Object(context.underClause().objectName());
+
+			bool isSealed = true, isAbstract = false;
+			if (context.INSTANTIABLE() != null) {
+				if (context.NOT() != null) {
+					isAbstract = true;
+				} else {
+					isAbstract = false;
+				}
+			} else if (context.FINAL() != null) {
+				if (context.NOT() != null) {
+					isSealed = false;
+				} else {
+					isSealed = true;
+				}
+			}
+
+			var members = new List<UserTypeMember>();
+			foreach (var attributeContext in context.typeAttribute()) {
+				var memberName = Name.Simple(attributeContext.id());
+				var memberType = SqlTypeParser.Parse(attributeContext.datatype());
+
+				members.Add(new UserTypeMember(memberName, memberType));
+			}
+
+			return new CreateTypeStatement(typeName, members.ToArray(), orReplace) {
+				ParentTypeName = parentType,
+				IsSealed = isSealed,
+				IsAbstract = isAbstract
+			};
 		}
 
-		public override SqlStatement VisitDmlStatement(PlSqlParser.DmlStatementContext context) {
-			return Visit(context.children.FirstOrDefault());
+		public override SqlStatement VisitDropTypeStatement(PlSqlParser.DropTypeStatementContext context) {
+			bool ifExists = (context.IF() != null && context.EXISTS() != null);
+			var typeName = Name.Object(context.objectName());
+
+			return new DropTypeStatement(typeName, ifExists);
+		}
+
+		public override SqlStatement VisitCreateSequenceStatement(PlSqlParser.CreateSequenceStatementContext context) {
+			return SequenceStatements.Create(context);
 		}
 
 		public override SqlStatement VisitSelectStatement(PlSqlParser.SelectStatementContext context) {

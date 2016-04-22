@@ -47,9 +47,18 @@ namespace Deveel.Data.Sql.Statements {
 			TypeName = (ObjectName)info.GetValue("TypeName", typeof(ObjectName));
 			Members = (UserTypeMember[])info.GetValue("Members", typeof(UserTypeMember[]));
 			ReplaceIfExists = info.GetBoolean("Replace");
+			IsSealed = info.GetBoolean("Sealed");
+			IsAbstract = info.GetBoolean("Abstract");
+			ParentTypeName = (ObjectName) info.GetValue("ParentType", typeof(ObjectName));
 		}
 
 		public ObjectName TypeName { get; private set; }
+
+		public ObjectName ParentTypeName { get; set; }
+
+		public bool IsSealed { get; set; }
+
+		public bool IsAbstract { get; set; }
 
 		public bool ReplaceIfExists { get; set; }
 
@@ -59,13 +68,35 @@ namespace Deveel.Data.Sql.Statements {
 			var schemaName = context.Access().ResolveSchemaName(TypeName.ParentName);
 			var typeName = new ObjectName(schemaName, TypeName.Name);
 
-			return new CreateTypeStatement(typeName, Members, ReplaceIfExists);
+			var statement = new CreateTypeStatement(typeName, Members, ReplaceIfExists) {
+				IsSealed = IsSealed,
+				IsAbstract = IsAbstract
+			};
+
+			var parentName = ParentTypeName;
+			if (parentName != null) {
+				parentName = context.Access().ResolveObjectName(DbObjectType.Type, parentName);
+			}
+
+			statement.ParentTypeName = parentName;
+
+			return statement;
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.User.CanCreateInSchema(TypeName.ParentName))
 				throw new SecurityException(String.Format("The user '{0}' has no rights to create in schema '{1}'.",
 					context.User.Name, TypeName.ParentName));
+
+			if (ParentTypeName != null) {
+				if (!context.DirectAccess.TypeExists(ParentTypeName))
+					throw new StatementException(String.Format("The type '{0}' inherits from the type '{1}' that does not exist.",
+						TypeName, ParentTypeName));
+
+				if (context.DirectAccess.IsTypeSealed(ParentTypeName))
+					throw new StatementException(String.Format("The type '{0}' is sealed and cannot be inherited by '{1}'.",
+						ParentTypeName, TypeName));
+			}
 
 			if (context.DirectAccess.TypeExists(TypeName)) {
 				if (!ReplaceIfExists)
@@ -74,9 +105,11 @@ namespace Deveel.Data.Sql.Statements {
 				context.DirectAccess.DropType(TypeName);
 			}
 
-			// TODO: support the parent
+			var typeInfo = new UserTypeInfo(TypeName, ParentTypeName) {
+				IsAbstract = IsAbstract,
+				IsSealed = IsSealed
+			};
 
-			var typeInfo = new UserTypeInfo(TypeName);
 			foreach (var member in Members) {
 				typeInfo.AddMember(member);
 			}
@@ -91,6 +124,9 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("TypeName", TypeName);
 			info.AddValue("Members", Members);
 			info.AddValue("Replace", ReplaceIfExists);
+			info.AddValue("ParentType", ParentTypeName);
+			info.AddValue("Sealed", IsSealed);
+			info.AddValue("Abstract", IsAbstract);
 		}
 	}
 }

@@ -363,7 +363,7 @@ namespace Deveel.Data.Sql.Types {
 
 			var sqlType = context.TypeCode;
 
-			if (sqlType == SqlTypeCode.BigInt ||
+			if (sqlType == SqlTypeCode.Bit ||
 			    sqlType == SqlTypeCode.Boolean)
 				return Boolean(sqlType);
 

@@ -29,6 +29,7 @@ namespace Deveel.Data.Sql.Types {
 			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
 			tableInfo.AddColumn("parent", PrimitiveTypes.String());
 			tableInfo.AddColumn("sealed", PrimitiveTypes.Boolean());
+			tableInfo.AddColumn("abstract", PrimitiveTypes.Boolean());
 			tableInfo.AddColumn("owner", PrimitiveTypes.String());
 			systemQuery.Access().CreateTable(tableInfo);
 

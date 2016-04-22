@@ -9,39 +9,13 @@ compilationUnit
     ;
 
 unitStatement
-    : createSchemaStatement
-	| createTableStatement 
-	| createViewStatement
-	| createSequenceStatement
-	| createTriggerStatement
-	| createCallbackTriggerStatement
-	| createFunctionStatement
-	| createProcedureStatement
-	| createUserStatement
+    : ddlStatement
+	| dmlStatement
 
-	| alterTableStatement
-	| alterTriggerStatement
-	
-	| dropSchemaStatement
-	| dropTableStatement
-	| dropViewStatement
-	| dropTriggerStatement
-	| dropFunctionStatement
-	| dropProcedureStatement
-	| dropSequenceStatement
-	| dropUserStatement
-
-	| createUserStatement
-	| alterUserStatement
-	| dropUserStatement
-	| createRoleStatement
-	| dropRoleStatement
-	| grantStatement
-	| revokeStatement
+	| securityStatement
 
 	| assignmentStatement
 	| cursorStatement
-	| dmlStatement
 
 	| showStatement
 	| transactionControlStatement
@@ -51,12 +25,77 @@ unitStatement
 	| declareStatement
     ;
 
+securityStatement
+    : createUserStatement
+	| dropUserStatement
+	| alterUserStatement
+	| dropUserStatement
+	| createRoleStatement
+	| dropRoleStatement
+	| grantStatement
+	| revokeStatement
+	;
+
 dmlStatement
     : selectStatement
 	| updateStatement
 	| deleteStatement
 	| insertStatement
     ;
+
+ddlStatement
+    : createStatement
+	| alterStatement
+	| dropStatement
+	;
+
+createStatement
+    : createSchemaStatement
+	| createTableStatement 
+	| createViewStatement
+	| createSequenceStatement
+	| createTriggerStatement
+	| createCallbackTriggerStatement
+	| createFunctionStatement
+	| createProcedureStatement
+	| createTypeStatement
+	;
+
+alterStatement
+    : alterTableStatement
+	| alterTriggerStatement
+	;
+
+dropStatement
+    : dropSchemaStatement
+	| dropTableStatement
+	| dropViewStatement
+	| dropTriggerStatement
+	| dropFunctionStatement
+	| dropProcedureStatement
+	| dropSequenceStatement
+	| dropTypeStatement
+	;
+
+// $<Type DDLs
+createTypeStatement
+   : CREATE (OR REPLACE)? TYPE objectName (underClause | (AS | IS) OBJECT) 
+       '(' typeAttribute ( ',' typeAttribute )* ')' (NOT? (INSTANTIABLE | FINAL))? SEMICOLON?
+   ;
+
+underClause
+   : UNDER objectName
+   ;
+
+typeAttribute
+   : id datatype
+   ;
+
+dropTypeStatement
+   : DROP TYPE (IF EXISTS)? objectName SEMICOLON?
+   ;
+
+// $>
 
 // $<DML SQL PL/SQL Statements
 
@@ -362,17 +401,6 @@ statement
 	| variableDeclaration
     ;
 
-createStatement
-    : createTableStatement
-	| createViewStatement
-	| createTriggerStatement
-	| createSequenceStatement
-	;
-
-alterStatement
-    : alterTableStatement
-	| alterTriggerStatement
-	;
 
 grantStatement
     : grantPrivilegeStatement

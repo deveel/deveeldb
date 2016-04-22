@@ -18,6 +18,7 @@
 using System;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
@@ -60,7 +61,8 @@ namespace Deveel.Data.Sql.Types {
 			row.SetValue(2, typeInfo.TypeName.Name);
 			row.SetValue(3, parentName);
 			row.SetValue(4, typeInfo.IsSealed);
-			row.SetValue(5, typeInfo.Owner);
+			row.SetValue(5, typeInfo.IsAbstract);
+			row.SetValue(6, typeInfo.Owner);
 
 			typeTable.AddRow(row);
 
@@ -189,7 +191,29 @@ namespace Deveel.Data.Sql.Types {
 
 					var id = t.GetValue(0, 0);
 
-					typeInfo = new UserTypeInfo(typeName);
+					var parentField = t.GetValue(0, 3);
+					ObjectName parentType = null;
+					if (!Field.IsNullField(parentField)) {
+						parentType = ObjectName.Parse(parentField.Value.ToString());
+					}
+
+					typeInfo = new UserTypeInfo(typeName, parentType);
+
+
+					var isSealedField = t.GetValue(0, 4);
+					var isAbstractField = t.GetValue(0, 5);
+
+					if (!Field.IsNullField(isSealedField)) {
+						typeInfo.IsSealed = (SqlBoolean) isSealedField.AsBoolean().Value;
+					}
+
+					if (!Field.IsNullField(isAbstractField)) {
+						typeInfo.IsAbstract = (SqlBoolean) isAbstractField.AsBoolean().Value;
+					}
+
+					var owner = t.GetValue(0, 6).Value.ToString();
+
+					typeInfo.Owner = owner;
 
 					var t2 = membersTable.SimpleSelect(query, idColumn, SqlExpressionType.Equal, SqlExpression.Constant(id));
 
@@ -197,8 +221,8 @@ namespace Deveel.Data.Sql.Types {
 						var memberName = row.GetValue(1).Value.ToString();
 						var memberTypeString = row.GetValue(2).Value.ToString();
 
-						// TODO: Support the metadata
-						var memberType = Transaction.Context.ResolveType(memberTypeString);
+						var memberType = SqlType.Parse(Transaction.Context, memberTypeString);
+
 						if (memberType == null)
 							throw new InvalidOperationException(String.Format("Cannot find the type '{0}' for member '{1}' of type '{2}'.",
 								memberTypeString, memberName, typeName));

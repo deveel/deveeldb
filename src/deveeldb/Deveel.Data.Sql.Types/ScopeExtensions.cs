@@ -18,6 +18,7 @@
 using System;
 
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Types {
 	static class ScopeExtensions {
@@ -25,6 +26,10 @@ namespace Deveel.Data.Sql.Types {
 			scope.Bind<IObjectManager>()
 				.To<TypeManager>()
 				.WithKey(DbObjectType.Type)
+				.InTransactionScope();
+
+			scope.Bind<ITableContainer>()
+				.To<TypesTableContainer>()
 				.InTransactionScope();
 
 			scope.Bind<ITableCompositeCreateCallback>()

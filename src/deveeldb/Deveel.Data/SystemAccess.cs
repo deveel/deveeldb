@@ -545,6 +545,14 @@ namespace Deveel.Data {
 			return ObjectExists(DbObjectType.Type, typeName);
 		}
 
+		public bool IsTypeSealed(ObjectName typeName) {
+			var type = GetObject(DbObjectType.Type, typeName) as UserType;
+			if (type == null)
+				return false;
+
+			return type.TypeInfo.IsSealed;
+		}
+
 		public bool DropType(ObjectName typeName) {
 			return DropObject(DbObjectType.Type, typeName);
 		}

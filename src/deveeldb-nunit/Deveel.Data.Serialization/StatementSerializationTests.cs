@@ -290,5 +290,38 @@ namespace Deveel.Data.Serialization {
 				Assert.IsInstanceOf<SqlConstantExpression>(deserialized.ReturnExpression);
 			});
 		}
+
+		[Test]
+		public void CreateSimpleType() {
+			var typeName = ObjectName.Parse("APP.type1");
+			var members = new UserTypeMember[] {
+				new UserTypeMember("id", PrimitiveTypes.Integer()),
+				new UserTypeMember("name", PrimitiveTypes.VarChar())  
+			};
+
+			var statement = new CreateTypeStatement(typeName, members);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TypeName);
+				Assert.AreEqual(typeName, deserialized.TypeName);
+				Assert.IsNotNull(deserialized.Members);
+				Assert.IsNotEmpty(deserialized.Members);
+				Assert.AreEqual(2, deserialized.Members.Length);
+			});
+		}
+
+		[Test]
+		public void DropType() {
+			var typeName = ObjectName.Parse("APP.type1");
+
+			var statement = new DropTypeStatement(typeName);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TypeName);
+				Assert.AreEqual(typeName, deserialized.TypeName);
+			});
+		}
 	}
 }

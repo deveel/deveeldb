@@ -42,6 +42,8 @@ namespace Deveel.Data.Sql.Types {
 
 		public bool IsSealed { get; set; }
 
+		public bool IsAbstract { get; set; }
+
 		public ObjectName ParentType { get; private set; }
 
 		public string Owner { get; set; }

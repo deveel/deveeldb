@@ -16,16 +16,33 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
-	public sealed class UserTypeMember {
+	[Serializable]
+	public sealed class UserTypeMember : ISerializable {
 		public UserTypeMember(string memberName, SqlType memberType) {
+			if (String.IsNullOrEmpty(memberName))
+				throw new ArgumentNullException("memberName");
+			if (memberType == null)
+				throw new ArgumentNullException("memberType");
+
 			MemberName = memberName;
 			MemberType = memberType;
+		}
+
+		private UserTypeMember(SerializationInfo info, StreamingContext context) {
+			MemberName = info.GetString("Name");
+			MemberType = (SqlType) info.GetValue("Type", typeof(SqlType));
 		}
 
 		public string MemberName { get; private set; }
 
 		public SqlType MemberType { get; private set; }
+
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", MemberName);
+			info.AddValue("Type", MemberType);
+		}
 	}
 }

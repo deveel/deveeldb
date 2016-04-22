@@ -21,18 +21,26 @@ using System.Runtime.Serialization;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class DropTypeStatement : SqlStatement {
-		public DropTypeStatement(ObjectName typeName) {
+		public DropTypeStatement(ObjectName typeName) 
+			: this(typeName, false) {
+		}
+
+		public DropTypeStatement(ObjectName typeName, bool ifExists) {
 			if (typeName == null)
 				throw new ArgumentNullException("typeName");
 
 			TypeName = typeName;
+			IfExists = ifExists;
 		}
 
 		private DropTypeStatement(SerializationInfo info, StreamingContext context) {
 			TypeName = (ObjectName) info.GetValue("TypeName", typeof(ObjectName));
+			IfExists = info.GetBoolean("IfExists");
 		}
 
 		public ObjectName TypeName { get; private set; }
+
+		public bool IfExists { get; set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			base.ExecuteStatement(context);
@@ -40,6 +48,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("TypeName", TypeName);
+			info.AddValue("IfExists", IfExists);
 		}
 	}
 }

@@ -366,6 +366,7 @@
     <Compile Include="Deveel.Data.Sql.Types\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypesInit.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\TypesTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewsInit.cs" />
@@ -941,7 +942,6 @@
     <Compile Include="Deveel.Data.Sql.Types\StringType.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Deveel.Data.Sql.Types\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeResolveContext.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeResolver.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeSerializer.cs" />
