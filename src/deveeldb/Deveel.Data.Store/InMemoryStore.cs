@@ -213,6 +213,11 @@ namespace Deveel.Data.Store {
 			}
 
 			private void Dispose(bool disposing) {
+				if (disposing) {
+					if (block != null)
+						Array.Resize(ref block, 0);
+				}
+
 				block = null;
 			}
 
@@ -279,6 +284,11 @@ namespace Deveel.Data.Store {
 			}
 
 			private void Dispose(bool disposing) {
+				if (disposing) {
+					if (data != null)
+						Array.Resize(ref data, 0);
+				}
+
 				data = null;
 			}
 

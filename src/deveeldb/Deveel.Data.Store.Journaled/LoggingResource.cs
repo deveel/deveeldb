@@ -34,7 +34,7 @@ namespace Deveel.Data.Store.Journaled {
 
 		private readonly JournalEntry[] journalMap;
 
-		private readonly byte[] pageBuffer;
+		private byte[] pageBuffer;
 
 		public LoggingResource(JournaledSystem journaledSystem, long id, string name, IStoreData data) 
 			: base(journaledSystem, id, name, data) {
@@ -65,6 +65,16 @@ namespace Deveel.Data.Store.Journaled {
 
 		public override bool Exists {
 			get { return dataExists; }
+		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing) {
+				if (pageBuffer != null)
+					Array.Resize(ref pageBuffer, 0);
+			}
+
+			pageBuffer = null;
+			base.Dispose(disposing);
 		}
 
 		public override void Read(long pageNumber, byte[] buffer, int offset) {

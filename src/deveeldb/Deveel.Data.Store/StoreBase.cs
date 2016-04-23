@@ -27,7 +27,7 @@ namespace Deveel.Data.Store {
 		private long[] freeBinList;
 		private long totalAllocatedSpace;
 
-		private readonly byte[] binArea = new byte[128 * 8];
+		private byte[] binArea = new byte[128 * 8];
 
 		private static readonly int[] BinSizes =
 			{
@@ -753,10 +753,14 @@ namespace Deveel.Data.Store {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposed) {
 				if (disposing) {
+					if (binArea != null)
+						Array.Resize(ref binArea, 0);
+
 					if (!IsClosed)
 						Close();
 				}
 
+				binArea = null;
 				disposed = true;
 			}
 		}

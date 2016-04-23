@@ -213,9 +213,13 @@ namespace Deveel.Data {
 						Rollback();
 					} catch (Exception ex) {
 						this.OnError(new Exception("Error while rolling back on Dispose", ex));
+					} finally {
+						if (Context != null)
+							Context.Dispose();
 					}
 				}
 
+				Context = null;
 				access = null;
 				disposed = true;
 			}

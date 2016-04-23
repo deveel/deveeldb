@@ -49,7 +49,22 @@ namespace Deveel.Data {
 			Access = new SessionAccess(this);
 		}
 
+		~SystemSession() {
+			Dispose(false);
+		}
+
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (Context != null)
+					Context.Dispose();
+			}
+
+			Context = null;
 			Transaction = null;
 		}
 
