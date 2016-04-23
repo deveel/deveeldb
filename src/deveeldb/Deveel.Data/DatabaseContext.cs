@@ -23,6 +23,18 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The default implementation of a <see cref="IDatabaseContext"/> that
+	/// encapsulates the services and configurations of a database.
+	/// </summary>
+	/// <remarks>
+	/// The <see cref="DatabaseContext"/> is required to open or create
+	/// a database: this implies the only responsible for the creation of this
+	/// context instance is the parent <see cref="ISystemContext"/>. 
+	/// </remarks>
+	/// <seealso cref="Database"/>
+	/// <seealso cref="IDatabase"/>
+	/// <seealso cref="IDatabaseContext"/>
 	public sealed class DatabaseContext : Context, IDatabaseContext {
 		internal DatabaseContext(ISystemContext systemContext, IConfiguration configuration)
 			: base(systemContext) {
@@ -44,15 +56,6 @@ namespace Deveel.Data {
 
 		protected override string ContextName {
 			get { return ContextNames.Database; }
-		}
-
-		private static IConfiguration CreateSimpleConfig(ISystemContext systemContext, string dbName) {
-			if (String.IsNullOrEmpty(dbName))
-				throw new ArgumentNullException("dbName");
-
-			var config = new Configuration.Configuration(systemContext.Configuration);
-			config.SetValue("database.name", dbName);
-			return config;
 		}
 
 		protected override void Dispose(bool disposing) {
@@ -93,6 +96,18 @@ namespace Deveel.Data {
 	        return CreateTransactionContext();
 	    }
 
+		/// <summary>
+		/// Creates a new context to be provided to a <see cref="Transaction"/>
+		/// instance that is handled by the parent database.
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="TransactionContext"/> that is
+		/// the foundation context of a <see cref="Transaction"/>.
+		/// </returns>
+		/// <seealso cref="IDatabaseContext.CreateTransactionContext"/>
+		/// <seealso cref="ITransactionContext"/>
+		/// <seealso cref="TransactionContext"/>
+		/// <seealso cref="Transaction"/>
 	    public TransactionContext CreateTransactionContext() {
 	        return new TransactionContext(this);
 	    }

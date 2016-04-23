@@ -46,5 +46,8 @@ namespace Deveel.Data {
 		/// <seealso cref="IContext"/>
 		/// <seealso cref="IBlockContext"/>
 		IBlockContext Context { get; }
+
+
+		IBlock CreateBlock();
 	}
 }

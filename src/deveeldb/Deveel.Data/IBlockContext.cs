@@ -18,7 +18,23 @@
 using System;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// Defines a context that is specific to a <see cref="IBlock"/>
+	/// </summary>
+	/// <remarks>
+	/// The main characteristic of a <see cref="IBlockContext"/> is the
+	/// possibility to create a child context, that will inherit the scope
+	/// of this context.
+	/// </remarks>
 	public interface IBlockContext : IContext {
+		/// <summary>
+		/// Creates a new block context that inherits from this
+		/// context the scope.
+		/// </summary>
+		/// <returns>
+		/// Returns a new instance of <see cref="IBlockContext"/> as child
+		/// of this context.
+		/// </returns>
 		IBlockContext CreateBlockContext();
 	}
 }

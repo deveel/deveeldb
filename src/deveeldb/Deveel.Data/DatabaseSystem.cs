@@ -21,9 +21,22 @@ using System.Net;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// A system of configuration and coordination that manages more databases.
+	/// </summary>
+	/// <remarks>
+	/// Database systems are constructed on top of a given <see cref="ISystemContext"/> instance
+	/// that is handling the services, configurations and scope for the system.
+	/// <para>
+	/// This object handles references to the databases created, opened or existing within
+	/// the system: <see cref="Database"/> instances can only be accessed through this object.
+	/// </para>
+	/// </remarks>
+	/// <seealso cref="ISystem"/>
+	/// <seealso cref="ISystemContext"/>
+	/// <seealso cref="SystemContext"/>
 	public sealed class DatabaseSystem : ISystem, IEventSource {
 		private IDictionary<string, object> metadata;
 

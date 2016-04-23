@@ -70,7 +70,7 @@ namespace Deveel.Data.Routines {
 				} else if (paramType == typeof (IQuery)) {
 					arg = request.Query;
 				} else if (paramType == typeof(IRequest)) { 
-					arg = new Block(request);
+					arg = request.CreateBlock();
 				} else {
 					var sqlType = PrimitiveTypes.FromType(paramType);
 					arg = sqlType.ConvertTo(args[i].Value, paramType);

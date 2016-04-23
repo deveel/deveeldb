@@ -59,7 +59,7 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
-			Context.RouteImmediate<QueryEvent>(OnQueryCommand);
+			Context.Route<QueryEvent>(OnQueryCommand);
 
 			access = new SessionAccess(this);
 

@@ -54,8 +54,6 @@ namespace Deveel.Data {
 
 		public IBlock Parent { get; private set; }
 
-		public IBlock Next { get; set; }
-
 		public IQuery Query {
 			get {
 				if (query != null)
@@ -65,7 +63,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public RequestAccess Access { get; private set; }
+		private RequestAccess Access { get; set; }
 
 		SystemAccess ISystemDirectAccess.DirectAccess {
 			get { return Access; }

@@ -213,7 +213,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public ExecutionContext NewBlock(SqlStatement statement) {
-			return new ExecutionContext(this, new Block(Request), statement);
+			return new ExecutionContext(this, Request.CreateBlock(), statement);
 		}
 	}
 }
