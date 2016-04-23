@@ -460,11 +460,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected virtual SqlStatement VisitCreateProcedureTrigger(CreateProcedureTriggerStatement statement) {
 			return new CreateProcedureTriggerStatement(statement.TriggerName, statement.TableName, statement.ProcedureName,
-				statement.ProcedureArguments, statement.EventType);
+				statement.ProcedureArguments, statement.EventTime, statement.EventType);
 		}
 
 		protected virtual SqlStatement VisitCreateCallbackTrigger(CreateCallbackTriggerStatement statement) {
-			return new CreateCallbackTriggerStatement(statement.TriggerName, statement.TableName, statement.EventType);
+			return new CreateCallbackTriggerStatement(statement.TriggerName, statement.TableName, statement.EventTime, statement.EventType);
 		}
 
 		protected virtual SqlStatement VisitCreateTrigger(CreateTriggerStatement statement) {
@@ -473,7 +473,7 @@ namespace Deveel.Data.Sql.Statements {
 				// TODO: Maybe the body should be generic to support this model
 				body = (PlSqlBlockStatement)VisitStatement(body);
 
-			return new CreateTriggerStatement(statement.TriggerName, statement.TableName, body, statement.EventType);
+			return new CreateTriggerStatement(statement.TriggerName, statement.TableName, body, statement.EventTime, statement.EventType);
 		}
 
 		protected virtual SqlStatement VisitCreateSequence(CreateSequenceStatement statement) {

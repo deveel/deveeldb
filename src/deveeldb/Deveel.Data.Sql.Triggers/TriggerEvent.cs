@@ -23,24 +23,30 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class TriggerEvent : Event {
-		internal TriggerEvent(ObjectName triggerName, ObjectName sourceName, TriggerEventType eventType, RowId oldRowId, Row newRow) {
+		internal TriggerEvent(TriggerType triggerType, ObjectName triggerName, ObjectName sourceName, TriggerEventTime eventTime, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (sourceName == null)
 				throw new ArgumentNullException("sourceName");
 
+			TriggerType = triggerType;
 			TriggerName = triggerName;
 			SourceName = sourceName;
-			TriggerEventType = eventType;
+			EventTime = eventTime;
+			EventType = eventType;
 			OldRowId = oldRowId;
 			NewRow = newRow;
 		}
 
+		public TriggerType TriggerType { get; private set; }
+
 		public ObjectName TriggerName { get; private set; }
 
-		public ObjectName SourceName { get; set; }
+		public ObjectName SourceName { get; private set; }
 
-		public TriggerEventType TriggerEventType { get; private set; }
+		public TriggerEventTime EventTime { get; private set; }
+
+		public TriggerEventType EventType { get; private set; }
 
 		public RowId OldRowId { get; set; }
 
@@ -48,7 +54,8 @@ namespace Deveel.Data.Sql.Triggers {
 
 		protected override void GetEventData(Dictionary<string, object> data) {
 			data["trigger.name"] = TriggerName.FullName;
-			data["trigger.eventType"] = TriggerEventType.ToString();
+			data["trigger.eventTime"] = EventTime.ToString();
+			data["trigger.eventType"] = EventType.ToString();
 			data["trigger.source"] = SourceName.FullName;
 			data["trigger.old.tableId"] = OldRowId.TableId;
 			data["trigger.old.rowNumber"] = OldRowId.RowNumber;

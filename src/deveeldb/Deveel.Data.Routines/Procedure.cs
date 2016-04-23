@@ -20,8 +20,9 @@ using System;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Routines {
-	public abstract class Procedure : IProcedure {
-		protected Procedure(ProcedureInfo procedureInfo) {
+	public abstract class Procedure : Routine, IProcedure {
+		protected Procedure(ProcedureInfo procedureInfo)
+			: base(procedureInfo) {
 			if (procedureInfo == null)
 				throw new ArgumentNullException("procedureInfo");
 
@@ -45,7 +46,5 @@ namespace Deveel.Data.Routines {
 		RoutineInfo IRoutine.RoutineInfo {
 			get { return ProcedureInfo; }
 		}
-
-		public abstract InvokeResult Execute(InvokeContext context);
 	}
 }

@@ -130,7 +130,7 @@ namespace Deveel.Data.Routines {
 				}
 
 				Field val;
-				SqlReferenceExpression v = context.Arguments[0] as SqlReferenceExpression;
+				SqlReferenceExpression v = context.Arguments[0].Value as SqlReferenceExpression;
 
 				// If the aggregate parameter is a simple variable, then use optimal
 				// routine,
@@ -152,7 +152,7 @@ namespace Deveel.Data.Routines {
 					// work for a group.
 					var exp = context.Arguments[0];
 					for (int i = 0; i < size; ++i) {
-						var evaluated = exp.Evaluate(context.Request, context.GroupResolver.GetVariableResolver(i));
+						var evaluated = exp.Value.Evaluate(context.Request, context.GroupResolver.GetVariableResolver(i));
 
 						if (evaluated.ExpressionType != SqlExpressionType.Constant)
 							throw new InvalidOperationException(

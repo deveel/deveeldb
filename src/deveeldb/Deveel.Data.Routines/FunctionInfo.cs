@@ -85,7 +85,7 @@ namespace Deveel.Data.Routines {
 			//       and compare it to the parameter type definition
 			bool unboundedSeen = false;
 			for (int i = 0; i < invoke.Arguments.Length; i++) {
-				var argType = invoke.Arguments[i].ReturnType(request, null);
+				var argType = invoke.Arguments[i].Value.ReturnType(request, null);
 
 				if (i + 1 > Parameters.Length) {
 					if (!unboundedSeen)

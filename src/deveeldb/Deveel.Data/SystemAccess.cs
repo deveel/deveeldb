@@ -518,8 +518,8 @@ namespace Deveel.Data {
 			CreateObject(triggerInfo);
 		}
 
-		public void CreateCallbackTrigger(string triggerName, ObjectName tableName, TriggerEventType eventType) {
-			Session.Context.DeclareTrigger(new CallbackTriggerInfo(triggerName, tableName, eventType));
+		public void CreateCallbackTrigger(string triggerName, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
+			Session.Context.DeclareTrigger(new CallbackTriggerInfo(triggerName, tableName, eventTime, eventType));
 		}
 
 		public bool DropCallbackTrigger(string triggerName) {

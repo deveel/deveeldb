@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data.Sql.Triggers {
 	public abstract class Trigger : IDbObject, IDisposable {
 		protected Trigger(TriggerInfo triggerInfo) {
@@ -27,6 +29,10 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public TriggerInfo TriggerInfo { get; private set; }
+
+		public ObjectName Name {
+			get { return TriggerInfo.TriggerName; }
+		}
 
 		IObjectInfo IDbObject.ObjectInfo {
 			get { return TriggerInfo; }
@@ -45,6 +51,21 @@ namespace Deveel.Data.Sql.Triggers {
 			return TriggerInfo.CanFire(tableEvent);
 		}
 
-		public abstract void Fire(TableEvent tableEvent, IRequest context);
+		public void Fire(TableEvent tableEvent, IRequest context) {
+			try {
+				var triggerType = TriggerInfo.TriggerType;
+				var tableName = tableEvent.Table.TableInfo.TableName;
+				context.Context.OnEvent(new TriggerEvent(triggerType, Name, tableName, tableEvent.EventTime, tableEvent.EventType, tableEvent.OldRowId, tableEvent.NewRow));
+				using (var block = context.CreateBlock()) {
+					FireTrigger(tableEvent, block);
+				}
+			} catch (TriggerException) {
+				throw;
+			} catch (Exception ex) {
+				throw new TriggerException(String.Format("An unknown error occurred while executing trigger '{0}'.", Name), ex);
+			}
+		}
+
+		protected abstract void FireTrigger(TableEvent tableEvent, IBlock context);
 	}
 }

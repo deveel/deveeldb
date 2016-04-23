@@ -28,6 +28,7 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
+			tableInfo.AddColumn("time", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("args", PrimitiveTypes.Binary());

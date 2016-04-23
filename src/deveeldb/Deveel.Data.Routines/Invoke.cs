@@ -19,7 +19,6 @@ using System;
 using System.Linq;
 using System.Text;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
@@ -41,6 +40,10 @@ namespace Deveel.Data.Routines {
 			: this(routineName, new SqlExpression[0]) {
 		}
 
+		public Invoke(ObjectName routineName, SqlExpression[] arguments)
+			: this(routineName, FormArguments(arguments)) {
+		}
+
 		/// <summary>
 		/// Constructs a new <see cref="Invoke"/> with the given
 		/// name of the routine and the arguments.
@@ -48,7 +51,12 @@ namespace Deveel.Data.Routines {
 		/// <param name="routineName">The fully qualified name of the routine
 		/// to be invoked.</param>
 		/// <param name="arguments">The arguments to pass to the routine.</param>
-		public Invoke(ObjectName routineName, SqlExpression[] arguments) {
+		public Invoke(ObjectName routineName, InvokeArgument[] arguments) {
+			if (routineName == null)
+				throw new ArgumentNullException("routineName");
+
+			VerifyNamesIn(arguments);
+
 			RoutineName = routineName;
 			Arguments = arguments;
 		}
@@ -61,7 +69,7 @@ namespace Deveel.Data.Routines {
 		/// <summary>
 		/// Gets an array of arguments to be passed to the invoked routine.
 		/// </summary>
-		public SqlExpression[] Arguments { get; private set; }
+		public InvokeArgument[] Arguments { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if the arguments of the invocation represent
@@ -75,8 +83,29 @@ namespace Deveel.Data.Routines {
 			get {
 				return Arguments != null &&
 				       Arguments.Length == 1 &&
-				       Arguments[0] is SqlConstantExpression &&
-				       ((SqlConstantExpression) Arguments[0]).Value.Value.ToString() == "*";
+				       Arguments[0].Value is SqlConstantExpression &&
+				       ((SqlConstantExpression) Arguments[0].Value).Value.ToString() == "*";
+			}
+		}
+
+		private static InvokeArgument[] FormArguments(SqlExpression[] expressions) {
+			if (expressions == null || expressions.Length == 0)
+				return new InvokeArgument[0];
+
+			return expressions.Select(x => new InvokeArgument(x)).ToArray();
+		}
+
+		private static void VerifyNamesIn(InvokeArgument[] arguments) {
+			if (arguments == null || arguments.Length == 0)
+				return;
+
+			bool hasName = false;
+			foreach (var argument in arguments) {
+				if (argument.IsNamed) {
+					hasName = true;
+				} else if (hasName) {
+					throw new ArgumentException("At least one of the argument is named and another is unnamed.");
+				}
 			}
 		}
 
@@ -94,7 +123,7 @@ namespace Deveel.Data.Routines {
 				return true;
 
 			// Look at parameterss
-			return Arguments.Any(x => x.HasAggregate(query));
+			return Arguments.Any(x => x.Value.HasAggregate(query));
 		}
 
 		/// <summary>

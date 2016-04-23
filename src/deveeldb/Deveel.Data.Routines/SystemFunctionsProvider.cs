@@ -229,7 +229,7 @@ namespace Deveel.Data.Routines {
 					var vr = context.GroupResolver.GetVariableResolver(i);
 					for (int p = 0; p < cols; ++p) {
 						var exp = context.Arguments[p];
-						groupRow[n + p] = exp.EvaluateToConstant(context.Request, vr);
+						groupRow[n + p] = exp.Value.EvaluateToConstant(context.Request, vr);
 					}
 
 					n += cols;
@@ -412,12 +412,12 @@ namespace Deveel.Data.Routines {
 			// currently is not enforced.
 
 			// Returns type of first argument
-			var t1 = ReturnType(context.Arguments[1], context);
+			var t1 = ReturnType(context.Arguments[1].Value, context);
 			// This is a hack for null values.  If the first parameter is null
 			// then return the type of the second parameter which hopefully isn't
 			// also null.
 			if (t1 is NullType) {
-				return ReturnType(context.Arguments[2], context);
+				return ReturnType(context.Arguments[2].Value, context);
 			}
 			return t1;
 		}
@@ -447,7 +447,7 @@ namespace Deveel.Data.Routines {
 				.WithDynamicParameter("rule")
 				.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
 				.ReturnsType(context => {
-					var argType = ReturnType(context.Arguments[0], context);
+					var argType = ReturnType(context.Arguments[0].Value, context);
 					return argType is StringType ? (SqlType) PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
 				}));
 
@@ -472,7 +472,7 @@ namespace Deveel.Data.Routines {
 			.ReturnsType(context => {
 				var argc = context.Arguments.Length;
 				for (int i = 0; i < argc; i++) {
-					var returnType = context.Arguments[i].ReturnType(context.Request, context.VariableResolver);
+					var returnType = context.Arguments[i].Value.ReturnType(context.Request, context.VariableResolver);
 					if (!(returnType is NullType))
 						return returnType;
 				}

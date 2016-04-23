@@ -74,7 +74,7 @@ namespace Deveel.Data.Routines {
 		/// <seealso cref="SqlExpression"/>
 		/// <seealso cref="Routines.Invoke.Arguments"/>
 		/// <seealso cref="Invoke"/>
-		public SqlExpression[] Arguments {
+		public InvokeArgument[] Arguments {
 			get { return Invoke.Arguments; }
 		}
 
@@ -92,9 +92,10 @@ namespace Deveel.Data.Routines {
 		public Field[] EvaluatedArguments {
 			get {
 				if (evaluatedArgs == null) {
+					// TODO: Sort them in correspondence with the routine parameter order
 					evaluatedArgs = new Field[Arguments.Length];
 					for (int i = 0; i < Arguments.Length; i++) {
-						evaluatedArgs[i] = Arguments[i].EvaluateToConstant(Request, VariableResolver);
+						evaluatedArgs[i] = Arguments[i].Value.EvaluateToConstant(Request, VariableResolver);
 					}
 				}
 
@@ -108,40 +109,6 @@ namespace Deveel.Data.Routines {
 		/// <seealso cref="Arguments"/>
 		public int ArgumentCount {
 			get { return Arguments == null ? 0 : Arguments.Length; }
-		}
-
-		public bool TryGetArgument(string argName, out SqlExpression value) {
-			var parameter = Routine.RoutineInfo.Parameters.FirstOrDefault(x => x.Name.Equals(argName, StringComparison.Ordinal));
-			if (parameter == null) {
-				value = null;
-				return false;
-			}
-
-			var offset = parameter.Offset;
-			if (parameter.IsUnbounded) {
-				// TODO: Copy all arguments starting at the given offset and make an Array
-				var tuple = SqlExpression.Constant(Field.Array(new SqlExpression[0]));
-				value = tuple;
-			} else {
-				value = Invoke.Arguments[offset];
-			}
-
-			return true;
-		}
-
-		public bool TryGetArgument(string argName, out Field value) {
-			SqlExpression exp;
-			if (!TryGetArgument(argName, out exp)) {
-				value = Field.Null();
-				return false;
-			}
-
-			value = exp.EvaluateToConstant(Request, VariableResolver);
-			return true;
-		}
-
-		public bool HasArgument(string argName) {
-			throw new NotImplementedException();
 		}
 
 		public InvokeResult Result(Field value) {

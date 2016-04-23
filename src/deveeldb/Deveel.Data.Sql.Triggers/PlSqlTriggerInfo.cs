@@ -21,8 +21,8 @@ using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class PlSqlTriggerInfo : TriggerInfo {
-		public PlSqlTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventType eventTypes, PlSqlBlockStatement body) 
-			: base(triggerName, tabbleName, eventTypes) {
+		public PlSqlTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventTime eventTime, TriggerEventType eventType, PlSqlBlockStatement body) 
+			: base(triggerName, TriggerType.Procedural, tabbleName, eventTime, eventType) {
 			if (body == null)
 				throw new ArgumentNullException("body");
 

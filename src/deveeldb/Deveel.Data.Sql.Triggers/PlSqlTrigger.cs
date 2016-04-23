@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return ((PlSqlTriggerInfo) TriggerInfo).Body; }
 		}
 
-		public override void Fire(TableEvent tableEvent, IRequest context) {
+		protected override void FireTrigger(TableEvent tableEvent, IBlock context) {
 			// TODO: Should pass arguments?
 			try {
 				Body.Execute(new ExecutionContext(context, Body));

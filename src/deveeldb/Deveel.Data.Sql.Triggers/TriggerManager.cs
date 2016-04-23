@@ -261,7 +261,8 @@ namespace Deveel.Data.Sql.Triggers {
 			var name = triggerInfo.TriggerName.Name;
 			var onTable = triggerInfo.TableName.FullName;
 
-			var action = (int) triggerInfo.EventTypes;
+			var time = (int) triggerInfo.EventTime;
+			var action = (int) triggerInfo.EventType;
 
 			int type;
 			if (triggerInfo is ProcedureTriggerInfo) {
@@ -279,7 +280,8 @@ namespace Deveel.Data.Sql.Triggers {
 			row.SetValue(1, Field.String(name));
 			row.SetValue(2, Field.Integer(type));
 			row.SetValue(3, Field.String(onTable));
-			row.SetValue(4, Field.Integer(action));
+			row.SetValue(4, Field.Integer(time));
+			row.SetValue(5, Field.Integer(action));
 
 			if (type == ProcedureType) {
 				var procInfo = (ProcedureTriggerInfo) triggerInfo;
@@ -288,12 +290,12 @@ namespace Deveel.Data.Sql.Triggers {
 				var binArgs = SerializeArguments(args);
 
 				var procedureName = procInfo.ProcedureName.FullName;
-				row.SetValue(5, Field.String(procedureName));
-				row.SetValue(6, Field.Binary(binArgs));
+				row.SetValue(6, Field.String(procedureName));
+				row.SetValue(7, Field.Binary(binArgs));
 			} else if (type == PlSqlType) {
 				var plsqlInfo = (PlSqlTriggerInfo) triggerInfo;
 				var body = Field.Binary(SqlBinary.ToBinary(plsqlInfo.Body));
-				row.SetValue(7, body);
+				row.SetValue(8, body);
 			}
 
 			table.AddRow(row);
@@ -372,17 +374,18 @@ namespace Deveel.Data.Sql.Triggers {
 			var triggerType = ((SqlNumber)row.GetValue(2).Value).ToInt32();
 
 			var tableName = ObjectName.Parse(((SqlString) row.GetValue(3).Value).ToString());
-			var eventType = (TriggerEventType) ((SqlNumber) row.GetValue(4).Value).ToInt32();
+			var eventTime = (TriggerEventTime)((SqlNumber)row.GetValue(4).Value).ToInt32();
+			var eventType = (TriggerEventType) ((SqlNumber) row.GetValue(5).Value).ToInt32();
 
 			TriggerInfo triggerInfo;
 
 			if (triggerType == ProcedureType) {
-				var procNameString = row.GetValue(5).Value.ToString();
+				var procNameString = row.GetValue(6).Value.ToString();
 				var procName = ObjectName.Parse(procNameString);
-				var argsBinary = (SqlBinary)row.GetValue(6).Value;
+				var argsBinary = (SqlBinary)row.GetValue(7).Value;
 				var args = DeserializeArguments(argsBinary.ToByteArray());
 
-				triggerInfo = new ProcedureTriggerInfo(procName, tableName, eventType, procName);
+				triggerInfo = new ProcedureTriggerInfo(procName, tableName, eventTime, eventType, procName);
 
 				if (args != null && args.Length > 0) {
 					foreach (var expression in args) {
@@ -390,10 +393,10 @@ namespace Deveel.Data.Sql.Triggers {
 					}
 				}
 			} else if (triggerType == PlSqlType) {
-				var binary = (SqlBinary) row.GetValue(7).Value;
+				var binary = (SqlBinary) row.GetValue(8).Value;
 				var body = binary.ToObject<PlSqlBlockStatement>();
 
-				triggerInfo = new PlSqlTriggerInfo(triggerName, tableName, eventType, body);
+				triggerInfo = new PlSqlTriggerInfo(triggerName, tableName, eventTime, eventType, body);
 			} else {
 				throw new InvalidOperationException();
 			}

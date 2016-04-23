@@ -25,11 +25,12 @@ namespace Deveel.Data.Sql.Triggers {
 	/// Exposes the context of an event fired on a table.
 	/// </summary>
 	public sealed class TableEvent : Event {
-		internal TableEvent(ITable table, TriggerEventType eventType, RowId oldRowId, Row newRow) {
+		internal TableEvent(ITable table, TriggerEventTime eventTime, TriggerEventType eventType, RowId oldRowId, Row newRow) {
 			if (table == null)
 				throw new ArgumentNullException("table");
 
 			Table = table;
+			EventTime = eventTime;
 			EventType = eventType;
 			OldRowId = oldRowId;
 			NewRow = newRow;
@@ -39,6 +40,8 @@ namespace Deveel.Data.Sql.Triggers {
 		/// Gets the table on which the event occurred.
 		/// </summary>
 		public ITable Table { get; private set; }
+
+		public TriggerEventTime EventTime { get; private set; }
 
 		/// <summary>
 		/// Gets the type of event that occurred on the table.

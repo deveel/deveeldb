@@ -49,11 +49,10 @@ namespace Deveel.Data.Routines {
 				return false;
 
 			for (int i = 0; i < invoke.Arguments.Length; i++) {
-				// TODO: support variable evaluation here? or evaluate parameters before reaching here?
-				if (!invoke.Arguments[i].IsConstant())
+				if (!invoke.Arguments[i].Value.IsConstant())
 					return false;
 
-				var argType = invoke.Arguments[i].ReturnType(request, null);
+				var argType = invoke.Arguments[i].Value.ReturnType(request, null);
 				var paramType = Parameters[i].Type;
 
 				// TODO: verify if this is assignable (castable) ...

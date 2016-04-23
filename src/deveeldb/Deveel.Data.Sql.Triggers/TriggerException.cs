@@ -32,12 +32,12 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		private static string FormMessage(Trigger trigger) {
-			return FormMessage(trigger.TriggerInfo.TableName, trigger.TriggerInfo.TriggerName, trigger.TriggerInfo.EventTypes);
+			return FormMessage(trigger.TriggerInfo.TableName, trigger.TriggerInfo.TriggerName, trigger.TriggerInfo.EventTime, trigger.TriggerInfo.EventType);
 		}
 
-		private static string FormMessage(ObjectName tableName, ObjectName triggerName, TriggerEventType eventType) {
-			return String.Format("An error occurred when firing trigger '{0}' {1} on table '{2}'",
-				triggerName, eventType.AsString(), tableName);
+		private static string FormMessage(ObjectName tableName, ObjectName triggerName, TriggerEventTime eventTime, TriggerEventType eventType) {
+			return String.Format("An error occurred when firing trigger '{0}' {1} {2} on table '{3}'",
+				triggerName, eventTime, eventType, tableName);
 		}
 	}
 }

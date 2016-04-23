@@ -166,6 +166,7 @@
     <Compile Include="Deveel.Data\DropUserTests.cs" />
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />
+    <Compile Include="Deveel.Data\FireProcedureTriggerTests.cs" />
     <Compile Include="Deveel.Data\FunctionTestBase.cs" />
     <Compile Include="Deveel.Data\GrantTests.cs" />
     <Compile Include="Deveel.Data\InsertSelectTests.cs" />

@@ -48,13 +48,13 @@ namespace Deveel.Data.Sql.Triggers {
 			testQuery.Access().CreateTable(tableInfo);
 
 			if (!testName.EndsWith("_NoTriggers")) {
-				testQuery.Access().CreateCallbackTrigger("callback1", TestTableName, TriggerEventType.AfterInsert);
+				testQuery.Access().CreateCallbackTrigger("callback1", TestTableName, TriggerEventTime.After, TriggerEventType.Insert);
 			}
 
 			System.Context.ListenTriggers(trigger => {
-				if ((trigger.TriggerEventType & TriggerEventType.After) != 0) {
+				if (trigger.EventTime == TriggerEventTime.After) {
 					afterEvent = trigger;
-				} else if ((trigger.TriggerEventType & TriggerEventType.Before) != 0) {
+				} else if (trigger.EventTime == TriggerEventTime.Before) {
 					beforeEvent = trigger;
 				}
 			});

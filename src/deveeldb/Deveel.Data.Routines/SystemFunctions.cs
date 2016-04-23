@@ -287,12 +287,12 @@ namespace Deveel.Data.Routines {
 
 			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);
 
-			var condition = context.Arguments[0].EvaluateToConstant(evalContext);
+			var condition = context.Arguments[0].Value.EvaluateToConstant(evalContext);
 			if (condition.Type is BooleanType) {
 				if (condition.Equals(Field.BooleanTrue)) {
-					result = context.Arguments[1].EvaluateToConstant(evalContext);
+					result = context.Arguments[1].Value.EvaluateToConstant(evalContext);
 				} else if (condition.Equals(Field.BooleanFalse)) {
-					result = context.Arguments[2].EvaluateToConstant(evalContext);
+					result = context.Arguments[2].Value.EvaluateToConstant(evalContext);
 				}
 			}
 

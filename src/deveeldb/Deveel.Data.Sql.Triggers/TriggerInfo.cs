@@ -17,24 +17,32 @@
 
 using System;
 
+using Deveel.Data.Sql.Statements;
+
 namespace Deveel.Data.Sql.Triggers {
 	public abstract class TriggerInfo : IObjectInfo {
-		protected TriggerInfo(ObjectName triggerName, ObjectName tableName, TriggerEventType eventTypes) {
+		protected TriggerInfo(ObjectName triggerName, TriggerType triggerType, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
 
 			TriggerName = triggerName;
+			TriggerType = triggerType;
 			TableName = tableName;
-			EventTypes = eventTypes;
+			EventTime = eventTime;
+			EventType = eventType;
 		}
 
 		public ObjectName TriggerName { get; private set; }
 
 		public ObjectName TableName { get; private set; }
 
-		public TriggerEventType EventTypes { get; private set; }
+		public TriggerType TriggerType { get; private set; }
+
+		public TriggerEventTime EventTime { get; private set; }
+
+		public TriggerEventType EventType { get; private set; }
 
 		ObjectName IObjectInfo.FullName {
 			get { return TriggerName; }
@@ -50,27 +58,14 @@ namespace Deveel.Data.Sql.Triggers {
 			if (!TableName.Equals(tableEvent.Table.TableInfo.TableName))
 				return false;
 
-			return MatchesEvent(tableEvent.EventType);
+			return MatchesEvent(tableEvent.EventTime, tableEvent.EventType);
 		}
 
-		private bool MatchesEvent(TriggerEventType eventType) {
-			if ((eventType & TriggerEventType.Before) != 0 &&
-			    (EventTypes & TriggerEventType.Before) == 0)
-				return false;
-			if ((eventType & TriggerEventType.After) != 0 &&
-			    (EventTypes & TriggerEventType.After) == 0)
+		private bool MatchesEvent(TriggerEventTime eventTime, TriggerEventType eventType) {
+			if (eventTime != EventTime)
 				return false;
 
-			bool matches = false;
-
-			if ((EventTypes & TriggerEventType.AfterInsert) != 0)
-				matches = (eventType & TriggerEventType.Insert) != 0;
-			if ((EventTypes & TriggerEventType.Update) != 0)
-				matches = (eventType & TriggerEventType.Update) != 0;
-			if ((EventTypes & TriggerEventType.Delete) != 0)
-				matches = (eventType & TriggerEventType.Delete) != 0;
-
-			return matches;
+			return (EventType & eventType) != 0;
 		}
 	}
 }

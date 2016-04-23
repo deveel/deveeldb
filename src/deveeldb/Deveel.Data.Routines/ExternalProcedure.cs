@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Routines {
 	public sealed class ExternalProcedure : Procedure {
 		public ExternalProcedure(ExternalProcedureInfo procedureInfo) 
@@ -31,7 +33,8 @@ namespace Deveel.Data.Routines {
 			get { return ((ExternalProcedureInfo) ProcedureInfo).ExternalRef; }
 		}
 
-		public override InvokeResult Execute(InvokeContext context) {
+		protected override Field ExecuteRoutine(IBlock context) {
+			// TODO: Cast the input parameters to the destination types
 			throw new NotImplementedException();
 		}
 	}

@@ -30,10 +30,10 @@ namespace Deveel.Data.Routines {
 			get { return ((PlSqlProcedureInfo) ProcedureInfo).Body; }
 		}
 
-		public override InvokeResult Execute(InvokeContext context) {
-			var execContext = new ExecutionContext(context.Request, Body);
+		protected override Field ExecuteRoutine(IBlock context) {
+			var execContext = new ExecutionContext(context, Body);
 			Body.Execute(execContext);
-			return new InvokeResult(context);
+			return Field.Null();
 		}
 	}
 }

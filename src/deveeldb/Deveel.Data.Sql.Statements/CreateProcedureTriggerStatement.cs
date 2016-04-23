@@ -22,11 +22,11 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateProcedureTriggerStatement : SqlStatement {
-		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, TriggerEventType eventType) 
-			: this(triggerName, tableName, procedureName, new SqlExpression[0], eventType) {
+		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, TriggerEventTime eventTime, TriggerEventType eventType) 
+			: this(triggerName, tableName, procedureName, new SqlExpression[0], eventTime, eventType) {
 		}
 
-		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, SqlExpression[] args, TriggerEventType eventType) {
+		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, SqlExpression[] args, TriggerEventTime eventTime, TriggerEventType eventType) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
@@ -38,6 +38,7 @@ namespace Deveel.Data.Sql.Statements {
 			TableName = tableName;
 			ProcedureName = procedureName;
 			ProcedureArguments = args;
+			EventTime = eventTime;
 			EventType = eventType;
 		}
 
@@ -50,5 +51,7 @@ namespace Deveel.Data.Sql.Statements {
 		public ObjectName ProcedureName { get; private set; }
 
 		public SqlExpression[] ProcedureArguments { get; private set; }
+
+		public TriggerEventTime EventTime { get; private set; }
 	}
 }

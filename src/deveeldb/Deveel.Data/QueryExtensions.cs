@@ -421,36 +421,13 @@ namespace Deveel.Data {
 
 		#region Create Trigger
 
-		public static void CreateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventType eventType) {
-			query.ExecuteStatement(new CreateTriggerStatement(triggerName, tableName, body, eventType));
+		public static void CreateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventTime eventTime, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateTriggerStatement(triggerName, tableName, body, eventTime, eventType));
 		}
 
-		public static void CreateBeforeInsertTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeInsert);
-		}
 
-		public static void CreateAfterInsertTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterInsert);
-		}
-
-		public static void CreateBeforeUpdateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeUpdate);
-		}
-
-		public static void CreateAfterUpdateTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterUpdate);
-		}
-
-		public static void CreateBeforeDeleteTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.BeforeDelete);
-		}
-
-		public static void CreateAfterDeleteTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body) {
-			query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterDelete);
-		}
-
-		public static void CreateCallbackTrigger(this IQuery query, string triggerName,  ObjectName tableName, TriggerEventType eventType) {
-			query.ExecuteStatement(new CreateCallbackTriggerStatement(triggerName, tableName, eventType));
+		public static void CreateCallbackTrigger(this IQuery query, string triggerName,  ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateCallbackTriggerStatement(triggerName, tableName, eventTime, eventType));
 		}
 
 		#endregion

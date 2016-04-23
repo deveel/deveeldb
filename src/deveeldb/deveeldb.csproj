@@ -184,6 +184,10 @@
     <Compile Include="Deveel.Data.Routines\PlSqlProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlProcedureInfo.cs" />
     <Compile Include="Deveel.Data.Routines\Procedure.cs" />
+    <Compile Include="Deveel.Data.Routines\InvokeArgument.cs" />
+    <Compile Include="Deveel.Data.Routines\Routine.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineEvent.cs" />
+    <Compile Include="Deveel.Data.Routines\RoutineEventType.cs" />
     <Compile Include="Deveel.Data.Routines\RoutinesInit.cs" />
     <Compile Include="Deveel.Data.Routines\RoutinesTableContainer.cs" />
     <Compile Include="Deveel.Data.Routines\ScopeExtensions.cs" />
@@ -357,6 +361,8 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggersInit.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggersTableContainer.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventTime.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DataTypeInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Types\IDataTypeParser.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
@@ -463,7 +469,6 @@
     <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventEventTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />

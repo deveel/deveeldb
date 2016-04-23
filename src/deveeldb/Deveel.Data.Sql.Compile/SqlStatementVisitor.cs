@@ -81,6 +81,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			ObjectName onObject = null;
 			TriggerEventType eventType = new TriggerEventType();
+			TriggerEventTime eventTime = new TriggerEventTime();
 
 			if (simpleDml != null) {
 				bool before = simpleDml.BEFORE() != null;
@@ -105,9 +106,9 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				if (before) {
-					eventType |= TriggerEventType.Before;
+					eventTime = TriggerEventTime.Before;
 				} else if (after) {
-					eventType |= TriggerEventType.After;
+					eventTime = TriggerEventTime.After;
 				}
 
 				onObject = Name.Object(simpleDml.dmlEventClause().objectName());
@@ -125,7 +126,7 @@ namespace Deveel.Data.Sql.Compile {
 					plsqlBody.Declarations.Add(declaration);
 				}
 
-				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventType);
+				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventTime, eventType);
 			}
 
 			var procName = Name.Object(triggerBody.objectName());
@@ -135,7 +136,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var args = funcArgs.Select(x => x.Expression).ToArray();
 
-			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventType);
+			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType);
 		}
 
 		public override SqlStatement VisitCreateTypeStatement(PlSqlParser.CreateTypeStatementContext context) {
@@ -778,11 +779,21 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitDropProcedureStatement(PlSqlParser.DropProcedureStatementContext context) {
-			return base.VisitDropProcedureStatement(context);
+			var procName = Name.Object(context.objectName());
+			return new DropProcedureStatement(procName);
 		}
 
 		public override SqlStatement VisitDropFunctionStatement(PlSqlParser.DropFunctionStatementContext context) {
-			return base.VisitDropFunctionStatement(context);
+			var funcNames = context.objectName().Select(Name.Object).ToArray();
+			if (funcNames.Length == 1)
+				return new DropFunctionStatement(funcNames[0]);
+
+			var seq = new SequenceOfStatements();
+			foreach (var funcName in funcNames) {
+				seq.Statements.Add(new DropFunctionStatement(funcName));
+			}
+
+			return seq;
 		}
 
 		public override SqlStatement VisitDropSequenceStatement(PlSqlParser.DropSequenceStatementContext context) {

@@ -21,12 +21,12 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class ProcedureTriggerInfo : TriggerInfo {
-		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventType eventTypes, ObjectName procedureName) 
-			: this(triggerName, tabbleName, eventTypes, procedureName, new SqlExpression[0]) {
+		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName) 
+			: this(triggerName, tabbleName, eventTime, eventType, procedureName, new SqlExpression[0]) {
 		}
 
-		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventType eventTypes, ObjectName procedureName, SqlExpression[] args) 
-			: base(triggerName, tabbleName, eventTypes) {
+		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName, SqlExpression[] args) 
+			: base(triggerName, TriggerType.External, tabbleName, eventTime, eventType) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 

@@ -28,7 +28,7 @@ namespace Deveel.Data {
 		protected override bool OnSetUp(string testName, IQuery query) {
 			triggerName = ObjectName.Parse("APP.trigger1");
 			query.Access().CreateTrigger(new ProcedureTriggerInfo(triggerName, ObjectName.Parse("APP.table1"),
-				TriggerEventType.AfterDelete, ObjectName.Parse("APP.proc1")));
+				TriggerEventTime.After, TriggerEventType.Delete, ObjectName.Parse("APP.proc1")));
 
 			return true;
 		}

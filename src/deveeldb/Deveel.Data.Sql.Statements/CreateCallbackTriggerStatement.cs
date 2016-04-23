@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Triggers;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CreateCallbackTriggerStatement : SqlStatement {
-		public CreateCallbackTriggerStatement(string triggerName, ObjectName tableName, TriggerEventType eventType) {
+		public CreateCallbackTriggerStatement(string triggerName, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
 			if (String.IsNullOrEmpty(triggerName))
 				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
@@ -30,6 +30,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			TriggerName = triggerName;
 			TableName = tableName;
+			EventTime = eventTime;
 			EventType = eventType;
 		}
 
@@ -37,12 +38,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName TableName { get; private set; }
 
+		public TriggerEventTime EventTime { get; private set; }
+
 		public TriggerEventType EventType { get; private set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access().ResolveTableName(TableName);
 
-			return new CreateCallbackTriggerStatement(TriggerName, tableName, EventType);
+			return new CreateCallbackTriggerStatement(TriggerName, tableName, EventTime, EventType);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
@@ -52,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (context.DirectAccess.TriggerExists(new ObjectName(TriggerName)))
 				throw new StatementException();
 
-			context.Request.Access().CreateCallbackTrigger(TriggerName, TableName, EventType);
+			context.Request.Access().CreateCallbackTrigger(TriggerName, TableName, EventTime, EventType);
 		}
 	}
 }

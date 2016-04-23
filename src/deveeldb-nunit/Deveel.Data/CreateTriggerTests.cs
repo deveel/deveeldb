@@ -65,14 +65,15 @@ namespace Deveel.Data {
 		[Test]
 		public void CallbackTrigger() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			Query.CreateCallbackTrigger("trigger1", tableName, TriggerEventType.BeforeInsert);
+			Query.CreateCallbackTrigger("trigger1", tableName, TriggerEventTime.Before, TriggerEventType.Insert);
 
 			var trigger = Query.Access().GetObject(DbObjectType.Trigger, new ObjectName("trigger1")) as Trigger;
 
 			Assert.IsNotNull(trigger);
 			Assert.AreEqual("trigger1", trigger.TriggerInfo.TriggerName.FullName);
 			Assert.AreEqual(tableName, trigger.TriggerInfo.TableName);
-			Assert.AreEqual(TriggerEventType.BeforeInsert, trigger.TriggerInfo.EventTypes);
+			Assert.AreEqual(TriggerEventTime.Before, trigger.TriggerInfo.EventTime);
+			Assert.AreEqual(TriggerEventType.Insert, trigger.TriggerInfo.EventType);
 		}
 
 		[Test]
@@ -82,7 +83,7 @@ namespace Deveel.Data {
 			var triggerName = new ObjectName("trigger1");
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.CreateTrigger(triggerName, tableName, body, TriggerEventType.AfterInsert);
+			Query.CreateTrigger(triggerName, tableName, body, TriggerEventTime.After, TriggerEventType.Insert);
 
 			var exists = Query.Access().TriggerExists(ObjectName.Parse("APP.trigger1"));
 

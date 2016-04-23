@@ -25,8 +25,8 @@ namespace Deveel.Data.Sql.Triggers {
 			: base(triggerInfo) {
 		}
 
-		public override void Fire(TableEvent tableEvent, IRequest context) {
-			var e = new TriggerEvent(TriggerInfo.TriggerName, tableEvent.Table.TableInfo.TableName, tableEvent.EventType,
+		protected override void FireTrigger(TableEvent tableEvent, IBlock context) {
+			var e = new TriggerEvent(TriggerType.Callback, TriggerInfo.TriggerName, tableEvent.Table.TableInfo.TableName, tableEvent.EventTime, tableEvent.EventType,
 				tableEvent.OldRowId, tableEvent.NewRow);
 
 			context.Context.RegisterEvent(e);

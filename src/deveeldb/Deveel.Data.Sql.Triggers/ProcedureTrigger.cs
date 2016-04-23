@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return ((ProcedureTriggerInfo) TriggerInfo).Arguments; }
 		}
 
-		public override void Fire(TableEvent tableEvent, IRequest context) {
+		protected override void FireTrigger(TableEvent tableEvent, IBlock context) {
 			var procedure = context.Access().GetObject(DbObjectType.Routine, ProcedureName) as IProcedure;
 
 			if (procedure == null)

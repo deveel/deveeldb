@@ -59,8 +59,8 @@ namespace Deveel.Data.Sql.Tables {
 			get { return Table.ColumnCount(); }
 		}
 
-		private void OnTableEvent(TriggerEventType eventType, RowId rowId, Row row) {
-			Context.Access().FireTriggers(Context, new TableEvent(this, eventType, rowId, row));
+		private void OnTableEvent(TriggerEventTime eventTime, TriggerEventType eventType, RowId rowId, Row row) {
+			Context.Access().FireTriggers(Context, new TableEvent(this, eventTime, eventType, rowId, row));
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
@@ -105,11 +105,11 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public RowId AddRow(Row row) {
-			OnTableEvent(TriggerEventType.BeforeInsert, RowId.Null, row);
+			OnTableEvent(TriggerEventTime.Before, TriggerEventType.Insert, RowId.Null, row);
 			
 			var newRowId = MutableTable.AddRow(row);
 
-			OnTableEvent(TriggerEventType.AfterInsert, newRowId, row);
+			OnTableEvent(TriggerEventTime.After, TriggerEventType.Insert, newRowId, row);
 
 			return newRowId;
 		}
@@ -122,18 +122,20 @@ namespace Deveel.Data.Sql.Tables {
 			if (rowId.IsNull)
 				throw new ArgumentException("Cannot update a row with NULL ROWID");
 
-			OnTableEvent(TriggerEventType.BeforeUpdate, rowId, row);
+			OnTableEvent(TriggerEventTime.Before, TriggerEventType.Update, rowId, row);
 
 			MutableTable.UpdateRow(row);
+
+			OnTableEvent(TriggerEventTime.After, TriggerEventType.Update, rowId, row);
 		}
 
 		public bool RemoveRow(RowId rowId) {
-			OnTableEvent(TriggerEventType.BeforeDelete, rowId, null);
+			OnTableEvent(TriggerEventTime.Before, TriggerEventType.Delete, rowId, null);
 
 			// TODO: Maybe we should return the row removed here
 			var result = MutableTable.RemoveRow(rowId);
 
-			OnTableEvent(TriggerEventType.AfterDelete, rowId, null);
+			OnTableEvent(TriggerEventTime.After, TriggerEventType.Delete, rowId, null);
 
 			return result;
 		}

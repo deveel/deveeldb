@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateTriggerStatement : SqlStatement {
-		public CreateTriggerStatement(ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventType eventType) {
+		public CreateTriggerStatement(ObjectName triggerName, ObjectName tableName, PlSqlBlockStatement body, TriggerEventTime eventTime, TriggerEventType eventType) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
@@ -34,6 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 			TriggerName = triggerName;
 			TableName = tableName;
 			Body = body;
+			EventTime = eventTime;
 			EventType = eventType;
 		}
 
@@ -45,6 +46,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public PlSqlBlockStatement Body { get; private set; }
 
+		public TriggerEventTime EventTime { get; set; }
+
 		public bool ReplaceIfExists { get; set; }
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
@@ -52,7 +55,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (body != null)
 				body = (PlSqlBlockStatement) body.Prepare(preparer);
 
-			return new CreateTriggerStatement(TriggerName, TableName, body, EventType);
+			return new CreateTriggerStatement(TriggerName, TableName, body, EventTime, EventType);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
@@ -61,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var tableName = context.Access().ResolveTableName(TableName);
 
-			return new CreateTriggerStatement(triggerName, tableName, Body, EventType);
+			return new CreateTriggerStatement(triggerName, tableName, Body, EventTime, EventType);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
@@ -80,7 +83,7 @@ namespace Deveel.Data.Sql.Statements {
 				context.DirectAccess.DropObject(DbObjectType.Trigger, TriggerName);
 			}
 
-			var triggerInfo = new PlSqlTriggerInfo(TriggerName, TableName, EventType, Body);
+			var triggerInfo = new PlSqlTriggerInfo(TriggerName, TableName, EventTime, EventType, Body);
 
 			context.DirectAccess.CreateObject(triggerInfo);
 			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, Privileges.SchemaAll, true);
