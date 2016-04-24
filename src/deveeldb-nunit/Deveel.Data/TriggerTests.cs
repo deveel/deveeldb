@@ -2,7 +2,6 @@
 using System.Threading;
 
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
@@ -14,11 +13,11 @@ using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
-	public class FireProcedureTriggerTests : ContextBasedTest {
+	public class TriggerTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			CreateTestTable(query, tableName);
-			CreateBeforeInsertOrUpdateTrigger(query, tableName);
+			CreateTriggers(testName, query, tableName);
 
 			return true;
 		}
@@ -30,7 +29,7 @@ namespace Deveel.Data {
 			query.Access().CreateObject(tableInfo);
 		}
 
-		private void CreateBeforeInsertOrUpdateTrigger(IQuery query, ObjectName tableName) {
+		private void CreateTriggers(string testName, IQuery query, ObjectName tableName) {
 			var triggerName = ObjectName.Parse("APP.trigger1");
 			var eventTime = TriggerEventTime.Before;
 			var eventType = TriggerEventType.Insert | TriggerEventType.Update;
@@ -70,6 +69,31 @@ namespace Deveel.Data {
 			reset.WaitOne(300);
 
 			Assert.IsNotNull(firedEvent);
+		}
+
+		[Test]
+		public void Callback() {
+			var tableName = ObjectName.Parse("APP.test_table");
+
+			Query.Access().CreateCallbackTrigger("callback1", tableName, TriggerEventTime.After, TriggerEventType.Insert);
+
+			var reset = new AutoResetEvent(false);
+
+			TriggerEvent firedEvent = null;
+			Query.Context.RouteImmediate<TriggerEvent>(e => {
+				firedEvent = e;
+				reset.Set();
+			}, e => e.TriggerType == TriggerType.Callback &&
+					e.TriggerName.Name.Equals("callback1"));
+
+			Query.Insert(tableName, new[] { "id", "name" },
+				new SqlExpression[] { SqlExpression.Constant(2), SqlExpression.Constant("The Name") });
+
+			reset.WaitOne(300);
+
+			Assert.IsNotNull(firedEvent);
+			Assert.AreEqual(TriggerEventTime.After, firedEvent.EventTime);
+			Assert.AreEqual(TriggerEventType.Insert, firedEvent.EventType);
 		}
 	}
 }

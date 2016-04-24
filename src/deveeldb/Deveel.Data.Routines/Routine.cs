@@ -110,10 +110,6 @@ namespace Deveel.Data.Routines {
 			var args = context.Arguments;
 			InvokeResult invokeResult = null;
 
-			SqlType returnType = null;
-			if (RoutineInfo is FunctionInfo)
-				returnType = ((FunctionInfo) RoutineInfo).ReturnType;
-
 			try {
 				context.Request.Context.OnEvent(new RoutineEvent(Name, args, RoutineInfo.RoutineType));
 
@@ -132,7 +128,7 @@ namespace Deveel.Data.Routines {
 
 				if (output.Count > 0) {
 					foreach (var pair in output) {
-						invokeResult.SetOutputParameter(pair.Key, pair.Value);
+						context.SetOutput(pair.Key, pair.Value);
 					}
 				}
 

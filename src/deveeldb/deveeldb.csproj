@@ -468,7 +468,6 @@
     <Compile Include="Deveel.Data.Sql.Tables\VirtualTable.cs" />
     <Compile Include="Deveel.Data.Sql\IObjectManager.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\SystemContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
@@ -685,11 +684,9 @@
     <Compile Include="Deveel.Data.Sql.Statements\StatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementException.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateStatement.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\ITriggerListener.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TableEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEvent.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerManager.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventRouter.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunction.cs" />
     <Compile Include="Deveel.Data.Security\InvalidAccessException.cs" />
     <Compile Include="Deveel.Data.Security\MissingPrivilegesException.cs" />

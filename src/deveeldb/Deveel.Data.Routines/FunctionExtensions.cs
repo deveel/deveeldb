@@ -26,24 +26,6 @@ namespace Deveel.Data.Routines {
 	/// Extension methods to any <see cref="IFunction"/>.
 	/// </summary>
 	public static class FunctionExtensions {
-		/// <summary>
-		/// Executes the function given the cintext provided.
-		/// </summary>
-		/// <param name="function">The function to execute.</param>
-		/// <param name="request">The invocation information that was used to resolve 
-		/// the function.</param>
-		/// <param name="group"></param>
-		/// <param name="resolver"></param>
-		/// <param name="query"></param>
-		/// <returns></returns>
-		public static Field Execute(this IFunction function, Invoke request, IGroupResolver group,
-			IVariableResolver resolver,
-			IRequest query) {
-			var execContext = new InvokeContext(request, function, resolver, group, query);
-			var result = function.Execute(execContext);
-			return result.ReturnValue;
-		}
-
 		public static SqlType ReturnType(this IFunction function, Invoke request, IRequest query, IVariableResolver resolver) {
 			var execContext = new InvokeContext(request, function, resolver, null, query);
 			return function.ReturnType(execContext);

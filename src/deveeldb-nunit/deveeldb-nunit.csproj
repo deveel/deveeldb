@@ -166,7 +166,7 @@
     <Compile Include="Deveel.Data\DropUserTests.cs" />
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />
-    <Compile Include="Deveel.Data\FireProcedureTriggerTests.cs" />
+    <Compile Include="Deveel.Data\TriggerTests.cs" />
     <Compile Include="Deveel.Data\FunctionTestBase.cs" />
     <Compile Include="Deveel.Data\GrantTests.cs" />
     <Compile Include="Deveel.Data\InsertSelectTests.cs" />
@@ -188,7 +188,6 @@
     <Compile Include="Deveel.Data\SystemTests.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializeTests.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainerTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Triggers\TriggerListenTests.cs" />
     <Compile Include="Deveel.Data.Index\BlindSearchTests.cs" />
     <Compile Include="Deveel.Data.Routines\FunctionBuildTests.cs" />
     <Compile Include="Deveel.Data.Routines\SystemFunctionTests.cs" />
