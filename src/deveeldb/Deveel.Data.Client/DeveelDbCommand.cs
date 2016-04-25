@@ -63,14 +63,17 @@ namespace Deveel.Data.Client {
 		}
 
 		private QueryParameterDirection GetParamDirection(SysParameterDirection direction) {
-			if (direction == SysParameterDirection.Input)
-				return QueryParameterDirection.In;
-			if (direction == SysParameterDirection.Output)
-				return QueryParameterDirection.Out;
-			if (direction == SysParameterDirection.InputOutput)
-				return QueryParameterDirection.InOut;
-
-			throw new NotSupportedException();
+			switch (direction) {
+				case ParameterDirection.Input:
+				default:
+					return QueryParameterDirection.In;
+				case ParameterDirection.InputOutput:
+					return QueryParameterDirection.InOut;
+				case ParameterDirection.Output:
+					return QueryParameterDirection.Out;
+				case ParameterDirection.ReturnValue:
+					throw new NotImplementedException();
+			}
 		}
 
 		private QueryParameter PrepareParameter(DeveelDbParameter parameter) {
@@ -84,14 +87,17 @@ namespace Deveel.Data.Client {
 			if (String.IsNullOrEmpty(name))
 				name = QueryParameter.Marker;
 
-			var meta = new [] {
-				new DataTypeMeta("MaxSize", parameter.Size.ToString()),
-				new DataTypeMeta("Precision", parameter.Precision.ToString()), 
-				new DataTypeMeta("Scale", parameter.Scale.ToString()),
- 				new DataTypeMeta("Locale", parameter.Locale) 
-			};
+			var meta = new List<DataTypeMeta>();
+			if (parameter.Size > 0)
+				meta.Add(new DataTypeMeta("MaxSize", parameter.Size.ToString()));
+			if (parameter.Precision > 0)
+				meta.Add(new DataTypeMeta("Precision", parameter.Precision.ToString()));
+			if (parameter.Scale > 0)
+				meta.Add(new DataTypeMeta("Scale", parameter.Scale.ToString()));
+			if (!String.IsNullOrEmpty(parameter.Locale))
+				meta.Add(new DataTypeMeta("Locale", parameter.Locale));
 
-			var dataType = SqlType.Resolve(parameter.SqlType, meta);
+			var dataType = SqlType.Resolve(parameter.SqlType, meta.ToArray());
 			var value = dataType.CreateFrom(parameter.Value);
 
 			var queryParameter = new QueryParameter(name, dataType, value);
@@ -154,7 +160,7 @@ namespace Deveel.Data.Client {
 				}
 			}
 
-			var query = new SqlQuery(CommandText);
+			var query = new SqlQuery(CommandText, Connection.Settings.ParameterStyle);
 
 			// now verify all parameter names are consistent
 			foreach (var parameter in queryParameters) {
@@ -167,12 +173,14 @@ namespace Deveel.Data.Client {
 						throw new InvalidOperationException("Named parameters must have a name defined.");
 
 					if (parameter.Name == QueryParameter.Marker)
-						throw new InvalidOperationException();
-					if (parameter.Name.Length <= 1)
-						throw new InvalidOperationException();
-					if (!Char.IsLetter(parameter.Name[0]) &&
-						parameter.Name[0] != QueryParameter.NamePrefix)
-						throw new InvalidOperationException();
+						throw new InvalidOperationException("Cannot set the parameter marker in a named parameter query.");
+
+					var paramName = parameter.Name;
+					if (paramName[0] == QueryParameter.NamePrefix)
+						paramName = paramName.Substring(1);
+
+					if (paramName.Length < 1)
+						throw new InvalidOperationException("Invalid parameter name: cannot specify only the variable bind prefix.");
 				}
 
 				query.Parameters.Add(parameter);

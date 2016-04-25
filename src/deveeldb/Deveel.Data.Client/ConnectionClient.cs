@@ -238,7 +238,7 @@ namespace Deveel.Data.Client {
 				as AuthenticateResponse;
 
 			if (response == null)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("No response from the server");
 
 			return response.Authenticated;
 		}
@@ -248,7 +248,7 @@ namespace Deveel.Data.Client {
 				as QueryExecuteResponse;
 
 			if (response == null)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("No response from the server");
 
 			return response.QueryResponse;
 		}

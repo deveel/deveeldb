@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql {
 			: this(name, sqlType, null) {
 		}
 
-		public QueryParameter(string name, SqlType sqlType, Objects.ISqlObject value) {
+		public QueryParameter(string name, SqlType sqlType, ISqlObject value) {
 			if (sqlType == null)
 				throw new ArgumentNullException("sqlType");
 
@@ -45,8 +45,12 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentNullException("name");
 
 			if (!String.Equals(name, Marker, StringComparison.Ordinal) &&
-				name[0] != NamePrefix)
-				throw new ArgumentException(String.Format("The parameter name '{0}' is invalid: must be '{1}' or starting with '{2}'", name, Marker, NamePrefix));
+			    name[0] == NamePrefix) {
+				name = name.Substring(1);
+
+				if (String.IsNullOrEmpty(name))
+					throw new ArgumentException("Cannot specify only the variable bind prefix as parameter.");
+			}
 
 			Name = name;
 			SqlType = sqlType;

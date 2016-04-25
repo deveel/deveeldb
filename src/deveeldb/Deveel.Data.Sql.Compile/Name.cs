@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
@@ -26,6 +27,19 @@ namespace Deveel.Data.Sql.Compile {
 				return null;
 
 			var parts = context.id().Select(x => x.GetText()).ToArray();
+			var realParts = new List<string>();
+
+			foreach (var part in parts) {
+				if (!String.IsNullOrEmpty(part)) {
+					var sp = part.Split('.');
+					foreach (var s in sp) {
+						realParts.Add(s);
+					}
+				}
+			}
+
+			parts = realParts.ToArray();
+
 			ObjectName name = null;
 
 			for (int i = 0; i < parts.Length; i++) {
@@ -117,6 +131,17 @@ namespace Deveel.Data.Sql.Compile {
 
 		[CLSCompliant(false)]
 		public static string Variable(PlSqlParser.Bind_variableContext context) {
+			//if (context.BINDVAR() != null) {
+			//	varRef = context.BINDVAR().GetText();
+			//} else if (context.UNSIGNED_INTEGER() != null) {
+			//	var numVal = context.UNSIGNED_INTEGER().GetText();
+			//	varRef = String.Format(":{0}", numVal);
+			//} else {
+			//	throw new ParseCanceledException("Invalid variable bind");
+			//}
+
+			//// TODO: support more complex variable binds
+
 			var text = context.GetText();
 			if (String.IsNullOrEmpty(text))
 				return text;

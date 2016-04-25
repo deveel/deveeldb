@@ -239,6 +239,23 @@ namespace Deveel.Data.Sql.Types {
 			throw new InvalidCastException();
 		}
 
+		public override ISqlObject CreateFrom(object value) {
+			if (value == null)
+				return SqlString.Null;
+
+			if (value is ISqlString)
+				return (ISqlString) value;
+
+			if (value is string)
+				return new SqlString((string)value);
+			if (value is byte[])
+				return new SqlString((byte[])value);
+			if (value is char[])
+				return new SqlString((char[])value);
+
+			throw new NotSupportedException();
+		}
+
 		#region Operators
 
 		/// <inheritdoc/>

@@ -109,7 +109,7 @@ namespace Deveel.Data.Sql.Compile {
 				if (intoClause.objectName() != null) {
 					into.TableName = Name.Object(intoClause.objectName());
 				} else if (intoClause.variable_name() != null) {
-					into.Variables = intoClause.variable_name().Select(x => Name.Variable(x)).ToArray();
+					into.Variables = intoClause.variable_name().Select(Name.Variable).ToArray();
 				}
 			}
 

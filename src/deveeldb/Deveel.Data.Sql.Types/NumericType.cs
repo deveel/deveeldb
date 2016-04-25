@@ -49,6 +49,17 @@ namespace Deveel.Data.Sql.Types {
 
 		public int Size { get; private set; }
 
+		public int MaxSize {
+			get {
+				switch (TypeCode) {
+					case SqlTypeCode.BigInt:
+						return 127;
+					default:
+						return -1;
+				}
+			}
+		}
+
 		public byte Scale { get; private set; }
 
 		public override bool IsStorable {
@@ -102,17 +113,17 @@ namespace Deveel.Data.Sql.Types {
 				return (SqlNumber) value;
 
 			if (value is byte)
-				return new SqlNumber((byte)value, Size);
+				return new SqlNumber((byte)value, Scale);
 			if (value is short)
-				return new SqlNumber((short)value, Size);
+				return new SqlNumber((short)value, Scale);
 			if (value is int)
-				return new SqlNumber((int)value, Size);
+				return new SqlNumber((int)value, Scale);
 			if (value is long)
-				return new SqlNumber((long)value, Size);
+				return new SqlNumber((long)value, Scale);
 			if (value is float)
-				return new SqlNumber((float)value, Size);
+				return new SqlNumber((float)value, Scale);
 			if (value is double)
-				return new SqlNumber((double)value, Size);
+				return new SqlNumber((double)value, Scale);
 			if (value is byte[])
 				return new SqlNumber((byte[])value, Scale, Size);
 			if (value is string)

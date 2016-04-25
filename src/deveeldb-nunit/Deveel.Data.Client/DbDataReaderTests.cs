@@ -56,16 +56,13 @@ namespace Deveel.Data.Client {
 			return true;
 		}
 
-		protected override void OnAfterSetup(string testName) {
-			var connString = new DeveelDbConnectionStringBuilder {
-				UserName = AdminUserName,
-				Password = AdminPassword,
-				DataSource = "memory",
-				Database = DatabaseName,
-				Schema = "APP",
-				Create = true
-			};
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().DropObject(DbObjectType.Table, tableName);
+			return true;
+		}
 
+		protected override void OnAfterSetup(string testName) {
 			connection = Database.CreateDbConnection(AdminUserName, AdminPassword);
 		}
 

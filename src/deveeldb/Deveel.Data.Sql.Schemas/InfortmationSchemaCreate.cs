@@ -112,11 +112,11 @@ namespace Deveel.Data.Sql.Schemas {
 			                   "         \"TABLE_SCHEMA\",\n" +
 			                   "         \"TABLE_NAME\",\n" +
 			                   "         \"COLUMN_NAME\",\n" +
-			                   "         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '@SYSTEM', \n" +
 			                   "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-			                   "         IIF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '@PUBLIC', \n" +
 			                   "                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
-			                   "         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
+			                   "         \"" + InformationSchema.ThisUserGrantViewName + ".description\" AS \"PRIVILEGE\",\n" +
 			                   "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
 			                   "    FROM " + InformationSchema.Columns + ", INFORMATION_SCHEMA.ThisUserGrant \n" +
 			                   "   WHERE CONCAT(columns.TABLE_SCHEMA, '.', columns.TABLE_NAME) = \n" +
@@ -128,15 +128,15 @@ namespace Deveel.Data.Sql.Schemas {
 			                   "  SELECT \"TABLE_CATALOG\",\n" +
 			                   "         \"TABLE_SCHEMA\",\n" +
 			                   "         \"TABLE_NAME\",\n" +
-			                   "         IIF(\"ThisUserGrant.granter\" = '@SYSTEM', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '@SYSTEM', \n" +
 			                   "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-			                   "         IIF(\"ThisUserGrant.grantee\" = '@PUBLIC', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '@PUBLIC', \n" +
 			                   "                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
-			                   "         \"ThisUserGrant.description\" AS \"PRIVILEGE\",\n" +
+			                   "         \"" + InformationSchema.ThisUserGrantViewName + ".description\" AS \"PRIVILEGE\",\n" +
 			                   "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
 			                   "    FROM " + InformationSchema.Tables + ", " + InformationSchema.ThisUserGrantViewName + " \n" +
 			                   "   WHERE CONCAT(tables.TABLE_SCHEMA, '.', tables.TABLE_NAME) = \n" +
-			                   "         ThisUserGrant.name \n" +
+			                   "         " + InformationSchema.ThisUserGrantViewName + ".name \n" +
 			                   "     AND " + InformationSchema.ThisUserGrantViewName + ".object = 1 \n" +
 			                   "     AND " + InformationSchema.ThisUserGrantViewName + ".description IS NOT NULL \n");
 

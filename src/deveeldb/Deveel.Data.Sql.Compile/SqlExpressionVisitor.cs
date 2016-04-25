@@ -300,23 +300,6 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.Constant(Field.String(value));
 		}
 
-		private ObjectName FormName(string[] parts) {
-			if (parts == null || parts.Length == 0)
-				return null;
-
-			ObjectName result = null;
-
-			for (int i = 0; i < parts.Length; i++) {
-				if (result == null) {
-					result = new ObjectName(parts[i]);
-				} else {
-					result = new ObjectName(result, parts[i]);
-				}
-			}
-
-			return result;
-		}
-
 		public override SqlExpression VisitGeneral_element(PlSqlParser.General_elementContext context) {
 			var element = ElementNode.Form(context);
 			var name = element.Id;
@@ -410,18 +393,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitBind_variable(PlSqlParser.Bind_variableContext context) {
-			string varRef;
-			if (context.BINDVAR() != null) {
-				varRef = context.BINDVAR().GetText();
-			} else if (context.UNSIGNED_INTEGER() != null) {
-				var numVal = context.UNSIGNED_INTEGER().GetText();
-				varRef = String.Format(":{0}", numVal);
-			} else {
-				throw new ParseCanceledException("Invalid variable bind");
-			}
-
-			// TODO: support more complex variable binds
-
+			var varRef = Name.Variable(context);
 			return SqlExpression.VariableReference(varRef);
 		}
 

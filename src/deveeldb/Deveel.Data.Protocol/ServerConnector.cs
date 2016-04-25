@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
@@ -214,7 +215,7 @@ namespace Deveel.Data.Protocol {
 			return session.CreateQuery();
 		}
 
-		protected IQueryResponse[] ExecuteQuery(long commitId, string text, IEnumerable<QueryParameter> parameters) {
+		protected IQueryResponse[] ExecuteQuery(long commitId, SqlQuery query) {
 			AssertAuthenticated();
 
 			IQuery queryContext;
@@ -224,17 +225,17 @@ namespace Deveel.Data.Protocol {
 				queryContext = CreateQueryContext();
 			}
 
-			return ExecuteQuery(queryContext, text, parameters);
+			return ExecuteQuery(queryContext, query);
 		}
 
-		protected virtual IQueryResponse[] ExecuteQuery(IQuery context, string text, IEnumerable<QueryParameter> parameters) {
+		protected virtual IQueryResponse[] ExecuteQuery(IQuery context, SqlQuery query) {
 			// TODO: Log a debug message..
 
 			IQueryResponse[] response = null;
 
 			try {
 				// Execute the Query (behaviour for this comes from super).
-				response = CoreExecuteQuery(context, text, parameters);
+				response = CoreExecuteQuery(context, query.Text, query.Parameters, query.ParameterStyle);
 
 				// Return the result.
 				return response;
@@ -267,7 +268,7 @@ namespace Deveel.Data.Protocol {
 			}
 		}
 
-		protected IQueryResponse[] CoreExecuteQuery(IQuery context, string text, IEnumerable<QueryParameter> parameters) {
+		protected IQueryResponse[] CoreExecuteQuery(IQuery context, string text, IEnumerable<QueryParameter> parameters, QueryParameterStyle parameterStyle) {
 			// Where Query result eventually resides.
 			int resultId = -1;
 
@@ -276,7 +277,7 @@ namespace Deveel.Data.Protocol {
 			// the client.
 
 			// Evaluate the sql Query.
-			var query = new SqlQuery(text);
+			var query = new SqlQuery(text, parameterStyle);
 			if (parameters != null) {
 				foreach (var p in parameters) {
 					var c = p.SqlType.TypeCode;
@@ -286,7 +287,6 @@ namespace Deveel.Data.Protocol {
 						case SqlTypeCode.LongVarBinary:
 						case SqlTypeCode.LongVarChar:
 						case SqlTypeCode.VarBinary:
-						case SqlTypeCode.VarChar:
 							throw new NotImplementedException("TODO: Download the Large-Objects and replace with a reference");
 						default:
 							query.Parameters.Add(p);
@@ -305,6 +305,9 @@ namespace Deveel.Data.Protocol {
 			foreach (var result in results) {
 				QueryResult queryResult;
 				try {
+					if (result.Type == StatementResultType.Exception)
+						throw result.Error;
+
 					queryResult = new QueryResult(query, result, context.AutoCommit());
 					resultId = AddResult(queryResult);
 				} catch (Exception) {
@@ -633,7 +636,7 @@ namespace Deveel.Data.Protocol {
 					connector.AssertAuthenticated();
 
 					// TODO: use the timeout ...
-					var queryResonse = connector.ExecuteQuery(request.CommitId, request.Query.Text, request.Query.Parameters);
+					var queryResonse = connector.ExecuteQuery(request.CommitId, request.Query);
 					return connector.CreateEnvelope(metadata, new QueryExecuteResponse(queryResonse));
 				} catch (Exception ex) {
 					// TODO: Log the error ...

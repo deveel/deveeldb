@@ -480,14 +480,6 @@ namespace Deveel.Data.Sql.Types {
 			return TypeResolver.Resolve(typeCode, name, meta, resolver);
 		}
 
-		private static SqlTypeCode ResolveTypeCode(string name) {
-			var typeCode = PrimitiveTypes.ResolveTypeCode(name);
-			if (typeCode == SqlTypeCode.Unknown)
-				typeCode = SqlTypeCode.Type;
-
-			return typeCode;
-		}
-
 		public static SqlTypeCode GetTypeCode(Type type) {
 			if (type == null)
 				return SqlTypeCode.Unknown;

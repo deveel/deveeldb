@@ -59,6 +59,20 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<SqlExpression[]> Values { get; private set; }
 
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var values = new List<SqlExpression[]>();
+			foreach (var array in Values) {
+				var list = new List<SqlExpression>();
+				foreach (var expression in array) {
+					list.Add(expression.Prepare(preparer));
+				}
+
+				values.Add(list.ToArray());
+			}
+
+			return new InsertStatement(TableName, ColumnNames, values);
+		}
+
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var values = Values.ToArray();
 
