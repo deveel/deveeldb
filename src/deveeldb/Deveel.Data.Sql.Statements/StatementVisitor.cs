@@ -283,7 +283,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected virtual SqlStatement VisitGrantRole(GrantRoleStatement statement) {
-			return new GrantRoleStatement(statement.UserName, statement.Role, statement.WithAdmin);
+			return new GrantRoleStatement(statement.Grantee, statement.Role, statement.WithAdmin);
 		}
 
 		protected virtual SqlStatement VisitGrantPrivilege(GrantPrivilegesStatement statement) {

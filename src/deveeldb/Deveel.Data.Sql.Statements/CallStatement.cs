@@ -23,6 +23,7 @@ using System.Runtime.Serialization;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -93,7 +94,15 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.User.CanExecuteProcedure(invoke,context.Request))
 				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
 
-			procedure.Execute(Arguments, context.Request);
+			var result = procedure.Execute(Arguments, context.Request);
+
+			if (result.HasOutputParameters) {
+				var output = result.OutputParameters;
+				var names = output.Keys.ToArray();
+				var values = output.Values.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray();
+				var resultTable = new FunctionTable(values, names, context.Request);
+				context.SetResult(resultTable);
+			}
 		}
 	}
 }

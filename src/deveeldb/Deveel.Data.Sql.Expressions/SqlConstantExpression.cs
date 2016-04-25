@@ -63,6 +63,22 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		public Field Value { get; private set; }
 
+		public override bool Equals(object obj) {
+			var other = obj as SqlConstantExpression;
+			if (other == null)
+				return false;
+
+			if (Field.IsNullField(Value) &&
+			    Field.IsNullField(other.Value))
+				return true;
+
+			return Value.Equals(other.Value);
+		}
+
+		public override int GetHashCode() {
+			return Value.GetHashCode();
+		}
+
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Value", Value, typeof(Field));
 		}

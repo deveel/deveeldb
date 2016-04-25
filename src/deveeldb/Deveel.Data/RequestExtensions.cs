@@ -370,12 +370,37 @@ namespace Deveel.Data {
 
 		#region Call
 
-		public static void Call(this IRequest request, ObjectName procedureName, params InvokeArgument[] args) {
-			request.ExecuteStatement(new CallStatement(procedureName, args));
+		public static IDictionary<string, Field> Call(this IRequest request, ObjectName procedureName, params InvokeArgument[] args) {
+			var result = request.ExecuteStatement(new CallStatement(procedureName, args));
+
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException("Invalid return from CALL");
+
+			var table = result.Result;
+			if (table.RowCount == 0)
+				return new Dictionary<string, Field>();
+
+			if (table.RowCount > 1)
+				throw new InvalidOperationException("Too many rows returned.");
+
+			var row = table.First();
+			var dictionary = new Dictionary<string, Field>();
+
+			for (int i = 0; i < row.ColumnCount; i++) {
+				var colName = row.Table.TableInfo[i].ColumnName;
+				var value = row.GetValue(i);
+
+				dictionary[colName] = value;
+			}
+
+			return dictionary;
 		}
 
-		public static void Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
-			request.Call(procedureName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
+		public static IDictionary<string, Field> Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
+			return request.Call(procedureName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
 		}
 
 		#endregion

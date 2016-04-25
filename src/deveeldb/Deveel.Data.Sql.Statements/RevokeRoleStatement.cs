@@ -16,7 +16,7 @@
 
 
 using System;
-using System.Runtime.Remoting.Channels;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
 
@@ -33,11 +33,25 @@ namespace Deveel.Data.Sql.Statements {
 			RoleName = roleName;
 		}
 
+		public RevokeRoleStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Grantee = info.GetString("Grantee");
+			RoleName = info.GetString("Role");
+			Admin = info.GetBoolean("Admin");
+		}
+
 		public string Grantee { get; private set; }
 
 		public string RoleName { get; private set; }
 
 		public bool Admin { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("Grantee", Grantee);
+			info.AddValue("Role", RoleName);
+			info.AddValue("Admin", Admin);
+			base.GetData(info);
+		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.RoleExists(RoleName))

@@ -59,11 +59,11 @@ namespace Deveel.Data.Sql.Compile {
 
 			var first = (GrantRoleStatement) result.Statements.ElementAt(0);
 			Assert.AreEqual("admin", first.Role);
-			Assert.AreEqual("test_user", first.UserName);
+			Assert.AreEqual("test_user", first.Grantee);
 
 			var second = (GrantRoleStatement)result.Statements.ElementAt(1);
 			Assert.AreEqual("data_reader", second.Role);
-			Assert.AreEqual("test_user", second.UserName);
+			Assert.AreEqual("test_user", second.Grantee);
 		}
 	}
 }

@@ -152,6 +152,12 @@ namespace Deveel.Data.Sql.Compile {
 						.Select(x => new InvokeArgument(x.Id, x.Expression))
 						.ToArray();
 
+			if (args.Length > 0) {
+				bool named = args.Any(x => x.IsNamed);
+				if (named && args.Any(x => !x.IsNamed))
+					throw new ParseCanceledException("Anonymous argument mixed with named arguments");
+			}
+
 			return new CallStatement(routineName, args);
 		}
 
@@ -380,12 +386,14 @@ namespace Deveel.Data.Sql.Compile {
 					if (value == null)
 						throw new ParseCanceledException("FETCH ABSOLUTE requires a numeric offset.");
 
+					direction = FetchDirection.Absolute;
 					offset = value.Value;
 				} else if (fetchDirection.RELATIVE() != null) {
 					var value = Number.PositiveInteger(fetchDirection.numeric());
 					if (value == null)
 						throw new ParseCanceledException("FETCH RELATIVE requires a numeric offset.");
 
+					direction = FetchDirection.Relative;
 					offset = value.Value;
 				} else if (fetchDirection.NEXT() != null) {
 					direction = FetchDirection.Next;
@@ -826,19 +834,13 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitDropRoleStatement(PlSqlParser.DropRoleStatementContext context) {
-			return RoleStatements.Drop(context);
+			var roleName = Name.Simple(context.regular_id());
+			return new DropRoleStatement(roleName);
 		}
 
 		public override SqlStatement VisitCreateRoleStatement(PlSqlParser.CreateRoleStatementContext context) {
-			return RoleStatements.Create(context);
-		}
-
-		public override SqlStatement VisitGrantStatement(PlSqlParser.GrantStatementContext context) {
-			return base.VisitGrantStatement(context);
-		}
-
-		public override SqlStatement VisitRevokeStatement(PlSqlParser.RevokeStatementContext context) {
-			return base.VisitRevokeStatement(context);
+			var roleName = Name.Simple(context.regular_id());
+			return new CreateRoleStatement(roleName);
 		}
 
 		public override SqlStatement VisitCursorDeclaration(PlSqlParser.CursorDeclarationContext context) {

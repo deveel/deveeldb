@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -84,6 +85,10 @@ namespace Deveel.Data.Routines {
 
 		public IRequest Request { get; private set; }
 
+		internal IDictionary<string, Field> Output {
+			get { return output; }
+		}
+
 		public InvokeContext New(SqlExpression[] args) {
 			var newInvoke = new Invoke(Invoke.RoutineName, args);
 			return new InvokeContext(newInvoke, Routine, VariableResolver, GroupResolver, Request);
@@ -134,17 +139,20 @@ namespace Deveel.Data.Routines {
 			if (parameter == null)
 				throw new InvalidOperationException(String.Format("Routine {0} has none parameter named '{1}'.", Routine.RoutineInfo.RoutineName, argName));
 			if (!parameter.IsOutput)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException(String.Format("The parameter '{0}' is not OUTPUT", argName));
 
 			if (!parameter.IsNullable &&
 				value.IsNull)
-				throw new ArgumentException();
+				throw new ArgumentException(String.Format("The output parameter '{0}' is marked as NOT NULL but a NULL value was passed.", argName));
 
-			if (!parameter.IsUnbounded)
-				throw new ArgumentException();
+			if (!parameter.Type.Equals(value.Type)) {
+				if (!parameter.Type.IsComparable(value.Type))
+					throw new ArgumentException(
+						String.Format("The passed value of type '{0}' is not assignable to the type '{1}' of parameter '{2}'.", value.Type,
+							parameter.Type, parameter.Name));
 
-			if (!parameter.Type.IsComparable(value.Type))
-				throw new ArgumentException();
+				value = value.CastTo(parameter.Type);
+			}
 
 			if (output == null)
 				output = new Dictionary<string, Field>();

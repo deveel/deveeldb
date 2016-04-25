@@ -106,10 +106,14 @@ namespace Deveel.Data.Sql.Variables {
 		}
 
 		public Field Evaluate(IRequest context) {
-			if (Expression == null)
-				return Field.Null(Type);
+			var toEval = Expression;
+			if (toEval == null)
+				toEval = VariableInfo.DefaultExpression;
 
-			return Expression.EvaluateToConstant(context, null);
+			if (toEval == null)
+				toEval = SqlExpression.Constant(null);
+
+			return toEval.EvaluateToConstant(context, null);
 		}
 	}
 }

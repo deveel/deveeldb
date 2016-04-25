@@ -37,6 +37,11 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public GrantPrivilegesStatement(string grantee, Privileges privilege, bool withGrant, ObjectName objName, IEnumerable<string> columns) {
+			if (String.IsNullOrEmpty(grantee))
+				throw new ArgumentNullException("grantee");
+			if (objName == null)
+				throw new ArgumentNullException("objName");
+
 			Grantee = grantee;
 			Privilege = privilege;
 			Columns = columns;
@@ -79,6 +84,10 @@ namespace Deveel.Data.Sql.Statements {
 			var obj = context.Request.Access().FindObject(ObjectName);
 			if (obj == null)
 				throw new InvalidOperationException(String.Format("Object '{0}' was not found in the system.", ObjectName));
+
+			if (!context.User.HasGrantOption(DbObjectType.Table, ObjectName, Privilege))
+				throw new SecurityException(String.Format("User '{0}' has not the option to grant '{1}' to '{2}' on {3}",
+					context.User.Name, Privilege, Grantee, ObjectName));
 
 			// TODO: Veirfy the current user has grant option
 			context.Request.Access().GrantTo(Grantee, obj.ObjectInfo.ObjectType, obj.ObjectInfo.FullName, Privilege, WithGrant);

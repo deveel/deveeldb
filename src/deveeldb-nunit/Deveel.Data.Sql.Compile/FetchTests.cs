@@ -16,6 +16,8 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 using NUnit.Framework;
@@ -23,9 +25,14 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
 	public sealed class FetchTests : SqlCompileTestBase {
-		[Test]
-		public void FetchNextFromCursorInto() {
-			const string sql = "FETCH NEXT FROM test_cursor INTO test_table";
+		[TestCase("NEXT")]
+		[TestCase("PRIOR")]
+		[TestCase("FIRST")]
+		[TestCase("LAST")]
+		public void FetchSimpleFromCursorInto(string direction) {
+			var sql = String.Format("FETCH {0} FROM test_cursor INTO test_table", direction);
+
+			var expectedDirection = (FetchDirection) Enum.Parse(typeof(FetchDirection), direction, true);
 
 			var result = Compile(sql);
 
@@ -42,11 +49,43 @@ namespace Deveel.Data.Sql.Compile {
 
 			var cursorStatement = (FetchIntoStatement) statement;
 			Assert.AreEqual("test_cursor", cursorStatement.CursorName);
+			Assert.AreEqual(expectedDirection, cursorStatement.Direction);
 		}
 
-		[Test]
-		public void FetchNextImplicitCursor() {
-			const string sql = "FETCH NEXT";
+		[TestCase("ABSOLUTE", 200)]
+		[TestCase("RELATIVE", 123)]
+		public void FetchPositionalFromCursorInto(string direction, int offset) {
+			var sql = String.Format("FETCH {0} {1} FROM test_cursor INTO test_table", direction, offset);
+
+			var expectedDirection = (FetchDirection)Enum.Parse(typeof(FetchDirection), direction, true);
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<FetchIntoStatement>(statement);
+
+			var cursorStatement = (FetchIntoStatement)statement;
+			Assert.AreEqual("test_cursor", cursorStatement.CursorName);
+			Assert.AreEqual(expectedDirection, cursorStatement.Direction);
+			Assert.AreEqual(SqlExpression.Constant(offset), cursorStatement.OffsetExpression);
+		}
+
+
+		[TestCase("NEXT")]
+		[TestCase("PRIOR")]
+		[TestCase("FIRST")]
+		[TestCase("LAST")]
+		public void FetchImplicitCursor(string direction) {
+			var sql = String.Format("FETCH {0}", direction);
+			var expectedDirection = (FetchDirection)Enum.Parse(typeof(FetchDirection), direction, true);
 
 			var result = Compile(sql);
 
@@ -63,6 +102,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var cursorStatement = (FetchStatement) statement;
 			Assert.IsNullOrEmpty(cursorStatement.CursorName);
+			Assert.AreEqual(expectedDirection, cursorStatement.Direction);
 		}
 	}
 }

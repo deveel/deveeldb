@@ -26,8 +26,6 @@ namespace Deveel.Data.Routines {
 	/// Represents the result of the execution of a routine.
 	/// </summary>
 	public sealed class InvokeResult {
-		private Dictionary<string, Field> outputValues;
-
 		private InvokeResult(InvokeContext context, Field returnValue, bool hasReturn) {
 			Context = context;
 			ReturnValue = returnValue;
@@ -77,29 +75,14 @@ namespace Deveel.Data.Routines {
 		/// </summary>
 		/// <seealso cref="OutputParameters"/>
 		public bool HasOutputParameters {
-			get { return outputValues != null && outputValues.Count > 0; }
+			get { return Context.Output != null && Context.Output.Count > 0; }
 		}
 
 		/// <summary>
 		/// Gets a dictionary of the <c>OUT</c> parameters emitted byt the routine.
 		/// </summary>
 		public IDictionary<string, Field> OutputParameters {
-			get {
-				if (outputValues == null)
-					return new Dictionary<string, Field>();
-
-				return outputValues.ToDictionary(x => x.Key, y => y.Value);
-			}
+			get { return Context.Output; }
 		}  
-
-		internal void SetOutputParameter(string name, Field value) {
-			if (Context.RoutineType != RoutineType.Procedure)
-				throw new Exception("Cannot set an output parameter value for a function.");
-
-			if (outputValues == null)
-				outputValues = new Dictionary<string, Field>();
-
-			outputValues[name] = value;
-		}
 	}
 }

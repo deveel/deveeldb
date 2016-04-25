@@ -222,7 +222,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\Number.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Parameter.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\PlSqlCompiler.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\RoleStatements.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SelectBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SequenceStatements.cs" />

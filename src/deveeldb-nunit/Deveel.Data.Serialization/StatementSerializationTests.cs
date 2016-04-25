@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Routines;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
@@ -347,6 +348,66 @@ namespace Deveel.Data.Serialization {
 				Assert.IsNotNull(deserialized.ConditionExpression);
 				Assert.IsNotNull(deserialized.Statements);
 				Assert.IsNotEmpty(deserialized.Statements);
+			});
+		}
+
+		[Test]
+		public void GrantPrivilegesNoOption() {
+			var privs = Privileges.Insert | Privileges.Update;
+			var objName = ObjectName.Parse("APP.test_table1");
+			var statement = new GrantPrivilegesStatement("user1", privs, objName);
+
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.ObjectName);
+				Assert.IsNotNull(deserialized.Grantee);
+				Assert.AreEqual(objName, deserialized.ObjectName);
+				Assert.AreEqual("user1", deserialized.Grantee);
+				Assert.AreEqual(privs, deserialized.Privilege);
+				Assert.IsFalse(deserialized.WithGrant);
+				Assert.IsNull(deserialized.Columns);
+			});
+		}
+
+		[Test]
+		public void RevokePrivileges() {
+			var privs = Privileges.Insert | Privileges.Update;
+			var objName = ObjectName.Parse("APP.test_table1");
+
+			var statement = new RevokePrivilegesStatement("user1", privs, objName);
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.ObjectName);
+				Assert.IsNotNull(deserialized.Grantee);
+				Assert.AreEqual(objName, deserialized.ObjectName);
+				Assert.AreEqual(privs, deserialized.Privileges);
+				Assert.AreEqual("user1", deserialized.Grantee);
+				Assert.IsFalse(deserialized.GrantOption);
+			});
+		}
+
+		[Test]
+		public void GrantRole() {
+			var statement = new GrantRoleStatement("user1", "role1");
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.AreEqual("user1", deserialized.Grantee);
+				Assert.AreEqual("role1", deserialized.Role);
+				Assert.IsFalse(deserialized.WithAdmin);
+			});
+		}
+
+		[Test]
+		public void RevokeRole() {
+			var statement = new RevokeRoleStatement("user1", "role1");
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.AreEqual("user1", deserialized.Grantee);
+				Assert.AreEqual("role1", deserialized.RoleName);
+				Assert.IsFalse(deserialized.Admin);
 			});
 		}
 	}

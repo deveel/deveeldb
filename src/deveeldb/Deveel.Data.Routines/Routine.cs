@@ -53,6 +53,8 @@ namespace Deveel.Data.Routines {
 			if (args.Length != Parameters.Count(x => x.IsInput))
 				throw new ArgumentException("Invalid number of parameters in the routine invoke.");
 
+			var passedParameters = new List<string>();
+
 			if (args.Any(x => x.IsNamed)) {
 				var parameters = Parameters.ToDictionary(x => x.Name, y => y);
 				foreach (var argument in args) {
@@ -71,6 +73,8 @@ namespace Deveel.Data.Routines {
 					} else {
 						block.DeclareConstantVariable(parameter.Name, parameter.Type, argument.Value);
 					}
+
+					passedParameters.Add(parameter.Name);
 				}
 			} else {
 				var parameters = Parameters.Where(x => x.IsInput).OrderBy(x => x.Offset).ToArray();
@@ -83,7 +87,14 @@ namespace Deveel.Data.Routines {
 					} else {
 						block.DeclareConstantVariable(parameter.Name, parameter.Type, argument.Value);
 					}
+
+					passedParameters.Add(parameter.Name);
 				}
+			}
+
+			var output = Parameters.Where(x => x.IsOutput && !passedParameters.Contains(x.Name));
+			foreach (var parameter in output) {
+				block.DeclareVariable(parameter.Name, parameter.Type);
 			}
 		}
 

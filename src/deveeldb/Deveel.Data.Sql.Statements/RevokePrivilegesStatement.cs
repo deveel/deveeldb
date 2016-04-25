@@ -21,12 +21,22 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class RevokePrivilegesStatement : SqlStatement {
+		public RevokePrivilegesStatement(string grantee, Privileges privileges, ObjectName objectName) 
+			: this(grantee, privileges, objectName, null) {
+		}
+
+		public RevokePrivilegesStatement(string grantee, Privileges privileges, ObjectName objectName, IEnumerable<string> columns) 
+			: this(grantee, privileges, false, objectName, columns) {
+		}
+
+		public RevokePrivilegesStatement(string grantee, Privileges privileges, bool grantOption, ObjectName objectName) 
+			: this(grantee, privileges, grantOption, objectName, null) {
+		}
+
 		public RevokePrivilegesStatement(string grantee, Privileges privileges, bool grantOption, ObjectName objectName, IEnumerable<string> columns) {
 			if (String.IsNullOrEmpty(grantee))
 				throw new ArgumentNullException("grantee");
@@ -40,6 +50,15 @@ namespace Deveel.Data.Sql.Statements {
 			GrantOption = grantOption;
 		}
 
+		private RevokePrivilegesStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Grantee = info.GetString("Grantee");
+			Privileges = (Privileges) info.GetInt32("Privileges");
+			ObjectName = (ObjectName) info.GetValue("ObjectName", typeof(ObjectName));
+			Columns = (string[]) info.GetValue("Columns", typeof(string[]));
+			GrantOption = info.GetBoolean("Option");
+		}
+
 		public string Grantee { get; private set; }
 
 		public Privileges Privileges { get; private set; }
@@ -49,6 +68,15 @@ namespace Deveel.Data.Sql.Statements {
 		public IEnumerable<string> Columns { get; private set; }
 
 		public bool GrantOption { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("ObjectName", ObjectName);
+			info.AddValue("Grantee", Grantee);
+			info.AddValue("Privileges", (int) Privileges);
+			info.AddValue("Columns", Columns == null ? new string[0] : Columns.ToArray());
+			info.AddValue("Option", GrantOption);
+			base.GetData(info);
+		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var objectName = context.Access().ResolveTableName(ObjectName);
