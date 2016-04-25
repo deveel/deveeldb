@@ -18,10 +18,12 @@
 using System;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Routines;
+
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlFunctionCallExpression : SqlExpression {
-		internal SqlFunctionCallExpression(ObjectName functioName, SqlExpression[] arguments) {
+		internal SqlFunctionCallExpression(ObjectName functioName, InvokeArgument[] arguments) {
 			Arguments = arguments;
 			FunctioName = functioName;
 		}
@@ -29,12 +31,12 @@ namespace Deveel.Data.Sql.Expressions {
 		private SqlFunctionCallExpression(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
 			FunctioName = (ObjectName)info.GetValue("FunctionName", typeof(ObjectName));
-			Arguments = (SqlExpression[])info.GetValue("Arguments", typeof(SqlExpression[]));
+			Arguments = (InvokeArgument[])info.GetValue("Arguments", typeof(InvokeArgument[]));
 		}
 
 		public ObjectName FunctioName { get; private set; }
 
-		public SqlExpression[] Arguments { get; private set; }
+		public InvokeArgument[] Arguments { get; private set; }
 
 		public override SqlExpressionType ExpressionType {
 			get { return SqlExpressionType.FunctionCall; }
@@ -42,7 +44,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("FunctionName", FunctioName, typeof(ObjectName));
-			info.AddValue("Arguments", Arguments, typeof(SqlExpression[]));
+			info.AddValue("Arguments", Arguments, typeof(InvokeArgument[]));
 		}
 	}
 }

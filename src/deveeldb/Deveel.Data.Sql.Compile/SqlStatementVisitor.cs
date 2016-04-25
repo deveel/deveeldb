@@ -130,9 +130,9 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			var procName = Name.Object(triggerBody.objectName());
-			IEnumerable<FunctionArgumentNode> funcArgs = new FunctionArgumentNode[0];
+			IEnumerable<FunctionArgument> funcArgs = new FunctionArgument[0];
 			if (triggerBody.function_argument() != null)
-				funcArgs = triggerBody.function_argument().argument().Select(FunctionArgumentNode.Form);
+				funcArgs = triggerBody.function_argument().argument().Select(FunctionArgument.Form);
 
 			var args = funcArgs.Select(x => x.Expression).ToArray();
 

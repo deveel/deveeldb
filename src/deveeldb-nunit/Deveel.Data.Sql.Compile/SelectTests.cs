@@ -16,6 +16,7 @@
 using System;
 using System.Linq;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
@@ -147,7 +148,7 @@ namespace Deveel.Data.Sql.Compile {
 			var funcCall = (SqlFunctionCallExpression) item.Expression;
 			Assert.IsNotEmpty(funcCall.Arguments);
 			Assert.AreEqual(1, funcCall.Arguments.Length);
-			Assert.IsInstanceOf<SqlReferenceExpression>(funcCall.Arguments[0]);
+			Assert.IsInstanceOf<InvokeArgument>(funcCall.Arguments[0]);
 		}
 
 		[Test]

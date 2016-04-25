@@ -157,7 +157,11 @@ namespace Deveel.Data.Sql.Expressions {
 				var argc = args.Length;
 
 				for (int i = 0; i < argc; i++) {
-					Visit(args[i]);
+					var arg = args[i];
+					if (arg.IsNamed)
+						builder.AppendFormat("{0} => ", arg.Name);
+
+					Visit(args[i].Value);
 
 					if (i < argc - 1)
 						builder.Append(", ");

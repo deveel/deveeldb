@@ -17,8 +17,10 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Types;
@@ -265,12 +267,21 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlCastExpression(value, destType);
 		}
 
+		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName, InvokeArgument[] args) {
+			return new SqlFunctionCallExpression(functionName, args);
+		}
+
+		public static SqlFunctionCallExpression FunctionCall(string functionName, InvokeArgument[] args) {
+			return FunctionCall(ObjectName.Parse(functionName), args);
+		}
+
 		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName) {
-			return FunctionCall(functionName, new SqlExpression[0]);
+			return FunctionCall(functionName, new InvokeArgument[0]);
 		}
 
 		public static SqlFunctionCallExpression FunctionCall(ObjectName functionName, SqlExpression[] args) {
-			return new SqlFunctionCallExpression(functionName, args);
+			var invokeArgs = args != null && args.Length > 0 ? args.Select(x => new InvokeArgument(x)).ToArray() : new InvokeArgument[0];
+			return FunctionCall(functionName, invokeArgs);
 		}
 
 		public static SqlFunctionCallExpression FunctionCall(string functionName) {

@@ -19,6 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Routines;
+
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
 	/// A visitor for <see cref="SqlExpression"/> objects.
@@ -116,8 +118,25 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <param name="expression">The <see cref="SqlFunctionCallExpression"/> to visit.</param>
 		/// <returns></returns>
 		public virtual SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
-			var ags = VisitExpressionList(expression.Arguments);
+			var ags = VisitInvokeArgumentList(expression.Arguments);
 			return SqlExpression.FunctionCall(expression.FunctioName, ags);
+		}
+
+		public virtual InvokeArgument VisitInvokeArgument(InvokeArgument argument) {
+			var value = Visit(argument.Value);
+			return new InvokeArgument(argument.Name, value);
+		}
+
+		public virtual InvokeArgument[] VisitInvokeArgumentList(InvokeArgument[] arguments) {
+			if (arguments == null || arguments.Length == 0)
+				return arguments;
+
+			var newArgs = new InvokeArgument[arguments.Length];
+			for (int i = 0; i < arguments.Length; i++) {
+				newArgs[i] = VisitInvokeArgument(arguments[i]);
+			}
+
+			return newArgs;
 		}
 
 		/// <summary>

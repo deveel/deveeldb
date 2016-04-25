@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Query {
 			public override SqlExpression VisitFunctionCall(SqlFunctionCallExpression expression) {
 				var args = expression.Arguments;
 				foreach (var arg in args) {
-					columnNames.AddRange(arg.DiscoverReferences());
+					columnNames.AddRange(arg.Value.DiscoverReferences());
 				}
 
 				return base.VisitFunctionCall(expression);

@@ -21,6 +21,7 @@ using System.Linq;
 
 using Antlr4.Runtime.Misc;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 
@@ -446,10 +447,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlExpression VisitInvokedFunction(PlSqlParser.InvokedFunctionContext context) {
 			var name = Name.Object(context.objectName());
-			SqlExpression[] args = null;
+			InvokeArgument[] args = null;
 
 			if (context.argument() != null) {
-				args = context.argument().Select(Visit).ToArray();
+				args = context.argument().Select(FunctionArgument.Form).Select(x => new InvokeArgument(x.Id, x.Expression)).ToArray();
 			}
 
 			return SqlExpression.FunctionCall(name, args);

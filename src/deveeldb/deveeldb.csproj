@@ -214,7 +214,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\DropTableBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ElementNode.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\Expression.Build.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\FunctionArgumentNode.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\FunctionArgument.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InputString.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IntoClause.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\LoopControlBuilder.cs" />

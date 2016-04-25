@@ -17,8 +17,8 @@
 
 using System;
 
-using Deveel.Data;
 using Deveel.Data.Routines;
+using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Expressions {
 	class AggregateChecker : SqlExpressionVisitor {
@@ -37,7 +37,17 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
-			// TODO: if the value is an array iterate
+			var field = constant.Value;
+			if (!Field.IsNullField(field)) {
+				var value = field.Value;
+				if (value is SqlArray) {
+					var array = (SqlArray) value;
+					for (int i = 0; i < array.Length; i++) {
+						Visit(array.GetValue(i));
+					}
+				}
+			}
+
 			return base.VisitConstant(constant);
 		}
 

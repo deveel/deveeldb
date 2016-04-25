@@ -23,14 +23,14 @@ namespace Deveel.Data.Sql.Compile {
 	class ElementNode  {
 		public ObjectName Id { get; set; }
 
-		public FunctionArgumentNode[] Argument { get; set; }
+		public FunctionArgument[] Argument { get; set; }
 
 		public static ElementNode Form(PlSqlParser.General_elementContext context) {
 			var id = Name.Object(context.objectName());
 			var arg = context.function_argument();
-			IEnumerable<FunctionArgumentNode> argNodes = null;
+			IEnumerable<FunctionArgument> argNodes = null;
 			if (arg != null) {
-				argNodes = arg.argument().Select(FunctionArgumentNode.Form);
+				argNodes = arg.argument().Select(FunctionArgument.Form);
 			}
 
 			return new ElementNode {

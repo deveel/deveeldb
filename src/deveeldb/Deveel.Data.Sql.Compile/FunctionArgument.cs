@@ -20,19 +20,19 @@ using System;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Compile {
-	class FunctionArgumentNode {
+	class FunctionArgument {
 		public string Id { get; set; }
 
 		public SqlExpression Expression { get; set; }
 
-		public static FunctionArgumentNode Form(PlSqlParser.ArgumentContext context) {
+		public static FunctionArgument Form(PlSqlParser.ArgumentContext context) {
 			if (context == null)
 				return null;
 
 			var id = Name.Simple(context.id());
 			var exp = Compile.Expression.Build(context.expression_wrapper());
 
-			return new FunctionArgumentNode {
+			return new FunctionArgument {
 				Id = id,
 				Expression = exp
 			};
