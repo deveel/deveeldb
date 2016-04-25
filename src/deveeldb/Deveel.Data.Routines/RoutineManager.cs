@@ -215,7 +215,7 @@ namespace Deveel.Data.Routines {
 				var paramName = row.GetValue(1).Value.ToString();
 				var paramTypeString = row.GetValue(2).Value.ToString();
 
-				var paramType = transaction.Context.ResolveType(paramTypeString);
+				var paramType = SqlType.Parse(transaction.Context, paramTypeString);
 
 				var attrs = (ParameterAttributes) ((SqlNumber) row.GetValue(3).Value).ToInt32();
 				var direction = (ParameterDirection) ((SqlNumber) row.GetValue(4).Value).ToInt32();

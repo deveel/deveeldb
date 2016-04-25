@@ -28,28 +28,32 @@ namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class CallStatement  : SqlStatement, IPlSqlStatement {
 		public CallStatement(ObjectName procedureName) 
-			: this(procedureName, null) {
+			: this(procedureName, new InvokeArgument[0]) {
 		}
 
-		public CallStatement(ObjectName procedureName, IEnumerable<SqlExpression> arguments) {
+		public CallStatement(ObjectName procedureName, InvokeArgument[] arguments) {
 			ProcedureName = procedureName;
 			Arguments = arguments;
+		}
+
+		public CallStatement(ObjectName procedureName, SqlExpression[] arguments)
+			: this(procedureName, arguments == null ? new InvokeArgument[0] : arguments.Select(x => new InvokeArgument(x)).ToArray()) {
 		}
 
 		private CallStatement(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
 			ProcedureName = (ObjectName) info.GetValue("Procedure", typeof (ObjectName));
-			Arguments = (SqlExpression[]) info.GetValue("Arguments", typeof (SqlExpression[]));
+			Arguments = (InvokeArgument[]) info.GetValue("Arguments", typeof (InvokeArgument[]));
 		}
 
 		public ObjectName ProcedureName { get; private set; }
 
-		public IEnumerable<SqlExpression> Arguments { get; set; }
+		public InvokeArgument[] Arguments { get; private set; }
 
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Procedure", ProcedureName);
 
-			var args = new SqlExpression[0];
+			var args = new InvokeArgument[0];
 			if (Arguments != null)
 				args = Arguments.ToArray();
 
@@ -59,9 +63,11 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var args = Arguments;
 			if (args != null) {
-				var newArgs = new List<SqlExpression>();
+				var newArgs = new List<InvokeArgument>();
 				foreach (var arg in args) {
-					newArgs.Add(arg.Prepare(preparer));
+					var id = arg.Name;
+					var value = arg.Value.Prepare(preparer);
+					newArgs.Add(new InvokeArgument(id, value));
 				}
 
 				args = newArgs.ToArray();
@@ -77,7 +83,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			var args = Arguments != null ? Arguments.ToArray() : new SqlExpression[0];
+			var args = Arguments != null ? Arguments.ToArray() : new InvokeArgument[0];
 			var invoke = new Invoke(ProcedureName, args);
 
 			var procedure = context.DirectAccess.ResolveProcedure(invoke);
@@ -87,7 +93,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.User.CanExecuteProcedure(invoke,context.Request))
 				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
 
-			procedure.Execute(context.Request);
+			procedure.Execute(Arguments, context.Request);
 		}
 	}
 }

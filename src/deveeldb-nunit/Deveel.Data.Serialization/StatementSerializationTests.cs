@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
@@ -142,9 +143,9 @@ namespace Deveel.Data.Serialization {
 		[Test]
 		public void CallWithArgs() {
 			var name = ObjectName.Parse("APP.proc1");
-			var args = new SqlExpression[] {
-				SqlExpression.Constant(32),
-				SqlExpression.Reference(new ObjectName("a"))
+			var args = new InvokeArgument[] {
+				new InvokeArgument(SqlExpression.Constant(32)),
+				new InvokeArgument(SqlExpression.Reference(new ObjectName("a")))
 			};
 
 			var statement = new CallStatement(name, args);

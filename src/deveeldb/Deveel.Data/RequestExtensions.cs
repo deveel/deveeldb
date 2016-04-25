@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
@@ -369,8 +370,12 @@ namespace Deveel.Data {
 
 		#region Call
 
-		public static void Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
+		public static void Call(this IRequest request, ObjectName procedureName, params InvokeArgument[] args) {
 			request.ExecuteStatement(new CallStatement(procedureName, args));
+		}
+
+		public static void Call(this IRequest request, ObjectName procedureName, params SqlExpression[] args) {
+			request.Call(procedureName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
 		}
 
 		#endregion

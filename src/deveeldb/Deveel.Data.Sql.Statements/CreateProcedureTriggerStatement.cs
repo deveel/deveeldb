@@ -17,16 +17,18 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class CreateProcedureTriggerStatement : SqlStatement {
 		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, TriggerEventTime eventTime, TriggerEventType eventType) 
-			: this(triggerName, tableName, procedureName, new SqlExpression[0], eventTime, eventType) {
+			: this(triggerName, tableName, procedureName, new InvokeArgument[0], eventTime, eventType) {
 		}
 
-		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, SqlExpression[] args, TriggerEventTime eventTime, TriggerEventType eventType) {
+		public CreateProcedureTriggerStatement(ObjectName triggerName, ObjectName tableName, ObjectName procedureName, InvokeArgument[] args, TriggerEventTime eventTime, TriggerEventType eventType) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
 			if (tableName == null)
@@ -50,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName ProcedureName { get; private set; }
 
-		public SqlExpression[] ProcedureArguments { get; private set; }
+		public InvokeArgument[] ProcedureArguments { get; private set; }
 
 		public TriggerEventTime EventTime { get; private set; }
 	}

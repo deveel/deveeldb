@@ -130,13 +130,29 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			var procName = Name.Object(triggerBody.objectName());
-			IEnumerable<FunctionArgument> funcArgs = new FunctionArgument[0];
+			var args = new InvokeArgument[0];
 			if (triggerBody.function_argument() != null)
-				funcArgs = triggerBody.function_argument().argument().Select(FunctionArgument.Form);
-
-			var args = funcArgs.Select(x => x.Expression).ToArray();
+				args = triggerBody.function_argument()
+					.argument()
+					.Select(FunctionArgument.Form)
+					.Select(x => new InvokeArgument(x.Id, x.Expression))
+					.ToArray();
 
 			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType);
+		}
+
+		public override SqlStatement VisitCallStatement(PlSqlParser.CallStatementContext context) {
+			var routineName = Name.Object(context.objectName());
+			var args = new InvokeArgument[0];
+
+			if (context.function_argument() != null)
+				args = context.function_argument()
+						.argument()
+						.Select(FunctionArgument.Form)
+						.Select(x => new InvokeArgument(x.Id, x.Expression))
+						.ToArray();
+
+			return new CallStatement(routineName, args);
 		}
 
 		public override SqlStatement VisitCreateTypeStatement(PlSqlParser.CreateTypeStatementContext context) {

@@ -35,6 +35,11 @@ namespace Deveel.Data.Routines {
 		}
 
 		public RoutineParameter(string name, SqlType type, ParameterDirection direction, ParameterAttributes attributes) {
+			if (String.IsNullOrEmpty(name))
+				throw new ArgumentNullException("name");
+			if (type == null)
+				throw new ArgumentNullException("type");
+
 			Attributes = attributes;
 			Direction = direction;
 			Type = type;

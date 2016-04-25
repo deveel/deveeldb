@@ -77,8 +77,12 @@ namespace Deveel.Data.Routines {
 				for (int i = 0; i < parameters.Length; i++) {
 					var parameter = parameters[i];
 					var argument = args[i];
-					block.DeclareConstantVariable(parameter.Name, parameter.Type, argument.Value);
 
+					if (parameter.IsOutput) {
+						block.DeclareVariable(parameter.Name, parameter.Type, argument.Value);
+					} else {
+						block.DeclareConstantVariable(parameter.Name, parameter.Type, argument.Value);
+					}
 				}
 			}
 		}

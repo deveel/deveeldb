@@ -14,6 +14,7 @@ unitStatement
 
 	| securityStatement
 
+	| callStatement
 	| assignmentStatement
 	| cursorStatement
 
@@ -396,7 +397,7 @@ statement
     | returnStatement
     | caseStatement/*[true]*/
     | sql_statement
-    | functionCall
+    | callStatement
 
 	| variableDeclaration
     ;
@@ -568,8 +569,8 @@ returnStatement
     : RETURN condition? SEMICOLON?
     ;
 
-functionCall
-    : CALL? objectName function_argument?
+callStatement
+    : CALL objectName function_argument? SEMICOLON?
     ;
 
 body

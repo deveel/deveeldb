@@ -17,26 +17,24 @@
 
 using System;
 
-using Deveel.Data;
-using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public static class RoutineExtensions {
 		public static InvokeResult Execute(this IRoutine routine) {
-			return Execute(routine, new SqlExpression[0]);
+			return Execute(routine, new InvokeArgument[0]);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args) {
+		public static InvokeResult Execute(this IRoutine routine, InvokeArgument[] args) {
 			return Execute(routine, args, null);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IQuery context) {
+		public static InvokeResult Execute(this IRoutine routine, InvokeArgument[] args, IRequest context) {
 			return Execute(routine, args, context, null);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IQuery query, IVariableResolver resolver) {
+		public static InvokeResult Execute(this IRoutine routine, InvokeArgument[] args, IRequest query, IVariableResolver resolver) {
 			return Execute(routine, args, query, resolver, null);
 		}
 
@@ -49,10 +47,10 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static InvokeResult Execute(this IRoutine routine, IRequest request, IVariableResolver resolver, IGroupResolver group) {
-			return Execute(routine, new SqlExpression[0], request, resolver, group);
+			return Execute(routine, new InvokeArgument[0], request, resolver, group);
 		}
 
-		public static InvokeResult Execute(this IRoutine routine, SqlExpression[] args, IRequest request, IVariableResolver resolver, IGroupResolver group) {
+		public static InvokeResult Execute(this IRoutine routine, InvokeArgument[] args, IRequest request, IVariableResolver resolver, IGroupResolver group) {
 			var invoke = new Invoke(routine.ObjectInfo.FullName, args);
 
 			var executeContext = new InvokeContext(invoke, routine, resolver, group, request);
@@ -60,16 +58,16 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static InvokeResult Execute(this IRoutine routine, Field[] args) {
-			var exps = new SqlExpression[0];
+			var invokeArgs = new InvokeArgument[0];
 			if (args != null && args.Length > 0) {
-				exps = new SqlExpression[args.Length];
+				invokeArgs = new InvokeArgument[args.Length];
 
 				for (int i = 0; i < args.Length; i++) {
-					exps[i] = SqlExpression.Constant(args[i]);
+					invokeArgs[i] = new InvokeArgument(SqlExpression.Constant(args[i]));
 				}
 			}
 
-			return routine.Execute(exps);
+			return routine.Execute(invokeArgs);
 		}
 	}
 }

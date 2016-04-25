@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
@@ -79,7 +80,7 @@ namespace Deveel.Data {
 		[Test]
 		public void ProcedureTrigger_PlSql() {
 			var body = new PlSqlBlockStatement();
-			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] {SqlExpression.Constant("One row was inserted")}));
+			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] { new InvokeArgument(SqlExpression.Constant("One row was inserted")) }));
 			var triggerName = new ObjectName("trigger1");
 			var tableName = ObjectName.Parse("APP.test_table");
 
