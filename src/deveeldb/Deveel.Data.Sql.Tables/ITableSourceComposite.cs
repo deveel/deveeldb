@@ -18,7 +18,6 @@
 using System;
 
 using Deveel.Data.Index;
-using Deveel.Data.Sql;
 using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Tables {

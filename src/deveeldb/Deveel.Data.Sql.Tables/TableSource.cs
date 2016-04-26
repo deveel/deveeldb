@@ -188,10 +188,10 @@ namespace Deveel.Data.Sql.Tables {
 				if (indexSetStore != null)
 					indexSetStore.Dispose();
 
-				StoreSystem.CloseStore(Store);
-
-				if (Store != null)
+				if (Store != null) {
+					StoreSystem.CloseStore(Store);
 					Store.Dispose();
+				}
 			}
 
 			headerArea = null;

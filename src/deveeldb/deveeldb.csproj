@@ -701,7 +701,6 @@
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\EquiJoinNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\GroupNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\IVisitableQueryPlanNode.cs" />

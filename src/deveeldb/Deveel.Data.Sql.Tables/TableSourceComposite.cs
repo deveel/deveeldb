@@ -73,9 +73,7 @@ namespace Deveel.Data {
 			get { return Database.Context.ReadOnly(); }
 		}
 
-		private bool IsClosed {
-			get { return tableSources == null; }
-		}
+		private bool IsClosed { get; set; }
 
 		private TableStateStore StateStore { get; set; }
 
@@ -211,7 +209,8 @@ namespace Deveel.Data {
 		private void Setup() {
 			lock (this) {
 				CurrentCommitId = 0;
-				tableSources = new Dictionary<int, TableSource>();				
+				tableSources = new Dictionary<int, TableSource>();
+				IsClosed = false;
 			}
 		}
 
@@ -462,7 +461,8 @@ namespace Deveel.Data {
 				StateStore.Flush();
 				StoreSystem.CloseStore(stateStore);
 
-				tableSources = null;
+				//tableSources = null;
+				IsClosed = true;
 			}
 
 			// Release the storage system
@@ -492,7 +492,8 @@ namespace Deveel.Data {
 					StoreSystem.DeleteStore(lobStore);
 				}
 
-				tableSources = null;
+				//tableSources = null;
+				IsClosed = true;
 			}
 
 			// Release the storage system.

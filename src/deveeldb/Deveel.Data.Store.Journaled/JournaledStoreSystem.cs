@@ -168,8 +168,13 @@ namespace Deveel.Data.Store.Journaled {
 			try {
 				bufferManager.Lock();
 
-				((JournaledFileStore)store).Close();
-				return true;
+				var journaledStore = (JournaledFileStore) store;
+				if (!journaledStore.IsClosed) {
+					journaledStore.Close();
+					return true;
+				}
+
+				return false;
 			} finally {
 				bufferManager.Unlock();
 			}

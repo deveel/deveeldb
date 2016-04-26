@@ -1261,41 +1261,41 @@ namespace Deveel.Data.Sql.Tables {
 			return new VirtualTable(table, resultList);
 		}
 
-		public static ITable EquiJoin(this ITable table, IRequest context, ITable other, ObjectName[] leftColumns, ObjectName[] rightColumns) {
-			// TODO: This needs to migrate to a better implementation that
-			//   exploits multi-column indexes if one is defined that can be used.
+		//public static ITable EquiJoin(this ITable table, IRequest context, ITable other, ObjectName[] leftColumns, ObjectName[] rightColumns) {
+		//	// TODO: This needs to migrate to a better implementation that
+		//	//   exploits multi-column indexes if one is defined that can be used.
 
-			var firstLeft = SqlExpression.Reference(leftColumns[0]);
-			var firstRight = SqlExpression.Reference(rightColumns[0]);
-			var onExpression = SqlExpression.Equal(firstLeft, firstRight);
+		//	var firstLeft = SqlExpression.Reference(leftColumns[0]);
+		//	var firstRight = SqlExpression.Reference(rightColumns[0]);
+		//	var onExpression = SqlExpression.Equal(firstLeft, firstRight);
 
-			var result = table.SimpleJoin(context, other, onExpression);
+		//	var result = table.SimpleJoin(context, other, onExpression);
 
-			int sz = leftColumns.Length;
+		//	int sz = leftColumns.Length;
 
-			// If there are columns left to equi-join, we resolve the rest with a
-			// single exhaustive select of the form,
-			//   ( table1.col2 = table2.col2 AND table1.col3 = table2.col3 AND ... )
-			if (sz > 1) {
-				// Form the expression
-				SqlExpression restExpression = null;
-				for (int i = 1; i < sz; ++i) {
-					var left = SqlExpression.Reference(leftColumns[i]);
-					var right = SqlExpression.Reference(rightColumns[i]);
-					var equalExp = SqlExpression.And(left, right);
+		//	// If there are columns left to equi-join, we resolve the rest with a
+		//	// single exhaustive select of the form,
+		//	//   ( table1.col2 = table2.col2 AND table1.col3 = table2.col3 AND ... )
+		//	if (sz > 1) {
+		//		// Form the expression
+		//		SqlExpression restExpression = null;
+		//		for (int i = 1; i < sz; ++i) {
+		//			var left = SqlExpression.Reference(leftColumns[i]);
+		//			var right = SqlExpression.Reference(rightColumns[i]);
+		//			var equalExp = SqlExpression.And(left, right);
 
-					if (restExpression == null) {
-						restExpression = equalExp;
-					} else {
-						restExpression = SqlExpression.And(restExpression, equalExp);
-					}
-				}
+		//			if (restExpression == null) {
+		//				restExpression = equalExp;
+		//			} else {
+		//				restExpression = SqlExpression.And(restExpression, equalExp);
+		//			}
+		//		}
 
-				result = result.ExhaustiveSelect(context, restExpression);
-			}
+		//		result = result.ExhaustiveSelect(context, restExpression);
+		//	}
 
-			return result;
-		}
+		//	return result;
+		//}
 
 		#endregion
 
@@ -1386,23 +1386,23 @@ namespace Deveel.Data.Sql.Tables {
 			return new VirtualTable(table, selector().ToArray());
 		}
 
-		public static ITable ColumnMerge(this ITable table, ITable other) {
-			if (table.RowCount != other.RowCount)
-				throw new InvalidOperationException("Tables have different row counts.");
+		//public static ITable ColumnMerge(this ITable table, ITable other) {
+		//	if (table.RowCount != other.RowCount)
+		//		throw new InvalidOperationException("Tables have different row counts.");
 
-			// Create the new VirtualTable with the joined tables.
+		//	// Create the new VirtualTable with the joined tables.
 
-			List<int> allRowSet = new List<int>();
-			int rcount = table.RowCount;
-			for (int i = 0; i < rcount; ++i) {
-				allRowSet.Add(i);
-			}
+		//	List<int> allRowSet = new List<int>();
+		//	int rcount = table.RowCount;
+		//	for (int i = 0; i < rcount; ++i) {
+		//		allRowSet.Add(i);
+		//	}
 
-			var tabs = new[] { table, other };
-			var rowSets = new IList<int>[] { allRowSet, allRowSet };
+		//	var tabs = new[] { table, other };
+		//	var rowSets = new IList<int>[] { allRowSet, allRowSet };
 
-			return new VirtualTable(tabs, rowSets);
-		}
+		//	return new VirtualTable(tabs, rowSets);
+		//}
 
 		public static Dictionary<string, Objects.ISqlObject> ToDictionary(this ITable table) {
 			if (table.TableInfo.ColumnCount != 2)

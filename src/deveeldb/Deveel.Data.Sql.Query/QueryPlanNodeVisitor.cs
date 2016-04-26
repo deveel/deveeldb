@@ -104,8 +104,8 @@ namespace Deveel.Data.Sql.Query {
 				return VisitComposite((CompositeNode) node);
 			if (node is JoinNode)
 				return VisitJoin((JoinNode) node);
-			if (node is EquiJoinNode)
-				return VisitEquiJoin((EquiJoinNode) node);
+			//if (node is EquiJoinNode)
+			//	return VisitEquiJoin((EquiJoinNode) node);
 			if (node is NaturalJoinNode)
 				return VisitNaturalJoin((NaturalJoinNode) node);
 			if (node is LogicalUnionNode)
@@ -160,16 +160,16 @@ namespace Deveel.Data.Sql.Query {
 			return new NaturalJoinNode(left, right);
 		}
 
-		protected virtual IQueryPlanNode VisitEquiJoin(EquiJoinNode node) {
-			var left = node.Left;
-			var right = node.Right;
-			if (left != null)
-				left = VisitNode(left);
-			if (right != null)
-				right = VisitNode(right);
+		//protected virtual IQueryPlanNode VisitEquiJoin(EquiJoinNode node) {
+		//	var left = node.Left;
+		//	var right = node.Right;
+		//	if (left != null)
+		//		left = VisitNode(left);
+		//	if (right != null)
+		//		right = VisitNode(right);
 
-			return new EquiJoinNode(left, right, node.LeftColumns, node.RightColumns);
-		}
+		//	return new EquiJoinNode(left, right, node.LeftColumns, node.RightColumns);
+		//}
 
 		protected virtual IQueryPlanNode VisitComposite(CompositeNode node) {
 			var left = node.Left;
