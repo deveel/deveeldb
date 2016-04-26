@@ -102,7 +102,12 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override DataTypeInfo VisitString_type(PlSqlParser.String_typeContext context) {
-			var size = Number.PositiveInteger(context.numeric());
+			string size = null;
+			if (context.numeric() != null) {
+				size = Number.PositiveInteger(context.numeric()).ToString();
+			} else if (context.MAX() != null) {
+				size = "MAX";
+			}
 
 			SqlTypeCode typeCode;
 			if (context.CHAR() != null) {
@@ -129,7 +134,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var meta = new List<DataTypeMeta>();
 			if (size != null)
-				meta.Add(new DataTypeMeta("MaxSize", size.Value.ToString()));
+				meta.Add(new DataTypeMeta("MaxSize", size));
 			if (locale != null)
 				meta.Add(new DataTypeMeta("Locale", locale));
 			if (encoding != null)

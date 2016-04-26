@@ -18,10 +18,8 @@ using System.Globalization;
 using System.Text;
 
 using Deveel.Data.Sql.Objects;
-using Deveel.Math;
 
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace Deveel.Data.Sql.Types {
 	[TestFixture]
@@ -31,7 +29,7 @@ namespace Deveel.Data.Sql.Types {
 		public void BasicVarChar_Create() {
 			var type = PrimitiveTypes.String(SqlTypeCode.VarChar);
 			Assert.AreEqual(SqlTypeCode.VarChar, type.TypeCode);
-			Assert.AreEqual(Int16.MaxValue, type.MaxSize);
+			Assert.AreEqual(-1, type.MaxSize);
 			Assert.IsTrue(type.IsPrimitive);
 			Assert.IsTrue(type.IsIndexable);
 			Assert.IsNull(type.Locale);
@@ -47,13 +45,13 @@ namespace Deveel.Data.Sql.Types {
 			Assert.IsTrue(type1.CanCastTo(type2));
 		}
 
-		[TestCase("VARCHAR",  SqlTypeCode.VarChar, Int16.MaxValue, null, null)]
+		[TestCase("VARCHAR",  SqlTypeCode.VarChar, -1, null, null)]
 		[TestCase("VARCHAR(2002)", SqlTypeCode.VarChar, 2002, null, null)]
-		[TestCase("CHAR", SqlTypeCode.Char, Int16.MaxValue, null, null)]
-		[TestCase("STRING", SqlTypeCode.String, Int16.MaxValue, null, null)]
-		[TestCase("LONG CHARACTER VARYING", SqlTypeCode.LongVarChar, Int16.MaxValue, null, null)]
+		[TestCase("CHAR", SqlTypeCode.Char, -1, null, null)]
+		[TestCase("STRING", SqlTypeCode.String, -1, null, null)]
+		[TestCase("LONG CHARACTER VARYING", SqlTypeCode.LongVarChar, -1, null, null)]
 		[TestCase("VARCHAR(456) LOCALE 'en-US'", SqlTypeCode.VarChar, 456, "en-US", null)]
-		[TestCase("VARCHAR LOCALE 'nb-NO' ENCODING 'utf-8'", SqlTypeCode.VarChar, Int16.MaxValue, "nb-NO", "utf-8")]
+		[TestCase("VARCHAR LOCALE 'nb-NO' ENCODING 'utf-8'", SqlTypeCode.VarChar, -1, "nb-NO", "utf-8")]
 		[Category("Strings"), Category("SQL Parse")]
 		public void ParseString(string input, SqlTypeCode expectedTypeCode, int expectedSize, string expectedLocale, string expectedEncoding) {
 			var sqlType = SqlType.Parse(input);

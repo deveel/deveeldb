@@ -69,6 +69,10 @@ namespace Deveel.Data.Sql.Types {
 		/// </summary>
 		public int MaxSize { get; private set; }
 
+		public bool HasMaxSize {
+			get { return MaxSize > 0; }
+		}
+
 		int ISizeableType.Size {
 			get { return MaxSize; }
 		}
@@ -125,8 +129,13 @@ namespace Deveel.Data.Sql.Types {
 		/// <inheritdoc/>
 		public override string ToString() {
 			var sb = new StringBuilder(TypeCode.ToString().ToUpperInvariant());
-			if (MaxSize >= 0)
-				sb.AppendFormat("({0})", MaxSize);
+
+			if (MaxSize >= 0) {
+				if (MaxSize == Int16.MaxValue)
+					sb.Append("(MAX)");
+				else
+					sb.AppendFormat("({0})", MaxSize);
+			}
 
 			return sb.ToString();
 		}

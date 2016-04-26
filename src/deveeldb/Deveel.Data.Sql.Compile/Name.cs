@@ -131,17 +131,6 @@ namespace Deveel.Data.Sql.Compile {
 
 		[CLSCompliant(false)]
 		public static string Variable(PlSqlParser.Bind_variableContext context) {
-			//if (context.BINDVAR() != null) {
-			//	varRef = context.BINDVAR().GetText();
-			//} else if (context.UNSIGNED_INTEGER() != null) {
-			//	var numVal = context.UNSIGNED_INTEGER().GetText();
-			//	varRef = String.Format(":{0}", numVal);
-			//} else {
-			//	throw new ParseCanceledException("Invalid variable bind");
-			//}
-
-			//// TODO: support more complex variable binds
-
 			var text = context.GetText();
 			if (String.IsNullOrEmpty(text))
 				return text;

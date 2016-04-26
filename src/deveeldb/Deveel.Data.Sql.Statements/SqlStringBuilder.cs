@@ -22,25 +22,35 @@ namespace Deveel.Data.Sql.Statements {
 	public sealed class SqlStringBuilder {
 		private readonly StringBuilder builder;
 
+		public const int DefaultIndentSize = 2;
+		public const char DefaultIndentChar = ' ';
+
 		internal SqlStringBuilder() {
 			builder = new StringBuilder();
+
+			IndentSize = DefaultIndentSize;
+			IndentChar = DefaultIndentChar;
 		}
 
 		private int IndentCount { get; set; }
 
+		public int IndentSize { get; set; }
+
+		public char IndentChar { get; set; }
+
 		public void Indent() {
-			IndentCount++;
+			IndentCount += IndentSize;
 		}
 
 		public void DeIndent() {
-			var count = IndentCount--;
+			var count = IndentCount -= IndentSize;
 			if (count <= 0)
 				count = 0;
 
 			IndentCount = count;
 		}
 
-		public void Append(string format, params object[] args) {
+		public void AppendFormat(string format, params object[] args) {
 			if (String.IsNullOrEmpty(format))
 				throw new ArgumentNullException("format");
 
@@ -51,8 +61,12 @@ namespace Deveel.Data.Sql.Statements {
 			if (String.IsNullOrEmpty(s))
 				throw new ArgumentNullException("s");
 
-			for (int i = 0; i < IndentCount; i++) {
-				builder.Append(" ");
+			if (lastNewLine) {
+				for (int i = 0; i < IndentCount; i++) {
+					builder.Append(IndentChar);
+				}
+
+				lastNewLine = false;
 			}
 
 			builder.Append(s);
@@ -70,8 +84,12 @@ namespace Deveel.Data.Sql.Statements {
 			AppendLine();
 		}
 
+		private bool lastNewLine;
+
 		public void AppendLine() {
-			Append('\n');
+			Append(Environment.NewLine);
+
+			lastNewLine = true;
 		}
 
 		public override string ToString() {

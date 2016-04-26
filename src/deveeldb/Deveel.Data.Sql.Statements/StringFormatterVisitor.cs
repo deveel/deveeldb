@@ -36,15 +36,15 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitAlterTable(AlterTableStatement statement) {
-			builder.Append("ALTER TABLE {0} ", statement.TableName);
+			builder.AppendFormat("ALTER TABLE {0} ", statement.TableName);
 
 			if (statement.Action is AddColumnAction) {
 				var columnAdd = (AddColumnAction) statement.Action;
-				builder.Append("ADD COLUMN {0} {1}", columnAdd.Column.ColumnName, columnAdd.Column.ColumnType);
+				builder.AppendFormat("ADD COLUMN {0} {1}", columnAdd.Column.ColumnName, columnAdd.Column.ColumnType);
 				if (columnAdd.Column.IsNotNull)
 					builder.Append(" NOT NULL");
 				if (columnAdd.Column.HasDefaultExpression)
-					builder.Append(" DEFAULT {0}", columnAdd.Column.DefaultExpression);
+					builder.AppendFormat(" DEFAULT {0}", columnAdd.Column.DefaultExpression);
 			} else if (statement.Action is AddConstraintAction) {
 				var addConstraint = (AddConstraintAction) statement.Action;
 				string constraintType;
@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Statements {
 					constraintType = addConstraint.Constraint.ConstraintType.ToString().ToUpperInvariant();
 				}
 
-				builder.Append("ADD CONSTRAINT {0} {1} ({2})", addConstraint.Constraint.ConstraintName,
+				builder.AppendFormat("ADD CONSTRAINT {0} {1} ({2})", addConstraint.Constraint.ConstraintName,
 					constraintType,
 					String.Join(", ", addConstraint.Constraint.Columns));
 
@@ -64,20 +64,20 @@ namespace Deveel.Data.Sql.Statements {
 					string onDelete = addConstraint.Constraint.OnDelete.AsSqlString();
 					string onUpdate = addConstraint.Constraint.OnUpdate.AsSqlString();
 
-					builder.Append(" REFERENCES {0} ({1}) ON DELETE {2} ON UPDATE {3}", addConstraint.Constraint.ReferenceTable,
+					builder.AppendFormat(" REFERENCES {0} ({1}) ON DELETE {2} ON UPDATE {3}", addConstraint.Constraint.ReferenceTable,
 						String.Join(", ", addConstraint.Constraint.ReferenceColumns), onDelete, onUpdate);
 				} else if (addConstraint.Constraint.ConstraintType == ConstraintType.Check) {
-					builder.Append(" {0}", addConstraint.Constraint.CheckExpression);
+					builder.AppendFormat(" {0}", addConstraint.Constraint.CheckExpression);
 				}
 			} else if (statement.Action is DropColumnAction) {
 				var dropColumn = (DropColumnAction) statement.Action;
-				builder.Append("DROP COLUMN {0}", dropColumn.ColumnName);
+				builder.AppendFormat("DROP COLUMN {0}", dropColumn.ColumnName);
 			} else if (statement.Action is DropConstraintAction) {
 				var dropConstraint = (DropConstraintAction) statement.Action;
-				builder.Append("DROP CONSTRAINT {0}", dropConstraint.ConstraintName);
+				builder.AppendFormat("DROP CONSTRAINT {0}", dropConstraint.ConstraintName);
 			} else if (statement.Action is DropDefaultAction) {
 				var dropDefault = (DropDefaultAction) statement.Action;
-				builder.Append("DROP DEFAULT {0}", dropDefault.ColumnName);
+				builder.AppendFormat("DROP DEFAULT {0}", dropDefault.ColumnName);
 			}
 
 			return base.VisitAlterTable(statement);
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitCodeBlock(CodeBlockStatement statement) {
 			if (!String.IsNullOrEmpty(statement.Label)) {
-				builder.Append("<<{0}>>", statement.Label);
+				builder.AppendFormat("<<{0}>>", statement.Label);
 				builder.AppendLine();
 			}
 
@@ -105,28 +105,28 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitLoop(LoopStatement statement) {
 			if (!String.IsNullOrEmpty(statement.Label)) {
-				builder.Append("<<{0}>>", statement.Label);
+				builder.AppendFormat("<<{0}>>", statement.Label);
 				builder.AppendLine();
 			}
 
 			if (statement is WhileLoopStatement) {
 				var whileLoop = (WhileLoopStatement) statement;
 
-				builder.Append("WHILE {0}", whileLoop.ConditionExpression);
+				builder.AppendFormat("WHILE {0}", whileLoop.ConditionExpression);
 				builder.AppendLine();
 			} else if (statement is ForLoopStatement) {
 				var forLoop = (ForLoopStatement) statement;
-				builder.Append("FOR {0} ", forLoop.IndexName);
+				builder.AppendFormat("FOR {0} ", forLoop.IndexName);
 
 				if (forLoop.Reverse)
 					builder.Append("REVERSE");
 
-				builder.Append("IN {0}...{1}", forLoop.LowerBound, forLoop.UpperBound);
+				builder.AppendFormat("IN {0}...{1}", forLoop.LowerBound, forLoop.UpperBound);
 				builder.AppendLine();
 			} else if (statement is CursorForLoopStatement) {
 				var forLoop = (CursorForLoopStatement) statement;
 
-				builder.Append("FOR {0} IN {1}", forLoop.IndexName, forLoop.CursorName);
+				builder.AppendFormat("FOR {0} IN {1}", forLoop.IndexName, forLoop.CursorName);
 				builder.AppendLine();
 			}
 
@@ -176,13 +176,13 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitGoTo(GoToStatement statement) {
-			builder.Append("GOTO '{0}'", statement.Label);
+			builder.AppendFormat("GOTO '{0}'", statement.Label);
 
 			return base.VisitGoTo(statement);
 		}
 
 		protected override SqlStatement VisitRaise(RaiseStatement statement) {
-			builder.Append("RAISE {0}", statement.ExceptionName);
+			builder.AppendFormat("RAISE {0}", statement.ExceptionName);
 			return base.VisitRaise(statement);
 		}
 
@@ -191,10 +191,10 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Append(type);
 
 			if (!String.IsNullOrEmpty(statement.Label))
-				builder.Append(" '{0}'", statement.Label);
+				builder.AppendFormat(" '{0}'", statement.Label);
 
 			if (statement.WhenExpression != null) {
-				builder.Append(" WHEN {0}", statement.WhenExpression);
+				builder.AppendFormat(" WHEN {0}", statement.WhenExpression);
 			}
 
 			return base.VisitLoopControl(statement);
@@ -222,7 +222,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitPlSqlBlock(PlSqlBlockStatement statement) {
 			if (!String.IsNullOrEmpty(statement.Label)) {
-				builder.Append("<<{0}>>", statement.Label);
+				builder.AppendFormat("<<{0}>>", statement.Label);
 				builder.AppendLine();
 			}
 
@@ -268,7 +268,7 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement VisitDeclareCursor(DeclareCursorStatement statement) {
 			// TODO: Flags ...
 
-			builder.Append("CURSOR {0}", statement.CursorName);
+			builder.AppendFormat("CURSOR {0}", statement.CursorName);
 
 			if (statement.Parameters != null) {
 				var pars = statement.Parameters.ToArray();
@@ -299,7 +299,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitDeclareException(DeclareExceptionStatement statement) {
-			builder.Append("EXCEPTION {0}", statement.ExceptionName);
+			builder.AppendFormat("EXCEPTION {0}", statement.ExceptionName);
 
 			return base.VisitDeclareException(statement);
 		}
@@ -308,7 +308,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (statement.IsConstant)
 				builder.Append("CONSTANT ");
 
-			builder.Append("{0} {1}", statement.VariableName, statement.VariableType);
+			builder.AppendFormat("{0} {1}", statement.VariableName, statement.VariableType);
 
 			if (statement.IsNotNull)
 				builder.Append(" NOT NULL");
@@ -330,7 +330,7 @@ namespace Deveel.Data.Sql.Statements {
 				builder.Append(" LIMIT ");
 
 				if (statement.Limit.Offset > -1)
-					builder.Append("{0}, ", statement.Limit.Offset);
+					builder.AppendFormat("{0}, ", statement.Limit.Offset);
 
 				builder.Append(statement.Limit.Count);
 				builder.DeIndent();
@@ -368,7 +368,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitCreateSchema(CreateSchemaStatement statement) {
-			builder.Append("CREATE SCHEMA {0}", statement.SchemaName);
+			builder.AppendFormat("CREATE SCHEMA {0}", statement.SchemaName);
 			return base.VisitCreateSchema(statement);
 		}
 
@@ -383,7 +383,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitOpen(OpenStatement statement) {
-			builder.Append("OPEN {0}", statement.CursorName);
+			builder.AppendFormat("OPEN {0}", statement.CursorName);
 
 			if (statement.Arguments != null && statement.Arguments.Length > 0) {
 				builder.Append("(");
@@ -401,24 +401,24 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitClose(CloseStatement statement) {
-			builder.Append("CLOSE {0}", statement.CursorName);
+			builder.AppendFormat("CLOSE {0}", statement.CursorName);
 			return base.VisitClose(statement);
 		}
 
 		protected override SqlStatement VisitAssignVariable(AssignVariableStatement statement) {
-			builder.Append("{0} := {1}", statement.VariableReference, statement.ValueExpression);
+			builder.AppendFormat("{0} := {1}", statement.VariableReference, statement.ValueExpression);
 
 			return base.VisitAssignVariable(statement);
 		}
 
 		protected override SqlStatement VisitFetch(FetchStatement statement) {
-			builder.Append("FETCH {0}", statement.Direction.ToString().ToUpperInvariant());
+			builder.AppendFormat("FETCH {0}", statement.Direction.ToString().ToUpperInvariant());
 
 			if (statement.OffsetExpression != null)
-				builder.Append(" {0}", statement.OffsetExpression);
+				builder.AppendFormat(" {0}", statement.OffsetExpression);
 
 			if (!String.IsNullOrEmpty(statement.CursorName))
-				builder.Append(" FROM {0}", statement.CursorName);
+				builder.AppendFormat(" FROM {0}", statement.CursorName);
 
 			return base.VisitFetch(statement);
 		}
@@ -426,46 +426,46 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement VisitReturn(ReturnStatement statement) {
 			builder.Append("RETURN");
 			if (statement.ReturnExpression != null)
-				builder.Append(" {0}", statement.ReturnExpression);
+				builder.AppendFormat(" {0}", statement.ReturnExpression);
 
 			return base.VisitReturn(statement);
 		}
 
 		protected override SqlStatement VisitSet(SetStatement statement) {
-			builder.Append("SET {0} {1}", statement.SettingName, statement.ValueExpression);
+			builder.AppendFormat("SET {0} {1}", statement.SettingName, statement.ValueExpression);
 
 			return base.VisitSet(statement);
 		}
 
 		protected override SqlStatement VisitDelete(DeleteStatement statement) {
-			builder.Append("DELETE FROM {0} WHERE {1}", statement.TableName, statement.WhereExpression);
+			builder.AppendFormat("DELETE FROM {0} WHERE {1}", statement.TableName, statement.WhereExpression);
 			if (statement.Limit > -1)
-				builder.Append(" LIMIT {0}", statement.Limit);
+				builder.AppendFormat(" LIMIT {0}", statement.Limit);
 
 			return base.VisitDelete(statement);
 		}
 
 		protected override SqlStatement VisitAlterUser(AlterUserStatement statement) {
-			builder.Append("ALTER USER {0} ", statement.UserName);
+			builder.AppendFormat("ALTER USER {0} ", statement.UserName);
 
 			if (statement.AlterAction is SetUserRolesAction) {
 				var setRoles = (SetUserRolesAction) statement.AlterAction;
 
 				var roles = String.Join(", ", setRoles.Roles.Select(x => x.ToString()).ToArray());
-				builder.Append(" SET ROLE ", roles);
+				builder.AppendFormat(" SET ROLE ", roles);
 			} else if (statement.AlterAction is SetPasswordAction) {
 				var setPassword = (SetPasswordAction) statement.AlterAction;
-				builder.Append(" SET PASSWORD {0}", setPassword.PasswordExpression);
+				builder.AppendFormat(" SET PASSWORD {0}", setPassword.PasswordExpression);
 			} else if (statement.AlterAction is SetAccountStatusAction) {
 				var setStatus = (SetAccountStatusAction) statement.AlterAction;
-				builder.Append(" SET ACCOUNT STATUS {0}", setStatus.ActionType.ToString().ToUpperInvariant());
+				builder.AppendFormat(" SET ACCOUNT STATUS {0}", setStatus.ActionType.ToString().ToUpperInvariant());
 			}
 
 			return base.VisitAlterUser(statement);
 		}
 
 		protected override SqlStatement VisitCreateCallbackTrigger(CreateCallbackTriggerStatement statement) {
-			builder.Append("CREATE CALLBACK TRIGGER {0} ON {1}", statement.TriggerName, statement.TableName);
+			builder.AppendFormat("CREATE CALLBACK TRIGGER {0} ON {1}", statement.TriggerName, statement.TableName);
 
 			// TODO: Continue
 			return base.VisitCreateCallbackTrigger(statement);
@@ -489,7 +489,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		private void VisitRoutineParameter(RoutineParameter parameter) {
-			builder.Append("{0} ", parameter.Name);
+			builder.AppendFormat("{0} ", parameter.Name);
 
 			if (parameter.IsInput)
 				builder.Append(" IN");
@@ -510,14 +510,14 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitCreateExternFunction(CreateExternalFunctionStatement statement) {
 			var orReplace = statement.ReplaceIfExists ? "OR REPLACE" : "";
-			builder.Append("CREATE {0} FUNCTION {1}", orReplace, statement.FunctionName);
+			builder.AppendFormat("CREATE {0} FUNCTION {1}", orReplace, statement.FunctionName);
 
 			VisitRoutineParameters(statement.Parameters);
 
-			builder.Append("RETURNS {0} IS", statement.ReturnType);
+			builder.AppendFormat("RETURNS {0} IS", statement.ReturnType);
 			builder.AppendLine();
 			builder.Indent();
-			builder.Append("LANGUAGE DOTNET NAME '{0}'", statement.ExternalReference);
+			builder.AppendFormat("LANGUAGE DOTNET NAME '{0}'", statement.ExternalReference);
 			builder.DeIndent();
 
 			return base.VisitCreateExternFunction(statement);
@@ -525,11 +525,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitCreateFunction(CreateFunctionStatement statement) {
 			var orReplace = statement.ReplaceIfExists ? "OR REPLACE" : "";
-			builder.Append("CREATE {0} FUNCTION {1}", orReplace, statement.FunctionName);
+			builder.AppendFormat("CREATE {0} FUNCTION {1}", orReplace, statement.FunctionName);
 
 			VisitRoutineParameters(statement.Parameters);
 
-			builder.Append("RETURNS {0} IS", statement.ReturnType);
+			builder.AppendFormat("RETURNS {0} IS", statement.ReturnType);
 			builder.AppendLine();
 			builder.Indent();
 
@@ -541,14 +541,14 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitCreateRole(CreateRoleStatement statement) {
-			builder.Append("CREATE ROLE {0}", statement.RoleName);
+			builder.AppendFormat("CREATE ROLE {0}", statement.RoleName);
 
 			return base.VisitCreateRole(statement);
 		}
 
 		protected override SqlStatement VisitCreateProcedure(CreateProcedureStatement statement) {
 			var orReplace = statement.ReplaceIfExists ? "OR REPLACE" : "";
-			builder.Append("CREATE {0} PROCEDURE {1}", orReplace, statement.ProcedureName);
+			builder.AppendFormat("CREATE {0} PROCEDURE {1}", orReplace, statement.ProcedureName);
 
 			VisitRoutineParameters(statement.Parameters);
 
@@ -566,41 +566,41 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitCreateExternProcedure(CreateExternalProcedureStatement statement) {
 			var orReplace = statement.ReplaceIfExists ? "OR REPLACE" : "";
-			builder.Append("CREATE {0} PROCEDURE {1}", orReplace, statement.ProcedureName);
+			builder.AppendFormat("CREATE {0} PROCEDURE {1}", orReplace, statement.ProcedureName);
 
 			VisitRoutineParameters(statement.Parameters);
 
 			builder.Append("IS");
 			builder.AppendLine();
 			builder.Indent();
-			builder.Append("LANGUAGE DOTNET NAME '{0}'", statement.ExternalReference);
+			builder.AppendFormat("LANGUAGE DOTNET NAME '{0}'", statement.ExternalReference);
 			builder.DeIndent();
 
 			return base.VisitCreateExternProcedure(statement);
 		}
 
 		protected override SqlStatement VisitCreateUser(CreateUserStatement statement) {
-			builder.Append("CREATE USER {0}", statement.UserName);
+			builder.AppendFormat("CREATE USER {0}", statement.UserName);
 
 			if (statement.Password != null)
-				builder.Append(" IDENTIFIED BY PASSWORD {0}", statement.Password);
+				builder.AppendFormat(" IDENTIFIED BY PASSWORD {0}", statement.Password);
 
 			return base.VisitCreateUser(statement);
 		}
 
 		protected override SqlStatement VisitCreateSequence(CreateSequenceStatement statement) {
-			builder.Append("CREATE SEQUENCE {0}", statement.SequenceName);
+			builder.AppendFormat("CREATE SEQUENCE {0}", statement.SequenceName);
 
 			if (statement.StartWith != null)
-				builder.Append(" START WITH {0}", statement.StartWith);
+				builder.AppendFormat(" START WITH {0}", statement.StartWith);
 			if (statement.MinValue != null)
-				builder.Append(" MIN VALUE {0}", statement.MinValue);
+				builder.AppendFormat(" MIN VALUE {0}", statement.MinValue);
 			if (statement.MaxValue != null)
-				builder.Append(" MAX VALUE {0}", statement.MaxValue);
+				builder.AppendFormat(" MAX VALUE {0}", statement.MaxValue);
 			if (statement.IncrementBy != null)
-				builder.Append(" INCREMENT BY {0}", statement.IncrementBy);
+				builder.AppendFormat(" INCREMENT BY {0}", statement.IncrementBy);
 			if (statement.Cache != null)
-				builder.Append(" CACHE {0}", statement.Cache);
+				builder.AppendFormat(" CACHE {0}", statement.Cache);
 			if (statement.Cycle)
 				builder.Append(" CYCLE");
 
@@ -612,6 +612,37 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitCreateTable(CreateTableStatement statement) {
+			builder.Append("CREATE TABLE ");
+			if (statement.IfNotExists)
+				builder.Append("IF NOT EXISTS ");
+
+			builder.Append(statement.TableName);
+			builder.AppendLine(" (");
+			builder.Indent();
+
+			for (int i = 0; i < statement.Columns.Count; i++) {
+				var column = statement.Columns[i];
+
+				builder.AppendFormat("{0} {1}", column.ColumnName, column.ColumnType.ToString());
+
+				if (column.IsIdentity) {
+					builder.Append(" IDENTITY");
+				} else {
+					if (column.IsNotNull)
+						builder.Append(" NOT NULL");
+					if (column.HasDefaultExpression)
+						builder.AppendFormat(" DEFAULT {0}", column.DefaultExpression);
+				}
+
+				if (i < statement.Columns.Count - 1)
+					builder.Append(",");
+
+				builder.AppendLine();
+			}
+
+			builder.DeIndent();
+			builder.Append(")");
+
 			return base.VisitCreateTable(statement);
 		}
 
@@ -621,11 +652,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitCreateView(CreateViewStatement statement) {
 			string ifNotExists = statement.ReplaceIfExists ? "IF NOT EXISTS" : "";
-			builder.Append("CREATE {0} VIEW {1}", ifNotExists, statement.ViewName);
+			builder.AppendFormat("CREATE {0} VIEW {1}", ifNotExists, statement.ViewName);
 
 			if (statement.ColumnNames != null) {
 				var colNames = String.Join(", ", statement.ColumnNames.ToArray());
-				builder.Append(" ({0})", colNames);
+				builder.AppendFormat(" ({0})", colNames);
 			}
 
 			builder.Append(" IS");
@@ -639,64 +670,64 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement VisitDropFunction(DropFunctionStatement statement) {
 			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.Append("DROP FUNCTION {0} {1}", ifExists, statement.FunctionName);
+			builder.AppendFormat("DROP FUNCTION {0} {1}", ifExists, statement.FunctionName);
 
 			return base.VisitDropFunction(statement);
 		}
 
 		protected override SqlStatement VisitDropCallbackTrigger(DropCallbackTriggersStatement statement) {
-			builder.Append("DROP CALLBACK TRIGGER {0}", statement.TriggerName);
+			builder.AppendFormat("DROP CALLBACK TRIGGER {0}", statement.TriggerName);
 
 			return base.VisitDropCallbackTrigger(statement);
 		}
 
 		protected override SqlStatement VisitDropProcedure(DropProcedureStatement statement) {
 			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.Append("DROP PROCEDURE {0} {1}", ifExists, statement.ProcedureName);
+			builder.AppendFormat("DROP PROCEDURE {0} {1}", ifExists, statement.ProcedureName);
 
 			return base.VisitDropProcedure(statement);
 		}
 
 		protected override SqlStatement VisitDropRole(DropRoleStatement statement) {
-			builder.Append("DROP ROLE {0}", statement.RoleName);
+			builder.AppendFormat("DROP ROLE {0}", statement.RoleName);
 
 			return base.VisitDropRole(statement);
 		}
 
 		protected override SqlStatement VisitDropSequence(DropSequenceStatement statement) {
-			builder.Append("DROP SEQUENCE {0}", statement.SequenceName);
+			builder.AppendFormat("DROP SEQUENCE {0}", statement.SequenceName);
 
 			return base.VisitDropSequence(statement);
 		}
 
 		protected override SqlStatement VisitDropTable(DropTableStatement statement) {
 			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.Append("DROP TABLE {0} {1}", ifExists, statement.TableName);
+			builder.AppendFormat("DROP TABLE {0} {1}", ifExists, statement.TableName);
 
 			return base.VisitDropTable(statement);
 		}
 
 		protected override SqlStatement VisitDropTrigger(DropTriggerStatement statement) {
-			builder.Append("DROP TRIGGER {0}", statement.TriggerName);
+			builder.AppendFormat("DROP TRIGGER {0}", statement.TriggerName);
 
 			return base.VisitDropTrigger(statement);
 		}
 
 		protected override SqlStatement VisitDropUser(DropUserStatement statement) {
-			builder.Append("DROP USER {0}", statement.UserName);
+			builder.AppendFormat("DROP USER {0}", statement.UserName);
 
 			return base.VisitDropUser(statement);
 		}
 
 		protected override SqlStatement VisitDropView(DropViewStatement statement) {
 			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.Append("DROP VIEW {0} {1}", ifExists, statement.ViewName);
+			builder.AppendFormat("DROP VIEW {0} {1}", ifExists, statement.ViewName);
 
 			return base.VisitDropView(statement);
 		}
 
 		protected override SqlStatement VisitDropType(DropTypeStatement statement) {
-			builder.Append("DROP TYPE {0}", statement.TypeName);
+			builder.AppendFormat("DROP TYPE {0}", statement.TypeName);
 
 			return base.VisitDropType(statement);
 		}
@@ -704,12 +735,12 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement VisitGrantPrivilege(GrantPrivilegesStatement statement) {
 			// TODO: Make it SQL string
 			var privs = statement.Privilege.ToString();
-			builder.Append("GRANT {0} TO {1} ON {2}", privs, statement.Grantee, statement.ObjectName);
+			builder.AppendFormat("GRANT {0} TO {1} ON {2}", privs, statement.Grantee, statement.ObjectName);
 
 			if (statement.Columns != null) {
 				var columns = statement.Columns.ToArray();
 				if (columns.Length > 0) {
-					builder.Append("({0})", String.Join(", ", columns));
+					builder.AppendFormat("({0})", String.Join(", ", columns));
 				}
 			}
 
@@ -728,10 +759,10 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitShow(ShowStatement statement) {
-			builder.Append("SHOW {0}", statement.Target.ToString().ToUpperInvariant());
+			builder.AppendFormat("SHOW {0}", statement.Target.ToString().ToUpperInvariant());
 
 			if (statement.TableName != null)
-				builder.Append(" FROM {0}", statement.TableName);
+				builder.AppendFormat(" FROM {0}", statement.TableName);
 
 			return base.VisitShow(statement);
 		}

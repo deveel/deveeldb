@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType) {
-			return String(sqlType, StringType.DefaultMaxSize);
+			return String(sqlType, -1);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize) {
@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType, CultureInfo locale) {
-			return String(sqlType, StringType.DefaultMaxSize, locale);
+			return String(sqlType, -1, locale);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize, CultureInfo locale) {
@@ -62,7 +62,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType, Encoding encoding) {
-			return String(sqlType, StringType.DefaultMaxSize, encoding);
+			return String(sqlType, -1, encoding);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize, Encoding encoding) {
@@ -70,7 +70,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType String(SqlTypeCode sqlType, Encoding encoding, CultureInfo locale) {
-			return String(sqlType, StringType.DefaultMaxSize, encoding, locale);
+			return String(sqlType, -1, encoding, locale);
 		}
 
 		public static StringType String(SqlTypeCode sqlType, int maxSize, Encoding encoding, CultureInfo locale) {
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType VarChar() {
-			return VarChar(StringType.DefaultMaxSize);
+			return VarChar(-1);
 		}
 
 		public static StringType VarChar(int maxSize) {
@@ -114,7 +114,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public static StringType VarChar(Encoding encoding, CultureInfo locale) {
-			return VarChar(StringType.DefaultMaxSize, encoding, locale);
+			return VarChar(-1, encoding, locale);
 		}
 
 		public static StringType VarChar(int maxSize, Encoding encoding, CultureInfo locale) {
@@ -403,12 +403,18 @@ namespace Deveel.Data.Sql.Types {
 				var localeMeta = context.GetMeta("Locale");
 				var encodingMeta = context.GetMeta("Encoding");
 
-				int maxSize = StringType.DefaultMaxSize;
+				int maxSize = -1;
 				CultureInfo locale = null;
 				var encoding = Encoding.Unicode;
 
-				if (maxSizeMeta != null)
-					maxSize = maxSizeMeta.ToInt32();
+				if (maxSizeMeta != null) {
+					if (maxSizeMeta.Value == "MAX") {
+						maxSize = StringType.DefaultMaxSize;
+					} else {
+						maxSize = maxSizeMeta.ToInt32();
+					}
+				}
+
 				if (localeMeta != null)
 					locale = new CultureInfo(localeMeta.Value);
 				if (encodingMeta != null)

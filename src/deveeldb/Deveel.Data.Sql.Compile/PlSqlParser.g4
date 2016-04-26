@@ -1194,7 +1194,7 @@ binary_type
 	;
 
 string_type
-    : (CLOB | VARCHAR | CHAR | long_varchar | STRING) ( '(' numeric ')' )? 
+    : (CLOB | VARCHAR | CHAR | long_varchar | STRING) ( '(' (numeric | MAX) ')' )? 
 	     (LOCALE locale=CHAR_STRING)? (ENCODING encoding=CHAR_STRING)? 
 	;
 

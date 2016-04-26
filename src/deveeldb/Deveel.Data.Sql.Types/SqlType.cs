@@ -423,7 +423,7 @@ namespace Deveel.Data.Sql.Types {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return Name;
+			return TypeCode.ToString().ToUpperInvariant();
 		}
 
 		public virtual void SerializeObject(Stream stream, ISqlObject obj) {

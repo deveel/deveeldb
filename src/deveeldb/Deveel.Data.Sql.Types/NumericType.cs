@@ -323,7 +323,8 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public override string ToString() {
-			var sb = new StringBuilder(Name);
+			var sb = new StringBuilder(TypeCode.ToString().ToUpperInvariant());
+
 			if (Size != -1) {
 				sb.Append('(');
 				sb.Append(Size);
@@ -334,6 +335,7 @@ namespace Deveel.Data.Sql.Types {
 
 				sb.Append(')');
 			}
+
 			return sb.ToString();
 		}
 
