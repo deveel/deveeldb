@@ -33,6 +33,11 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName == "ExistingRole")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void ExistingRole() {
 			Query.DropRole("test_role");

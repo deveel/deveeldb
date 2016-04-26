@@ -40,6 +40,12 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "Existing_UserDefined" &&
+			    testName != "Existing_Native")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void Simple() {
 			var seqName = ObjectName.Parse("APP.seq2");

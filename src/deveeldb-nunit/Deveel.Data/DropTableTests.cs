@@ -72,6 +72,11 @@ namespace Deveel.Data.Deveel.Data {
 			return true;
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "DropReferencedTable")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void DropNonReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table2");

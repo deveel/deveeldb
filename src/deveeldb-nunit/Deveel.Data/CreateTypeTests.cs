@@ -37,6 +37,11 @@ namespace Deveel.Data {
 			base.OnAfterSetup(testName);
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "UnderNotExistingType")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void SimpleType() {
 			var typeName = ObjectName.Parse("APP.type1");

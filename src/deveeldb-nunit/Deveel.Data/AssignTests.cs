@@ -33,6 +33,11 @@ namespace Deveel.Data {
 			});
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "ToConstant")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void Existing() {
 			var result = Query.Assign("a", SqlExpression.Constant(7689));

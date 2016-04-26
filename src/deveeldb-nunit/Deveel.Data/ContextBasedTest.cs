@@ -14,10 +14,14 @@
 //    limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Store;
 
 using NUnit.Framework;
@@ -45,6 +49,12 @@ namespace Deveel.Data {
 		protected IDatabase Database { get; private set; }
 
 		protected ISession Session { get; private set; }
+
+		private List<Exception> errors;
+
+		protected IEnumerable<Exception> Errors {
+			get { return errors == null ? new Exception[0] : errors.AsEnumerable(); }
+		}
 
 		protected virtual void RegisterServices(ServiceContainer container) {
 		}
@@ -83,12 +93,14 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnBeforeTearDown(string testName) {
-			
+			AssertNoErrors();
 		}
 
 		[SetUp]
 		public void TestSetUp() {
 			//if (!SingleContext)
+
+			errors = null;
 
 			var testName = TestContext.CurrentContext.Test.Name;
 
@@ -107,7 +119,6 @@ namespace Deveel.Data {
 		[TestFixtureSetUp]
 		public void TestFixtureSetUp() {
 			System = CreateSystem();
-
 			var dbConfig = new Configuration.Configuration();
 			dbConfig.SetValue("database.name", DatabaseName);
 
@@ -138,6 +149,14 @@ namespace Deveel.Data {
 
 		private void CreateContext() {
 			Session = CreateAdminSession(Database);
+			Session.Context.RouteImmediate<ErrorEvent>(e => {
+				if (errors == null)
+					errors = new List<Exception>();
+
+				if (e.Level != ErrorLevel.Warning)
+					errors.Add(e.Error);
+			});
+
 			Query = CreateQuery(Session);
 		}
 
@@ -149,19 +168,32 @@ namespace Deveel.Data {
 			Session = null;
 		}
 
+		protected void AssertNoErrors() {
+			if (errors != null && errors.Count > 0)
+				throw new AggregateException(errors);
+		}
+
 		[TearDown]
 		public void TestTearDown() {
 			var testName = TestContext.CurrentContext.Test.Name;
 
-			using (var session = CreateAdminSession(Database)) {
-				using (var query = session.CreateQuery()) {
-					if (OnTearDown(testName, query))
-						query.Commit();
+			try {
+				using (var session = CreateAdminSession(Database)) {
+					using (var query = session.CreateQuery()) {
+						if (OnTearDown(testName, query))
+							query.Commit();
+					}
 				}
-			}
 
-			OnBeforeTearDown(testName);
-			DisposeContext();
+				OnBeforeTearDown(testName);
+			} finally {
+				if (errors != null)
+					errors.Clear();
+
+				errors = null;
+
+				DisposeContext();
+			}
 		}
 
 		private void DeleteFiles() {

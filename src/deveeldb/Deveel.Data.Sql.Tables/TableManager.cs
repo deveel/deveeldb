@@ -84,11 +84,13 @@ namespace Deveel.Data.Sql.Tables {
 		private void DisposeAllIndices() {
 			// Dispose all the IIndexSet for each table
 			try {
-				foreach (var tableIndex in tableIndices) {
-					tableIndex.Dispose();
-				}
+				if (tableIndices != null) {
+					foreach (var tableIndex in tableIndices) {
+						tableIndex.Dispose();
+					}
 
-				tableIndices.Clear();
+					tableIndices.Clear();
+				}
 			} catch (Exception ex) {
 				Transaction.AsEventSource().OnError(ex);
 			}
@@ -113,11 +115,13 @@ namespace Deveel.Data.Sql.Tables {
 
 		private void DisposeTouchedTables() {
 			try {
-				foreach (var table in accessedTables) {
-					table.Dispose();
-				}
+				if (accessedTables != null) {
+					foreach (var table in accessedTables) {
+						table.Dispose();
+					}
 
-				accessedTables.Clear();
+					accessedTables.Clear();
+				}
 			} catch (Exception ex) {
 				Transaction.AsEventSource().OnError(ex);
 			} finally {

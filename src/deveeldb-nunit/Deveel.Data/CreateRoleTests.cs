@@ -23,6 +23,11 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CreateRoleTests : ContextBasedTest {
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName == "NewRole")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void NewRole() {
 			Query.CreateRole("db_admin");

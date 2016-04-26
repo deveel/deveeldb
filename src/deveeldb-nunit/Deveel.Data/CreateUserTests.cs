@@ -22,6 +22,11 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CreateUserTests : ContextBasedTest {
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName == "WithSimplePassword")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void WithSimplePassword() {
 			const string userName = "tester";

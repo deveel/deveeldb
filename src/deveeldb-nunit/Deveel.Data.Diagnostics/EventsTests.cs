@@ -21,6 +21,11 @@ using NUnit.Framework;
 namespace Deveel.Data.Diagnostics {
 	[TestFixture]
 	public class EventsTests : ContextBasedTest {
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "RouteError")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void AttachRouter() {
 			IEvent firedEvent = null;

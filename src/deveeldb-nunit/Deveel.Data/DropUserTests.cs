@@ -32,6 +32,11 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName == "Existing")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void Existing() {
 			Query.DropUser("tester");

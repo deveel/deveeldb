@@ -38,6 +38,11 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName == "Existing")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void Existing() {
 			var funcName = ObjectName.Parse("APP.func1");

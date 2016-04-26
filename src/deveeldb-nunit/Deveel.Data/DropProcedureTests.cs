@@ -36,6 +36,17 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var procName = ObjectName.Parse("APP.proc1");
+			query.Access().DropObject(DbObjectType.Routine, procName);
+			return true;
+		}
+
+		protected override void OnBeforeTearDown(string testName) {
+			if (testName != "NotExisting")
+				base.OnBeforeTearDown(testName);
+		}
+
 		[Test]
 		public void Existing() {
 			var procName = ObjectName.Parse("APP.proc1");
@@ -48,14 +59,14 @@ namespace Deveel.Data {
 
 		[Test]
 		public void NotExisting() {
-			var procName = ObjectName.Parse("APP.proc1");
+			var procName = ObjectName.Parse("APP.proc2");
 
 			Assert.Throws<ObjectNotFoundException>(() => Query.DropProcedure(procName));
 		}
 
 		[Test]
 		public void NotExisting_IfExistsClause() {
-			var procName = ObjectName.Parse("APP.proc1");
+			var procName = ObjectName.Parse("APP.proc2");
 
 			Assert.DoesNotThrow(() => Query.DropProcedure(procName, true));
 		}
