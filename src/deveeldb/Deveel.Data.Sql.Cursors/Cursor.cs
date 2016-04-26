@@ -112,6 +112,11 @@ namespace Deveel.Data.Sql.Cursors {
 				refs = refNames.Select(x => Context.Access().FindObject(x)).ToArray();
 				Context.Query.Session.Enter(refs, AccessType.Read);
 
+				var tables = refs.Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table).Select(x => x.ObjectInfo.FullName);
+				foreach (var table in tables) {
+					Context.Query.Session.Transaction.GetTableManager().SelectTable(table);
+				}
+
 				return queryPlan.Evaluate(Context);
 			} catch (Exception) {
 

@@ -421,31 +421,6 @@ namespace Deveel.Data.Sql.Tables {
 			return list;
 		}
 
-		public ObjectName TryResolveCase(ObjectName tableName) {
-			// Is it a visable table (match case insensitive)
-			var table = FindVisibleTable(tableName, true);
-			if (table != null)
-				return table.TableInfo.TableName;
-
-			var comparison = IgnoreIdentifiersCase
-				? StringComparison.OrdinalIgnoreCase
-				: StringComparison.Ordinal;
-
-			// Is it an internal table?
-			string tschema = tableName.ParentName;
-			string tname = tableName.Name;
-			var list = GetDynamicTables();
-			foreach (var ctable in list) {
-				if (String.Equals(ctable.ParentName, tschema, comparison) &&
-				    String.Equals(ctable.Name, tname, comparison)) {
-					return ctable;
-				}
-			}
-
-			// No matches so return the original object.
-			return tableName;
-		}
-
 		public IMutableTable GetMutableTable(ObjectName tableName) {
 			var table = GetTable(tableName);
 			if (table == null)

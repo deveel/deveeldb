@@ -77,6 +77,13 @@ namespace Deveel.Data.Sql.Cursors {
 				accessType |= AccessType.Write;
 
 			Context.Query.Session.Enter(refs, accessType);
+
+			var tables = refs.Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table).Select(x => x.ObjectInfo.FullName);
+			foreach (var table in tables) {
+				Context.Query.Session.Transaction.GetTableManager().SelectTable(table);
+			}
+			
+
 			References = refs;
 		}
 
