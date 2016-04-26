@@ -22,7 +22,7 @@ namespace Deveel.Data.Store.Journaled {
 		private readonly LoggingBufferManager bufferManager;
 		private IJournaledResource resource;
 
-		internal JournaledFileStore(string resourceName, LoggingBufferManager bufferManager, bool readOnly) 
+		internal JournaledFileStore(string resourceName, LoggingBufferManager bufferManager, bool readOnly)
 			: base(readOnly) {
 			this.bufferManager = bufferManager;
 			resource = bufferManager.CreateResource(resourceName);
@@ -66,11 +66,6 @@ namespace Deveel.Data.Store.Journaled {
 
 		protected override void Write(long offset, byte[] buffer, int index, int length) {
 			bufferManager.WriteTo(resource, offset, buffer, index, length);
-		}
-
-		protected override void Dispose(bool disposing) {
-
-			base.Dispose(disposing);
 		}
 	}
 }

@@ -723,6 +723,7 @@ namespace Deveel.Data.Store {
 					}
 				}
 
+				IsClosed = false;
 				return ClosedClean;
 			}
 		}

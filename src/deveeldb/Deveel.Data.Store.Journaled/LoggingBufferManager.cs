@@ -17,10 +17,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Store.Journaled {
