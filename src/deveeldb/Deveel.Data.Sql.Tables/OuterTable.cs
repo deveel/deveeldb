@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Index;
 
 namespace Deveel.Data.Sql.Tables {
-	internal class OuterTable : VirtualTable {
+	internal class OuterTable : VirtualTable, IRootTable {
 		private readonly IList<int>[] outerRows;
 		private int outerRowCount;
 
@@ -40,6 +40,10 @@ namespace Deveel.Data.Sql.Tables {
 
 		public override int RowCount {
 			get { return base.RowCount + outerRowCount; }
+		}
+
+		bool IRootTable.TypeEquals(IRootTable other) {
+			return this == other;
 		}
 
 		public void MergeIn(ITable outsideTable) {

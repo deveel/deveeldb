@@ -73,11 +73,20 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		protected override IEnumerable<int> ResolveRowsForTable(IEnumerable<int> rows, int tableNum) {
-			var rowSet = rows.ToList();
+			var rowSet = new List<int>(rows);
 			IList<int> curRowList = rowList[tableNum];
 			for (int n = rowSet.Count - 1; n >= 0; --n) {
 				int aa = rowSet[n];
-				int bb = curRowList[aa];
+				int bb;
+
+				if (aa == Int32.MaxValue - 1) {
+					bb = 0;
+				} else if (aa < 0 || aa >= curRowList.Count) {
+					throw new InvalidOperationException("Invalid row reference");
+				} else {
+					bb = curRowList[aa];
+				}
+
 				rowSet[n] = bb;
 			}
 

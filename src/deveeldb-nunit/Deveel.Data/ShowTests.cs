@@ -14,19 +14,76 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
+
+using Deveel.Data.Security;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Cursors;
+using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
 	[TestFixture]
 	public sealed class ShowTests : ContextBasedTest {
+		protected override bool OnSetUp(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("SYSTEM.test_table");
+			var tableInfo = new TableInfo(tableName);
+			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("b", PrimitiveTypes.String());
+
+			query.Access().CreateObject(tableInfo);
+			query.Access().GrantOnTable(tableName, User.PublicName, Privileges.TableAll);
+
+			return true;
+		}
+
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var tableName = ObjectName.Parse("SYSTEM.test_table");
+			query.Access().RevokeAllGrantsOn(DbObjectType.Table, tableName);
+			query.Access().DropObject(DbObjectType.Table, tableName);
+			return true;
+		}
+
 		[Test]
 		public void ShowSchema() {
 			var result = Query.ShowSchema();
 
 			Assert.IsNotNull(result);
 
-			// TODO: Verify the list of schema is coherent
+			Row row = null;
+			Assert.DoesNotThrow(() => row = result.ElementAt(0));
+			Assert.IsNotNull(row);
+
+			var schemaName = row.GetValue(0).Value.ToString();
+			var schemaType = row.GetValue(1).Value.ToString();
+
+			Assert.AreEqual("INFORMATION_SCHEMA", schemaName);
+			Assert.AreEqual("SYSTEM", schemaType);
+		}
+
+		[Test]
+		public void ShowTables() {
+			var result = Query.ShowTables();
+
+			Assert.IsNotNull(result);
+
+			// TODO: There's probably an error on the views to select
+			//        the tables the current user has access to... so for the moment
+			//        just be happy it doesn't throw an error: we will come back later
+		}
+
+		[Test]
+		public void ShowProduct() {
+			var result = Query.ShowProduct();
+
+			Assert.IsNotNull(result);
+
+			// TODO: the product information come from the variables table,
+			//        that is not yet finalized: so the execution succeeds but
+			//        no data are retrieved. come back later when database vars
+			//        are implemented
 		}
 	}
 }

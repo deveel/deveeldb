@@ -129,6 +129,9 @@ namespace Deveel.Data.Sql.Cursors {
 		public CursorStatus Status { get; private set; }
 
 		public Row Fetch(FetchDirection direction, int offset) {
+			if (Result == null)
+				return null;
+
 			if (direction != FetchDirection.Absolute &&
 				direction != FetchDirection.Relative &&
 				offset > -1)

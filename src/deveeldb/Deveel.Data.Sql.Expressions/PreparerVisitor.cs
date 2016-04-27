@@ -87,7 +87,22 @@ namespace Deveel.Data.Sql.Expressions {
 			if (nextComposite != null)
 				nextComposite = (SqlQueryExpression) nextComposite.Prepare(preparer);
 
+			var groupBy = query.GroupBy;
+			if (groupBy != null) {
+				var newGroupBy = new List<SqlExpression>();
+				foreach (var groupExpression in groupBy) {
+					var newGroupByExp = groupExpression.Prepare(preparer);
+					newGroupBy.Add(newGroupByExp);
+				}
+
+				newExpression.GroupBy = newGroupBy;
+			}
+
 			newExpression.NextComposite = nextComposite;
+			newExpression.CompositeFunction = query.CompositeFunction;
+			newExpression.IsCompositeAll = query.IsCompositeAll;
+
+			newExpression.Distinct = query.Distinct;
 
 			return newExpression;
 		}

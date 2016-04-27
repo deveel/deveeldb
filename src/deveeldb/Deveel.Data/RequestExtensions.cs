@@ -503,12 +503,20 @@ namespace Deveel.Data {
 			return request.Show(ShowTarget.SchemaTables);
 		}
 
+		public static ICursor ShowTable(this IRequest request, ObjectName tableName) {
+			return request.Show(ShowTarget.Table, tableName);
+		}
+
 		public static ICursor ShowStatus(this IRequest request) {
 			return request.Show(ShowTarget.Status);
 		}
 
 		public static ICursor ShowSession(this IRequest request) {
 			return request.Show(ShowTarget.Session);
+		}
+
+		public static ICursor ShowProduct(this IRequest request) {
+			return request.Show(ShowTarget.Product);
 		}
 
 		#endregion

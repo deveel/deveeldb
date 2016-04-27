@@ -16,10 +16,13 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -47,57 +50,118 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			if (Target == ShowTarget.Schema)
-				return ShowSchema(context.Context);
+				return ShowSchema();
 			if (Target == ShowTarget.SchemaTables)
-				return ShowSchemaTables(context.Query.CurrentSchema(), context.Context);
+				return ShowSchemaTables(context.Query.CurrentSchema());
+			if (Target == ShowTarget.Table)
+				return ShowTable(tableName);
+			if (Target == ShowTarget.Product)
+				return ShowProduct();
 
 			throw new StatementException(String.Format("The SHOW target {0} is not supported.", Target));
 		}
 
-		private static SqlStatement Show(IContext context, string sql, params SortColumn[] orderBy) {
-			var query = (SqlQueryExpression)SqlExpression.Parse(sql, context);
-			var select = new SelectStatement(query, orderBy);
-			return new Prepared(select);
+		private static SqlStatement Show(string sql, params QueryParameter[] parameters) {
+			var query = new SqlQuery(sql);
+			if (parameters != null && parameters.Length > 0) {
+				foreach (var parameter in parameters) {
+					query.Parameters.Add(parameter);
+				}
+			}
+
+			return new Prepared(query);
 		}
 
-		private SqlStatement ShowSchema(IContext systemContext) {
+		private SqlStatement ShowSchema() {
 			var sql = "SELECT \"name\" AS \"schema_name\", " +
 			          "       \"type\", " +
 			          "       \"other\" AS \"notes\" " +
-			          "    FROM " + InformationSchema.ThisUserSchemaInfoViewName;
+			          "    FROM " + InformationSchema.ThisUserSchemaInfoViewName + " " +
+					  "ORDER BY \"schema_name\"";
 
-			return Show(systemContext, sql, new SortColumn("schema_name"));
+			return Show(sql);
 		}
 
-		private SqlStatement ShowSchemaTables(string schema, IContext context) {
+		private SqlStatement ShowProduct() {
+			const string sql = "SELECT \"name\", \"version\" FROM " +
+			                   "  ( SELECT \"value\" AS \"name\" FROM SYSTEM.product_info " +
+			                   "     WHERE \"var\" = 'name' ), " +
+			                   "  ( SELECT \"value\" AS \"version\" FROM SYSTEM.product_info " +
+			                   "     WHERE \"var\" = 'version' ) ";
+
+			return Show(sql);
+		}
+
+		private SqlStatement ShowSchemaTables(string schema) {
 			var sql = "  SELECT \"Tables.TABLE_NAME\" AS \"table_name\", " +
 			          "         I_PRIVILEGE_STRING(\"agg_priv_bit\") AS \"user_privs\", " +
 			          "         \"Tables.TABLE_TYPE\" as \"table_type\" " +
 			          "    FROM " + InformationSchema.Tables + ", " +
 			          "         ( SELECT AGGOR(\"priv_bit\") agg_priv_bit, " +
-			          "                  \"object\", \"param\" " +
+			          "                  \"object\", \"name\" " +
 			          "             FROM " + InformationSchema.ThisUserSimpleGrantViewName +
-			          "            WHERE \"object\" = 1 " +
-			          "         GROUP BY \"param\" )" +
-			          "   WHERE \"Tables.TABLE_SCHEMA\" = \"" + schema + "\" " +
-			          "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"param\" ";
-			return Show(context, sql, new SortColumn("Tables.TABLE_NAME"));
+			          "            WHERE \"object\" = " + ((int)DbObjectType.Table) +
+			          "         GROUP BY \"name\" )" +
+			          "   WHERE \"Tables.TABLE_SCHEMA\" = ? " +
+			          "     AND CONCAT(\"Tables.TABLE_SCHEMA\", '.', \"Tables.TABLE_NAME\") = \"name\" " +
+					  "ORDER BY Tables.TABLE_NAME";
+
+			var param = new QueryParameter(PrimitiveTypes.String(), new SqlString(schema));
+			return Show(sql, param);
+		}
+
+		private SqlStatement ShowTable(ObjectName tableName) {
+			var sql = "  SELECT \"column\" AS \"name\", " +
+			          "         i_sql_type(\"type_desc\", \"size\", \"scale\") AS \"type\", " +
+			          "         \"not_null\", " +
+			          "         \"index_str\" AS \"index\", " +
+			          "         \"default\" " +
+			          "    FROM " + InformationSchema.ThisUserTableColumnsViewName + " " +
+			          "   WHERE \"schema\" = ? " +
+			          "     AND \"table\" = ? " +
+			          "ORDER BY \"seq_no\" ";
+
+			var parameters = new[] {
+				new QueryParameter(PrimitiveTypes.String(), new SqlString(tableName.ParentName)),
+				new QueryParameter(PrimitiveTypes.String(), new SqlString(tableName.Name)) 
+			};
+
+			return Show(sql, parameters);
 		}
 
 		#region Prepared
 
+		[Serializable]
 		class Prepared : SqlStatement {
-			public Prepared(SelectStatement select) {
-				Select = select;
+			public Prepared(SqlQuery query) {
+				Query = query;
 			}
 
-			public SelectStatement Select { get; private set; }
+			private Prepared(SerializationInfo info, StreamingContext context)
+				: base(info, context) {
+				Query = (SqlQuery) info.GetValue("Query", typeof(SqlQuery));
+			}
+
+			public SqlQuery Query { get; private set; }
+
+			protected override void GetData(SerializationInfo info) {
+				info.AddValue("Query", Query);
+				base.GetData(info);
+			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var result = context.Request.ExecuteStatement(Select);
+				var results = context.Query.ExecuteQuery(Query);
+
+				if (results.Length != 1)
+					throw new StatementException("Too many queries were executed.");
+
+				var result = results[0];
+
+				if (result.Type == StatementResultType.Exception)
+					throw result.Error;
 
 				if (result.Type != StatementResultType.CursorRef)
-					throw new StatementException();
+					throw new StatementException("Invalid result for query");
 
 				context.SetCursor(result.Cursor);
 			}

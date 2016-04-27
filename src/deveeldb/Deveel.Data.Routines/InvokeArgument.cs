@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 
@@ -39,6 +40,17 @@ namespace Deveel.Data.Routines {
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			var preparedValue = Value.Prepare(preparer);
 			return new InvokeArgument(Name, preparedValue);
+		}
+
+		public override string ToString() {
+			var sb = new StringBuilder();
+			if (IsNamed) {
+				sb.AppendFormat("{0} => ", Name);
+			}
+
+			sb.Append(Value);
+
+			return sb.ToString();
 		}
 	}
 }

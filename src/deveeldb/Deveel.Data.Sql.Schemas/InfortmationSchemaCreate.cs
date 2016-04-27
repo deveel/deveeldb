@@ -28,14 +28,14 @@ namespace Deveel.Data.Sql.Schemas {
 			                   "  SELECT \"priv_bit\", \"object\", \"name\", \"grantee\", " +
 			                   "         \"grant_option\", \"granter\" " +
 			                   "    FROM " + SystemSchema.GrantsTableName +
-			                   "   WHERE ( grantee = user() OR grantee = '@PUBLIC' )");
+			                   "   WHERE ( grantee = user() OR grantee = '" + User.PublicName + "' )");
 
 			// This view shows the grants that the user is allowed to see
 			query.ExecuteQuery("CREATE VIEW " + InformationSchema.ThisUserGrantViewName + " AS " +
 			                   "  SELECT \"description\", \"object\", \"name\", \"grantee\", " +
 			                   "         \"grant_option\", \"granter\" " +
 			                   "    FROM " + SystemSchema.GrantsTableName + ", " + SystemSchema.PrivilegesTableName +
-			                   "   WHERE ( grantee = user() OR grantee = '@PUBLIC' )" +
+			                   "   WHERE ( grantee = user() OR grantee = '" + User.PublicName + "' )" +
 			                   "     AND " + SystemSchema.GrantsTableName + ".priv_bit = " +
 			                   SystemSchema.PrivilegesTableName + ".priv_bit");
 
@@ -112,9 +112,9 @@ namespace Deveel.Data.Sql.Schemas {
 			                   "         \"TABLE_SCHEMA\",\n" +
 			                   "         \"TABLE_NAME\",\n" +
 			                   "         \"COLUMN_NAME\",\n" +
-			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '@SYSTEM', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '" + User.SystemName + "', \n" +
 			                   "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '@PUBLIC', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '" + User.PublicName +"', \n" +
 			                   "                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 			                   "         \"" + InformationSchema.ThisUserGrantViewName + ".description\" AS \"PRIVILEGE\",\n" +
 			                   "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +
@@ -128,9 +128,9 @@ namespace Deveel.Data.Sql.Schemas {
 			                   "  SELECT \"TABLE_CATALOG\",\n" +
 			                   "         \"TABLE_SCHEMA\",\n" +
 			                   "         \"TABLE_NAME\",\n" +
-			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '@SYSTEM', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".granter\" = '" + User.SystemName + "', \n" +
 			                   "                        NULL, \"ThisUserGrant.granter\") AS \"GRANTOR\",\n" +
-			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '@PUBLIC', \n" +
+			                   "         IIF(\"" + InformationSchema.ThisUserGrantViewName + ".grantee\" = '" + User.PublicName + "', \n" +
 			                   "                    'public', \"ThisUserGrant.grantee\") AS \"GRANTEE\",\n" +
 			                   "         \"" + InformationSchema.ThisUserGrantViewName + ".description\" AS \"PRIVILEGE\",\n" +
 			                   "         IIF(\"grant_option\" = 'true', 'YES', 'NO') AS \"IS_GRANTABLE\" \n" +

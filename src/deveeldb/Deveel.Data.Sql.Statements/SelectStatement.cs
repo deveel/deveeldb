@@ -78,6 +78,24 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
+		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
+			var preparedQuery = QueryExpression.Prepare(preparer);
+			if (!(preparedQuery is SqlQueryExpression))
+				throw new StatementException("The preparation of the query expression resulted in an invalid expression.");
+
+			var orderBy = new List<SortColumn>();
+			if (OrderBy != null) {
+				foreach (var column in OrderBy) {
+					var prepared = (SortColumn) ((IPreparable) column).Prepare(preparer);
+					orderBy.Add(prepared);
+				}
+			}
+
+			var query = (SqlQueryExpression) preparedQuery;
+
+			return new SelectStatement(query, Limit, orderBy);
+		}
+
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));
 			return new Prepared(queryPlan);
