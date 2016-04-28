@@ -163,7 +163,9 @@
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\AggregateChecker.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\AggregateExpression.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\AggregateSubqueryExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\Alias.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\AliasedExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\BetweenExpression.cs" />
@@ -171,6 +173,7 @@
     <Compile Include="Deveel.Data.Linq.Expressions\ColumnExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\EntityExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ExistsExpression.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\ExpressionReplacer.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ExpressionTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\FunctionExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\InExpression.cs" />

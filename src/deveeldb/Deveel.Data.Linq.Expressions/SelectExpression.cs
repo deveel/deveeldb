@@ -43,5 +43,69 @@ namespace Deveel.Data.Linq.Expressions {
 		public ReadOnlyCollection<OrderExpression> OrderBy { get; private set; }
 
 		public ReadOnlyCollection<Expression> GroupBy { get; private set; }
+
+		public SelectExpression SetColumns(IEnumerable<QueryColumn> columns) {
+			return new SelectExpression(Distinct, columns.OrderBy(c => c.Name), From, Where, OrderBy, GroupBy, Skip, Take, Alias);
+		}
+
+		public SelectExpression AddColumn(QueryColumn column) {
+			var columns = new List<QueryColumn>(Columns);
+			columns.Add(column);
+			return SetColumns(columns);
+		}
+
+		public SelectExpression RemoveColumn(QueryColumn column) {
+			var columns = new List<QueryColumn>(Columns);
+			columns.Remove(column);
+			return SetColumns(columns);
+		}
+
+		public string GetColumnName(string baseName) {
+			string name = baseName;
+			int n = 0;
+			while (!IsUniqueName(Columns, name)) {
+				name = baseName + (n++);
+			}
+
+			return name;
+		}
+
+		private static bool IsUniqueName(IList<QueryColumn> columns, string name) {
+			foreach (var col in columns) {
+				if (col.Name == name) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		public SelectExpression SetWhere(Expression where) {
+			if (where != Where) {
+				return new SelectExpression(Distinct, Columns, From, where, OrderBy, GroupBy, Skip, Take, Alias);
+			}
+			return this;
+		}
+
+		public SelectExpression SetOrderBy(IEnumerable<OrderExpression> orderBy) {
+			return new SelectExpression(Distinct, Columns, From, Where, orderBy, GroupBy, Skip, Take, Alias);
+		}
+
+		public SelectExpression SetGroupBy(IEnumerable<Expression> groupBy) {
+			return new SelectExpression(Distinct, Columns, From, Where, OrderBy, groupBy, Skip, Take, Alias);
+		}
+
+		public SelectExpression SetSkip(Expression skip) {
+			if (skip != Skip) {
+				return new SelectExpression(Distinct, Columns, From, Where, OrderBy, GroupBy, skip, Take, Alias);
+			}
+			return this;
+		}
+
+		public SelectExpression SetTake(Expression take) {
+			if (take != Take) {
+				return new SelectExpression(Distinct, Columns, From, Where, OrderBy, GroupBy, Skip, take, Alias);
+			}
+			return this;
+		}
 	}
 }

@@ -23,6 +23,8 @@ namespace Deveel.Data.Linq.Expressions {
 					return VisitJoin((JoinExpression) exp);
 				case QueryExpressionType.Aggregate:
 					return VisitAggregate((AggregateExpression) exp);
+				case QueryExpressionType.AggregateSubquery:
+					return VisitAggregateSubquery((AggregateSubqueryExpression)exp);
 				case QueryExpressionType.Scalar:
 				case QueryExpressionType.In:
 				case QueryExpressionType.Exists:
@@ -42,6 +44,18 @@ namespace Deveel.Data.Linq.Expressions {
 				default:
 					return base.Visit(exp);
 			}
+		}
+
+		protected virtual Expression VisitAggregateSubquery(AggregateSubqueryExpression aggregate) {
+			var subquery = (ScalarExpression)Visit(aggregate.AsSubquery);
+			return UpdateAggregateSubquery(aggregate, subquery);
+		}
+
+		protected AggregateSubqueryExpression UpdateAggregateSubquery(AggregateSubqueryExpression aggregate, ScalarExpression subquery) {
+			if (subquery != aggregate.AsSubquery) {
+				return new AggregateSubqueryExpression(aggregate.GroupBy, aggregate.InGroupSelect, subquery);
+			}
+			return aggregate;
 		}
 
 		protected virtual Expression VisitSource(Expression source) {
