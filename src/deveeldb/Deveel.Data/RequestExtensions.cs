@@ -432,15 +432,6 @@ namespace Deveel.Data {
 			return request.Select(query);
 		}
 
-		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) where T : class {
-			return request.Select(query).Select(x => x.ToObject<T>());
-		}
-
-		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) where T : class {
-			var query = (SqlQueryExpression) SqlExpression.Parse(queryText);
-			return request.Select<T>(query);
-		}
-
 		#region Select Function
 
 		public static Field SelectFunction(this IRequest request, ObjectName functionName, params SqlExpression[] args) {

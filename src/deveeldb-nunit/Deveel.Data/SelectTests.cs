@@ -16,7 +16,6 @@
 using System;
 using System.Linq;
 
-using Deveel.Data.Mapping;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -267,38 +266,6 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
-		}
-
-		[Test]
-		public void FromMap() {
-			var result = Query.Select<TestClass>("SELECT * FROM test_table");
-
-			Assert.IsNotNull(result);
-			Assert.AreEqual(3, result.Count());
-
-			var first = result.ElementAt(0);
-
-			Assert.IsNotNull(first);
-			Assert.AreEqual(1, first.Id);
-			Assert.AreEqual("John", first.FirstName);
-			Assert.AreEqual("Doe", first.LastName);
-			Assert.AreEqual(new DateTime(1977, 01, 01), first.BirthDate);
-		}
-
-
-		[TableName("test_table")]
-		class TestClass {
-			[Column(Name = "id"), Identity]
-			public int Id { get; set; }
-
-			[Column(Name = "first_name")]
-			public string FirstName { get; set; }
-
-			[Column(Name = "last_name")]
-			public string LastName { get; set; }
-
-			[Column(Name = "birth_date")]
-			public DateTime? BirthDate { get; set; }
 		}
 	}
 }
