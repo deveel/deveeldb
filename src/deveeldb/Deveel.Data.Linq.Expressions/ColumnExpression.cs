@@ -4,13 +4,16 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Linq.Expressions {
 	public sealed class ColumnExpression : QueryExpression, IEquatable<ColumnExpression> {
-		public ColumnExpression(string name, SqlType type, Alias alias, Type nodeType)
-			: base(QueryExpressionType.Column, nodeType) {
+		public ColumnExpression(string name, SqlType sqlType, Alias alias, Type type)
+			: base(QueryExpressionType.Column, type) {
+			SqlType = sqlType;
+			Name = name;
+			Alias = alias;
 		}
 
 		public string Name { get; private set; }
 
-		public SqlType Type { get; private set; }
+		public SqlType SqlType { get; private set; }
 
 		public Alias Alias { get; private set; }
 

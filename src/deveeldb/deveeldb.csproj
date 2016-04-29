@@ -171,6 +171,8 @@
     <Compile Include="Deveel.Data.Linq.Expressions\BetweenExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\BlockExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ColumnExpression.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\ColumnProjector.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\DeclaredAliasGatherer.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\EntityExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ExistsExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ExpressionReplacer.cs" />
@@ -181,16 +183,26 @@
     <Compile Include="Deveel.Data.Linq.Expressions\JoinExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\OrderExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\OrderType.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\OuterJoinedExpression.cs" />
+    <Compile Include="Deveel.Data.Linq.Expressions\ProjectedColumns.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ProjectionExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\QueryColumn.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\QueryExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\QueryExpressionType.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\QueryExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryLanguage.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\ScalarExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\SelectExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\SubqueryExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\TableExpression.cs" />
     <Compile Include="Deveel.Data.Linq.Expressions\VariableExpression.cs" />
+    <Compile Include="Deveel.Data.Linq\Grouping.cs" />
+    <Compile Include="Deveel.Data.Linq\IEntityProvider.cs" />
+    <Compile Include="Deveel.Data.Linq\IEntityTable.cs" />
+    <Compile Include="Deveel.Data.Linq\IEntityTable_T.cs" />
+    <Compile Include="Deveel.Data.Linq\ITypeMapper.cs" />
+    <Compile Include="Deveel.Data.Linq\Query.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryProvider.cs" />
     <Compile Include="Deveel.Data.Mapping\IEntityMapping.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
@@ -996,9 +1008,7 @@
     <None Include="deveeldb.snk" />
     <None Include="packages.deveeldb.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Linq\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

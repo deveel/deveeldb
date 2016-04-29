@@ -21,6 +21,8 @@ namespace Deveel.Data.Linq.Expressions {
 					return VisitSelect((SelectExpression) exp);
 				case QueryExpressionType.Join:
 					return VisitJoin((JoinExpression) exp);
+				case QueryExpressionType.OuterJoined:
+					return this.VisitOuterJoined((OuterJoinedExpression)exp);
 				case QueryExpressionType.Aggregate:
 					return VisitAggregate((AggregateExpression) exp);
 				case QueryExpressionType.AggregateSubquery:
@@ -159,6 +161,19 @@ namespace Deveel.Data.Linq.Expressions {
 				return new JoinExpression(left, joinType, right, condition);
 			}
 			return join;
+		}
+
+		protected virtual Expression VisitOuterJoined(OuterJoinedExpression outer) {
+			var test = this.Visit(outer.Test);
+			var expression = this.Visit(outer.Expression);
+			return this.UpdateOuterJoined(outer, test, expression);
+		}
+
+		protected OuterJoinedExpression UpdateOuterJoined(OuterJoinedExpression outer, Expression test, Expression expression) {
+			if (test != outer.Test || expression != outer.Expression) {
+				return new OuterJoinedExpression(test, expression);
+			}
+			return outer;
 		}
 
 		protected virtual Expression VisitAggregate(AggregateExpression aggregate) {
