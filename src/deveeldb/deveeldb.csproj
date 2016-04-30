@@ -523,7 +523,6 @@
     <Compile Include="Deveel.Data\DataVersionAttribute.cs" />
     <Compile Include="Deveel.Data\IDatabase.cs" />
     <Compile Include="Deveel.Data\IDatabaseContext.cs" />
-    <Compile Include="Deveel.Data\IDatabaseManager.cs" />
     <Compile Include="Deveel.Data\IQueryContext.cs" />
     <Compile Include="Deveel.Data\ISystemContext.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableContainer.cs" />
@@ -548,7 +547,7 @@
     <Compile Include="Deveel.Data\ObjectNotFoundException.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\OldNewTableState.cs" />
     <Compile Include="Deveel.Data\QueryContext.cs" />
-    <Compile Include="Deveel.Data\RecordState.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\RecordState.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaManager.cs" />
     <Compile Include="Deveel.Data\SessionAccess.cs" />
     <Compile Include="Deveel.Data\SystemAccess.cs" />

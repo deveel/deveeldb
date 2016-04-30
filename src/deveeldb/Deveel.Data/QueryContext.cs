@@ -14,38 +14,16 @@
 //    limitations under the License.
 //
 
-
 using System;
-#if !PCL
-using System.Security.Cryptography;
-#endif
 
 using Deveel.Data.Caching;
-using Deveel.Data.Services;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class QueryContext : Context, IQueryContext {
-		/*
-#if PCL
-		private Random secureRandom;
-#else
-		private RNGCryptoServiceProvider secureRandom;
-#endif
-		*/
-
 		internal QueryContext(ISessionContext parentContext)
 			: base(parentContext) {
 
 			this.RegisterInstance<IQueryContext>(this);
-			/*
-#if PCL
-			secureRandom = new Random();
-#else
-			secureRandom = new RNGCryptoServiceProvider();
-#endif
-			*/
-
 			this.RegisterInstance<ICache>(new MemoryCache(), "TableCache");
 		}
 
@@ -60,21 +38,5 @@ namespace Deveel.Data {
 		public IBlockContext CreateBlockContext() {
 			return new BlockContext(this);
 		}
-
-		/*
-		public virtual SqlNumber NextRandom(int bitSize) {
-			AssertNotDisposed();
-
-#if PCL
-			var num = secureRandom.NextDouble();
-#else
-			var bytes = new byte[8];
-			secureRandom.GetBytes(bytes);
-			var num = BitConverter.ToInt64(bytes, 0);
-#endif
-			return new SqlNumber(num);
-		}
-		*/
-
 	}
 }

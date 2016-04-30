@@ -21,9 +21,26 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// A context that is specific for a <see cref="ISession"/>.
+	/// </summary>
 	public interface ISessionContext : IEventScope, IContext {
+		/// <summary>
+		/// Gets a reference to the parent transaction context
+		/// that originated this context.
+		/// </summary>
 		ITransactionContext TransactionContext { get; }
 
+		/// <summary>
+		/// Creates a context that is used by a <see cref="IQuery"/>
+		/// child of the <see cref="ISession"/> that handles this context.
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="IQueryContext"/> that
+		/// inherits the state from this context and is used for
+		/// <see cref="IQuery"/> objects creates by the <see cref="ISession"/>
+		/// that contains this context.
+		/// </returns>
 		IQueryContext CreateQueryContext();
 	}
 }

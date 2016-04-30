@@ -33,7 +33,7 @@ namespace Deveel.Data {
 	public class Block : IBlock, IEventSource, ISystemDirectAccess {
 		private IQuery query;
 
-		public Block(IRequest request) {
+		internal Block(IRequest request) {
 			if (request == null)
 				throw new ArgumentNullException("request");
 

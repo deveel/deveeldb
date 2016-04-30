@@ -17,15 +17,13 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
-
 namespace Deveel.Data {
 	/// <summary>
 	/// Represents a generic request for execution of a 
 	/// command in a system.
 	/// </summary>
 	/// <remarks>
-	/// This object represents a nesting state of the execution
+	/// This object represents a nested state of the execution
 	/// in a hierarchy.
 	/// </remarks>
 	/// <seealso cref="IBlock"/>
@@ -48,6 +46,15 @@ namespace Deveel.Data {
 		IBlockContext Context { get; }
 
 
+		/// <summary>
+		/// Creates a block that is the child of this request.
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="IBlock"/> that is
+		/// the direct child of this request and that inherits
+		/// the context and the reference of this request.
+		/// </returns>
+		/// <seealso cref="IBlock"/>
 		IBlock CreateBlock();
 	}
 }

@@ -19,14 +19,22 @@ using System;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
-using Deveel.Data.Services;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// The execution context of a database system, that is defining
 	/// the configurations and the components used to manage databases.
 	/// </summary>
-	public interface ISystemContext : IConfigurationProvider, IEventScope {
+	public interface ISystemContext : IContext, IConfigurationProvider, IEventScope {
+		/// <summary>
+		/// Creates a new child context for a database handled by the system
+		/// </summary>
+		/// <param name="configuration">A configuration object specific to the
+		/// database that will be handled by the context to be created.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IDatabaseContext"/> that holds the
+		/// context of a database to be opened or created.
+		/// </returns>
 		IDatabaseContext CreateDatabaseContext(IConfiguration configuration);
 	}
 }
