@@ -789,7 +789,6 @@
     <Compile Include="Deveel.Data.Sql.Query\DistinctNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ExhaustiveSelectNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\ExpressionReference.cs" />
-    <Compile Include="Deveel.Data.Sql.Query\ExpressionReferenceExplorer.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchTableNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FromTableDirectSource.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FromTableSubQuerySource.cs" />

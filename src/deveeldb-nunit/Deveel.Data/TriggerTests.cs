@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 
 using Deveel.Data.Diagnostics;
@@ -94,6 +95,22 @@ namespace Deveel.Data {
 			Assert.IsNotNull(firedEvent);
 			Assert.AreEqual(TriggerEventTime.After, firedEvent.EventTime);
 			Assert.AreEqual(TriggerEventType.Insert, firedEvent.EventType);
+		}
+
+		[Test]
+		public void SelectTriggerInfo() {
+			const string sql = "SELECT type FROM trigger1";
+			var query = (SqlQueryExpression) SqlExpression.Parse(sql);
+
+			var result = Query.Select(query);
+
+			Row row = null;
+			Assert.IsNotNull(result);
+			Assert.DoesNotThrow(() => row = result.First());
+			Assert.IsNotNull(row);
+
+			var value = row.GetValue("type");
+			Assert.IsFalse(Field.IsNullField(value));
 		}
 	}
 }
