@@ -91,7 +91,7 @@ namespace Deveel.Data {
 		public void FromMap() {
 			Query.CreateTable<TestClass>();
 
-			var tableName = ObjectName.Parse("APP.test_table");
+			tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = Query.Access().GetTableInfo(tableName);
 
 			Assert.IsNotNull(tableInfo);
