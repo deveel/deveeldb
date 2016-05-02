@@ -16,7 +16,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Caching;
 
@@ -25,24 +24,28 @@ namespace Deveel.Data.Sql.Statements {
 	/// A wrapper around a specialized <see cref="ICache"/> used to
 	/// store and retrieve parsed <see cref="SqlStatement"/> objects.
 	/// </summary>
-	public sealed class StatementCache {
-		/// <summary>
-		/// Constructs the object around the provided cache handler.
-		/// </summary>
-		/// <param name="cache">The <see cref="ICache"/> instance used to store the
-		/// compiled statements.</param>
-		public StatementCache(ICache cache) {
-			Cache = cache;
+	public sealed class StatementCache : MemoryCache, IStatementCache {
+		public bool TryGet(string query, out SqlStatement[] statements) {
+			if (String.IsNullOrEmpty(query)) {
+				statements = null;
+				return false;
+			}
+
+			object obj;
+			if (!TryGetObject(query, out obj)) {
+				statements = null;
+				return false;
+			}
+
+			statements = (SqlStatement[]) obj;
+			return true;
 		}
 
-		public ICache Cache { get; private set; }
+		public void Set(string query, SqlStatement[] statements) {
+			if (String.IsNullOrEmpty(query))
+				return;
 
-		public bool TryGet(string query, out IEnumerable<SqlStatement> statements) {
-			throw new NotImplementedException();
-		}
-
-		public void Set(string query, IEnumerable<SqlStatement> statements) {
-			throw new NotImplementedException();
+			SetObject(query, statements);
 		}
 	}
 }

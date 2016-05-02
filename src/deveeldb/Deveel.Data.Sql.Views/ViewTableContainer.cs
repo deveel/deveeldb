@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Views {
-	class ViewTableContainer : SystemTableContainer {
+	class ViewTableContainer : TableContainerBase {
 
 		public ViewTableContainer(ITransaction transaction)
 			: base(transaction, ViewManager.ViewTableName) {
