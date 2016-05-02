@@ -40,6 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 			IsIdentity = info.GetBoolean("IsIdentity");
 			IsNotNull = info.GetBoolean("IsNotNull");
 			DefaultExpression = (SqlExpression) info.GetValue("Default", typeof(SqlExpression));
+			IndexType = info.GetString("IndexType");
 		}
 
 		public string ColumnName { get; private set; }
@@ -49,6 +50,8 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IsIdentity { get; set; }
 
 		public SqlExpression DefaultExpression { get; set; }
+
+		public string IndexType { get; set; }
 
 		public bool HasDefaultExpression {
 			get { return DefaultExpression != null; }
@@ -65,34 +68,13 @@ namespace Deveel.Data.Sql.Statements {
 			return column;
 		}
 
-		//public static SqlTableColumn Deserialize(BinaryReader reader) {
-		//	// TODO: Type resolver!!
-		//	var columnName = reader.ReadString();
-		//	var columnType = TypeSerializer.Deserialize(reader, null);
-		//	var notNull = reader.ReadBoolean();
-		//	var identity = reader.ReadBoolean();
-		//	var defaultExpression = SqlExpression.Deserialize(reader);
-		//	return new SqlTableColumn(columnName, columnType) {
-		//		IsNotNull = notNull,
-		//		IsIdentity = identity,
-		//		DefaultExpression = defaultExpression
-		//	};
-		//}
-
-		//public static void Serialize(SqlTableColumn column, BinaryWriter writer) {
-		//	writer.Write(column.ColumnName);
-		//	TypeSerializer.SerializeTo(writer, column.ColumnType);
-		//	writer.Write(column.IsNotNull);
-		//	writer.Write(column.IsIdentity);
-		//	SqlExpression.Serialize(column.DefaultExpression, writer);
-		//}
-
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("ColumnName", ColumnName);
 			info.AddValue("ColumnType", ColumnType);
 			info.AddValue("IsNotNull", IsNotNull);
 			info.AddValue("IsIdentity", IsIdentity);
 			info.AddValue("Default", DefaultExpression);
+			info.AddValue("IndexType", IndexType);
 		}
 	}
 }

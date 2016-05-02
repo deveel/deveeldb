@@ -20,6 +20,7 @@ using System.Collections.Generic;
 
 using Antlr4.Runtime.Misc;
 
+using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
@@ -38,6 +39,7 @@ namespace Deveel.Data.Sql.Compile {
 			SqlExpression defaultExpression = null;
 			bool identity = false;
 			bool nullable = true;
+			string indexType = null;
 
 			if (context.IDENTITY() != null) {
 				if (!(columnType is NumericType))
@@ -69,12 +71,26 @@ namespace Deveel.Data.Sql.Compile {
 				if (context.defaultValuePart() != null) {
 					defaultExpression = Expression.Build(context.defaultValuePart().expression());
 				}
+
+				if (context.columnIndex() != null) {
+					var columnIndex = context.columnIndex();
+					if (columnIndex.BLIST() != null) {
+						indexType = DefaultIndexTypes.InsertSearch;
+					} else if (columnIndex.NONE() != null) {
+						indexType = DefaultIndexTypes.BlindSearch;
+					} else if (columnIndex.id() != null) {
+						indexType = Name.Simple(columnIndex.id());
+					} else if (columnIndex.CHAR_STRING() != null) {
+						indexType = InputString.AsNotQuoted(columnIndex.CHAR_STRING());
+					}
+				}
 			}
 
 			return new SqlTableColumn(columnName, columnType) {
 				IsNotNull = !nullable,
 				IsIdentity = identity,
-				DefaultExpression = defaultExpression
+				DefaultExpression = defaultExpression,
+				IndexType = indexType
 			};
 		}
 	}

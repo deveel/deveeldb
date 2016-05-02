@@ -167,7 +167,7 @@ columnOrConstraint
 	;
 
 tableColumn
-    : columnName datatype (IDENTITY | columnConstraint* (defaultValuePart)? )?
+    : columnName datatype (IDENTITY | columnConstraint* (defaultValuePart)? columnIndex? )?
 	;
 
 columnConstraint
@@ -193,6 +193,10 @@ checkConstraint
 
 foreignKeyConstraint
     : FOREIGN KEY? '(' columns=columnList ')' REFERENCES objectName '(' refColumns=columnList ')'
+	;
+
+columnIndex
+    : INDEX ( BLIST | NONE | id | CHAR_STRING )
 	;
 
 columnList

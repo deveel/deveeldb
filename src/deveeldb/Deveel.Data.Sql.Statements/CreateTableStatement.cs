@@ -93,14 +93,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			return new ColumnInfo(columnName, column.ColumnType) {
 				DefaultExpression = expression,
-				IsNotNull = column.IsNotNull
+				IsNotNull = column.IsNotNull,
+				IndexType = column.IndexType
 			};
 		}
 
 		#region Prepared
 
 		[Serializable]
-		internal class Prepared : SqlStatement {
+		private class Prepared : SqlStatement {
+			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+				TableInfo = tableInfo;
+				IfNotExists = ifNotExists;
+				Temporary = temporary;
+			}
+
 			private Prepared(SerializationInfo info, StreamingContext context) {
 				TableInfo = (TableInfo) info.GetValue("TableInfo", typeof(TableInfo));
 				Temporary = info.GetBoolean("Temporary");
@@ -112,12 +119,6 @@ namespace Deveel.Data.Sql.Statements {
 			public bool Temporary { get; private set; }
 
 			public bool IfNotExists { get; private set; }
-
-			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
-				TableInfo = tableInfo;
-				IfNotExists = ifNotExists;
-				Temporary = temporary;
-			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				try {
