@@ -14,14 +14,15 @@
 //    limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
@@ -200,5 +201,61 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(2));
 		}
 
+		[Test]
+		public void WithBlistIndexColumn() {
+			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL INDEX BLIST)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+
+			var statement = (CreateTableStatement) result.Statements.ElementAt(0);
+			Assert.IsNotNull(statement);
+			Assert.AreEqual(2, statement.Columns.Count);
+			Assert.IsNotNullOrEmpty(statement.Columns[1].IndexType);
+			Assert.AreEqual(DefaultIndexTypes.InsertSearch, statement.Columns[1].IndexType);
+		}
+
+		[Test]
+		public void WithIndexNoneColumn() {
+			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL INDEX NONE)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+
+			var statement = (CreateTableStatement)result.Statements.ElementAt(0);
+			Assert.IsNotNull(statement);
+			Assert.AreEqual(2, statement.Columns.Count);
+			Assert.IsNotNullOrEmpty(statement.Columns[1].IndexType);
+			Assert.AreEqual(DefaultIndexTypes.BlindSearch, statement.Columns[1].IndexType);
+		}
+
+		[Test]
+		public void WithFullTextIndexColumn() {
+			const string sql = "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR NOT NULL INDEX FULL_TEXT)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+
+			var statement = (CreateTableStatement)result.Statements.ElementAt(0);
+			Assert.IsNotNull(statement);
+			Assert.AreEqual(2, statement.Columns.Count);
+			Assert.IsNotNullOrEmpty(statement.Columns[1].IndexType);
+			Assert.AreEqual("FULL_TEXT", statement.Columns[1].IndexType);
+		}
 	}
 }
