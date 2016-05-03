@@ -18,6 +18,7 @@
 using System;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Caching {
@@ -34,8 +35,8 @@ namespace Deveel.Data.Caching {
 
 		public const int DefaultMaxCellSize = 1024*64;
 
-		public TableCellCache(IConfiguration configuration) {
-			Configure(configuration);
+		public TableCellCache(IContext context) {
+			Configure(context);
 		}
 
 		~TableCellCache() {
@@ -43,6 +44,8 @@ namespace Deveel.Data.Caching {
 		}
 
 		public int MaxCellSize { get; private set; }
+
+		public IContext Context { get; private set; }
 
 		public long Size {
 			get {
@@ -70,13 +73,16 @@ namespace Deveel.Data.Caching {
 			size -= value;
 		}
 
-		private void Configure(IConfiguration config) {
+		private void Configure(IContext context) {
+			var config = context.ResolveService<IConfiguration>();
 			var hashSize = DefaultHashSize;
 			var maxSize = config.GetInt32("system.tableCellCache.maxSize", DefaultMaxSize);
 			MaxCellSize = config.GetInt32("system.tableCellCache.maxCellSize", DefaultMaxCellSize);
 
 			var baseCache = new SizeLimitedCache(maxSize);
 			cache = new Cache(this, baseCache, hashSize);
+
+			Context = context;
 		}
 
 		public void Set(CachedCell cell) {
@@ -146,11 +152,12 @@ namespace Deveel.Data.Caching {
 		public void Clear() {
 			lock (this) {
 				if (cache.NodeCount == 0 && Size != 0) {
-					// TODO: Raise an error
+					Context.OnWarning("The node count is 0 and the cache size is 0");
 				}
 				if (cache.NodeCount != 0) {
 					cache.Clear();
-					// TODO: Register the statistics
+
+					Context.OnEvent(new CounterEvent("tableCellCache.totalWipeCount"));
 				}
 
 				size = 0;
@@ -181,11 +188,11 @@ namespace Deveel.Data.Caching {
 
 			protected override void CheckClean() {
 				if (tableCache.Size >= hashSize) {
-					// TODO: Register the statistics
+					tableCache.Context.OnEvent(new CounterEvent("tableCellCache.currentSize", tableCache.Size));
 
-					Clean();
+					Clear();
 
-					//TODO: Register the statistics
+					tableCache.Context.OnEvent(new CounterEvent("tableCellCache.cleanCount"));
 				}
 			}
 
@@ -202,14 +209,18 @@ namespace Deveel.Data.Caching {
 			}
 
 			protected override void OnGetWalks(long totalWalks, long totalGetOps) {
-				// TODO: Register the statistics ...
+				var avg = (int)((totalWalks * 1000000L) / totalGetOps);
+				tableCache.Context.OnEvent(new CounterEvent("tableCellCache.avgHashGet.multiple100000", avg));
+				tableCache.Context.OnEvent(new CounterEvent("tableCellCache.currentSize", tableCache.Size));
+				tableCache.Context.OnEvent(new CounterEvent("tableCellCache.nodeCount", NodeCount));
+				
 				base.OnGetWalks(totalWalks, totalGetOps);
 			}
 		}
 
-#endregion
+		#endregion
 
-#region CacheKey
+		#region CacheKey
 
 		class CacheKey : IEquatable<CacheKey> {
 			private readonly string database;

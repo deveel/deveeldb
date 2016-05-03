@@ -176,7 +176,7 @@ namespace Deveel.Data.Caching {
 		/// Returns the value of the removed node or <b>null</b> if none was
 		/// found for the given key.
 		/// </returns>
-		public object Remove(Object key) {
+		public object Remove(object key) {
 			object obj = RemoveObject(key);
 			
 			if (obj != null)
