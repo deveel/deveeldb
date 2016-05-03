@@ -518,6 +518,7 @@
     <Compile Include="Deveel.Data\RequestAccess.cs" />
     <Compile Include="Deveel.Data\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data\SessionTableContainer.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />
     <Compile Include="Deveel.Data\DatabaseExtensions.cs" />
     <Compile Include="Deveel.Data\DatabaseSystemException.cs" />

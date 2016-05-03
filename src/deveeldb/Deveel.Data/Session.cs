@@ -62,6 +62,8 @@ namespace Deveel.Data {
 			Context.Route<QueryEvent>(OnQueryCommand);
 			Context.RouteImmediate<CounterEvent>(Count);
 
+			Transaction.GetTableManager().AddInternalTables(new SessionTableContainer(this));
+
 			Counters = new CounterRegistry();
 			access = new SessionAccess(this);
 
