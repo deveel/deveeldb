@@ -1,5 +1,5 @@
-﻿// 
-//  Copyright 2010-2015 Deveel
+// 
+//  Copyright 2010-2016 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,12 +14,30 @@
 //    limitations under the License.
 //
 
+
 using System;
 
-using Deveel.Data.Configuration;
+namespace Deveel.Data.Sql.Tables {
+	/// <summary>
+	/// An enumeration that represents the various states of a record.
+	/// </summary>
+	public enum RecordState {
+		///<summary>
+		///</summary>
+		Uncommitted = 0,
+		///<summary>
+		///</summary>
+		CommittedAdded = 0x010,
+		///<summary>
+		///</summary>
+		CommittedRemoved = 0x020,
+		///<summary>
+		///</summary>
+		Deleted = 0x020000,     // ie. available for reclaimation.
 
-namespace Deveel.Data.Caching {
-	public static class CacheProperties {
-		public const string DataCacheSizeKeyName = "caching.dataCacheSize";
+		///<summary>
+		/// Denotes an erroneous record state.
+		///</summary>
+		Error = -1
 	}
 }

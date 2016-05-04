@@ -18,7 +18,28 @@
 using System;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// Provides an interface to objects that handle references
+	/// to <see cref="IDatabase"/> instances.
+	/// </summary>
 	public interface IDatabaseHandler {
+		/// <summary>
+		/// Gets the instance of <see cref="IDatabase"/> identified
+		/// by the given name.
+		/// </summary>
+		/// <param name="databaseName">The name of the database to get.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IDatabase"/> that is handled
+		/// by this object, or <c>null</c> if no database with the given
+		/// name was found in this handler.
+		/// </returns>
+		/// <exception cref="ArgumentNullException">
+		/// If the <paramref name="databaseName"/> parameter is <c>null</c>
+		/// or empty.
+		/// </exception>
+		/// <exception cref="ObjectDisposedException">
+		/// If the handler was disposed and cannot handle databases.
+		/// </exception>
 		IDatabase GetDatabase(string databaseName);
 	}
 }

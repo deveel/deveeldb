@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Triggers {
-	class TriggersTableContainer : SystemTableContainer {
+	class TriggersTableContainer : TableContainerBase {
 		public TriggersTableContainer(ITransaction transaction) 
 			: base(transaction,TriggerManager.TriggerTableName) {
 		}

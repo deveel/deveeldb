@@ -22,20 +22,44 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	abstract class SystemTableContainer : ITableContainer {
-		protected SystemTableContainer(ITransaction transaction, ObjectName tableName) {
+	/// <summary>
+	/// A base implementation of the <see cref="ITableContainer"/> interface to provide
+	/// utility methods to resolve objects that have a standard name.
+	/// </summary>
+	/// <seealso cref="Deveel.Data.Sql.Tables.ITableContainer" />
+	public abstract class TableContainerBase : ITableContainer {
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TableContainerBase"/> class wrapping
+		/// it within the given transaction and using the given name of the table that contains
+		/// the objects to resolve.
+		/// </summary>
+		/// <param name="transaction">The transaction that accesses the objects.</param>
+		/// <param name="tableName">The name of the table that contains the objects to resolve.</param>
+		/// <exception cref="System.ArgumentNullException">transaction</exception>
+		protected TableContainerBase(ITransaction transaction, ObjectName tableName) {
+			if (transaction == null)
+				throw new ArgumentNullException("transaction");
+
 			Transaction = transaction;
 			TableName = tableName;
 		}
 
-		public ITransaction Transaction { get; private set; }
+		/// <summary>
+		/// Gets the instance of the transaction that wraps this container.
+		/// </summary>
+		protected ITransaction Transaction { get; private set; }
 
-		public ObjectName TableName { get; private set; }
+		/// <summary>
+		/// Gets the name of the table that is used to resolve the objects.
+		/// </summary>
+		protected ObjectName TableName { get; private set; }
 
+		/// <inheritdoc/>
 		public int TableCount {
 			get { return Transaction.TableExists(TableName) ? Transaction.GetTable(TableName).RowCount : 0; }
 		}
 
+		/// <inheritdoc/>
 		public int FindByName(ObjectName name) {
 			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
@@ -60,6 +84,7 @@ namespace Deveel.Data {
 			return -1;
 		}
 
+		/// <inheritdoc/>
 		public ObjectName GetTableName(int offset) {
 			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
@@ -78,13 +103,16 @@ namespace Deveel.Data {
 				}
 			}
 
-			throw new Exception("Out of bounds.");
+			throw new IndexOutOfRangeException("Out of bounds.");
 		}
 
+		/// <inheritdoc/>
 		public abstract TableInfo GetTableInfo(int offset);
 
+		/// <inheritdoc/>
 		public abstract string GetTableType(int offset);
 
+		/// <inheritdoc/>
 		public bool ContainsTable(ObjectName name) {
 			// This set can not contain the table that is backing it, so we always
 			// return false for that.  This check stops an annoying recursive
@@ -95,6 +123,7 @@ namespace Deveel.Data {
 			return FindByName(name) != -1;
 		}
 
+		/// <inheritdoc/>
 		public abstract ITable GetTable(int offset);
 	}
 }

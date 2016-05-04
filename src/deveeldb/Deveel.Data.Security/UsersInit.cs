@@ -47,12 +47,12 @@ namespace Deveel.Data.Security {
 
 		private void GrantToPublicUser(IQuery context) {
 			// TODO: check that a Privilege manager was set first
-			context.Access().GrantOnTable(SystemSchema.ProductInfoTableName, User.PublicName, Privileges.TableRead);
-			context.Access().GrantOnTable(SystemSchema.SqlTypesTableName, User.PublicName, Privileges.TableRead);
-			context.Access().GrantOnTable(SystemSchema.PrivilegesTableName, User.PublicName, Privileges.TableRead);
-			context.Access().GrantOnTable(SystemSchema.StatisticsTableName, User.PublicName, Privileges.TableRead);
-			context.Access().GrantOnTable(SystemSchema.VariablesTableName, User.PublicName, Privileges.TableRead);
-			context.Access().GrantOnTable(SystemSchema.SessionInfoTableName, User.PublicName, Privileges.TableRead);
+			context.Access().GrantOnTable(SystemSchema.ProductInfoTableName, User.PublicName, PrivilegeSets.TableRead);
+			context.Access().GrantOnTable(SystemSchema.SqlTypesTableName, User.PublicName, PrivilegeSets.TableRead);
+			context.Access().GrantOnTable(SystemSchema.PrivilegesTableName, User.PublicName, PrivilegeSets.TableRead);
+			context.Access().GrantOnTable(SystemSchema.StatisticsTableName, User.PublicName, PrivilegeSets.TableRead);
+			context.Access().GrantOnTable(SystemSchema.VariablesTableName, User.PublicName, PrivilegeSets.TableRead);
+			context.Access().GrantOnTable(SystemSchema.SessionInfoTableName, User.PublicName, PrivilegeSets.TableRead);
 		}
 
 		private void CreateTables(IQuery context) {

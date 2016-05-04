@@ -23,6 +23,8 @@ using Deveel.Data.Routines;
 using Deveel.Data.Sql.Triggers;
 using System.Text;
 
+using Deveel.Data.Client;
+
 namespace Deveel.Data.Protocol {
 	public abstract class ClientConnector : IClientConnector {
 		public void Dispose() {
@@ -105,7 +107,7 @@ namespace Deveel.Data.Protocol {
 					else
 						sb.Append ("response.Error == null");
 					// ServerError class is not an exception!!! so it have no stack trace...
-					throw new ServerException (sb.ToString());
+					throw new DeveelDbServerException (sb.ToString(), -1, -1);
 				}
 
 				var content = connector.OpenEnvelope(response);

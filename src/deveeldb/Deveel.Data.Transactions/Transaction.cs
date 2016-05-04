@@ -195,6 +195,12 @@ namespace Deveel.Data.Transactions {
 				if (lockables.Length == 0)
 					return;
 
+				var tables = lockables.OfType<IDbObject>().Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table)
+					.Select(x => x.ObjectInfo.FullName);
+				foreach (var table in tables) {
+					TableManager.SelectTable(table);
+				}
+
 				CheckAccess(lockables, accessType);
 
 				LockHandle handle;

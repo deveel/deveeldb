@@ -17,15 +17,30 @@
 
 using System;
 
-using Deveel.Data.Services;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The context of a single execution block.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Blocks can be children of other blocks or of queries in the
+	/// execution tree, and the context inherits from the query context
+	/// or from the parent block context.
+	/// </para>
+	/// <para>
+	/// A <see cref="BlockContext"/> is also a <see cref="IVariableScope"/> that
+	/// means it holds <see cref="Variable">variables</see> for its entire
+	/// lifetime, and dispose those defined during its existence at its disposal
+	/// </para>
+	/// </remarks>
 	public sealed class BlockContext : Context, IBlockContext, IVariableScope {
 		private VariableManager variableManager;
 
 		internal BlockContext(IContext parent)
 			: base(parent) {
+			this.RegisterInstance<IBlockContext>(this);
 			variableManager = new VariableManager(this);
 		}
 

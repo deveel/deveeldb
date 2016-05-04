@@ -15,15 +15,23 @@
 
 using System;
 
+using Deveel.Data.Security;
 using Deveel.Data.Store;
 
 using NUnit.Framework;
 
 namespace Deveel.Data {
-	[TestFixture]
+	[TestFixture(KnownUserIdentifications.ClearText)]
+	[TestFixture(KnownUserIdentifications.Pkcs12)]
 	public sealed class DatabaseTests {
 		private ISystem systemContext;
 		private IDatabase database;
+
+		private readonly string identification;
+
+		public DatabaseTests(string identification) {
+			this.identification = identification;
+		}
 
 		private const string TestDbName = "testdb";
 		private const string TestAdminUser = "SA";
@@ -40,7 +48,7 @@ namespace Deveel.Data {
 				test != "DatabaseNotExists") {
 				var dbConfig = new Configuration.Configuration();
 				dbConfig.SetValue("database.name", TestDbName);
-				database = systemContext.CreateDatabase(dbConfig, TestAdminUser, TestAdminPass);
+				database = systemContext.CreateDatabase(dbConfig, TestAdminUser, identification, TestAdminPass);
 			}
 		}
 

@@ -168,7 +168,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IDatabase CreateDatabase(IConfiguration configuration, string adminUser, string adminPassword) {
+		public IDatabase CreateDatabase(IConfiguration configuration, string adminUser, string identification, string token) {
 			lock (this) {
 				if (configuration == null)
 					throw new ArgumentNullException("configuration");
@@ -186,7 +186,7 @@ namespace Deveel.Data {
 				if (database.Exists)
 					throw new InvalidOperationException(String.Format("The database '{0}' was already created.", databaseName));
 
-				database.Create(adminUser, adminPassword);
+				database.Create(adminUser, identification, token);
 				database.Open();
 				
 				if (databases == null)

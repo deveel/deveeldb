@@ -86,7 +86,7 @@ namespace Deveel.Data.Sql.Statements {
 			var triggerInfo = new PlSqlTriggerInfo(TriggerName, TableName, EventTime, EventType, Body);
 
 			context.DirectAccess.CreateObject(triggerInfo);
-			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, Privileges.SchemaAll, true);
+			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, PrivilegeSets.SchemaAll, true);
 		}
 	}
 }

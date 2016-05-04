@@ -104,7 +104,7 @@ namespace Deveel.Data.Client {
 			command.Parameters.Add(22);
 
 			var result = command.ExecuteScalar();
-
+			
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<int>(result);
 			Assert.AreEqual(22, result);

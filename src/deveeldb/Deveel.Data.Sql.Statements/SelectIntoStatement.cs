@@ -195,17 +195,6 @@ namespace Deveel.Data.Sql.Statements {
 
 				var cursor = new NativeCursor(new NativeCursorInfo(QueryPlan), context.Request);
 
-				if (VariableNames.Length == 1) {
-					var variable = context.Request.Context.FindVariable(VariableNames[0]);
-					if (variable == null)
-						throw new ObjectNotFoundException(new ObjectName(VariableNames[0]));
-
-					if (variable.Type is TabularType) {
-						var tabular = ((SqlTabular) variable.Evaluate(context.Request).Value);
-						throw new NotImplementedException("Support insert into a tabular variable");
-					}
-				}
-
 				var firstRow = cursor.FirstOrDefault();
 				if (firstRow == null)
 					// TODO: Is it correct to throw an error here?

@@ -655,10 +655,6 @@ namespace Deveel.Data.Sql {
 			return Binary(new SqlBinary(binary));
 		}
 
-		public static Field Table(ITable table) {
-			return new Field(new TabularType(), SqlTabular.From(table));
-		}
-
 		public static Field Array(IEnumerable<SqlExpression> items) {
 			var array = items.ToArray();
 			return new Field(new ArrayType(array.Length), new SqlArray(array));

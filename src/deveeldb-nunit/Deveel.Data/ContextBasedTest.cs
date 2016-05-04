@@ -69,7 +69,7 @@ namespace Deveel.Data {
 		}
 
 		protected virtual ISession CreateAdminSession(IDatabase database) {
-			return database.CreateUserSession(AdminUserName, AdminPassword);
+			return database.CreateSession(AdminUserName, AdminPassword);
 		}
 
 		protected virtual IQuery CreateQuery(ISession session) {
@@ -77,7 +77,7 @@ namespace Deveel.Data {
 		}
 
 		protected ISession CreateUserSession(string userName, string password) {
-			return Database.CreateUserSession(userName, password);
+			return Database.CreateSession(userName, password);
 		}
 
 		protected virtual bool OnSetUp(string testName, IQuery query) {

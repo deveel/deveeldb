@@ -1,4 +1,4 @@
-// 
+﻿// 
 //  Copyright 2010-2016 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,27 +17,10 @@
 
 using System;
 
-namespace Deveel.Data {
-	/// <summary>
-	/// An enumeration that represents the various states of a record.
-	/// </summary>
-	public enum RecordState {
-		///<summary>
-		///</summary>
-		Uncommitted = 0,
-		///<summary>
-		///</summary>
-		CommittedAdded = 0x010,
-		///<summary>
-		///</summary>
-		CommittedRemoved = 0x020,
-		///<summary>
-		///</summary>
-		Deleted = 0x020000,     // ie. available for reclaimation.
+namespace Deveel.Data.Sql.Statements {
+	public interface IStatementCache {
+		bool TryGet(string text, out SqlStatement[] statements);
 
-		///<summary>
-		/// Denotes an erroneous record state.
-		///</summary>
-		Error = -1
+		void Set(string text, SqlStatement[] statements);
 	}
 }

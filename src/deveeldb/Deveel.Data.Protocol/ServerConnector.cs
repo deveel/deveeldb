@@ -204,6 +204,7 @@ namespace Deveel.Data.Protocol {
 				throw new InvalidOperationException();
 
 			var session = new Session(transaction, User);
+			session.AutoCommit(false);
 			return session.CreateQuery();
 		}
 

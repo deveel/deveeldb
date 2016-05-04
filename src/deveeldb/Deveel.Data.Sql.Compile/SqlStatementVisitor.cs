@@ -464,7 +464,7 @@ namespace Deveel.Data.Sql.Compile {
 			var privs = Privileges.None;
 
 			if (context.ALL() != null) {
-				privs = Privileges.TableAll;
+				privs = PrivilegeSets.TableAll;
 			} else {
 				var privNames = context.privilegeName().Select(x => x.GetText());
 				foreach (var privName in privNames) {
@@ -508,7 +508,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			Privileges privs = Privileges.None;
 			if (context.ALL() != null) {
-				privs = Privileges.TableAll;
+				privs = PrivilegeSets.TableAll;
 			} else {
 				var privNames = context.privilegeName().Select(x => x.GetText());
 

@@ -16,12 +16,14 @@
 
 
 using System;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 
-using Deveel.Data;
+using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
@@ -282,6 +284,30 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
+		public static Field Concat(Field[] args) {
+			var cc = new StringBuilder();
+
+			CultureInfo locale = null;
+			foreach (var ob in args) {
+				if (ob.IsNull)
+					return ob;
+
+				cc.Append(ob.Value);
+
+				var type1 = ob.Type;
+				if (locale == null && type1 is StringType) {
+					var strType = (StringType)type1;
+					locale = strType.Locale;
+				}
+			}
+
+			// We inherit the locale from the first string parameter with a locale,
+			// or use a default VarString if no locale found.
+			var type = locale != null ? PrimitiveTypes.VarChar(locale) : PrimitiveTypes.VarChar();
+
+			return new Field(type, new SqlString(cc.ToString()));
+		}
+
 		internal static InvokeResult Iif(InvokeContext context) {
 			var result = Field.Null();
 
@@ -317,7 +343,7 @@ namespace Deveel.Data.Routines {
 				} else if (str.Equals("RESTRICT")) {
 					v = ImportedKey.Restrict;
 				} else {
-					throw new InvalidOperationException("Unrecognised foreign key rule: " + str);
+					throw new InvalidOperationException("Unrecognized foreign key rule: " + str);
 				}
 
 				// Return the correct enumeration
@@ -335,13 +361,27 @@ namespace Deveel.Data.Routines {
 				} else if (code == (int)ForeignKeyAction.SetNull) {
 					v = "SET NULL";
 				} else {
-					throw new InvalidOperationException("Unrecognised foreign key rule: " + code);
+					throw new InvalidOperationException("Unrecognized foreign key rule: " + code);
 				}
 
 				return Field.String(v);
 			}
 
 			throw new InvalidOperationException("Unsupported type in function argument");
+		}
+
+		internal static Field PrivilegeString(Field ob) {
+			int privBit = ((SqlNumber)ob.Value).ToInt32();
+			var privs = (Privileges)privBit;
+
+			var array =
+				privs.ToString()
+					.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
+					.Select(x => x.Trim().ToUpperInvariant())
+					.ToArray();
+
+			var s = String.Join(", ", array);
+			return Field.String(s);
 		}
 	}
 }

@@ -93,14 +93,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			return new ColumnInfo(columnName, column.ColumnType) {
 				DefaultExpression = expression,
-				IsNotNull = column.IsNotNull
+				IsNotNull = column.IsNotNull,
+				IndexType = column.IndexType
 			};
 		}
 
 		#region Prepared
 
 		[Serializable]
-		internal class Prepared : SqlStatement {
+		private class Prepared : SqlStatement {
+			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
+				TableInfo = tableInfo;
+				IfNotExists = ifNotExists;
+				Temporary = temporary;
+			}
+
 			private Prepared(SerializationInfo info, StreamingContext context) {
 				TableInfo = (TableInfo) info.GetValue("TableInfo", typeof(TableInfo));
 				Temporary = info.GetBoolean("Temporary");
@@ -112,12 +119,6 @@ namespace Deveel.Data.Sql.Statements {
 			public bool Temporary { get; private set; }
 
 			public bool IfNotExists { get; private set; }
-
-			internal Prepared(TableInfo tableInfo, bool ifNotExists, bool temporary) {
-				TableInfo = tableInfo;
-				IfNotExists = ifNotExists;
-				Temporary = temporary;
-			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
 				try {
@@ -135,7 +136,7 @@ namespace Deveel.Data.Sql.Statements {
 					}
 
 					context.Request.Access().CreateTable(TableInfo, Temporary);
-					context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, Privileges.TableAll);
+					context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
 				} catch (SecurityException ex) {
 					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
 				}

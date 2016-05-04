@@ -28,6 +28,11 @@ namespace Deveel.Data.Sql.Tables {
 	/// Implementations of this contract expose system tables that have
 	/// a read-only access, and used to materialize system information
 	/// as <see cref="ITable"/>
+	/// <para>
+	/// Typical use of this interface is to expose database objects (for example
+	/// triggers, sequences, indexes, procedures etc.) as tables, allowing the user
+	/// to select their properties in a <c>SELECT ... FROM</c> statement.
+	/// </para>
 	/// </remarks>
 	public interface ITableContainer {
 		/// <summary>

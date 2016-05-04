@@ -74,6 +74,7 @@ namespace Deveel.Data.Sql.Tables {
 
 				// Index is not cached in this table so ask the parent.
 				index = Parent.GetIndex(column, originalColumn, t);
+
 				if (table == this)
 					columnIndices[column] = index;
 

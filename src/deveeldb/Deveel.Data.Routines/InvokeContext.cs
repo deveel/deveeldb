@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
@@ -121,6 +122,13 @@ namespace Deveel.Data.Routines {
 				throw new InvalidOperationException("The routine is not a function.");
 
 			return new InvokeResult(this, value);
+		}
+
+		public InvokeResult Result(ITable table) {
+			if (RoutineType != RoutineType.Function)
+				throw new InvalidOperationException("The routine is not a function.");
+
+			return new InvokeResult(this, table);
 		}
 
 		public InvokeResult Result() {

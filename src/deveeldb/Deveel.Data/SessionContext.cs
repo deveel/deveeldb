@@ -22,10 +22,14 @@ using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	public class SessionContext : Context, ISessionContext, ITriggerScope {
+	/// <summary>
+	/// A <see cref="IContext"/> that handle the context of a containing
+	/// <see cref="ISession"/> instance.
+	/// </summary>
+	public sealed class SessionContext : Context, ISessionContext, ITriggerScope {
 		private CallbackTriggerManager triggerManager;
 
-		public SessionContext(ITransactionContext transactionContext)
+		internal SessionContext(ITransactionContext transactionContext)
 			: base(transactionContext) {
 			EventRegistry = new EventRegistry(this);
 			triggerManager = new CallbackTriggerManager(this);
@@ -39,7 +43,10 @@ namespace Deveel.Data {
 			get { return ContextNames.Session; }
 		}
 
-
+		/// <summary>
+		/// Gets a registry of events fired within the scope of the
+		/// session that contains this context.
+		/// </summary>
 		public EventRegistry EventRegistry { get; private set; }
 
 		IEventRegistry IEventScope.EventRegistry {

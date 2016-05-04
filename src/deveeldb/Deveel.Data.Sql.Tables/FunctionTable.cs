@@ -124,7 +124,7 @@ namespace Deveel.Data.Sql.Tables {
 		public override void Lock() {
 			// We Lock the reference table.
 			// NOTE: This cause the reference table to Lock twice when we use the
-			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
+			//  'MergeWith' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
 			ReferenceTable.Lock();
@@ -133,7 +133,7 @@ namespace Deveel.Data.Sql.Tables {
 		public override void Release() {
 			// We unlock the reference table.
 			// NOTE: This cause the reference table to unlock twice when we use the
-			//  'MergeWithReference' method.  While this isn't perfect behaviour, it
+			//  'MergeWith' method.  While this isn't perfect behaviour, it
 			//  means if 'MergeWithReference' isn't used, we still maintain a safe
 			//  level of locking.
 			ReferenceTable.Release();
@@ -271,7 +271,7 @@ namespace Deveel.Data.Sql.Tables {
 					rowList.Add(rowEnum.Current.RowId.RowNumber);
 				} else {
 					// MAJOR HACK: If the referencing table has no elements then we choose
-					//   an arbitary index from the reference table to merge so we have
+					//   an arbitrary index from the reference table to merge so we have
 					//   at least one element in the table.
 					//   This is to fix the 'SELECT COUNT(*) FROM empty_table' bug.
 					rowList.Add(Int32.MaxValue - 1);
