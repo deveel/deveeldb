@@ -465,7 +465,7 @@ namespace Deveel.Data.Routines {
 				.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
 				.ReturnsType(context => {
 					var argType = ReturnType(context.Arguments[0].Value, context);
-					return argType is StringType ? (SqlType) PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
+					return argType is StringType ? PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
 				}));
 
 			Register(config => config.Named("i_privilege_string")

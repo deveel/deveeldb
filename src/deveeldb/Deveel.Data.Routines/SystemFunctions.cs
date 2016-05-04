@@ -17,6 +17,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 using Deveel.Data;
@@ -344,7 +345,7 @@ namespace Deveel.Data.Routines {
 				} else if (str.Equals("RESTRICT")) {
 					v = ImportedKey.Restrict;
 				} else {
-					throw new InvalidOperationException("Unrecognised foreign key rule: " + str);
+					throw new InvalidOperationException("Unrecognized foreign key rule: " + str);
 				}
 
 				// Return the correct enumeration
@@ -362,7 +363,7 @@ namespace Deveel.Data.Routines {
 				} else if (code == (int)ForeignKeyAction.SetNull) {
 					v = "SET NULL";
 				} else {
-					throw new InvalidOperationException("Unrecognised foreign key rule: " + code);
+					throw new InvalidOperationException("Unrecognized foreign key rule: " + code);
 				}
 
 				return Field.String(v);
@@ -374,7 +375,15 @@ namespace Deveel.Data.Routines {
 		internal static Field PrivilegeString(Field ob) {
 			int privBit = ((SqlNumber)ob.Value).ToInt32();
 			var privs = (Privileges)privBit;
-			return Field.String(privs.ToString());
+
+			var array =
+				privs.ToString()
+					.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries)
+					.Select(x => x.Trim().ToUpperInvariant())
+					.ToArray();
+
+			var s = String.Join(", ", array);
+			return Field.String(s);
 		}
 	}
 }

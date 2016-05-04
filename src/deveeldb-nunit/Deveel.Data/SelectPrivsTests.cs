@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -55,6 +56,27 @@ namespace Deveel.Data {
 
 			Assert.AreEqual((int)privs, ((SqlNumber)privBit.Value).ToInt32());
 			Assert.AreEqual(name.ToUpperInvariant(), desc.Value.ToString().ToUpperInvariant());
+		}
+
+		[TestCase(Privileges.Select, "SELECT")]
+		[TestCase(Privileges.Select | Privileges.Alter, "ALTER, SELECT")]
+		public void SelectPrivString(Privileges privileges, string expected) {
+			var sql = String.Format("SELECT i_privilege_string(" + ((int)privileges) + ")");
+
+			var query = (SqlQueryExpression)SqlExpression.Parse(sql);
+
+			var cursor = Query.Select(query);
+
+			Assert.IsNotNull(cursor);
+
+			Row row = null;
+			Assert.DoesNotThrow(() => row = cursor.Fetch(FetchDirection.Next, -1));
+			Assert.IsNotNull(row);
+
+			var value = row.GetValue(0);
+
+			Assert.IsFalse(Field.IsNullField(value));
+			Assert.AreEqual(expected, value.Value.ToString());
 		}
 	}
 }
