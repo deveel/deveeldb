@@ -471,7 +471,6 @@
     <Compile Include="Deveel.Data.Sql.Triggers\ITableStateHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerException.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\QueryContextExtensions.cs" />
-    <Compile Include="Deveel.Data.Sql.Variables\PersistentVariableManager.cs" />
     <Compile Include="Deveel.Data.Sql\ExceptionHandler.cs" />
     <Compile Include="Deveel.Data.Sql\HandledExceptions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewManager.cs" />

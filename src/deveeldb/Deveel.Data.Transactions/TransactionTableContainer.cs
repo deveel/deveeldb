@@ -24,6 +24,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Transactions {
@@ -567,10 +568,12 @@ namespace Deveel.Data.Transactions {
 
 		class VariablesTable : GeneratedTable {
 			private ITransaction transaction;
+			private List<Variable> variables;
 
 			public VariablesTable(ITransaction transaction)
 				: base(transaction.Database.Context) {
 				this.transaction = transaction;
+				Init();
 			}
 
 			public override TableInfo TableInfo {
@@ -578,14 +581,57 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public override int RowCount {
-				get { throw new NotImplementedException(); }
+				get { return variables.Count; }
+			}
+
+			private void Init() {
+				lock (transaction.Database) {
+					variables = new List<Variable>();
+
+					var context = (IContext) transaction.Context;
+					while (context != null) {
+						if (context is IVariableScope) {
+							var vars = ((IVariableScope) context).VariableManager.ToList();
+							variables.AddRange(vars);
+						}
+
+						context = context.Parent;
+					}
+				}
 			}
 
 			public override Field GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
+				if (rowNumber < 0 || rowNumber > variables.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var variable = variables[(int) rowNumber];
+
+				switch (columnOffset) {
+					case 0:
+						return GetColumnValue(columnOffset, new SqlString(variable.Name));
+					case 1:
+						return GetColumnValue(columnOffset, new SqlString(variable.Type.ToString()));
+					case 2:
+						return GetColumnValue(columnOffset,
+							variable.Expression != null ? new SqlString(variable.Expression.ToString()) : SqlString.Null);
+					case 3:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.IsConstant));
+					case 4:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.IsNotNull));
+					case 5:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.Expression != null));
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+				}
 			}
 
 			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					if (variables != null)
+						variables.Clear();
+				}
+
+				variables = null;
 				transaction = null;
 				base.Dispose(disposing);
 			}
