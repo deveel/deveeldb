@@ -35,7 +35,7 @@ namespace Deveel.Data.Caching {
 
 		public const int DefaultMaxCellSize = 1024*64;
 
-		public TableCellCache(IContext context) {
+		public TableCellCache(ISystemContext context) {
 			Configure(context);
 		}
 
@@ -45,7 +45,7 @@ namespace Deveel.Data.Caching {
 
 		public int MaxCellSize { get; private set; }
 
-		public IContext Context { get; private set; }
+		public ISystemContext Context { get; private set; }
 
 		public long Size {
 			get {
@@ -73,7 +73,7 @@ namespace Deveel.Data.Caching {
 			size -= value;
 		}
 
-		private void Configure(IContext context) {
+		private void Configure(ISystemContext context) {
 			var config = context.ResolveService<IConfiguration>();
 			var hashSize = DefaultHashSize;
 			var maxSize = config.GetInt32("system.tableCellCache.maxSize", DefaultMaxSize);

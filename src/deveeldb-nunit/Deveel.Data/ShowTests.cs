@@ -61,6 +61,15 @@ namespace Deveel.Data {
 
 			Assert.AreEqual("APP", schemaName);
 			Assert.AreEqual("DEFAULT", schemaType);
+
+			Assert.DoesNotThrow(() => row = result.ElementAt(1));
+			Assert.IsNotNull(row);
+
+			schemaName = row.GetValue(0).Value.ToString();
+			schemaType = row.GetValue(1).Value.ToString();
+
+			Assert.AreEqual("INFORMATION_SCHEMA", schemaName);
+			Assert.AreEqual("SYSTEM", schemaType);
 		}
 
 		[Test]

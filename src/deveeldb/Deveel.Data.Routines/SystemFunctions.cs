@@ -383,26 +383,5 @@ namespace Deveel.Data.Routines {
 			var s = String.Join(", ", array);
 			return Field.String(s);
 		}
-
-		//internal static Field HasPrivilege(Field priv, Field arg) {
-		//	var privileges = ToPrivileges(priv);
-		//	var other = ToPrivileges(arg);
-		//	return Field.Boolean((privileges & other) != 0);
-		//}
-
-		//private static Privileges ToPrivileges(Field value) {
-		//	Privileges priv;
-		//	if (value.Type is StringType) {
-		//		var s = value.Value.ToString();
-		//		priv = (Privileges)Enum.Parse(typeof(Privileges), s, true);
-		//	} else if (value.Type is NumericType) {
-		//		var i = ((SqlNumber)value.Value).ToInt32();
-		//		priv = (Privileges)i;
-		//	} else {
-		//		throw new ArgumentException(String.Format("Invalid argument of type '{0}' in HASPRIV", value.Type));
-		//	}
-
-		//	return priv;
-		//}
 	}
 }
