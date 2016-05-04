@@ -607,7 +607,8 @@ namespace Deveel.Data.Transactions {
 				var names = Enum.GetNames(typeof(Privileges));
 				var values = Enum.GetValues(typeof(Privileges));
 
-				return names.Select((t, i) => new KeyValuePair<string, int>(t, (int)values.GetValue(i))).ToList();
+				return names
+					.Select((t, i) => new KeyValuePair<string, int>(t, (int) values.GetValue(i))).ToList();
 			}
 
 			public override TableInfo TableInfo {
@@ -627,7 +628,7 @@ namespace Deveel.Data.Transactions {
 					case 0:
 						return Field.Integer(pair.Value);
 					case 1:
-						return Field.VarChar(pair.Key);
+						return Field.VarChar(pair.Key.ToUpperInvariant());
 					default:
 						throw new ArgumentOutOfRangeException("columnOffset");
 				}

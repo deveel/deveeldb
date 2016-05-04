@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Statements {
 				throw new InvalidOperationException(String.Format("The schema '{0}' already exists in the system.", SchemaName));
 
 			context.DirectAccess.CreateSchema(SchemaName, SchemaTypes.User);
-			context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, Privileges.SchemaAll, true);
+			context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, PrivilegeSets.SchemaAll, true);
 		}
 	}
 }

@@ -157,7 +157,7 @@ namespace Deveel.Data.Sql.Statements {
 				// The initial grants for a view is to give the user who created it
 				// full access.
 				// TODO: Verify if we need a system session to assign this...
-				context.Request.Access().GrantOn(DbObjectType.View, viewInfo.ViewName, context.User.Name, Privileges.TableAll);
+				context.Request.Access().GrantOn(DbObjectType.View, viewInfo.ViewName, context.User.Name, PrivilegeSets.TableAll);
 			}
 
 		}

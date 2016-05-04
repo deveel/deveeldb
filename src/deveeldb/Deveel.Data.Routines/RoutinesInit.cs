@@ -59,8 +59,8 @@ namespace Deveel.Data.Routines {
 		}
 
 		private void GrantToPublic(IQuery systemQuery) {
-			systemQuery.Access().GrantOnTable(RoutineManager.RoutineTableName, User.PublicName, Privileges.TableRead);
-			systemQuery.Access().GrantOnTable(RoutineManager.RoutineParameterTableName, User.PublicName, Privileges.TableRead);
+			systemQuery.Access().GrantOnTable(RoutineManager.RoutineTableName, User.PublicName, PrivilegeSets.TableRead);
+			systemQuery.Access().GrantOnTable(RoutineManager.RoutineParameterTableName, User.PublicName, PrivilegeSets.TableRead);
 		}
 
 		public void OnTableCompositeSetup(IQuery systemQuery) {

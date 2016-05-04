@@ -34,7 +34,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
 			query.Access().CreateObject(tableInfo);
-			query.Access().GrantOnTable(tableName, User.PublicName, Privileges.TableAll);
+			query.Access().GrantOnTable(tableName, User.PublicName, PrivilegeSets.TableAll);
 
 			return true;
 		}
