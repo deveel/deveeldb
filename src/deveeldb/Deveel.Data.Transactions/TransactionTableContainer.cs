@@ -531,7 +531,13 @@ namespace Deveel.Data.Transactions {
 				keyValuePairs.Add(new SqlString(productInfo.Title));
 
 				keyValuePairs.Add(new SqlString("version"));
-				keyValuePairs.Add(new SqlString(productInfo.Version.ToString()));
+				keyValuePairs.Add(productInfo.Version != null ? new SqlString(productInfo.Version.ToString()) : SqlString.Null);
+
+				keyValuePairs.Add(new SqlString("dataVersion"));
+				keyValuePairs.Add(productInfo.DataVersion != null ? new SqlString(productInfo.DataVersion.ToString()) : SqlString.Null);
+
+				keyValuePairs.Add(new SqlString("fileVersion"));
+				keyValuePairs.Add(productInfo.FileVersion != null ? new SqlString(productInfo.FileVersion.ToString()) : SqlString.Null);
 
 				keyValuePairs.Add(new SqlString("copyright"));
 				keyValuePairs.Add(new SqlString(productInfo.Copyright));
