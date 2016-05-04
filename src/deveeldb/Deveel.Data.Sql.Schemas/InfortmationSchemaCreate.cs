@@ -46,7 +46,7 @@ namespace Deveel.Data.Sql.Schemas {
 				                   "     SELECT \"name\" " +
 				                   "       FROM " + InformationSchema.ThisUserGrantViewName + " " +
 				                   "      WHERE \"object\" = " + ((int) DbObjectType.Schema) +
-				                   "        AND \"description\" = '" + Privileges.List + "' )");
+				                   "        AND \"description\" LIKE '%" + Privileges.List.ToString().ToUpperInvariant() + "%' )");
 
 				// A view that exposes the table_columns table but only for the tables
 				// this user has read access to.

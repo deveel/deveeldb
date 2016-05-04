@@ -473,6 +473,12 @@ namespace Deveel.Data.Routines {
 				.WhenExecute(context => Simple(context, args => SystemFunctions.PrivilegeString(args[0])))
 				.ReturnsString());
 
+			//Register(config => config.Named("haspriv")
+			//	.WithDynamicParameter("priv")
+			//	.WithDynamicParameter("other")
+			//	.WhenExecute(context => Simple(context, args => SystemFunctions.HasPrivilege(args[0], args[1])))
+			//	.ReturnsBoolean());
+
 			// VERSION
 			Register(config => config
 			.Named("version")

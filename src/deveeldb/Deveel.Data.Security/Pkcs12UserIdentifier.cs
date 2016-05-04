@@ -24,11 +24,23 @@ namespace Deveel.Data.Security {
 		}
 
 		public bool VerifyIdentification(string input, UserIdentification identification) {
-			throw new NotImplementedException();
+			string salt;
+			object arg;
+			if (!identification.Arguments.TryGetValue("salt", out arg)) {
+				salt = HashFunctions.HmacSha512.GenerateSaltString();
+			} else {
+				salt = arg.ToString();
+			}
+
+			return HashFunctions.HmacSha512.VerifyPbkdf2String(identification.Token, input, salt);
 		}
 
 		public UserIdentification CreateIdentification(string input) {
-			throw new NotImplementedException();
+			var salt = HashFunctions.HmacSha512.GenerateSaltString();
+			var token = HashFunctions.HmacSha512.MakePbkdf2String(input, salt, 512);
+			var id = new UserIdentification(KnownUserIdentifications.Pkcs12, token);
+			id.Arguments.Add("salt", salt);
+			return id;
 		}
 	}
 }

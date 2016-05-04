@@ -246,10 +246,10 @@ namespace Deveel.Data {
 
 		/// <summary>
 		/// Creates the database in the context given, granting the administrative
-		/// control to the user identified by the given name and password.
+		/// control to the user identified by the given name and token.
 		/// </summary>
 		/// <param name="adminName">The name of the administrator.</param>
-		/// <param name="adminPassword">The password used to identify the administrator.</param>
+		/// <param name="adminPassword">The password used to identify the administrator</param>
 		/// <exception cref="DatabaseSystemException">
 		/// If the database context is configured to be in read-only model, if it was not possible
 		/// to commit the initial information or if another unhanded error occurred while 
@@ -268,15 +268,53 @@ namespace Deveel.Data {
 		/// This method does not automatically open the database: to make it accessible
 		/// a call to <see cref="Open" /> is required.
 		/// </para>
+		/// <para>
+		/// This overload of uses the <see cref="KnownUserIdentifications.ClearText"/> mechanism
+		/// to identify the user by the given <paramref name="adminPassword">password</paramref>
+		/// </para>
 		/// </remarks>
 		public void Create(string adminName, string adminPassword) {
+			Create(adminName, KnownUserIdentifications.ClearText, adminPassword);
+		}
+
+		/// <summary>
+		/// Creates the database in the context given, granting the administrative
+		/// control to the user identified by the given name and token.
+		/// </summary>
+		/// <param name="adminName">The name of the administrator.</param>
+		/// <param name="token">The toke used to identify the administrator, using the
+		/// <paramref name="identification"/> mechanism given.</param>
+		/// <param name="identification">The name of the mechanism used to identify the user by the
+		/// given token.</param>
+		/// <exception cref="DatabaseSystemException">
+		/// If the database context is configured to be in read-only model, if it was not possible
+		/// to commit the initial information or if another unhanded error occurred while 
+		/// creating the database.
+		/// </exception>
+		/// <exception cref="ArgumentNullException">
+		/// If either one of <paramref name="adminName"/> or <paramref name="token"/>
+		/// are <c>null</c> or empty.
+		/// </exception>
+		/// <remarks>
+		/// <para>
+		/// The properties used to create the database are extracted from
+		/// the underlying context (<see cref="DatabaseContext" />).
+		/// </para>
+		/// <para>
+		/// This method does not automatically open the database: to make it accessible
+		/// a call to <see cref="Open" /> is required.
+		/// </para>
+		/// </remarks>
+		public void Create(string adminName, string identification, string token) {
 			if (Context.ReadOnly())
 				throw new DatabaseSystemException("Cannot create database in read-only mode.");
 
 			if (String.IsNullOrEmpty(adminName))
 				throw new ArgumentNullException("adminName");
-			if (String.IsNullOrEmpty(adminPassword))
-				throw new ArgumentNullException("adminPassword");
+			if (String.IsNullOrEmpty(token))
+				throw new ArgumentNullException("token");
+			if (String.IsNullOrEmpty(identification))
+				throw new ArgumentNullException("identification");
 
 			try {
 				// Create the conglomerate
@@ -289,7 +327,7 @@ namespace Deveel.Data {
 
 							OnDatabaseCreate(query);
 
-							query.CreateAdminUser(adminName, adminPassword);
+							query.CreateAdminUser(adminName, identification, token);
 
 							OnDatabaseCreated(query);
 

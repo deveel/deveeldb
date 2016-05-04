@@ -58,7 +58,9 @@ namespace Deveel.Data {
 		/// <param name="configuration">A configuration specific for the
 		/// database to be created.</param>
 		/// <param name="adminUser">The name of the administrator of the database.</param>
-		/// <param name="adminPassword">The password to identify the administrator user.</param>
+		/// <param name="identification">The name of the mechanism used to identify the
+		/// user with the given token.</param>
+		/// <param name="token">The token to identify the administrator user.</param>
 		/// <returns>
 		/// Returns an instance of <see cref="IDatabase"/> that is inheriting
 		/// the state of this system and is administered by the given user.
@@ -73,7 +75,7 @@ namespace Deveel.Data {
 		/// <exception cref="DatabaseSystemException">
 		/// If any error occurred that prohibited the creation of the database.
 		/// </exception>
-		IDatabase CreateDatabase(IConfiguration configuration, string adminUser, string adminPassword);
+		IDatabase CreateDatabase(IConfiguration configuration, string adminUser, string identification, string token);
 
 		/// <summary>
 		/// Checks if any database with the given name exists 
