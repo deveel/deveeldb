@@ -16,7 +16,10 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
@@ -191,20 +194,54 @@ namespace Deveel.Data {
 		#region StatisticsTable
 
 		class StatisticsTable : GeneratedTable {
+			private ISession session;
+			private List<Counter> stats;
+
 			public StatisticsTable(ISession session)
 				: base(session.Context) {
+				this.session = session;
+				Init();
 			}
 
 			public override TableInfo TableInfo {
-				get { throw new NotImplementedException(); }
+				get { return StatisticsTableInfo; }
 			}
 
 			public override int RowCount {
-				get { throw new NotImplementedException(); }
+				get { return stats.Count; }
+			}
+
+			private void Init() {
+				lock (session) {
+					stats = session.Database().Counters.ToList();
+				}
 			}
 
 			public override Field GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
+				if (rowNumber < 0 || rowNumber >= stats.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var counter = stats[(int) rowNumber];
+
+				switch (columnOffset) {
+					case 0:
+						return GetColumnValue(columnOffset, new SqlString(counter.Name));
+					case 1:
+						return GetColumnValue(columnOffset, counter.ValueAsNumber());
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+				}
+			}
+
+			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					if (stats != null)
+						stats.Clear();
+				}
+
+				stats = null;
+				session = null;
+				base.Dispose(disposing);
 			}
 		}
 

@@ -53,6 +53,10 @@ namespace Deveel.Data {
 
 			Sessions = new ActiveSessionList(this);
 
+			Counters = new CounterRegistry();
+
+			Context.RouteImmediate<CounterEvent>(Count);
+
 			// Create the single row table
 			var t = new TemporaryTable(context, "SINGLE_ROW_TABLE", new ColumnInfo[0]);
 			t.NewRow();
@@ -68,6 +72,14 @@ namespace Deveel.Data {
 			Dispose(false);
 		}
 
+		private void Count(CounterEvent e) {
+			if (e.IsIncremental) {
+				Counters.Increment(e.CounterKey);
+			} else {
+				Counters.SetValue(e.CounterKey, e.Value);
+			}
+		}
+
 		/// <summary>
 		/// Gets the database name, as configured in the parent context.
 		/// </summary>
@@ -80,6 +92,12 @@ namespace Deveel.Data {
 
 		ISystem IDatabase.System {
 			get { return System; }
+		}
+
+		public CounterRegistry Counters { get; private set; }
+
+		ICounterRegistry IDatabase.Counters {
+			get { return Counters; }
 		}
 
 		public ActiveSessionList Sessions { get; private set; }

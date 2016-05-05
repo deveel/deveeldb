@@ -60,11 +60,9 @@ namespace Deveel.Data {
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
 			Context.Route<QueryEvent>(OnQueryCommand);
-			Context.RouteImmediate<CounterEvent>(Count);
 
 			Transaction.GetTableManager().AddInternalTables(new SessionTableContainer(this));
 
-			Counters = new CounterRegistry();
 			access = new SessionAccess(this);
 
 			transaction.Database.Sessions.Add(this);
@@ -90,8 +88,6 @@ namespace Deveel.Data {
 
 	    public ISessionContext Context { get; private set; }
 
-		public CounterRegistry Counters { get; private set; }
-
 		public User User { get; private set; }
 
 		SystemAccess ISystemDirectAccess.DirectAccess {
@@ -111,14 +107,6 @@ namespace Deveel.Data {
 		}
 
 		public IDictionary<string, object> Metadata { get; set; }
-
-		private void Count(CounterEvent e) {
-			if (e.IsIncremental) {
-				Counters.Increment(e.CounterKey);
-			} else {
-				Counters.SetValue(e.CounterKey, e.Value);
-			}
-		}
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
 			var meta = new Dictionary<string, object> {
