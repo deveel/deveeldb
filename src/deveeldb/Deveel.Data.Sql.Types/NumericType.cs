@@ -252,7 +252,6 @@ namespace Deveel.Data.Sql.Types {
 		public override bool CanCastTo(SqlType destType) {
 			return destType.TypeCode != SqlTypeCode.Array &&
 			       destType.TypeCode != SqlTypeCode.ColumnType &&
-			       destType.TypeCode != SqlTypeCode.RowType &&
 			       destType.TypeCode != SqlTypeCode.Object;
 		}
 

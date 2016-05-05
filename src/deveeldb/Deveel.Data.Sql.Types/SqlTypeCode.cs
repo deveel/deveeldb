@@ -165,7 +165,6 @@ namespace Deveel.Data.Sql.Types {
 		///</summary>
 		QueryPlan = 100,
 
-		RowType = 111,
 		ColumnType = 112,
 	}
 }

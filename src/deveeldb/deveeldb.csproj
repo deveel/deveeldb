@@ -936,7 +936,6 @@
     <Compile Include="Deveel.Data.Sql.Types\NumericType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\PrimitiveTypes.cs" />
     <Compile Include="Deveel.Data.Sql.Types\QueryType.cs" />
-    <Compile Include="Deveel.Data.Sql.Types\RowType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\SqlType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\SqlTypeCode.cs" />
     <Compile Include="Deveel.Data.Sql.Types\StringType.cs">
