@@ -26,14 +26,14 @@ namespace Deveel.Data.Sql.Tables {
 	/// A wrapper around a table that fires triggers on table events.
 	/// </summary>
 	class UserContextTable : BaseDataTable, IMutableTable {
-		public UserContextTable(IRequest context, ITable table) {
-			Context = context;
+		public UserContextTable(IRequest request, ITable table) {
+			Request = request;
 			Table = table;
 		}
 
 		public ITable Table { get; private set; }
 
-		public IRequest Context { get; private set; }
+		public IRequest Request { get; private set; }
 
 		private IMutableTable MutableTable {
 			get { return Table as IMutableTable; }
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private void OnTableEvent(TriggerEventTime eventTime, TriggerEventType eventType, RowId rowId, Row row) {
-			Context.Access().FireTriggers(Context, new TableEvent(this, eventTime, eventType, rowId, row));
+			Request.Access().FireTriggers(Request, new TableEvent(this, eventTime, eventType, rowId, row));
 		}
 
 		protected override IEnumerable<int> ResolveRows(int column, IEnumerable<int> rowSet, ITable ancestor) {
@@ -149,7 +149,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		protected override void Dispose(bool disposing) {
-			Context = null;
+			Request = null;
 			Table = null;
 
 			base.Dispose(disposing);

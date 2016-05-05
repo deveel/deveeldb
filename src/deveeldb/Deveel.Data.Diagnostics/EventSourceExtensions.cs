@@ -16,7 +16,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventSourceExtensions {
@@ -71,6 +70,10 @@ namespace Deveel.Data.Diagnostics {
 
 		public static void OnCounter(this IEventSource source, string key, object value) {
 			source.OnEvent(new CounterEvent(key, value));
+		}
+
+		public static void UseLogger<TLogger>(this IEventSource source, TLogger logger) where TLogger : LoggerBase {
+			source.Context.AttachRouter(logger);
 		}
 	}
 }

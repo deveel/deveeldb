@@ -19,8 +19,20 @@ using System;
 
 namespace Deveel.Data.Diagnostics {
 	public class LoggerSettings {
+		public const string DefaultMessageFormat = "[level][timestamp] - source - message";
+
+		public const string DefaultDateFormat = "yyyy-MM-ddTHH:mm:ss.zzz fff";
+
+		public LoggerSettings() {
+			MessageFormat = DefaultMessageFormat;
+			DateFormat = DefaultDateFormat;
+			MinimumLevel = LogLevel.Error;
+		}
+
 		public string MessageFormat { get; set; }
 
 		public string DateFormat { get; set; }
+
+		public LogLevel MinimumLevel { get; set; }
 	}
 }

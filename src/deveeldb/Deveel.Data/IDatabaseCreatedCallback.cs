@@ -43,7 +43,7 @@ namespace Deveel.Data {
 	/// in the database creation life-cycle.
 	/// </para>
 	/// </remarks>
-	/// <seealso cref="Database.Create"/>
+	/// <seealso cref="Database.Create(string,string)"/>
 	/// <seealso cref="Database"/>
 	/// <seealso cref="IDatabaseCreateCallback"/>
 	public interface IDatabaseCreatedCallback {

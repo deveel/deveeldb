@@ -27,11 +27,7 @@ namespace Deveel.Data.Store.Journaled {
 		private Stream fileStream;
 
 		public StreamFile(IFileSystem fileSystem, string path, bool readOnly) {
-			if (fileSystem.FileExists(path)) {
-				file = fileSystem.OpenFile(path, readOnly);
-			} else {
-				file = fileSystem.CreateFile(path);
-			}
+			file = fileSystem.FileExists(path) ? fileSystem.OpenFile(path, readOnly) : fileSystem.CreateFile(path);
 
 			endPointer = file.Length;
 			fileStream = new StreamFileStream(this);

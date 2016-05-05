@@ -139,7 +139,7 @@ namespace Deveel.Data {
 			}
 
 			public override Field GetValue(long rowNumber, int columnOffset) {
-				if (rowNumber < 0 || rowNumber >= this.session.Database().Sessions.Count)
+				if (rowNumber < 0 || rowNumber >= session.Database().Sessions.Count)
 					throw new ArgumentOutOfRangeException("rowNumber");
 
 				var openSession = session.Database().Sessions[(int)rowNumber];

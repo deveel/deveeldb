@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Objects {
 				if (months == null)
 					throw new NullReferenceException();
 
-				return (months.Value/12);
+				return ((double)months.Value/12);
 			}
 		}
 

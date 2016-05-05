@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Query {
 		/// <param name="givenName"></param>
 		/// <param name="rootName"></param>
 		public FromTableDirectSource(bool caseInsensitive, ITableQueryInfo tableQuery, string uniqueName, ObjectName givenName, ObjectName rootName) {
-			this.UniqueName = uniqueName;
+			UniqueName = uniqueName;
 			tableInfo = tableQuery.TableInfo;
 			RootTableName = rootName;
 			if (givenName != null) {

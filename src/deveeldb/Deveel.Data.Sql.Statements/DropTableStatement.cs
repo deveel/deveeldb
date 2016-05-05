@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public DropTableStatement(ObjectName tableName, bool ifExists) {
 			if (tableName == null)
-				throw new ArgumentNullException("tableNames");
+				throw new ArgumentNullException("tableName");
 
 			TableName = tableName;
 			IfExists = ifExists;

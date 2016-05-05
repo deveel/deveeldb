@@ -198,7 +198,7 @@ namespace Deveel.Data {
 		/// context given.
 		/// </summary>
 		/// <exception cref="Exception">An error occurred while testing database existence.</exception>
-		/// <seealso cref="Create" />
+		/// <seealso cref="Create(string,string)" />
 		public bool Exists {
 			get {
 				if (IsOpen)

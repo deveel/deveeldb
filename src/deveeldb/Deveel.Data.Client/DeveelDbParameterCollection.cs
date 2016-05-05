@@ -251,7 +251,7 @@ namespace Deveel.Data.Client {
 		}
 
 		public override object SyncRoot {
-			get { return null; }
+			get { return this; }
 		}
 
 		public override bool IsFixedSize {

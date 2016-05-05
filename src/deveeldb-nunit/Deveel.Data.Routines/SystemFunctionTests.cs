@@ -27,10 +27,6 @@ namespace Deveel.Data.Routines {
 			return Query.Access().InvokeSystemFunction(Query, name);
 		}
 
-		private Field InvokeFunction(string name, Field arg) {
-			return Query.Access().InvokeSystemFunction(Query, name, SqlExpression.Constant(arg));
-		}
-
 		[Test]
 		public void ResolveSystemFunctionWithNoSchema() {
 			IFunction function = null;

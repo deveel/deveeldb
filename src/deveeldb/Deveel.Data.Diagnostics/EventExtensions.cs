@@ -40,21 +40,5 @@ namespace Deveel.Data.Diagnostics {
 			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 #endif
 		}
-
-		public static string UserName(this IEvent @event) {
-			return @event.GetData<string>(KnownEventMetadata.UserName);
-		}
-
-		public static string DatabaseName(this IEvent @event) {
-			return @event.GetData<string>(KnownEventMetadata.DatabaseName);
-		}
-
-		public static int CommitId(this IEvent @event) {
-			return @event.GetData<int>(KnownEventMetadata.CommitId);
-		}
-
-		public static DateTimeOffset SessionStartTime(this IEvent @event) {
-			return @event.GetData<DateTimeOffset>(KnownEventMetadata.SessionStartTime);
-		}
 	}
 }

@@ -31,6 +31,10 @@ namespace Deveel.Data.Sql.Variables {
 			variables = new Dictionary<string, Variable>();
 		}
 
+		~VariableManager() {
+			Dispose(false);
+		}
+
 		public IVariableScope Scope { get; private set; }
 
 		public void Dispose() {
