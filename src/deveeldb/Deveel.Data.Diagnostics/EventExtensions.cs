@@ -32,6 +32,10 @@ namespace Deveel.Data.Diagnostics {
 				return (T) value;
 
 #if !PCL
+			if (value is string &&
+			    typeof(T).IsEnum)
+				return (T) Enum.Parse(typeof(T), (string) value, true);
+
 			if (value is IConvertible)
 				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 

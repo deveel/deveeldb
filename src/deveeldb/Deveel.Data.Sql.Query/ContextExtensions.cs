@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Sql.Query {
 	public static class ContextExtensions {
 		public static void UseDefaultQueryPlanner(this ISystemContext context) {

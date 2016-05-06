@@ -31,7 +31,7 @@ namespace Deveel.Data.Diagnostics {
 
 		protected override void GetEventData(Dictionary<string, object> data) {
 			data["info.message"] = Message;
-			data["info.level"] = Level;
+			data["info.level"] = Level.ToString();
 		}
 	}
 }
