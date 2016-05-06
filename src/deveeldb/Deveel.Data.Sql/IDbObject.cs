@@ -22,7 +22,14 @@ namespace Deveel.Data.Sql {
 	/// Represents a database object, such as a table, a trigger,
 	/// a type or a column.
 	/// </summary>
+	/// <remarks>
+	/// Database objects are defined by a set of information
+	/// that shape their behavior within the system (<see cref="IObjectInfo"/>).
+	/// </remarks>
 	public interface IDbObject {
+		/// <summary>
+		/// Gets the database object information.
+		/// </summary>
 		IObjectInfo ObjectInfo { get; }
 	}
 }

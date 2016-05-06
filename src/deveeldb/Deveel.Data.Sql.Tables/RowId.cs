@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Tables {
 		public int RowNumber { get; private set; }
 
 		/// <summary>
-		/// Gets a boolean value indicating if the object equivales
+		/// Gets a boolean value indicating if the object equivalents
 		/// to a <c>NULL</c>.
 		/// </summary>
 		public bool IsNull { get; private set; }
@@ -83,11 +83,12 @@ namespace Deveel.Data.Sql.Tables {
 			if (IsNull)
 				return 0;
 
-			return unchecked (TableId.GetHashCode() ^ RowNumber.GetHashCode());
+			return TableId.GetHashCode() ^ RowNumber.GetHashCode();
 		}
 
 		public override string ToString() {
-			return String.Format("{0}-{1}", TableId, RowNumber);
+			var tableId = TableId < 0 ? "#V" : TableId.ToString();
+			return String.Format("{0}-{1}", tableId, RowNumber);
 		}
 
 		/// <summary>
@@ -97,7 +98,7 @@ namespace Deveel.Data.Sql.Tables {
 		/// <param name="s">The input string to parse.</param>
 		/// <param name="value">The out value from the parse.</param>
 		/// <returns>
-		/// Returns <c>true</c> if the string was succesfully parsed
+		/// Returns <c>true</c> if the string was successfully parsed
 		/// into a <see cref="RowId"/>, otherwise <c>false</c>.
 		/// </returns>
 		/// <seealso cref="ToString"/>
@@ -115,9 +116,13 @@ namespace Deveel.Data.Sql.Tables {
 			var s2 = s.Substring(index + 1);
 
 			int v1;
-			int v2;
-			if (!Int32.TryParse(s1, out v1))
+			if (String.Equals(s1, "#V", StringComparison.OrdinalIgnoreCase)) {
+				v1 = -1;
+			} else if (!Int32.TryParse(s1, out v1)) {
 				return false;
+			}
+
+			int v2;
 			if (!Int32.TryParse(s2, out v2))
 				return false;
 

@@ -16,7 +16,6 @@
 
 
 using System;
-using System.IO;
 
 using Deveel.Data.Sql.Types;
 
@@ -37,22 +36,5 @@ namespace Deveel.Data.Sql.Cursors {
 		public SqlType ParameterType { get; private set; }
 
 		public int Offset { get; set; }
-
-		public static void Serialize(CursorParameter parameter, BinaryWriter writer) {
-			writer.Write(parameter.ParameterName);
-			TypeSerializer.SerializeTo(writer, parameter.ParameterType);
-			writer.Write(parameter.Offset);
-		}
-
-		public static CursorParameter Deserialize(BinaryReader reader) {
-			var paramName = reader.ReadString();
-			// TODO: Type Resolver!!!
-			var paramType = TypeSerializer.Deserialize(reader, null);
-			var offset = reader.ReadInt32();
-
-			return new CursorParameter(paramName, paramType) {
-				Offset = offset
-			};
-		}
 	}
 }

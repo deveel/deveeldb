@@ -65,7 +65,8 @@ namespace Deveel.Data {
 
 			access = new SessionAccess(this);
 
-			transaction.Database.Sessions.Add(this);
+			if (!transaction.Database.Sessions.Add(this))
+				throw new InvalidOperationException("The session was already in the database session list");
 
 			User = new User(this, userName);
 			startedOn = DateTimeOffset.UtcNow;

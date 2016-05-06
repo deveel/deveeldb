@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Tables {
 	/// of data cells in the table will handle.
 	/// </remarks>
 	[Serializable]
-	public sealed class ColumnInfo : ISerializable {
+	public sealed class ColumnInfo : IObjectInfo, ISerializable {
 		/// <summary>
 		/// Constructs a new column with the given name and type.
 		/// </summary>
@@ -89,6 +89,18 @@ namespace Deveel.Data.Sql.Tables {
 		/// </remarks>
 		public ObjectName FullColumnName {
 			get { return TableInfo == null ? new ObjectName(ColumnName) : new ObjectName(TableInfo.TableName, ColumnName); }
+		}
+
+		ObjectName IObjectInfo.FullName {
+			get { return FullColumnName; }
+		}
+
+		DbObjectType IObjectInfo.ObjectType {
+			get { return DbObjectType.Column; }
+		}
+
+		string IObjectInfo.Owner {
+			get { return null; }
 		}
 
 		/// <summary>

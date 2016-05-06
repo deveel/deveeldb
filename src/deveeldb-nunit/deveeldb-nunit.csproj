@@ -133,6 +133,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\ColumnTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\RowIdTests.cs" />
     <Compile Include="Deveel.Data.Sql\ArrayFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />

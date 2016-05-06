@@ -130,7 +130,6 @@
     <Compile Include="Deveel.Data.Client\DeveelDbTransaction.cs" />
     <Compile Include="Deveel.Data.Client\LocalQueryResult.cs" />
     <Compile Include="Deveel.Data.Client\LocalRowCache.cs" />
-    <Compile Include="Deveel.Data.Configuration\ConfigGroup.cs" />
     <Compile Include="Deveel.Data.Configuration\Configuration.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
@@ -343,6 +342,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\StringFormatterVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\Column.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ForeignKeyActionExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\TablesInit.cs" />

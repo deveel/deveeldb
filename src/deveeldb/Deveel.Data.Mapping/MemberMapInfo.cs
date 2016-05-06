@@ -69,25 +69,6 @@ namespace Deveel.Data.Mapping {
 			DefaultIsExpression = isExpression;
 		}
 
-		internal ColumnInfo AsColumnInfo() {
-			var columnInfo = new ColumnInfo(ColumnName, ColumnType) {
-				IsNotNull = !IsNullable
-			};
-
-			if (Default != null) {
-				SqlExpression defaultExpression;
-				if (DefaultIsExpression) {
-					defaultExpression = SqlExpression.Parse((string) Default);
-				} else {
-					defaultExpression = SqlExpression.Constant(Field.Create(Default));
-				}
-
-				columnInfo.DefaultExpression = defaultExpression;
-			}
-
-			return columnInfo;
-		}
-
 		internal SqlTableColumn AsTableColumn() {
 			var column = new SqlTableColumn(ColumnName, ColumnType) {
 				IsNotNull = !IsNullable

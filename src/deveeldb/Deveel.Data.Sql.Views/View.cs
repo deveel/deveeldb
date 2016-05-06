@@ -38,9 +38,5 @@ namespace Deveel.Data.Sql.Views {
 		public IQueryPlanNode QueryPlan {
 			get { return ViewInfo.QueryPlan; }
 		}
-
-		public SqlQueryExpression QueryExpression {
-			get { return ViewInfo.QueryExpression; }
-		}
 	}
 }
