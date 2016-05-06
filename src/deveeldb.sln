@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb", "deveeldb\deveeldb.csproj", "{A14222AE-1B48-4863-A0CA-1D6C2AB2190B}"
 EndProject
@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuspec", "nuspec", "{508A8A
 		..\nuget\deveeldb-platform.nuspec = ..\nuget\deveeldb-platform.nuspec
 		..\nuget\deveeldb.nuspec = ..\nuget\deveeldb.nuspec
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.cli", "deveeldb.cli\deveeldb.cli.csproj", "{227E4FEA-9413-488C-939F-2108D090AED6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,6 +94,30 @@ Global
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|ARM.ActiveCfg = Release|Any CPU
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|x64.ActiveCfg = Release|Any CPU
 		{ADBAFCD3-B285-4474-8C24-E476BDA9C598}.Release-PCL|x86.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|ARM.Build.0 = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|x64.Build.0 = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Debug|x86.Build.0 = Debug|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|ARM.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|ARM.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|x64.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|x64.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|x86.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release|x86.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|Any CPU.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|Any CPU.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|ARM.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|ARM.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|x64.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|x64.Build.0 = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|x86.ActiveCfg = Release|Any CPU
+		{227E4FEA-9413-488C-939F-2108D090AED6}.Release-PCL|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
