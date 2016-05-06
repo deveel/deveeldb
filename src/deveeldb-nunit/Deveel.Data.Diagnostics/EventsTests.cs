@@ -182,5 +182,17 @@ namespace Deveel.Data.Diagnostics {
 			Assert.AreEqual(InformationLevel.Verbose, infoEvent.Level);
 			Assert.AreEqual("Test Message", infoEvent.Message);
 		}
+
+		[Test]
+		public void GetEventData_ConvertEnum() {
+			var e = new InformationEvent("test", InformationLevel.Debug);
+
+			var level = e.GetData<InformationLevel>("info.level");
+			var message = e.GetData<string>("info.message");
+
+			Assert.IsNotNull(message);
+			Assert.AreSame("test", message);
+			Assert.AreEqual(InformationLevel.Debug, level);
+		}
 	}
 }

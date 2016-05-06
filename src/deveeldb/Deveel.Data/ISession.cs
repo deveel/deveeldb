@@ -16,8 +16,8 @@
 
 
 using System;
-using System.Collections.Generic;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
@@ -33,7 +33,10 @@ namespace Deveel.Data {
 		/// Gets the name of the current schema of this session.
 		/// </summary>
 		string CurrentSchema { get; }
-			
+
+		/// <summary>
+		/// Gets the user that owns this session.
+		/// </summary>
 		User User { get; }
 
 		/// <summary>
@@ -42,13 +45,52 @@ namespace Deveel.Data {
 		/// </summary>
 		ITransaction Transaction { get; }
 
+		/// <summary>
+		/// Gets the <see cref="IContext"/> of the session.
+		/// </summary>
         ISessionContext Context { get; }
 
 
+		/// <summary>
+		/// Creates a new large object from the underlying
+		/// database of the session.
+		/// </summary>
+		/// <param name="maxSize">The max size of the object.</param>
+		/// <param name="compressed">A flag indicating if the content of the
+		/// object will be compressed.</param>
+		/// <remarks>
+		/// <para>
+		/// Large objects are immutable once finalized and the content size
+		/// cannot exceed the specified <paramref name="maxSize"/>.
+		/// </para>
+		/// </remarks>
+		/// <returns>
+		/// Returns an instance of <see cref="ILargeObject"/> that is allocated
+		/// in the large-object storage of the underlying database of this session.
+		/// </returns>
+		/// <seealso cref="GetLargeObject"/>
+		/// <seealso cref="ILargeObject"/>
 		ILargeObject CreateLargeObject(long maxSize, bool compressed);
 
+		/// <summary>
+		/// Gets a large object identified by the given unique identifier.
+		/// </summary>
+		/// <param name="objectId">The unique identifier of the object to obtain.</param>
+		/// <returns>
+		/// Returns an instance of <see cref="ILargeObject"/> identified by the given
+		/// <paramref name="objectId"/> within the underlying database of this session.
+		/// </returns>
+		/// <seealso cref="ObjectId"/>
 		ILargeObject GetLargeObject(ObjectId objectId);
 
+		/// <summary>
+		/// Creates a new query object that can be used to execute commands
+		/// towards the underlying database of this session.
+		/// </summary>
+		/// <returns>
+		/// Returns an instance of <see cref="IQuery"/> that is used
+		/// to execute commands towards the underlying database.
+		/// </returns>
 		IQuery CreateQuery();
 
 

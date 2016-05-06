@@ -42,13 +42,13 @@ namespace Deveel.Data.Routines {
 			var returnType = ReturnType(context);
 
 			if (returnType is TabularType)
-				return new InvokeResult(context, Field.Table(result));
+				return context.Result(result);
 
 			if (result.RowCount == 0)
 				throw new InvalidOperationException("The execution of the function has no returns");
 
 			var retunValue = result.GetValue(0, 0);
-			return new InvokeResult(context, retunValue);
+			return context.Result(retunValue);
 		}
 	}
 }

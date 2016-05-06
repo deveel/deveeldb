@@ -22,10 +22,6 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	public static class RoutineExtensions {
-		public static InvokeResult Execute(this IRoutine routine) {
-			return Execute(routine, new InvokeArgument[0]);
-		}
-
 		public static InvokeResult Execute(this IRoutine routine, InvokeArgument[] args) {
 			return Execute(routine, args, null);
 		}

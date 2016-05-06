@@ -17,10 +17,17 @@
 
 using System;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 
 namespace Deveel.Data {
 	public static class SystemExtensions {
+		public static IDatabase CreateDatabase(this ISystem system, IConfiguration configuration, string adminName,
+			string adminPassword) {
+			return system.CreateDatabase(configuration, adminName, KnownUserIdentifications.ClearText, adminPassword);
+		}
+
 		public static IEventSource AsEventSource(this ISystem system) {
 			if (system == null)
 				throw new ArgumentNullException("system");

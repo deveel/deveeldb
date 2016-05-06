@@ -24,6 +24,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Transactions {
@@ -79,12 +80,6 @@ namespace Deveel.Data.Transactions {
 			ProductInfoTableInfo.AddColumn("value", PrimitiveTypes.String());
 			ProductInfoTableInfo = ProductInfoTableInfo.AsReadOnly();
 
-			// SYSTEM.STATS
-			StatisticsTableInfo = new TableInfo(SystemSchema.StatisticsTableName);
-			StatisticsTableInfo.AddColumn("stat_name", PrimitiveTypes.String());
-			StatisticsTableInfo.AddColumn("value", PrimitiveTypes.String());
-			StatisticsTableInfo = StatisticsTableInfo.AsReadOnly();
-
 			// SYSTEM.SQL_TYPES
 			SqlTypesTableInfo = new TableInfo(SystemSchema.SqlTypesTableName);
 			SqlTypesTableInfo.AddColumn("TYPE_NAME", PrimitiveTypes.String());
@@ -107,36 +102,19 @@ namespace Deveel.Data.Transactions {
 			SqlTypesTableInfo.AddColumn("NUM_PREC_RADIX", PrimitiveTypes.Numeric());
 			SqlTypesTableInfo = SqlTypesTableInfo.AsReadOnly();
 
-			// SYSTEM.OPEN_SESSIONS
-			OpenSessionsTableInfo = new TableInfo(SystemSchema.OpenSessionsTableName);
-			OpenSessionsTableInfo.AddColumn("username", PrimitiveTypes.String());
-			OpenSessionsTableInfo.AddColumn("host_string", PrimitiveTypes.String());
-			OpenSessionsTableInfo.AddColumn("last_command", PrimitiveTypes.DateTime());
-			OpenSessionsTableInfo.AddColumn("time_connected", PrimitiveTypes.DateTime());
-			OpenSessionsTableInfo = OpenSessionsTableInfo.AsReadOnly();
-
-			// SYSTEM.SESSION_INFO
-			SessionInfoTableInfo = new TableInfo(SystemSchema.SessionInfoTableName);
-			SessionInfoTableInfo.AddColumn("var", PrimitiveTypes.String());
-			SessionInfoTableInfo.AddColumn("value", PrimitiveTypes.String());
-			SessionInfoTableInfo = SessionInfoTableInfo.AsReadOnly();
-
 			// SYSTEM.PRIVS
 			PrivilegesTableInfo = new TableInfo(SystemSchema.PrivilegesTableName);
 			PrivilegesTableInfo.AddColumn("priv_bit", PrimitiveTypes.Numeric());
 			PrivilegesTableInfo.AddColumn("description", PrimitiveTypes.String());
 			PrivilegesTableInfo = PrivilegesTableInfo.AsReadOnly();
 
-			IntTableInfo = new TableInfo[9];
+			IntTableInfo = new TableInfo[6];
 			IntTableInfo[0] = TableInfoTableInfo;
 			IntTableInfo[1] = TableColumnsTableInfo;
 			IntTableInfo[2] = ProductInfoTableInfo;
 			IntTableInfo[3] = VariablesTableInfo;
-			IntTableInfo[4] = StatisticsTableInfo;
-			IntTableInfo[5] = SessionInfoTableInfo;
-			IntTableInfo[6] = OpenSessionsTableInfo;
-			IntTableInfo[7] = SqlTypesTableInfo;
-			IntTableInfo[8] = PrivilegesTableInfo;
+			IntTableInfo[4] = SqlTypesTableInfo;
+			IntTableInfo[5] = PrivilegesTableInfo;
 		}
 
 		private static readonly TableInfo TableInfoTableInfo;
@@ -148,12 +126,6 @@ namespace Deveel.Data.Transactions {
 		private static readonly TableInfo VariablesTableInfo;
 
 		private static readonly TableInfo ProductInfoTableInfo;
-
-		private static readonly TableInfo StatisticsTableInfo;
-
-		private static readonly TableInfo SessionInfoTableInfo;
-
-		private static readonly TableInfo OpenSessionsTableInfo;
 
 		private static readonly TableInfo PrivilegesTableInfo;
 
@@ -205,17 +177,8 @@ namespace Deveel.Data.Transactions {
 			if (offset == 3)
 				return new VariablesTable(transaction);
 			if (offset == 4)
-				return new StatisticsTable(transaction);
-			/*
-				TODO:
-				if (offset == 5)
-					return SystemSchema.GetSessionInfoTable(transaction);
-				*/
-			if (offset == 6)
-				return new OpenSessionsTable(transaction);
-			if (offset == 7)
 				return new SqlTypesTable(transaction);
-			if (offset == 8)
+			if (offset == 5)
 				return new PrivilegesTable(transaction);
 
 			throw new ArgumentOutOfRangeException("offset");
@@ -541,55 +504,6 @@ namespace Deveel.Data.Transactions {
 
 		#endregion
 
-		#region OpenSessionsTable
-
-		private class OpenSessionsTable : GeneratedTable {
-			private ITransaction transaction;
-
-			public OpenSessionsTable(ITransaction transaction)
-				: base(transaction.Context) {
-				this.transaction = transaction;
-			}
-
-			public override TableInfo TableInfo {
-				get { return OpenSessionsTableInfo; }
-			}
-
-			public override int RowCount {
-				get { return transaction.Database.Sessions.Count; }
-			}
-
-			public override Field GetValue(long rowNumber, int columnOffset) {
-				if (rowNumber < 0 || rowNumber >= transaction.Database.Sessions.Count)
-					throw new ArgumentOutOfRangeException("rowNumber");
-
-				var session = transaction.Database.Sessions[(int)rowNumber];
-				var lastCommandTime = !session.HasCommandTime()
-					? SqlDateTime.Null
-					: (SqlDateTime)session.LastCommandTime();
-
-				switch (columnOffset) {
-					case 0:
-						return GetColumnValue(0, new SqlString(session.User.Name));
-					case 1:
-						return GetColumnValue(1, SqlString.Null);
-					case 2:
-						return GetColumnValue(2, lastCommandTime);
-					case 3:
-						return GetColumnValue(3, (SqlDateTime)session.StartedOn());
-					default:
-						throw new ArgumentOutOfRangeException("columnOffset");
-				}
-			}
-
-			protected override void Dispose(bool disposing) {
-				transaction = null;
-				base.Dispose(disposing);
-			}
-		}
-
-		#endregion
-
 		#region ProductInfoTable
 
 		class ProductInfoTable : GeneratedTable {
@@ -618,7 +532,13 @@ namespace Deveel.Data.Transactions {
 				keyValuePairs.Add(new SqlString(productInfo.Title));
 
 				keyValuePairs.Add(new SqlString("version"));
-				keyValuePairs.Add(new SqlString(productInfo.Version.ToString()));
+				keyValuePairs.Add(productInfo.Version != null ? new SqlString(productInfo.Version.ToString()) : SqlString.Null);
+
+				keyValuePairs.Add(new SqlString("dataVersion"));
+				keyValuePairs.Add(productInfo.DataVersion != null ? new SqlString(productInfo.DataVersion.ToString()) : SqlString.Null);
+
+				keyValuePairs.Add(new SqlString("fileVersion"));
+				keyValuePairs.Add(productInfo.FileVersion != null ? new SqlString(productInfo.FileVersion.ToString()) : SqlString.Null);
 
 				keyValuePairs.Add(new SqlString("copyright"));
 				keyValuePairs.Add(new SqlString(productInfo.Copyright));
@@ -648,10 +568,12 @@ namespace Deveel.Data.Transactions {
 
 		class VariablesTable : GeneratedTable {
 			private ITransaction transaction;
+			private List<Variable> variables;
 
 			public VariablesTable(ITransaction transaction)
 				: base(transaction.Database.Context) {
 				this.transaction = transaction;
+				Init();
 			}
 
 			public override TableInfo TableInfo {
@@ -659,14 +581,57 @@ namespace Deveel.Data.Transactions {
 			}
 
 			public override int RowCount {
-				get { throw new NotImplementedException(); }
+				get { return variables.Count; }
+			}
+
+			private void Init() {
+				lock (transaction.Database) {
+					variables = new List<Variable>();
+
+					var context = (IContext) transaction.Context;
+					while (context != null) {
+						if (context is IVariableScope) {
+							var vars = ((IVariableScope) context).VariableManager.ToList();
+							variables.AddRange(vars);
+						}
+
+						context = context.Parent;
+					}
+				}
 			}
 
 			public override Field GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
+				if (rowNumber < 0 || rowNumber > variables.Count)
+					throw new ArgumentOutOfRangeException("rowNumber");
+
+				var variable = variables[(int) rowNumber];
+
+				switch (columnOffset) {
+					case 0:
+						return GetColumnValue(columnOffset, new SqlString(variable.Name));
+					case 1:
+						return GetColumnValue(columnOffset, new SqlString(variable.Type.ToString()));
+					case 2:
+						return GetColumnValue(columnOffset,
+							variable.Expression != null ? new SqlString(variable.Expression.ToString()) : SqlString.Null);
+					case 3:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.IsConstant));
+					case 4:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.IsNotNull));
+					case 5:
+						return GetColumnValue(columnOffset, new SqlBoolean(variable.Expression != null));
+					default:
+						throw new ArgumentOutOfRangeException("columnOffset");
+				}
 			}
 
 			protected override void Dispose(bool disposing) {
+				if (disposing) {
+					if (variables != null)
+						variables.Clear();
+				}
+
+				variables = null;
 				transaction = null;
 				base.Dispose(disposing);
 			}
@@ -688,7 +653,8 @@ namespace Deveel.Data.Transactions {
 				var names = Enum.GetNames(typeof(Privileges));
 				var values = Enum.GetValues(typeof(Privileges));
 
-				return names.Select((t, i) => new KeyValuePair<string, int>(t, (int)values.GetValue(i))).ToList();
+				return names
+					.Select((t, i) => new KeyValuePair<string, int>(t, (int) values.GetValue(i))).ToList();
 			}
 
 			public override TableInfo TableInfo {
@@ -708,54 +674,10 @@ namespace Deveel.Data.Transactions {
 					case 0:
 						return Field.Integer(pair.Value);
 					case 1:
-						return Field.VarChar(pair.Key);
+						return Field.VarChar(pair.Key.ToUpperInvariant());
 					default:
 						throw new ArgumentOutOfRangeException("columnOffset");
 				}
-			}
-		}
-
-		#endregion
-
-		#region SessionInfoTable
-
-		class SessionInfoTable : GeneratedTable {
-			public SessionInfoTable(ISession session)
-				: base(session.Context) {
-			}
-
-			public override TableInfo TableInfo {
-				get { throw new NotImplementedException(); }
-			}
-
-			public override int RowCount {
-				get { throw new NotImplementedException(); }
-			}
-
-			public override Field GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
-			}
-		}
-
-		#endregion
-
-		#region StatisticsTable
-
-		class StatisticsTable : GeneratedTable {
-			public StatisticsTable(ITransaction transaction)
-				: base(transaction.Database.Context) {
-			}
-
-			public override TableInfo TableInfo {
-				get { throw new NotImplementedException(); }
-			}
-
-			public override int RowCount {
-				get { throw new NotImplementedException(); }
-			}
-
-			public override Field GetValue(long rowNumber, int columnOffset) {
-				throw new NotImplementedException();
 			}
 		}
 

@@ -22,21 +22,27 @@ namespace Deveel.Data {
 	/// Provides a context for executing queries, accessing the
 	/// system resources and evaluation context.
 	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Query contexts are created at the creation of <see cref="IQuery"/>
+	/// and are contained by them, to be disposed at the disposal
+	/// of the containing <see cref="IQuery"/>.
+	/// </para>
+	/// <para>
+	/// Instances of this object inherit the context state of the parent
+	/// <see cref="ISessionContext"/>
+	/// </para>
+	/// <para>
+	/// As a <see cref="IBlockContext"/> this object passes its state 
+	/// to the <see cref="IBlockContext"/> instances created.
+	/// </para>
+	/// </remarks>
+	/// <seealso cref="ISessionContext"/>
 	public interface IQueryContext : IBlockContext {
-        ISessionContext SessionContext { get; }
-
-		/*
 		/// <summary>
-		/// Computes a new random number, that is ensured to be unique 
-		/// within the execution context.
+		/// Gets the context of the session context parent of the
+		/// <see cref="IQuery"/> that encapsulates this context.
 		/// </summary>
-		/// <param name="bitSize">The number of bits the final random number must 
-		/// have. This number can only be 2, 4, 8 or 16.</param>
-		/// <returns>
-		/// Returns a <see cref="SqlNumber"/> that represents a unique random number
-		/// computed within this execution context.
-		/// </returns>
-		SqlNumber NextRandom(int bitSize);
-		*/
+        ISessionContext SessionContext { get; }
 	}
 }

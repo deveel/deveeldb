@@ -117,7 +117,7 @@ namespace Deveel.Data.Sql.Statements {
 			typeInfo.Owner = context.User.Name;
 			
 			context.DirectAccess.CreateType(typeInfo);
-			context.DirectAccess.GrantOn(DbObjectType.Type, TypeName, context.User.Name, Privileges.TableAll, true);
+			context.DirectAccess.GrantOn(DbObjectType.Type, TypeName, context.User.Name, PrivilegeSets.TableAll, true);
 		}
 
 		protected override void GetData(SerializationInfo info) {

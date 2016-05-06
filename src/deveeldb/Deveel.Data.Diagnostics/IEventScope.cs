@@ -18,7 +18,15 @@
 using System;
 
 namespace Deveel.Data.Diagnostics {
-	public interface IEventScope : IContext {
+	/// <summary>
+	/// An interface for objects that handle the registration
+	/// of events.
+	/// </summary>
+	/// <seealso cref="IEventRegistry"/>
+	public interface IEventScope  {
+		/// <summary>
+		/// Gets a registry where events are handled within this scope.
+		/// </summary>
 		IEventRegistry EventRegistry { get; }
 	}
 }

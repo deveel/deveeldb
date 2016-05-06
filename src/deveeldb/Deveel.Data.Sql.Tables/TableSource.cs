@@ -23,6 +23,7 @@ using System.Linq;
 using System.Text;
 
 using Deveel.Data.Caching;
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Store;
@@ -477,10 +478,22 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
+		private string InsertCounterKey { get; set; }
+
+		private string UpdateCounterKey { get; set; }
+
+		private string DeleteCounterKey { get; set; }
+
+		private string FileHitsCounterKey { get; set; }
+
 		private void LoadInternal() {
 			lock (this) {
 				// Set up the stat keys.
-				// TODO: 
+				InsertCounterKey = String.Format("tableSource.insert.{0}", TableName);
+				UpdateCounterKey = String.Format("tableSource.update.{0}", TableName);
+				DeleteCounterKey = String.Format("tableSource.delete.{0}", TableName);
+				FileHitsCounterKey = String.Format("tableSource.fileHit.{0}", TableName);
+
 				isClosed = false;
 			}
 		}
@@ -851,7 +864,7 @@ namespace Deveel.Data.Sql.Tables {
 				OnDeleteRow(rowNumber);
 
 				// Update stats
-				//TODO:
+				DatabaseContext.OnEvent(new CounterEvent(DeleteCounterKey));
 			}
 		}
 
@@ -993,7 +1006,7 @@ namespace Deveel.Data.Sql.Tables {
 			} // lock
 
 			// Update stats
-			// TODO:
+			DatabaseContext.OnEvent(new CounterEvent(InsertCounterKey));
 
 			// Return the record index of the new data in the table
 			return rowNumber;
@@ -1340,6 +1353,8 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
+		private short sRunFileHits = Int16.MaxValue;
+
 		public Field GetValue(int rowIndex, int columnOffset) {
 			// NOTES:
 			// This is called *A LOT*.  It's a key part of the 20% of the program
@@ -1371,13 +1386,12 @@ namespace Deveel.Data.Sql.Tables {
 			try {
 				lock (recordList) {
 					// Increment the file hits counter
-					//TODO:
-					//++sRunFileHits;
+					++sRunFileHits;
 
-					//if (sRunFileHits >= 100) {
-					//	// TODO: Register the stats
-					//	sRunFileHits = 0;
-					//}
+					if (sRunFileHits >= 100) {
+						DatabaseContext.OnEvent(new CounterEvent(FileHitsCounterKey, sRunFileHits));
+						sRunFileHits = 0;
+					}
 
 					// Get the node for the record
 					var listBlock = recordList.GetRecord(rowIndex);

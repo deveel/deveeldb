@@ -29,7 +29,7 @@ namespace Deveel.Data.Caching {
 			// If we have reached maximum cache size, remove some elements from the
 			// end of the list
 			if (NodeCount >= MaxSize) {
-				Clean();
+				Clear();
 			}
 		}
 

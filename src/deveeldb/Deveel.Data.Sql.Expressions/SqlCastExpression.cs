@@ -55,8 +55,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <summary>
 		/// Gets the destination type of the conversion
 		/// </summary>
-		/// <seealso cref="SqlType.CastTo(ISqlObject, SqlType)"/>
-		/// <seealso cref="SqlType.CanCastTo"/>
+		/// <seealso cref="Types.SqlType.CastTo(ISqlObject, Types.SqlType)"/>
+		/// <seealso cref="Types.SqlType.CanCastTo"/>
 		public SqlType SqlType { get; private set; }
 
 		/// <inheritdoc/>

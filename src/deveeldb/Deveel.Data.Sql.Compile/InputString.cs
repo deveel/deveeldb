@@ -18,6 +18,7 @@
 using System;
 
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 
 namespace Deveel.Data.Sql.Compile {
 	static class InputString {
@@ -44,6 +45,13 @@ namespace Deveel.Data.Sql.Compile {
 				return null;
 
 			return AsNotQuoted(token.Text);
+		}
+
+		public static string AsNotQuoted(ITerminalNode node) {
+			if (node == null)
+				return null;
+
+			return AsNotQuoted(node.GetText());
 		}
 	}
 }

@@ -21,7 +21,7 @@ using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 
 namespace Deveel.Data.Sql.Compile {
-	class Number {
+	static class Number {
 		public static int? PositiveInteger(PlSqlParser.NumericContext context) {
 			if (context == null)
 				return null;

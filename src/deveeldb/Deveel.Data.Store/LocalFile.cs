@@ -34,6 +34,10 @@ namespace Deveel.Data.Store {
 			IsReadOnly = readOnly;
 		}
 
+		~LocalFile() {
+			Dispose(false);
+		}
+
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);

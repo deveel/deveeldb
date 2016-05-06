@@ -19,8 +19,15 @@ using System;
 using System.Globalization;
 
 namespace Deveel.Data.Diagnostics {
-	public abstract class LoggerBase : ThreadedQueue<LogEntry> {
+	public abstract class LoggerBase : ThreadedQueue<LogEntry>, IEventRouter {
+		protected LoggerBase() 
+			: this(new LoggerSettings()) {
+		}
+
 		protected LoggerBase(LoggerSettings settings) {
+			if (settings == null)
+				throw new ArgumentNullException("settings");
+
 			Settings = settings;
 		}
 
@@ -29,6 +36,30 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public LoggerSettings Settings { get; private set; }
+
+		public bool IsDebugEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Verbose; }
+		}
+
+		public bool IsInfoEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Information; }
+		}
+
+		public bool IsVerboseEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Verbose; }
+		}
+
+		public bool IsErrorEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Error; }
+		}
+
+		public bool IsWarningEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Warning; }
+		}
+
+		public bool IsCriticalEnabled {
+			get { return Settings.MinimumLevel >= LogLevel.Critical; }
+		}
 
 		protected override void Consume(LogEntry message) {
 			var logMessage = FormatMessage(message);
@@ -73,5 +104,35 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		protected abstract void LogMessage(string message);
+
+		bool IEventRouter.CanRoute(IEvent @event) {
+			if (@event is ErrorEvent) {
+				var errorEvent = (ErrorEvent) @event;
+				switch (errorEvent.Level) {
+					case ErrorLevel.Error:
+						return IsErrorEnabled;
+					case ErrorLevel.Warning:
+						return IsWarningEnabled;
+					case ErrorLevel.Critical:
+						return IsCriticalEnabled;
+				}				
+			} else if (@event is InformationEvent) {
+				var infoEvent = (InformationEvent) @event;
+				switch (infoEvent.Level) {
+					case InformationLevel.Debug:
+						return IsDebugEnabled;
+					case InformationLevel.Information:
+						return IsInfoEnabled;
+					case InformationLevel.Verbose:
+						return IsVerboseEnabled;
+				}
+			}
+
+			return false;
+		}
+
+		void IEventRouter.RouteEvent(IEvent e) {
+			Enqueue(LogEntry.FromEvent(e));
+		}
 	}
 }

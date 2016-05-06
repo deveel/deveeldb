@@ -32,12 +32,6 @@ namespace Deveel.Data.Security {
 		Update = 32,
 		Usage = 512,
 		Compact = 1024,
-		Execute = 2048,
-
-		TableAll = Select | Update | Delete | Insert | References | Usage | Compact,
-		TableRead = Select | Usage,
-
-		SchemaAll = Create | Alter | Drop | List,
-		SchemaRead = List,
+		Execute = 2048
 	}
 }

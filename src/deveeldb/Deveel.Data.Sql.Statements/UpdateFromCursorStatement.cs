@@ -44,16 +44,5 @@ namespace Deveel.Data.Sql.Statements {
 
 			throw new NotImplementedException();
 		}
-
-		#region Prepared
-
-		[Serializable]
-		class Prepared : SqlStatement {
-			protected override void ExecuteStatement(ExecutionContext context) {
-				throw new NotImplementedException();
-			}
-		}
-
-		#endregion
 	}
 }

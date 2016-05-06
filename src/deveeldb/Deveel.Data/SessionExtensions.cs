@@ -72,6 +72,50 @@ namespace Deveel.Data {
 				session.Transaction.Exit(objects, accessType);
 		}
 
+		#region Variables
+
+		public static bool AutoCommit(this ISession session) {
+			return session.Transaction.AutoCommit();
+		}
+
+		public static void AutoCommit(this ISession session, bool value) {
+			session.Transaction.AutoCommit(value);
+		}
+
+		public static void CurrentSchema(this ISession session, string value) {
+			session.Transaction.CurrentSchema(value);
+		}
+
+		public static string CurrentSchema(this ISession session) {
+			return session.Transaction.CurrentSchema();
+		}
+
+		public static bool IgnoreIdentifiersCase(this ISession session) {
+			return session.Transaction.IgnoreIdentifiersCase();
+		}
+
+		public static void IgnoreIdentifiersCase(this ISession session, bool value) {
+			session.Transaction.IgnoreIdentifiersCase(value);
+		}
+
+		public static QueryParameterStyle ParameterStyle(this ISession session) {
+			return session.Transaction.ParameterStyle();
+		}
+
+		public static void ParameterStyle(this ISession session, QueryParameterStyle value) {
+			session.Transaction.ParameterStyle(value);
+		}
+
+		#endregion
+
+		#region Locks
+
+		public static void Enter(this ISession session, IDbObject obj, AccessType accessType) {
+			session.Enter(new[] { obj }, accessType);
+		}
+
+		#endregion
+
 		#region Metadata
 
 		private static T GetMeta<T>(this ISession session, string key) {

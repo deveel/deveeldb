@@ -18,7 +18,11 @@
 using System;
 
 namespace Deveel.Data {
-	public interface ISystemDirectAccess {
+	/// <summary>
+	/// Instances of this interface provide direct access to the
+	/// system functions.
+	/// </summary>
+	interface ISystemDirectAccess {
 		SystemAccess DirectAccess { get; }
 	}
 }

@@ -16,7 +16,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventSourceExtensions {
@@ -65,8 +64,16 @@ namespace Deveel.Data.Diagnostics {
 			source.OnInformation(message, InformationLevel.Debug);
 		}
 
-		public static void OnPerformance(this IEventSource source, string key, object value) {
-			source.OnEvent(new PerformanceEvent(key, value));
+		public static void OnCounter(this IEventSource source, string key) {
+			OnCounter(source, key, null);
+		}
+
+		public static void OnCounter(this IEventSource source, string key, object value) {
+			source.OnEvent(new CounterEvent(key, value));
+		}
+
+		public static void UseLogger<TLogger>(this IEventSource source, TLogger logger) where TLogger : LoggerBase {
+			source.Context.AttachRouter(logger);
 		}
 	}
 }

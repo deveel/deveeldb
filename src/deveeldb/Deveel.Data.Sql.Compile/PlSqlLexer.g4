@@ -26,6 +26,7 @@ BETWEEN:                      B E T W E E N;
 BIGINT:                       B I G I N T;
 BINARY:                       B I N A R Y;
 BIT:                          B I T;
+BLIST:                        B L I S T;
 BLOB:                         B L O B;
 BLOCK:                        B L O C K;
 BODY:                         B O D Y;

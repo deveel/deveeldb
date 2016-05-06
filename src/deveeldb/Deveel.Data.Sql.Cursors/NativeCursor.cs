@@ -33,6 +33,7 @@ namespace Deveel.Data.Sql.Cursors {
 			CursorInfo = cursorInfo;
 			Context = context;
 
+			currentOffset = -1;
 			Status = CursorStatus.Open;
 		}
 
@@ -76,13 +77,7 @@ namespace Deveel.Data.Sql.Cursors {
 			if (CursorInfo.ForUpdate)
 				accessType |= AccessType.Write;
 
-			Context.Query.Session.Enter(refs, accessType);
-
-			var tables = refs.Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table).Select(x => x.ObjectInfo.FullName);
-			foreach (var table in tables) {
-				Context.Query.Session.Transaction.GetTableManager().SelectTable(table);
-			}
-			
+			Context.Query.Session.Enter(refs, accessType);			
 
 			References = refs;
 		}
@@ -129,6 +124,11 @@ namespace Deveel.Data.Sql.Cursors {
 		public CursorStatus Status { get; private set; }
 
 		public Row Fetch(FetchDirection direction, int offset) {
+			Evaluate();
+
+			if (Result == null)
+				return null;
+
 			if (direction != FetchDirection.Absolute &&
 				direction != FetchDirection.Relative &&
 				offset > -1)

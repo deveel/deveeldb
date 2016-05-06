@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Index;
-using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql.Tables {
 	/// <summary>

@@ -20,8 +20,6 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-using Deveel.Data.Serialization;
-
 namespace Deveel.Data.Sql.Types {
 	static class TypeSerializer {
 		public static void SerializeTo(BinaryWriter writer, SqlType type) {
@@ -66,11 +64,6 @@ namespace Deveel.Data.Sql.Types {
 			} else {
 				throw new NotSupportedException();
 			}
-		}
-
-		public static void SerializeTo(Stream stream, SqlType type) {
-			var writer = new BinaryWriter(stream, Encoding.Unicode);
-			SerializeTo(writer, type);
 		}
 
 		public static SqlType Deserialize(BinaryReader reader, ITypeResolver resolver) {

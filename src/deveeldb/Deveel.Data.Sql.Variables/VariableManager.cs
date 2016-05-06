@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql.Types;
@@ -28,6 +29,10 @@ namespace Deveel.Data.Sql.Variables {
 			Scope = scope;
 
 			variables = new Dictionary<string, Variable>();
+		}
+
+		~VariableManager() {
+			Dispose(false);
 		}
 
 		public IVariableScope Scope { get; private set; }
@@ -88,6 +93,18 @@ namespace Deveel.Data.Sql.Variables {
 				return null;
 
 			return variable.Type;
+		}
+
+		public IEnumerator<Variable> GetEnumerator() {
+			lock (variables) {
+				foreach (var pair in variables) {
+					yield return pair.Value;
+				}
+			}
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
 		}
 	}
 }

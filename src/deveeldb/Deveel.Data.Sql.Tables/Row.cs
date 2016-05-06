@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Tables {
 		public RowId RowId { get; private set; }
 
 		IObjectInfo IDbObject.ObjectInfo {
-			get { return null; }
+			get { return new RowInfo(this); }
 		}
 
 		/// <summary>
@@ -455,10 +455,6 @@ namespace Deveel.Data.Sql.Tables {
 				++assignmentCount;
 			}
 
-			public int SetId {
-				get { return assignmentCount; }
-			}
-
 			public Variable Resolve(ObjectName columnName) {
 				string colName = columnName.Name;
 
@@ -525,5 +521,29 @@ namespace Deveel.Data.Sql.Tables {
 
 			SetValue(column, value);
 		}
+
+		#region RowInfo
+
+		class RowInfo : IObjectInfo {
+			public RowInfo(Row row) {
+				Row = row;
+			}
+
+			private Row Row { get; set; }
+
+			public DbObjectType ObjectType {
+				get { return DbObjectType.Row; }
+			}
+
+			public ObjectName FullName {
+				get { return new ObjectName(Row.Table.TableInfo.TableName, Row.RowId.ToString()); }
+			}
+
+			public string Owner {
+				get { return null; }
+			}
+		}
+
+		#endregion
 	}
 }

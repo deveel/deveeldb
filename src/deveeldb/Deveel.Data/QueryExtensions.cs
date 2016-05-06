@@ -70,20 +70,39 @@ namespace Deveel.Data {
 			if (sqlQuery == null)
 				throw new ArgumentNullException("sqlQuery");
 
-			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.BeforeExecute, null));
+			SqlStatement[] statements = null;
+			bool cacheGet = false;
 
-			var sqlSouce = sqlQuery.Text;
-			var compiler = query.Context.SqlCompiler();
-
-			if (compiler == null)
-				compiler = new PlSqlCompiler();
-
-			var compileResult = compiler.Compile(new SqlCompileContext(query.Context, sqlSouce));
-
-			if (compileResult.HasErrors) {
-				// TODO: throw a specialized exception...
-				throw new InvalidOperationException("The compilation of the query thrown errors.");
+			var cache = query.Context.ResolveService<IStatementCache>();
+			if (cache != null) {
+				if (cache.TryGet(sqlQuery.Text, out statements))
+					cacheGet = true;
 			}
+
+			if (statements == null) {
+				var sqlSouce = sqlQuery.Text;
+				var compiler = query.Context.SqlCompiler();
+
+				if (compiler == null)
+					compiler = new PlSqlCompiler();
+
+				var compileResult = compiler.Compile(new SqlCompileContext(query.Context, sqlSouce));
+
+				if (compileResult.HasErrors) {
+					// TODO: throw a specialized exception...
+					throw new InvalidOperationException("The compilation of the query thrown errors.");
+				}
+
+				statements = compileResult.Statements.ToArray();
+			}
+
+			if (statements.Length == 0)
+				return new StatementResult[0];
+
+			if (cache != null && !cacheGet)
+				cache.Set(sqlQuery.Text, statements);
+
+			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.BeforeExecute, null));
 
 			var paramStyle = sqlQuery.ParameterStyle;
 			if (paramStyle == QueryParameterStyle.Default)
@@ -91,7 +110,7 @@ namespace Deveel.Data {
 
 			var preparer = new QueryPreparer(sqlQuery, paramStyle);
 
-			var result = query.ExecuteStatements(preparer, compileResult.Statements.ToArray());
+			var result = query.ExecuteStatements(preparer, statements);
 
 			query.Context.RegisterEvent(new QueryEvent(sqlQuery, QueryEventType.AfterExecute, result));
 

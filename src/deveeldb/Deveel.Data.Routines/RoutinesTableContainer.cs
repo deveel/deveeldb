@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Routines {
-	class RoutinesTableContainer : SystemTableContainer {
+	class RoutinesTableContainer : TableContainerBase {
 		public RoutinesTableContainer(ITransaction transaction)
 			: base(transaction, RoutineManager.RoutineTableName) {
 		}

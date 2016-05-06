@@ -26,27 +26,27 @@ namespace Deveel.Data.Routines {
 	/// Extension methods to any <see cref="IRoutineResolver"/>
 	/// </summary>
 	public static class RoutineResolverExtensions {
-		/// <summary>
-		/// Checks if a function matched against the given request represents
-		/// an aggregate function.
-		/// </summary>
-		/// <param name="resolver">The routine resolver.</param>
-		/// <param name="request">The invocation request used to resolve the function.</param>
-		/// <param name="query">The parent query context.</param>
-		/// <returns>
-		/// Returns <c>true</c> if a routine was resolved for the given request,
-		/// this is a <see cref="IFunction"/> and the <see cref="FunctionType"/> is
-		/// <see cref="FunctionType.Aggregate"/>, otherwise <c>false</c>.
-		/// </returns>
-		public static bool IsAggregateFunction(this IRoutineResolver resolver, Invoke request, IQuery query) {
-			var routine = resolver.ResolveRoutine(request, query);
+		///// <summary>
+		///// Checks if a function matched against the given request represents
+		///// an aggregate function.
+		///// </summary>
+		///// <param name="resolver">The routine resolver.</param>
+		///// <param name="request">The invocation request used to resolve the function.</param>
+		///// <param name="query">The parent query context.</param>
+		///// <returns>
+		///// Returns <c>true</c> if a routine was resolved for the given request,
+		///// this is a <see cref="IFunction"/> and the <see cref="FunctionType"/> is
+		///// <see cref="FunctionType.Aggregate"/>, otherwise <c>false</c>.
+		///// </returns>
+		//public static bool IsAggregateFunction(this IRoutineResolver resolver, Invoke request, IQuery query) {
+		//	var routine = resolver.ResolveRoutine(request, query);
 
-			var function = routine as IFunction;
-			if (function == null)
-				return false;
+		//	var function = routine as IFunction;
+		//	if (function == null)
+		//		return false;
 
-			return function.FunctionType == FunctionType.Aggregate;
-		}
+		//	return function.FunctionType == FunctionType.Aggregate;
+		//}
 
 		public static IFunction ResolveFunction(this FunctionProvider resolver, string name) {
 			return ResolveFunction(resolver, null, name);

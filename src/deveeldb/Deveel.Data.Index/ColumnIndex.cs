@@ -99,7 +99,7 @@ namespace Deveel.Data.Index {
 				// it.  This requires use of memory from the heap but is faster than
 				// the no heap use method.
 				var subsetList = new List<Field>(rowSetLength);
-				foreach (long row in rowSet) {
+				foreach (var row in rowSet) {
 					subsetList.Add(GetValue(row));
 				}
 

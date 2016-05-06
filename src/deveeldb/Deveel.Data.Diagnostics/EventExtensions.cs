@@ -32,6 +32,10 @@ namespace Deveel.Data.Diagnostics {
 				return (T) value;
 
 #if !PCL
+			if (value is string &&
+			    typeof(T).IsEnum)
+				return (T) Enum.Parse(typeof(T), (string) value, true);
+
 			if (value is IConvertible)
 				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 
@@ -39,22 +43,6 @@ namespace Deveel.Data.Diagnostics {
 #else
 			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
 #endif
-		}
-
-		public static string UserName(this IEvent @event) {
-			return @event.GetData<string>(KnownEventMetadata.UserName);
-		}
-
-		public static string DatabaseName(this IEvent @event) {
-			return @event.GetData<string>(KnownEventMetadata.DatabaseName);
-		}
-
-		public static int CommitId(this IEvent @event) {
-			return @event.GetData<int>(KnownEventMetadata.CommitId);
-		}
-
-		public static DateTimeOffset SessionStartTime(this IEvent @event) {
-			return @event.GetData<DateTimeOffset>(KnownEventMetadata.SessionStartTime);
 		}
 	}
 }

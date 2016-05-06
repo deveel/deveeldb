@@ -62,6 +62,11 @@ namespace Deveel.Data {
 		/// </summary>
 		protected abstract string ContextName { get; }
 
+		/// <summary>
+		/// Gets a scope specific for this context, that is used
+		/// to resolve services registered within this context
+		/// or parent contexts.
+		/// </summary>
 		protected virtual IScope ContextScope { 
 			get { return scope; } 
 		}

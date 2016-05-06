@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using Deveel.Data;
 using Deveel.Data.Sql;
@@ -50,6 +51,20 @@ namespace Deveel.Data.Routines {
 			return exp.ReturnType(context.Request, context.VariableResolver);
 		}
 
+		private static SqlType ConcatReturnType(InvokeContext context) {
+			// Determine the locale of the first string parameter.
+			CultureInfo locale = null;
+			for (int i = 0; i < context.ArgumentCount && locale == null; ++i) {
+				var type = ReturnType(context.Arguments[i].Value, context);
+				if (type is StringType) {
+					StringType strType = (StringType)type;
+					locale = strType.Locale;
+				}
+			}
+
+			return locale != null ? PrimitiveTypes.VarChar(locale) : PrimitiveTypes.VarChar();
+		}
+
 		#endregion
 
 		#region Aggregate Functions
@@ -60,7 +75,9 @@ namespace Deveel.Data.Routines {
 				.Named("aggor")
 				.WithParameter(p => p.Named("args").Unbounded().OfDynamicType())
 				.OfAggregateType()
-				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
+				.WhenExecute(context => {
+					return Binary(context, SystemFunctions.Or);
+				}));
 
 			// COUNT
 			Register(config => config.Named("count")
@@ -448,8 +465,13 @@ namespace Deveel.Data.Routines {
 				.WhenExecute(context => Simple(context, args => SystemFunctions.FRuleConvert(args[0])))
 				.ReturnsType(context => {
 					var argType = ReturnType(context.Arguments[0].Value, context);
-					return argType is StringType ? (SqlType) PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
+					return argType is StringType ? PrimitiveTypes.Numeric() : (SqlType) PrimitiveTypes.String();
 				}));
+
+			Register(config => config.Named("i_privilege_string")
+				.WithNumericParameter("privBit")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.PrivilegeString(args[0])))
+				.ReturnsString());
 
 			// VERSION
 			Register(config => config
@@ -544,6 +566,18 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
+		#region String Functions
+
+		private void StringFunctions() {
+			// CONCAT([STRING])
+			Register(config => config.Named("concat")
+				.WithUnoundedParameter("strings", PrimitiveTypes.VarChar())
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Concat(args)))
+				.ReturnsType(ConcatReturnType));
+		}
+
+		#endregion
+
 		protected override void OnInit() {
 			AggregateFunctions();
 
@@ -551,6 +585,7 @@ namespace Deveel.Data.Routines {
 			SecurityFunctions();
 			SequenceFunctions();
 			DateFunctions();
+			StringFunctions();
 
 			MiscFunctions();
 		}

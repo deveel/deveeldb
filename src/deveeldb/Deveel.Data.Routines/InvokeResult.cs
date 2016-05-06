@@ -20,16 +20,24 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
 	/// Represents the result of the execution of a routine.
 	/// </summary>
 	public sealed class InvokeResult {
-		private InvokeResult(InvokeContext context, Field returnValue, bool hasReturn) {
+		private InvokeResult(InvokeContext context, object returnValue, bool hasReturn) {
 			Context = context;
-			ReturnValue = returnValue;
-			HasReturnValue = hasReturn;
+			if (returnValue is ITable) {
+				var table = (ITable) returnValue;
+				ReturnTable = table;
+				HasReturnTable = hasReturn;
+			} else if (returnValue is Field) {
+				var field = (Field) returnValue;
+				ReturnValue = field;
+				HasReturnValue = hasReturn;
+			}
 		}
 
 		internal InvokeResult(InvokeContext context) 
@@ -38,6 +46,10 @@ namespace Deveel.Data.Routines {
 
 		internal InvokeResult(InvokeContext context, Field returnValue)
 			: this(context, returnValue, true) {
+		}
+
+		internal InvokeResult(InvokeContext context, ITable table)
+			: this(context, table, true) {
 		}
 
 		/// <summary>
@@ -60,7 +72,7 @@ namespace Deveel.Data.Routines {
 		public Field ReturnValue { get; private set; }
 
 		/// <summary>
-		/// Gets a boolean value indicating if the function has a <see cref="ReturnValue"/>.
+		/// Gets a boolean value indicating if the invoke has a <see cref="ReturnValue"/>.
 		/// </summary>
 		/// <remarks>
 		/// This is always set to <c>false</c> when the routine context is of a
@@ -68,6 +80,25 @@ namespace Deveel.Data.Routines {
 		/// </remarks>
 		/// <seealso cref="ReturnValue"/>
 		public bool HasReturnValue { get; private set; }
+
+		/// <summary>
+		/// If the context of the result is a function, gets the return table of
+		/// the function.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This is set to <c>null</c> by default: the property
+		/// <see cref="HasReturnTable"/> assess a return table was really provided 
+		/// by the function.
+		/// </para>
+		/// </remarks>
+		/// <seealso cref="HasReturnTable"/>
+		public ITable ReturnTable { get; private set; }
+
+		/// <summary>
+		/// Gets a boolean value indicating if the function has a <see cref="ReturnTable"/>.
+		/// </summary>
+		public bool HasReturnTable { get; private set; }
 
 		/// <summary>
 		/// Gets a boolean value indicating if the routine has any <c>OUT</c>
@@ -79,7 +110,7 @@ namespace Deveel.Data.Routines {
 		}
 
 		/// <summary>
-		/// Gets a dictionary of the <c>OUT</c> parameters emitted byt the routine.
+		/// Gets a dictionary of the <c>OUT</c> parameters emitted by the routine.
 		/// </summary>
 		public IDictionary<string, Field> OutputParameters {
 			get { return Context.Output; }

@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
@@ -27,6 +26,7 @@ using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
@@ -65,6 +65,10 @@ namespace Deveel.Data {
 			ServiceContainer.UseVariables();
 
 			ServiceContainer.UseDefaultCompiler();
+
+			ServiceContainer.Bind<IStatementCache>()
+				.To<StatementCache>()
+				.InSystemScope();
 
 			ServiceContainer.Bind<IQueryPlanner>()
 				.To<QueryPlanner>()

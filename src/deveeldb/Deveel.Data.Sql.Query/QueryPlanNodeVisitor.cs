@@ -18,11 +18,7 @@
 using System;
 
 namespace Deveel.Data.Sql.Query {
-	class QueryPlanNodeVisitor : IQueryPlanNodeVisitor {
-		IQueryPlanNode IQueryPlanNodeVisitor.Visit(IQueryPlanNode node) {
-			return VisitNode(node);
-		}
-
+	class QueryPlanNodeVisitor {
 		protected virtual IQueryPlanNode VisitNode(IQueryPlanNode node) {
 			if (node is SingleQueryPlanNode)
 				return VisitSingle((SingleQueryPlanNode) node);

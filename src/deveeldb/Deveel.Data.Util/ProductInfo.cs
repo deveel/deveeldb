@@ -50,6 +50,10 @@ namespace Deveel.Data.Util {
 
 		public Version Version { get; private set; }
 
+		public Version FileVersion { get; private set; }
+
+		public Version DataVersion { get; private set; }
+
 		public string Description { get; private set; }
 
 		private static ProductInfo GetProductInfo(Assembly assembly) {
@@ -58,7 +62,7 @@ namespace Deveel.Data.Util {
 #if PCL
 			var attributes = assembly.GetCustomAttributes().ToArray();
 #else
-			var attributes = assembly.GetCustomAttributes(false).ToArray();
+			var attributes = assembly.GetCustomAttributes(true).ToArray();
 #endif
 			for (int i = 0; i < attributes.Length; i++) {
 				object attr = attributes[i];
@@ -72,6 +76,10 @@ namespace Deveel.Data.Util {
 					productInfo.Title = ((AssemblyTitleAttribute)attr).Title;
 				else if (attr is AssemblyDescriptionAttribute)
 					productInfo.Description = ((AssemblyDescriptionAttribute)attr).Description;
+				else if (attr is AssemblyFileVersionAttribute)
+					productInfo.FileVersion = new Version(((AssemblyFileVersionAttribute) attr).Version);
+				else if (attr is DataVersionAttribute)
+					productInfo.DataVersion = ((DataVersionAttribute)attr).Version;
 			}
 
 			return productInfo;

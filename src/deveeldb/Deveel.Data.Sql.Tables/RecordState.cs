@@ -17,7 +17,7 @@
 
 using System;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql.Tables {
 	/// <summary>
 	/// An enumeration that represents the various states of a record.
 	/// </summary>

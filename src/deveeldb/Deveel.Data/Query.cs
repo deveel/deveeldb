@@ -22,6 +22,14 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data {
+	/// <summary>
+	/// The default implementation of a <see cref="IQuery"/>
+	/// </summary>
+	/// <remarks>
+	/// This object is also a <see cref="IEventSource"/> that means
+	/// all events and errors fired at the query level with have this
+	/// as <see cref="IEvent.EventSource"/>.
+	/// </remarks>
 	public sealed class Query : IQuery, IEventSource, ISystemDirectAccess {
 		private Dictionary<string, object> metadata;
 
@@ -70,11 +78,18 @@ namespace Deveel.Data {
 
 		public ISession Session { get; private set; }
 
+		/// <summary>
+		/// Gets the time-stamp of when this query was created.
+		/// </summary>
 		public DateTimeOffset StartedOn { get; private set; }
 
+		/// <summary>
+		/// Gets an optional <see cref="SqlQuery"/> that originated
+		/// this query.
+		/// </summary>
 		public SqlQuery SourceQuery { get; private set; }
 		
-		public RequestAccess Access { get; private set; }
+		private RequestAccess Access { get; set; }
 
 		SystemAccess ISystemDirectAccess.DirectAccess {
 			get { return Access; }

@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Deveel.Data;
 using Deveel.Data.Index;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -90,6 +89,25 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentException("Multi-column gets not supported.");
 
 			return new[] {table.GetSingleValue(columnOffsets[0])};
+		}
+
+		#endregion
+
+		#region GetColumn
+
+		public static Column GetColumn(this ITable table, int columnOffset) {
+			return new Column(table, columnOffset);
+		}
+
+		public static Column GetColumn(this ITable table, string columnName) {
+			if (String.IsNullOrEmpty(columnName))
+				throw new ArgumentNullException("columnName");
+
+			var offset = table.TableInfo.IndexOfColumn(columnName);
+			if (offset < 0)
+				throw new ArgumentException(String.Format("The table '{0}' has no columns named '{1}'.", table.TableInfo.TableName, columnName));
+
+			return table.GetColumn(offset);
 		}
 
 		#endregion
