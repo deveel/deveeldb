@@ -16,9 +16,10 @@
 
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IVariableResolver, IDisposable {
+	public interface IVariableManager : IEnumerable<Variable>, IVariableResolver, IDisposable {
 		Variable DefineVariable(VariableInfo variableInfo);
 
 		bool VariableExists(string variableName);

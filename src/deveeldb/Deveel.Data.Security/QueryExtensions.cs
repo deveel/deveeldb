@@ -37,9 +37,5 @@ namespace Deveel.Data.Security {
 				throw new DatabaseSystemException("Could not create the database administrator.", ex);
 			}
 		}
-
-		public static void CreateAdminUser(this IQuery query, string userName, string password) {
-			query.CreateAdminUser(userName, KnownUserIdentifications.ClearText, password);
-		}
 	}
 }

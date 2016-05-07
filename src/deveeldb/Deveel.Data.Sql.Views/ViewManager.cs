@@ -40,6 +40,10 @@ namespace Deveel.Data.Sql.Views {
 			transaction.Context.RouteImmediate<TableCommitEvent>(OnCommit, e => e.TableName.Equals(ViewTableName));
 		}
 
+		~ViewManager() {
+			Dispose(false);
+		}
+
 		public static readonly ObjectName ViewTableName = new ObjectName(SystemSchema.SchemaName, "view");
 
 

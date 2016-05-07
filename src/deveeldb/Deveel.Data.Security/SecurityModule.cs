@@ -57,9 +57,5 @@ namespace Deveel.Data.Security {
 				.To<Pkcs12UserIdentifier>();
 #endif
 		}
-
-		public void Unregister(IScope systemScope) {
-			// TODO:
-		}
 	}
 }

@@ -209,6 +209,9 @@ namespace Deveel.Data.Sql.Statements {
 
 				var newConstraint = new ConstraintInfo(constraint.ConstraintName, constraint.ConstraintType, TableName, columnNames.ToArray());
 				if (foreignConstraint) {
+					if (refCols == null)
+						throw new InvalidOperationException("Could not create a Foreign Key constraint with no reference columns");
+
 					newConstraint.ForeignTable = refTname;
 					newConstraint.ForeignColumnNames = refCols.ToArray();
 				}

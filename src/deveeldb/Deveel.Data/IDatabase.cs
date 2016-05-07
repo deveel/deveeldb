@@ -17,6 +17,7 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
@@ -49,6 +50,11 @@ namespace Deveel.Data {
 		IDatabaseContext Context { get; }
 
 		ISystem System { get; }
+
+		/// <summary>
+		/// Gets a registry of statistical counters 
+		/// </summary>
+		ICounterRegistry Counters { get; }
 
 		/// <summary>
 		/// Gets an object that is used to create new transactions to this database

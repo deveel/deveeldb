@@ -333,6 +333,9 @@ namespace Deveel.Data.Serialization {
 		private static void SerializeGraph(BinaryWriter writer, Encoding encoding, Type graphType, SerializationInfo graph) {
 			var fullName = graphType.AssemblyQualifiedName;
 
+			if (String.IsNullOrEmpty(fullName))
+				throw new InvalidOperationException("Could not obtain the assembly qualified name of the type.");
+
 			writer.Write(fullName);
 
 			var count = graph.MemberCount;

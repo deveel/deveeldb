@@ -21,10 +21,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using SqlBoolean = Deveel.Data.Sql.Objects.SqlBoolean;
@@ -314,7 +312,7 @@ namespace Deveel.Data.Sql {
 
 		/// <summary>
 		/// When the type of this object is a string, this method verifies if the
-		/// input pattern is compatible (<<c>likes</c>) with the input. 
+		/// input pattern is compatible (<c>likes</c>) with the input. 
 		/// </summary>
 		/// <param name="pattern">The input string object pattern used to verify
 		/// the likeness with the underlying string object..</param>

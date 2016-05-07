@@ -209,10 +209,6 @@ namespace Deveel.Data.Sql.Types {
 			return DateTime(SqlTypeCode.Time);
 		}
 
-		public static RowType RowType(ObjectName tableName) {
-			return new RowType(tableName);
-		}
-
 		public static ColumnType ColumnType(ObjectName columnName) {
 			return new ColumnType(columnName);
 		}
@@ -451,17 +447,6 @@ namespace Deveel.Data.Sql.Types {
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);
 
-			if (sqlType == SqlTypeCode.RowType) {
-				if (!context.HasAnyMeta)
-					throw new ArgumentException("Invalid number of arguments for %ROWTYPE type");
-
-				var tableNameMeta = context.GetMeta("TableName");
-				if (tableNameMeta == null)
-					throw new ArgumentException();
-
-				var tableName = ObjectName.Parse(tableNameMeta.Value);
-				return RowType(tableName);
-			}
 
 			if (sqlType == SqlTypeCode.ColumnType) {
 				if (!context.HasAnyMeta)
