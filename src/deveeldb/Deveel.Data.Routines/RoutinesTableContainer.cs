@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
@@ -28,6 +29,14 @@ namespace Deveel.Data.Routines {
 	class RoutinesTableContainer : TableContainerBase {
 		public RoutinesTableContainer(ITransaction transaction)
 			: base(transaction, RoutineManager.RoutineTableName) {
+		}
+
+		protected override int NameColumnOffset {
+			get { return 2; }
+		}
+
+		protected override int SchemaColumnOffset {
+			get { return 1; }
 		}
 
 		private static TableInfo CreateTableInfo(string schema, string name) {
@@ -71,34 +80,23 @@ namespace Deveel.Data.Routines {
 
 		public override ITable GetTable(int offset) {
 			var table = Transaction.GetTable(RoutineManager.RoutineTableName);
-			var rowE = table.GetEnumerator();
-			int p = 0;
-			int i;
-			int rowI = -1;
-			while (rowE.MoveNext()) {
-				i = rowE.Current.RowId.RowNumber;
-				if (p == offset) {
-					rowI = i;
-				} else {
-					++p;
-				}
-			}
 
-			if (p != offset)
+			if (offset < 0 || offset >= table.RowCount)
 				throw new ArgumentOutOfRangeException("offset");
 
-			string schema = table.GetValue(rowI, 0).Value.ToString();
-			string name = table.GetValue(rowI, 1).Value.ToString();
+			var routineId = ((SqlNumber) table.GetValue(offset, 0).Value).ToInt32();
+			string schema = table.GetValue(offset, 1).Value.ToString();
+			string name = table.GetValue(offset, 2).Value.ToString();
 
-			var paramTypes = GetParameterTypes(schema, name);
+			var paramTypes = GetParameterTypes(routineId);
 
 			var tableInfo = CreateTableInfo(schema, name);
-			var type = table.GetValue(rowI, 2);
-			var location = table.GetValue(rowI, 3);
-			var returnType = table.GetValue(rowI, 4);
-			var owner = table.GetValue(rowI, 5);
+			var type = table.GetValue(offset, 3);
+			var location = table.GetValue(offset, 4);
+			var returnType = table.GetValue(offset, 5);
+			var owner = table.GetValue(offset, 6);
 
-			return new RoutineTable(Transaction.Database.Context, tableInfo) {
+			return new RoutineTable(Transaction.Context, tableInfo) {
 				Type = type,
 				Location = location,
 				ReturnType = returnType,
@@ -107,9 +105,9 @@ namespace Deveel.Data.Routines {
 			};
 		}
 
-		private Field GetParameterTypes(string schema, string name) {
+		private Field GetParameterTypes(int routineId) {
 			var table = Transaction.GetTable(RoutineManager.RoutineParameterTableName);
-			var rows = table.SelectRowsEqual(1, Field.String(name), 0, Field.String(schema));
+			var rows = table.SelectRowsEqual(0, Field.Integer(routineId));
 			var types = new List<string>();
 
 			foreach (var rowIndex in rows) {
@@ -144,7 +142,7 @@ namespace Deveel.Data.Routines {
 		class RoutineTable : GeneratedTable {
 			private readonly TableInfo tableInfo;
 
-			public RoutineTable(IDatabaseContext dbContext, TableInfo tableInfo)
+			public RoutineTable(IContext dbContext, TableInfo tableInfo)
 				: base(dbContext) {
 				this.tableInfo = tableInfo;
 			}
