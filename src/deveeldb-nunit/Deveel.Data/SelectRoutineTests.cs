@@ -55,6 +55,34 @@ namespace Deveel.Data {
 			Assert.DoesNotThrow(() => row = result.Fetch(FetchDirection.Next, -1));
 
 			Assert.IsNotNull(row);
+
+			var type = row.GetValue("type");
+
+			Assert.IsFalse(Field.IsNullField(type));
+			Assert.AreEqual("procedure", type.Value.ToString());
+		}
+
+		[Test]
+		public void SelectAllFromFunction() {
+			const string sql = "SELECT * FROM func1";
+
+			var query = (SqlQueryExpression)SqlExpression.Parse(sql);
+
+			Assert.IsNotNull(query);
+
+			var result = Query.Select(query);
+
+			Row row = null;
+
+			Assert.IsNotNull(result);
+			Assert.DoesNotThrow(() => row = result.Fetch(FetchDirection.Next, -1));
+
+			Assert.IsNotNull(row);
+
+			var type = row.GetValue("type");
+
+			Assert.IsFalse(Field.IsNullField(type));
+			Assert.AreEqual("function", type.Value.ToString());
 		}
 	}
 }
