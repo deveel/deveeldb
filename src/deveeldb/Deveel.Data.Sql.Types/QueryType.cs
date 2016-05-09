@@ -42,45 +42,5 @@ namespace Deveel.Data.Sql.Types {
 		public override bool IsStorable {
 			get { return false; }
 		}
-
-		public override ISqlObject DeserializeObject(Stream stream) {
-			var reader = new BinaryReader(stream, Encoding.Unicode);
-			var isNull = reader.ReadByte() == 0;
-			if (isNull)
-				return SqlQueryObject.Null;
-
-			var nodeTypeString = reader.ReadString();
-			var nodeType = Type.GetType(nodeTypeString, true);
-			var queryPlan = DeserializePlan(nodeType, reader);
-
-			return new SqlQueryObject(queryPlan);
-		}
-
-		private static IQueryPlanNode DeserializePlan(Type nodeType, BinaryReader reader) {
-			var serializer = new BinarySerializer();
-			return (IQueryPlanNode) serializer.Deserialize(reader);
-		}
-
-		public override void SerializeObject(Stream stream, ISqlObject obj) {
-			var writer = new BinaryWriter(stream, Encoding.Unicode);
-
-			var queryPlanObj = (SqlQueryObject) obj;
-			if (queryPlanObj.IsNull) {
-				writer.Write((byte) 0);
-			} else {
-				writer.Write((byte)1);
-				var nodeTypeString = queryPlanObj.QueryPlan.GetType().AssemblyQualifiedName;
-				if (String.IsNullOrEmpty(nodeTypeString))
-					throw new InvalidOperationException();
-
-				writer.Write(nodeTypeString);
-				SerializePlan(queryPlanObj.QueryPlan, writer);
-			}
-		}
-
-		private static void SerializePlan(IQueryPlanNode queryPlan, BinaryWriter writer) {
-			var serializer = new BinarySerializer();
-			serializer.Serialize(writer, queryPlan);
-		}
 	}
 }
