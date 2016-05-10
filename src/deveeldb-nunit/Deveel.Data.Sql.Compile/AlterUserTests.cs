@@ -85,5 +85,27 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.AreEqual(UserStatus.Locked, setStatus.Status);
 		}
+
+		[Test]
+		public void SetRole() {
+			const string sql = "ALTER USER test SET ROLE editor";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterUserStatement>(statement);
+
+			var alterUser = (AlterUserStatement)statement;
+
+			Assert.AreEqual("test", alterUser.UserName);
+		}
 	}
 }

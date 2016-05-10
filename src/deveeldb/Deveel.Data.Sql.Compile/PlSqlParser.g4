@@ -213,13 +213,13 @@ alterTableStatement
 
 alterTableAction
      : addColumnAction
+	 | setDefaultAction
 	 | alterColumnAction
 	 | dropColumnAction
 	 | addConstraintAction
 	 | dropConstraintAction
 	 | dropDefaultAction
 	 | dropPrimaryKeyAction 
-	 | setDefaultAction
 	 ;
 
 addColumnAction
@@ -251,7 +251,7 @@ dropPrimaryKeyAction
 	;
 
 setDefaultAction
-    : ALTER COLUMN? id SET DEFAULT expression_wrapper
+    : ALTER COLUMN? columnName SET DEFAULT expressionWrapper
 	;
 
 // $>
@@ -336,10 +336,10 @@ variableDeclaration
 
 //cursor_declaration incorportates curscursor_body and cursor_spec
 cursorDeclaration
-    : CURSOR cursor_name ('(' parameter_spec (',' parameter_spec)* ')' )? (IS subquery)? SEMICOLON?
+    : CURSOR cursor_name ('(' parameterSpec (',' parameterSpec)* ')' )? (IS subquery)? SEMICOLON?
     ;
 
-parameter_spec
+parameterSpec
     : parameter_name (IN? datatype)? defaultValuePart?
     ;
 
@@ -378,7 +378,7 @@ updateLimitClause
 
 // $<PL/SQL Statements
 
-seq_of_statements
+seqOfStatements
     : statement ( (';' | EOF) statement)*
     ;
 
@@ -400,7 +400,7 @@ statement
     | raiseStatement
     | returnStatement
     | caseStatement/*[true]*/
-    | sql_statement
+    | sqlStatement
     | callStatement
 
 	| variableDeclaration
@@ -439,7 +439,7 @@ setAccountAction
 	;
 
 setRoleAction
-    : ROLE regular_id
+    : SET ROLE regular_id
 	;
 
 granteeName
@@ -528,19 +528,19 @@ gotoStatement
     ;
 
 ifStatement
-    : IF condition THEN seq_of_statements elsifPart* elsePart? END IF
+    : IF condition THEN seqOfStatements elsifPart* elsePart? END IF
     ;
 
 elsifPart
-    : ELSIF condition THEN seq_of_statements
+    : ELSIF condition THEN seqOfStatements
     ;
 
 elsePart
-    : ELSE seq_of_statements
+    : ELSE seqOfStatements
     ;
 
 loopStatement
-    : labelDeclaration? (WHILE condition | FOR cursorLoopParam)? LOOP seq_of_statements END LOOP
+    : labelDeclaration? (WHILE condition | FOR cursorLoopParam)? LOOP seqOfStatements END LOOP
     ;
 
 // $<Loop - Specific Clause
@@ -578,7 +578,7 @@ callStatement
     ;
 
 body
-    : labelDeclaration? BEGIN seq_of_statements exceptionClause? END
+    : labelDeclaration? BEGIN seqOfStatements exceptionClause? END
     ;
 
 // $<Body - Specific Clause
@@ -588,7 +588,7 @@ exceptionClause
     ;
 
 exceptionHandler
-    : WHEN ( OTHERS | id (OR id)* ) THEN seq_of_statements
+    : WHEN ( OTHERS | id (OR id)* ) THEN seqOfStatements
     ;
 
 // $>
@@ -635,7 +635,7 @@ showStatement
 
 // $<SQL PL/SQL Statements
 
-sql_statement
+sqlStatement
     : dmlStatement
     | cursorStatement
     | transactionControlStatement
@@ -763,15 +763,14 @@ dmlEventElement
     : (DELETE|INSERT|UPDATE)
     ;
 
-
 // $>
 // $>
 
 deleteStatement
-    : DELETE FROM? objectName whereClause? delete_limit?
+    : DELETE FROM? objectName whereClause? deleteLimit?
     ;
 
-delete_limit
+deleteLimit
     : LIMIT numeric
 	;
 
@@ -937,10 +936,6 @@ expression_unit
     : expression EOF
 	;
 
-cursor_expression
-    : CURSOR '(' subquery ')'
-    ;
-
 expression_list
     : '(' expression? (',' expression)* ')'
     ;
@@ -954,11 +949,10 @@ condition_wrapper
     ;
 
 expression
-    : cursor_expression
-    | left=logical_and_expression ( op=OR right=logical_and_expression )*
+    : left=logical_and_expression ( op=OR right=logical_and_expression )*
     ;
 
-expression_wrapper
+expressionWrapper
     : expression
     ;
 
@@ -999,7 +993,7 @@ in_elements
     ;
 
 concatenation
-    : left=additive_expression (op=concat right=additive_expression)*
+    : additive_expression (concat additive_expression)*
     ;
 
 concatenation_wrapper
@@ -1067,7 +1061,7 @@ simpleCaseStatement
     ;
 
 simpleCaseWhenPart
-    : WHEN expression_wrapper THEN ( seq_of_statements  | expression_wrapper)
+    : WHEN expressionWrapper THEN ( seqOfStatements  | expressionWrapper)
     ;
 
 searchedCaseStatement
@@ -1075,11 +1069,11 @@ searchedCaseStatement
     ;
 
 searchedCaseWhenPart
-    : WHEN condition_wrapper THEN ( seq_of_statements | expression_wrapper)
+    : WHEN condition_wrapper THEN ( seqOfStatements | expressionWrapper)
     ;
 
 caseElsePart
-    : ELSE ( seq_of_statements | expression_wrapper)
+    : ELSE ( seqOfStatements | expressionWrapper)
     ;
 // $>
 
@@ -1118,7 +1112,7 @@ standard_function
 	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenation_wrapper)) ')' #CountFunction
     | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS datatype ')' #CastFunction
     | EXTRACT '(' regular_id FROM concatenation_wrapper ')' #ExtractFunction
-    | TREAT '(' expression_wrapper AS REF? datatype ')' #TreatFunction
+    | TREAT '(' expressionWrapper AS REF? datatype ')' #TreatFunction
     | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation_wrapper ')' #TrimFunction
     ;
    
@@ -1158,12 +1152,12 @@ function_argument
     ;
 
 argument
-    : (id '=' '>')? expression_wrapper
+    : (id '=' '>')? expressionWrapper
     ;
 
 datatype
     : primitive_type #PrimitiveDataType
-    | INTERVAL (top=YEAR | top=DAY) ('(' expression_wrapper ')')? TO (bottom=MONTH | bottom=SECOND) ('(' expression_wrapper ')')? #IntervalType
+    | INTERVAL (top=YEAR | top=DAY) ('(' expressionWrapper ')')? TO (bottom=MONTH | bottom=SECOND) ('(' expressionWrapper ')')? #IntervalType
 	| objectName type_argument? #UserDataType
 	| rowRefType #RowType
 	| columnRefType #ColumnType
@@ -1235,22 +1229,6 @@ general_element
 
 // $<Common PL/SQL Named Elements
 
-attribute_name
-    : id
-    ;
-
-savepoint_name
-    : id
-    ;
-
-rollback_segment_name
-    : id
-    ;
-
-table_var_name
-    : id
-    ;
-
 schema_name
     : id
     ;
@@ -1258,11 +1236,6 @@ schema_name
 parameter_name
     : id
     ;
-
-query_name
-    : id
-    ;
-
 
 variable_name
     : id
@@ -1277,14 +1250,6 @@ cursor_name
 record_name
     : id
     | bind_variable
-    ;
-
-collection_name
-    : id ('.' id)?
-    ;
-
-link_name
-    : id
     ;
 
 objectName

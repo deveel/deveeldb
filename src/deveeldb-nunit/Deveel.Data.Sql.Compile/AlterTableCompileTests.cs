@@ -167,6 +167,30 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void SetDefault() {
+			const string sql = "ALTER TABLE test ALTER col1 SET DEFAULT 'one test'";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alter = (AlterTableStatement)statement;
+
+			Assert.IsInstanceOf<SetDefaultAction>(alter.Action);
+
+			var action = (SetDefaultAction) alter.Action;
+			Assert.IsNotNull(action);
+			Assert.IsNotNull(action.DefaultExpression);
+		}
+
+
+		[Test]
 		public void DropDefault() {
 			const string sql = "ALTER TABLE test ALTER col1 DROP DEFAULT";
 

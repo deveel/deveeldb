@@ -250,7 +250,7 @@ namespace Deveel.Data.Sql.Compile {
 				block.Label = labelName;
 			}
 			
-			var statements = context.seq_of_statements().statement().Select(Visit);
+			var statements = context.seqOfStatements().statement().Select(Visit);
 			foreach (var statement in statements) {
 				block.Statements.Add(statement);
 			}
@@ -278,7 +278,7 @@ namespace Deveel.Data.Sql.Compile {
 			var handler = new ExceptionHandler(handled);
 
 			// TODO: support labels
-			var statements = context.seq_of_statements().statement().Select(Visit);
+			var statements = context.seqOfStatements().statement().Select(Visit);
 			foreach (var statement in statements) {
 				handler.Statements.Add(statement);
 			}
@@ -355,7 +355,7 @@ namespace Deveel.Data.Sql.Compile {
 				loop.Label = labelName;
 			}
 
-			var seqOfStatements = context.seq_of_statements();
+			var seqOfStatements = context.seqOfStatements();
 			if (seqOfStatements != null) {
 				var statements = seqOfStatements.statement().Select(Visit);
 				foreach (var statement in statements) {
@@ -675,7 +675,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlStatement VisitIfStatement(PlSqlParser.IfStatementContext context) {
 			var condition = Expression.Build(context.condition());
-			var ifTrue = context.seq_of_statements().statement().Select(Visit).ToArray();
+			var ifTrue = context.seqOfStatements().statement().Select(Visit).ToArray();
 
 			SqlStatement[] ifFalse = null;
 
@@ -686,7 +686,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			if (context.elsePart() != null) {
-				ifFalse = context.elsePart().seq_of_statements().statement().Select(Visit).ToArray();
+				ifFalse = context.elsePart().seqOfStatements().statement().Select(Visit).ToArray();
 			}
 
 			return new ConditionStatement(condition, ifTrue, ifFalse);

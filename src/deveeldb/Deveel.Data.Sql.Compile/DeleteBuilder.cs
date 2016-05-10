@@ -32,8 +32,8 @@ namespace Deveel.Data.Sql.Compile {
 
 			var statement = new DeleteStatement(tableName, whereClause.Expression);
 
-			if (context.delete_limit() != null) {
-				var limit = Number.PositiveInteger(context.delete_limit().numeric());
+			if (context.deleteLimit() != null) {
+				var limit = Number.PositiveInteger(context.deleteLimit().numeric());
 				if (limit == null)
 					throw new ParseCanceledException("Invalid delete limit.");
 

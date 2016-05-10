@@ -19,6 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Antlr4.Runtime.Misc;
+
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Compile {
@@ -70,12 +72,12 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				if (context.setDefaultAction() != null) {
-					var columnName = Name.Simple(context.setDefaultAction().id());
-					var defaultValue = Expression.Build(context.setDefaultAction().expression_wrapper());
+					var columnName = Name.Simple(context.setDefaultAction().columnName());
+					var defaultValue = Expression.Build(context.setDefaultAction().expressionWrapper());
 					return new SetDefaultAction(columnName, defaultValue);
 				}
 
-				throw new NotSupportedException();
+				throw new ParseCanceledException("The ALTER TABLE action is not supported");
 			}
 		}
 	}

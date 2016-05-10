@@ -381,15 +381,11 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitConcatenation(PlSqlParser.ConcatenationContext context) {
-			var left = Visit(context.left);
-			if (context.right == null)
-				return left;
+			var exps = context.additive_expression().Select(Visit).ToArray();
+			if (exps.Length == 1)
+				return exps[0];
 
-			var right = Visit(context.right);
-			var op = context.op.GetText();
-			var expType = GetBinaryOperator(op);
-
-			return SqlExpression.Binary(left, expType, right);
+			return SqlExpression.FunctionCall("CONCAT", exps);
 		}
 
 		public override SqlExpression VisitBind_variable(PlSqlParser.Bind_variableContext context) {
@@ -397,7 +393,7 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.VariableReference(varRef);
 		}
 
-		public override SqlExpression VisitExpression_wrapper(PlSqlParser.Expression_wrapperContext context) {
+		public override SqlExpression VisitExpressionWrapper(PlSqlParser.ExpressionWrapperContext context) {
 			return Visit(context.expression());
 		}
 
