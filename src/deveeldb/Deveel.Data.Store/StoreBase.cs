@@ -107,20 +107,21 @@ namespace Deveel.Data.Store {
 			}
 		}
 
-		private void WriteAllBins() {
-			int p = 0;
-			for (int i = 0; i < 128; ++i, p += 8) {
-				long val = freeBinList[i];
-				ByteBuffer.WriteInt8(val, binArea, p);
-			}
+		// TODO: to be used in a repair form...
+		//private void WriteAllBins() {
+		//	int p = 0;
+		//	for (int i = 0; i < 128; ++i, p += 8) {
+		//		long val = freeBinList[i];
+		//		BytesUtil.WriteInt8(val, binArea, p);
+		//	}
 
-			Write(BinAreaOffset, binArea, 0, 128 * 8);
-		}
+		//	Write(BinAreaOffset, binArea, 0, 128 * 8);
+		//}
 
 		private void WriteBinIndex(int index) {
 			int p = index * 8;
 			long val = freeBinList[index];
-			ByteBuffer.WriteInt8(val, binArea, p);
+			BytesUtil.WriteInt8(val, binArea, p);
 			Write(BinAreaOffset + p, binArea, p, 8);
 		}
 
@@ -316,17 +317,17 @@ namespace Deveel.Data.Store {
 			}
 
 			Read(offset - 8, headerBuf, 0, 8);
-			long sz = ByteBuffer.ReadInt8(headerBuf, 0);
+			long sz = BytesUtil.ReadInt8(headerBuf, 0);
 			sz = sz & ActiveFlag;
 			long previousPointer = offset - sz;
 			Read(previousPointer, headerBuf, 0, 8);
-			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
+			header[0] = BytesUtil.ReadInt8(headerBuf, 0);
 			return previousPointer;
 		}
 
 		private long GetNextAreaHeader(long offset, long[] header) {
 			Read(offset, headerBuf, 0, 8);
-			long sz = ByteBuffer.ReadInt8(headerBuf, 0);
+			long sz = BytesUtil.ReadInt8(headerBuf, 0);
 			sz = sz & ActiveFlag;
 			long nextOffset = offset + sz;
 
@@ -337,31 +338,31 @@ namespace Deveel.Data.Store {
 			}
 
 			Read(nextOffset, headerBuf, 0, 8);
-			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
+			header[0] = BytesUtil.ReadInt8(headerBuf, 0);
 			return nextOffset;
 		}
 
 		protected void ReadAreaHeader(long offset, long[] header) {
 			Read(offset, headerBuf, 0, 16);
-			header[0] = ByteBuffer.ReadInt8(headerBuf, 0);
-			header[1] = ByteBuffer.ReadInt8(headerBuf, 8);
+			header[0] = BytesUtil.ReadInt8(headerBuf, 0);
+			header[1] = BytesUtil.ReadInt8(headerBuf, 8);
 		}
 
 		private readonly byte[] headerBuf = new byte[16];
 
 		private void ReboundArea(long offset, long[] header, bool writeHeaders) {
 			if (writeHeaders) {
-				ByteBuffer.WriteInt8(header[0], headerBuf, 0);
-				ByteBuffer.WriteInt8(header[1], headerBuf, 8);
+				BytesUtil.WriteInt8(header[0], headerBuf, 0);
+				BytesUtil.WriteInt8(header[1], headerBuf, 8);
 				Write(offset, headerBuf, 0, 16);
 			} else {
-				ByteBuffer.WriteInt8(header[1], headerBuf, 8);
+				BytesUtil.WriteInt8(header[1], headerBuf, 8);
 				Write(offset + 8, headerBuf, 8, 8);
 			}
 		}
 
 		private void CoalesceArea(long offset, long size) {
-			ByteBuffer.WriteInt8(size, headerBuf, 0);
+			BytesUtil.WriteInt8(size, headerBuf, 0);
 
 			// ISSUE: Boundary alteration is a moment when corruption could occur.
 			//   There are two seeks and writes here and when we are setting the
@@ -587,15 +588,15 @@ namespace Deveel.Data.Store {
 		protected void SplitArea(long offset, long newBoundary) {
 			// Split the area pointed to by the offset.
 			Read(offset, headerBuf, 0, 8);
-			long curSize = ByteBuffer.ReadInt8(headerBuf, 0) & ActiveFlag;
+			long curSize = BytesUtil.ReadInt8(headerBuf, 0) & ActiveFlag;
 			long leftSize = newBoundary;
 			long rightSize = curSize - newBoundary;
 
 			if (rightSize < 0)
 				throw new IOException("Could not split the area.");
 
-			ByteBuffer.WriteInt8(leftSize, headerBuf, 0);
-			ByteBuffer.WriteInt8(rightSize, headerBuf, 8);
+			BytesUtil.WriteInt8(leftSize, headerBuf, 0);
+			BytesUtil.WriteInt8(rightSize, headerBuf, 8);
 
 			// ISSUE: Boundary alteration is a moment when corruption could occur.
 			//   There are three seeks and writes here and when we are setting the
@@ -702,7 +703,7 @@ namespace Deveel.Data.Store {
 					WildernessOffset = -1;
 				} else {
 					Read(fileLength - 8, readBuf, 0, 8);
-					long lastBoundary = ByteBuffer.ReadInt8(readBuf, 0);
+					long lastBoundary = BytesUtil.ReadInt8(readBuf, 0);
 					long lastAreaPointer = fileLength - lastBoundary;
 
 					if (lastAreaPointer < DataAreaOffset)
@@ -713,7 +714,7 @@ namespace Deveel.Data.Store {
 
 					Read(lastAreaPointer, readBuf, 0, 8);
 
-					long lastAreaHeader = ByteBuffer.ReadInt8(readBuf, 0);
+					long lastAreaHeader = BytesUtil.ReadInt8(readBuf, 0);
 
 					// If this is a freed block, then set this are the wilderness offset.
 					if ((lastAreaHeader & DeletedFlag) != 0) {
@@ -912,7 +913,7 @@ namespace Deveel.Data.Store {
 				store.CheckOffset(offset);
 
 				store.Read(offset, buffer, 0, 8);
-				long v = ByteBuffer.ReadInt8(buffer, 0);
+				long v = BytesUtil.ReadInt8(buffer, 0);
 				if ((v & DeletedFlag) != 0)
 					throw new IOException("Store being constructed on deleted area.");
 

@@ -403,6 +403,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionEventType.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionState.cs" />
     <Compile Include="Deveel.Data.Transactions\TransactionTableContainer.cs" />
+    <Compile Include="Deveel.Data.Util\BytesUtil.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
@@ -936,7 +937,6 @@
     <Compile Include="Deveel.Data.Sql.Types\UserTypeInfo.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypeManager.cs" />
     <Compile Include="Deveel.Data.Sql.Types\UserTypeMember.cs" />
-    <Compile Include="Deveel.Data.Util\ByteBuffer.cs" />
     <Compile Include="Deveel.Data.Util\ProductInfo.cs" />
     <Compile Include="Deveel.Data.Util\Properties.cs" />
     <Compile Include="Deveel.Data.Sql\Field.cs">

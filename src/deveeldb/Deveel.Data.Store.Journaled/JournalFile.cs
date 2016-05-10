@@ -432,11 +432,11 @@ namespace Deveel.Data.Store.Journaled {
 			lock (this) {
 				File.Read(position, buffer, 0, 36);
 
-				var type = ByteBuffer.ReadInt8(buffer, 0);
-				var resourceId = ByteBuffer.ReadInt8(buffer, 12);
-				var pageNumber = ByteBuffer.ReadInt8(buffer, 20);
-				var pageOffset = ByteBuffer.ReadInt4(buffer, 28);
-				var pageLength = ByteBuffer.ReadInt4(buffer, 32);
+				var type = BytesUtil.ReadInt8(buffer, 0);
+				var resourceId = BytesUtil.ReadInt8(buffer, 12);
+				var pageNumber = BytesUtil.ReadInt8(buffer, 20);
+				var pageOffset = BytesUtil.ReadInt4(buffer, 28);
+				var pageLength = BytesUtil.ReadInt4(buffer, 32);
 
 				// Some asserts,
 				if (type != 1)
