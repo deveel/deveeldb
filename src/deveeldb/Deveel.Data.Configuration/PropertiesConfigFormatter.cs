@@ -36,8 +36,8 @@ namespace Deveel.Data.Configuration {
 				properties.Load(inputStream);
 
 				foreach (var entry in properties) {
-					var propKey = (string) entry.Key;
-					SetValue(config, propKey, (string) entry.Value);
+					var propKey = entry.Key;
+					SetValue(config, propKey, entry.Value);
 				}
 			} catch (DatabaseConfigurationException) {
 				throw;

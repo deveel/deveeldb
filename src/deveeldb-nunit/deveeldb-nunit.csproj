@@ -85,6 +85,7 @@
     <Compile Include="Deveel.Data.Client\NonQueryTests.cs" />
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
+    <Compile Include="Deveel.Data.Configuration\StreamConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
