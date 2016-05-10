@@ -105,30 +105,57 @@ namespace Deveel.Data.Routines {
 				return elemType.MakeArrayType(1);
 			}
 
+			bool byRef = false;
+			if (typeName[typeName.Length - 1] == '&') {
+				typeName = typeName.Substring(0, typeName.Length - 1);
+				byRef = true;
+			}
+
+			Type type;
+
 			switch (typeName) {
 				case "bool":
-					return typeof (bool);
+					type = typeof (bool);
+					break;
 				case "byte":
-					return typeof (byte);
+					type = typeof (byte);
+					break;
 				case "short":
-					return typeof (short);
+					type = typeof (short);
+					break;
 				case "int":
-					return typeof (int);
+					type = typeof (int);
+					break;
 				case "long":
-					return typeof (long);
+					type = typeof (long);
+					break;
 				case "float":
-					return typeof (float);
+					type = typeof (float);
+					break;
 				case "double":
-					return typeof (double);
+					type = typeof (double);
+					break;
 				case "DateTime":
-					return typeof (DateTime);
+					type = typeof (DateTime);
+					break;
 				case "DateTimeOffset":
-					return typeof (DateTimeOffset);
+					type = typeof (DateTimeOffset);
+					break;
 				case "string":
-					return typeof (string);
+					type = typeof (string);
+					break;
 				default:
-					return Type.GetType(typeName, true);
+					type = Type.GetType(typeName, true);
+					break;
 			}
+
+			if (type == null)
+				return null;
+
+			if (byRef)
+				type = type.MakeByRefType();
+
+			return type;
 		}
 
 		private static string GetAssemblyName(string typeName) {
@@ -219,10 +246,15 @@ namespace Deveel.Data.Routines {
 			for (int i = offset; i < parameters.Length; i++) {
 				var param = parameters[i];
 
-				var paramType = PrimitiveTypes.FromType(param.ParameterType);
+				var paramType = param.ParameterType;
+				if (paramType.IsByRef)
+					paramType = paramType.GetElementType();
+					
+
+				var argType = PrimitiveTypes.FromType(paramType);
 				var routineParameter = routineParameters[i];
 
-				if (!routineParameter.Type.CanCastTo(paramType))
+				if (!routineParameter.Type.CanCastTo(argType))
 					return false;
 			}
 
