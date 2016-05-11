@@ -24,6 +24,7 @@ using Antlr4.Runtime.Misc;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
@@ -400,6 +401,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlExpression VisitGroup(PlSqlParser.GroupContext context) {
 			var exp = Visit(context.expressionOrVector());
+			if (exp.ExpressionType == SqlExpressionType.Constant &&
+			    ((SqlConstantExpression) exp).Value.Type is ArrayType)
+				return exp;
+
 			return SqlExpression.Tuple(new[] {exp});
 		}
 
