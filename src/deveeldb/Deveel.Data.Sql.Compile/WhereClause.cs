@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return new WhereClause {
-				Expression = new SqlExpressionVisitor().Visit(context.condition_wrapper())
+				Expression = new SqlExpressionVisitor().Visit(context.conditionWrapper())
 			};
 		}
 	}

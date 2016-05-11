@@ -932,121 +932,135 @@ forUpdateClause
 // $>
 
 // $<Expression & Condition
-expression_unit
+expressionUnit
     : expression EOF
 	;
 
 expression_list
-    : '(' expression? (',' expression)* ')'
+    : '(' expression (',' expression)* ')'
     ;
 
 condition
     : expression
     ;
 
-condition_wrapper
+conditionWrapper
     : expression
     ;
 
 expression
-    : left=logical_and_expression ( op=OR right=logical_and_expression )*
+    : logicalAndExpression ( OR logicalAndExpression )*
     ;
 
 expressionWrapper
     : expression
     ;
 
-logical_and_expression
-    : negated_expression ( AND negated_expression )*
+logicalAndExpression
+    : negatedExpression ( AND negatedExpression )*
     ;
 
-negated_expression
-    : NOT negated_expression
-    | equality_expression
+negatedExpression
+    : NOT negatedExpression
+    | equalityExpression
     ;
 
-equality_expression
-    : relational_expression (IS NOT? (NULL | NAN | PRESENT | A_LETTER SET | EMPTY | OF TYPE? '(' ONLY? datatype (',' datatype)* ')'))*
+equalityExpression
+    : relationalExpression (IS NOT? ( NULL | NAN | EMPTY | OF TYPE? '(' datatype ')') )*
     ;
 
-relational_expression
-    : left=compound_expression
-      (( op='=' | notEqual | op='<' | op='>' | lessThanOrEquals | greaterThanOrEquals ) right=compound_expression)*
+relationalExpression
+    : compoundExpression
+      (relationalOperator compoundExpression)*
     ;
 
-compound_expression
+relationalOperator
+    : ( op='=' | notEqual | op='<' | op='>' | lessThanOrEquals | greaterThanOrEquals )
+	;
+
+compoundExpression
     : exp=concatenation
-      (NOT? (IN in_elements | BETWEEN min=concatenation AND max=concatenation | LIKE likeExp=concatenation like_escape_part?))?
+      ( NOT? ( IN inElements | 
+	           BETWEEN min=concatenation AND max=concatenation | 
+			   LIKE likeExp=concatenation likeEscapePart?) )?
     ;
 
-like_escape_part
+likeEscapePart
     : ESCAPE concatenation
     ;
 
 
-in_elements
+inElements
     : '(' subquery ')' #InSubquery
-    | '(' concatenation_wrapper (',' concatenation_wrapper)* ')' #InArray
+    | '(' concatenationWrapper (',' concatenationWrapper)* ')' #InArray
     | constant #InConstant
     | bind_variable #InVariable
     | general_element #InElement
     ;
 
 concatenation
-    : additive_expression (concat additive_expression)*
+    : additiveExpression (concat additiveExpression)*
     ;
 
-concatenation_wrapper
+concatenationWrapper
     : concatenation
     ;
 
-additive_expression
-    : left=multiply_expression ((op='+' | op='-') right=multiply_expression)*
+additiveExpression
+    : multiplyExpression (additiveOperator multiplyExpression)*
     ;
 
-multiply_expression
-    : left=datetime_expression ((op='*' | op='/') right=datetime_expression)*
+additiveOperator
+    : ( '+' | '-' )
+	;
+
+multiplyExpression
+    : datetimeExpression (multiplyOperator datetimeExpression)*
     ;
 
-datetime_expression
-    : unary_expression (AT (LOCAL | TIME ZONE concatenation_wrapper) | interval_expression)?
+multiplyOperator
+    : ( '*' | '/' )
+	;
+
+datetimeExpression
+    : unaryExpression (AT (LOCAL | TIME ZONE concatenationWrapper) | interval_expression)?
     ;
 
 interval_expression
-    : DAY ('(' concatenation_wrapper ')')? TO SECOND ('(' concatenation_wrapper ')')? #DayToSecondExpression
-    | YEAR ('(' concatenation_wrapper ')')? TO MONTH #YearToMonthExpression
+    : DAY ('(' concatenationWrapper ')')? TO SECOND ('(' concatenationWrapper ')')? #DayToSecondExpression
+    | YEAR ('(' concatenationWrapper ')')? TO MONTH #YearToMonthExpression
     ;
 
-unary_expression
-    : unaryplus_expression
-    | unaryminus_expression
+unaryExpression
+    : unaryplusExpression
+    | unaryminusExpression
     | instantiate_expression
-    | distinct_expression
-    | all_expression
+    | allExpression
+	| anyExpression
     | caseStatement/*[false]*/
     | quantifiedExpression
     | standard_function
     | atom
     ;
 
-unaryplus_expression
-    : '+' unary_expression
+unaryplusExpression
+    : '+' unaryExpression
 	;
 
-unaryminus_expression
-    : '-' unary_expression
+unaryminusExpression
+    : '-' unaryExpression
 	;
 
 instantiate_expression
-    : NEW unary_expression
+    : NEW unaryExpression
 	;
 
-distinct_expression
-    : DISTINCT unary_expression
+allExpression
+    : ALL unaryExpression
 	;
 
-all_expression
-    : ALL unary_expression
+anyExpression
+    : ( ANY | SOME ) unaryExpression
 	;
 
 caseStatement 
@@ -1069,7 +1083,7 @@ searchedCaseStatement
     ;
 
 searchedCaseWhenPart
-    : WHEN condition_wrapper THEN ( seqOfStatements | expressionWrapper)
+    : WHEN conditionWrapper THEN ( seqOfStatements | expressionWrapper)
     ;
 
 caseElsePart
@@ -1078,24 +1092,22 @@ caseElsePart
 // $>
 
 atom
-    : objectName outer_join_sign
-    | bind_variable
+    : bind_variable
     | constant
     | general_element
-    | '(' subquery ')' subquery_operation_part* 
 	| subquery
 	| group
     ;
 
 group
-    : '(' expression_or_vector ')'
+    : '(' expressionOrVector ')'
 	;
 
-expression_or_vector
-    : expression (vector_expr)?
+expressionOrVector
+    : expression (vectorExpression)?
     ;
 
-vector_expr
+vectorExpression
     : ',' expression (',' expression)*
     ;
 
@@ -1109,11 +1121,11 @@ standard_function
 	| CURRENT_TIMESTAMP #CurrentTimeStampFunction
 	| CURRENT_DATE #CurrentDateFunction
 	| NEXT VALUE FOR objectName #NextValueFunction
-	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenation_wrapper)) ')' #CountFunction
-    | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS datatype ')' #CastFunction
-    | EXTRACT '(' regular_id FROM concatenation_wrapper ')' #ExtractFunction
+	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenationWrapper)) ')' #CountFunction
+    | CAST '(' (MULTISET '(' subquery ')' | concatenationWrapper) AS datatype ')' #CastFunction
+    | EXTRACT '(' regular_id FROM concatenationWrapper ')' #ExtractFunction
     | TREAT '(' expressionWrapper AS REF? datatype ')' #TreatFunction
-    | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation_wrapper ')' #TrimFunction
+    | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenationWrapper ')' #TrimFunction
     ;
    
 // Common
@@ -1132,7 +1144,7 @@ alias_quoted_string
     ;
 
 whereClause
-    : WHERE (current_of_clause | condition_wrapper)
+    : WHERE (current_of_clause | conditionWrapper)
     ;
 
 current_of_clause
