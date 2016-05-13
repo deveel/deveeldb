@@ -477,6 +477,10 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlExpression VisitGroup(PlSqlParser.GroupContext context) {
 			var exp = Visit(context.expressionOrVector());
+			if (exp.ExpressionType == SqlExpressionType.Constant &&
+			    ((SqlConstantExpression) exp).Value.Type is ArrayType)
+				return exp;
+
 			return SqlExpression.Tuple(new[] {exp});
 		}
 
