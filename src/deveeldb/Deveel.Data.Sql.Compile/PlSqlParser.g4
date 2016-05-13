@@ -21,6 +21,7 @@ unitStatement
 	| showStatement
 	| transactionControlStatement
 
+	| caseStatement
 	| loopStatement
 	| block
 	| declareStatement
@@ -1034,12 +1035,11 @@ interval_expression
 unaryExpression
     : unaryplusExpression
     | unaryminusExpression
-    | instantiate_expression
     | allExpression
 	| anyExpression
-    | caseStatement/*[false]*/
+    | caseExpression
     | quantifiedExpression
-    | standard_function
+    | standardFunction
     | atom
     ;
 
@@ -1049,10 +1049,6 @@ unaryplusExpression
 
 unaryminusExpression
     : '-' unaryExpression
-	;
-
-instantiate_expression
-    : NEW unaryExpression
 	;
 
 allExpression
@@ -1075,7 +1071,7 @@ simpleCaseStatement
     ;
 
 simpleCaseWhenPart
-    : WHEN expressionWrapper THEN ( seqOfStatements  | expressionWrapper)
+    : WHEN expressionWrapper THEN seqOfStatements
     ;
 
 searchedCaseStatement
@@ -1083,12 +1079,34 @@ searchedCaseStatement
     ;
 
 searchedCaseWhenPart
-    : WHEN conditionWrapper THEN ( seqOfStatements | expressionWrapper)
+    : WHEN conditionWrapper THEN seqOfStatements
     ;
 
 caseElsePart
-    : ELSE ( seqOfStatements | expressionWrapper)
+    : ELSE seqOfStatements
     ;
+
+caseExpression
+   : searchedCaseExpression
+   | simpleCaseExpression
+   ;
+
+searchedCaseExpression
+   : CASE simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   ;
+
+simpleCacheWhenExpressionPart
+   : WHEN conditionWrapper THEN expressionWrapper
+   ;
+
+caseElseExpressionPart
+   : ELSE expressionWrapper
+   ;
+
+simpleCaseExpression
+   : CASE atom simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   ;
+
 // $>
 
 atom
@@ -1115,7 +1133,7 @@ quantifiedExpression
     : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | expression_list )
     ;
 
-standard_function
+standardFunction
     : objectName '(' (argument (',' argument)*)? ')' #InvokedFunction
 	| CURRENT_TIME #CurrentTimeFunction
 	| CURRENT_TIMESTAMP #CurrentTimeStampFunction

@@ -664,6 +664,90 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitOpenForStatement(context);
 		}
 
+		public override SqlStatement VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
+			var exp = Expression.Build(context.atom());
+
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCaseWhenPart()) {
+				var otherExp = Expression.Build(partContext.expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition =SqlExpression.Equal(exp, otherExp),
+					ReturnStatements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
+			}
+
+			if (context.caseElsePart() != null) {
+				var returnstatements = context.caseElsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnStatements = returnstatements
+				});
+			}
+
+			ConditionStatement conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = new ConditionStatement(current.Condition, current.ReturnStatements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.ReturnStatements, new SqlStatement[] {conditional});
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
+		}
+
+		public override SqlStatement VisitSearchedCaseStatement(PlSqlParser.SearchedCaseStatementContext context) {
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.searchedCaseWhenPart()) {
+				switches.Add(new CaseSwitch {
+					Condition = Expression.Build(partContext.conditionWrapper()),
+					ReturnStatements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
+			}
+
+			if (context.caseElsePart() != null) {
+				var returnstatements = context.caseElsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnStatements = returnstatements
+				});
+			}
+
+			ConditionStatement conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = new ConditionStatement(current.Condition, current.ReturnStatements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.ReturnStatements, new SqlStatement[] { conditional });
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
+		}
+
+		#region CaseSwitch
+
+		class CaseSwitch {
+			public SqlExpression Condition { get; set; }
+
+			public SqlStatement[] ReturnStatements { get; set; }
+		}
+
+		#endregion
+
+
 		public override SqlStatement VisitReturnStatement(PlSqlParser.ReturnStatementContext context) {
 			var returnContext = context.condition();
 			SqlExpression returnExpression = null;

@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -24,6 +25,7 @@ using Antlr4.Runtime.Misc;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
@@ -126,13 +128,88 @@ namespace Deveel.Data.Sql.Compile {
 			return last;
 		}
 
-		public override SqlExpression VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
-			return base.VisitSimpleCaseStatement(context);
+		public override SqlExpression VisitSimpleCaseExpression(PlSqlParser.SimpleCaseExpressionContext context) {
+			var exp = Visit(context.atom());
+
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+				var otherExp = Visit(partContext.conditionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Equal(exp, otherExp),
+					ReturnExpression = Visit(partContext.expressionWrapper())
+				});
+			}
+
+			if (context.caseElseExpressionPart() != null) {
+				var returnExp = Visit(context.caseElseExpressionPart().expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnExpression = returnExp
+				});
+			}
+
+			SqlConditionalExpression conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = SqlExpression.Conditional(current.Condition, current.ReturnExpression);
+
+				if (conditional != null) {
+					conditional = SqlExpression.Conditional(current.Condition, current.ReturnExpression, conditional);
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
 
-		public override SqlExpression VisitSearchedCaseStatement(PlSqlParser.SearchedCaseStatementContext context) {
-			return base.VisitSearchedCaseStatement(context);
+		public override SqlExpression VisitSearchedCaseExpression(PlSqlParser.SearchedCaseExpressionContext context) {
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+				switches.Add(new CaseSwitch {
+					Condition = Visit(partContext.conditionWrapper()),
+					ReturnExpression = Visit(partContext.expressionWrapper())
+				});
+			}
+
+			if (context.caseElseExpressionPart() != null) {
+				var returnExp = Visit(context.caseElseExpressionPart().expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Conditional(SqlExpression.Constant(true), returnExp),
+					ReturnExpression = returnExp
+				});
+			}
+
+			SqlConditionalExpression conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = SqlExpression.Conditional(current.Condition, current.ReturnExpression);
+
+				if (conditional != null) {
+					conditional = SqlExpression.Conditional(current.Condition, current.ReturnExpression, conditional);
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
+
+		#region CaseSwitch
+
+		class CaseSwitch {
+			public SqlExpression Condition { get; set; }
+
+			public SqlExpression ReturnExpression { get; set; }
+		}
+
+		#endregion
 
 		public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
 			return Subquery.Form(context);
