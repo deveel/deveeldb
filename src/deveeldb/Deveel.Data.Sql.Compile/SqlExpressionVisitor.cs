@@ -26,6 +26,7 @@ using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
