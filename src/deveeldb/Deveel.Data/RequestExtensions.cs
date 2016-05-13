@@ -521,6 +521,26 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region If
+
+		public static ITable If(this IRequest request, SqlExpression condition, SqlStatement[] ifTrue) {
+			return If(request, condition, ifTrue, new SqlStatement[0]);
+		}
+
+		public static ITable If(this IRequest request, SqlExpression condition, SqlStatement[] ifTrue, SqlStatement[] ifFalse) {
+			var result = request.ExecuteStatement(new ConditionStatement(condition, ifTrue, ifFalse));
+
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type == StatementResultType.Result)
+				return result.Result;
+
+			throw new NotSupportedException("Cursor-ref in condition not supported (yet).");
+		}
+
+		#endregion
+
 		#endregion
 	}
 }

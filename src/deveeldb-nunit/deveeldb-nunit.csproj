@@ -135,6 +135,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SqlStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RowIdTests.cs" />
@@ -149,6 +150,7 @@
     <Compile Include="Deveel.Data\AssignTests.cs" />
     <Compile Include="Deveel.Data\CallTests.cs" />
     <Compile Include="Deveel.Data\CloseTests.cs" />
+    <Compile Include="Deveel.Data\ConditionalTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\ConversionFunctionTests.cs" />
     <Compile Include="Deveel.Data\CreateFunctionTests.cs" />
