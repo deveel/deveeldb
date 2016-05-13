@@ -21,6 +21,7 @@ unitStatement
 	| showStatement
 	| transactionControlStatement
 
+	| ifStatement
 	| caseStatement
 	| loopStatement
 	| block

@@ -115,6 +115,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\DropViewTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\FetchTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\IfTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\LoopTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\NextValueForTests.cs" />

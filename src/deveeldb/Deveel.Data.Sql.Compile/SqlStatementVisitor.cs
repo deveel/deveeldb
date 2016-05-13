@@ -758,23 +758,54 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitIfStatement(PlSqlParser.IfStatementContext context) {
-			var condition = Expression.Build(context.condition());
-			var ifTrue = context.seqOfStatements().statement().Select(Visit).ToArray();
+			var conditions = new List<ConditionPart> {
+				new ConditionPart {
+					Condition = Expression.Build(context.condition()),
+					Statements = context.seqOfStatements().statement().Select(Visit).ToArray()
+				}
+			};
 
-			SqlStatement[] ifFalse = null;
-
-			var elsif = context.elsifPart();
-			if (elsif != null && elsif.Length > 0) {
-				// TODO: !!!
-				throw new NotImplementedException();
+			foreach (var partContext in context.elsifPart()) {
+				conditions.Add(new ConditionPart {
+					Condition = Expression.Build(partContext.condition()),
+					Statements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
 			}
 
 			if (context.elsePart() != null) {
-				ifFalse = context.elsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				var statements = context.elsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				conditions.Add(new ConditionPart {
+					Condition = SqlExpression.Constant(true),
+					Statements = statements
+				});
 			}
 
-			return new ConditionStatement(condition, ifTrue, ifFalse);
+			ConditionStatement conditional = null;
+
+			for (int i = conditions.Count - 1; i >= 0; i--) {
+				var current = conditions[i];
+
+				var condition = new ConditionStatement(current.Condition, current.Statements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.Statements, new SqlStatement[] { conditional });
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
+
+		#region Condition
+
+		class ConditionPart {
+			public SqlExpression Condition { get; set; }
+
+			public SqlStatement[] Statements { get; set; }
+		}
+
+		#endregion
 
 		public override SqlStatement VisitCreateFunctionStatement(PlSqlParser.CreateFunctionStatementContext context) {
 			var functionName = Name.Object(context.objectName());
