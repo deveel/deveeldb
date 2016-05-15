@@ -265,5 +265,26 @@ namespace Deveel.Data.Sql.Compile {
 
 			var queryExpression = selectStatement.QueryExpression;
 		}
+
+		[Test]
+		public void SelectConcatOperator() {
+			const string sql = "SELECT a || b FROM table1 WHERE id > 2";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
 	}
 }

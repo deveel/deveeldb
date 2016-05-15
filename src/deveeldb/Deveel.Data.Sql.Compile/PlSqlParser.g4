@@ -21,6 +21,8 @@ unitStatement
 	| showStatement
 	| transactionControlStatement
 
+	| ifStatement
+	| caseStatement
 	| loopStatement
 	| block
 	| declareStatement
@@ -213,13 +215,13 @@ alterTableStatement
 
 alterTableAction
      : addColumnAction
+	 | setDefaultAction
 	 | alterColumnAction
 	 | dropColumnAction
 	 | addConstraintAction
 	 | dropConstraintAction
 	 | dropDefaultAction
 	 | dropPrimaryKeyAction 
-	 | setDefaultAction
 	 ;
 
 addColumnAction
@@ -251,7 +253,7 @@ dropPrimaryKeyAction
 	;
 
 setDefaultAction
-    : ALTER COLUMN? id SET DEFAULT expression_wrapper
+    : ALTER COLUMN? columnName SET DEFAULT expressionWrapper
 	;
 
 // $>
@@ -336,10 +338,10 @@ variableDeclaration
 
 //cursor_declaration incorportates curscursor_body and cursor_spec
 cursorDeclaration
-    : CURSOR cursor_name ('(' parameter_spec (',' parameter_spec)* ')' )? (IS subquery)? SEMICOLON?
+    : CURSOR cursor_name ('(' parameterSpec (',' parameterSpec)* ')' )? (IS subquery)? SEMICOLON?
     ;
 
-parameter_spec
+parameterSpec
     : parameter_name (IN? datatype)? defaultValuePart?
     ;
 
@@ -378,7 +380,7 @@ updateLimitClause
 
 // $<PL/SQL Statements
 
-seq_of_statements
+seqOfStatements
     : statement ( (';' | EOF) statement)*
     ;
 
@@ -400,7 +402,7 @@ statement
     | raiseStatement
     | returnStatement
     | caseStatement/*[true]*/
-    | sql_statement
+    | sqlStatement
     | callStatement
 
 	| variableDeclaration
@@ -439,7 +441,7 @@ setAccountAction
 	;
 
 setRoleAction
-    : ROLE regular_id
+    : SET ROLE regular_id
 	;
 
 granteeName
@@ -528,19 +530,19 @@ gotoStatement
     ;
 
 ifStatement
-    : IF condition THEN seq_of_statements elsifPart* elsePart? END IF
+    : IF condition THEN seqOfStatements elsifPart* elsePart? END IF
     ;
 
 elsifPart
-    : ELSIF condition THEN seq_of_statements
+    : ELSIF condition THEN seqOfStatements
     ;
 
 elsePart
-    : ELSE seq_of_statements
+    : ELSE seqOfStatements
     ;
 
 loopStatement
-    : labelDeclaration? (WHILE condition | FOR cursorLoopParam)? LOOP seq_of_statements END LOOP
+    : labelDeclaration? (WHILE condition | FOR cursorLoopParam)? LOOP seqOfStatements END LOOP
     ;
 
 // $<Loop - Specific Clause
@@ -578,7 +580,7 @@ callStatement
     ;
 
 body
-    : labelDeclaration? BEGIN seq_of_statements exceptionClause? END
+    : labelDeclaration? BEGIN seqOfStatements exceptionClause? END
     ;
 
 // $<Body - Specific Clause
@@ -588,7 +590,7 @@ exceptionClause
     ;
 
 exceptionHandler
-    : WHEN ( OTHERS | id (OR id)* ) THEN seq_of_statements
+    : WHEN ( OTHERS | id (OR id)* ) THEN seqOfStatements
     ;
 
 // $>
@@ -635,7 +637,7 @@ showStatement
 
 // $<SQL PL/SQL Statements
 
-sql_statement
+sqlStatement
     : dmlStatement
     | cursorStatement
     | transactionControlStatement
@@ -763,15 +765,14 @@ dmlEventElement
     : (DELETE|INSERT|UPDATE)
     ;
 
-
 // $>
 // $>
 
 deleteStatement
-    : DELETE FROM? objectName whereClause? delete_limit?
+    : DELETE FROM? objectName whereClause? deleteLimit?
     ;
 
-delete_limit
+deleteLimit
     : LIMIT numeric
 	;
 
@@ -933,126 +934,130 @@ forUpdateClause
 // $>
 
 // $<Expression & Condition
-expression_unit
+expressionUnit
     : expression EOF
 	;
 
-cursor_expression
-    : CURSOR '(' subquery ')'
-    ;
-
 expression_list
-    : '(' expression? (',' expression)* ')'
+    : '(' expression (',' expression)* ')'
     ;
 
 condition
     : expression
     ;
 
-condition_wrapper
+conditionWrapper
     : expression
     ;
 
 expression
-    : cursor_expression
-    | left=logical_and_expression ( op=OR right=logical_and_expression )*
+    : logicalAndExpression ( OR logicalAndExpression )*
     ;
 
-expression_wrapper
+expressionWrapper
     : expression
     ;
 
-logical_and_expression
-    : negated_expression ( AND negated_expression )*
+logicalAndExpression
+    : negatedExpression ( AND negatedExpression )*
     ;
 
-negated_expression
-    : NOT negated_expression
-    | equality_expression
+negatedExpression
+    : NOT negatedExpression
+    | equalityExpression
     ;
 
-equality_expression
-    : relational_expression (IS NOT? (NULL | NAN | PRESENT | A_LETTER SET | EMPTY | OF TYPE? '(' ONLY? datatype (',' datatype)* ')'))*
+equalityExpression
+    : relationalExpression (IS NOT? ( NULL | NAN | EMPTY | OF TYPE? '(' datatype ')') )*
     ;
 
-relational_expression
-    : left=compound_expression
-      (( op='=' | notEqual | op='<' | op='>' | lessThanOrEquals | greaterThanOrEquals ) right=compound_expression)*
+relationalExpression
+    : compoundExpression
+      (relationalOperator compoundExpression)*
     ;
 
-compound_expression
+relationalOperator
+    : ( op='=' | notEqual | op='<' | op='>' | lessThanOrEquals | greaterThanOrEquals )
+	;
+
+compoundExpression
     : exp=concatenation
-      (NOT? (IN in_elements | BETWEEN min=concatenation AND max=concatenation | LIKE likeExp=concatenation like_escape_part?))?
+      ( NOT? ( IN inElements | 
+	           BETWEEN min=concatenation AND max=concatenation | 
+			   LIKE likeExp=concatenation likeEscapePart?) )?
     ;
 
-like_escape_part
+likeEscapePart
     : ESCAPE concatenation
     ;
 
 
-in_elements
+inElements
     : '(' subquery ')' #InSubquery
-    | '(' concatenation_wrapper (',' concatenation_wrapper)* ')' #InArray
+    | '(' concatenationWrapper (',' concatenationWrapper)* ')' #InArray
     | constant #InConstant
     | bind_variable #InVariable
     | general_element #InElement
     ;
 
 concatenation
-    : left=additive_expression (op=concat right=additive_expression)*
+    : additiveExpression (concat additiveExpression)*
     ;
 
-concatenation_wrapper
+concatenationWrapper
     : concatenation
     ;
 
-additive_expression
-    : left=multiply_expression ((op='+' | op='-') right=multiply_expression)*
+additiveExpression
+    : multiplyExpression (additiveOperator multiplyExpression)*
     ;
 
-multiply_expression
-    : left=datetime_expression ((op='*' | op='/') right=datetime_expression)*
+additiveOperator
+    : ( '+' | '-' )
+	;
+
+multiplyExpression
+    : datetimeExpression (multiplyOperator datetimeExpression)*
     ;
 
-datetime_expression
-    : unary_expression (AT (LOCAL | TIME ZONE concatenation_wrapper) | interval_expression)?
+multiplyOperator
+    : ( '*' | '/' )
+	;
+
+datetimeExpression
+    : unaryExpression (AT (LOCAL | TIME ZONE concatenationWrapper) | interval_expression)?
     ;
 
 interval_expression
-    : DAY ('(' concatenation_wrapper ')')? TO SECOND ('(' concatenation_wrapper ')')? #DayToSecondExpression
-    | YEAR ('(' concatenation_wrapper ')')? TO MONTH #YearToMonthExpression
+    : DAY ('(' concatenationWrapper ')')? TO SECOND ('(' concatenationWrapper ')')? #DayToSecondExpression
+    | YEAR ('(' concatenationWrapper ')')? TO MONTH #YearToMonthExpression
     ;
 
-unary_expression
-    : unaryplus_expression
-    | unaryminus_expression
-    | instantiate_expression
-    | distinct_expression
-    | all_expression
-    | caseStatement/*[false]*/
+unaryExpression
+    : unaryplusExpression
+    | unaryminusExpression
+    | allExpression
+	| anyExpression
+    | caseExpression
     | quantifiedExpression
-    | standard_function
+    | standardFunction
     | atom
     ;
 
-unaryplus_expression
-    : '+' unary_expression
+unaryplusExpression
+    : '+' unaryExpression
 	;
 
-unaryminus_expression
-    : '-' unary_expression
+unaryminusExpression
+    : '-' unaryExpression
 	;
 
-instantiate_expression
-    : NEW unary_expression
+allExpression
+    : ALL unaryExpression
 	;
 
-distinct_expression
-    : DISTINCT unary_expression
-	;
-
-all_expression
-    : ALL unary_expression
+anyExpression
+    : ( ANY | SOME ) unaryExpression
 	;
 
 caseStatement 
@@ -1067,7 +1072,7 @@ simpleCaseStatement
     ;
 
 simpleCaseWhenPart
-    : WHEN expression_wrapper THEN ( seq_of_statements  | expression_wrapper)
+    : WHEN expressionWrapper THEN seqOfStatements
     ;
 
 searchedCaseStatement
@@ -1075,33 +1080,53 @@ searchedCaseStatement
     ;
 
 searchedCaseWhenPart
-    : WHEN condition_wrapper THEN ( seq_of_statements | expression_wrapper)
+    : WHEN conditionWrapper THEN seqOfStatements
     ;
 
 caseElsePart
-    : ELSE ( seq_of_statements | expression_wrapper)
+    : ELSE seqOfStatements
     ;
+
+caseExpression
+   : searchedCaseExpression
+   | simpleCaseExpression
+   ;
+
+searchedCaseExpression
+   : CASE simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   ;
+
+simpleCacheWhenExpressionPart
+   : WHEN conditionWrapper THEN expressionWrapper
+   ;
+
+caseElseExpressionPart
+   : ELSE expressionWrapper
+   ;
+
+simpleCaseExpression
+   : CASE atom simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   ;
+
 // $>
 
 atom
-    : objectName outer_join_sign
-    | bind_variable
+    : bind_variable
     | constant
     | general_element
-    | '(' subquery ')' subquery_operation_part* 
 	| subquery
 	| group
     ;
 
 group
-    : '(' expression_or_vector ')'
+    : '(' expressionOrVector ')'
 	;
 
-expression_or_vector
-    : expression (vector_expr)?
+expressionOrVector
+    : expression (vectorExpression)?
     ;
 
-vector_expr
+vectorExpression
     : ',' expression (',' expression)*
     ;
 
@@ -1109,17 +1134,16 @@ quantifiedExpression
     : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | expression_list )
     ;
 
-standard_function
-    : objectName '(' (argument (',' argument)*)? ')' #InvokedFunction
-	| CURRENT_TIME #CurrentTimeFunction
+standardFunction
+    : CURRENT_TIME #CurrentTimeFunction
 	| CURRENT_TIMESTAMP #CurrentTimeStampFunction
 	| CURRENT_DATE #CurrentDateFunction
 	| NEXT VALUE FOR objectName #NextValueFunction
-	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenation_wrapper)) ')' #CountFunction
-    | CAST '(' (MULTISET '(' subquery ')' | concatenation_wrapper) AS datatype ')' #CastFunction
-    | EXTRACT '(' regular_id FROM concatenation_wrapper ')' #ExtractFunction
-    | TREAT '(' expression_wrapper AS REF? datatype ')' #TreatFunction
-    | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation_wrapper ')' #TrimFunction
+	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenationWrapper)) ')' #CountFunction
+    | CAST '(' (MULTISET '(' subquery ')' | concatenationWrapper) AS datatype ')' #CastFunction
+    | EXTRACT '(' regular_id FROM concatenationWrapper ')' #ExtractFunction
+    | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenationWrapper ')' #TrimFunction
+	| objectName '(' (argument (',' argument)*)? ')' #InvokedFunction
     ;
    
 // Common
@@ -1138,7 +1162,7 @@ alias_quoted_string
     ;
 
 whereClause
-    : WHERE (current_of_clause | condition_wrapper)
+    : WHERE (current_of_clause | conditionWrapper)
     ;
 
 current_of_clause
@@ -1158,12 +1182,12 @@ function_argument
     ;
 
 argument
-    : (id '=' '>')? expression_wrapper
+    : (id '=' '>')? expressionWrapper
     ;
 
 datatype
     : primitive_type #PrimitiveDataType
-    | INTERVAL (top=YEAR | top=DAY) ('(' expression_wrapper ')')? TO (bottom=MONTH | bottom=SECOND) ('(' expression_wrapper ')')? #IntervalType
+    | INTERVAL (top=YEAR | top=DAY) ('(' expressionWrapper ')')? TO (bottom=MONTH | bottom=SECOND) ('(' expressionWrapper ')')? #IntervalType
 	| objectName type_argument? #UserDataType
 	| rowRefType #RowType
 	| columnRefType #ColumnType
@@ -1235,22 +1259,6 @@ general_element
 
 // $<Common PL/SQL Named Elements
 
-attribute_name
-    : id
-    ;
-
-savepoint_name
-    : id
-    ;
-
-rollback_segment_name
-    : id
-    ;
-
-table_var_name
-    : id
-    ;
-
 schema_name
     : id
     ;
@@ -1258,11 +1266,6 @@ schema_name
 parameter_name
     : id
     ;
-
-query_name
-    : id
-    ;
-
 
 variable_name
     : id
@@ -1277,14 +1280,6 @@ cursor_name
 record_name
     : id
     | bind_variable
-    ;
-
-collection_name
-    : id ('.' id)?
-    ;
-
-link_name
-    : id
     ;
 
 objectName

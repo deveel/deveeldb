@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Compile {
 				return null;
 
 			var id = Name.Simple(context.id());
-			var exp = Compile.Expression.Build(context.expression_wrapper());
+			var exp = Compile.Expression.Build(context.expressionWrapper());
 
 			return new FunctionArgument {
 				Id = id,

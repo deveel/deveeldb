@@ -138,7 +138,7 @@ namespace Deveel.Data.Sql.Compile {
 					var cursorName = Name.Simple(currentOf.cursor_name());
 					throw new NotImplementedException();
 				} else {
-					query.WhereExpression = new SqlExpressionVisitor().Visit(whereClause.condition_wrapper());
+					query.WhereExpression = new SqlExpressionVisitor().Visit(whereClause.conditionWrapper());
 				}
 			}
 

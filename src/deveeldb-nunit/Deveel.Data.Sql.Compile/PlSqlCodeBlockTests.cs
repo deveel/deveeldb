@@ -71,5 +71,71 @@ namespace Deveel.Data.Sql.Compile {
 
 			Assert.IsInstanceOf<PlSqlBlockStatement>(statement);
 		}
+
+		[Test]
+		public void WithExceptionHandling() {
+			const string sql = @"DECLARE a INT := 23
+								BEGIN
+									SELECT * FROM test WHERE a < test.a;
+                                    EXCEPTION WHEN TOO_MANY_ROWS THEN
+                                       ROLLBACK;
+                                       RAISE
+								END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<PlSqlBlockStatement>(statement);
+
+			var block = (PlSqlBlockStatement) statement;
+			Assert.IsNotNull(block.ExceptionHandlers);
+			Assert.IsNotEmpty(block.ExceptionHandlers);
+			Assert.AreEqual(1, block.ExceptionHandlers.Count);
+
+			var handler = block.ExceptionHandlers.ElementAt(0);
+
+			Assert.AreEqual(1, handler.Handled.ExceptionNames.Count());
+			Assert.AreEqual("TOO_MANY_ROWS", handler.Handled.ExceptionNames.ElementAt(0));
+		}
+
+		[Test]
+		public void WithMultipleExceptionsHandling() {
+			const string sql = @"DECLARE a INT := 23
+								BEGIN
+									SELECT * FROM test WHERE a < test.a;
+                                    EXCEPTION WHEN TOO_MANY_ROWS THEN
+                                       ROLLBACK;
+                                       RAISE
+                                    EXCEPTION WHEN MY_ERROR THEN
+                                       RETURN 0;
+								END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<PlSqlBlockStatement>(statement);
+
+			var block = (PlSqlBlockStatement)statement;
+			Assert.IsNotNull(block.ExceptionHandlers);
+			Assert.IsNotEmpty(block.ExceptionHandlers);
+			Assert.AreEqual(2, block.ExceptionHandlers.Count);
+
+			var handler = block.ExceptionHandlers.ElementAt(0);
+
+			Assert.AreEqual(1, handler.Handled.ExceptionNames.Count());
+			Assert.AreEqual("TOO_MANY_ROWS", handler.Handled.ExceptionNames.ElementAt(0));
+		}
 	}
 }

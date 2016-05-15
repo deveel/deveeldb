@@ -47,6 +47,30 @@ namespace Deveel.Data.Sql.Compile {
             Assert.AreEqual(-1, delete.Limit);
         }
 
+		[Test]
+	    public void WithLimit() {
+			const string sql = "DELETE FROM table1 WHERE a = 1 LIMIT 23";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<DeleteStatement>(statement);
+
+			var delete = (DeleteStatement)statement;
+
+			Assert.IsNotNull(delete.TableName);
+			Assert.AreEqual("table1", delete.TableName.Name);
+			Assert.IsNotNull(delete.WhereExpression);
+			Assert.AreEqual(23, delete.Limit);
+		}
+
         [Test]
         public void CurrentFromCursor() {
             const string sql = "DELETE FROM table1 WHERE CURRENT OF cursor";

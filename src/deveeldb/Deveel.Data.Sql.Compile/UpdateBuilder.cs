@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Compile {
 
 				SqlExpression whereExpression = null;
 				if (whereClause != null)
-					whereExpression = Expression.Build(whereClause.condition_wrapper());
+					whereExpression = Expression.Build(whereClause.conditionWrapper());
 
 				if (setClause.VALUE() != null) {
 					var columnName = Name.Simple(setClause.columnName());

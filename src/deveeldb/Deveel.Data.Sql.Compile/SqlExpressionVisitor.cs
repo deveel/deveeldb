@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -24,6 +25,8 @@ using Antlr4.Runtime.Misc;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Compile {
 	class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
@@ -47,16 +50,16 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitAtom(context);
 		}
 
-		public override SqlExpression VisitExpression_unit(PlSqlParser.Expression_unitContext context) {
+		public override SqlExpression VisitExpressionUnit(PlSqlParser.ExpressionUnitContext context) {
 			return Visit(context.expression());
 		}
 
-		public override SqlExpression VisitUnaryplus_expression(PlSqlParser.Unaryplus_expressionContext context) {
-			return SqlExpression.UnaryPlus(Visit(context.unary_expression()));
+		public override SqlExpression VisitUnaryplusExpression(PlSqlParser.UnaryplusExpressionContext context) {
+			return SqlExpression.UnaryPlus(Visit(context.unaryExpression()));
 		}
 
-		public override SqlExpression VisitUnaryminus_expression(PlSqlParser.Unaryminus_expressionContext context) {
-			return SqlExpression.Unary(SqlExpressionType.Negate, Visit(context.unary_expression()));
+		public override SqlExpression VisitUnaryminusExpression(PlSqlParser.UnaryminusExpressionContext context) {
+			return SqlExpression.Unary(SqlExpressionType.Negate, Visit(context.unaryExpression()));
 		}
 
 		private SqlExpressionType GetBinaryOperator(string s) {
@@ -97,38 +100,117 @@ namespace Deveel.Data.Sql.Compile {
 			throw new NotSupportedException(String.Format("Expression type '{0}' not supported", s));
 		}
 
-		public override SqlExpression VisitRelational_expression(PlSqlParser.Relational_expressionContext context) {
-			var left = Visit(context.left);
+		public override SqlExpression VisitRelationalExpression(PlSqlParser.RelationalExpressionContext context) {
+			var exps = context.compoundExpression().Select(Visit).ToArray();
 
-			string op;
-			var neOp = context.notEqual();
-			var geOp = context.greaterThanOrEquals();
-			var leOp = context.lessThanOrEquals();
-			if (context.op != null) {
-				op = context.op.Text;
-			} else if (neOp.Length > 0) {
-				op = String.Join(" ", neOp.Select(x => x.GetText()).ToArray());
-			} else if (geOp.Length > 0) {
-				op = String.Join(" ", geOp.Select(x => x.GetText()).ToArray());
-			} else if (leOp.Length > 0) {
-				op = String.Join(" ", leOp.Select(x => x.GetText()).ToArray());
-			} else {
-				return left;
+			SqlExpression last = null;
+			for (int i = 0; i < exps.Length; i++) {
+				if (last == null) {
+					last = exps[i];
+				} else {
+					var opContext = context.relationalOperator(i-1);
+					SqlExpressionType expType;
+					if (opContext.greaterThanOrEquals() != null) {
+						expType = SqlExpressionType.GreaterOrEqualThan;
+					} else if (opContext.lessThanOrEquals() != null) {
+						expType = SqlExpressionType.SmallerOrEqualThan;
+					} else if (opContext.notEqual() != null) {
+						expType = SqlExpressionType.NotEqual;
+					} else if (opContext.op != null) {
+						expType = GetBinaryOperator(opContext.op.Text);
+					} else {
+						throw new ParseCanceledException("Invalid relational operator");
+					}
+
+					last = SqlExpression.Binary(last, expType, exps[i]);
+				}
 			}
 
-			var expType = GetBinaryOperator(op);
-			var right = Visit(context.right);
-
-			return SqlExpression.Binary(left, expType, right);
+			return last;
 		}
 
-		public override SqlExpression VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
-			return base.VisitSimpleCaseStatement(context);
+		public override SqlExpression VisitSimpleCaseExpression(PlSqlParser.SimpleCaseExpressionContext context) {
+			var exp = Visit(context.atom());
+
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+				var otherExp = Visit(partContext.conditionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Equal(exp, otherExp),
+					ReturnExpression = Visit(partContext.expressionWrapper())
+				});
+			}
+
+			if (context.caseElseExpressionPart() != null) {
+				var returnExp = Visit(context.caseElseExpressionPart().expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnExpression = returnExp
+				});
+			}
+
+			SqlConditionalExpression conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = SqlExpression.Conditional(current.Condition, current.ReturnExpression);
+
+				if (conditional != null) {
+					conditional = SqlExpression.Conditional(current.Condition, current.ReturnExpression, conditional);
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
 
-		public override SqlExpression VisitSearchedCaseStatement(PlSqlParser.SearchedCaseStatementContext context) {
-			return base.VisitSearchedCaseStatement(context);
+		public override SqlExpression VisitSearchedCaseExpression(PlSqlParser.SearchedCaseExpressionContext context) {
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+				switches.Add(new CaseSwitch {
+					Condition = Visit(partContext.conditionWrapper()),
+					ReturnExpression = Visit(partContext.expressionWrapper())
+				});
+			}
+
+			if (context.caseElseExpressionPart() != null) {
+				var returnExp = Visit(context.caseElseExpressionPart().expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Conditional(SqlExpression.Constant(true), returnExp),
+					ReturnExpression = returnExp
+				});
+			}
+
+			SqlConditionalExpression conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = SqlExpression.Conditional(current.Condition, current.ReturnExpression);
+
+				if (conditional != null) {
+					conditional = SqlExpression.Conditional(current.Condition, current.ReturnExpression, conditional);
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
+
+		#region CaseSwitch
+
+		class CaseSwitch {
+			public SqlExpression Condition { get; set; }
+
+			public SqlExpression ReturnExpression { get; set; }
+		}
+
+		#endregion
 
 		public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
 			return Subquery.Form(context);
@@ -162,9 +244,9 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitQuantifiedExpression(context);
 		}
 
-		public override SqlExpression VisitExpression_or_vector(PlSqlParser.Expression_or_vectorContext context) {
+		public override SqlExpression VisitExpressionOrVector(PlSqlParser.ExpressionOrVectorContext context) {
 			var exp = Visit(context.expression());
-			var vector = context.vector_expr();
+			var vector = context.vectorExpression();
 			if (vector == null)
 				return exp;
 
@@ -179,8 +261,8 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.Constant(Field.Array(array));
 		}
 
-		public override SqlExpression VisitEquality_expression(PlSqlParser.Equality_expressionContext context) {
-			var left = Visit(context.relational_expression());
+		public override SqlExpression VisitEqualityExpression(PlSqlParser.EqualityExpressionContext context) {
+			var left = Visit(context.relationalExpression());
 
 			string op = null;
 
@@ -214,58 +296,85 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.Binary(left, expType, right);
 		}
 
-		public override SqlExpression VisitAdditive_expression(PlSqlParser.Additive_expressionContext context) {
-			var left = Visit(context.left);
-
-			if (context.right == null)
-				return left;
-
-			var right = Visit(context.right);
-			var op = context.op.Text;
-
-			var expType = GetBinaryOperator(op);
-			return SqlExpression.Binary(left, expType, right);
-		}
-
-		public override SqlExpression VisitLogical_and_expression(PlSqlParser.Logical_and_expressionContext context) {
-			var exps = context.negated_expression().Select(Visit).ToArray();
+		public override SqlExpression VisitAdditiveExpression(PlSqlParser.AdditiveExpressionContext context) {
+			var exps = context.multiplyExpression().Select(Visit).ToArray();
 			if (exps.Length == 1)
 				return exps[0];
 
-			return SqlExpression.And(exps[0], exps[1]);
+			SqlExpression last = null;
+			for (int i = 0; i < exps.Length; i++) {
+				if (last == null) {
+					last = exps[i];
+				} else {
+					var opContext = context.additiveOperator(i - 1);
+					var expType = GetBinaryOperator(opContext.GetText());
+					last = SqlExpression.Binary(last, expType, exps[i]);
+				}
+			}
+
+			return last;
+		}
+
+		public override SqlExpression VisitLogicalAndExpression(PlSqlParser.LogicalAndExpressionContext context) {
+			var exps = context.negatedExpression().Select(Visit).ToArray();
+			if (exps.Length == 1)
+				return exps[0];
+
+			SqlExpression last = null;
+			foreach (var exp in exps) {
+				if (last == null) {
+					last = exp;
+				} else {
+					last = SqlExpression.And(last, exp);
+				}
+			}
+
+			return last;
 		}
 
 		public override SqlExpression VisitExpression(PlSqlParser.ExpressionContext context) {
-			var left = Visit(context.left);
+			var exps = context.logicalAndExpression().Select(Visit).ToArray();
+			if (exps.Length == 1)
+				return exps[0];
 
-			if (context.right == null)
-				return left;
+			SqlExpression last = null;
+			foreach (var exp in exps) {
+				if (last == null) {
+					last = exp;
+				} else {
+					last = SqlExpression.Or(last, exp);
+				}
+			}
 
-			var right = Visit(context.right);
-			return SqlExpression.Or(left, right);
+			return last;
 		}
 
-		public override SqlExpression VisitNegated_expression(PlSqlParser.Negated_expressionContext context) {
+		public override SqlExpression VisitNegatedExpression(PlSqlParser.NegatedExpressionContext context) {
 			if (context.NOT() != null) {
-				var eqExp = Visit(context.negated_expression());
+				var eqExp = Visit(context.negatedExpression());
 				return SqlExpression.Not(eqExp);
 			}
 
-			return Visit(context.equality_expression());
+			return Visit(context.equalityExpression());
 		}
 
-		public override SqlExpression VisitMultiply_expression(PlSqlParser.Multiply_expressionContext context) {
-			var left = Visit(context.left);
+		public override SqlExpression VisitMultiplyExpression(PlSqlParser.MultiplyExpressionContext context) {
+			var exps = context.datetimeExpression().Select(Visit).ToArray();
+			if (exps.Length == 1)
+				return exps[0];
 
-			if (context.right == null)
-				return left;
+			SqlExpression last = null;
+			for (int i = 0; i < exps.Length; i++) {
+				if (last == null) {
+					last = exps[i];
+				} else {
+					var opContext = context.multiplyOperator(i - 1);
+					var expType = GetBinaryOperator(opContext.GetText());
+					last = SqlExpression.Binary(last, expType, exps[i]);
+				}
+			}
 
-			var right = Visit(context.right);
-			var op = context.op.Text;
-
-			var expType = GetBinaryOperator(op);
-
-			return SqlExpression.Binary(left, expType, right);
+			return last;
 		}
 
 		public override SqlExpression VisitConstantDBTimeZone(PlSqlParser.ConstantDBTimeZoneContext context) {
@@ -313,7 +422,7 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.FunctionCall(name, funcArgs);
 		}
 
-		public override SqlExpression VisitCompound_expression(PlSqlParser.Compound_expressionContext context) {
+		public override SqlExpression VisitCompoundExpression(PlSqlParser.CompoundExpressionContext context) {
 			var left = Visit(context.exp);
 
 			bool isNot = context.NOT() != null;
@@ -331,7 +440,7 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			if (context.IN() != null) {
-				var arg = Visit(context.in_elements());
+				var arg = Visit(context.inElements());
 
 				SqlExpression right;
 				SqlExpressionType op;
@@ -351,7 +460,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitInArray(PlSqlParser.InArrayContext context) {
-			var exps = context.concatenation_wrapper().Select(Visit);
+			var exps = context.concatenationWrapper().Select(Visit);
 			return SqlExpression.Constant(Field.Array(exps));
 		}
 
@@ -368,12 +477,24 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitGroup(PlSqlParser.GroupContext context) {
-			var exp = Visit(context.expression_or_vector());
+			var exp = Visit(context.expressionOrVector());
+			if (exp.ExpressionType == SqlExpressionType.Constant &&
+			    ((SqlConstantExpression) exp).Value.Type is ArrayType)
+				return exp;
+
 			return SqlExpression.Tuple(new[] {exp});
 		}
 
-		public override SqlExpression VisitDatetime_expression(PlSqlParser.Datetime_expressionContext context) {
-			var exp = Visit(context.unary_expression());
+		public override SqlExpression VisitAllExpression(PlSqlParser.AllExpressionContext context) {
+			return SqlExpression.All(Visit(context.unaryExpression()));
+		}
+
+		public override SqlExpression VisitAnyExpression(PlSqlParser.AnyExpressionContext context) {
+			return SqlExpression.Any(Visit(context.unaryExpression()));
+		}
+
+		public override SqlExpression VisitDatetimeExpression(PlSqlParser.DatetimeExpressionContext context) {
+			var exp = Visit(context.unaryExpression());
 			if (context.AT() == null)
 				return exp;
 
@@ -381,15 +502,11 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitConcatenation(PlSqlParser.ConcatenationContext context) {
-			var left = Visit(context.left);
-			if (context.right == null)
-				return left;
+			var exps = context.additiveExpression().Select(Visit).ToArray();
+			if (exps.Length == 1)
+				return exps[0];
 
-			var right = Visit(context.right);
-			var op = context.op.GetText();
-			var expType = GetBinaryOperator(op);
-
-			return SqlExpression.Binary(left, expType, right);
+			return SqlExpression.FunctionCall("CONCAT", exps);
 		}
 
 		public override SqlExpression VisitBind_variable(PlSqlParser.Bind_variableContext context) {
@@ -397,7 +514,7 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.VariableReference(varRef);
 		}
 
-		public override SqlExpression VisitExpression_wrapper(PlSqlParser.Expression_wrapperContext context) {
+		public override SqlExpression VisitExpressionWrapper(PlSqlParser.ExpressionWrapperContext context) {
 			return Visit(context.expression());
 		}
 
@@ -412,7 +529,7 @@ namespace Deveel.Data.Sql.Compile {
 			var destType = SqlTypeParser.Parse(context.datatype());
 			var destTypeString = destType.ToString();
 
-			var value = Visit(context.concatenation_wrapper());
+			var value = Visit(context.concatenationWrapper());
 
 			return SqlExpression.FunctionCall("SQL_CAST", new[] {value, SqlExpression.Constant(destTypeString)});
 		}
@@ -432,7 +549,7 @@ namespace Deveel.Data.Sql.Compile {
 			if (context.all != null)
 				return SqlExpression.FunctionCall("COUNT", new SqlExpression[] {SqlExpression.Reference(new ObjectName("*"))});
 
-			var exp = Visit(context.concatenation_wrapper());
+			var exp = Visit(context.concatenationWrapper());
 			if (context.DISTINCT() != null)
 				return SqlExpression.FunctionCall("DISTINCT_COUNT", new[] {exp});				
 			if (context.UNIQUE() != null)
@@ -443,7 +560,7 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlExpression VisitExtractFunction(PlSqlParser.ExtractFunctionContext context) {
 			var part = Name.Simple(context.regular_id());
-			var exp = Visit(context.concatenation_wrapper());
+			var exp = Visit(context.concatenationWrapper());
 
 			return SqlExpression.FunctionCall("SQL_EXTRACT", new[] {exp, SqlExpression.Constant(part)});
 		}
@@ -466,11 +583,25 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitTrimFunction(PlSqlParser.TrimFunctionContext context) {
-			return base.VisitTrimFunction(context);
-		}
+			var arg1 = Expression.Build(context.concatenationWrapper());
+			var part = "both";
+			if (context.LEADING() != null) {
+				part = "leading";
+			} else if (context.TRAILING() != null) {
+				part = "trailing";
+			} else if (context.BOTH() != null) {
+				part = "both";
+			}
 
-		public override SqlExpression VisitTreatFunction(PlSqlParser.TreatFunctionContext context) {
-			return base.VisitTreatFunction(context);
+			var toTrim = " ";
+			if (context.quoted_string() != null) {
+				toTrim = InputString.AsNotQuoted(context.quoted_string());
+			}
+
+			var arg2 = SqlExpression.Constant(part);
+			var arg3 = SqlExpression.Constant(toTrim);
+
+			return SqlExpression.FunctionCall("SQL_TRIM", new SqlExpression[] {arg1, arg2, arg3});
 		}
 	}
 }

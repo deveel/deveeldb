@@ -145,7 +145,7 @@ namespace Deveel.Data.Sql.Compile {
 		public SqlExpression ParseExpression(string text) {
 			SetInput(text);
 			//var plSqlParser = MakeParser(text, null);
-			var parseResult = plSqlParser.expression_unit();
+			var parseResult = plSqlParser.expressionUnit();
 
 			var visitor = new SqlExpressionVisitor();
 			var result = visitor.Visit(parseResult);

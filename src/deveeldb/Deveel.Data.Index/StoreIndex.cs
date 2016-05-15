@@ -224,7 +224,7 @@ namespace Deveel.Data.Index {
 					int v = BaseArray[i];
 					for (int n = entrySize - 1; n >= 0; --n) {
 						//TODO: check this...
-						arr[p] = (byte)(ByteBuffer.URShift(v, (n * 8)) & 0x0FF);
+						arr[p] = (byte)(BytesUtil.URShift(v, (n * 8)) & 0x0FF);
 						++p;
 					}
 				}

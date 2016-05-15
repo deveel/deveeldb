@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Statements {
 		public bool IfExists { get; set; }
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
-			var procedureName = context.Access().ResolveObjectName(ProcedureName);
+			var procedureName = context.Access().ResolveObjectName(DbObjectType.Routine, ProcedureName);
 			return new DropProcedureStatement(procedureName, IfExists);
 		}
 

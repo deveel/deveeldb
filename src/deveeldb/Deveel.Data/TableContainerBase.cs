@@ -59,6 +59,14 @@ namespace Deveel.Data {
 			get { return Transaction.TableExists(TableName) ? Transaction.GetTable(TableName).RowCount : 0; }
 		}
 
+		protected virtual int SchemaColumnOffset {
+			get { return 0; }
+		}
+
+		protected virtual int NameColumnOffset {
+			get { return 1; }
+		}
+
 		/// <inheritdoc/>
 		public int FindByName(ObjectName name) {
 			if (Transaction.RealTableExists(TableName)) {
@@ -69,9 +77,9 @@ namespace Deveel.Data {
 				int p = 0;
 				while (rowE.MoveNext()) {
 					int rowIndex = rowE.Current.RowId.RowNumber;
-					var obName = table.GetValue(rowIndex, 1);
+					var obName = table.GetValue(rowIndex, NameColumnOffset);
 					if (obName.Value.ToString().Equals(name.Name)) {
-						var obSchema = table.GetValue(rowIndex, 0);
+						var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
 						if (obSchema.Value.ToString().Equals(name.ParentName)) {
 							// Match so return this
 							return p;
@@ -95,8 +103,8 @@ namespace Deveel.Data {
 				while (rowE.MoveNext()) {
 					int rowIndex = rowE.Current.RowId.RowNumber;
 					if (offset == p) {
-						var obSchema = table.GetValue(rowIndex, 0);
-						var obName = table.GetValue(rowIndex, 1);
+						var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
+						var obName = table.GetValue(rowIndex, NameColumnOffset);
 						return new ObjectName(new ObjectName(obSchema.Value.ToString()), obName.Value.ToString());
 					}
 					++p;

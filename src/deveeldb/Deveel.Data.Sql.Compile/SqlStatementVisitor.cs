@@ -250,7 +250,7 @@ namespace Deveel.Data.Sql.Compile {
 				block.Label = labelName;
 			}
 			
-			var statements = context.seq_of_statements().statement().Select(Visit);
+			var statements = context.seqOfStatements().statement().Select(Visit);
 			foreach (var statement in statements) {
 				block.Statements.Add(statement);
 			}
@@ -278,7 +278,7 @@ namespace Deveel.Data.Sql.Compile {
 			var handler = new ExceptionHandler(handled);
 
 			// TODO: support labels
-			var statements = context.seq_of_statements().statement().Select(Visit);
+			var statements = context.seqOfStatements().statement().Select(Visit);
 			foreach (var statement in statements) {
 				handler.Statements.Add(statement);
 			}
@@ -355,7 +355,7 @@ namespace Deveel.Data.Sql.Compile {
 				loop.Label = labelName;
 			}
 
-			var seqOfStatements = context.seq_of_statements();
+			var seqOfStatements = context.seqOfStatements();
 			if (seqOfStatements != null) {
 				var statements = seqOfStatements.statement().Select(Visit);
 				foreach (var statement in statements) {
@@ -664,6 +664,90 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitOpenForStatement(context);
 		}
 
+		public override SqlStatement VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
+			var exp = Expression.Build(context.atom());
+
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.simpleCaseWhenPart()) {
+				var otherExp = Expression.Build(partContext.expressionWrapper());
+				switches.Add(new CaseSwitch {
+					Condition =SqlExpression.Equal(exp, otherExp),
+					ReturnStatements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
+			}
+
+			if (context.caseElsePart() != null) {
+				var returnstatements = context.caseElsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnStatements = returnstatements
+				});
+			}
+
+			ConditionStatement conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = new ConditionStatement(current.Condition, current.ReturnStatements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.ReturnStatements, new SqlStatement[] {conditional});
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
+		}
+
+		public override SqlStatement VisitSearchedCaseStatement(PlSqlParser.SearchedCaseStatementContext context) {
+			var switches = new List<CaseSwitch>();
+
+			foreach (var partContext in context.searchedCaseWhenPart()) {
+				switches.Add(new CaseSwitch {
+					Condition = Expression.Build(partContext.conditionWrapper()),
+					ReturnStatements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
+			}
+
+			if (context.caseElsePart() != null) {
+				var returnstatements = context.caseElsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				switches.Add(new CaseSwitch {
+					Condition = SqlExpression.Constant(true),
+					ReturnStatements = returnstatements
+				});
+			}
+
+			ConditionStatement conditional = null;
+
+			for (int i = switches.Count - 1; i >= 0; i--) {
+				var current = switches[i];
+
+				var condition = new ConditionStatement(current.Condition, current.ReturnStatements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.ReturnStatements, new SqlStatement[] { conditional });
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
+		}
+
+		#region CaseSwitch
+
+		class CaseSwitch {
+			public SqlExpression Condition { get; set; }
+
+			public SqlStatement[] ReturnStatements { get; set; }
+		}
+
+		#endregion
+
+
 		public override SqlStatement VisitReturnStatement(PlSqlParser.ReturnStatementContext context) {
 			var returnContext = context.condition();
 			SqlExpression returnExpression = null;
@@ -674,23 +758,54 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitIfStatement(PlSqlParser.IfStatementContext context) {
-			var condition = Expression.Build(context.condition());
-			var ifTrue = context.seq_of_statements().statement().Select(Visit).ToArray();
+			var conditions = new List<ConditionPart> {
+				new ConditionPart {
+					Condition = Expression.Build(context.condition()),
+					Statements = context.seqOfStatements().statement().Select(Visit).ToArray()
+				}
+			};
 
-			SqlStatement[] ifFalse = null;
-
-			var elsif = context.elsifPart();
-			if (elsif != null && elsif.Length > 0) {
-				// TODO: !!!
-				throw new NotImplementedException();
+			foreach (var partContext in context.elsifPart()) {
+				conditions.Add(new ConditionPart {
+					Condition = Expression.Build(partContext.condition()),
+					Statements = partContext.seqOfStatements().statement().Select(Visit).ToArray()
+				});
 			}
 
 			if (context.elsePart() != null) {
-				ifFalse = context.elsePart().seq_of_statements().statement().Select(Visit).ToArray();
+				var statements = context.elsePart().seqOfStatements().statement().Select(Visit).ToArray();
+				conditions.Add(new ConditionPart {
+					Condition = SqlExpression.Constant(true),
+					Statements = statements
+				});
 			}
 
-			return new ConditionStatement(condition, ifTrue, ifFalse);
+			ConditionStatement conditional = null;
+
+			for (int i = conditions.Count - 1; i >= 0; i--) {
+				var current = conditions[i];
+
+				var condition = new ConditionStatement(current.Condition, current.Statements);
+
+				if (conditional != null) {
+					conditional = new ConditionStatement(current.Condition, current.Statements, new SqlStatement[] { conditional });
+				} else {
+					conditional = condition;
+				}
+			}
+
+			return conditional;
 		}
+
+		#region Condition
+
+		class ConditionPart {
+			public SqlExpression Condition { get; set; }
+
+			public SqlStatement[] Statements { get; set; }
+		}
+
+		#endregion
 
 		public override SqlStatement VisitCreateFunctionStatement(PlSqlParser.CreateFunctionStatementContext context) {
 			var functionName = Name.Object(context.objectName());

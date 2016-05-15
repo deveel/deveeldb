@@ -16,8 +16,10 @@
 
 
 using System;
+using System.Reflection;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
 	public sealed class ExternalProcedure : Procedure {
@@ -33,9 +35,56 @@ namespace Deveel.Data.Routines {
 			get { return ((ExternalProcedureInfo) ProcedureInfo).ExternalRef; }
 		}
 
-		protected override Field ExecuteRoutine(IBlock context) {
-			// TODO: Cast the input parameters to the destination types
-			throw new NotImplementedException();
+		private Field ConvertValue(object value, SqlType sqlType) {
+			var obj = sqlType.CreateFrom(value);
+			return new Field(sqlType, obj);
+		}
+
+		private object[] ConvertArguments(MethodInfo methodInfo, IRequest request, Field[] args) {
+			var methodParams = methodInfo.GetParameters();
+
+			// TODO: support the case of the Unbounded parameters
+			if (methodParams.Length != args.Length)
+				throw new InvalidOperationException("Input arguments and external procedure arguments are not matching");
+
+			var values = new object[args.Length];
+			for (int i = 0; i < args.Length; i++) {
+				var paramType = methodParams[i].ParameterType;
+				if ((paramType == typeof(ISession) ||
+					paramType == typeof(IRequest) ||
+					paramType == typeof(IQuery)) &&
+					i > 0)
+					throw new InvalidOperationException("The request parameter must be the first in method signature.");
+
+				object arg;
+
+				if (paramType == typeof(ISession)) {
+					arg = request.Query.Session;
+				} else if (paramType == typeof(IQuery)) {
+					arg = request.Query;
+				} else if (paramType == typeof(IRequest)) {
+					arg = request.CreateBlock();
+				} else {
+					var sqlType = PrimitiveTypes.FromType(paramType);
+					arg = sqlType.ConvertTo(args[i].Value, paramType);
+				}
+
+				values[i] = arg;
+			}
+
+			return values;
+		}
+
+
+		public override InvokeResult Execute(InvokeContext context) {
+			var args = context.EvaluatedArguments;
+
+			var method = ExternalRef.GetMethod();
+
+			var methodArgs = ConvertArguments(method, context.Request, args);
+			method.Invoke(null, methodArgs);
+
+			return context.Result();
 		}
 	}
 }

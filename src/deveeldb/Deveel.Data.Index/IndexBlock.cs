@@ -97,7 +97,7 @@ namespace Deveel.Data.Index {
 					//TODO: check this...
 					// size is the first 24 bits (max size = 16MB)
 					int elementCount = typeSize & 0x0FFF;
-					byte type = (byte) (ByteBuffer.URShift(typeSize, 24) & 0x0F);
+					byte type = (byte) (BytesUtil.URShift(typeSize, 24) & 0x0F);
 
 					blocks[i] = StoreIndex.NewMappedBlock(indexSetStore, firstEntry, lastEntry, blockPointer, elementCount, type,
 						BlockSize);

@@ -48,8 +48,8 @@ namespace Deveel.Data.Sql.Compile {
 			var query = Subquery.Form(context.subquery());
 
 			CursorParameter[] parameters = null;
-			if (context.parameter_spec() != null) {
-				parameters = context.parameter_spec().Select(Parameter.Form).ToArray();
+			if (context.parameterSpec() != null) {
+				parameters = context.parameterSpec().Select(Parameter.Form).ToArray();
 			}
 
 			return new DeclareCursorStatement(cursorName, parameters, query);
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Compile {
 		#region Parameter
 
 		static class Parameter {
-			public static CursorParameter Form(PlSqlParser.Parameter_specContext context) {
+			public static CursorParameter Form(PlSqlParser.ParameterSpecContext context) {
 				var paramName = Name.Simple(context.parameter_name());
 				var type = SqlTypeParser.Parse(context.datatype());
 

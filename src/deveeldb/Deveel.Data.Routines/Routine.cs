@@ -138,7 +138,7 @@ namespace Deveel.Data.Routines {
 			return output;
 		}
 
-		public InvokeResult Execute(InvokeContext context) {
+		public virtual InvokeResult Execute(InvokeContext context) {
 			var args = context.Arguments;
 			InvokeResult invokeResult = null;
 
@@ -168,10 +168,13 @@ namespace Deveel.Data.Routines {
 			} catch (Exception) {
 				throw;
 			} finally {
-				context.Request.Context.OnEvent(new RoutineEvent(Name, args, RoutineInfo.RoutineType, invokeResult));			}
+				context.Request.Context.OnEvent(new RoutineEvent(Name, args, RoutineInfo.RoutineType, invokeResult));
+			}
 
 		}
 
-		protected abstract Field ExecuteRoutine(IBlock context);
+		protected virtual Field ExecuteRoutine(IBlock context) {
+			throw new NotSupportedException(String.Format("The execution of the routine '{0}' is not supported.", Name));
+		}
 	}
 }
