@@ -1135,16 +1135,15 @@ quantifiedExpression
     ;
 
 standardFunction
-    : objectName '(' (argument (',' argument)*)? ')' #InvokedFunction
-	| CURRENT_TIME #CurrentTimeFunction
+    : CURRENT_TIME #CurrentTimeFunction
 	| CURRENT_TIMESTAMP #CurrentTimeStampFunction
 	| CURRENT_DATE #CurrentDateFunction
 	| NEXT VALUE FOR objectName #NextValueFunction
 	| COUNT '(' (all='*' | ((DISTINCT | UNIQUE | ALL)? concatenationWrapper)) ')' #CountFunction
     | CAST '(' (MULTISET '(' subquery ')' | concatenationWrapper) AS datatype ')' #CastFunction
     | EXTRACT '(' regular_id FROM concatenationWrapper ')' #ExtractFunction
-    | TREAT '(' expressionWrapper AS REF? datatype ')' #TreatFunction
     | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenationWrapper ')' #TrimFunction
+	| objectName '(' (argument (',' argument)*)? ')' #InvokedFunction
     ;
    
 // Common

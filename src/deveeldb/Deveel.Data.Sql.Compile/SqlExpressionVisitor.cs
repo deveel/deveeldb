@@ -583,11 +583,25 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitTrimFunction(PlSqlParser.TrimFunctionContext context) {
-			return base.VisitTrimFunction(context);
-		}
+			var arg1 = Expression.Build(context.concatenationWrapper());
+			var part = "both";
+			if (context.LEADING() != null) {
+				part = "leading";
+			} else if (context.TRAILING() != null) {
+				part = "trailing";
+			} else if (context.BOTH() != null) {
+				part = "both";
+			}
 
-		public override SqlExpression VisitTreatFunction(PlSqlParser.TreatFunctionContext context) {
-			return base.VisitTreatFunction(context);
+			var toTrim = " ";
+			if (context.quoted_string() != null) {
+				toTrim = InputString.AsNotQuoted(context.quoted_string());
+			}
+
+			var arg2 = SqlExpression.Constant(part);
+			var arg3 = SqlExpression.Constant(toTrim);
+
+			return SqlExpression.FunctionCall("SQL_TRIM", new SqlExpression[] {arg1, arg2, arg3});
 		}
 	}
 }
