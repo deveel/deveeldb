@@ -812,7 +812,7 @@ namespace Deveel.Data.Sql.Compile {
 			bool orReplace = context.OR() != null && context.REPLACE() != null;
 
 			var body = context.body();
-			var call = context.call_spec();
+			var call = context.callSpec();
 
 			SqlType returnType;
 
@@ -857,8 +857,8 @@ namespace Deveel.Data.Sql.Compile {
 				};
 			}
 
-			var typeString = InputString.AsNotQuoted(call.dotnet_spec().typeString.Text);
-			var assemblyToken = InputString.AsNotQuoted(call.dotnet_spec().assemblyString);
+			var typeString = InputString.AsNotQuoted(call.dotnetSpec().typeString.Text);
+			var assemblyToken = InputString.AsNotQuoted(call.dotnetSpec().assemblyString);
 			if (assemblyToken != null) {
 				typeString = String.Format("{0}, {1}", typeString, assemblyToken);
 			}
@@ -871,7 +871,7 @@ namespace Deveel.Data.Sql.Compile {
 			bool orReplace = context.OR() != null && context.REPLACE() != null;
 
 			var body = context.body();
-			var call = context.call_spec();
+			var call = context.callSpec();
 
 			RoutineParameter[] parameters = null;
 			if (context.parameter() != null &&
@@ -900,8 +900,8 @@ namespace Deveel.Data.Sql.Compile {
 				};
 			}
 
-			var typeString =  InputString.AsNotQuoted(call.dotnet_spec().typeString.Text);
-			var assemblyToken = InputString.AsNotQuoted(call.dotnet_spec().assemblyString);
+			var typeString =  InputString.AsNotQuoted(call.dotnetSpec().typeString.Text);
+			var assemblyToken = InputString.AsNotQuoted(call.dotnetSpec().assemblyString);
 			if (assemblyToken != null) {
 				typeString = String.Format("{0}, {1}", typeString, assemblyToken);
 			}
@@ -919,20 +919,14 @@ namespace Deveel.Data.Sql.Compile {
 
 		public override SqlStatement VisitDropProcedureStatement(PlSqlParser.DropProcedureStatementContext context) {
 			var procName = Name.Object(context.objectName());
-			return new DropProcedureStatement(procName);
+			bool ifExists = context.IF() != null && context.EXISTS() != null;
+			return new DropProcedureStatement(procName, ifExists);
 		}
 
 		public override SqlStatement VisitDropFunctionStatement(PlSqlParser.DropFunctionStatementContext context) {
-			var funcNames = context.objectName().Select(Name.Object).ToArray();
-			if (funcNames.Length == 1)
-				return new DropFunctionStatement(funcNames[0]);
-
-			var seq = new SequenceOfStatements();
-			foreach (var funcName in funcNames) {
-				seq.Statements.Add(new DropFunctionStatement(funcName));
-			}
-
-			return seq;
+			var funcName = Name.Object(context.objectName());
+			bool ifExists = context.IF() != null && context.EXISTS() != null;
+			return new DropFunctionStatement(funcName, ifExists);
 		}
 
 		public override SqlStatement VisitDropSequenceStatement(PlSqlParser.DropSequenceStatementContext context) {

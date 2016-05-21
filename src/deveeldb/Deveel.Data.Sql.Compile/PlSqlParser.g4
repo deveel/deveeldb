@@ -102,22 +102,18 @@ dropTypeStatement
 
 // $<DML SQL PL/SQL Statements
 
-invoker_rights_clause
-    : AUTHID (CURRENT_USER|DEFINER)
+callSpec
+    : LANGUAGE (dotnetSpec)
     ;
 
-call_spec
-    : LANGUAGE (dotnet_spec)
-    ;
-
-dotnet_spec
+dotnetSpec
     : DOTNET typeString=CHAR_STRING (ASSEMBLY assemblyString=CHAR_STRING)?
 	;
 
 // $<Function DDLs
 
 dropFunctionStatement
-    : DROP FUNCTION objectName ( ',' objectName )* SEMICOLON?
+    : DROP FUNCTION (IF EXISTS)? objectName SEMICOLON?
     ;
 
 createSchemaStatement
@@ -131,7 +127,7 @@ dropSchemaStatement
 createFunctionStatement
     : ( CREATE (OR REPLACE)? )? FUNCTION objectName ('(' parameter (',' parameter)* ')')?
       RETURN functionReturnType
-      ( (IS | AS) (DECLARE? declaration* body | call_spec) ) SEMICOLON?
+      ( (IS | AS) (DECLARE? declaration* body | callSpec) ) SEMICOLON?
     ;
 
 functionReturnType
@@ -143,13 +139,13 @@ functionReturnType
 // $<Procedure DDLs
 
 dropProcedureStatement
-    : DROP PROCEDURE objectName ';'
+    : DROP PROCEDURE (IF EXISTS)? objectName SEMICOLON?
     ;
 
 createProcedureStatement
     : (CREATE (OR REPLACE)?)? PROCEDURE objectName ('(' parameter (',' parameter)* ')')? 
-      invoker_rights_clause? (IS | AS)
-      (DECLARE? declaration* body | call_spec) SEMICOLON?
+	  (IS | AS)
+      (DECLARE? declaration* body | callSpec) SEMICOLON?
     ;
 
 // $>

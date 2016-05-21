@@ -109,6 +109,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareExceptionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropProcedureTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropViewTests.cs" />
