@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
@@ -19,6 +20,7 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			CreateTestTable(query, tableName);
 			CreateTriggers(testName, query, tableName);
+			CreateProcedureTrigger(query, tableName);
 
 			return true;
 		}
@@ -41,18 +43,39 @@ namespace Deveel.Data {
 			query.Access().CreateObject(triggerInfo);
 		}
 
-		protected override bool OnTearDown(string testName, IQuery query) {
-			var triggerName = ObjectName.Parse("APP.trigger1");
-			var tableName = ObjectName.Parse("APP.test_table");
+		private void CreateProcedureTrigger(IQuery query, ObjectName tableName) {
+			var procedurName = ObjectName.Parse("APP.proc1");
+			var body = new PlSqlBlockStatement();
+			body.Declarations.Add(new DeclareVariableStatement("a", PrimitiveTypes.Integer()));
+			body.Statements.Add(new AssignVariableStatement(SqlExpression.VariableReference("a"), SqlExpression.Constant(33)));
+			var procedureInfo = new PlSqlProcedureInfo(procedurName, new RoutineParameter[0], body);
 
-			query.Access().DropObject(DbObjectType.Trigger, triggerName);
+			query.Access().CreateObject(procedureInfo);
+
+			var triggerName = ObjectName.Parse("APP.trigger2");
+			var eventTime = TriggerEventTime.After;
+			var eventType = TriggerEventType.Insert | TriggerEventType.Update;
+
+			var triggerInfo = new ProcedureTriggerInfo(triggerName, tableName, eventTime, eventType, procedurName);
+			query.Access().CreateObject(triggerInfo);
+		}
+
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var triggerName1 = ObjectName.Parse("APP.trigger1");
+			var triggerName2 = ObjectName.Parse("APP.trigger2");
+			var tableName = ObjectName.Parse("APP.test_table");
+			var procedurName = ObjectName.Parse("APP.proc1");
+
+			query.Access().DropObject(DbObjectType.Trigger, triggerName1);
+			query.Access().DropObject(DbObjectType.Trigger, triggerName2);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+			query.Access().DropObject(DbObjectType.Routine, procedurName);
 
 			return true;
 		}
 
 		[Test]
-		public void Insert() {
+		public void BeforeInsert() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
 			var reset = new AutoResetEvent(false);
@@ -67,7 +90,30 @@ namespace Deveel.Data {
 			Query.Insert(tableName, new[] {"id", "name"},
 				new SqlExpression[] {SqlExpression.Constant(2), SqlExpression.Constant("The Name")});
 
-			reset.WaitOne(300);
+			reset.WaitOne(500);
+
+			Assert.IsNotNull(firedEvent);
+		}
+
+		[Test]
+		public void AfterInsert() {
+			var tableName = ObjectName.Parse("APP.test_table");
+
+			var reset = new AutoResetEvent(false);
+
+			TriggerEvent firedEvent = null;
+			Query.Context.RouteImmediate<TriggerEvent>(e => {
+				firedEvent = e;
+				reset.Set();
+			}, e => {
+				return e.TriggerType == TriggerType.External &&
+				       e.TriggerName.FullName.Equals("APP.trigger2");
+			});
+
+			Query.Insert(tableName, new[] { "id", "name" },
+				new SqlExpression[] { SqlExpression.Constant(2), SqlExpression.Constant("The Name") });
+
+			reset.WaitOne(500);
 
 			Assert.IsNotNull(firedEvent);
 		}
