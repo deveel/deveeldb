@@ -6,7 +6,6 @@ ACCOUNT:                      A C C O U N T;
 ADD:                          A D D;
 ADMIN:                        A D M I N;
 AFTER:                        A F T E R;
-AGENT:                        A G E N T;
 AGGREGATE:                    A G G R E G A T E;
 ALL:                          A L L;
 ALTER:                        A L T E R;
@@ -18,7 +17,6 @@ ASC:                          A S C;
 ASSEMBLY:                     A S S E M B L Y;
 AT:                           A T;
 ATTRIBUTE:                    A T T R I B U T E;
-AUTHID:                       A U T H I D;
 AUTO:                         A U T O;
 BEFORE:                       B E F O R E;
 BEGIN:                        B E G I N;
@@ -50,10 +48,8 @@ CLOSE:                        C L O S E;
 COLLECT:                      C O L L E C T;
 COLUMN:                       C O L U M N;
 COLUMNS:                      C O L U M N S;
-COMMENT:                      C O M M E N T;
 COMMIT:                       C O M M I T;
 COMMITTED:                    C O M M I T T E D;
-COMPOUND:                     C O M P O U N D;
 CONSTANT:                     C O N S T A N T;
 CONSTRAINT:                   C O N S T R A I N T;
 CONSTRAINTS:                  C O N S T R A I N T S;
@@ -733,28 +729,8 @@ SQL92_RESERVED_CHECK
     : 'check'
     ;
 
-PLSQL_RESERVED_CLUSTERS
-    : 'clusters'
-    ;
-
-PLSQL_RESERVED_COLAUTH
-    : 'colauth'
-    ;
-
 PLSQL_RESERVED_COMPRESS
     : 'compress'
-    ;
-
-SQL92_RESERVED_CONNECT
-    : 'connect'
-    ;
-
-//PLSQL_NON_RESERVED_COLUMNS
-//    : 'columns'
-//    ;
-
-PLSQL_NON_RESERVED_CONNECT_BY_ROOT
-    : 'connect_by_root'
     ;
 
 PLSQL_RESERVED_CRASH

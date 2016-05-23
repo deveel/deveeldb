@@ -318,9 +318,9 @@ defaultValuePart
 
 declaration
     : exceptionDeclaration
+	| pragmaDeclaration
+	| cursorDeclaration
 	| variableDeclaration
-    | cursorDeclaration
-    | pragmaDeclaration
     ;
 
 declareStatement
@@ -342,12 +342,16 @@ parameterSpec
     ;
 
 exceptionDeclaration 
-    : id EXCEPTION SEMICOLON?
+    : exception_name EXCEPTION SEMICOLON?
     ;
 
 pragmaDeclaration
-    : PRAGMA ( EXCEPTION_INIT '(' id ',' numeric ')' ) SEMICOLON?
+    : PRAGMA exceptionInit SEMICOLON?
     ;
+
+exceptionInit
+    : EXCEPTION_INIT '(' exception_name ',' numeric ')'
+	;
 
 updateStatement
     : UPDATE objectName (updateSetClause whereClause? | updateFromClause) ( updateLimitClause )? SEMICOLON?
@@ -739,7 +743,6 @@ triggerBlock
 
 non_dml_event
     : ALTER
-    | COMMENT
     | CREATE
     | DROP
     | GRANT
@@ -1278,6 +1281,10 @@ record_name
     | bind_variable
     ;
 
+exception_name
+    : id 
+    ;
+
 objectName
    : id ('.' id)*
    ;
@@ -1361,7 +1368,6 @@ regular_id
     | ADD
 	| ADMIN
     | AFTER
-    | AGENT
     | AGGREGATE
     //| ALL
     //| ALTER
@@ -1400,10 +1406,8 @@ regular_id
     | CLOSE
     | COLLECT
     | COLUMNS
-    | COMMENT
     | COMMIT
     | COMMITTED
-    | COMPOUND
     //| CONNECT
     //| CONNECT_BY_ROOT
     | CONSTANT

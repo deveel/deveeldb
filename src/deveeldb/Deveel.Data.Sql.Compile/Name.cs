@@ -114,6 +114,14 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[CLSCompliant(false)]
+		public static string Simple(PlSqlParser.Exception_nameContext context) {
+			if (context == null)
+				return null;
+
+			return Simple(context.id());
+		}
+
+		[CLSCompliant(false)]
 		public static string Simple(PlSqlParser.Regular_idContext context) {
 			if (context == null)
 				return null;

@@ -29,7 +29,9 @@ namespace Deveel.Data.Sql.Compile {
 			var text = context.GetText();
 			int value;
 			if (!Int32.TryParse(text, out value))
-				throw new ParseCanceledException(String.Format("Numeric '{0}' is not a positive integer.", text));
+				throw new ParseCanceledException(String.Format("Numeric '{0}' is not an integer.", text));
+			if (value < 0)
+				throw new ParseCanceledException(String.Format("Integer '{0}' is not positive.", text));
 
 			return value;
 		}
@@ -41,7 +43,21 @@ namespace Deveel.Data.Sql.Compile {
 			var text = node.GetText();
 			int value;
 			if (!Int32.TryParse(text, out value))
-				throw new ParseCanceledException(String.Format("Numeric '{0}' is not a positive integer.", text));
+				throw new ParseCanceledException(String.Format("Numeric '{0}' is not an integer.", text));
+			if (value < 0)
+				throw new ParseCanceledException(String.Format("Integer '{0}' is not positive.", text));
+
+			return value;
+		}
+
+		public static int? Integer(PlSqlParser.NumericContext context) {
+			if (context == null)
+				return null;
+
+			var text = context.GetText();
+			int value;
+			if (!Int32.TryParse(text, out value))
+				throw new ParseCanceledException(String.Format("Numeric '{0}' is not an integer.", text));
 
 			return value;
 		}

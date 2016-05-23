@@ -261,6 +261,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionInitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />

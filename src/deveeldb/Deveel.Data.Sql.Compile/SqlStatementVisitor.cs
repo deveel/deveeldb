@@ -957,8 +957,17 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitExceptionDeclaration(PlSqlParser.ExceptionDeclarationContext context) {
-			var exceptionName = Name.Simple(context.id());
+			var exceptionName = Name.Simple(context.exception_name());
 			return new DeclareExceptionStatement(exceptionName);
+		}
+
+		public override SqlStatement VisitExceptionInit(PlSqlParser.ExceptionInitContext context) {
+			var exceptionName = Name.Simple(context.exception_name());
+			var errorNumber = Number.Integer(context.numeric());
+			if (errorNumber == null)
+				throw new ParseCanceledException("Could not find a valid error code");
+
+			return new DeclareExceptionInitStatement(exceptionName, errorNumber.Value);
 		}
 
 		public override SqlStatement VisitVariableDeclaration(PlSqlParser.VariableDeclarationContext context) {
