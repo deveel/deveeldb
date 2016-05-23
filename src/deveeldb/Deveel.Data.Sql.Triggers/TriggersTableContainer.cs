@@ -51,32 +51,20 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public override ITable GetTable(int offset) {
 			var table = Transaction.GetTable(TriggerManager.TriggerTableName);
-			var enumerator = table.GetEnumerator();
-			int p = 0;
-			int i;
-			int rowIndex = -1;
-			while (enumerator.MoveNext()) {
-				i = enumerator.Current.RowId.RowNumber;
-				if (p == offset) {
-					rowIndex = i;
-				} else {
-					++p;
-				}
-			}
 
-			if (p != offset)
+			if (offset < 0 || offset >= table.RowCount)
 				throw new ArgumentOutOfRangeException("offset");
 
-			var schema = table.GetValue(rowIndex, 0).Value.ToString();
-			var name = table.GetValue(rowIndex, 1).Value.ToString();
+			var schema = table.GetValue(offset, 0).Value.ToString();
+			var name = table.GetValue(offset, 1).Value.ToString();
 
 			var tableInfo = CreateTableInfo(schema, name);
 
-			var type = table.GetValue(rowIndex, 2);
-			var tableName = table.GetValue(rowIndex, 3);
-			var routine = table.GetValue(rowIndex, 4);
-			var args = table.GetValue(rowIndex, 5);
-			var owner = table.GetValue(rowIndex, 6);
+			var type = table.GetValue(offset, 2);
+			var tableName = table.GetValue(offset, 3);
+			var routine = table.GetValue(offset, 4);
+			var args = table.GetValue(offset, 5);
+			var owner = table.GetValue(offset, 6);
 
 			return new TriggerTable(Transaction, tableInfo) {
 				Type = type,

@@ -19,7 +19,7 @@ namespace Deveel.Data {
 		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			CreateTestTable(query, tableName);
-			CreateTriggers(testName, query, tableName);
+			CreateTriggers(query, tableName);
 			CreateProcedureTrigger(query, tableName);
 
 			return true;
@@ -32,7 +32,7 @@ namespace Deveel.Data {
 			query.Access().CreateObject(tableInfo);
 		}
 
-		private void CreateTriggers(string testName, IQuery query, ObjectName tableName) {
+		private void CreateTriggers(IQuery query, ObjectName tableName) {
 			var triggerName = ObjectName.Parse("APP.trigger1");
 			var eventTime = TriggerEventTime.Before;
 			var eventType = TriggerEventType.Insert | TriggerEventType.Update;
