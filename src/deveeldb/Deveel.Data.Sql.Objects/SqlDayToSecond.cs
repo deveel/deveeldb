@@ -130,7 +130,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (IsNull)
 				return interval;
 			if (interval.IsNull)
-				return this;
+				return Null;
 
 			var ts = new TimeSpan(interval.Days, interval.Hours, interval.Minutes, interval.Seconds, interval.Milliseconds);
 			var result = value.Value.Subtract(ts);
