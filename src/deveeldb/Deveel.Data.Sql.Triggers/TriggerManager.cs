@@ -385,7 +385,7 @@ namespace Deveel.Data.Sql.Triggers {
 				var argsBinary = (SqlBinary)row.GetValue(7).Value;
 				var args = DeserializeArguments(argsBinary.ToByteArray());
 
-				triggerInfo = new ProcedureTriggerInfo(procName, tableName, eventTime, eventType, procName);
+				triggerInfo = new ProcedureTriggerInfo(triggerName,tableName, eventTime, eventType, procName);
 
 				if (args != null && args.Length > 0) {
 					foreach (var expression in args) {

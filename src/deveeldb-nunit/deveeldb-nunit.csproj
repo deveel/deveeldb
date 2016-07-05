@@ -97,7 +97,6 @@
     <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CallTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CaseTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Compile\CastFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateProcedureTests.cs" />
@@ -109,7 +108,10 @@
     <Compile Include="Deveel.Data.Sql.Compile\CurrentTimeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareExceptionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclarePragmaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropProcedureTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropViewTests.cs" />
@@ -126,6 +128,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SelectTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SetTransactionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\ShowTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\StandardFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\TransactionEndTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateViewTests.cs" />
