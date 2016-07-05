@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Deveel.Data.Sql.Compile {
-	public static class Name {
+	static class Name {
 		[CLSCompliant(false)]
 		public static ObjectName Object(PlSqlParser.ObjectNameContext context) {
 			if (context == null)

@@ -77,10 +77,6 @@ namespace Deveel.Data.Sql.Types {
 			get { return MaxSize; }
 		}
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		/// <summary>
 		/// Gets the locale used to compare string values.
 		/// </summary>

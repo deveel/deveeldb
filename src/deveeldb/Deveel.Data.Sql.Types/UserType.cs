@@ -37,10 +37,6 @@ namespace Deveel.Data.Sql.Types {
 			get { return TypeInfo.TypeName; }
 		}
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		public override bool IsComparable(SqlType type) {
 			// For the moment not possible to compare
 			return false;

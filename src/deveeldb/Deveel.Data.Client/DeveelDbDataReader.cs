@@ -334,7 +334,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override Type GetFieldType(int ordinal) {
-			throw new NotImplementedException();
+			var column = command.CurrentResult.GetColumn(ordinal);
+			if (column == null)
+				return null;
+
+			return column.Type.GetRuntimeType();
 		}
 
 		public override Type GetProviderSpecificFieldType(int ordinal) {

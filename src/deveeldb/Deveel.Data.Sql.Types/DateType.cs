@@ -75,10 +75,6 @@ namespace Deveel.Data.Sql.Types {
 				throw new ArgumentException(String.Format("The SQL type {0} is not a valid DATE", sqlType), "sqlType");
 		}
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		public override bool IsCacheable(ISqlObject value) {
 			return value is SqlDateTime || value is SqlNull;
 		}

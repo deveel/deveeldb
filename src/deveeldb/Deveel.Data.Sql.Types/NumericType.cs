@@ -62,10 +62,6 @@ namespace Deveel.Data.Sql.Types {
 
 		public byte Scale { get; private set; }
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Size", Size);
 			info.AddValue("Scale", Scale);

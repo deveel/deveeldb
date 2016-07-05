@@ -16,13 +16,7 @@
 
 
 using System;
-using System.IO;
 using System.Runtime.Serialization;
-using System.Text;
-
-using Deveel.Data.Serialization;
-using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Types {
 	[Serializable]
@@ -36,10 +30,6 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public override bool IsIndexable {
-			get { return false; }
-		}
-
-		public override bool IsStorable {
 			get { return false; }
 		}
 	}

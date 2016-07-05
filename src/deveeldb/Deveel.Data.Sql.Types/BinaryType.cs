@@ -47,10 +47,6 @@ namespace Deveel.Data.Sql.Types {
 			get { return MaxSize; }
 		}
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		public int MaxSize { get; private set; }
 
 		public override bool IsIndexable {

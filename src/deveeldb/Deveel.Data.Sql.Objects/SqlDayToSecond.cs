@@ -119,7 +119,7 @@ namespace Deveel.Data.Sql.Objects {
 			if (IsNull)
 				return interval;
 			if (interval.IsNull)
-				return this;
+				return Null;
 
 			var ts = new TimeSpan(interval.Days, interval.Hours, interval.Minutes, interval.Seconds, interval.Milliseconds);
 			var result = value.Value.Add(ts);
@@ -148,6 +148,14 @@ namespace Deveel.Data.Sql.Objects {
 			return value.Equals(other.value);
 		}
 
+		public SqlDayToSecond Negate() {
+			if (IsNull || value == null)
+				return this;
+
+			var ts = value.Value.Negate();
+			return new SqlDayToSecond(ts.Days, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds);
+		}
+
 		public override bool Equals(object obj) {
 			return Equals((SqlDayToSecond) obj);
 		}
@@ -172,8 +180,34 @@ namespace Deveel.Data.Sql.Objects {
 			return !(a == b);
 		}
 
+		public static SqlDayToSecond operator -(SqlDayToSecond value) {
+			return value.Negate();
+		}
+
 		public override string ToString() {
-			return value == null ? "NULL" : value.Value.ToString();
+			if (IsNull)
+				return "NULL";
+
+			return value.Value.ToString();
+		}
+
+		public static bool TryParse(string s, out SqlDayToSecond interval) {
+			TimeSpan ts;
+			if (!TimeSpan.TryParse(s, out ts)) {
+				interval = Null;
+				return false;
+			}
+
+			interval = new SqlDayToSecond(ts.Days, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds);
+			return true;
+		}
+
+		public static SqlDayToSecond Parse(string s) {
+			SqlDayToSecond interval;
+			if (!TryParse(s, out interval))
+				throw new FormatException(String.Format("The input string '{0}' is not a valid interval.", s));
+
+			return interval;
 		}
 	}
 }
