@@ -20,7 +20,7 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql.Triggers {
-	public abstract class Trigger : IDbObject, IDisposable {
+	public abstract class Trigger : IDbObject {
 		protected Trigger(TriggerInfo triggerInfo) {
 			if (triggerInfo ==null)
 				throw new ArgumentNullException("triggerInfo");
@@ -38,24 +38,42 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo; }
 		}
 
-		protected virtual void Dispose(bool disposing) {
-			TriggerInfo = null;
-		}
-
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
 		public bool CanFire(TableEvent tableEvent) {
 			return TriggerInfo.CanFire(tableEvent);
 		}
 
+		private static OldNewTableState GetOldState(IRequest request) {
+			if (request.Query.Session is ITableStateHandler) {
+				return ((ITableStateHandler) request.Query.Session).TableState;
+			} else if (request.Query.Session.Transaction is ITableStateHandler) {
+				return ((ITableStateHandler) request.Query.Session.Transaction).TableState;
+			}
+
+			return null;
+		}
+
+		private static void SetState(IRequest request, OldNewTableState newState) {
+			if (request.Query.Session is ITableStateHandler) {
+				((ITableStateHandler)request.Query.Session).SetTableState(newState);
+			} else if (request.Query.Session.Transaction is ITableStateHandler) {
+				((ITableStateHandler)request.Query.Session.Transaction).SetTableState(newState);
+			}
+		}
+
 		public void Fire(TableEvent tableEvent, IRequest context) {
+			var oldState = GetOldState(context);
+
 			try {
 				var triggerType = TriggerInfo.TriggerType;
 				var tableName = tableEvent.Table.TableInfo.TableName;
-				context.Context.OnEvent(new TriggerEvent(triggerType, Name, tableName, tableEvent.EventTime, tableEvent.EventType, tableEvent.OldRowId, tableEvent.NewRow));
+				context.Context.OnEvent(new TriggerEvent(triggerType, Name, tableName, tableEvent.EventTime, tableEvent.EventType,
+					tableEvent.OldRowId, tableEvent.NewRow));
+
+				var newState = new OldNewTableState(tableName, tableEvent.OldRowId.RowNumber, tableEvent.NewRow,
+					tableEvent.EventTime == TriggerEventTime.Before);
+
+				SetState(context, newState);
+
 				using (var block = context.CreateBlock()) {
 					FireTrigger(tableEvent, block);
 				}
@@ -63,6 +81,8 @@ namespace Deveel.Data.Sql.Triggers {
 				throw;
 			} catch (Exception ex) {
 				throw new TriggerException(String.Format("An unknown error occurred while executing trigger '{0}'.", Name), ex);
+			} finally {
+				SetState(context, oldState);
 			}
 		}
 

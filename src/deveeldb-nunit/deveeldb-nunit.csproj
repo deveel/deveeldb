@@ -172,6 +172,7 @@
     <Compile Include="Deveel.Data\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data\DeclareVariableTests.cs" />
     <Compile Include="Deveel.Data\DeleteTests.cs" />
+    <Compile Include="Deveel.Data\DropCallbackTriggerTests.cs" />
     <Compile Include="Deveel.Data\DropFunctionTests.cs" />
     <Compile Include="Deveel.Data\DropProcedureTests.cs" />
     <Compile Include="Deveel.Data\DropRoleTests.cs" />
