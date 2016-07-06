@@ -261,6 +261,10 @@ namespace Deveel.Data.Sql.Types {
 			throw new NotSupportedException();
 		}
 
+		public override ISqlObject CreateFromLargeObject(ILargeObject objRef) {
+			return new SqlLongString(objRef, Encoding);
+		}
+
 		#region Operators
 
 		/// <inheritdoc/>

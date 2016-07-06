@@ -495,11 +495,10 @@ namespace Deveel.Data.Store {
 
 				using (var input = new MemoryStream(pageBuf, 0, readCount)) {
 					using (var output = new MemoryStream()) {
-						using (var deflateStream = new DeflateStream(output, CompressionMode.Decompress, false)) {
-							input.CopyTo(deflateStream);
+						using (var deflateStream = new DeflateStream(input, CompressionMode.Decompress, false)) {
+							deflateStream.CopyTo(output);
 
-							deflateStream.Flush();
-							deflateStream.Close();
+							output.Flush();
 
 							output.Seek(0, SeekOrigin.Begin);
 

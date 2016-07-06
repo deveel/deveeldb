@@ -66,12 +66,12 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var columns = new[] { "first_name", "last_name", "active" };
 			var values = new List<SqlExpression[]> {
-				new[] {
+				new SqlExpression[] {
 					SqlExpression.Constant("Antonello"),
 					SqlExpression.Constant("Provenzano"),
 					SqlExpression.Constant(true)
 				},
-				new [] {
+				new SqlExpression[] {
 					SqlExpression.Constant("Mart"),
 					SqlExpression.Constant("Roosmaa"),
 					SqlExpression.Constant(false)
