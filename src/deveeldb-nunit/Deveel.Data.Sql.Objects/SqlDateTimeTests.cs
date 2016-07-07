@@ -124,6 +124,43 @@ namespace Deveel.Data.Sql.Objects {
 
 		[Test]
 		[Category("Operators")]
+		[Category("Year To Month")]
+		public void Operator_Add_MonthSpan() {
+			var value = new SqlDateTime(2001, 11, 03, 10, 22, 03, 0);
+			var ms = new SqlYearToMonth(1, 3);
+
+			var result = new SqlDateTime();
+			Assert.DoesNotThrow(() => result = value + ms);
+			Assert.IsFalse(result.IsNull);
+			Assert.AreEqual(2003, result.Year);
+			Assert.AreEqual(02, result.Month);
+			Assert.AreEqual(10, result.Hour);
+			Assert.AreEqual(22, result.Minute);
+			Assert.AreEqual(03, result.Second);
+			Assert.AreEqual(0, result.Millisecond);
+		}
+
+		[Test]
+		[Category("Year To Month")]
+		[Category("Operators")]
+		public void Operator_Subtract_MonthSpan() {
+			var value = new SqlDateTime(2001, 11, 03, 10, 22, 03, 0);
+			var ms = new SqlYearToMonth(1, 3);
+
+			var result = new SqlDateTime();
+			Assert.DoesNotThrow(() => result = value - ms);
+			Assert.IsFalse(result.IsNull);
+			Assert.AreEqual(2000, result.Year);
+			Assert.AreEqual(08, result.Month);
+			Assert.AreEqual(10, result.Hour);
+			Assert.AreEqual(22, result.Minute);
+			Assert.AreEqual(03, result.Second);
+			Assert.AreEqual(0, result.Millisecond);
+		}
+
+
+		[Test]
+		[Category("Operators")]
 		public void Equality_True() {
 			var value1 = new SqlDateTime(2030, 03, 01, 11, 05, 54, 0);
 			var value2 = new SqlDateTime(2030, 03, 01, 11, 05, 54, 0);
@@ -147,6 +184,120 @@ namespace Deveel.Data.Sql.Objects {
 			var value2 = new SqlDateTime(2020, 05, 01, 11, 05, 54, 0);
 			
 			Assert.IsTrue(value1 > value2);
+		}
+
+		[Test]
+		[Category("Operators")]
+		public void Lesser_True() {
+			var value1 = new SqlDateTime(2030, 03, 01, 11, 05, 54, 0);
+			var value2 = new SqlDateTime(2020, 05, 01, 11, 05, 54, 0);
+
+			Assert.IsTrue(value2 < value1);
+		}
+
+		[Test]
+		[Category("Operators")]
+		public void Lesser_False() {
+			var value1 = new SqlDateTime(2030, 03, 01, 11, 05, 54, 0);
+			var value2 = new SqlDateTime(2020, 05, 01, 11, 05, 54, 0);
+
+			Assert.IsFalse(value1 < value2);
+		}
+
+		[TestCase(true)]
+		[TestCase(false)]
+		[Category("Conversion")]
+		public void ToByteArray(bool timeZone) {
+			var value = new SqlDateTime(2001, 01, 03, 10, 22, 03, 0);
+			var bytes = value.ToByteArray(timeZone);
+
+			var expectedLength = timeZone ? 13 : 11;
+
+			Assert.IsNotNull(bytes);
+			Assert.AreNotEqual(0, bytes.Length);
+			Assert.AreEqual(expectedLength, bytes.Length);
+
+			var rebuilt = new SqlDateTime(bytes);
+
+			Assert.AreEqual(value, rebuilt);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		public void ToDateTime() {
+			var value = new SqlDateTime(2001, 01, 03, 10, 22, 03, 0);
+			var date = value.ToDateTime();
+
+			Assert.AreEqual(2001, date.Year);
+			Assert.AreEqual(01, date.Month);
+			Assert.AreEqual(03, date.Day);
+			Assert.AreEqual(10, date.Hour);
+			Assert.AreEqual(22, date.Minute);
+			Assert.AreEqual(03, date.Second);
+			Assert.AreEqual(0, date.Millisecond);
+		}
+
+
+		[Test]
+		[Category("Conversion")]
+		public void ToDateTimeOffset_WithoutOffset() {
+			var value = new SqlDateTime(2001, 01, 03, 10, 22, 03, 0);
+			var date = value.ToDateTimeOffset();
+
+			Assert.AreEqual(2001, date.Year);
+			Assert.AreEqual(01, date.Month);
+			Assert.AreEqual(03, date.Day);
+			Assert.AreEqual(10, date.Hour);
+			Assert.AreEqual(22, date.Minute);
+			Assert.AreEqual(03, date.Second);
+			Assert.AreEqual(0, date.Millisecond);
+			Assert.AreEqual(0, date.Offset.Hours);
+			Assert.AreEqual(0, date.Offset.Minutes);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		public void ToDateTimeOffset_WithOffset() {
+			var value = new SqlDateTime(2001, 01, 03, 10, 22, 03, 0, new SqlDayToSecond(2, 30, 0));
+			var date = value.ToDateTimeOffset();
+
+			Assert.AreEqual(2001, date.Year);
+			Assert.AreEqual(01, date.Month);
+			Assert.AreEqual(03, date.Day);
+			Assert.AreEqual(10, date.Hour);
+			Assert.AreEqual(22, date.Minute);
+			Assert.AreEqual(03, date.Second);
+			Assert.AreEqual(0, date.Millisecond);
+			Assert.AreEqual(2, date.Offset.Hours);
+			Assert.AreEqual(30, date.Offset.Minutes);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		public void FromDateTimeOffset_WithOffset_Implicit() {
+			var date = new DateTimeOffset(2001, 01, 03, 10, 22, 03, 0, new TimeSpan(2, 30, 0));
+			var value = (SqlDateTime) date;
+
+			Assert.AreEqual(2001, value.Year);
+			Assert.AreEqual(01, value.Month);
+			Assert.AreEqual(03, value.Day);
+			Assert.AreEqual(10, value.Hour);
+			Assert.AreEqual(22, value.Minute);
+			Assert.AreEqual(03, value.Second);
+			Assert.AreEqual(0, value.Millisecond);
+			Assert.AreEqual(2, value.Offset.Hours);
+			Assert.AreEqual(30, value.Offset.Minutes);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		public void FromNullDateTimeOffset_Implicit() {
+			DateTimeOffset? date = null;
+			var value = (SqlDateTime) date;
+
+			Assert.IsNotNull(value);
+			Assert.IsTrue(value.IsNull);
+			Assert.AreEqual(SqlDateTime.Null, value);
 		}
 	}
 }
