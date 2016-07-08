@@ -12,17 +12,18 @@ using Deveel.Data.Store;
 
 using NUnit.Framework;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Deveel.Data {
 	[TestFixture]
-	public class SelectLobTests : ContextBasedTest {
-		const string testBio = "A simple test string that can span several characters, " +
-					   "that is trying to be the longest possible, just to prove" +
-					   "the capacity of a LONG VARCHAR to handle very long strings. " +
-					   "Anyway it is virtually impossible to reach the maximum size " +
-					   "of a long object, that is organized in 64k byte pages and " +
-					   "spans within the local system without any constraint of size. " +
-					   "For sake of memory anyway, the maximum size of the test object " +
-					   "is set to just 2048 bytes.";
+	public sealed class SelectBlobTests : ContextBasedTest {
+		private readonly byte[] testData;
+
+		public SelectBlobTests() {
+			var random = new Random();
+			testData = new byte[2048];
+			for (int i = 0; i < testData.Length; i++) {
+				testData[i] = (byte) random.Next();
+			}
+		}
 
 		protected override bool OnSetUp(string testName, IQuery query) {
 			CreateTable(query);
@@ -30,7 +31,7 @@ namespace Deveel.Data {
 			return true;
 		}
 
-		private static void CreateTable(IQuery query) {
+		private void CreateTable(IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -39,17 +40,17 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
+			tableInfo.AddColumn("data", PrimitiveTypes.Blob(2048));
 
 			query.Session.Access().CreateTable(tableInfo);
 			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
-		private static void InsertData(IQuery query) {
+		private void InsertData(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var table = query.Access().GetMutableTable(tableName);
 
-			var bio = CreateBio(query, testBio);
+			var data = CreateData(query, testData);
 
 			var row = table.NewRow();
 			row["id"] = Field.Integer(1);
@@ -57,18 +58,16 @@ namespace Deveel.Data {
 			row["last_name"] = Field.String("Provenzano");
 			row["birth_date"] = Field.Date(new SqlDateTime(1980, 06, 04));
 			row["active"] = Field.BooleanTrue;
-			row["bio"] = new Field(PrimitiveTypes.Clob(2048), bio);
+			row["data"] = new Field(PrimitiveTypes.Blob(2048), data);
 
 			table.AddRow(row);
 		}
 
-		private static SqlLongString CreateBio(IQuery query, string text) {
+		private static SqlLongString CreateData(IQuery query, byte[] data) {
 			var lob = query.Session.CreateLargeObject(2048, true);
 			using (var stream = new ObjectStream(lob)) {
-				using (var streamWriter = new StreamWriter(stream, Encoding.ASCII)) {
-					streamWriter.Write(text);
-					streamWriter.Flush();
-				}
+				stream.Write(data, 0, data.Length);
+				stream.Flush();
 			}
 
 			lob.Complete();
@@ -83,8 +82,8 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void SelectBio() {
-			var exp = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
+		public void SelectData() {
+			var exp = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table");
 			var result = Query.Select(exp);
 
 			Assert.IsNotNull(result);
@@ -94,19 +93,20 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(row);
 
-			var bio = row["bio"];
+			var data = row["data"];
 
-			Assert.IsFalse(Field.IsNullField(bio));
-			Assert.IsInstanceOf<StringType>(bio.Type);
-			Assert.AreEqual(SqlTypeCode.Clob, bio.Type.TypeCode);
-			Assert.IsInstanceOf<SqlLongString>(bio.Value);
+			Assert.IsFalse(Field.IsNullField(data));
+			Assert.IsInstanceOf<BinaryType>(data.Type);
+			Assert.AreEqual(SqlTypeCode.Blob, data.Type.TypeCode);
+			Assert.IsInstanceOf<SqlLongBinary>(data.Value);
 
-			var textReader = ((SqlLongString) bio.Value).GetInput(Encoding.ASCII);
-			string text = null;
-			Assert.DoesNotThrow(() => text = textReader.ReadToEnd());
+			var stream = ((SqlLongBinary)data.Value).GetInput();
+			var content = new byte[2048];
+			Assert.DoesNotThrow(() => stream.Read(content, 0, content.Length));
 
-			Assert.IsNotNullOrEmpty(text);
-			Assert.AreEqual(testBio, text);
+			Assert.IsNotEmpty(content);
+			Assert.AreEqual(testData, content);
 		}
+
 	}
 }

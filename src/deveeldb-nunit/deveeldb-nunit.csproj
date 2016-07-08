@@ -185,8 +185,9 @@
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />
     <Compile Include="Deveel.Data\RollbackTests.cs" />
+    <Compile Include="Deveel.Data\SelectBlobTests.cs" />
     <Compile Include="Deveel.Data\SelectFromVariablesTests.cs" />
-    <Compile Include="Deveel.Data\SelectLobTests.cs" />
+    <Compile Include="Deveel.Data\SelectClobTests.cs" />
     <Compile Include="Deveel.Data\SelectPrivsTests.cs" />
     <Compile Include="Deveel.Data\SelectProductInfoTests.cs" />
     <Compile Include="Deveel.Data\SelectRoutineTests.cs" />

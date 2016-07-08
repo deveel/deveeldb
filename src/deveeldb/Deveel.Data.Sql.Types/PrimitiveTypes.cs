@@ -229,6 +229,10 @@ namespace Deveel.Data.Sql.Types {
 			return new BinaryType(sqlType, maxSize);
 		}
 
+		public static BinaryType Blob(int maxSize) {
+			return Binary(SqlTypeCode.Blob, maxSize);
+		}
+
 		public static IntervalType Interval(SqlTypeCode sqlType) {
 			return new IntervalType(sqlType);
 		}
