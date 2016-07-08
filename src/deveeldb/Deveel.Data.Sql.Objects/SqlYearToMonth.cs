@@ -92,9 +92,9 @@ namespace Deveel.Data.Sql.Objects {
 			if (other.IsNull && IsNull)
 				return 0;
 			if (IsNull && !other.IsNull)
-				return 1;
-			if (!IsNull && other.IsNull)
 				return -1;
+			if (!IsNull && other.IsNull)
+				return 1;
 
 			return months.Value.CompareTo(other.months.Value);
 		}

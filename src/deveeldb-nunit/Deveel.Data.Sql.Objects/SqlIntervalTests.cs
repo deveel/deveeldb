@@ -130,5 +130,38 @@ namespace Deveel.Data.Sql.Objects {
 
 			Assert.AreEqual(1, result);
 		}
+
+		[TestCase(22, 1)]
+		[Category("Year To Month")]
+		[Category("Conversion")]
+		public void YearToMonthFromInteger(int months, int expectedYears) {
+			var value = new SqlYearToMonth(months);
+
+			Assert.IsNotNull(value);
+			Assert.IsFalse(value.IsNull);
+
+			Assert.AreEqual(expectedYears, (int) value.TotalYears);
+		}
+
+		[Test]
+		[Category("Year To Month")]
+		public void CompareYearToMonths() {
+			var value1 = new SqlYearToMonth(22);
+			var value2 = new SqlYearToMonth(1, 2);
+
+			var result = value1.CompareTo(value2);
+			Assert.AreEqual(1, result);
+		}
+
+		[Test]
+		[Category("Year To Month")]
+		public void CompareYearToMonthToNull() {
+			var value1 = new SqlYearToMonth(22);
+			var value2 = SqlYearToMonth.Null;
+
+			var result = value1.CompareTo(value2);
+
+			Assert.AreEqual(1, result);
+		}
 	}
 }
