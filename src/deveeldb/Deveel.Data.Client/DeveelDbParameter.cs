@@ -51,71 +51,120 @@ namespace Deveel.Data.Client {
 		}
 
 		public override void ResetDbType() {
-			if (typeCode == SqlTypeCode.Bit ||
-			    typeCode == SqlTypeCode.Boolean) {
-				dbType = DbType.Boolean;
-			} else if (typeCode == SqlTypeCode.TinyInt) {
-				dbType = DbType.Byte;
-			} else if (typeCode == SqlTypeCode.SmallInt) {
-				dbType = DbType.Int16;
-			} else if (typeCode == SqlTypeCode.Integer) {
-				dbType = DbType.Int32;
-			} else if (typeCode == SqlTypeCode.BigInt) {
-				dbType = DbType.Int64;
-			} else if (typeCode == SqlTypeCode.Real ||
-			           typeCode == SqlTypeCode.Float) {
-				dbType = DbType.Single;
-			} else if (typeCode == SqlTypeCode.Double) {
-				dbType = DbType.Double;
-			} else if (typeCode == SqlTypeCode.Decimal) {
-				dbType = DbType.Decimal;
-			} else if (typeCode == SqlTypeCode.Numeric) {
-				dbType = DbType.VarNumeric;
-			} else {
-				throw new NotSupportedException(String.Format("The SQL Type '{0}' cannot be converted to DbType.", typeCode));
+			switch (typeCode) {
+				case SqlTypeCode.Bit:
+				case SqlTypeCode.Boolean:
+					dbType = DbType.Boolean;
+					break;
+				case SqlTypeCode.TinyInt:
+					dbType = DbType.Byte;
+					break;
+				case SqlTypeCode.SmallInt:
+					dbType = DbType.Int16;
+					break;
+				case SqlTypeCode.Integer:
+					dbType = DbType.Int32;
+					break;
+				case SqlTypeCode.BigInt:
+					dbType = DbType.Int64;
+					break;
+				case SqlTypeCode.Real:
+				case SqlTypeCode.Float:
+					dbType = DbType.Single;
+					break;
+				case SqlTypeCode.Double:
+					dbType = DbType.Double;
+					break;
+				case SqlTypeCode.Decimal:
+					dbType = DbType.Decimal;
+					break;
+				case SqlTypeCode.Numeric:
+					dbType = DbType.VarNumeric;
+					break;
+				case SqlTypeCode.String:
+				case SqlTypeCode.VarChar:
+				case SqlTypeCode.Clob:
+				case SqlTypeCode.LongVarChar:
+					dbType = DbType.String;
+					break;
+				case SqlTypeCode.Char:
+					dbType = DbType.StringFixedLength;
+					break;
+				case SqlTypeCode.VarBinary:
+				case SqlTypeCode.Blob:
+				case SqlTypeCode.LongVarBinary:
+					dbType = DbType.Binary;
+					break;
+				case SqlTypeCode.DateTime:
+					dbType = DbType.DateTime;
+					break;
+				case SqlTypeCode.Date:
+					dbType = DbType.Date;
+					break;
+				case SqlTypeCode.TimeStamp:
+					dbType = DbType.DateTimeOffset;
+					break;
+				default:
+					throw new NotSupportedException(String.Format("The SQL Type '{0}' cannot be converted to DbType.", typeCode));
 			}
 		}
 
 		private void ResetSqlType() {
-			if (dbType == DbType.String ||
-			    dbType == DbType.AnsiString) {
-				typeCode = SqlTypeCode.VarChar;
-			} else if (dbType == DbType.StringFixedLength ||
-			           dbType == DbType.AnsiStringFixedLength) {
-				typeCode = SqlTypeCode.Char;
-			} else if (dbType == DbType.Binary) {
-				typeCode = SqlTypeCode.Binary;
-			} else if (dbType == DbType.Boolean) {
-				typeCode = SqlTypeCode.Boolean;
-			} else if (dbType == DbType.Byte) {
-				typeCode = SqlTypeCode.TinyInt;
-			} else if (dbType == DbType.Int16) {
-				typeCode = SqlTypeCode.SmallInt;
-			} else if (dbType == DbType.Int32) {
-				typeCode = SqlTypeCode.Integer;
-			} else if (dbType == DbType.Int64) {
-				typeCode = SqlTypeCode.BigInt;
-			} else if (dbType == DbType.Single) {
-				typeCode = SqlTypeCode.Float;
-			} else if (dbType == DbType.Double) {
-				typeCode = SqlTypeCode.Double;
-			} else if (dbType == DbType.VarNumeric ||
-			           dbType == DbType.Decimal ||
-			           dbType == DbType.Currency) {
-				typeCode = SqlTypeCode.Numeric;
-			} else if (dbType == DbType.Date ||
-			           dbType == DbType.DateTime2) {
-				typeCode = SqlTypeCode.Date;
-			} else if (dbType == DbType.DateTime ||
-			           dbType == DbType.DateTimeOffset) {
-				typeCode = SqlTypeCode.TimeStamp;
-			} else if (dbType == DbType.Time) {
-				typeCode = SqlTypeCode.Time;
-			} else if (dbType == DbType.Object ||
-			           dbType == DbType.Xml) {
-				typeCode = SqlTypeCode.Type;
-			} else {
-				throw new NotSupportedException(String.Format("The DbType '{0}' is not supported by DeveelDB engine", dbType));
+			switch (dbType) {
+				case DbType.String:
+				case DbType.AnsiString:
+					typeCode = SqlTypeCode.VarChar;
+					break;
+				case DbType.StringFixedLength:
+				case DbType.AnsiStringFixedLength:
+					typeCode = SqlTypeCode.Char;
+					break;
+				case DbType.Binary:
+					typeCode = SqlTypeCode.Binary;
+					break;
+				case DbType.Boolean:
+					typeCode = SqlTypeCode.Boolean;
+					break;
+				case DbType.Byte:
+					typeCode = SqlTypeCode.TinyInt;
+					break;
+				case DbType.Int16:
+					typeCode = SqlTypeCode.SmallInt;
+					break;
+				case DbType.Int32:
+					typeCode = SqlTypeCode.Integer;
+					break;
+				case DbType.Int64:
+					typeCode = SqlTypeCode.BigInt;
+					break;
+				case DbType.Single:
+					typeCode = SqlTypeCode.Float;
+					break;
+				case DbType.Double:
+					typeCode = SqlTypeCode.Double;
+					break;
+				case DbType.VarNumeric:
+				case DbType.Decimal:
+				case DbType.Currency:
+					typeCode = SqlTypeCode.Numeric;
+					break;
+				case DbType.Date:
+				case DbType.DateTime2:
+					typeCode = SqlTypeCode.Date;
+					break;
+				case DbType.DateTime:
+				case DbType.DateTimeOffset:
+					typeCode = SqlTypeCode.TimeStamp;
+					break;
+				case DbType.Time:
+					typeCode = SqlTypeCode.Time;
+					break;
+				case DbType.Object:
+				case DbType.Xml:
+					typeCode = SqlTypeCode.Type;
+					break;
+				default:
+					throw new NotSupportedException(String.Format("The DbType '{0}' is not supported by DeveelDB engine", dbType));
 			}
 		}
 

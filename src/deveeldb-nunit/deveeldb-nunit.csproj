@@ -78,8 +78,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbCommandBuilderTests.cs" />
     <Compile Include="Deveel.Data.Client\DbCommandTest.cs" />
     <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbDataAdapterTests.cs" />
     <Compile Include="Deveel.Data.Client\DbDataReaderTests.cs" />
     <Compile Include="Deveel.Data.Client\DbTransactionTests.cs" />
     <Compile Include="Deveel.Data.Client\NonQueryTests.cs" />

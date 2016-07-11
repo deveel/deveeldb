@@ -21,6 +21,7 @@ using System.Data;
 using System.Data.Common;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommandBuilder : DbCommandBuilder {
@@ -55,7 +56,19 @@ namespace Deveel.Data.Client {
 
 		protected override void ApplyParameterInfo(DbParameter parameter, DataRow row, StatementType statementType, bool whereClause) {
 			var param = (DeveelDbParameter) parameter;
-			param.DbType = (DbType) row[SchemaTableColumn.ProviderType];
+			param.SqlType = (SqlTypeCode)((int) row[SchemaTableColumn.ProviderType]);
+
+			var size = (int?) row[SchemaTableColumn.ColumnSize];
+			var scale = (int?) row[SchemaTableColumn.NumericScale];
+			var nullable = (bool?) row[SchemaTableColumn.AllowDBNull];
+
+			if (size != null)
+				param.Size = size.Value;
+			if (scale != null)
+				param.Scale = (byte) scale.Value;
+			if (nullable != null)
+				param.IsNullable = nullable.Value;
+
 			// TODO: apply any other setups?
 		}
 
@@ -96,6 +109,8 @@ namespace Deveel.Data.Client {
 
 		private bool HasPrimaryKey(DataTable table) {
 			var column = table.Columns[SchemaTableColumn.IsKey];
+			if (column == null)
+				return false;
 
 			foreach (DataRow schemaRow in table.Rows) {
 				if ((bool)schemaRow[column])

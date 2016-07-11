@@ -28,6 +28,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class RequestExtensions {
@@ -147,9 +148,14 @@ namespace Deveel.Data {
 
 
 					if (context.HasResult) {
-						result = new StatementResult(context.Result);
+						var constraints = FindConstraintsFor(request, context.Result);
+
+						result = new StatementResult(context.Result, constraints);
 					} else if (context.HasCursor) {
-						result = new StatementResult(context.Cursor);
+						// TODO: we should find a way to project the source info of the cursor without executing it
+						var constraints = FindConstraintsFor(request, context.Cursor.Source);
+						context.Cursor.Reset();
+						result = new StatementResult(context.Cursor, constraints);
 					} else if (context.IsInSession) {
 						result = new StatementResult(FunctionTable.ResultTable(request, 0));
 					} else {
@@ -163,6 +169,32 @@ namespace Deveel.Data {
 			}
 
 			return results;
+		}
+
+		private static ConstraintInfo[] FindConstraintsFor(IRequest request, ITable table) {
+			if (table == null)
+				return new ConstraintInfo[0];
+
+			var transaction = request.Query.Session.Transaction;
+			var constraints = new List<ConstraintInfo>();
+
+			foreach (var columnInfo in table.TableInfo) {
+				var columnTable = columnInfo.TableInfo.TableName;
+				if (columnTable.Parent == null)
+					continue;
+
+				var primaryKey = transaction.QueryTablePrimaryKey(columnTable);
+
+				if (primaryKey != null)
+					constraints.Add(primaryKey);
+
+				var unique = transaction.QueryTableUniqueKeys(columnTable);
+				if (unique != null) {
+					constraints.AddRange(unique);
+				}
+			}
+
+			return constraints.ToArray();
 		}
 
 		#region Assign
