@@ -641,58 +641,9 @@ namespace Deveel.Data.Sql.Objects {
 			return this;			
 		}
 
-		public SqlNumber Sqrt() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Sqrt(innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Root(int n) {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Root(n, innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Sin() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Sin(innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Cos() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Cos(innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Cot() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Cot(innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Tan() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Tan(innerValue));
-
-			return this;
-		}
-
 		public SqlNumber Pow(SqlNumber exp) {
 			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Pow(innerValue, exp.innerValue));
-
-			return this;
-		}
-
-		public SqlNumber Log2() {
-			if (State == NumericState.None)
-				return new SqlNumber(BigMath.Log(innerValue));
+				return new SqlNumber(innerValue.Pow(exp.innerValue));
 
 			return this;
 		}
@@ -706,6 +657,44 @@ namespace Deveel.Data.Sql.Objects {
 				return new SqlNumber(innerValue.Round(new MathContext(precision, RoundingMode.HalfUp)));
 
 			return this;			
+		}
+
+		public SqlNumber Log() {
+			// TODO: this supports only numbers that can be converted to a double precision floating point number
+			if (State == NumericState.None)
+				return new SqlNumber(System.Math.Log(ToDouble()));
+
+			return this;
+		}
+
+		public SqlNumber Log(SqlNumber newBase) {
+			if (State == NumericState.None)
+				return new SqlNumber(System.Math.Log(ToDouble(), newBase.ToDouble()));
+
+			return this;
+		}
+
+		public SqlNumber Cos() {
+			if (State == NumericState.None)
+				return new SqlNumber(System.Math.Cos(ToDouble()));
+
+			return this;
+		}
+
+		public SqlNumber CosH() {
+			if (State == NumericState.None) {
+				var result = System.Math.Cosh(ToDouble());
+				if (Double.IsNaN(result))
+					return NaN;
+				if (Double.IsNegativeInfinity(result))
+					return NegativeInfinity;
+				if (Double.IsPositiveInfinity(result))
+					return PositiveInfinity;
+
+				return new SqlNumber(result);
+			}
+
+			return this;
 		}
 
 		public static bool TryParse(string s, out SqlNumber value) {

@@ -91,5 +91,240 @@ namespace Deveel.Data.Sql.Objects {
 
 			Assert.IsTrue(value1 > value2);
 		}
+
+		[Category("Conversion"), Category("Numbers")]
+		[TestCase(34)]
+		[TestCase(12784774)]
+		public static void Int32_Convert(int value) {
+			var number = new SqlNumber(value);
+
+			var result = Convert.ChangeType(number, typeof(int));
+
+			Assert.IsInstanceOf<int>(result);
+			Assert.AreEqual(value, (int)result);
+		}
+
+		[Category("Conversion"), Category("Numbers")]
+		[TestCase(9010)]
+		[TestCase(87749948399)]
+		public static void Int64_Convert(long value) {
+			var number = new SqlNumber(value);
+
+			var result = Convert.ChangeType(number, typeof(long));
+
+			Assert.IsInstanceOf<long>(result);
+			Assert.AreEqual(value, (long)result);
+		}
+
+		[Category("Conversion"), Category("Numbers")]
+		[TestCase(90.121)]
+		[TestCase(119299.0029)]
+		public static void Double_Convert(double value) {
+			var number = new SqlNumber(value);
+
+			var result = Convert.ChangeType(number, typeof(double));
+
+			Assert.IsInstanceOf<double>(result);
+			Assert.AreEqual(value, (double)result);
+		}
+
+		[Category("Conversion"), Category("Numbers")]
+		[TestCase(100)]
+		[TestCase(2)]
+		public static void Byte_Convert(byte value) {
+			var number = new SqlNumber(value);
+
+			var result = Convert.ChangeType(number, typeof(byte));
+
+			Assert.IsInstanceOf<byte>(result);
+			Assert.AreEqual(value, (byte)result);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(466637, 9993, 476630)]
+		public static void Operator_Add(int value1, int value2, int expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 + num2;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsTrue(result.CanBeInt32);
+
+			var intResult = result.ToInt32();
+
+			Assert.AreEqual(expected, intResult);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(5455261, 119020, 5336241)]
+		public static void Operator_Subtract(int value1, int value2, int expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 - num2;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsTrue(result.CanBeInt32);
+
+			var intResult = result.ToInt32();
+
+			Assert.AreEqual(expected, intResult);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(2783, 231, 642873)]
+		public static void Operator_Multiply(int value1, int value2, int expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 * num2;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsTrue(result.CanBeInt32);
+
+			var intResult = result.ToInt32();
+
+			Assert.AreEqual(expected, intResult);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(1152663, 9929, 116.0905428543)]
+		[TestCase(40, 5, 8)]
+		public static void Operator_Divide(int value1, int value2, double expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 / num2;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(7782, -7782)]
+		[TestCase(-9021, 9021)]
+		public static void Operator_Negate(int value, int expected) {
+			var number = new SqlNumber(value);
+
+			var result = -number;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsTrue(result.CanBeInt32);
+
+			Assert.AreEqual(expected, result.ToInt32());
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(7782, 7782)]
+		[TestCase(-9021, -9021)]
+		public static void Operator_Plus(int value, int expected) {
+			var number = new SqlNumber(value);
+
+			var result = +number;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+			Assert.IsTrue(result.CanBeInt32);
+
+			Assert.AreEqual(expected, result.ToInt32());
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(46677, 9982, false)]
+		[TestCase(92677, 92677, true)]
+		public static void Operator_Int32Equal(int value1, int value2, bool expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 == num2;
+
+			Assert.AreEqual(expected, result);
+		}
+
+		[Test]
+		public static void Operator_EqualToNull() {
+			var number = new SqlNumber(563663.9920);
+
+			var result = number == null;
+
+			Assert.AreEqual(false, result);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(46677, 9982, true)]
+		[TestCase(92677, 92677, false)]
+		public static void Operator_Int32NotEqual(int value1, int value2, bool expected) {
+			var num1 = new SqlNumber(value1);
+			var num2 = new SqlNumber(value2);
+
+			var result = num1 != num2;
+
+			Assert.AreEqual(expected, result);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(455, 3, 94196375)]
+		public static void Function_Pow(int value, int exp, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Pow(new SqlNumber(exp));
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(99820, 48993, 1.0659007887179623)]
+		public static void Function_Log(int value, int newBase, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Log(new SqlNumber(newBase));
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(9963, -0.53211858514845722)]
+		public static void Function_Cos(int value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Cos();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(0.36f, 1.0655028755774867)]
+		public static void Function_CosH(float value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.CosH();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
 	}
 }
