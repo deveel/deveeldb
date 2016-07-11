@@ -19,12 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
-using Deveel.Math;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {
@@ -75,9 +72,7 @@ namespace Deveel.Data.Routines {
 				.Named("aggor")
 				.WithParameter(p => p.Named("args").Unbounded().OfDynamicType())
 				.OfAggregateType()
-				.WhenExecute(context => {
-					return Binary(context, SystemFunctions.Or);
-				}));
+				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
 
 			// COUNT
 			Register(config => config.Named("count")
@@ -572,8 +567,39 @@ namespace Deveel.Data.Routines {
 			// CONCAT([STRING])
 			Register(config => config.Named("concat")
 				.WithUnoundedParameter("strings", PrimitiveTypes.VarChar())
-				.WhenExecute(context => Simple(context, args => SystemFunctions.Concat(args)))
+				.WhenExecute(context => Simple(context, SystemFunctions.Concat))
 				.ReturnsType(ConcatReturnType));
+		}
+
+		#endregion
+
+		#region Math Functions
+
+		private void MathFunctions() {
+			Register(config => config.Named("cos")
+				.WithNumericParameter("value")
+				.ReturnsNumeric()
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Cos(args[0]))));
+
+			Register(config => config.Named("cosh")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CosH(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("log2")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Log2(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("log")
+				.WithNumericParameter("value")
+				.WithNumericParameter("newBase")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Log(args[0], args[1]))));
+
+			Register(config => config.Named("abs")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Abs(args[0])))
+				.ReturnsNumeric());
 		}
 
 		#endregion
@@ -586,6 +612,7 @@ namespace Deveel.Data.Routines {
 			SequenceFunctions();
 			DateFunctions();
 			StringFunctions();
+			MathFunctions();
 
 			MiscFunctions();
 		}

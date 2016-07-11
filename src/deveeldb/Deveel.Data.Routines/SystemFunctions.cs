@@ -284,6 +284,8 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
+		#region Strings
+
 		public static Field Concat(Field[] args) {
 			var cc = new StringBuilder();
 
@@ -308,22 +310,7 @@ namespace Deveel.Data.Routines {
 			return new Field(type, new SqlString(cc.ToString()));
 		}
 
-		internal static InvokeResult Iif(InvokeContext context) {
-			var result = Field.Null();
-
-			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);
-
-			var condition = context.Arguments[0].Value.EvaluateToConstant(evalContext);
-			if (condition.Type is BooleanType) {
-				if (condition.Equals(Field.BooleanTrue)) {
-					result = context.Arguments[1].Value.EvaluateToConstant(evalContext);
-				} else if (condition.Equals(Field.BooleanFalse)) {
-					result = context.Arguments[2].Value.EvaluateToConstant(evalContext);
-				}
-			}
-
-			return context.Result(result);
-		}
+		#endregion
 
 		internal static Field FRuleConvert(Field obj) {
 			if (obj.Type is StringType) {
@@ -383,5 +370,67 @@ namespace Deveel.Data.Routines {
 			var s = String.Join(", ", array);
 			return Field.String(s);
 		}
+
+		#region Math
+
+		private static Field MathFunction(Func<SqlNumber, SqlNumber> op, Field value) {
+			if (Field.IsNullField(value))
+				return value;
+
+			if (!(value.Type is NumericType))
+				return Field.Null(PrimitiveTypes.Numeric());
+
+			var number = (SqlNumber) value.Value;
+			var result = op(number);
+
+			var scale = result.Scale;
+			var precision = result.Precision;
+
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+		}
+
+		private static Field MathFunction(Func<SqlNumber, SqlNumber, SqlNumber> op, Field value, Field other) {
+			if (Field.IsNullField(value))
+				return value;
+			if (Field.IsNullField(other))
+				return Field.Null(value.Type);
+
+			if (!(value.Type is NumericType))
+				return Field.Null(PrimitiveTypes.Numeric());
+			if (!(other.Type is NumericType))
+				return Field.Null(value.Type);
+
+			var number = (SqlNumber)value.Value;
+			var operand = (SqlNumber) other.Value;
+
+			var result = op(number, operand);
+
+			var scale = result.Scale;
+			var precision = result.Precision;
+
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+		}
+
+		public static Field Cos(Field value) {
+			return MathFunction(number => number.Cos(), value);
+		}
+
+		public static Field CosH(Field value) {
+			return MathFunction(number => number.CosH(), value);
+		}
+
+		public static Field Abs(Field value) {
+			return MathFunction(number => number.Abs(), value);
+		}
+
+		public static Field Log2(Field value) {
+			return MathFunction(number => number.Log(), value);
+		}
+
+		public static Field Log(Field value, Field newBase) {
+			return MathFunction((number, operand) => number.Log(operand), value, newBase);
+		}
+
+		#endregion
 	}
 }
