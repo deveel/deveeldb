@@ -61,5 +61,75 @@ namespace Deveel.Data {
 
 			Assert.AreEqual(1.0659007887179623, number);
 		}
+
+		[Test]
+		public void Abs() {
+			var value = SqlExpression.Constant(Field.Number(new SqlNumber(-45636.0003922)));
+
+			var result = Select("ABS", value);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(Field.IsNullField(result));
+
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var number = ((SqlNumber)result.Value).ToDouble();
+
+			Assert.AreEqual(45636.0003922, number);
+		}
+
+		[Test]
+		public void Tan() {
+			var value = SqlExpression.Constant(Field.Number(new SqlNumber(559604.003100)));
+
+			var result = Select("TAN", value);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(Field.IsNullField(result));
+
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var number = ((SqlNumber)result.Value).ToDouble();
+
+			Assert.AreEqual(23.625265230100787, number);
+		}
+
+		// TODO: Function overloads are not supported yet...
+		//[Test]
+		//public void Round() {
+		//	var value = SqlExpression.Constant(Field.Number(new SqlNumber(929928.00111992934)));
+
+		//	var result = Select("ROUND", value);
+
+		//	Assert.IsNotNull(result);
+		//	Assert.IsFalse(Field.IsNullField(result));
+
+		//	Assert.IsInstanceOf<NumericType>(result.Type);
+		//	Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+		//	var number = ((SqlNumber)result.Value).ToDouble();
+
+		//	Assert.AreEqual(929928.00111992937, number);
+		//}
+
+		[Test]
+		public void RoundWithPrecision() {
+			var value = SqlExpression.Constant(Field.Number(new SqlNumber(929928.00111992934)));
+			var precision = SqlExpression.Constant(Field.Integer(10));
+
+			var result = Select("ROUND", value, precision);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(Field.IsNullField(result));
+
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var number = ((SqlNumber)result.Value).ToDouble();
+
+			Assert.AreEqual(929928.0011, number);
+		}
 	}
 }

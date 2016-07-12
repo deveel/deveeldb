@@ -431,6 +431,18 @@ namespace Deveel.Data.Routines {
 			return MathFunction((number, operand) => number.Log(operand), value, newBase);
 		}
 
+		public static Field Tan(Field value) {
+			return MathFunction(number => number.Tan(), value);
+		}
+
+		public static Field Round(Field value, Field precision) {
+			return MathFunction((number, other) => number.Round(other.ToInt32()), value, precision);
+		}
+
+		public static Field Round(Field value) {
+			return MathFunction(number => number.Round(), value);
+		}
+
 		#endregion
 	}
 }

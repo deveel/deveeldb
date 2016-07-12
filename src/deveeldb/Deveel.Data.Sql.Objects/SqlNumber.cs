@@ -697,6 +697,23 @@ namespace Deveel.Data.Sql.Objects {
 			return this;
 		}
 
+		public SqlNumber Tan() {
+			if (State == NumericState.None) {
+				var result = System.Math.Tan(ToDouble());
+
+				if (Double.IsNaN(result))
+					return NaN;
+				if (Double.IsNegativeInfinity(result))
+					return NegativeInfinity;
+				if (Double.IsPositiveInfinity(result))
+					return PositiveInfinity;
+
+				return new SqlNumber(result);
+			}
+
+			return this;
+		}
+
 		public static bool TryParse(string s, out SqlNumber value) {
 			if (String.IsNullOrEmpty(s)) {
 				value = Null;

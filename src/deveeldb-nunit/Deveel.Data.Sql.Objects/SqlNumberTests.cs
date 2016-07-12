@@ -69,6 +69,29 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		[Test]
+		public void ParseInfinity() {
+			SqlNumber number;
+			Assert.IsTrue(SqlNumber.TryParse("+Infinity", out number));
+			Assert.IsNotNull(number);
+			Assert.IsFalse(number.IsNull);
+			Assert.AreEqual(SqlNumber.PositiveInfinity, number);
+
+			Assert.IsTrue(SqlNumber.TryParse("-Infinity", out number));
+			Assert.IsNotNull(number);
+			Assert.IsFalse(number.IsNull);
+			Assert.AreEqual(SqlNumber.NegativeInfinity, number);
+		}
+
+		[Test]
+		public void ParseNaN() {
+			SqlNumber number;
+			Assert.IsTrue(SqlNumber.TryParse("NaN", out number));
+			Assert.IsNotNull(number);
+			Assert.IsFalse(number.IsNull);
+			Assert.AreEqual(SqlNumber.NaN, number);
+		}
+
+		[Test]
 		public void Convert_ToBoolean_Success() {
 			var value = SqlNumber.One;
 			var b = new SqlBoolean();
@@ -189,6 +212,22 @@ namespace Deveel.Data.Sql.Objects {
 			var intResult = result.ToInt32();
 
 			Assert.AreEqual(expected, intResult);
+		}
+
+		[Category("Numbers"), Category("Operators")]
+		[TestCase(4533, 90, 33)]
+		public static void Operator_Modulo(int value1, int value2, float expected) {
+			var number1 = new SqlNumber(value1);
+			var number2 = new SqlNumber(value2);
+
+			var result = number1%number2;
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
 		}
 
 		[Category("Numbers"), Category("Operators")]
@@ -318,6 +357,62 @@ namespace Deveel.Data.Sql.Objects {
 		public static void Function_CosH(float value, double expected) {
 			var number = new SqlNumber(value);
 			var result = number.CosH();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(-45636.0003922, 45636.0003922)]
+		public static void Function_Abs(double value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Abs();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(559604.003100, 23.625265230100787)]
+		public static void Function_Tan(double value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Tan();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(929928.00111992934, 929928.00111992937)]
+		public static void Function_Round(double value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Round();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(929928.00111992934, 10, 929928.0011)]
+		public static void Function_RoundWithPrecision(double value, int precision, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Round(precision);
 
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.IsNull);

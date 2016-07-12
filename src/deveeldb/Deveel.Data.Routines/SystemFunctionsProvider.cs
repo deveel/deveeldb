@@ -600,6 +600,22 @@ namespace Deveel.Data.Routines {
 				.WithNumericParameter("value")
 				.WhenExecute(context => Simple(context, args => SystemFunctions.Abs(args[0])))
 				.ReturnsNumeric());
+
+			Register(config => config.Named("tan")
+			.WithNumericParameter("value")
+			.WhenExecute(context => Simple(context, args => SystemFunctions.Tan(args[0]))));
+
+			Register(config => config.Named("round")
+				.WithNumericParameter("value")
+				.WithNumericParameter("precision")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Round(args[0], args[1])))
+				.ReturnsNumeric());
+
+			// TODO: support function overloads
+			//Register(config => config.Named("round")
+			//	.WithNumericParameter("value")
+			//	.WhenExecute(context => Simple(context, args => SystemFunctions.Round(args[0])))
+			//	.ReturnsNumeric());
 		}
 
 		#endregion
