@@ -659,12 +659,25 @@ namespace Deveel.Data.Sql.Objects {
 			return this;			
 		}
 
-		public SqlNumber Log() {
-			// TODO: this supports only numbers that can be converted to a double precision floating point number
-			if (State == NumericState.None)
-				return new SqlNumber(System.Math.Log(ToDouble()));
+		private SqlNumber DoubleOperation(Func<double, double> op) {
+			if (State != NumericState.None)
+				return this;
 
-			return this;
+			var value = ToDouble();
+			var result = op(value);
+
+			if (Double.IsNaN(result))
+				return NaN;
+			if (Double.IsPositiveInfinity(result))
+				return PositiveInfinity;
+			if (Double.IsNegativeInfinity(result))
+				return NegativeInfinity;
+
+			return new SqlNumber(result);
+		}
+
+		public SqlNumber Log() {
+			return DoubleOperation(System.Math.Log);
 		}
 
 		public SqlNumber Log(SqlNumber newBase) {
@@ -675,43 +688,23 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public SqlNumber Cos() {
-			if (State == NumericState.None)
-				return new SqlNumber(System.Math.Cos(ToDouble()));
-
-			return this;
+			return DoubleOperation(System.Math.Cos);
 		}
 
 		public SqlNumber CosH() {
-			if (State == NumericState.None) {
-				var result = System.Math.Cosh(ToDouble());
-				if (Double.IsNaN(result))
-					return NaN;
-				if (Double.IsNegativeInfinity(result))
-					return NegativeInfinity;
-				if (Double.IsPositiveInfinity(result))
-					return PositiveInfinity;
-
-				return new SqlNumber(result);
-			}
-
-			return this;
+			return DoubleOperation(System.Math.Cosh);
 		}
 
 		public SqlNumber Tan() {
-			if (State == NumericState.None) {
-				var result = System.Math.Tan(ToDouble());
+			return DoubleOperation(System.Math.Tan);
+		}
 
-				if (Double.IsNaN(result))
-					return NaN;
-				if (Double.IsNegativeInfinity(result))
-					return NegativeInfinity;
-				if (Double.IsPositiveInfinity(result))
-					return PositiveInfinity;
+		public SqlNumber TanH() {
+			return DoubleOperation(System.Math.Tanh);
+		}
 
-				return new SqlNumber(result);
-			}
-
-			return this;
+		public SqlNumber Sin() {
+			return DoubleOperation(System.Math.Sin);
 		}
 
 		public static bool TryParse(string s, out SqlNumber value) {

@@ -395,6 +395,20 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		[Category("Numbers"), Category("Functions")]
+		[TestCase(89366647.992, 1)]
+		public static void Function_TanH(double value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.TanH();
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
 		[TestCase(929928.00111992934, 929928.00111992937)]
 		public static void Function_Round(double value, double expected) {
 			var number = new SqlNumber(value);
@@ -413,6 +427,20 @@ namespace Deveel.Data.Sql.Objects {
 		public static void Function_RoundWithPrecision(double value, int precision, double expected) {
 			var number = new SqlNumber(value);
 			var result = number.Round(precision);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.IsNull);
+
+			var doubleResult = result.ToDouble();
+
+			Assert.AreEqual(expected, doubleResult);
+		}
+
+		[Category("Numbers"), Category("Functions")]
+		[TestCase(02993011.338, -0.30406969855465432)]
+		public static void Function_Sin(double value, double expected) {
+			var number = new SqlNumber(value);
+			var result = number.Sin();
 
 			Assert.IsNotNull(result);
 			Assert.IsFalse(result.IsNull);

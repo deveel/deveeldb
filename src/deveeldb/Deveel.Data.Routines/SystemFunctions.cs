@@ -22,7 +22,6 @@ using System.Text;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
@@ -441,6 +440,14 @@ namespace Deveel.Data.Routines {
 
 		public static Field Round(Field value) {
 			return MathFunction(number => number.Round(), value);
+		}
+
+		public static Field TanH(Field value) {
+			return MathFunction(number => number.TanH(), value);
+		}
+
+		public static Field Sin(Field value) {
+			return MathFunction(number => number.Sin(), value);
 		}
 
 		#endregion

@@ -602,8 +602,19 @@ namespace Deveel.Data.Routines {
 				.ReturnsNumeric());
 
 			Register(config => config.Named("tan")
-			.WithNumericParameter("value")
-			.WhenExecute(context => Simple(context, args => SystemFunctions.Tan(args[0]))));
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Tan(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("tanh")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.TanH(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("sin")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Sin(args[0])))
+				.ReturnsNumeric());
 
 			Register(config => config.Named("round")
 				.WithNumericParameter("value")

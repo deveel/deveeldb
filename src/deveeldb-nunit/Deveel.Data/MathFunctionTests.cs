@@ -131,5 +131,22 @@ namespace Deveel.Data {
 
 			Assert.AreEqual(929928.0011, number);
 		}
+
+		[Test]
+		public void TanH() {
+			var value = SqlExpression.Constant(Field.Number(new SqlNumber(89366647.992)));
+
+			var result = Select("TANH", value);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(Field.IsNullField(result));
+
+			Assert.IsInstanceOf<NumericType>(result.Type);
+			Assert.IsInstanceOf<SqlNumber>(result.Value);
+
+			var number = ((SqlNumber)result.Value).ToDouble();
+
+			Assert.AreEqual(1, number);
+		}
 	}
 }
