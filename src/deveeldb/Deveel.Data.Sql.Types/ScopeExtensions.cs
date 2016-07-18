@@ -35,6 +35,10 @@ namespace Deveel.Data.Sql.Types {
 			scope.Bind<ITableCompositeCreateCallback>()
 				.To<TypesInit>()
 				.InTransactionScope();
+
+			scope.Bind<ITypeResolver>()
+				.To<TypeManager>()
+				.InTransactionScope();
 		}
 	}
 }

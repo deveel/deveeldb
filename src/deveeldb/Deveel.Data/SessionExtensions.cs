@@ -31,10 +31,10 @@ namespace Deveel.Data {
 		}
 
 		internal static SystemAccess Access(this ISession session) {
-			if (!(session is ISystemDirectAccess))
+			if (!(session is IProvidesDirectAccess))
 				throw new InvalidOperationException("The session does not provide direct access to the system.");
 
-			return ((ISystemDirectAccess) session).DirectAccess;
+			return ((IProvidesDirectAccess) session).DirectAccess;
 		}
 
 		public static bool IsFinished(this ISession session) {

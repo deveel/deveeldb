@@ -34,9 +34,33 @@ namespace Deveel.Data {
 
 		private ObjectName tableName;
 
+		private static void CreateUserType(IQuery query) {
+			var typeName = ObjectName.Parse("APP.test_type");
+			var typeInfo = new UserTypeInfo(typeName);
+			typeInfo.AddMember("a", PrimitiveTypes.String());
+			typeInfo.AddMember("b", PrimitiveTypes.Integer());
+
+			query.Access().CreateType(typeInfo);
+		}
+
+		protected override bool OnSetUp(string testName, IQuery query) {
+			if (testName == "WithUserType") {
+				CreateUserType(query);
+				return true;
+			}
+
+			return base.OnSetUp(testName, query);
+		}
+
 		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DropAllTableConstraints(tableName);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+
+			if (testName == "WithUserType") {
+				var typeName = ObjectName.Parse("APP.test_type");
+				query.Access().DropType(typeName);
+			}
+
 			return true;
 		}
 
@@ -82,6 +106,17 @@ namespace Deveel.Data {
 				new SqlTableColumn("date", PrimitiveTypes.TimeStamp()) {
 					DefaultExpression = SqlExpression.Parse("GetDate()")
 				}
+			};
+
+			Query.CreateTable(tableName, columns);
+		}
+
+		[Test]
+		public void WithUserType() {
+			tableName = ObjectName.Parse("APP.test");
+			var columns = new[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("t", Query.Context.ResolveType("APP.test_type")),  
 			};
 
 			Query.CreateTable(tableName, columns);

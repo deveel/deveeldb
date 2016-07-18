@@ -181,7 +181,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		SqlType ITypeResolver.ResolveType(TypeResolveContext context) {
-			var fullTypeName = Transaction.ResolveObjectName(context.TypeName);
+			var fullTypeName = ResolveName(ObjectName.Parse(context.TypeName), true);
 			if (fullTypeName == null)
 				return null;
 

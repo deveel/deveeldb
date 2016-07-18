@@ -48,10 +48,10 @@ namespace Deveel.Data {
 			if (request == null)
 				throw new ArgumentNullException("request");
 
-			if (!(request is ISystemDirectAccess))
-				throw new InvalidOperationException("The request does not provide direct access to the system");
+			if (!(request is IProvidesDirectAccess))
+				return new RequestAccess(request);
 
-			return ((ISystemDirectAccess) request).DirectAccess;
+			return ((IProvidesDirectAccess) request).DirectAccess;
 		}
 
 		public static IEventSource AsEventSource(this IRequest request) {

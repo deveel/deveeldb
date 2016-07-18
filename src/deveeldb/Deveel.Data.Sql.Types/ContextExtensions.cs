@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Sql.Types {
 	public static class ContextExtensions {
 		public static SqlType ResolveType(this IContext context, string typeName, params DataTypeMeta[] meta) {

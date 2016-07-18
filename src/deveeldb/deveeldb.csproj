@@ -509,7 +509,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\ISystemCreateCallback.cs" />
-    <Compile Include="Deveel.Data\ISystemDirectAccess.cs" />
+    <Compile Include="Deveel.Data\IProvidesDirectAccess.cs" />
     <Compile Include="Deveel.Data\ISystemDisposeCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeCreateCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeSetupCallback.cs" />

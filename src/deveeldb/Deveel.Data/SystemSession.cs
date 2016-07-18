@@ -25,7 +25,7 @@ using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
-	class SystemSession : ISession, ISystemDirectAccess {
+	class SystemSession : ISession, IProvidesDirectAccess {
 		private readonly DateTimeOffset startedOn;
 
 		public SystemSession(ITransaction transaction) 
@@ -73,7 +73,7 @@ namespace Deveel.Data {
 
 		private SessionAccess Access { get; set; }
 
-		SystemAccess ISystemDirectAccess.DirectAccess {
+		SystemAccess IProvidesDirectAccess.DirectAccess {
 			get { return Access; }
 		}
 
