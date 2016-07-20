@@ -19,13 +19,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Types {
-	public sealed class TypeManager : IObjectManager, ITypeResolver {
+	public sealed class TypeManager : IObjectManager, ITypeResolver, IRoutineResolver {
 		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;
 		}
@@ -261,6 +262,33 @@ namespace Deveel.Data.Sql.Types {
 		public IEnumerable<ObjectName> GetChildTypes(ObjectName typeName) {
 			// TODO:
 			return new ObjectName[0];
+		}
+
+		/// <summary>
+		/// Resolves the object instantiation function.
+		/// </summary>
+		/// <param name="request">The request.</param>
+		/// <param name="query">The query context.</param>
+		/// <returns></returns>
+		IRoutine IRoutineResolver.ResolveRoutine(Invoke request, IRequest query) {
+			var typeName = ResolveName(request.RoutineName, query.Query.IgnoreIdentifiersCase());
+			if (typeName == null)
+				return null;
+
+			// the type exists: rewrite the routine to the function that
+			// initializes a new object of this type
+
+			var sourceArgs = request.Arguments == null ? new InvokeArgument[0] : request.Arguments;
+			var args = new InvokeArgument[sourceArgs.Length + 1];
+			Array.Copy(sourceArgs, 0, args, 1, sourceArgs.Length);
+			args[0] = new InvokeArgument(SqlExpression.Constant(typeName.FullName));
+
+			var initFunction = query.Access().ResolveObjectName(DbObjectType.Routine, ObjectName.Parse("SYSTEM.NEW_OBJECT"));
+			if (initFunction == null)
+				throw new InvalidOperationException("The object initialization function was not defined.");
+
+			var invoke = new Invoke(initFunction, args);
+			return invoke.ResolveFunction(query.Query);
 		}
 	}
 }

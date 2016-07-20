@@ -150,6 +150,7 @@
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
     <Compile Include="Deveel.Data.Types\DateTypeTests.cs" />
     <Compile Include="Deveel.Data.Types\IntervalTypeTests.cs" />
+    <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />

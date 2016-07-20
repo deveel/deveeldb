@@ -22,6 +22,7 @@ using System.Text;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
@@ -448,6 +449,38 @@ namespace Deveel.Data.Routines {
 
 		public static Field Sin(Field value) {
 			return MathFunction(number => number.Sin(), value);
+		}
+
+		#endregion
+
+		#region ObjectInit
+
+		public static Field NewObject(IRequest context, Field typeName, Field[] args = null) {
+			if (Field.IsNullField(typeName))
+				throw new ArgumentNullException("typeName");
+			
+			if (!(typeName.Type is StringType))
+				throw new ArgumentException("The type name argument must be of string type.");
+
+			var fullTypeName = ObjectName.Parse(typeName.Value.ToString());
+			var argExp = new SqlExpression[args == null ? 0 : args.Length];
+
+			if (args != null) {
+				argExp = args.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray();
+			}
+
+			var type = context.Context.ResolveType(fullTypeName.FullName);
+			if (type == null)
+				throw new InvalidOperationException(String.Format("The type '{0}' was not defined.", fullTypeName));
+
+			if (!(type is UserType))
+				throw new InvalidOperationException(String.Format("The type '{0}' is not a user-defined type", fullTypeName));
+
+			var userType = (UserType) type;
+
+			var obj = userType.NewObject(context, argExp);
+
+			return Field.Object(userType, obj);
 		}
 
 		#endregion

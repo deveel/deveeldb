@@ -17,6 +17,7 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Tables;
 
@@ -37,6 +38,10 @@ namespace Deveel.Data.Sql.Types {
 				.InTransactionScope();
 
 			scope.Bind<ITypeResolver>()
+				.To<TypeManager>()
+				.InTransactionScope();
+
+			scope.Bind<IRoutineResolver>()
 				.To<TypeManager>()
 				.InTransactionScope();
 		}

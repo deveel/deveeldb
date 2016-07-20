@@ -16,6 +16,11 @@
 
 
 using System;
+using System.Collections.Generic;
+
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Sql.Types {
 	public sealed class UserType : SqlType, IDbObject {
@@ -48,6 +53,66 @@ namespace Deveel.Data.Sql.Types {
 
 		public override bool IsIndexable {
 			get { return false; }
+		}
+
+		public int MemberCount {
+			get { return TypeInfo.MemberCount; }
+		}
+
+		public SqlUserObject NewObject(SqlExpression[] args = null) {
+			return NewObject(null, args);
+		}
+
+		public SqlUserObject NewObject(IRequest context, SqlExpression[] args = null) {
+			var memberCount = TypeInfo.MemberCount;
+			var argc = 0;
+
+			if (memberCount > 0) {
+				if (args == null || args.Length != memberCount)
+					throw new ArgumentException(String.Format("Invalid number of arguments provided to construct an object of type '{0}'.", FullName));
+
+				argc = args.Length;
+			}
+
+			var objArgs = new ISqlObject[argc];
+			var argNames = new string[memberCount];
+
+			for (int i = 0; i < memberCount; i++) {
+				argNames[i] = TypeInfo.MemberAt(i).MemberName;
+			}
+
+			if (args != null) {
+				for (int i = 0; i < argc; i++) {
+					var member = TypeInfo.MemberAt(i);
+					var arg = args[0];
+
+					if (!arg.IsConstant())
+						throw new InvalidOperationException("Cannot instantiate an object with a non-constant argument");
+
+					Field field;
+					if (context != null) {
+						field = arg.EvaluateToConstant(context, context.Context.VariableResolver());
+					} else {
+						field = arg.EvaluateToConstant(null, null);
+					}
+
+					if (!field.Type.Equals(member.MemberType) &&
+					    !field.Type.CanCastTo(member.MemberType)) {
+						throw new InvalidOperationException(
+							String.Format("The input argument is not compatible with the type '{0}' of member '{1}'.",
+								member.MemberType, member.MemberName));
+					}
+
+					objArgs[i] = field.CastTo(member.MemberType).Value;
+				}
+			}
+
+			var values = new Dictionary<string, ISqlObject>();
+			for (int i = 0; i < memberCount; i++) {
+				values[argNames[i]] = objArgs[i];
+			}
+
+			return new SqlUserObject(values);
 		}
 	}
 }

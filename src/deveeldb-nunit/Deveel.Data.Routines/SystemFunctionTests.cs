@@ -16,7 +16,6 @@
 using System;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Expressions;
 
 using NUnit.Framework;
 

@@ -120,5 +120,12 @@ namespace Deveel.Data.Sql.Types {
 		ObjectName IObjectInfo.FullName {
 			get { return TypeName; }
 		}
+
+		internal UserTypeMember MemberAt(int offset) {
+			if (offset < 0 || offset >= MemberCount)
+				throw new ArgumentOutOfRangeException("offset", offset, String.Format("The member offset is out of range"));
+
+			return members[offset];
+		}
 	}
 }

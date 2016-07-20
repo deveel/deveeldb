@@ -496,6 +496,22 @@ namespace Deveel.Data.Routines {
 
 				return PrimitiveTypes.Null();
 			}));
+
+			// object instantiation
+			Register(config => config.Named("new_object")
+				.WithStringParameter("typeName")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.WhenExecute(context => {
+					var typeName = context.EvaluatedArguments[0];
+					var argc = context.ArgumentCount;
+					var args = new Field[argc];
+					if (argc > 1) {
+						Array.Copy(context.EvaluatedArguments, 1, args, 0, args.Length);
+					}
+
+					var obj = SystemFunctions.NewObject(context.Request, typeName, args);
+					return context.Result(obj);
+				}));
 		}
 
 		#endregion

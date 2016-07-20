@@ -245,6 +245,7 @@
     <Compile Include="Deveel.Data.Routines\IAggregateFunctionConfiguration.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionConfiguration.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionParameterConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlUserObject.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InfortmationSchemaCreate.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaInit.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\ScopeExtensions.cs" />
