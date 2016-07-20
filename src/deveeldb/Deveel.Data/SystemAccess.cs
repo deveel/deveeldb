@@ -570,6 +570,16 @@ namespace Deveel.Data {
 			return manager.GetChildTypes(typeName);
 		}
 
+		public SqlType ResolveUserType(ObjectName typeName) {
+			var fullTypeName = ResolveObjectName(DbObjectType.Type, typeName);
+
+			return GetObject(DbObjectType.Type, fullTypeName, AccessType.Read) as UserType;
+		}
+
+		public SqlType ResolveUserType(string typeName) {
+			return ResolveUserType(ObjectName.Parse(typeName));
+		}
+
 		#endregion
 
 		#region Variables

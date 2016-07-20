@@ -148,7 +148,8 @@ namespace Deveel.Data.Sql.Statements {
 
 					if (value != null) {
 						var expReturnType = value.ReturnType(context, null);
-						if (!columnInfo.ColumnType.IsComparable (expReturnType))
+						if (!expReturnType.Equals(columnInfo.ColumnType) &&
+							!expReturnType.CanCastTo(columnInfo.ColumnType))
 						{
 							var sb = new StringBuilder ();
 							sb.AppendFormat ("Unable to convert type {0} of {1} into type {2} of column {3}", expReturnType, value, columnInfo.ColumnType, columnInfo.FullColumnName.FullName);

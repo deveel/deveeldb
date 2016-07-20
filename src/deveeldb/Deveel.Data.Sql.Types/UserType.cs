@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -47,9 +49,84 @@ namespace Deveel.Data.Sql.Types {
 			return false;
 		}
 
-		public override bool CanCastTo(SqlType destType) {
-			return false;
+		public override bool Equals(SqlType other) {
+			if (!(other is UserType))
+				return false;
+
+			var otherType = (UserType)other;
+			if (!FullName.Equals(otherType.FullName, true))
+				return false;
+
+			if (MemberCount != otherType.MemberCount)
+				return false;
+
+			for (int i = 0; i < MemberCount; i++) {
+				var thisMember = TypeInfo.MemberAt(i);
+				var otherMember = otherType.TypeInfo.MemberAt(i);
+
+				if (!thisMember.MemberName.Equals(otherMember.MemberName) ||
+				    !thisMember.MemberType.Equals(otherMember.MemberType))
+					return false;
+			}
+
+			return true;
 		}
+
+		public override int GetHashCode() {
+			var code = FullName.GetHashCode();
+
+			for (int i = 0; i < MemberCount; i++) {
+				var member = TypeInfo.MemberAt(i);
+
+				code ^= member.GetHashCode();
+			}
+
+			return code;
+		}
+
+		public override string ToString() {
+			var sb = new StringBuilder(FullName.FullName);
+
+			sb.Append("(");
+
+			for (int i = 0; i < MemberCount; i++) {
+				var member = TypeInfo.MemberAt(i);
+
+				sb.Append(member.MemberName);
+				sb.Append(" ");
+				sb.Append(member.MemberType);
+
+				if (i < MemberCount - 1)
+					sb.Append(", ");
+			}
+
+			sb.Append(")");
+
+			return sb.ToString();
+		}
+
+		/*
+		public override bool CanCastTo(SqlType destType) {
+			if (!(destType is UserType))
+				return false;
+
+			var otherType = (UserType) destType;
+			var memberCount = MemberCount;
+			if (!FullName.Equals(otherType.FullName, true) ||
+				memberCount != otherType.MemberCount)
+				return false;
+
+			return true;
+		}
+
+		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			if (!(destType is UserType))
+				throw new ArgumentException(String.Format("Cannot cast an object of type '{0}' to type '{1}'.", this, destType));
+
+			var otherType = (UserType) destType;
+			return base.CastTo(value, destType);
+		}
+		*/
 
 		public override bool IsIndexable {
 			get { return false; }
@@ -61,6 +138,20 @@ namespace Deveel.Data.Sql.Types {
 
 		public SqlUserObject NewObject(params SqlExpression[] args) {
 			return NewObject(null, args);
+		}
+
+		internal override int ColumnSizeOf(ISqlObject obj) {
+			var userObj = (SqlUserObject) obj;
+
+			var size = 1;
+
+			for (int i = 0; i < MemberCount; i++) {
+				var member = TypeInfo.MemberAt(i);
+				var memberValue = userObj.GetValue(member.MemberName);
+				size += member.MemberType.ColumnSizeOf(memberValue);
+			}
+
+			return size;
 		}
 
 		public SqlUserObject NewObject(IRequest context, SqlExpression[] args = null) {
@@ -110,6 +201,43 @@ namespace Deveel.Data.Sql.Types {
 			var values = new Dictionary<string, ISqlObject>();
 			for (int i = 0; i < memberCount; i++) {
 				values[argNames[i]] = objArgs[i];
+			}
+
+			return new SqlUserObject(values);
+		}
+
+		public override void SerializeObject(Stream stream, ISqlObject obj) {
+			var writer = new BinaryWriter(stream);
+			if (obj == null || obj.IsNull) {
+				writer.Write((byte) 0);
+			} else {
+				writer.Write((byte)1);
+
+				var userObj = (SqlUserObject) obj;
+				for (int i = 0; i < MemberCount; i++) {
+					var member = TypeInfo.MemberAt(i);
+					var memberType = member.MemberType;
+					var memberValue = userObj.GetValue(member.MemberName);
+					memberType.SerializeObject(stream, memberValue);
+				}
+			}
+		}
+
+		public override ISqlObject DeserializeObject(Stream stream) {
+			var reader = new BinaryReader(stream);
+			var isNull = reader.ReadByte() == 0;
+			if (isNull)
+				return SqlUserObject.Null;
+
+			var values = new Dictionary<string, ISqlObject>();
+
+			for (int i = 0; i < MemberCount; i++) {
+				var member = TypeInfo.MemberAt(i);
+				var memberName = member.MemberName;
+				var memberType = member.MemberType;
+
+				var value = memberType.DeserializeObject(stream);
+				values[memberName] = value;
 			}
 
 			return new SqlUserObject(values);

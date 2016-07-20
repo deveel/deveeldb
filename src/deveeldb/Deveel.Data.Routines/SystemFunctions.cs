@@ -462,21 +462,18 @@ namespace Deveel.Data.Routines {
 			if (!(typeName.Type is StringType))
 				throw new ArgumentException("The type name argument must be of string type.");
 
-			var fullTypeName = ObjectName.Parse(typeName.Value.ToString());
-			fullTypeName = context.Access().ResolveObjectName(DbObjectType.Type, fullTypeName);
-
 			var argExp = new SqlExpression[args == null ? 0 : args.Length];
 
 			if (args != null) {
 				argExp = args.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray();
 			}
 
-			var type = context.Context.ResolveType(fullTypeName.FullName);
+			var type = context.Access().ResolveUserType(typeName.Value.ToString());
 			if (type == null)
-				throw new InvalidOperationException(String.Format("The type '{0}' was not defined.", fullTypeName));
+				throw new InvalidOperationException(String.Format("The type '{0}' was not defined.", typeName));
 
 			if (!(type is UserType))
-				throw new InvalidOperationException(String.Format("The type '{0}' is not a user-defined type", fullTypeName));
+				throw new InvalidOperationException(String.Format("The type '{0}' is not a user-defined type", typeName));
 
 			var userType = (UserType) type;
 
