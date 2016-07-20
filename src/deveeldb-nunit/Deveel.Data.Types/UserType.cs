@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
@@ -30,7 +31,7 @@ namespace Deveel.Data.Types {
 			var typeInfo = new UserTypeInfo(name);
 			typeInfo.AddMember("a", PrimitiveTypes.String());
 			typeInfo.AddMember("b", PrimitiveTypes.Integer());
-			var type = new UserType(new UserTypeInfo(name));
+			var type = new UserType(typeInfo);
 
 			Assert.IsNotNull(type);
 			Assert.IsNull(type.TypeInfo.ParentType);
@@ -60,9 +61,9 @@ namespace Deveel.Data.Types {
 			var typeInfo = new UserTypeInfo(name);
 			typeInfo.AddMember("a", PrimitiveTypes.String());
 			typeInfo.AddMember("b", PrimitiveTypes.Integer());
-			var type = new UserType(new UserTypeInfo(name));
+			var type = new UserType(typeInfo);
 
-			var obj = type.NewObject();
+			var obj = type.NewObject(SqlExpression.Constant("test"), SqlExpression.Constant(23));
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<SqlUserObject>(obj);

@@ -504,7 +504,7 @@ namespace Deveel.Data.Routines {
 				.WhenExecute(context => {
 					var typeName = context.EvaluatedArguments[0];
 					var argc = context.ArgumentCount;
-					var args = new Field[argc];
+					var args = new Field[argc-1];
 					if (argc > 1) {
 						Array.Copy(context.EvaluatedArguments, 1, args, 0, args.Length);
 					}

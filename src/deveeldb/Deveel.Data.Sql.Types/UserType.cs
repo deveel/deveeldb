@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Types {
 			get { return TypeInfo.MemberCount; }
 		}
 
-		public SqlUserObject NewObject(SqlExpression[] args = null) {
+		public SqlUserObject NewObject(params SqlExpression[] args) {
 			return NewObject(null, args);
 		}
 

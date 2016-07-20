@@ -275,20 +275,75 @@ namespace Deveel.Data.Sql.Types {
 			if (typeName == null)
 				return null;
 
-			// the type exists: rewrite the routine to the function that
-			// initializes a new object of this type
+			var type = GetUserType(typeName);
+			var members = new Dictionary<string, SqlType>();
+			for (int i = 0; i < type.MemberCount; i++) {
+				var member = type.TypeInfo.MemberAt(i);
+				members[member.MemberName] = member.MemberType;
+			}
 
-			var sourceArgs = request.Arguments == null ? new InvokeArgument[0] : request.Arguments;
-			var args = new InvokeArgument[sourceArgs.Length + 1];
-			Array.Copy(sourceArgs, 0, args, 1, sourceArgs.Length);
-			args[0] = new InvokeArgument(SqlExpression.Constant(typeName.FullName));
-
-			var initFunction = query.Access().ResolveObjectName(DbObjectType.Routine, ObjectName.Parse("SYSTEM.NEW_OBJECT"));
-			if (initFunction == null)
-				throw new InvalidOperationException("The object initialization function was not defined.");
-
-			var invoke = new Invoke(initFunction, args);
-			return invoke.ResolveFunction(query.Query);
+			return new InitFunction(type, members);
 		}
+
+		#region InitFunction
+
+		class InitFunction : IFunction {
+			public InitFunction(UserType type, IDictionary<string, SqlType> members) {
+				FunctionInfo = CreateFunctionInfo(type.FullName, members);
+				Type = type;
+			}
+
+			public UserType Type { get; private set; }
+
+			public SystemFunctionInfo FunctionInfo { get; private set; }
+
+			IObjectInfo IDbObject.ObjectInfo {
+				get { return FunctionInfo; }
+			}
+
+			RoutineType IRoutine.Type {
+				get { return RoutineType.Function; }
+			}
+
+			RoutineInfo IRoutine.RoutineInfo {
+				get { return FunctionInfo; }
+			}
+
+			private SystemFunctionInfo CreateFunctionInfo(ObjectName typeName, IDictionary<string, SqlType> members) {
+				var parameters = new RoutineParameter[members.Count];
+				int i = -1;
+				foreach (var member in members) {
+					parameters[++i] = new RoutineParameter(member.Key, member.Value, ParameterDirection.Input);
+				}
+
+				return new SystemFunctionInfo(typeName.FullName, parameters, FunctionType.Static);
+			}
+
+			public InvokeResult Execute(InvokeContext context) {
+				// Rewrite the function to the object initialization
+
+				var sourceArgs = context.Arguments == null ? new InvokeArgument[1] : context.Arguments;
+				var args = new InvokeArgument[sourceArgs.Length + 1];
+				Array.Copy(sourceArgs, 0, args, 1, sourceArgs.Length);
+				args[0] = new InvokeArgument(SqlExpression.Constant(FunctionInfo.RoutineName.FullName));
+
+				var initFunction = context.Request.Access().ResolveObjectName(DbObjectType.Routine, ObjectName.Parse("SYSTEM.NEW_OBJECT"));
+				if (initFunction == null)
+					throw new InvalidOperationException("The object initialization function was not defined.");
+
+				var invoke = new Invoke(initFunction, args);
+				return invoke.Execute(context.Request, context.VariableResolver, context.GroupResolver);
+			}
+
+			FunctionType IFunction.FunctionType {
+				get { return FunctionInfo.FunctionType; }
+			}
+
+			SqlType IFunction.ReturnType(InvokeContext context) {
+				return Type;
+			}
+		}
+
+		#endregion
 	}
 }
