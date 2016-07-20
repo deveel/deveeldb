@@ -35,5 +35,15 @@ namespace Deveel.Data {
 			Assert.IsInstanceOf<UserType>(result.Type);
 			Assert.IsInstanceOf<SqlUserObject>(result.Value);
 		}
+
+		[Test]
+		public void CreateObjectExplicit() {
+			var result = Select("new_object", SqlExpression.Constant("test_type1"), SqlExpression.Constant("test"),
+				SqlExpression.Constant(22));
+
+			Assert.IsFalse(Field.IsNullField(result));
+			Assert.IsInstanceOf<UserType>(result.Type);
+			Assert.IsInstanceOf<SqlUserObject>(result.Value);
+		}
 	}
 }

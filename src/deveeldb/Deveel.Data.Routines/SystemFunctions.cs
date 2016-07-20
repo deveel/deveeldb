@@ -463,6 +463,8 @@ namespace Deveel.Data.Routines {
 				throw new ArgumentException("The type name argument must be of string type.");
 
 			var fullTypeName = ObjectName.Parse(typeName.Value.ToString());
+			fullTypeName = context.Access().ResolveObjectName(DbObjectType.Type, fullTypeName);
+
 			var argExp = new SqlExpression[args == null ? 0 : args.Length];
 
 			if (args != null) {
