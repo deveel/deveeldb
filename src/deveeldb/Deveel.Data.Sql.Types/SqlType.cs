@@ -100,11 +100,26 @@ namespace Deveel.Data.Sql.Types {
 		/// Indicates if the values handled by the type can be part of an index.
 		/// </summary>
 		/// <remarks>
-		/// By default, this returns <c>true</c>, since most of primitive types
-		/// are indexable (except for Long Objects).
+		/// By default, this returns <c>true</c>, if this is a primitive type
+		/// and not a large object.
 		/// </remarks>
 		public virtual bool IsIndexable {
-			get { return true; }
+			get { return IsPrimitive && !IsLargeObject; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether this type handles large objects.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if this instance handles large objects; otherwise <c>false</c>.
+		/// </value>
+		public bool IsLargeObject {
+			get {
+				return TypeCode == SqlTypeCode.Clob ||
+				       TypeCode == SqlTypeCode.Blob ||
+				       TypeCode == SqlTypeCode.LongVarChar ||
+				       TypeCode == SqlTypeCode.LongVarBinary;
+			}
 		}
 
 		/// <summary>

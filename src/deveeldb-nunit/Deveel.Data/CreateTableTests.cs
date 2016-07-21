@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Index;
 using Deveel.Data.Mapping;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -26,7 +27,7 @@ using NUnit.Framework;
 namespace Deveel.Data {
 	[TestFixture(StorageType.InMemory)]
 	[TestFixture(StorageType.SingleFile)]
-	[TestFixture(Data.StorageType.JournaledFile)]
+	[TestFixture(StorageType.JournaledFile)]
 	public sealed class CreateTableTests : ContextBasedTest {
 		public CreateTableTests(StorageType storageType)
 			: base(storageType) {
@@ -74,7 +75,30 @@ namespace Deveel.Data {
 
 			Query.CreateTable(tableName, columns);
 
+			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
+
 			// TODO: Assert it exists and has the structure desired...
+		}
+
+		[Test]
+		public void WithIndexedColumn_InsertSearch() {
+			tableName = ObjectName.Parse("APP.test");
+			var columns = new SqlTableColumn[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.VarChar()) {
+					IndexType = DefaultIndexTypes.InsertSearch
+				},
+			};
+
+			Query.CreateTable(tableName, columns);
+
+			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
 		}
 
 		[Test]
