@@ -37,7 +37,9 @@ namespace Deveel.Data.Sql.Views {
 			Transaction = transaction;
 			viewCache = new Dictionary<long, ViewInfo>();
 
-			transaction.Context.RouteImmediate<TableCommitEvent>(OnCommit, e => e.TableName.Equals(ViewTableName));
+			transaction.Context.RouteImmediate<TableCommitEvent>(OnCommit, e => {
+				return e.TableName.Equals(ViewTableName);
+			});
 		}
 
 		~ViewManager() {
@@ -72,6 +74,13 @@ namespace Deveel.Data.Sql.Views {
 		}
 
 		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (viewCache != null) {
+					viewCache.Clear();
+				}
+			}
+
+			viewCache = null;
 			Transaction = null;
 		}
 

@@ -29,13 +29,16 @@ namespace Deveel.Data.Transactions {
 		private List<ObjectName> objectsDropped;
 		private List<int> touchedTables; 
  
-		internal TransactionRegistry() {
+		internal TransactionRegistry(ITransactionContext context) {
+			Context = context;
 			events = new List<ITransactionEvent>();
 		}
 
 		~TransactionRegistry() {
 			Dispose(false);
 		}
+
+		public ITransactionContext Context { get; private set; }
 
 		public IEnumerable<ObjectName> ObjectsCreated {
 			get {
@@ -160,6 +163,12 @@ namespace Deveel.Data.Transactions {
 				}
 
 				events.Add(e);
+
+				var routers = Context.ResolveAllServices<IEventRouter>();
+				foreach (var router in routers) {
+					if (router.CanRoute(e))
+						router.RouteEvent(e);
+				}
 			}
 		}
 

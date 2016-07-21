@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -33,6 +34,9 @@ namespace Deveel.Data.Sql.Types {
 			Transaction = transaction;
 
 			typesCache = new Dictionary<ObjectName, UserType>(ObjectNameEqualityComparer.CaseInsensitive);
+			Transaction.Context.RouteImmediate<TableCommitEvent>(OnCommit, e => {
+				return e.TableName.Equals(TypeTableName);
+			});
 		}
 
 		~TypeManager() {
@@ -63,6 +67,13 @@ namespace Deveel.Data.Sql.Types {
 
 		public static readonly ObjectName TypeTableName = new ObjectName(SystemSchema.SchemaName, "type");
 		public static readonly ObjectName TypeMemberTableName = new ObjectName(SystemSchema.SchemaName, "type_member");
+
+		private void OnCommit(TableCommitEvent @event) {
+			if (@event.AddedRows.Any() ||
+			    @event.RemovedRows.Any()) {
+				typesCache.Clear();
+			}
+		}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			CreateType((UserTypeInfo) objInfo);
