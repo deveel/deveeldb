@@ -121,44 +121,44 @@ namespace Deveel.Data.Sql.Triggers {
 			}
 		}
 
-		private IEnumerable<TriggerInfo> FindTriggers(ObjectName tableName, TriggerEventType eventType) {
-			var fullTableName = tableName.FullName;
-			var eventTypeCode = (int)eventType;
+		//private IEnumerable<TriggerInfo> FindTriggers(ObjectName tableName, TriggerEventType eventType) {
+		//	var fullTableName = tableName.FullName;
+		//	var eventTypeCode = (int)eventType;
 
-			var table = transaction.GetTable(TriggerTableName);
-			if (table == null)
-				return new TriggerInfo[0];
+		//	var table = transaction.GetTable(TriggerTableName);
+		//	if (table == null)
+		//		return new TriggerInfo[0];
 
-			var tableColumn = table.GetResolvedColumnName(3);
-			var eventTypeColumn = table.GetResolvedColumnName(4);
+		//	var tableColumn = table.GetResolvedColumnName(3);
+		//	var eventTypeColumn = table.GetResolvedColumnName(4);
 
-			ITable result;
-			using (var session = new SystemSession(transaction, SystemSchema.Name)) {
-				using (var context = session.CreateQuery()) {
-					var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
-						SqlExpression.Constant(Field.String(fullTableName)));
+		//	ITable result;
+		//	using (var session = new SystemSession(transaction, SystemSchema.Name)) {
+		//		using (var context = session.CreateQuery()) {
+		//			var t = table.SimpleSelect(context, tableColumn, SqlExpressionType.Equal,
+		//				SqlExpression.Constant(Field.String(fullTableName)));
 
-					result = t.ExhaustiveSelect(context,
-						SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
-				}
-			}
+		//			result = t.ExhaustiveSelect(context,
+		//				SqlExpression.Equal(SqlExpression.Reference(eventTypeColumn), SqlExpression.Constant(eventTypeCode)));
+		//		}
+		//	}
 
-			if (result.RowCount == 0)
-				return new TriggerInfo[0];
+		//	if (result.RowCount == 0)
+		//		return new TriggerInfo[0];
 
-			var list = new List<TriggerInfo>();
+		//	var list = new List<TriggerInfo>();
 
-			foreach (var row in result) {
-				var triggerInfo = FormTrigger(row);
+		//	foreach (var row in result) {
+		//		var triggerInfo = FormTrigger(row);
 
-				//TODO: get the other information such has the body, the external method or the procedure
-				//      if this is a non-callback
+		//		//TODO: get the other information such has the body, the external method or the procedure
+		//		//      if this is a non-callback
 
-				list.Add(triggerInfo);
-			}
+		//		list.Add(triggerInfo);
+		//	}
 
-			return list.AsEnumerable();
-		}
+		//	return list.AsEnumerable();
+		//}
 
 		void IObjectManager.CreateObject(IObjectInfo objInfo) {
 			var triggerInfo = objInfo as TriggerInfo;

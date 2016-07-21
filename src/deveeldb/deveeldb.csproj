@@ -379,6 +379,7 @@
     <Compile Include="Deveel.Data.Sql.Views\ViewsModule.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\ObjectNameEqualityComparer.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\IJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStore.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />

@@ -27,13 +27,34 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Types {
 	public sealed class TypeManager : IObjectManager, ITypeResolver, IRoutineResolver {
+		private Dictionary<ObjectName, UserType> typesCache;
+
 		public TypeManager(ITransaction transaction) {
 			Transaction = transaction;
+
+			typesCache = new Dictionary<ObjectName, UserType>(ObjectNameEqualityComparer.CaseInsensitive);
+		}
+
+		~TypeManager() {
+			Dispose(false);
 		}
 
 		public ITransaction Transaction { get; private set; }
 
 		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (typesCache != null) {
+					typesCache.Clear();
+				}
+			}
+
+			typesCache = null;
+			Transaction = null;
 		}
 
 		DbObjectType IObjectManager.ObjectType {
@@ -51,39 +72,46 @@ namespace Deveel.Data.Sql.Types {
 			if (typeInfo == null)
 				throw new ArgumentNullException("typeInfo");
 
-			var id = Transaction.NextTableId(TypeTableName);
+			try {
+				var id = Transaction.NextTableId(TypeTableName);
 
-			var typeTable = Transaction.GetMutableTable(TypeTableName);
-			var typeMemberTable = Transaction.GetMutableTable(TypeMemberTableName);
+				var typeTable = Transaction.GetMutableTable(TypeTableName);
+				var typeMemberTable = Transaction.GetMutableTable(TypeMemberTableName);
 
-			var parentName = typeInfo.ParentType != null ? typeInfo.ParentType.ToString() : null;
+				var parentName = typeInfo.ParentType != null ? typeInfo.ParentType.ToString() : null;
 
-			var row = typeTable.NewRow();
-			row.SetValue(0, id);
-			row.SetValue(1, typeInfo.TypeName.ParentName);
-			row.SetValue(2, typeInfo.TypeName.Name);
-			row.SetValue(3, parentName);
-			row.SetValue(4, typeInfo.IsSealed);
-			row.SetValue(5, typeInfo.IsAbstract);
-			row.SetValue(6, typeInfo.Owner);
-
-			typeTable.AddRow(row);
-
-			for (int i = 0; i < typeInfo.MemberCount; i++) {
-				var member = typeInfo[i];
-
-				row = typeMemberTable.NewRow();
+				var row = typeTable.NewRow();
 				row.SetValue(0, id);
-				row.SetValue(1, member.MemberName);
-				row.SetValue(2, member.MemberType.ToString());
+				row.SetValue(1, typeInfo.TypeName.ParentName);
+				row.SetValue(2, typeInfo.TypeName.Name);
+				row.SetValue(3, parentName);
+				row.SetValue(4, typeInfo.IsSealed);
+				row.SetValue(5, typeInfo.IsAbstract);
+				row.SetValue(6, typeInfo.Owner);
 
-				typeMemberTable.AddRow(row);
+				typeTable.AddRow(row);
+
+				for (int i = 0; i < typeInfo.MemberCount; i++) {
+					var member = typeInfo[i];
+
+					row = typeMemberTable.NewRow();
+					row.SetValue(0, id);
+					row.SetValue(1, member.MemberName);
+					row.SetValue(2, member.MemberType.ToString());
+
+					typeMemberTable.AddRow(row);
+				}
+
+				Transaction.OnObjectCreated(DbObjectType.Type, typeInfo.TypeName);
+			} finally {
+				typesCache.Clear();
 			}
-
-			Transaction.OnObjectCreated(DbObjectType.Type, typeInfo.TypeName);
 		}
 
 		public bool TypeExists(ObjectName typeName) {
+			if (typesCache.ContainsKey(typeName))
+				return true;
+
 			var table = Transaction.GetTable(TypeTableName);
 
 			var schemaName = typeName.ParentName;
@@ -153,6 +181,9 @@ namespace Deveel.Data.Sql.Types {
 				deleted = true;
 			}
 
+			if (deleted)
+				typesCache.Remove(typeName);
+
 			return deleted;
 		}
 
@@ -190,73 +221,80 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public UserType GetUserType(ObjectName typeName) {
-			var typeTable = Transaction.GetTable(TypeTableName);
-			var membersTable = Transaction.GetTable(TypeMemberTableName);
+			UserType userType;
+			if (!typesCache.TryGetValue(typeName, out userType)) {
+				var typeTable = Transaction.GetTable(TypeTableName);
+				var membersTable = Transaction.GetTable(TypeMemberTableName);
 
-			var schemaName = typeName.ParentName;
-			var name = typeName.Name;
+				var schemaName = typeName.ParentName;
+				var name = typeName.Name;
 
-			var schemaColumn = typeTable.GetResolvedColumnName(1);
-			var nameColumn = typeTable.GetResolvedColumnName(2);
+				var schemaColumn = typeTable.GetResolvedColumnName(1);
+				var nameColumn = typeTable.GetResolvedColumnName(2);
 
-			var idColumn = membersTable.GetResolvedColumnName(0);
+				var idColumn = membersTable.GetResolvedColumnName(0);
 
-			UserTypeInfo typeInfo;
+				UserTypeInfo typeInfo;
 
-			using (var session = new SystemSession(Transaction)) {
-				using (var query = session.CreateQuery()) {
-					var t = typeTable.SimpleSelect(query, schemaColumn, SqlExpressionType.Equal, SqlExpression.Constant(schemaName));
+				using (var session = new SystemSession(Transaction)) {
+					using (var query = session.CreateQuery()) {
+						var t = typeTable.SimpleSelect(query, schemaColumn, SqlExpressionType.Equal, SqlExpression.Constant(schemaName));
 
-					t = t.ExhaustiveSelect(query,
-						SqlExpression.Equal(SqlExpression.Reference(nameColumn), SqlExpression.Constant(name)));
+						t = t.ExhaustiveSelect(query,
+							SqlExpression.Equal(SqlExpression.Reference(nameColumn), SqlExpression.Constant(name)));
 
-					if (t.RowCount == 0)
-						return null;
+						if (t.RowCount == 0)
+							return null;
 
-					var id = t.GetValue(0, 0);
+						var id = t.GetValue(0, 0);
 
-					var parentField = t.GetValue(0, 3);
-					ObjectName parentType = null;
-					if (!Field.IsNullField(parentField)) {
-						parentType = ObjectName.Parse(parentField.Value.ToString());
-					}
+						var parentField = t.GetValue(0, 3);
+						ObjectName parentType = null;
+						if (!Field.IsNullField(parentField)) {
+							parentType = ObjectName.Parse(parentField.Value.ToString());
+						}
 
-					typeInfo = new UserTypeInfo(typeName, parentType);
+						typeInfo = new UserTypeInfo(typeName, parentType);
 
 
-					var isSealedField = t.GetValue(0, 4);
-					var isAbstractField = t.GetValue(0, 5);
+						var isSealedField = t.GetValue(0, 4);
+						var isAbstractField = t.GetValue(0, 5);
 
-					if (!Field.IsNullField(isSealedField)) {
-						typeInfo.IsSealed = (SqlBoolean) isSealedField.AsBoolean().Value;
-					}
+						if (!Field.IsNullField(isSealedField)) {
+							typeInfo.IsSealed = (SqlBoolean) isSealedField.AsBoolean().Value;
+						}
 
-					if (!Field.IsNullField(isAbstractField)) {
-						typeInfo.IsAbstract = (SqlBoolean) isAbstractField.AsBoolean().Value;
-					}
+						if (!Field.IsNullField(isAbstractField)) {
+							typeInfo.IsAbstract = (SqlBoolean) isAbstractField.AsBoolean().Value;
+						}
 
-					var owner = t.GetValue(0, 6).Value.ToString();
+						var owner = t.GetValue(0, 6).Value.ToString();
 
-					typeInfo.Owner = owner;
+						typeInfo.Owner = owner;
 
-					var t2 = membersTable.SimpleSelect(query, idColumn, SqlExpressionType.Equal, SqlExpression.Constant(id));
+						var t2 = membersTable.SimpleSelect(query, idColumn, SqlExpressionType.Equal, SqlExpression.Constant(id));
 
-					foreach (var row in t2) {
-						var memberName = row.GetValue(1).Value.ToString();
-						var memberTypeString = row.GetValue(2).Value.ToString();
+						foreach (var row in t2) {
+							var memberName = row.GetValue(1).Value.ToString();
+							var memberTypeString = row.GetValue(2).Value.ToString();
 
-						var memberType = SqlType.Parse(Transaction.Context, memberTypeString);
+							var memberType = SqlType.Parse(Transaction.Context, memberTypeString);
 
-						if (memberType == null)
-							throw new InvalidOperationException(String.Format("Cannot find the type '{0}' for member '{1}' of type '{2}'.",
-								memberTypeString, memberName, typeName));
+							if (memberType == null)
+								throw new InvalidOperationException(String.Format("Cannot find the type '{0}' for member '{1}' of type '{2}'.",
+									memberTypeString, memberName, typeName));
 
-						typeInfo.AddMember(memberName, memberType);
+							typeInfo.AddMember(memberName, memberType);
+						}
 					}
 				}
+
+				userType = new UserType(typeInfo);
+
+				typesCache[typeName] = userType;
 			}
 
-			return new UserType(typeInfo);
+			return userType;
 		}
 
 		public IEnumerable<ObjectName> GetChildTypes(ObjectName typeName) {
