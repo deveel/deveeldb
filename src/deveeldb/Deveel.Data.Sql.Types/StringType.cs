@@ -353,14 +353,50 @@ namespace Deveel.Data.Sql.Types {
 
 		/// <inheritdoc/>
 		public override bool CanCastTo(SqlType destType) {
+			if (destType.IsReference)
+				return false;
+
 			return destType.TypeCode != SqlTypeCode.Array &&
 			       destType.TypeCode != SqlTypeCode.Object &&
-				   destType.TypeCode != SqlTypeCode.Clob &&
 				   destType.TypeCode != SqlTypeCode.Blob;
 		}
 
 		/// <inheritdoc/>
 		public override ISqlObject CastTo(ISqlObject value, SqlType destType) {
+			if (value is SqlLongString) {
+				var clob = (SqlLongString) value;
+				switch (destType.TypeCode) {
+					case SqlTypeCode.LongVarChar:
+					case SqlTypeCode.Clob: {
+						if (clob.IsNull)
+							return SqlLongString.Null;
+
+						var destStringType = (StringType) destType;
+						if (MaxSize > destStringType.MaxSize)
+							throw new InvalidCastException(String.Format("The destination type '{0}' is not large enough.", destStringType));
+						if (clob.Length > destStringType.MaxSize)
+							throw new InvalidCastException(String.Format("The source object is too large ({0} bytes) for the destination type '{1}'", clob.Length, destStringType));
+
+						return clob;
+					}
+					case SqlTypeCode.LongVarBinary:
+					case SqlTypeCode.Blob: {
+						if (clob.IsNull)
+							return SqlLongBinary.Null;
+
+						var destBinaryType = (BinaryType) destType;
+						if (clob.Length > destBinaryType.MaxSize)
+							throw new InvalidCastException(
+								String.Format("The source object is too large ({0} bytes) for the destination type '{1}'", clob.Length,
+									destBinaryType));
+
+							return new SqlLongBinary(clob.LargeObject);
+					}
+					default:
+						throw new InvalidCastException(String.Format("Cannot cast a CLOB of type '{0}' to '{1}'.", this, destType));
+				}
+			}
+
 			string str = value.ToString();
 			var sqlType = destType.TypeCode;
 			ISqlObject castedValue;
@@ -415,7 +451,6 @@ namespace Deveel.Data.Sql.Types {
 					castedValue = new SqlString(str.PadRight(((StringType)destType).MaxSize));
 					break;
 				case (SqlTypeCode.VarChar):
-				case (SqlTypeCode.LongVarChar):
 				case (SqlTypeCode.String):
 					castedValue = new SqlString(str);
 					break;

@@ -612,6 +612,7 @@ namespace Deveel.Data.Store {
 						throw new Exception("Releasing when IBlob reference counter is at 0.");
 
 					var objSize = block.ReadInt8();
+					var objFinalSize = block.ReadInt8();
 					var objPos = block.ReadInt8();
 
 					// If reference count == 0 then we need to free all the resources

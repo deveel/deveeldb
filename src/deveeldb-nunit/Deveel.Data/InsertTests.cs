@@ -179,16 +179,7 @@ namespace Deveel.Data {
 		}
 
 		private SqlLongString CreateBio(string text) {
-			var lob = Session.CreateLargeObject(2048, true);
-			using (var stream = new ObjectStream(lob)) {
-				using (var streamWriter = new StreamWriter(stream, Encoding.ASCII)) {
-					streamWriter.Write(text);
-					streamWriter.Flush();
-				}
-			}
-
-			lob.Complete();
-			return SqlLongString.Ascii(lob);
+			return SqlLongString.Ascii(Query, text);
 		}
 	}
 }
