@@ -18,12 +18,11 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AddColumnAction : IAlterTableAction, IPreparable {
+	public sealed class AddColumnAction : IAlterTableAction, IPreparable, IStatementPreparable {
 		public AddColumnAction(SqlTableColumn column) {
 			if (column == null)
 				throw new ArgumentNullException("column");
@@ -38,14 +37,12 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlTableColumn Column { get; private set; }
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			var newColumn = new SqlTableColumn(Column.ColumnName, Column.ColumnType) {
-				IsNotNull = Column.IsNotNull
-			};
+			var newColumn = (SqlTableColumn) ((IPreparable) Column).Prepare(preparer);
+			return new AddColumnAction(newColumn);
+		}
 
-			var defaultExp = Column.DefaultExpression;
-			if (defaultExp != null)
-				newColumn.DefaultExpression = defaultExp.Prepare(preparer);
-
+		object IStatementPreparable.Prepare(IRequest context) {
+			var newColumn = (SqlTableColumn) ((IStatementPreparable) Column).Prepare(context);
 			return new AddColumnAction(newColumn);
 		}
 

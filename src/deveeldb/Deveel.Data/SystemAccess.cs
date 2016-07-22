@@ -23,6 +23,7 @@ using Deveel.Data.Caching;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
@@ -31,6 +32,7 @@ using Deveel.Data.Sql.Sequences;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Transactions;
 
@@ -580,12 +582,70 @@ namespace Deveel.Data {
 			return ResolveUserType(ObjectName.Parse(typeName));
 		}
 
+		public SqlType ResolveFieldType(ObjectName fieldName) {
+			var parentRef = fieldName.Parent;
+			if (parentRef == null) {
+				var variable = ResolveVariable(fieldName.Name);
+				if (variable == null)
+					throw new InvalidOperationException(String.Format("Could not resolve the variable '{0}' in the context.", fieldName));
+
+				return variable.Type;
+			}
+
+			var obj = FindObject(parentRef);
+			if (obj == null)
+				throw new InvalidOperationException(String.Format("Could not find the object '{0}' in this context.", parentRef));
+
+			TableInfo tableInfo;
+
+			if (obj is ITable) {
+				var table = (ITable) obj;
+				tableInfo = table.TableInfo;
+			} else if (obj is View) {
+				var view = (View) obj;
+				tableInfo = view.ViewInfo.TableInfo;
+			} else {
+				throw new InvalidOperationException(String.Format("The object '{0}' does not allows field determination.", obj.ObjectInfo.FullName));
+			}
+
+			var columnOffset = tableInfo.IndexOfColumn(fieldName.Name);
+
+			if (columnOffset < 0)
+				throw new InvalidOperationException(String.Format("Could not find the field '{0}' in the object '{1}'.", fieldName.Name, obj.ObjectInfo.FullName));
+
+			return tableInfo[columnOffset].ColumnType;
+		}
+
+		public SqlType ResolveRowType(ObjectName objectName) {
+			var obj = FindObject(objectName);
+			if (obj == null)
+				throw new InvalidOperationException(String.Format("Could not find the object '{0}' in this context.", objectName));
+
+			TableInfo tableInfo;
+
+			if (obj is ITable) {
+				tableInfo = ((ITable) obj).TableInfo;
+			} else if (obj is View) {
+				tableInfo = ((View) obj).ViewInfo.TableInfo;
+			} else if (obj is ICursor) {
+				tableInfo = ((ICursor) obj).Source.TableInfo;
+			} else {
+				throw new InvalidOperationException(String.Format("The object '{0}' does not allows field determination.", obj.ObjectInfo.FullName));
+			}
+
+			throw new NotImplementedException();
+		}
+
 		#endregion
 
 		#region Variables
 
 		public bool VariableExists(string variableName) {
 			return ObjectExists(DbObjectType.Variable, new ObjectName(variableName));
+		}
+
+		public Variable ResolveVariable(string variableName) {
+			return GetObject(DbObjectType.Variable, new ObjectName(variableName)) as Variable;
 		}
 
 		#endregion

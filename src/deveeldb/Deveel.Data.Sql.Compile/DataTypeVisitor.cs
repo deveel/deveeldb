@@ -192,5 +192,15 @@ namespace Deveel.Data.Sql.Compile {
 
 			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant());
 		}
+
+		public override DataTypeInfo VisitColumnRefType(PlSqlParser.ColumnRefTypeContext context) {
+			var fieldName = Name.Object(context.objectName());
+			return new DataTypeInfo("%TYPE", new []{new DataTypeMeta("FieldName", fieldName.FullName) });
+		}
+
+		public override DataTypeInfo VisitRowRefType(PlSqlParser.RowRefTypeContext context) {
+			var objName = Name.Object(context.objectName());
+			return new DataTypeInfo("%ROWTYPE", new[] {new DataTypeMeta("ObjectName", objName.FullName) });
+		}
 	}
 }

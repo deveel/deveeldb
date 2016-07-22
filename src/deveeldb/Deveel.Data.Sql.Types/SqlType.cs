@@ -137,6 +137,15 @@ namespace Deveel.Data.Sql.Types {
 			get { return TypeCode == SqlTypeCode.Null; }
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether this instance is reference to another type.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if this instance is reference to another type; otherwise, <c>false</c>.
+		/// </value>
+		public virtual bool IsReference {
+			get { return false; }
+		}
 
 		/// <summary>
 		/// Verifies if a given <see cref="SqlType"/> is comparable to
@@ -315,6 +324,10 @@ namespace Deveel.Data.Sql.Types {
 			info.AddValue("TypeCode", (int) TypeCode);
 
 			GetData(info, context);
+		}
+
+		public virtual SqlType Resolve(IRequest context) {
+			return this;
 		}
 
 		protected virtual void GetData(SerializationInfo info, StreamingContext context) {

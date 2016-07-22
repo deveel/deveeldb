@@ -672,7 +672,7 @@ namespace Deveel.Data.Routines {
 				var typeString = typeArg.AsVarChar().Value.ToString();
 				var type = SqlType.Parse(context.Request.Context, typeString);
 
-				return context.Result(SystemFunctions.Cast(value, type));
+				return context.Result(SystemFunctions.Cast(context.Request, value, type));
 			}
 
 			public static SqlType ReturnType(InvokeContext context) {

@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class SqlTableColumn : IPreparable, ISerializable {
+	public sealed class SqlTableColumn : IPreparable, IStatementPreparable, ISerializable {
 		public SqlTableColumn(string columnName, SqlType columnType) {
 			if (String.IsNullOrEmpty(columnName))
 				throw new ArgumentNullException("columnName");
@@ -65,7 +65,19 @@ namespace Deveel.Data.Sql.Statements {
 				column.DefaultExpression = DefaultExpression.Prepare(preparer);
 
 			column.IsNotNull = IsNotNull;
+			column.IsIdentity = IsIdentity;
+			column.IndexType = IndexType;
 			return column;
+		}
+
+		object IStatementPreparable.Prepare(IRequest context) {
+			var columnType = ColumnType.Resolve(context);
+			return new SqlTableColumn(ColumnName, columnType) {
+				IsIdentity = IsIdentity,
+				IsNotNull = IsNotNull,
+				IndexType = IndexType,
+				DefaultExpression = DefaultExpression
+			};
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {

@@ -156,6 +156,8 @@ namespace Deveel.Data.Sql.Types {
 		Object = 70,
 
 		Type = 75,
+		FieldRef = 77,
+		RowRef = 78,
 
 		///<summary>
 		///</summary>
@@ -163,6 +165,6 @@ namespace Deveel.Data.Sql.Types {
 
 		///<summary>
 		///</summary>
-		QueryPlan = 100
+		QueryPlan = 100,
 	}
 }

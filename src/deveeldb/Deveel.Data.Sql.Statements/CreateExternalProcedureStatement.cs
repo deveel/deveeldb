@@ -56,7 +56,16 @@ namespace Deveel.Data.Sql.Statements {
 			var schemaName = context.Access().ResolveSchemaName(ProcedureName.ParentName);
 			var functionName = new ObjectName(schemaName, ProcedureName.Name);
 
-			return new CreateExternalProcedureStatement(functionName, Parameters, ExternalReference);
+			var parameters = new List<RoutineParameter>();
+			if (Parameters != null) {
+				foreach (var parameter in Parameters) {
+					parameters.Add((RoutineParameter)((IStatementPreparable)parameter).Prepare(context));
+				}
+			}
+
+			return new CreateExternalProcedureStatement(functionName, parameters, ExternalReference) {
+				ReplaceIfExists = ReplaceIfExists
+			};
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

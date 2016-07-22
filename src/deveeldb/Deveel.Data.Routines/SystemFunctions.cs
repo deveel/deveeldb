@@ -48,33 +48,17 @@ namespace Deveel.Data.Routines {
 			return obj.CastTo(PrimitiveTypes.Date());
 		}
 
-		public static Field ToDate(SqlString value) {
-			return ToDate(Field.String(value));
-		}
-
 		public static Field ToDateTime(Field obj) {
 			return obj.CastTo(PrimitiveTypes.DateTime());
-		}
-
-		public static Field ToDateTime(SqlString value) {
-			return ToDateTime(Field.String(value));
 		}
 
 		public static Field ToTimeStamp(Field obj) {
 			return obj.CastTo(PrimitiveTypes.TimeStamp());
 		}
 
-		public static Field ToTimeStamp(SqlString value) {
-			return ToTimeStamp(Field.String(value));
-		}
-
-		public static Field Cast(Field value, SqlType destType) {
-			return value.CastTo(destType);
-		}
-
-		public static Field Cast(IQuery query, Field value, SqlString typeString) {
-			var destType = SqlType.Parse(query.Context, typeString.ToString());
-			return Cast(value, destType);
+		public static Field Cast(IRequest context, Field value, SqlType destType) {
+			var type = destType.Resolve(context);
+			return value.CastTo(type);
 		}
 
 		public static Field ToNumber(Field value) {

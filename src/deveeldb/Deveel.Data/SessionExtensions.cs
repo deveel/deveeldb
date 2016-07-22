@@ -22,6 +22,7 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -172,6 +173,6 @@ namespace Deveel.Data {
 			return new TimeSpan(0, hours, minutes, 0);
 		}
 
-#endregion
+		#endregion
 	}
 }

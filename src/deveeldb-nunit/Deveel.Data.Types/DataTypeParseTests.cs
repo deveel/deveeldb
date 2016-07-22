@@ -30,5 +30,41 @@ namespace Deveel.Data.Sql.Types {
 			Assert.IsInstanceOf<NumericType>(type);
 			Assert.AreEqual(-1, ((NumericType)type).Size);
 		}
+
+		[TestCase("BOOLEAN")]
+		[TestCase("boolean")]
+		[TestCase("BIT")]
+		public void Boolean(string typeString) {
+			SqlType type = null;
+			Assert.DoesNotThrow(() => type = SqlType.Parse(typeString));
+			Assert.IsNotNull(type);
+			Assert.IsInstanceOf<BooleanType>(type);
+		}
+
+		[TestCase("app.test%ROWTYPE", "app.test")]
+		[TestCase("test%ROWTYPE", "test")]
+		public void RowType(string typeString, string expectedName) {
+			var type = SqlType.Parse(typeString);
+			Assert.IsNotNull(type);
+			Assert.IsInstanceOf<RowRefType>(type);
+			Assert.IsTrue(type.IsReference);
+
+			var objName = ((RowRefType) type).ObjectName;
+			Assert.IsNotNull(objName);
+			Assert.AreEqual(expectedName, objName.FullName);
+		}
+
+		[TestCase("APP.test_table.col1%TYPE", "APP.test_table.col1")]
+		[TestCase("var1%TYPE", "var1")]
+		public void FieldType(string typeString, string expectedName) {
+			var type = SqlType.Parse(typeString);
+			Assert.IsNotNull(type);
+			Assert.IsInstanceOf<FieldRefType>(type);
+			Assert.IsTrue(type.IsReference);
+
+			var fieldName = ((FieldRefType)type).FieldName;
+			Assert.IsNotNull(fieldName);
+			Assert.AreEqual(expectedName, fieldName.FullName);
+		}
 	}
 }
