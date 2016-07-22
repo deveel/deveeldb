@@ -919,7 +919,6 @@
     <Compile Include="Deveel.Data.Sql.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BooleanType.cs" />
-    <Compile Include="Deveel.Data.Sql.Types\ColumnType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DataTypeMeta.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DateType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\IntervalType.cs" />

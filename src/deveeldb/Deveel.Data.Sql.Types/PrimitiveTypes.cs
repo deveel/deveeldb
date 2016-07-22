@@ -209,10 +209,6 @@ namespace Deveel.Data.Sql.Types {
 			return DateTime(SqlTypeCode.Time);
 		}
 
-		public static ColumnType ColumnType(ObjectName columnName) {
-			return new ColumnType(columnName);
-		}
-
 		public static BinaryType Binary(int maxSize) {
 			return Binary(SqlTypeCode.Binary, maxSize);
 		}
@@ -450,19 +446,6 @@ namespace Deveel.Data.Sql.Types {
 
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);
-
-
-			if (sqlType == SqlTypeCode.ColumnType) {
-				if (!context.HasAnyMeta)
-					throw new ArgumentException("Invalid number of arguments for %TYPE type");
-
-				var columnNameMeta = context.GetMeta("ColumnName");
-				if (columnNameMeta == null)
-					throw new ArgumentException();
-
-				var columnName = ObjectName.Parse(columnNameMeta.Value);
-				return ColumnType(columnName);
-			}
 
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));
 		}
