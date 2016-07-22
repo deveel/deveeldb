@@ -1092,10 +1092,10 @@ caseExpression
    ;
 
 searchedCaseExpression
-   : CASE simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   : CASE simpleCaseWhenExpressionPart+ caseElseExpressionPart? END CASE?
    ;
 
-simpleCacheWhenExpressionPart
+simpleCaseWhenExpressionPart
    : WHEN conditionWrapper THEN expressionWrapper
    ;
 
@@ -1104,7 +1104,7 @@ caseElseExpressionPart
    ;
 
 simpleCaseExpression
-   : CASE atom simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   : CASE atom simpleCaseWhenExpressionPart+ caseElseExpressionPart? END CASE?
    ;
 
 // $>

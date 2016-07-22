@@ -89,5 +89,47 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.AreEqual("APP", show.TableName.ParentName);
 			Assert.AreEqual("test", show.TableName.Name);
 		}
+
+		[Test]
+		public void ShowOpenSessions() {
+			const string sql = "SHOW OPEN SESSIONS";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<ShowStatement>(statement);
+
+			var show = (ShowStatement)statement;
+
+			Assert.AreEqual(ShowTarget.OpenSessions, show.Target);
+		}
+
+		[Test]
+		public void ShowSession() {
+			const string sql = "SHOW CURRENT SESSION";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<ShowStatement>(statement);
+
+			var show = (ShowStatement)statement;
+
+			Assert.AreEqual(ShowTarget.Session, show.Target);
+		}
 	}
 }

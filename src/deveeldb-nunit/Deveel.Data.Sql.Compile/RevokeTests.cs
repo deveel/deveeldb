@@ -47,5 +47,27 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.AreEqual("test_table", revoke.ObjectName.FullName);
 			Assert.AreEqual(Privileges.Insert | Privileges.Update, revoke.Privileges);
 		}
+
+		[Test]
+		public void RevokeRoleFromUser() {
+			const string sql = "REVOKE dbadmin FROM user1";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<RevokeRoleStatement>(statement);
+
+			var revoke = (RevokeRoleStatement) statement;
+
+			Assert.AreEqual("dbadmin", revoke.RoleName);
+			Assert.AreEqual("user1", revoke.Grantee);
+		}
 	}
 }

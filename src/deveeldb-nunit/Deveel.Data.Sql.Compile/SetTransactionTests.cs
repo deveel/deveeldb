@@ -88,5 +88,35 @@ namespace Deveel.Data.Sql.Compile {
 			var status = (bool) ((SqlBoolean) field.Value);
 			Assert.AreEqual(expectedStatus, status);
 		}
+
+		[TestCase("ON", true)]
+		[TestCase("OFF", false)]
+		public void SetIgnoreCase(string status, bool expectedStatus) {
+			var sql = String.Format("SET TRANSACTION IGNORE IDENTIFIERS CASE {0}", status);
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SetStatement>(statement);
+
+			var set = (SetStatement)statement;
+			Assert.AreEqual(TransactionSettingKeys.IgnoreIdentifiersCase, set.SettingName);
+			Assert.IsInstanceOf<SqlConstantExpression>(set.ValueExpression);
+
+			var value = (SqlConstantExpression)set.ValueExpression;
+			var field = value.Value;
+
+			Assert.IsInstanceOf<BooleanType>(field.Type);
+
+			var setStatus = (bool)((SqlBoolean)field.Value);
+			Assert.AreEqual(expectedStatus, setStatus);
+		}
 	}
 }

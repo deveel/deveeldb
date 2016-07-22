@@ -106,6 +106,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateProcedureTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateRoleTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateSchemaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateSequenceTets.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTriggerTests.cs" />
@@ -118,6 +119,8 @@
     <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropProcedureTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropRoleTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropSequenceTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropViewTests.cs" />
