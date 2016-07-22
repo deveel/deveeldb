@@ -25,8 +25,16 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
 	public sealed class SqlTableConstraint : IPreparable, ISerializable {
+		public SqlTableConstraint(ConstraintType constraintType) 
+			: this(constraintType, new string[0]) {
+		}
+
 		public SqlTableConstraint(ConstraintType constraintType, string[] columns) 
 			: this(null, constraintType, columns) {
+		}
+
+		public SqlTableConstraint(string constraintName, ConstraintType constraintType) 
+			: this(constraintName, constraintType, new string[0]) {
 		}
 
 		public SqlTableConstraint(string constraintName, ConstraintType constraintType, string[] columns) {

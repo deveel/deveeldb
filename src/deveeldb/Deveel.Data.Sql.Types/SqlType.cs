@@ -473,6 +473,10 @@ namespace Deveel.Data.Sql.Types {
 			return TypeCode.ToString().ToUpperInvariant();
 		}
 
+		public virtual string ToString(ISqlObject obj) {
+			return obj.ToString();
+		}
+
 		public virtual void SerializeObject(Stream stream, ISqlObject obj) {
 			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(),
 				obj.GetType()));

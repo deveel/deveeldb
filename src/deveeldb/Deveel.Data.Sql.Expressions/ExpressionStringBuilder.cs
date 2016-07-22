@@ -139,8 +139,8 @@ namespace Deveel.Data.Sql.Expressions {
 			} else if (value.Type.IsPrimitive) {
 				if (value.IsNull) {
 					builder.Append("NULL");
-				} else {
-					builder.Append(value.Value);
+				}  else {
+					builder.Append(value.Type.ToString(value.Value));
 				}
 			}
 

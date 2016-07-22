@@ -136,6 +136,19 @@ namespace Deveel.Data.Sql.Types {
 			return sb.ToString();
 		}
 
+		public override string ToString(ISqlObject obj) {
+			if (obj.IsNull)
+				return "NULL";
+
+			if (obj is SqlString) {
+				var s = (SqlString) obj;
+				var text = s.Value.Replace("'", "''");
+				return String.Format("'{0}'", text);
+			}
+
+			return base.ToString(obj);
+		}
+
 		public override Type GetObjectType() {
 			if (TypeCode == SqlTypeCode.Char ||
 			    TypeCode == SqlTypeCode.VarChar ||
