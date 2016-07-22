@@ -19,6 +19,8 @@ using System;
 
 namespace Deveel.Data.Index {
 	public interface IIndexFactory {
+		bool HandlesIndexType(string indexType);
+
 		ColumnIndex CreateIndex(ColumnIndexContext context);
 	}
 }

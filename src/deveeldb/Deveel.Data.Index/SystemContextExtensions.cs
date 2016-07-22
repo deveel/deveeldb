@@ -17,13 +17,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Index {
 	public static class SystemContextExtensions {
 		public static IIndexFactory ResolveIndexFactory(this ISystemContext context, string indexType) {
-			return context.ResolveService<IIndexFactory>(indexType);
+			return context.ResolveAllServices<IIndexFactory>().FirstOrDefault(x => x.HandlesIndexType(indexType));
 		}
 
 		public static ColumnIndex CreateColumnIndex(this ISystemContext context, string indexType,

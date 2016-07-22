@@ -17,10 +17,13 @@ using System;
 
 using Deveel.Data.Index;
 using Deveel.Data.Mapping;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
+
+using Moq;
 
 using NUnit.Framework;
 
@@ -51,6 +54,20 @@ namespace Deveel.Data {
 			}
 
 			return base.OnSetUp(testName, query);
+		}
+
+		protected override void RegisterServices(ServiceContainer container) {
+			var mock = new Mock<IIndexFactory>();
+			mock.Setup(obj => obj.CreateIndex(It.IsAny<ColumnIndexContext>()))
+				.Returns<ColumnIndexContext>(context => {
+					var cmock = new Mock<ColumnIndex>(context.Table, context.ColumnOffset);
+					return cmock.Object;
+				});
+			mock.Setup(obj => obj.HandlesIndexType(It.IsAny<string>()))
+				.Returns(true);
+
+			container.Bind<IIndexFactory>()
+				.ToInstance(mock.Object);
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -96,6 +113,29 @@ namespace Deveel.Data {
 			Query.CreateTable(tableName, columns);
 
 			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.TableInfo.ColumnCount);
+		}
+
+		[Test]
+		public void WithIndexedColumn_CustomIndex() {
+			tableName = ObjectName.Parse("APP.test");
+
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var columns = new SqlTableColumn[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.VarChar()) {
+					IndexType = "foo"
+				},
+			};
+
+			query.CreateTable(tableName, columns);
+			query.Commit();
+
+			query = CreateQuery(CreateAdminSession(Database));
+			var table = query.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
