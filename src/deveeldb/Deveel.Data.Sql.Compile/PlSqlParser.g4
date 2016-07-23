@@ -102,22 +102,18 @@ dropTypeStatement
 
 // $<DML SQL PL/SQL Statements
 
-invoker_rights_clause
-    : AUTHID (CURRENT_USER|DEFINER)
+callSpec
+    : LANGUAGE (dotnetSpec)
     ;
 
-call_spec
-    : LANGUAGE (dotnet_spec)
-    ;
-
-dotnet_spec
+dotnetSpec
     : DOTNET typeString=CHAR_STRING (ASSEMBLY assemblyString=CHAR_STRING)?
 	;
 
 // $<Function DDLs
 
 dropFunctionStatement
-    : DROP FUNCTION objectName ( ',' objectName )* SEMICOLON?
+    : DROP FUNCTION (IF EXISTS)? objectName SEMICOLON?
     ;
 
 createSchemaStatement
@@ -131,7 +127,7 @@ dropSchemaStatement
 createFunctionStatement
     : ( CREATE (OR REPLACE)? )? FUNCTION objectName ('(' parameter (',' parameter)* ')')?
       RETURN functionReturnType
-      ( (IS | AS) (DECLARE? declaration* body | call_spec) ) SEMICOLON?
+      ( (IS | AS) (DECLARE? declaration* body | callSpec) ) SEMICOLON?
     ;
 
 functionReturnType
@@ -143,13 +139,13 @@ functionReturnType
 // $<Procedure DDLs
 
 dropProcedureStatement
-    : DROP PROCEDURE objectName ';'
+    : DROP PROCEDURE (IF EXISTS)? objectName SEMICOLON?
     ;
 
 createProcedureStatement
     : (CREATE (OR REPLACE)?)? PROCEDURE objectName ('(' parameter (',' parameter)* ')')? 
-      invoker_rights_clause? (IS | AS)
-      (DECLARE? declaration* body | call_spec) SEMICOLON?
+	  (IS | AS)
+      (DECLARE? declaration* body | callSpec) SEMICOLON?
     ;
 
 // $>
@@ -322,9 +318,9 @@ defaultValuePart
 
 declaration
     : exceptionDeclaration
+	| pragmaDeclaration
+	| cursorDeclaration
 	| variableDeclaration
-    | cursorDeclaration
-    | pragmaDeclaration
     ;
 
 declareStatement
@@ -346,12 +342,16 @@ parameterSpec
     ;
 
 exceptionDeclaration 
-    : id EXCEPTION SEMICOLON?
+    : exception_name EXCEPTION SEMICOLON?
     ;
 
 pragmaDeclaration
-    : PRAGMA ( EXCEPTION_INIT '(' id ',' numeric ')' ) SEMICOLON?
+    : PRAGMA exceptionInit SEMICOLON?
     ;
+
+exceptionInit
+    : EXCEPTION_INIT '(' exception_name ',' numeric ')'
+	;
 
 updateStatement
     : UPDATE objectName (updateSetClause whereClause? | updateFromClause) ( updateLimitClause )? SEMICOLON?
@@ -743,7 +743,6 @@ triggerBlock
 
 non_dml_event
     : ALTER
-    | COMMENT
     | CREATE
     | DROP
     | GRANT
@@ -828,7 +827,7 @@ valuesClause
 // $<Common DDL Clauses
 
 dml_table_expression_clause
-    : ( '(' subquery ')' | objectName ) (AS? alias=regular_id)?
+    : (( '(' subquery ')' | objectName ) (AS? alias=regular_id)?)
     ;
 
 // $>
@@ -1093,10 +1092,10 @@ caseExpression
    ;
 
 searchedCaseExpression
-   : CASE simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   : CASE simpleCaseWhenExpressionPart+ caseElseExpressionPart? END CASE?
    ;
 
-simpleCacheWhenExpressionPart
+simpleCaseWhenExpressionPart
    : WHEN conditionWrapper THEN expressionWrapper
    ;
 
@@ -1105,7 +1104,7 @@ caseElseExpressionPart
    ;
 
 simpleCaseExpression
-   : CASE atom simpleCacheWhenExpressionPart+ caseElseExpressionPart? END CASE?
+   : CASE atom simpleCaseWhenExpressionPart+ caseElseExpressionPart? END CASE?
    ;
 
 // $>
@@ -1282,6 +1281,10 @@ record_name
     | bind_variable
     ;
 
+exception_name
+    : id 
+    ;
+
 objectName
    : id ('.' id)*
    ;
@@ -1365,7 +1368,6 @@ regular_id
     | ADD
 	| ADMIN
     | AFTER
-    | AGENT
     | AGGREGATE
     //| ALL
     //| ALTER
@@ -1404,10 +1406,8 @@ regular_id
     | CLOSE
     | COLLECT
     | COLUMNS
-    | COMMENT
     | COMMIT
     | COMMITTED
-    | COMPOUND
     //| CONNECT
     //| CONNECT_BY_ROOT
     | CONSTANT

@@ -151,6 +151,10 @@ namespace Deveel.Data.Sql.Cursors {
 			}
 		}
 
+		void ICursor.Reset() {
+			Close();
+		}
+
 		public Row Fetch(FetchDirection direction) {
 			return Fetch(Context, direction);
 		}

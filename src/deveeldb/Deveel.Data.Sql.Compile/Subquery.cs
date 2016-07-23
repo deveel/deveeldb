@@ -232,7 +232,7 @@ namespace Deveel.Data.Sql.Compile {
 				JoinType joinType;
 				if (context.INNER() != null) {
 					joinType = JoinType.Inner;
-				} else if (!context.outerJoinType().IsEmpty) {
+				} else if (context.outerJoinType() != null) {
 					if (context.outerJoinType().FULL() != null) {
 						joinType = JoinType.Full;
 					} else if (context.outerJoinType().LEFT() != null) {

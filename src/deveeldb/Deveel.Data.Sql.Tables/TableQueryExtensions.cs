@@ -594,7 +594,7 @@ namespace Deveel.Data.Sql.Tables {
 					// Is the column we are searching on indexable?
 					var colInfo = table.TableInfo[column];
 					if (!colInfo.IsIndexable)
-						throw new InvalidOperationException(String.Format("Column {0} os type {1} cannot be searched.", colInfo.ColumnName,
+						throw new InvalidOperationException(String.Format("Column {0} of type {1} cannot be searched.", colInfo.ColumnName,
 							colInfo.ColumnType));
 
 					rows = table.SelectRows(column, op, value);

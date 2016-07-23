@@ -68,6 +68,10 @@
       <HintPath>..\packages\dmath.1.5.71\lib\net20\Deveel.Math.pdb\Deveel.Math.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Moq, Version=4.0.10827.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -78,8 +82,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deveel.Data.Caching\MemoryCacheTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbCommandBuilderTests.cs" />
     <Compile Include="Deveel.Data.Client\DbCommandTest.cs" />
     <Compile Include="Deveel.Data.Client\DbConnectionTests.cs" />
+    <Compile Include="Deveel.Data.Client\DbDataAdapterTests.cs" />
     <Compile Include="Deveel.Data.Client\DbDataReaderTests.cs" />
     <Compile Include="Deveel.Data.Client\DbTransactionTests.cs" />
     <Compile Include="Deveel.Data.Client\NonQueryTests.cs" />
@@ -100,6 +106,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\CloseTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateFunctionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateProcedureTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\CreateRoleTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateSchemaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateSequenceTets.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CreateTriggerTests.cs" />
@@ -108,7 +115,12 @@
     <Compile Include="Deveel.Data.Sql.Compile\CurrentTimeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeclareExceptionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DeclarePragmaTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DeleteTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropProcedureTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropRoleTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\DropSequenceTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\DropViewTests.cs" />
@@ -136,7 +148,17 @@
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpressionTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTableStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CallStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTableStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeleteStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DropStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\GrantStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SelectStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RowIdTests.cs" />
     <Compile Include="Deveel.Data.Sql\ArrayFieldTests.cs" />
@@ -144,6 +166,8 @@
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
     <Compile Include="Deveel.Data.Types\DateTypeTests.cs" />
     <Compile Include="Deveel.Data.Types\IntervalTypeTests.cs" />
+    <Compile Include="Deveel.Data.Types\RefTypesTests.cs" />
+    <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />
@@ -168,6 +192,7 @@
     <Compile Include="Deveel.Data\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data\DeclareVariableTests.cs" />
     <Compile Include="Deveel.Data\DeleteTests.cs" />
+    <Compile Include="Deveel.Data\DropCallbackTriggerTests.cs" />
     <Compile Include="Deveel.Data\DropFunctionTests.cs" />
     <Compile Include="Deveel.Data\DropProcedureTests.cs" />
     <Compile Include="Deveel.Data\DropRoleTests.cs" />
@@ -179,12 +204,19 @@
     <Compile Include="Deveel.Data\DropUserTests.cs" />
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />
+    <Compile Include="Deveel.Data\MathFunctionTests.cs" />
+    <Compile Include="Deveel.Data\ObjectFunctionTests.cs" />
+    <Compile Include="Deveel.Data\RequestExtensions.cs" />
     <Compile Include="Deveel.Data\RollbackTests.cs" />
+    <Compile Include="Deveel.Data\SelectBlobTests.cs" />
     <Compile Include="Deveel.Data\SelectFromVariablesTests.cs" />
+    <Compile Include="Deveel.Data\SelectClobTests.cs" />
     <Compile Include="Deveel.Data\SelectPrivsTests.cs" />
     <Compile Include="Deveel.Data\SelectProductInfoTests.cs" />
     <Compile Include="Deveel.Data\SelectRoutineTests.cs" />
     <Compile Include="Deveel.Data\SelectStatsTests.cs" />
+    <Compile Include="Deveel.Data\SessionExtensions.cs" />
+    <Compile Include="Deveel.Data\StringFunctionTests.cs" />
     <Compile Include="Deveel.Data\TriggerTests.cs" />
     <Compile Include="Deveel.Data\FunctionTestBase.cs" />
     <Compile Include="Deveel.Data\GrantTests.cs" />

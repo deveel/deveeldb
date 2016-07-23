@@ -48,33 +48,17 @@ namespace Deveel.Data.Routines {
 			return obj.CastTo(PrimitiveTypes.Date());
 		}
 
-		public static Field ToDate(SqlString value) {
-			return ToDate(Field.String(value));
-		}
-
 		public static Field ToDateTime(Field obj) {
 			return obj.CastTo(PrimitiveTypes.DateTime());
-		}
-
-		public static Field ToDateTime(SqlString value) {
-			return ToDateTime(Field.String(value));
 		}
 
 		public static Field ToTimeStamp(Field obj) {
 			return obj.CastTo(PrimitiveTypes.TimeStamp());
 		}
 
-		public static Field ToTimeStamp(SqlString value) {
-			return ToTimeStamp(Field.String(value));
-		}
-
-		public static Field Cast(Field value, SqlType destType) {
-			return value.CastTo(destType);
-		}
-
-		public static Field Cast(IQuery query, Field value, SqlString typeString) {
-			var destType = SqlType.Parse(query.Context, typeString.ToString());
-			return Cast(value, destType);
+		public static Field Cast(IRequest context, Field value, SqlType destType) {
+			var type = destType.Resolve(context);
+			return value.CastTo(type);
 		}
 
 		public static Field ToNumber(Field value) {
@@ -284,6 +268,8 @@ namespace Deveel.Data.Routines {
 
 		#endregion
 
+		#region Strings
+
 		public static Field Concat(Field[] args) {
 			var cc = new StringBuilder();
 
@@ -308,22 +294,7 @@ namespace Deveel.Data.Routines {
 			return new Field(type, new SqlString(cc.ToString()));
 		}
 
-		internal static InvokeResult Iif(InvokeContext context) {
-			var result = Field.Null();
-
-			var evalContext = new EvaluateContext(context.Request, context.VariableResolver, context.GroupResolver);
-
-			var condition = context.Arguments[0].Value.EvaluateToConstant(evalContext);
-			if (condition.Type is BooleanType) {
-				if (condition.Equals(Field.BooleanTrue)) {
-					result = context.Arguments[1].Value.EvaluateToConstant(evalContext);
-				} else if (condition.Equals(Field.BooleanFalse)) {
-					result = context.Arguments[2].Value.EvaluateToConstant(evalContext);
-				}
-			}
-
-			return context.Result(result);
-		}
+		#endregion
 
 		internal static Field FRuleConvert(Field obj) {
 			if (obj.Type is StringType) {
@@ -383,5 +354,118 @@ namespace Deveel.Data.Routines {
 			var s = String.Join(", ", array);
 			return Field.String(s);
 		}
+
+		#region Math
+
+		private static Field MathFunction(Func<SqlNumber, SqlNumber> op, Field value) {
+			if (Field.IsNullField(value))
+				return value;
+
+			if (!(value.Type is NumericType))
+				return Field.Null(PrimitiveTypes.Numeric());
+
+			var number = (SqlNumber) value.Value;
+			var result = op(number);
+
+			var scale = result.Scale;
+			var precision = result.Precision;
+
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+		}
+
+		private static Field MathFunction(Func<SqlNumber, SqlNumber, SqlNumber> op, Field value, Field other) {
+			if (Field.IsNullField(value))
+				return value;
+			if (Field.IsNullField(other))
+				return Field.Null(value.Type);
+
+			if (!(value.Type is NumericType))
+				return Field.Null(PrimitiveTypes.Numeric());
+			if (!(other.Type is NumericType))
+				return Field.Null(value.Type);
+
+			var number = (SqlNumber)value.Value;
+			var operand = (SqlNumber) other.Value;
+
+			var result = op(number, operand);
+
+			var scale = result.Scale;
+			var precision = result.Precision;
+
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+		}
+
+		public static Field Cos(Field value) {
+			return MathFunction(number => number.Cos(), value);
+		}
+
+		public static Field CosH(Field value) {
+			return MathFunction(number => number.CosH(), value);
+		}
+
+		public static Field Abs(Field value) {
+			return MathFunction(number => number.Abs(), value);
+		}
+
+		public static Field Log2(Field value) {
+			return MathFunction(number => number.Log(), value);
+		}
+
+		public static Field Log(Field value, Field newBase) {
+			return MathFunction((number, operand) => number.Log(operand), value, newBase);
+		}
+
+		public static Field Tan(Field value) {
+			return MathFunction(number => number.Tan(), value);
+		}
+
+		public static Field Round(Field value, Field precision) {
+			return MathFunction((number, other) => number.Round(other.ToInt32()), value, precision);
+		}
+
+		public static Field Round(Field value) {
+			return MathFunction(number => number.Round(), value);
+		}
+
+		public static Field TanH(Field value) {
+			return MathFunction(number => number.TanH(), value);
+		}
+
+		public static Field Sin(Field value) {
+			return MathFunction(number => number.Sin(), value);
+		}
+
+		#endregion
+
+		#region ObjectInit
+
+		public static Field NewObject(IRequest context, Field typeName, Field[] args = null) {
+			if (Field.IsNullField(typeName))
+				throw new ArgumentNullException("typeName");
+			
+			if (!(typeName.Type is StringType))
+				throw new ArgumentException("The type name argument must be of string type.");
+
+			var argExp = new SqlExpression[args == null ? 0 : args.Length];
+
+			if (args != null) {
+				argExp = args.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray();
+			}
+
+			var type = context.Access().ResolveUserType(typeName.Value.ToString());
+			if (type == null)
+				throw new InvalidOperationException(String.Format("The type '{0}' was not defined.", typeName));
+
+			if (!(type is UserType))
+				throw new InvalidOperationException(String.Format("The type '{0}' is not a user-defined type", typeName));
+
+			var userType = (UserType) type;
+
+			var obj = userType.NewObject(context, argExp);
+
+			return Field.Object(userType, obj);
+		}
+
+		#endregion
 	}
 }

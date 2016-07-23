@@ -50,6 +50,10 @@ namespace Deveel.Data.Sql.Statements {
 			IndentCount = count;
 		}
 
+		public char this[int offset] {
+			get { return builder[offset]; }
+		}
+
 		public void AppendFormat(string format, params object[] args) {
 			if (String.IsNullOrEmpty(format))
 				throw new ArgumentNullException("format");

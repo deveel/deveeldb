@@ -222,5 +222,56 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.IsNotNull(statement);
 			Assert.IsInstanceOf<ConditionStatement>(statement);
 		}
+
+		[Test]
+		public void SearchedCaseStatement() {
+			const string sql = "CASE WHEN a = 1 THEN RETURN 'one' END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<ConditionStatement>(statement);
+		}
+
+		[Test]
+		public void SearchedCaseStatementWithTwoOptions() {
+			const string sql = "CASE WHEN a = 1 THEN RETURN 'one' WHEN a = 2 THEN RETURN 'two' END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<ConditionStatement>(statement);
+		}
+
+		[Test]
+		public void SearchedCaseStatementWithTwoOptionsAndElse() {
+			const string sql = "CASE WHEN a = 1 THEN RETURN 'one' WHEN a = 2 THEN RETURN 'two' ELSE RETURN 'invalid' END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<ConditionStatement>(statement);
+		}
 	}
 }

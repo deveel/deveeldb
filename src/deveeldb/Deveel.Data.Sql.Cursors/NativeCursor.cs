@@ -33,8 +33,7 @@ namespace Deveel.Data.Sql.Cursors {
 			CursorInfo = cursorInfo;
 			Context = context;
 
-			currentOffset = -1;
-			Status = CursorStatus.Open;
+			Reset();
 		}
 
 		~NativeCursor() {
@@ -122,6 +121,15 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public CursorStatus Status { get; private set; }
+
+		public void Reset() {
+			ReleaseReferences();
+
+			Status = CursorStatus.Open;
+			currentOffset = -1;
+			Result = null;
+			evaluated = false;
+		}
 
 		public Row Fetch(FetchDirection direction, int offset) {
 			Evaluate();

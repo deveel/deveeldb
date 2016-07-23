@@ -19,12 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
-using Deveel.Math;
 
 namespace Deveel.Data.Routines {
 	class SystemFunctionsProvider : FunctionProvider {
@@ -75,9 +72,7 @@ namespace Deveel.Data.Routines {
 				.Named("aggor")
 				.WithParameter(p => p.Named("args").Unbounded().OfDynamicType())
 				.OfAggregateType()
-				.WhenExecute(context => {
-					return Binary(context, SystemFunctions.Or);
-				}));
+				.WhenExecute(context => Binary(context, SystemFunctions.Or)));
 
 			// COUNT
 			Register(config => config.Named("count")
@@ -501,6 +496,25 @@ namespace Deveel.Data.Routines {
 
 				return PrimitiveTypes.Null();
 			}));
+
+			// object instantiation
+			Register(config => config.Named("new_object")
+				.WithStringParameter("typeName")
+				.WithUnoundedParameter("args", Function.DynamicType)
+				.WhenExecute(context => {
+					var typeName = context.EvaluatedArguments[0];
+					var argc = context.ArgumentCount;
+					var args = new Field[argc - 1];
+					if (argc > 1) {
+						Array.Copy(context.EvaluatedArguments, 1, args, 0, args.Length);
+					}
+
+					var obj = SystemFunctions.NewObject(context.Request, typeName, args);
+					return context.Result(obj);
+				}).ReturnsType(context => {
+					var typeName = context.EvaluatedArguments[0].Value.ToString();
+					return context.Request.Access().ResolveUserType(typeName);
+				}));
 		}
 
 		#endregion
@@ -572,8 +586,66 @@ namespace Deveel.Data.Routines {
 			// CONCAT([STRING])
 			Register(config => config.Named("concat")
 				.WithUnoundedParameter("strings", PrimitiveTypes.VarChar())
-				.WhenExecute(context => Simple(context, args => SystemFunctions.Concat(args)))
+				.WhenExecute(context => Simple(context, SystemFunctions.Concat))
 				.ReturnsType(ConcatReturnType));
+		}
+
+		#endregion
+
+		#region Math Functions
+
+		private void MathFunctions() {
+			Register(config => config.Named("cos")
+				.WithNumericParameter("value")
+				.ReturnsNumeric()
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Cos(args[0]))));
+
+			Register(config => config.Named("cosh")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.CosH(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("log2")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Log2(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("log")
+				.WithNumericParameter("value")
+				.WithNumericParameter("newBase")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Log(args[0], args[1]))));
+
+			Register(config => config.Named("abs")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Abs(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("tan")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Tan(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("tanh")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.TanH(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("sin")
+				.WithNumericParameter("value")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Sin(args[0])))
+				.ReturnsNumeric());
+
+			Register(config => config.Named("round")
+				.WithNumericParameter("value")
+				.WithNumericParameter("precision")
+				.WhenExecute(context => Simple(context, args => SystemFunctions.Round(args[0], args[1])))
+				.ReturnsNumeric());
+
+			// TODO: support function overloads
+			//Register(config => config.Named("round")
+			//	.WithNumericParameter("value")
+			//	.WhenExecute(context => Simple(context, args => SystemFunctions.Round(args[0])))
+			//	.ReturnsNumeric());
 		}
 
 		#endregion
@@ -586,6 +658,7 @@ namespace Deveel.Data.Routines {
 			SequenceFunctions();
 			DateFunctions();
 			StringFunctions();
+			MathFunctions();
 
 			MiscFunctions();
 		}
@@ -599,7 +672,7 @@ namespace Deveel.Data.Routines {
 				var typeString = typeArg.AsVarChar().Value.ToString();
 				var type = SqlType.Parse(context.Request.Context, typeString);
 
-				return context.Result(SystemFunctions.Cast(value, type));
+				return context.Result(SystemFunctions.Cast(context.Request, value, type));
 			}
 
 			public static SqlType ReturnType(InvokeContext context) {

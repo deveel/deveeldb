@@ -29,7 +29,7 @@ namespace Deveel.Data {
 	/// This is a session that is constructed around a given user and a transaction,
 	/// to the given database.
 	/// </summary>
-	public sealed class Session : ISession, IEventSource, ISystemDirectAccess {
+	public sealed class Session : ISession, IEventSource, IProvidesDirectAccess {
 		private bool disposed;
 		private readonly DateTimeOffset startedOn;
 		private SystemAccess access;
@@ -91,7 +91,7 @@ namespace Deveel.Data {
 
 		public User User { get; private set; }
 
-		SystemAccess ISystemDirectAccess.DirectAccess {
+		SystemAccess IProvidesDirectAccess.DirectAccess {
 			get { return access; }
 		}
 

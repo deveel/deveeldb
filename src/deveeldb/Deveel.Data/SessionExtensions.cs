@@ -22,6 +22,7 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -31,10 +32,10 @@ namespace Deveel.Data {
 		}
 
 		internal static SystemAccess Access(this ISession session) {
-			if (!(session is ISystemDirectAccess))
+			if (!(session is IProvidesDirectAccess))
 				throw new InvalidOperationException("The session does not provide direct access to the system.");
 
-			return ((ISystemDirectAccess) session).DirectAccess;
+			return ((IProvidesDirectAccess) session).DirectAccess;
 		}
 
 		public static bool IsFinished(this ISession session) {
@@ -172,6 +173,6 @@ namespace Deveel.Data {
 			return new TimeSpan(0, hours, minutes, 0);
 		}
 
-#endregion
+		#endregion
 	}
 }

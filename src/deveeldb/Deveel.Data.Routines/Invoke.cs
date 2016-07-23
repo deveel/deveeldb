@@ -21,6 +21,7 @@ using System.Text;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Routines {
 	/// <summary>
@@ -119,7 +120,10 @@ namespace Deveel.Data.Routines {
 		/// otherwise it returns <c>false</c>.
 		/// </returns>
 		public bool IsAggregate(IRequest query) {
-			if (query.Access().IsAggregateFunction(this, query))
+			var resolvedName = query.Access().ResolveObjectName(DbObjectType.Routine, RoutineName);
+			var invoke = new Invoke(resolvedName, Arguments);
+
+			if (query.Access().IsAggregateFunction(invoke, query))
 				return true;
 
 			// Look at parameterss
@@ -149,7 +153,9 @@ namespace Deveel.Data.Routines {
 			if (context == null) {
 				cached = SystemFunctions.Provider.ResolveFunction(this, null);
 			} else {
-				cached = context.Query.Access().ResolveRoutine(this, context);
+				var resolvedName = context.Access().ResolveObjectName(DbObjectType.Routine, RoutineName);
+				var invoke = new Invoke(resolvedName, Arguments);
+				cached = context.Query.Access().ResolveRoutine(invoke, context);
 			}
 
 			if (cached == null)
@@ -196,7 +202,7 @@ namespace Deveel.Data.Routines {
 			return routine.Execute(executeContext);
 		}
 
-		public override String ToString() {
+		public override string ToString() {
 			var buf = new StringBuilder();
 			buf.Append(RoutineName);
 			buf.Append('(');

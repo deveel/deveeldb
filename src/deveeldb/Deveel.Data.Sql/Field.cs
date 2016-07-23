@@ -658,6 +658,10 @@ namespace Deveel.Data.Sql {
 			return new Field(new ArrayType(array.Length), new SqlArray(array));
 		}
 
+		public static Field Object(UserType type, SqlUserObject obj) {
+			return new Field(type, obj);
+		}
+
 		public static bool IsNullField(Field field) {
 			return ReferenceEquals(field, null) || field.IsNull;
 		}

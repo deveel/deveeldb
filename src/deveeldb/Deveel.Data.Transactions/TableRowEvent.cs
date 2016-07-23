@@ -16,9 +16,14 @@
 
 
 using System;
+using System.Collections.Generic;
+
+using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Transactions {
-	public class TableRowEvent : ITableEvent {
+	public class TableRowEvent : Event, ITableEvent {
+		private ITableEvent tableEventImplementation;
+
 		public TableRowEvent(int tableId, int rowNumber, TableRowEventType eventType) {
 			TableId = tableId;
 			RowNumber = rowNumber;
@@ -30,5 +35,11 @@ namespace Deveel.Data.Transactions {
 		public int RowNumber { get; private set; }
 
 		public TableRowEventType EventType { get; private set; }
+
+		protected override void GetEventData(Dictionary<string, object> data) {
+			data["table.id"] = TableId;
+			data["table.row"] = RowNumber;
+			data["eventType"] = EventType.ToString().ToLowerInvariant();
+		}
 	}
 }

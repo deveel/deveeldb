@@ -87,5 +87,70 @@ namespace Deveel.Data.Client {
 			Assert.AreEqual(0, a);
 			Assert.AreEqual("b_0", b);
 		}
+
+		[Test]
+		public void GetInt32() {
+			var reader = CreateReader("SELECT * FROM APP.test_table");
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+
+			Assert.AreEqual(2, reader.FieldCount);
+
+			var a = reader.GetInt32(0);
+			Assert.AreEqual(0, a);
+		}
+
+		[Test]
+		public void GetInt64() {
+			var reader = CreateReader("SELECT * FROM APP.test_table");
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+
+			Assert.AreEqual(2, reader.FieldCount);
+
+			var a = reader.GetInt64(0);
+			Assert.AreEqual(0, a);
+		}
+
+		[Test]
+		public void GetInt16() {
+			var reader = CreateReader("SELECT * FROM APP.test_table");
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+
+			Assert.AreEqual(2, reader.FieldCount);
+
+			var a = reader.GetInt16(0);
+			Assert.AreEqual(0, a);
+		}
+
+		[Test]
+		public void GetFloat() {
+			var reader = CreateReader("SELECT * FROM APP.test_table");
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+
+			Assert.AreEqual(2, reader.FieldCount);
+
+			var a = reader.GetFloat(0);
+			Assert.AreEqual(0, a);
+		}
+
+		[Test]
+		public void GetStringFromInteger() {
+			var reader = CreateReader("SELECT * FROM APP.test_table");
+
+			Assert.IsNotNull(reader);
+			Assert.IsTrue(reader.Read());
+
+			Assert.AreEqual(2, reader.FieldCount);
+
+			var a = reader.GetString(0);
+			Assert.AreEqual("0", a);
+		}
 	}
 }

@@ -66,9 +66,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (args != null) {
 				var newArgs = new List<InvokeArgument>();
 				foreach (var arg in args) {
-					var id = arg.Name;
-					var value = arg.Value.Prepare(preparer);
-					newArgs.Add(new InvokeArgument(id, value));
+					newArgs.Add((InvokeArgument)((IPreparable)arg).Prepare(preparer));
 				}
 
 				args = newArgs.ToArray();

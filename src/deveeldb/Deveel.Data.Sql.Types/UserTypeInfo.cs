@@ -101,6 +101,10 @@ namespace Deveel.Data.Sql.Types {
 			if (member == null)
 				throw new ArgumentNullException("member");
 
+			if (member.MemberType.IsLargeObject)
+				throw new ArgumentException(String.Format("Cannot add member '{0}' of type '{1}' to type '{2}'.", member.MemberName,
+					member.MemberType, TypeName));
+
 			if (members == null)
 				members = new List<UserTypeMember>();
 
@@ -119,6 +123,13 @@ namespace Deveel.Data.Sql.Types {
 
 		ObjectName IObjectInfo.FullName {
 			get { return TypeName; }
+		}
+
+		internal UserTypeMember MemberAt(int offset) {
+			if (offset < 0 || offset >= MemberCount)
+				throw new ArgumentOutOfRangeException("offset", offset, String.Format("The member offset is out of range"));
+
+			return members[offset];
 		}
 	}
 }

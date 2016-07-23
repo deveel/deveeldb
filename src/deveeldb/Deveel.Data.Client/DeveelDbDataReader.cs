@@ -118,19 +118,23 @@ namespace Deveel.Data.Client {
 
 			var table = new SysDataTable("ColumnsInfo");
 
-			table.Columns.Add("Schema", typeof (string));
-			table.Columns.Add("Table", typeof (string));
-			table.Columns.Add("Name", typeof (string));
-			table.Columns.Add("FullName", typeof (string));
-			table.Columns.Add("SqlType", typeof (int));
-			table.Columns.Add("DbType", typeof (string));
+			table.Columns.Add(SchemaTableColumn.BaseSchemaName, typeof (string));
+			table.Columns.Add(SchemaTableColumn.BaseTableName, typeof (string));
+			table.Columns.Add(SchemaTableColumn.BaseColumnName, typeof (string));
+			table.Columns.Add(SchemaTableColumn.ColumnName, typeof (string));
+			table.Columns.Add(SchemaTableColumn.ColumnOrdinal, typeof(int));
+			table.Columns.Add(SchemaTableColumn.ProviderType, typeof (int));
+			table.Columns.Add(SchemaTableColumn.DataType, typeof (string));
 			table.Columns.Add("Type", typeof (string));
-			table.Columns.Add("Size", typeof (int));
-			table.Columns.Add("Scale", typeof (int));
-			table.Columns.Add("IsUnique", typeof (bool));
-			table.Columns.Add("IsNotNull", typeof (bool));
-			table.Columns.Add("IsSizeable", typeof (bool));
+			table.Columns.Add(SchemaTableColumn.ColumnSize, typeof (int));
+			table.Columns.Add(SchemaTableColumn.NumericScale, typeof (int));
+			table.Columns.Add(SchemaTableColumn.IsKey, typeof(bool));
+			table.Columns.Add(SchemaTableColumn.IsUnique, typeof (bool));
+			table.Columns.Add(SchemaTableColumn.AllowDBNull, typeof (bool));
+			table.Columns.Add(SchemaTableColumn.IsAliased, typeof(bool));
+			table.Columns.Add("IsQuantifiable", typeof(bool));
 			table.Columns.Add("IsNumeric", typeof (bool));
+			table.Columns.Add(SchemaTableColumn.IsLong, typeof(bool));
 			table.Columns.Add("UniqueGroup", typeof (int));
 
 			for (int i = 0; i < FieldCount; i++) {
@@ -161,24 +165,35 @@ namespace Deveel.Data.Client {
 					fullColumnName = columnName;
 				}
 
-				row["Schema"] = schemaName;
-				row["Table"] = tableName;
-				row["Name"] = columnName;
-				row["FullName"] = fullColumnName;
-				row["SqlType"] = (int) column.Type.TypeCode;
-				row["DbType"] =  column.Type.Name;
-				row["Size"] = column.Size;
-				row["Scale"] = column.Scale;
-				row["IsUnique"] = column.IsUnique;
+				row[SchemaTableColumn.BaseSchemaName] = schemaName;
+				row[SchemaTableColumn.BaseTableName] = tableName;
+				row[SchemaTableColumn.BaseColumnName] = columnName;
+				row[SchemaTableColumn.ColumnName] = fullColumnName;
+				row[SchemaTableColumn.ColumnOrdinal] = column.Offset;
+				row[SchemaTableColumn.ProviderType] = (int) column.Type.TypeCode;
+				row[SchemaTableColumn.DataType] =  column.Type.Name;
+				row[SchemaTableColumn.ColumnSize] = column.Size;
+				row[SchemaTableColumn.NumericScale] = column.Scale;
+				row[SchemaTableColumn.IsKey] = column.IsKey;
+				row[SchemaTableColumn.IsUnique] = column.IsUnique;
 				row["IsQuantifiable"] = column.Type is ISizeableType;
 				row["IsNumeric"] = column.IsNumericType;
-				row["IsNotNull"] = column.IsNotNull;
+				row[SchemaTableColumn.AllowDBNull] = !column.IsNotNull;
 				row["UniqueGroup"] = column.UniqueGroup;
+				row[SchemaTableColumn.IsAliased] = column.IsAliased;
+				row[SchemaTableColumn.IsLong] = IsLongType(column.Type);
 
 				table.Rows.Add(row);
 			}
 
 			return table;
+		}
+
+		private static bool IsLongType(SqlType sqlType) {
+			return sqlType.TypeCode == SqlTypeCode.LongVarChar ||
+			       sqlType.TypeCode == SqlTypeCode.Clob ||
+			       sqlType.TypeCode == SqlTypeCode.LongVarBinary ||
+			       sqlType.TypeCode == SqlTypeCode.Blob;
 		}
 
 		public override bool NextResult() {
@@ -334,7 +349,11 @@ namespace Deveel.Data.Client {
 		}
 
 		public override Type GetFieldType(int ordinal) {
-			throw new NotImplementedException();
+			var column = command.CurrentResult.GetColumn(ordinal);
+			if (column == null)
+				return null;
+
+			return column.Type.GetRuntimeType();
 		}
 
 		public override Type GetProviderSpecificFieldType(int ordinal) {

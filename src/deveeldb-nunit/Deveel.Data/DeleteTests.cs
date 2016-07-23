@@ -27,12 +27,12 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class DeleteTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
-			CreateTestTable(query);
-			InsertTestData(query);
+			CreateTestTable(testName, query);
+			InsertTestData(testName, query);
 			return true;
 		}
 
-		private void CreateTestTable(IQuery query) {
+		private void CreateTestTable(string textName, IQuery query) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
@@ -42,11 +42,15 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
+			if (textName.EndsWith("WithLob")) {
+				tableInfo.AddColumn("bio", PrimitiveTypes.Clob());
+			}
+
 			query.Session.Access().CreateTable(tableInfo);
 			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
-		private void InsertTestData(IQuery query) {
+		private void InsertTestData(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 
 			var table = query.Access().GetMutableTable(tableName);
@@ -55,6 +59,9 @@ namespace Deveel.Data {
 			row.SetValue("last_name", Field.String("Provenzano"));
 			row.SetValue("birth_date", Field.Date(new SqlDateTime(1980, 06, 04)));
 			row.SetValue("active", Field.BooleanTrue);
+			if (testName.EndsWith("WithLob"))
+				row.SetValue("bio", Field.Clob(CreateClobData(query)));
+
 			row.SetDefault(query);
 			table.AddRow(row);
 
@@ -65,6 +72,11 @@ namespace Deveel.Data {
 			row.SetValue("active", Field.BooleanFalse);
 			row.SetDefault(query);
 			table.AddRow(row);
+		}
+
+		private SqlLongString CreateClobData(IQuery query) {
+			const string text = "One simple small string to trigger the LOB data for the test";
+			return SqlLongString.Ascii(query, text);
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -100,5 +112,22 @@ namespace Deveel.Data {
 			Assert.AreEqual(0, table.RowCount);
 		}
 
+		[Test]
+		public void WithLob() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
+
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var count = query.Delete(tableName, expr);
+			query.Commit();
+
+			Assert.AreEqual(2, count);
+
+			query = CreateQuery(CreateAdminSession(Database));
+			var table = query.Access().GetTable(tableName);
+
+			Assert.AreEqual(0, table.RowCount);
+		}
 	}
 }

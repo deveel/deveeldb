@@ -95,6 +95,9 @@ namespace Deveel.Data.Sql.Statements {
 			if (statement is DeclareExceptionStatement)
 				return VisitDeclareException((DeclareExceptionStatement) statement);
 
+			if (statement is CallStatement)
+				return VisitCall((CallStatement) statement);
+
 			if (statement is InsertStatement)
 				return VisitInsert((InsertStatement) statement);
 			if (statement is InsertSelectStatement)
@@ -152,6 +155,10 @@ namespace Deveel.Data.Sql.Statements {
 				return ((IVisitableStatement) statement).Accept(this);
 
 			return statement;
+		}
+
+		protected virtual SqlStatement VisitCall(CallStatement statement) {
+			return new CallStatement(statement.ProcedureName, statement.Arguments);
 		}
 
 		protected virtual SqlStatement VisitShow(ShowStatement statement) {

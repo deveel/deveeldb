@@ -254,11 +254,11 @@ namespace Deveel.Data.Sql.Tables {
 			var column = Table.TableInfo[columnOffset];
 			var columnType = column.ColumnType;
 
-			if (!value.Type.IsComparable(columnType)) {
-				throw new ArgumentException(
-					String.Format("The specified value of type '{0}' is not comparable to '{1}' defined by '{2}'.",
-						value.Type, columnType, column.FullColumnName));
-			}
+			//if (!value.Type.IsComparable(columnType)) {
+			//	throw new ArgumentException(
+			//		String.Format("The specified value of type '{0}' is not comparable to '{1}' defined by '{2}'.",
+			//			value.Type, columnType, column.FullColumnName));
+			//}
 
 			if (!value.Type.Equals(columnType)) {
 				if (!value.Type.CanCastTo(columnType))

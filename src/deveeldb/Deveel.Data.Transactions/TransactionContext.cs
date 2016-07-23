@@ -28,7 +28,7 @@ namespace Deveel.Data.Transactions {
 			VariableManager = new VariableManager(this);
 			CursorManager = new CursorManager(this);
 
-			EventRegistry = new TransactionRegistry();
+			EventRegistry = new TransactionRegistry(this);
 		}
 
 		protected override string ContextName {

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
@@ -32,6 +33,15 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class InsertTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
+			if (testName.EndsWith("WithUserType")) {
+				var typeName = ObjectName.Parse("APP.type1");
+				var typeInfo = new UserTypeInfo(typeName);
+				typeInfo.AddMember("a", PrimitiveTypes.String());
+				typeInfo.AddMember("b", PrimitiveTypes.Integer());
+
+				query.Access().CreateObject(typeInfo);
+			}
+
 			CreateTestTable(query, testName);
 			return true;
 		}
@@ -48,16 +58,25 @@ namespace Deveel.Data {
 
 			if (testName.EndsWith("WithLob")) {
 				tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
+			} else if (testName.EndsWith("WithUserType")) {
+				var userType = query.Access().ResolveUserType("type1");
+				tableInfo.AddColumn("user_obj", userType);
 			}
 
-			query.Session.Access().CreateTable(tableInfo);
-			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().CreateTable(tableInfo);
+			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.Access().DropAllTableConstraints(tableName);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+
+			if (testName.EndsWith("WithUserType")) {
+				var typeName = ObjectName.Parse("APP.test1");
+				query.Access().DropType(typeName);
+			}
+
 			return true;
 		}
 
@@ -66,15 +85,51 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var columns = new[] { "first_name", "last_name", "active" };
 			var values = new List<SqlExpression[]> {
-				new[] {
+				new SqlExpression[] {
 					SqlExpression.Constant("Antonello"),
 					SqlExpression.Constant("Provenzano"),
 					SqlExpression.Constant(true)
 				},
-				new [] {
+				new SqlExpression[] {
 					SqlExpression.Constant("Mart"),
 					SqlExpression.Constant("Roosmaa"),
 					SqlExpression.Constant(false)
+				}
+			};
+
+			var count = Query.Insert(tableName, columns, values.ToArray());
+
+
+			Assert.AreEqual(2, count);
+
+			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.RowCount);
+		}
+
+		[Test]
+		public void InsertWithUserType() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var columns = new[] { "first_name", "last_name", "active", "user_obj" };
+			var values = new List<SqlExpression[]> {
+				new SqlExpression[] {
+					SqlExpression.Constant("Antonello"),
+					SqlExpression.Constant("Provenzano"),
+					SqlExpression.Constant(true),
+					SqlExpression.FunctionCall("type1", new SqlExpression[] {
+						SqlExpression.Constant("test1"),
+						SqlExpression.Constant(1), 
+					})
+				},
+				new SqlExpression[] {
+					SqlExpression.Constant("Mart"),
+					SqlExpression.Constant("Roosmaa"),
+					SqlExpression.Constant(false),
+					SqlExpression.FunctionCall("type1", new SqlExpression[] {
+						SqlExpression.Constant("test2"),
+						SqlExpression.Constant(3),  
+					})
 				}
 			};
 
@@ -124,16 +179,7 @@ namespace Deveel.Data {
 		}
 
 		private SqlLongString CreateBio(string text) {
-			var lob = Session.CreateLargeObject(2048, true);
-			using (var stream = new ObjectStream(lob)) {
-				using (var streamWriter = new StreamWriter(stream, Encoding.ASCII)) {
-					streamWriter.Write(text);
-					streamWriter.Flush();
-				}
-			}
-
-			lob.Complete();
-			return SqlLongString.Ascii(lob);
+			return SqlLongString.Ascii(Query, text);
 		}
 	}
 }

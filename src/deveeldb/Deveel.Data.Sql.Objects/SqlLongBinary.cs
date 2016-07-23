@@ -24,7 +24,7 @@ using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlLongBinary : ISqlBinary, IObjectRef, IDisposable {
-		private readonly ILargeObject largeObject;
+		private ILargeObject largeObject;
 
 		public static readonly SqlLongBinary Null = new SqlLongBinary(null);
 
@@ -32,23 +32,33 @@ namespace Deveel.Data.Sql.Objects {
 			this.largeObject = largeObject;
 		}
 
+		~SqlLongBinary() {
+			Dispose(false);
+		}
+
+		private void AssertNotDisposed() {
+			if (largeObject == null)
+				throw new ObjectDisposedException("SqlLongBinary");
+		}
+
 		public int CompareTo(object obj) {
 			throw new NotImplementedException();
 		}
 
-		public int CompareTo(ISqlObject other) {
-			throw new NotImplementedException();
+		int IComparable<ISqlObject>.CompareTo(ISqlObject other) {
+			throw new NotSupportedException();
 		}
 
 		public bool IsNull {
 			get { return largeObject == null; }
 		}
 
-		public bool IsComparableTo(ISqlObject other) {
-			throw new NotImplementedException();
+		bool ISqlObject.IsComparableTo(ISqlObject other) {
+			return false;
 		}
 
 		public IEnumerator<byte> GetEnumerator() {
+			AssertNotDisposed();
 			throw new NotImplementedException();
 		}
 
@@ -56,16 +66,37 @@ namespace Deveel.Data.Sql.Objects {
 			return GetEnumerator();
 		}
 
-		public long Length { get; private set; }
+		public long Length {
+			get {
+				AssertNotDisposed();
+				return largeObject.RawSize;
+			}
+		}
 
 		public Stream GetInput() {
-			throw new NotImplementedException();
+			AssertNotDisposed();
+			return new ObjectStream(largeObject);
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
-		public ObjectId ObjectId { get; private set; }
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (largeObject != null)
+					largeObject.Dispose();
+			}
+
+			largeObject = null;
+		}
+
+		public ObjectId ObjectId {
+			get {
+				AssertNotDisposed();
+				return largeObject.Id;
+			}
+		}
 	}
 }

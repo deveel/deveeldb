@@ -22,7 +22,7 @@ namespace Deveel.Data {
 	/// Instances of this interface provide direct access to the
 	/// system functions.
 	/// </summary>
-	interface ISystemDirectAccess {
+	public interface IProvidesDirectAccess {
 		SystemAccess DirectAccess { get; }
 	}
 }

@@ -19,11 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
 using Deveel.Data.Index;
-using Deveel.Data.Services;
-
-using DryIoc;
 
 namespace Deveel.Data.Sql.Tables {
 	public abstract class BaseDataTable : RootTable {
@@ -137,11 +133,11 @@ namespace Deveel.Data.Sql.Tables {
 			return rowSet;
 		}
 
-		public void AddToIndex(int rowNumber, int columnNumber) {
-			bool indexableType = TableInfo[columnNumber].IsIndexable;
+		public void AddToIndex(int columnOffset, long rowNumber) {
+			bool indexableType = TableInfo[columnOffset].IsIndexable;
 			if (indexableType) {
-				var index = GetColumnIndex(columnNumber);
-				index.Insert(rowNumber);
+				var index = GetColumnIndex(columnOffset);
+				index.Insert((int)rowNumber);
 			}
 		}
 
@@ -156,13 +152,13 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public void RemoveRowFromIndex(int rowNumber) {
+		public void RemoveRowFromIndex(long rowNumber) {
 			int colCount = ColumnCount;
 			var tableInfo = TableInfo;
 			for (int i = 0; i < colCount; ++i) {
 				if (tableInfo[i].IsIndexable) {
 					var index = GetColumnIndex(i);
-					index.Remove(rowNumber);
+					index.Remove((int)rowNumber);
 				}
 			}
 		}

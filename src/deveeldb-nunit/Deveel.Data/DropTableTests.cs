@@ -14,10 +14,14 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
+using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Store;
 
 using NUnit.Framework;
 
@@ -41,6 +45,7 @@ namespace Deveel.Data.Deveel.Data {
 			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
 			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
+
 			context.Session.Access().CreateTable(tableInfo1);
 			context.Session.Access().AddPrimaryKey(tn1, "id");
 
@@ -49,6 +54,7 @@ namespace Deveel.Data.Deveel.Data {
 			tableInfo2.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
 			tableInfo2.AddColumn(new ColumnInfo("other_id", PrimitiveTypes.Integer()));
 			tableInfo2.AddColumn(new ColumnInfo("count", PrimitiveTypes.Integer()));
+
 			context.Session.Access().CreateTable(tableInfo2);
 			context.Session.Access().AddPrimaryKey(tn2, "id");
 			context.Session.Access().AddForeignKey(tn2, new[] { "other_id" }, tn1, new[] { "id" }, ForeignKeyAction.Cascade,
@@ -115,6 +121,5 @@ namespace Deveel.Data.Deveel.Data {
 			var exists = Query.Session.Access().TableExists(tableName);
 			Assert.IsTrue(exists);
 		}
-
 	}
 }

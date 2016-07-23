@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
@@ -119,6 +120,11 @@ namespace Deveel.Data.Protocol {
 				}
 
 				columns[i] = new QueryResultColumn(fieldName, tableInfo[i]);
+
+				if (IsKey(v))
+					columns[i].SetKey();
+				if (IsUnique(v))
+					columns[i].SetUnique();
 			}
 
 			RowCount = source.RowCount;
@@ -131,6 +137,36 @@ namespace Deveel.Data.Protocol {
 		public int RowCount { get; private set; }
 
 		public int ColumnCount { get; private set; }
+
+		private bool IsInConstraint(ObjectName columnName, ConstraintType constraintType) {
+			if (Result.Constraints == null ||
+	Result.Constraints.Length == 0)
+				return false;
+
+			var tableName = columnName.Parent;
+			var column = columnName.Name;
+
+			foreach (var constraint in Result.Constraints) {
+				if (constraint.ConstraintType != constraintType)
+					continue;
+
+				if (!constraint.TableName.Equals(tableName))
+					continue;
+
+				if (constraint.ColumnNames.Any(x => column.Equals(x, StringComparison.OrdinalIgnoreCase)))
+					return true;
+			}
+
+			return false;
+		}
+
+		private bool IsKey(ObjectName columnName) {
+			return IsInConstraint(columnName, ConstraintType.PrimaryKey);
+		}
+
+		private bool IsUnique(ObjectName columnName) {
+			return IsInConstraint(columnName, ConstraintType.Unique);
+		}
 
 		public QueryResultColumn GetColumn(int columnOffset) {
 			if (columnOffset < 0 || columnOffset >= ColumnCount)

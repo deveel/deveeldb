@@ -70,6 +70,15 @@ namespace Deveel.Data.Sql.Statements {
 			return statement;
 		}
 
+		protected override SqlStatement PrepareStatement(IRequest context) {
+			var type = VariableType.Resolve(context);
+			return new DeclareVariableStatement(VariableName, type) {
+				IsNotNull = IsNotNull,
+				IsConstant = IsConstant,
+				DefaultExpression = DefaultExpression
+			};
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (context.DirectAccess.VariableExists(VariableName)) {
 				throw new InvalidOperationException(String.Format("A variable named '{0}' was already defined in the context.",

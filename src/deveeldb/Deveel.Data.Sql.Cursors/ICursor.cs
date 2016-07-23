@@ -29,5 +29,7 @@ namespace Deveel.Data.Sql.Cursors {
 		ITable Source { get; }
 
 		Row Fetch(FetchDirection direction, int offset);
+
+		void Reset();
 	}
 }

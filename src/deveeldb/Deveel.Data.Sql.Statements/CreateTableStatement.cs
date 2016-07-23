@@ -21,7 +21,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
@@ -72,14 +71,14 @@ namespace Deveel.Data.Sql.Statements {
 			var tableInfo = new TableInfo(tableName);
 
 			foreach (var column in Columns) {
-				var columnInfo = CreateColumnInfo(tableName.Name, column, columnChecker);
+				var columnInfo = CreateColumnInfo(context, tableName.Name, column, columnChecker);
 				tableInfo.AddColumn(columnInfo);
 			}
 
 			return tableInfo;
 		}
 
-		private ColumnInfo CreateColumnInfo(string tableName, SqlTableColumn column, TableColumnChecker columnChecker) {
+		private ColumnInfo CreateColumnInfo(IRequest context, string tableName, SqlTableColumn column, TableColumnChecker columnChecker) {
 			var expression = column.DefaultExpression;
 
 			if (column.IsIdentity && expression != null)
@@ -90,8 +89,9 @@ namespace Deveel.Data.Sql.Statements {
 
 
 			var columnName = columnChecker.StripTableName(tableName, column.ColumnName);
+			var columnType = column.ColumnType.Resolve(context);
 
-			return new ColumnInfo(columnName, column.ColumnType) {
+			return new ColumnInfo(columnName, columnType) {
 				DefaultExpression = expression,
 				IsNotNull = column.IsNotNull,
 				IndexType = column.IndexType

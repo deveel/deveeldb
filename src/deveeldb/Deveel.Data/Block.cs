@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// </remarks>
 	/// <seealso cref="IBlock"/>
 	/// <seealso cref="IEventSource"/>
-	public class Block : IBlock, IEventSource, ISystemDirectAccess {
+	public class Block : IBlock, IEventSource, IProvidesDirectAccess {
 		private IQuery query;
 
 		internal Block(IRequest request) {
@@ -65,7 +65,7 @@ namespace Deveel.Data {
 
 		private RequestAccess Access { get; set; }
 
-		SystemAccess ISystemDirectAccess.DirectAccess {
+		SystemAccess IProvidesDirectAccess.DirectAccess {
 			get { return Access; }
 		}
 

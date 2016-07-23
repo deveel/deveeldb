@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/koo12o4q2ik8isej/branch/master?svg=true)](https://ci.appveyor.com/project/deveel/deveeldb/branch/master) [![Coverage Status](https://coveralls.io/repos/deveel/deveeldb/badge.svg?branch=master&service=github)](https://coveralls.io/github/deveel/deveeldb?branch=master) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8341/badge.svg)](https://scan.coverity.com/projects/deveel-deveeldb) [![Join the chat! https://gitter.im/deveel/deveeldb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deveel/deveeldb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Slack Status](https://deveeldb-slackin.herokuapp.com/badge.svg)](https://deveeldb-slackin.herokuapp.com/)
+[![Build status](https://ci.appveyor.com/api/projects/status/koo12o4q2ik8isej/branch/master?svg=true)](https://ci.appveyor.com/project/deveel/deveeldb/branch/master)[![Coverage Status](https://coveralls.io/repos/github/deveel/deveeldb/badge.svg?branch=master)](https://coveralls.io/github/deveel/deveeldb?branch=master) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8341/badge.svg)](https://scan.coverity.com/projects/deveel-deveeldb) [![Join the chat! https://gitter.im/deveel/deveeldb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deveel/deveeldb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Slack Status](https://deveeldb-slackin.herokuapp.com/badge.svg)](https://deveeldb-slackin.herokuapp.com/)
 
 DeveelDB 2.0
 ==========
@@ -87,4 +87,11 @@ The project was started as a proof of concept long time ago (in 2003!), to imple
 The new version of the project aims to restart everything from scratch, making it right (code coverage, regressions, management, etc.), with the goal to finally deliver something great to .NET developers.
 Unfortunately, as you can also see exploring the source code, the amound of work is quite important, and not always I can manage alone to make everything (architectural design, implementation, testing, commenting, etc.): I feel a bit lonely.
 
-If you wish to contribute to the development of the code, but also to other areas of the project (eg. making a website, documenting the code, documenting the project, etc.), please get in touch with me, dropping an email to `antonello at deveel dot org` or joining the chat on [Gitter](https://gitter.im/deveel/deveeldb)!
+The following kind of help is very welcome:
+
+* **Development**: implemention of new features, according to the scheduled planning of the project
+* **Testing**: implementation of tests to assess given features of the projects are behaving as expected; since DeveelDB is not a project that is following the TDD (*Test-Driven Development*) model, unit tests are crucial to assess the coverage of the code and the stability of the system
+* **Beta Testing**: use the final product in given contexts, to provide example cases of its usage and potentially discover bugs not covered by other tests
+* **Documentation**: document the code and the project in a way that other users or developers can be helped using DeveelDB or collaborating
+
+If you wish to contribute, please feel free to get in touch with me, dropping an email to `antonello at deveel dot org` or joining the chat on [Gitter](https://gitter.im/deveel/deveeldb)!

@@ -28,7 +28,7 @@ namespace Deveel.Data.Index {
 	/// This interface exposes general index querying/inserting/removing methods.
 	/// </para>
 	/// <para>
-	/// How the index is physically stored is dependant on the implementation of
+	/// How the index is physically stored is dependent on the implementation of
 	/// the interface.
 	/// </para>
 	/// <para>

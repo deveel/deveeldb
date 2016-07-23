@@ -209,10 +209,6 @@ namespace Deveel.Data.Sql.Types {
 			return DateTime(SqlTypeCode.Time);
 		}
 
-		public static ColumnType ColumnType(ObjectName columnName) {
-			return new ColumnType(columnName);
-		}
-
 		public static BinaryType Binary(int maxSize) {
 			return Binary(SqlTypeCode.Binary, maxSize);
 		}
@@ -227,6 +223,10 @@ namespace Deveel.Data.Sql.Types {
 
 		public static BinaryType Binary(SqlTypeCode sqlType, int maxSize) {
 			return new BinaryType(sqlType, maxSize);
+		}
+
+		public static BinaryType Blob(int maxSize) {
+			return Binary(SqlTypeCode.Blob, maxSize);
 		}
 
 		public static IntervalType Interval(SqlTypeCode sqlType) {
@@ -317,6 +317,10 @@ namespace Deveel.Data.Sql.Types {
 				typeName = "daytosecond";
 			if (System.String.Equals("year to month", typeName, StringComparison.OrdinalIgnoreCase))
 				typeName = "yeartomonth";
+			if (System.String.Equals("%rowtype", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "rowref";
+			if (System.String.Equals("%type", typeName, StringComparison.OrdinalIgnoreCase))
+				typeName = "fieldref";
 
 			SqlTypeCode typeCode;
 
@@ -327,26 +331,6 @@ namespace Deveel.Data.Sql.Types {
 			}
 
 			return Resolve(typeCode, typeName, args);
-		}
-
-		public static SqlTypeCode ResolveTypeCode(string typeName) {
-			if (System.String.Equals("long varchar", typeName, StringComparison.OrdinalIgnoreCase))
-				typeName = "longvarchar";
-			if (System.String.Equals("long varbinary", typeName, StringComparison.OrdinalIgnoreCase))
-				typeName = "longvarbinary";
-
-			SqlTypeCode typeCode;
-
-			try {
-				typeCode = (SqlTypeCode)Enum.Parse(typeof(SqlTypeCode), typeName, true);
-			} catch (Exception) {
-				throw new ArgumentException(System.String.Format("The name {0} is not a valid SQL type.", typeName));
-			}
-
-			if (!IsPrimitive(typeCode))
-				return SqlTypeCode.Unknown;
-
-			return typeCode;
 		}
 
 		public static SqlType Resolve(SqlTypeCode sqlType, string typeName, params DataTypeMeta[] args) {
@@ -447,17 +431,23 @@ namespace Deveel.Data.Sql.Types {
 			if (sqlType == SqlTypeCode.Null)
 				return Null(sqlType);
 
+			// Ref types
+			if (sqlType == SqlTypeCode.FieldRef) {
+				var meta = context.GetMeta("FieldName");
+				if (meta == null)
+					throw new InvalidOperationException("Invalid construction of a %TYPE reference");
 
-			if (sqlType == SqlTypeCode.ColumnType) {
-				if (!context.HasAnyMeta)
-					throw new ArgumentException("Invalid number of arguments for %TYPE type");
+				var fieldName = ObjectName.Parse(meta.Value);
+				return new FieldRefType(fieldName);
+			}
 
-				var columnNameMeta = context.GetMeta("ColumnName");
-				if (columnNameMeta == null)
-					throw new ArgumentException();
+			if (sqlType == SqlTypeCode.RowRef) {
+				var meta = context.GetMeta("ObjectName");
+				if (meta == null)
+					throw new InvalidOperationException("Invalid construction of a %ROWTYPE reference");
 
-				var columnName = ObjectName.Parse(columnNameMeta.Value);
-				return ColumnType(columnName);
+				var objName = ObjectName.Parse(meta.Value);
+				return new RowRefType(objName);
 			}
 
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));

@@ -44,10 +44,6 @@ namespace Deveel.Data.Sql.Types {
 			        sqlType == SqlTypeCode.Boolean);
 		}
 
-		public override bool IsStorable {
-			get { return true; }
-		}
-
 		public override bool IsCacheable(ISqlObject value) {
 			return value is SqlBoolean || value is SqlNull;
 		}

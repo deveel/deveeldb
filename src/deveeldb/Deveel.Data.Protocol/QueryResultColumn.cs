@@ -16,9 +16,7 @@
 
 
 using System;
-using System.IO;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
@@ -30,16 +28,18 @@ namespace Deveel.Data.Protocol {
 		/// <param name="name"></param>
 		/// <param name="type"></param>
 		/// <param name="notNull"></param>
-		private QueryResultColumn(string name, SqlType type, bool notNull) {
+		private QueryResultColumn(string name, SqlType type, int offset, bool notNull) {
 			Name = name;
 			Type = type;
 			IsNotNull = notNull;
 			IsUnique = false;
+			IsKey = false;
 			UniqueGroup = -1;
+			Offset = offset;
 		}
 
 		internal QueryResultColumn(string name, ColumnInfo columnInfo)
-			: this(name, columnInfo.ColumnType, columnInfo.IsNotNull) {
+			: this(name, columnInfo.ColumnType, columnInfo.Offset, columnInfo.IsNotNull) {
 
 		}
 
@@ -53,6 +53,13 @@ namespace Deveel.Data.Protocol {
 		public void SetUnique() {
 			IsUnique = true;
 		}
+
+		public void SetKey() {
+			IsKey = true;
+		}
+
+
+		public bool IsKey { get; private set; }
 
 		/// <summary>
 		/// Returns the name of the field.
@@ -127,6 +134,8 @@ namespace Deveel.Data.Protocol {
 		public Type ValueType {
 			get { return Type.GetObjectType(); }
 		}
+
+		public int Offset { get; private set; }
 
 		/// <inheritdoc/>
 		public override bool Equals(Object ob) {

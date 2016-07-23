@@ -134,7 +134,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var switches = new List<CaseSwitch>();
 
-			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+			foreach (var partContext in context.simpleCaseWhenExpressionPart()) {
 				var otherExp = Visit(partContext.conditionWrapper());
 				switches.Add(new CaseSwitch {
 					Condition = SqlExpression.Equal(exp, otherExp),
@@ -170,7 +170,7 @@ namespace Deveel.Data.Sql.Compile {
 		public override SqlExpression VisitSearchedCaseExpression(PlSqlParser.SearchedCaseExpressionContext context) {
 			var switches = new List<CaseSwitch>();
 
-			foreach (var partContext in context.simpleCacheWhenExpressionPart()) {
+			foreach (var partContext in context.simpleCaseWhenExpressionPart()) {
 				switches.Add(new CaseSwitch {
 					Condition = Visit(partContext.conditionWrapper()),
 					ReturnExpression = Visit(partContext.expressionWrapper())

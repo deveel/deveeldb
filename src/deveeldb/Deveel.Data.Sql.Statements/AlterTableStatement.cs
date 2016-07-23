@@ -48,7 +48,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access().ResolveTableName(TableName);
-			return new AlterTableStatement(tableName, Action);
+			var action = Action;
+			if (action is IStatementPreparable)
+				action = (IAlterTableAction) ((IStatementPreparable) Action).Prepare(context);
+
+			return new AlterTableStatement(tableName, action);
 		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {

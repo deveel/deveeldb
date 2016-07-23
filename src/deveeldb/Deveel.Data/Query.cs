@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// all events and errors fired at the query level with have this
 	/// as <see cref="IEvent.EventSource"/>.
 	/// </remarks>
-	public sealed class Query : IQuery, IEventSource, ISystemDirectAccess {
+	public sealed class Query : IQuery, IEventSource, IProvidesDirectAccess {
 		private Dictionary<string, object> metadata;
 
 		internal Query(ISession session) 
@@ -91,7 +91,7 @@ namespace Deveel.Data {
 		
 		private RequestAccess Access { get; set; }
 
-		SystemAccess ISystemDirectAccess.DirectAccess {
+		SystemAccess IProvidesDirectAccess.DirectAccess {
 			get { return Access; }
 		}
 

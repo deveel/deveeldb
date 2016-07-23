@@ -277,6 +277,7 @@
     <Compile Include="Deveel.Data.Routines\IAggregateFunctionConfiguration.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionConfiguration.cs" />
     <Compile Include="Deveel.Data.Routines\IFunctionParameterConfiguration.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlUserObject.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InfortmationSchemaCreate.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SchemaInit.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\ScopeExtensions.cs" />
@@ -293,12 +294,14 @@
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateTriggerStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeclareExceptionInitStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropFunctionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropProcedureStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatementCache.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IStatementPreparable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopBreakChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnChecker.cs" />
@@ -397,8 +400,10 @@
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventTime.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DataTypeInfo.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\FieldRefType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\IDataTypeParser.cs" />
     <Compile Include="Deveel.Data.Sql.Types\NullType.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\RowRefType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TabularType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\TypesInit.cs" />
@@ -409,6 +414,7 @@
     <Compile Include="Deveel.Data.Sql.Views\ViewsModule.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\ObjectNameEqualityComparer.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\IJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStore.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledStoreSystem.cs" />
@@ -541,7 +547,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\ISystemCreateCallback.cs" />
-    <Compile Include="Deveel.Data\ISystemDirectAccess.cs" />
+    <Compile Include="Deveel.Data\IProvidesDirectAccess.cs" />
     <Compile Include="Deveel.Data\ISystemDisposeCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeCreateCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeSetupCallback.cs" />
@@ -949,7 +955,6 @@
     <Compile Include="Deveel.Data.Sql.Types\ArrayType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BinaryType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\BooleanType.cs" />
-    <Compile Include="Deveel.Data.Sql.Types\ColumnType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DataTypeMeta.cs" />
     <Compile Include="Deveel.Data.Sql.Types\DateType.cs" />
     <Compile Include="Deveel.Data.Sql.Types\IntervalType.cs" />

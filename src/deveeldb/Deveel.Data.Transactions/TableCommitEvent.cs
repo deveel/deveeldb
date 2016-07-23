@@ -23,7 +23,7 @@ using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public sealed class TableCommitEvent : Event {
+	public sealed class TableCommitEvent : Event, ITableEvent {
 		public TableCommitEvent(ObjectName tableName, int tableId, IEnumerable<int> addedRows, IEnumerable<int> removedRows) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");

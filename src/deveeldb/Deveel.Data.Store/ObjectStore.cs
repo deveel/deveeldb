@@ -495,11 +495,10 @@ namespace Deveel.Data.Store {
 
 				using (var input = new MemoryStream(pageBuf, 0, readCount)) {
 					using (var output = new MemoryStream()) {
-						using (var deflateStream = new DeflateStream(output, CompressionMode.Decompress, false)) {
-							input.CopyTo(deflateStream);
+						using (var deflateStream = new DeflateStream(input, CompressionMode.Decompress, false)) {
+							deflateStream.CopyTo(output);
 
-							deflateStream.Flush();
-							deflateStream.Close();
+							output.Flush();
 
 							output.Seek(0, SeekOrigin.Begin);
 
@@ -613,6 +612,7 @@ namespace Deveel.Data.Store {
 						throw new Exception("Releasing when IBlob reference counter is at 0.");
 
 					var objSize = block.ReadInt8();
+					var objFinalSize = block.ReadInt8();
 					var objPos = block.ReadInt8();
 
 					// If reference count == 0 then we need to free all the resources

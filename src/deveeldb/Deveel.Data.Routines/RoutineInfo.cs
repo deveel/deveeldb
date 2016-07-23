@@ -18,9 +18,7 @@
 using System;
 using System.Text;
 
-using Deveel.Data;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Routines {
 	/// <summary>

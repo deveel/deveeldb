@@ -21,7 +21,6 @@ using System.Linq;
 
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class CreateProcedureStatement : SqlStatement {
@@ -52,8 +51,15 @@ namespace Deveel.Data.Sql.Statements {
 			var schemaName = context.Access().ResolveSchemaName(ProcedureName.ParentName);
 			var functionName = new ObjectName(schemaName, ProcedureName.Name);
 
+			var parameters = new List<RoutineParameter>();
+			if (Parameters != null) {
+				foreach (var parameter in Parameters) {
+					parameters.Add((RoutineParameter)((IStatementPreparable)parameter).Prepare(context));
+				}
+			}
+
 			var body = (PlSqlBlockStatement)Body.Prepare(context);
-			return new CreateProcedureStatement(functionName, Parameters, body) {
+			return new CreateProcedureStatement(functionName, parameters, body) {
 				ReplaceIfExists = ReplaceIfExists
 			};
 		}

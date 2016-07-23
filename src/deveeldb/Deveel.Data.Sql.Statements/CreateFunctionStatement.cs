@@ -65,9 +65,17 @@ namespace Deveel.Data.Sql.Statements {
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var schemaName = context.Access().ResolveSchemaName(FunctionName.ParentName);
 			var functionName = new ObjectName(schemaName, FunctionName.Name);
+			var returnType = ReturnType.Resolve(context);
+
+			var parameters = new List<RoutineParameter>();
+			if (Parameters != null) {
+				foreach (var parameter in Parameters) {
+					parameters.Add((RoutineParameter)((IStatementPreparable)parameter).Prepare(context));
+				}
+			}
 
 			var body = (PlSqlBlockStatement) Body.Prepare(context);
-			return new CreateFunctionStatement(functionName, ReturnType, Parameters, body) {
+			return new CreateFunctionStatement(functionName, returnType, parameters, body) {
 				ReplaceIfExists = ReplaceIfExists
 			};
 		}

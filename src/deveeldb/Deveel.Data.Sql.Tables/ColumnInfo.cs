@@ -130,7 +130,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public bool HasScale {
-			get { return ColumnType is NumericType; }
+			get { return ColumnType is NumericType && ((NumericType)ColumnType).Scale > 0; }
 		}
 
 		public int Scale {

@@ -22,6 +22,7 @@ using System.Runtime.Serialization;
 using System.Text;
 
 using Deveel.Data.Sql.Objects;
+using Deveel.Data.Store;
 
 namespace Deveel.Data.Sql.Types {
 	[Serializable]
@@ -45,10 +46,6 @@ namespace Deveel.Data.Sql.Types {
 
 		int ISizeableType.Size {
 			get { return MaxSize; }
-		}
-
-		public override bool IsStorable {
-			get { return true; }
 		}
 
 		public int MaxSize { get; private set; }
@@ -123,6 +120,10 @@ namespace Deveel.Data.Sql.Types {
 				return new SqlBinary((byte[])value);
 
 			throw new NotSupportedException();
+		}
+
+		public override ISqlObject CreateFromLargeObject(ILargeObject objRef) {
+			return new SqlLongBinary(objRef);
 		}
 
 		internal override int ColumnSizeOf(ISqlObject obj) {

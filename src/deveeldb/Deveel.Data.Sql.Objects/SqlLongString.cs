@@ -22,18 +22,17 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Store;
+using Deveel.Data.Util;
 
 namespace Deveel.Data.Sql.Objects {
 	public sealed class SqlLongString : ISqlString, IObjectRef, IDisposable {
-		private ILargeObject largeObject;
-
 		public static readonly SqlLongString Null = new SqlLongString(null, null, true);
 
 		private SqlLongString(ILargeObject largeObject, Encoding encoding, bool isNull) {
 			if (!isNull && largeObject == null)
 				throw new ArgumentNullException("largeObject");
 
-			this.largeObject = largeObject;
+			LargeObject = largeObject;
 			Encoding = encoding;
 			IsNull = isNull;
 
@@ -59,12 +58,12 @@ namespace Deveel.Data.Sql.Objects {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (largeObject != null)
-					largeObject.Dispose();
+				if (LargeObject != null)
+					LargeObject.Dispose();
 			}
 
 			Encoding = null;
-			largeObject = null;
+			LargeObject = null;
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -76,8 +75,10 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public ObjectId ObjectId {
-			get { return largeObject.Id; }
+			get { return LargeObject.Id; }
 		}
+
+		internal  ILargeObject LargeObject { get; private set; }
 
 		public bool IsNull { get; private set; }
 
@@ -89,7 +90,7 @@ namespace Deveel.Data.Sql.Objects {
 			get {
 				if (offset > Length)
 					throw new ArgumentOutOfRangeException("offset");
-				if (largeObject == null)
+				if (LargeObject == null)
 					return '\0';
 
 				throw new NotImplementedException();
@@ -111,10 +112,10 @@ namespace Deveel.Data.Sql.Objects {
 		public long Length { get; private set; }
 
 		public TextReader GetInput(Encoding encoding) {
-			if (largeObject == null)
+			if (LargeObject == null)
 				return TextReader.Null;
 
-			return new StreamReader(new ObjectStream(largeObject), encoding);
+			return new StreamReader(new ObjectStream(LargeObject), encoding);
 		}
 
 		public static SqlLongString Unicode(ILargeObject largeObject) {
@@ -124,6 +125,51 @@ namespace Deveel.Data.Sql.Objects {
 #if !PCL
 		public static SqlLongString Ascii(ILargeObject largeObject) {
 			return new SqlLongString(largeObject, Encoding.ASCII);
+		}
+#endif
+
+		public static SqlLongString Create(IRequest context, Stream inputStream, Encoding encoding, bool compressed = true) {
+			if (context == null)
+				throw new ArgumentNullException("context");
+			if (inputStream == null)
+				throw new ArgumentNullException("inputStream");
+			if (!inputStream.CanRead)
+				throw new ArgumentException("The input stream is not readable", "inputStream");
+
+			var maxSize = inputStream.Length;
+			var lob = context.Query.Session.CreateLargeObject(maxSize, compressed);
+			using (var stream = new ObjectStream(lob)) {
+				inputStream.CopyTo(stream, 1024);
+				stream.Flush();
+			}
+
+			lob.Complete();
+			return new SqlLongString(lob, encoding);
+		}
+
+		public static SqlLongString Unicode(IRequest context, Stream inputStream, bool compressed = true) {
+			return Create(context, inputStream, Encoding.Unicode, compressed);
+		}
+
+#if !PCL
+		public static SqlLongString Ascii(IRequest context, Stream inputStream, bool compressed = true) {
+			return Create(context, inputStream, Encoding.ASCII, compressed);
+		}
+#endif
+
+		public static SqlLongString Create(IRequest context, string text, Encoding encoding, bool compressed = true) {
+			var bytes = encoding.GetBytes(text);
+			var stream = new MemoryStream(bytes);
+			return Create(context, stream, encoding, compressed);
+		}
+
+		public static SqlLongString Unicode(IRequest context, string text, bool compressed = true) {
+			return Create(context, text, Encoding.Unicode, compressed);
+		}
+
+#if !PCL
+		public static SqlLongString Ascii(IRequest context, string text) {
+			return Create(context, text, Encoding.ASCII);
 		}
 #endif
 

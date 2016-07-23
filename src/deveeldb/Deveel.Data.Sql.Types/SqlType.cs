@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Compile;
@@ -30,6 +29,12 @@ namespace Deveel.Data.Sql.Types {
 	/// Defines the properties of a specific SQL Type and handles the
 	/// <see cref="ISqlObject">values compatible</see>.
 	/// </summary>
+	/// <remarks>
+	/// SQL Types provides the properties of values in a column of a
+	/// database table, handling conversions, arithmetic operations,
+	/// runtime transposition, serialization of values, and other
+	/// operations.
+	/// </remarks>
 	[Serializable]
 	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType>, ISerializable {
 		/// <summary>
@@ -95,11 +100,26 @@ namespace Deveel.Data.Sql.Types {
 		/// Indicates if the values handled by the type can be part of an index.
 		/// </summary>
 		/// <remarks>
-		/// By default, this returns <c>true</c>, since most of primitive types
-		/// are indexable (except for Long Objects).
+		/// By default, this returns <c>true</c>, if this is a primitive type
+		/// and not a large object.
 		/// </remarks>
 		public virtual bool IsIndexable {
-			get { return true; }
+			get { return IsPrimitive && !IsLargeObject; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether this type handles large objects.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if this instance handles large objects; otherwise <c>false</c>.
+		/// </value>
+		public bool IsLargeObject {
+			get {
+				return TypeCode == SqlTypeCode.Clob ||
+				       TypeCode == SqlTypeCode.Blob ||
+				       TypeCode == SqlTypeCode.LongVarChar ||
+				       TypeCode == SqlTypeCode.LongVarBinary;
+			}
 		}
 
 		/// <summary>
@@ -109,11 +129,21 @@ namespace Deveel.Data.Sql.Types {
 			get { return IsPrimitiveType(TypeCode); }
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether this instance represents the
+		/// <c>NULL</c> type.
+		/// </summary>
 		public bool IsNull {
 			get { return TypeCode == SqlTypeCode.Null; }
 		}
 
-		public virtual bool IsStorable {
+		/// <summary>
+		/// Gets a value indicating whether this instance is reference to another type.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if this instance is reference to another type; otherwise, <c>false</c>.
+		/// </value>
+		public virtual bool IsReference {
 			get { return false; }
 		}
 
@@ -186,6 +216,19 @@ namespace Deveel.Data.Sql.Types {
 			throw new NotSupportedException();
 		}
 
+		/// <summary>
+		/// Converts a given SQL object to the given runtime type.
+		/// </summary>
+		/// <param name="obj">The SQL object to convert.</param>
+		/// <param name="destType">The destination <see cref="Type"/> of the conversion.</param>
+		/// <returns>
+		/// Returns an object result of the conversion from the given SQL object
+		/// of the type specified.
+		/// </returns>
+		/// <exception cref="NotSupportedException">
+		/// If the given input object is not compatible with this SQL type or
+		/// if the destination type is not supported
+		/// </exception>
 		public virtual object ConvertTo(ISqlObject obj, Type destType) {
 			throw new NotSupportedException();
 		}
@@ -281,6 +324,10 @@ namespace Deveel.Data.Sql.Types {
 			info.AddValue("TypeCode", (int) TypeCode);
 
 			GetData(info, context);
+		}
+
+		public virtual SqlType Resolve(IRequest context) {
+			return this;
 		}
 
 		protected virtual void GetData(SerializationInfo info, StreamingContext context) {
@@ -426,6 +473,10 @@ namespace Deveel.Data.Sql.Types {
 			return TypeCode.ToString().ToUpperInvariant();
 		}
 
+		public virtual string ToString(ISqlObject obj) {
+			return obj.ToString();
+		}
+
 		public virtual void SerializeObject(Stream stream, ISqlObject obj) {
 			throw new NotSupportedException(String.Format("Type {0} cannot serialize object of type {1}.", GetType(),
 				obj.GetType()));
@@ -448,10 +499,21 @@ namespace Deveel.Data.Sql.Types {
 			return 0;
 		}
 
+		/// <summary>
+		/// Gets the type that represents this SQL Type in the .NET runtime.
+		/// </summary>
+		/// <returns>
+		/// Returns a <see cref="Type"/> instance that represents this
+		/// SQL type in a .NET runtime.
+		/// </returns>
 		public virtual Type GetRuntimeType() {
 			throw new NotSupportedException();
 		}
 
+		/// <summary>
+		/// Gets the type of the object.
+		/// </summary>
+		/// <returns></returns>
 		public virtual Type GetObjectType() {
 			throw new NotSupportedException();
 		}

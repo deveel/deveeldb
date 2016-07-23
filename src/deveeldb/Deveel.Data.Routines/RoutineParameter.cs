@@ -18,10 +18,11 @@
 using System;
 using System.Text;
 
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public sealed class RoutineParameter {
+	public sealed class RoutineParameter : IStatementPreparable {
 		public RoutineParameter(string name, SqlType type, ParameterAttributes attributes) 
 			: this(name, type, ParameterDirection.Input, attributes) {
 		}
@@ -70,6 +71,11 @@ namespace Deveel.Data.Routines {
 
 		public bool IsInput {
 			get { return (Direction & ParameterDirection.Input) != 0; }
+		}
+
+		object IStatementPreparable.Prepare(IRequest context) {
+			var type = Type.Resolve(context);
+			return new RoutineParameter(Name, type, Direction, Attributes);
 		}
 
 		public override string ToString() {

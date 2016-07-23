@@ -26,19 +26,29 @@ namespace Deveel.Data.Sql.Statements {
 			Dispose(false);
 		}
 
-		public StatementResult(ITable result) {
+		public StatementResult(ITable result) 
+			: this(result, new ConstraintInfo[0]) {
+		}
+
+		public StatementResult(ITable result, ConstraintInfo[] constraints) {
 			if (result == null)
 				throw new ArgumentNullException("result");
 
 			Result = result;
+			Constraints = constraints;
 			Type = StatementResultType.Result;
 		}
 
-		public StatementResult(ICursor cursor) {
+		public StatementResult(ICursor cursor) 
+			: this(cursor, new ConstraintInfo[0]) {
+		}
+
+		public StatementResult(ICursor cursor, ConstraintInfo[] constraints) {
 			if (cursor == null)
 				throw new ArgumentNullException("cursor");
 
 			Cursor = cursor;
+			Constraints = constraints;
 			Type = StatementResultType.CursorRef;
 		}
 
@@ -57,6 +67,8 @@ namespace Deveel.Data.Sql.Statements {
 		public ICursor Cursor { get; private set; }
 
 		public ITable Result { get; private set; }
+
+		public ConstraintInfo[] Constraints { get; set; }
 
 		public StatementResultType Type { get; private set; }
 

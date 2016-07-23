@@ -16,13 +16,8 @@
 
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Caching;
 using Deveel.Data.Configuration;
-using Deveel.Data.Services;
-using Deveel.Data.Sql.Compile;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data {
 	public static class SystemContextExtensions {
