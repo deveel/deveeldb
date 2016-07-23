@@ -89,6 +89,12 @@
       <HintPath>..\packages\DryIoc.dll.2.2.2\lib\net35\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="IQToolkit">
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="IQToolkit.Data">
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
@@ -167,6 +173,28 @@
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
+    <Compile Include="Deveel.Data.Linq\AssociationConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\AssociationSourceConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\DbAssociationModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbCompiledModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbModelBuilder.cs" />
+    <Compile Include="Deveel.Data.Linq\DbModelMapping.cs" />
+    <Compile Include="Deveel.Data.Linq\DbQueryContext.cs" />
+    <Compile Include="Deveel.Data.Linq\DbTable.cs" />
+    <Compile Include="Deveel.Data.Linq\DbColumnModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbTypeModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbLinguist.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbQueryFormatter.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbQueryLanguage.cs" />
+    <Compile Include="Deveel.Data.Linq\IDbModel.cs" />
+    <Compile Include="Deveel.Data.Linq\ITypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\KeyConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\KeyType.cs" />
+    <Compile Include="Deveel.Data.Linq\MemberConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryProvider.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlQueryExecutor.cs" />
+    <Compile Include="Deveel.Data.Linq\TypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />
@@ -954,6 +982,7 @@
     <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
+    <Compile Include="System.Linq\ExpressionVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Antlr4 Include="Deveel.Data.Sql.Compile\PlSqlLexer.g4">
