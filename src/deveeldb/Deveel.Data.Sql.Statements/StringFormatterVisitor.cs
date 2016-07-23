@@ -778,7 +778,56 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitInsert(InsertStatement statement) {
-			return base.VisitInsert(statement);
+			builder.Append("INSERT INTO ");
+			builder.Append(statement.TableName);
+
+			if (statement.ColumnNames != null &&
+			    statement.ColumnNames.Length > 0) {
+				builder.Append("(");
+				builder.Append(String.Join(", ", statement.ColumnNames));
+				builder.Append(")");
+			}
+
+			var values = statement.Values.ToList();
+			if (values.Count > 1) {
+				builder.AppendLine();
+
+				builder.Indent();
+				builder.AppendLine("VALUES");
+
+				for (int i = 0; i < values.Count; i++) {
+					var set = values[i];
+
+					builder.Append("(");
+
+					for (int j = 0; j < set.Length; j++) {
+						builder.Append(set[j]);
+
+						if (j < set.Length - 1)
+							builder.Append(", ");
+					}
+
+					builder.Append(")");
+
+					if (i < values.Count - 1) {
+						builder.AppendLine(",");
+					}
+				}
+			} else {
+				builder.Append(" VALUES ");
+				var set = values[0];
+
+				builder.Append("(");
+				for (int i = 0; i < set.Length; i++) {
+					builder.Append(set[i]);
+
+					if (i < set.Length -1)
+						builder.Append(", ");
+				}
+				builder.Append(")");
+			}
+
+			return statement;
 		}
 
 		protected override SqlStatement VisitInsertSelect(InsertSelectStatement statement) {

@@ -827,7 +827,7 @@ valuesClause
 // $<Common DDL Clauses
 
 dml_table_expression_clause
-    : ( '(' subquery ')' | objectName ) (AS? alias=regular_id)?
+    : (( '(' subquery ')' | objectName ) (AS? alias=regular_id)?)
     ;
 
 // $>

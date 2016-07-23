@@ -149,7 +149,14 @@
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTableStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CallStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\CreateTableStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\DeleteStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\InsertStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LoopStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\SelectStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnTests.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\RowIdTests.cs" />
     <Compile Include="Deveel.Data.Sql\ArrayFieldTests.cs" />

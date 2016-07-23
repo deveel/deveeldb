@@ -252,7 +252,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 				if (i > 0) {
 					joinPart = fromClause.GetJoinPart(i - 1);
-					if (joinPart != null) {
+					if (joinPart != null &&
+						joinPart.OnExpression != null) {
 						if (joinPart.JoinType == JoinType.Inner) {
 							builder.Append(" INNER JOIN ");
 						} else if (joinPart.JoinType == JoinType.Right) {
@@ -264,6 +265,10 @@ namespace Deveel.Data.Sql.Expressions {
 						}
 					}
 				}
+
+				if (i > 0 && 
+					(joinPart == null || joinPart.OnExpression == null))
+					builder.Append(", ");
 
 				if (source.IsSubQuery) {
 					builder.Append("(");
@@ -278,9 +283,8 @@ namespace Deveel.Data.Sql.Expressions {
 					builder.Append(source.Alias);
 				}
 
-				if (joinPart == null) {
-					builder.Append(", ");
-				} else {
+				if (joinPart != null &&
+					joinPart.OnExpression != null) {
 					builder.Append(" ON ");
 					Visit(joinPart.OnExpression);
 				}
