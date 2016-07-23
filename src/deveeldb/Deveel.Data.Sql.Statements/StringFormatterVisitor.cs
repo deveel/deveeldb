@@ -661,8 +661,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitCreateView(CreateViewStatement statement) {
-			string ifNotExists = statement.ReplaceIfExists ? "IF NOT EXISTS" : "";
-			builder.AppendFormat("CREATE {0} VIEW {1}", ifNotExists, statement.ViewName);
+			string ifNotExists = statement.ReplaceIfExists ? "IF NOT EXISTS " : "";
+			builder.AppendFormat("CREATE {0}VIEW {1}", ifNotExists, statement.ViewName);
 
 			if (statement.ColumnNames != null) {
 				var colNames = String.Join(", ", statement.ColumnNames.ToArray());
@@ -675,12 +675,12 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Append(statement.QueryExpression);
 			builder.DeIndent();
 
-			return base.VisitCreateView(statement);
+			return statement;
 		}
 
 		protected override SqlStatement VisitDropFunction(DropFunctionStatement statement) {
-			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.AppendFormat("DROP FUNCTION {0} {1}", ifExists, statement.FunctionName);
+			string ifExists = statement.IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP FUNCTION {0}{1}", ifExists, statement.FunctionName);
 
 			return base.VisitDropFunction(statement);
 		}
@@ -692,8 +692,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitDropProcedure(DropProcedureStatement statement) {
-			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.AppendFormat("DROP PROCEDURE {0} {1}", ifExists, statement.ProcedureName);
+			string ifExists = statement.IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP PROCEDURE {0}{1}", ifExists, statement.ProcedureName);
 
 			return base.VisitDropProcedure(statement);
 		}
@@ -711,8 +711,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitDropTable(DropTableStatement statement) {
-			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.AppendFormat("DROP TABLE {0} {1}", ifExists, statement.TableName);
+			string ifExists = statement.IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP TABLE {0}{1}", ifExists, statement.TableName);
 
 			return base.VisitDropTable(statement);
 		}
@@ -730,21 +730,22 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override SqlStatement VisitDropView(DropViewStatement statement) {
-			string ifExists = statement.IfExists ? "IF EXISTS" : "";
-			builder.AppendFormat("DROP VIEW {0} {1}", ifExists, statement.ViewName);
+			string ifExists = statement.IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP VIEW {0}{1}", ifExists, statement.ViewName);
 
 			return base.VisitDropView(statement);
 		}
 
 		protected override SqlStatement VisitDropType(DropTypeStatement statement) {
-			builder.AppendFormat("DROP TYPE {0}", statement.TypeName);
+			string ifExists = statement.IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP TYPE {0}{1}", ifExists, statement.TypeName);
 
 			return base.VisitDropType(statement);
 		}
 
 		protected override SqlStatement VisitGrantPrivilege(GrantPrivilegesStatement statement) {
 			// TODO: Make it SQL string
-			var privs = statement.Privilege.ToString();
+			var privs = statement.Privilege.ToString().ToUpperInvariant();
 			builder.AppendFormat("GRANT {0} TO {1} ON {2}", privs, statement.Grantee, statement.ObjectName);
 
 			if (statement.Columns != null) {
