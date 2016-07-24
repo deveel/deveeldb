@@ -104,7 +104,7 @@ namespace Deveel.Data.Sql.Statements {
 				builder.Indent();
 
 				foreach (var declaration in Declarations) {
-					(declaration as ISqlFormattable).AppendTo(builder);
+					declaration.AppendTo(builder);
 					builder.AppendLine();
 				}
 
@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Indent();
 
 			foreach (var child in Statements) {
-				(child as ISqlFormattable).AppendTo(builder);
+				child.AppendTo(builder);
 				builder.AppendLine();
 			}
 
@@ -127,7 +127,7 @@ namespace Deveel.Data.Sql.Statements {
 				builder.Indent();
 
 				foreach (var handler in ExceptionHandlers) {
-					(handler as ISqlFormattable).AppendTo(builder);
+					handler.AppendTo(builder);
 					builder.AppendLine();
 				}
 

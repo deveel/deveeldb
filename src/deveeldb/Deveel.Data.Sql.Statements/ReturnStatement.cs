@@ -59,5 +59,13 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("Return", ReturnExpression);
 			base.GetData(info);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("RETURN");
+			if (ReturnExpression != null) {
+				builder.Append(" ");
+				ReturnExpression.AppendTo(builder);
+			}
+		}
 	}
 }

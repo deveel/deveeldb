@@ -115,7 +115,7 @@ namespace Deveel.Data.Sql.Statements {
 				builder.Append("(");
 
 				for (int i = 0; i < pars.Length; i++) {
-					(pars[i] as ISqlFormattable).AppendTo(builder);
+					pars[i].AppendTo(builder);
 
 					if (i < pars.Length - 1)
 						builder.Append(", ");

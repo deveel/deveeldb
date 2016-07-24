@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Statements {
 			: this(functionName, returnType, null, externalRef) {
 		}
 
-		public CreateExternalFunctionStatement(ObjectName functionName, SqlType returnType,  IEnumerable<RoutineParameter> parameters, string externalRef) {
+		public CreateExternalFunctionStatement(ObjectName functionName, SqlType returnType,  RoutineParameter[] parameters, string externalRef) {
 			if (functionName == null)
 				throw new ArgumentNullException("functionName");
 			if (returnType == null)
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName FunctionName { get; private set; }
 
-		public IEnumerable<RoutineParameter> Parameters { get; set; }
+		public RoutineParameter[] Parameters { get; set; }
 
 		public SqlType ReturnType { get; private set; }
 
@@ -91,9 +91,37 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			return new CreateExternalFunctionStatement(functionName, returnType, parameters, ExternalReference) {
+			return new CreateExternalFunctionStatement(functionName, returnType, parameters.ToArray(), ExternalReference) {
 				ReplaceIfExists = ReplaceIfExists
 			};
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var orReplace = ReplaceIfExists ? "OR REPLACE" : "";
+			builder.AppendFormat("CREATE EXTERNAL {0}FUNCTION ", orReplace);
+			FunctionName.AppendTo(builder);
+
+			builder.Append("(");
+			if (Parameters != null && Parameters.Length > 0) {
+				for (int i = 0; i < Parameters.Length; i++) {
+					Parameters[i].AppendTo(builder);
+
+					if (i < Parameters.Length - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+
+			builder.Append(" RETURNS ");
+			ReturnType.AppendTo(builder);
+			builder.AppendLine(" IS");
+
+			builder.Indent();
+
+			builder.AppendFormat("LANGUAGE DOTNET NAME '{0}'", ExternalReference);
+
+			builder.DeIndent();
 		}
 	}
 }

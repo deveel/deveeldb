@@ -24,12 +24,13 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class CreateExternalProcedureStatement : SqlStatement {
 		public CreateExternalProcedureStatement(ObjectName procedureName, string externalReference) 
 			: this(procedureName, null, externalReference) {
 		}
 
-		public CreateExternalProcedureStatement(ObjectName procedureName, IEnumerable<RoutineParameter> parameters, string externalRef) {
+		public CreateExternalProcedureStatement(ObjectName procedureName, RoutineParameter[] parameters, string externalRef) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 			if (String.IsNullOrEmpty(externalRef))
@@ -42,7 +43,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName ProcedureName { get; private set; }
 
-		public IEnumerable<RoutineParameter> Parameters { get; set; }
+		public RoutineParameter[] Parameters { get; set; }
 
 		public bool ReplaceIfExists { get; set; }
 
@@ -63,7 +64,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			return new CreateExternalProcedureStatement(functionName, parameters, ExternalReference) {
+			return new CreateExternalProcedureStatement(functionName, parameters.ToArray(), ExternalReference) {
 				ReplaceIfExists = ReplaceIfExists
 			};
 		}
@@ -93,6 +94,31 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.CreateRoutine(functionInfo);
 			context.DirectAccess.GrantOn(DbObjectType.Routine, ProcedureName, context.User.Name, Privileges.Execute, true);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var orReplace = ReplaceIfExists ? "OR REPLACE" : "";
+			builder.AppendFormat("CREATE EXTERNAL {0}PROCEDURE ", orReplace);
+			ProcedureName.AppendTo(builder);
+
+			builder.Append("(");
+			if (Parameters != null && Parameters.Length > 0) {
+				for (int i = 0; i < Parameters.Length; i++) {
+					Parameters[i].AppendTo(builder);
+
+					if (i < Parameters.Length - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+			builder.AppendLine(" IS");
+
+			builder.Indent();
+
+			builder.AppendFormat("LANGUAGE DOTNET NAME '{0}'", ExternalReference);
+
+			builder.DeIndent();
 		}
 	}
 }

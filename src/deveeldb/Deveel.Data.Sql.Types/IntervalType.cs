@@ -74,6 +74,14 @@ namespace Deveel.Data.Sql.Types {
 			return TypeCode.Equals(type.TypeCode);
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			if (TypeCode == SqlTypeCode.YearToMonth) {
+				builder.Append("YEAR TO MONTH");
+			} else if (TypeCode == SqlTypeCode.DayToSecond) {
+				builder.Append("DAY TO SECOND");
+			}
+		}
+
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 

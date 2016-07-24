@@ -16,13 +16,13 @@
 
 
 using System;
-using System.Text;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Routines {
-	public sealed class RoutineParameter : IStatementPreparable {
+	public sealed class RoutineParameter : IStatementPreparable, ISqlFormattable {
 		public RoutineParameter(string name, SqlType type, ParameterAttributes attributes) 
 			: this(name, type, ParameterDirection.Input, attributes) {
 		}
@@ -79,23 +79,30 @@ namespace Deveel.Data.Routines {
 		}
 
 		public override string ToString() {
-			var sb = new StringBuilder();
+			var builder = new SqlStringBuilder();
+			this.AppendTo(builder);
+			return builder.ToString();
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			builder.Append(Name);
+			builder.Append(" ");
+
+			Type.AppendTo(builder);
+
 			if (IsInput && !IsOutput) {
-				sb.Append("IN");
+				builder.Append(" IN");
 			} else if (IsOutput && !IsInput) {
-				sb.Append("OUT");
+				builder.Append(" OUT");
 			} else if (IsOutput && IsInput) {
-				sb.Append("IN OUT");
+				builder.Append(" IN OUT");
 			}
 
-			sb.Append(Name);
-			sb.Append(" ");
-			sb.Append(Type);
-
 			if (!IsNullable)
-				sb.Append("NOT NULL");
+				builder.Append(" NOT NULL");
 
-			return sb.ToString();
+			if (IsUnbounded)
+				builder.Append(" UNBOUNDED");
 		}
 	}
 }

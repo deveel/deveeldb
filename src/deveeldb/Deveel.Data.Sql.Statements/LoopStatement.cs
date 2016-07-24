@@ -103,7 +103,7 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Indent();
 
 			foreach (var child in Statements) {
-				(child as ISqlFormattable).AppendTo(builder);
+				child.AppendTo(builder);
 				builder.AppendLine();
 			}
 

@@ -19,5 +19,10 @@ namespace Deveel.Data.Sql.Types {
 		public override SqlType Resolve(IRequest context) {
 			return context.Access().ResolveFieldType(FieldName);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			FieldName.AppendTo(builder);
+			builder.Append("%TYPE");
+		}
 	}
 }

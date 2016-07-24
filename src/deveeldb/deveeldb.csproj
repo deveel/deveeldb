@@ -338,6 +338,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlFormattableExtensions.cs" />
     <Compile Include="Deveel.Data.Sql\SqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />

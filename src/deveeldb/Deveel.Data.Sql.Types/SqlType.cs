@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Types {
 	/// operations.
 	/// </remarks>
 	[Serializable]
-	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType>, ISerializable {
+	public abstract class SqlType : IComparer<ISqlObject>, IEquatable<SqlType>, ISerializable, ISqlFormattable {
 		/// <summary>
 		/// Constructs the <see cref="SqlType"/> for the given specific
 		/// <see cref="SqlTypeCode">SQL TYPE</see>.
@@ -470,7 +470,17 @@ namespace Deveel.Data.Sql.Types {
 
 		/// <inheritdoc/>
 		public override string ToString() {
-			return TypeCode.ToString().ToUpperInvariant();
+			var builder = new SqlStringBuilder();
+			AppendTo(builder);
+			return builder.ToString();
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			AppendTo(builder);
+		}
+
+		protected virtual void AppendTo(SqlStringBuilder builder) {
+			builder.Append(TypeCode.ToString().ToUpperInvariant());
 		}
 
 		public virtual string ToString(ISqlObject obj) {

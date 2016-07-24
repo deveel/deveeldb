@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Cursors {
 		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
 			builder.Append(ParameterName);
 			builder.Append(" ");
-			builder.Append(ParameterType.ToString());
+			ParameterType.AppendTo(builder);
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Cursors {
 
 		public override string ToString() {
 			var builder = new SqlStringBuilder();
-			(this as ISqlFormattable).AppendTo(builder);
+			this.AppendTo(builder);
 			return builder.ToString();
 		}
 	}

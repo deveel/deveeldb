@@ -248,7 +248,7 @@ namespace Deveel.Data.Sql {
 
 		public override string ToString() {
 			var builder = new SqlStringBuilder();
-			(this as ISqlFormattable).AppendTo(builder);
+			this.AppendTo(builder);
 			return builder.ToString();
 		}
 
@@ -305,7 +305,7 @@ namespace Deveel.Data.Sql {
 
 		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
 			if (Parent != null) {
-				(Parent as ISqlFormattable).AppendTo(builder);
+				Parent.AppendTo(builder);
 				builder.Append('.');
 			}
 

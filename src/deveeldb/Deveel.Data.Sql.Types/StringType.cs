@@ -122,18 +122,15 @@ namespace Deveel.Data.Sql.Types {
 			return value is SqlString || value is SqlNull || value == null;
 		}
 
-		/// <inheritdoc/>
-		public override string ToString() {
-			var sb = new StringBuilder(TypeCode.ToString().ToUpperInvariant());
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append(TypeCode.ToString().ToUpperInvariant());
 
 			if (MaxSize >= 0) {
 				if (MaxSize == Int16.MaxValue)
-					sb.Append("(MAX)");
+					builder.Append("(MAX)");
 				else
-					sb.AppendFormat("({0})", MaxSize);
+					builder.AppendFormat("({0})", MaxSize);
 			}
-
-			return sb.ToString();
 		}
 
 		public override string ToString(ISqlObject obj) {

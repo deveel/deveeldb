@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		internal override void AppendTo(SqlStringBuilder builder) {
-			(FunctioName as ISqlFormattable).AppendTo(builder);
+			FunctioName.AppendTo(builder);
 			builder.Append("(");
 
 			if (Arguments != null &&
@@ -57,11 +57,7 @@ namespace Deveel.Data.Sql.Expressions {
 				var argc = args.Length;
 
 				for (int i = 0; i < argc; i++) {
-					var arg = args[i];
-					if (arg.IsNamed)
-						builder.AppendFormat("{0} => ", arg.Name);
-
-					args[i].Value.AppendTo(builder);
+					args[i].AppendTo(builder);
 
 					if (i < argc - 1)
 						builder.Append(", ");

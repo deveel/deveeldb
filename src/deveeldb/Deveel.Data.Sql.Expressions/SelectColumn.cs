@@ -145,7 +145,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override string ToString() {
 			var builder = new SqlStringBuilder();
-			(this as ISqlFormattable).AppendTo(builder);
+			this.AppendTo(builder);
 			return builder.ToString();
 		}
 
@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql.Expressions {
 				if (IsAll) {
 					builder.Append("*");
 				} else {
-					(TableName as ISqlFormattable).AppendTo(builder);
+					TableName.AppendTo(builder);
 					builder.Append(".*");
 				}
 			} else {

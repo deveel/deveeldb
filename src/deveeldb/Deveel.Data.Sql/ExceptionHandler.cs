@@ -66,7 +66,7 @@ namespace Deveel.Data.Sql {
 			builder.Indent();
 
 			foreach (var statement in Statements) {
-				(statement as ISqlFormattable).AppendTo(builder);
+				statement.AppendTo(builder);
 				builder.AppendLine();
 			}
 

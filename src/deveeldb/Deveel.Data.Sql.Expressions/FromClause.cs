@@ -276,7 +276,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override string ToString() {
 			var builder = new SqlStringBuilder();
-			(this as ISqlFormattable).AppendTo(builder);
+			this.AppendTo(builder);
 			return builder.ToString();
 		}
 	}

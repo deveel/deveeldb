@@ -104,8 +104,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var columns = SelectColumns.ToArray();
 			var sz = columns.Length;
 			for (int i = 0; i < sz; i++) {
-				var column = columns[i];
-				(column as ISqlFormattable).AppendTo(builder);
+				columns[i].AppendTo(builder);
 
 				if (i < sz - 1)
 					builder.Append(", ");
@@ -114,7 +113,7 @@ namespace Deveel.Data.Sql.Expressions {
 			builder.Append(" ");
 
 			if (FromClause != null)
-				(FromClause as ISqlFormattable).AppendTo(builder);
+				FromClause.AppendTo(builder);
 
 			if (WhereExpression != null) {
 				builder.Append(" WHERE ");
@@ -126,7 +125,7 @@ namespace Deveel.Data.Sql.Expressions {
 				builder.Append(" GROUP BY ");
 
 				for (int i = 0; i < groupBy.Count; i++) {
-					(groupBy[i] as ISqlFormattable).AppendTo(builder);
+					groupBy[i].AppendTo(builder);
 
 					if (i < groupBy.Count - 1)
 						builder.Append(", ");
@@ -140,7 +139,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			if (GroupMax != null) {
 				builder.Append(" GROUP MAX ");
-				(GroupMax as ISqlFormattable).AppendTo(builder);
+				GroupMax.AppendTo(builder);
 			}
 
 			// TODO: COMPOSITE ...

@@ -52,7 +52,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		internal override void AppendTo(SqlStringBuilder builder) {
-			(ReferenceName as ISqlFormattable).AppendTo(builder);
+			ReferenceName.AppendTo(builder);
 		}
 	}
 }
