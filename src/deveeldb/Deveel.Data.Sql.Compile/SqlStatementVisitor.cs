@@ -818,7 +818,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var returnTypeSpec = context.functionReturnType();
 			if (returnTypeSpec.TABLE() != null) {
-				throw new NotImplementedException();
+				returnType = new TabularType();
 			} else if (returnTypeSpec.DETERMINISTIC() != null) {
 				returnType = Function.DynamicType;
 			} else {

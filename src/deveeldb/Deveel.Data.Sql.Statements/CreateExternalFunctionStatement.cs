@@ -113,7 +113,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			builder.Append(")");
 
-			builder.Append(" RETURNS ");
+			builder.Append(" RETURN ");
 			ReturnType.AppendTo(builder);
 			builder.AppendLine(" IS");
 

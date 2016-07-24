@@ -21,7 +21,7 @@ namespace Deveel.Data.Sql.Statements {
 			var sql = statement.ToString();
 			var expected = new SqlStringBuilder();
 			expected.Append("CREATE FUNCTION SYS.func1() ");
-			expected.AppendLine("RETURNS INTEGER IS");
+			expected.AppendLine("RETURN INTEGER IS");
 			expected.AppendLine("  DECLARE");
 			expected.AppendLine("    a INTEGER");
 			expected.AppendLine("  BEGIN");
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 			var sql = statement.ToString();
 			var expected = new SqlStringBuilder();
 			expected.Append("CREATE FUNCTION SYS.func1(a INTEGER IN NOT NULL) ");
-			expected.AppendLine("RETURNS INTEGER IS");
+			expected.AppendLine("RETURN INTEGER IS");
 			expected.AppendLine("  BEGIN");
 			expected.AppendLine("    :a := 3");
 			expected.AppendLine("    RETURN :a");
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Statements {
 			var sql = statement.ToString();
 			var expected = new StringBuilder();
 			expected.Append("CREATE EXTERNAL FUNCTION SYS.ext_func2() ");
-			expected.AppendLine("RETURNS STRING IS");
+			expected.AppendLine("RETURN STRING IS");
 			expected.Append("  LANGUAGE DOTNET NAME 'Deveel.Data.ExtFunctions.Func1()'");
 
 			Assert.AreEqual(expected.ToString(), sql);
