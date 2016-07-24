@@ -108,7 +108,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (Arguments != null &&
 				Arguments.Length > 0) {
 				for (int i = 0; i < Arguments.Length; i++) {
-					builder.Append(Arguments[i]);
+					Arguments[i].AppendTo(builder);
 
 					if (i < Arguments.Length - 1)
 						builder.Append(", ");
