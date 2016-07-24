@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class SetDefaultAction : IAlterTableAction, IPreparable {
+	public sealed class SetDefaultAction : AlterTableAction {
 		public SetDefaultAction(string columnName, SqlExpression defaultExpression) {
 			ColumnName = columnName;
 			DefaultExpression = defaultExpression;
@@ -37,11 +37,11 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlExpression DefaultExpression { get; private set; }
 
-		AlterTableActionType IAlterTableAction.ActionType {
+		protected override AlterTableActionType ActionType {
 			get { return AlterTableActionType.SetDefault; }
 		}
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
+		protected override AlterTableAction PrepareExpressions(IExpressionPreparer preparer) {
 			var defaultExp = DefaultExpression;
 			if (defaultExp != null)
 				defaultExp = defaultExp.Prepare(preparer);
@@ -49,9 +49,15 @@ namespace Deveel.Data.Sql.Statements {
 			return new SetDefaultAction(ColumnName, defaultExp);
 		}
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("ColumnName", ColumnName);
 			info.AddValue("Default", DefaultExpression);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("ALTER {0} ", ColumnName);
+			builder.Append("SET DEFAULT");
+			DefaultExpression.AppendTo(builder);
 		}
 	}
 }

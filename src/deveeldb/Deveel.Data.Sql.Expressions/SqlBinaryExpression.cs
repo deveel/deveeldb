@@ -59,5 +59,57 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("Right", Right, typeof(SqlExpression));
 			info.AddValue("ExpressionType", (int)expressionType);
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			Left.AppendTo(builder);
+
+			var binaryOpString = GetBinaryOperatorString(ExpressionType);
+			builder.AppendFormat(" {0} ", binaryOpString);
+
+			Right.AppendTo(builder);
+		}
+
+		private static string GetBinaryOperatorString(SqlExpressionType expressionType) {
+			switch (expressionType) {
+				case SqlExpressionType.Add:
+					return "+";
+				case SqlExpressionType.Subtract:
+					return "-";
+				case SqlExpressionType.Divide:
+					return "/";
+				case SqlExpressionType.Multiply:
+					return "*";
+				case SqlExpressionType.Modulo:
+					return "%";
+				case SqlExpressionType.Equal:
+					return "=";
+				case SqlExpressionType.NotEqual:
+					return "<>";
+				case SqlExpressionType.GreaterThan:
+					return ">";
+				case SqlExpressionType.GreaterOrEqualThan:
+					return ">=";
+				case SqlExpressionType.SmallerThan:
+					return "<";
+				case SqlExpressionType.SmallerOrEqualThan:
+					return "<=";
+				case SqlExpressionType.Is:
+					return "IS";
+				case SqlExpressionType.IsNot:
+					return "IS NOT";
+				case SqlExpressionType.Like:
+					return "LIKE";
+				case SqlExpressionType.NotLike:
+					return "NOT LIKE";
+				case SqlExpressionType.Or:
+					return "OR";
+				case SqlExpressionType.And:
+					return "AND";
+				case SqlExpressionType.XOr:
+					return "XOR";
+				default:
+					throw new NotSupportedException();
+			}
+		}
 	}
 }

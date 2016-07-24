@@ -39,5 +39,20 @@ namespace Deveel.Data.Sql.Expressions {
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Expressions", Expressions, typeof(SqlExpression[]));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("(");
+
+			var sz = Expressions.Length;
+			for (int i = 0; i < sz; i++) {
+				Expressions[i].AppendTo(builder);
+
+				if (i < sz - 1)
+					builder.Append(", ");
+			}
+
+			builder.Append(")");
+
+		}
 	}
 }

@@ -16,11 +16,13 @@
 
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Cursors {
-	public sealed class CursorParameter {
+	[Serializable]
+	public sealed class CursorParameter : ISqlFormattable, ISerializable {
 		public CursorParameter(string parameterName, SqlType parameterType) {
 			if (String.IsNullOrEmpty(parameterName))
 				throw new ArgumentNullException("parameterName");
@@ -31,10 +33,34 @@ namespace Deveel.Data.Sql.Cursors {
 			ParameterType = parameterType;
 		}
 
+		private CursorParameter(SerializationInfo info, StreamingContext context) {
+			ParameterName = info.GetString("Name");
+			ParameterType = (SqlType) info.GetValue("Type", typeof(SqlType));
+			Offset = info.GetInt32("Offset");
+		}
+
 		public string ParameterName { get; private set; }
 
 		public SqlType ParameterType { get; private set; }
 
 		public int Offset { get; set; }
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			builder.Append(ParameterName);
+			builder.Append(" ");
+			builder.Append(ParameterType.ToString());
+		}
+
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Name", ParameterName);
+			info.AddValue("Type", ParameterType);
+			info.AddValue("Offset", Offset);
+		}
+
+		public override string ToString() {
+			var builder = new SqlStringBuilder();
+			(this as ISqlFormattable).AppendTo(builder);
+			return builder.ToString();
+		}
 	}
 }

@@ -62,5 +62,10 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.DirectAccess.DropObject(DbObjectType.Routine, ProcedureName))
 				throw new InvalidOperationException(String.Format("Unable to drop the procedure '{0}' from the system.", ProcedureName));
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifExists = IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP PROCEDURE {0}{1}", ifExists, ProcedureName);
+		}
 	}
 }

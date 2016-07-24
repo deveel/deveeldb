@@ -102,5 +102,20 @@ namespace Deveel.Data.Sql.Statements {
 				context.SetResult(resultTable);
 			}
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("CALL {0}(", ProcedureName);
+			if (Arguments != null &&
+				Arguments.Length > 0) {
+				for (int i = 0; i < Arguments.Length; i++) {
+					builder.Append(Arguments[i]);
+
+					if (i < Arguments.Length - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+		}
 	}
 }

@@ -96,5 +96,10 @@ namespace Deveel.Data.Sql.Statements {
 				context.Request.Access().DropAllTableConstraints(TableName);
 			}
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifExists = IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP TABLE {0}{1}", ifExists, TableName);
+		}
 	}
 }

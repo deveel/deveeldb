@@ -20,8 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
-
 namespace Deveel.Data.Sql.Expressions {
 	[Serializable]
 	public sealed class SqlQueryExpression : SqlExpression {
@@ -96,6 +94,56 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("NextComposite", NextComposite, typeof(SqlQueryExpression));
 			info.AddValue("CompositeFunction", (int)CompositeFunction);
 			info.AddValue("CompositeAll", IsCompositeAll);
+		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("SELECT ");
+			if (Distinct)
+				builder.Append("DISTINCT ");
+
+			var columns = SelectColumns.ToArray();
+			var sz = columns.Length;
+			for (int i = 0; i < sz; i++) {
+				var column = columns[i];
+				(column as ISqlFormattable).AppendTo(builder);
+
+				if (i < sz - 1)
+					builder.Append(", ");
+			}
+
+			builder.Append(" ");
+
+			if (FromClause != null)
+				(FromClause as ISqlFormattable).AppendTo(builder);
+
+			if (WhereExpression != null) {
+				builder.Append(" WHERE ");
+				WhereExpression.AppendTo(builder);
+			}
+
+			if (GroupBy != null) {
+				var groupBy = GroupBy.ToList();
+				builder.Append(" GROUP BY ");
+
+				for (int i = 0; i < groupBy.Count; i++) {
+					(groupBy[i] as ISqlFormattable).AppendTo(builder);
+
+					if (i < groupBy.Count - 1)
+						builder.Append(", ");
+				}
+
+				if (HavingExpression != null) {
+					builder.Append(" HVAING ");
+					HavingExpression.AppendTo(builder);
+				}
+			}
+
+			if (GroupMax != null) {
+				builder.Append(" GROUP MAX ");
+				(GroupMax as ISqlFormattable).AppendTo(builder);
+			}
+
+			// TODO: COMPOSITE ...
 		}
 	}
 }

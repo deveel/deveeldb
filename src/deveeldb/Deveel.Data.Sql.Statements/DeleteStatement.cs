@@ -87,6 +87,12 @@ namespace Deveel.Data.Sql.Statements {
 			return new Prepared(tableName, queryPlan);
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("DELETE FROM {0} WHERE {1}", TableName, WhereExpression);
+			if (Limit > -1)
+				builder.AppendFormat(" LIMIT {0}", Limit);
+		}
+
 		#region Prepared
 
 		[Serializable]

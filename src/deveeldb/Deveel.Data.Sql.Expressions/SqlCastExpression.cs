@@ -18,7 +18,6 @@
 using System;
 using System.Runtime.Serialization;
 
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
@@ -72,6 +71,14 @@ namespace Deveel.Data.Sql.Expressions {
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Value", Value, typeof(SqlExpression));
 			info.AddValue("Type", SqlType, typeof(SqlType));
+		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("CAST ");
+			Value.AppendTo(builder);
+			builder.Append(" AS ");
+			// TODO: make SQL Types ISqlFormattable
+			builder.Append(SqlType);
 		}
 	}
 }

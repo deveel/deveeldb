@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AddColumnAction : IAlterTableAction, IPreparable, IStatementPreparable {
+	public sealed class AddColumnAction : AlterTableAction {
 		public AddColumnAction(SqlTableColumn column) {
 			if (column == null)
 				throw new ArgumentNullException("column");
@@ -36,22 +36,32 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlTableColumn Column { get; private set; }
 
-		object IPreparable.Prepare(IExpressionPreparer preparer) {
-			var newColumn = (SqlTableColumn) ((IPreparable) Column).Prepare(preparer);
+		protected override AlterTableAction PrepareExpressions(IExpressionPreparer preparer) {
+			var newColumn = (SqlTableColumn)((IPreparable)Column).Prepare(preparer);
 			return new AddColumnAction(newColumn);
 		}
 
-		object IStatementPreparable.Prepare(IRequest context) {
-			var newColumn = (SqlTableColumn) ((IStatementPreparable) Column).Prepare(context);
+		protected override AlterTableAction PrepareStatement(IRequest context) {
+			var newColumn = (SqlTableColumn)((IStatementPreparable)Column).Prepare(context);
 			return new AddColumnAction(newColumn);
 		}
 
-		AlterTableActionType IAlterTableAction.ActionType {
+		protected override AlterTableActionType ActionType {
 			get { return AlterTableActionType.AddColumn; }
 		}
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Column", Column);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("ADD COLUMN {0} {1}", Column.ColumnName, Column.ColumnType);
+			if (Column.IsNotNull)
+				builder.Append(" NOT NULL");
+			if (Column.HasDefaultExpression) {
+				builder.Append(" DEFAULT");
+				Column.DefaultExpression.AppendTo(builder);
+			}
 		}
 	}
 }

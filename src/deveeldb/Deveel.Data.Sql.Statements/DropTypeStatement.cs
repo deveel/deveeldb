@@ -79,5 +79,10 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("TypeName", TypeName);
 			info.AddValue("IfExists", IfExists);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifExists = IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP TYPE {0}{1}", ifExists, TypeName);
+		}
 	}
 }

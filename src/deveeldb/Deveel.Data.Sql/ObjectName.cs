@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql {
 	/// </remarks>
 	[DebuggerDisplay("{FullName}")]
 	[Serializable]
-	public sealed class ObjectName : IEquatable<ObjectName>, IComparable<ObjectName>, ISerializable {
+	public sealed class ObjectName : IEquatable<ObjectName>, IComparable<ObjectName>, ISerializable, ISqlFormattable {
 		/// <summary>
 		/// The special name used as a wild-card to indicate all the columns of a table
 		/// must be referenced in a given context.
@@ -136,15 +136,38 @@ namespace Deveel.Data.Sql {
 		/// If the given string is <c>null</c> or empty.
 		/// </exception>
 		public static ObjectName Parse(string s) {
-			if (String.IsNullOrEmpty(s))
-				throw new ArgumentNullException("s");
+			Exception error;
+			ObjectName result;
+			if (!TryParse(s, out result, out error))
+				throw error;
 
-			var sp = s.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
-			if (sp.Length == 0)
-				throw new FormatException("At least one part of the name must be provided");
+			return result;
+		}
 
-			if (sp.Length == 1)
-				return new ObjectName(sp[0]);
+		public static bool TryParse(string s, out ObjectName result) {
+			Exception error;
+			return TryParse(s, out result, out error);
+		}
+
+		private static bool TryParse(string s, out ObjectName result, out Exception error) {
+			if (String.IsNullOrEmpty(s)) {
+				error = new ArgumentNullException("s");
+				result = null;
+				return false;
+			}
+
+			var sp = s.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+			if (sp.Length == 0) {
+				error = new FormatException("At least one part of the name must be provided");
+				result = null;
+				return false;
+			}
+
+			if (sp.Length == 1) {
+				result = new ObjectName(sp[0]);
+				error = null;
+				return true;
+			}
 
 			ObjectName finalName = null;
 			for (int i = 0; i < sp.Length; i++) {
@@ -152,10 +175,12 @@ namespace Deveel.Data.Sql {
 					finalName = new ObjectName(sp[i]);
 				} else {
 					finalName = new ObjectName(finalName, sp[i]);
-				}				
+				}
 			}
 
-			return finalName;
+			result = finalName;
+			error = null;
+			return true;
 		}
 
 		/// <summary>
@@ -222,14 +247,9 @@ namespace Deveel.Data.Sql {
 		}
 
 		public override string ToString() {
-			var sb = new StringBuilder();
-			if (Parent != null) {
-				sb.Append(Parent);
-				sb.Append('.');
-			}
-
-			sb.Append(Name);
-			return sb.ToString();
+			var builder = new SqlStringBuilder();
+			(this as ISqlFormattable).AppendTo(builder);
+			return builder.ToString();
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
@@ -281,6 +301,15 @@ namespace Deveel.Data.Sql {
 				code ^= Parent.GetHashCode();
 
 			return code;
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			if (Parent != null) {
+				(Parent as ISqlFormattable).AppendTo(builder);
+				builder.Append('.');
+			}
+
+			builder.Append(Name);
 		}
 	}
 }

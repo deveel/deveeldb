@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -29,7 +30,7 @@ namespace Deveel.Data.Sql.Expressions {
 	/// This handles the different types of joins.
 	/// </remarks>
 	[Serializable]
-	public sealed class FromClause : IPreparable, ISerializable {
+	public sealed class FromClause : IPreparable, ISerializable, ISqlFormattable {
 		public FromClause() {
 			fromTables = new List<FromTable>();
 			joinParts = new List<JoinPart>();
@@ -220,46 +221,63 @@ namespace Deveel.Data.Sql.Expressions {
 				info.AddValue("JoinParts", joinParts.ToArray());
 		}
 
-		//public static void Serialize(FromClause clause, BinaryWriter writer) {
-		//	var tableNamesCount = clause.tableNames.Count;
-		//	writer.Write(tableNamesCount);
-		//	for (int i = 0; i < tableNamesCount; i++) {
-		//		writer.Write(clause.tableNames[0]);
-		//	}
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			if (IsEmpty)
+				return;
 
-		//	var tableCount = clause.fromTables.Count;
-		//	writer.Write(tableCount);
-		//	for (int i = 0; i < tableCount; i++) {
-		//		FromTable.Serialize(clause.fromTables[i], writer);
-		//	}
+			builder.Append("FROM ");
 
-		//	var joinCount = clause.joinParts.Count;
-		//	writer.Write(joinCount);
-		//	for (int i = 0; i < joinCount; i++) {
-		//		JoinPart.Serialize(clause.joinParts[i], writer);
-		//	}
-		//}
+			var tables = AllTables.ToList();
+			for (int i = 0; i < tables.Count; i++) {
+				var source = tables[i];
 
-		//public static FromClause Deserialize(BinaryReader reader) {
-		//	var fromClause = new FromClause();
+				JoinPart joinPart = null;
 
-		//	var tableNameCount = reader.ReadInt32();
+				if (i > 0) {
+					joinPart = GetJoinPart(i - 1);
+					if (joinPart != null &&
+						joinPart.OnExpression != null) {
+						if (joinPart.JoinType == JoinType.Inner) {
+							builder.Append(" INNER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Right) {
+							builder.Append(" RIGHT OUTER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Left) {
+							builder.Append(" LEFT OUTER JOIN ");
+						} else if (joinPart.JoinType == JoinType.Full) {
+							builder.Append(" FULL OUTER JOINT ");
+						}
+					}
+				}
 
-		//	for (int i = 0; i < tableNameCount; i++) {
-		//		fromClause.tableNames.Add(reader.ReadString());
-		//	}
+				if (i > 0 &&
+					(joinPart == null || joinPart.OnExpression == null))
+					builder.Append(", ");
 
-		//	var tableCount = reader.ReadInt32();
-		//	for (int i = 0; i < tableCount; i++) {
-		//		fromClause.fromTables.Add(FromTable.Deserialize(reader));
-		//	}
+				if (source.IsSubQuery) {
+					builder.Append("(");
+					source.SubQuery.AppendTo(builder);
+					builder.Append(")");
+				} else {
+					builder.Append(source.Name);
+				}
 
-		//	var joinCount = reader.ReadInt32();
-		//	for (int i = 0; i < joinCount; i++) {
-		//		fromClause.joinParts.Add(JoinPart.Deserialize(reader));
-		//	}
+				if (!String.IsNullOrEmpty(source.Alias)) {
+					builder.Append(" AS ");
+					builder.Append(source.Alias);
+				}
 
-		//	return fromClause;
-		//}
+				if (joinPart != null &&
+					joinPart.OnExpression != null) {
+					builder.Append(" ON ");
+					joinPart.OnExpression.AppendTo(builder);
+				}
+			}
+		}
+
+		public override string ToString() {
+			var builder = new SqlStringBuilder();
+			(this as ISqlFormattable).AppendTo(builder);
+			return builder.ToString();
+		}
 	}
 }

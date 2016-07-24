@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql {
-	public sealed class ExceptionHandler : IPreparable {
+	public sealed class ExceptionHandler : IPreparable, ISqlFormattable {
 		public ExceptionHandler(HandledExceptions handled) {
 			if (handled == null)
 				throw new ArgumentNullException("handled");
@@ -51,6 +51,26 @@ namespace Deveel.Data.Sql {
 
 		object IPreparable.Prepare(IExpressionPreparer preparer) {
 			return PrepareExpressions(preparer);
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			builder.Append("WHEN ");
+			if (Handled.IsForOthers) {
+				builder.Append("OTHERS");
+			} else {
+				var names = String.Join(", ", Handled.ExceptionNames.ToArray());
+				builder.Append(names);
+			}
+
+			builder.AppendLine("THEN ");
+			builder.Indent();
+
+			foreach (var statement in Statements) {
+				(statement as ISqlFormattable).AppendTo(builder);
+				builder.AppendLine();
+			}
+
+			builder.DeIndent();
 		}
 	}
 }

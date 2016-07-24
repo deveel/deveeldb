@@ -50,5 +50,9 @@ namespace Deveel.Data.Sql.Expressions {
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Reference", ReferenceName, typeof(ObjectName));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			(ReferenceName as ISqlFormattable).AppendTo(builder);
+		}
 	}
 }

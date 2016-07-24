@@ -42,5 +42,9 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Transfer(Label);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("GOTO '{0}'", Label);
+		}
 	}
 }

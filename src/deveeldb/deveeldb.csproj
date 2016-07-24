@@ -252,6 +252,7 @@
     <Compile Include="Deveel.Data.Sql.Sequences\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequencesInit.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceTableContainer.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTableAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
@@ -337,12 +338,11 @@
     <Compile Include="Deveel.Data.Sql.Statements\RollbackStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ShowTarget.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\SqlStringBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql\SqlStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementEventType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResult.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementResultType.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\StatementVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Statements\StringFormatterVisitor.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\UpdateFromCursorStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\WhileLoopStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\Column.cs" />
@@ -382,6 +382,7 @@
     <Compile Include="Deveel.Data.Sql.Views\ViewsModule.cs" />
     <Compile Include="Deveel.Data.Sql.Views\ViewTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql\ExecutionContext.cs" />
+    <Compile Include="Deveel.Data.Sql\ISqlFormattable.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameEqualityComparer.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\IJournaledResource.cs" />
     <Compile Include="Deveel.Data.Store.Journaled\JournaledFileStore.cs" />
@@ -701,7 +702,6 @@
     <Compile Include="Deveel.Data.Protocol\KnownConnectionProtocols.cs" />
     <Compile Include="Deveel.Data.Security\SystemRoles.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\ExpressionEvaluatorVisitor.cs" />
-    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionStringBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlVariableReferenceExpression.cs" />
     <Compile Include="Deveel.Data.Sql.Query\FetchViewNode.cs" />
     <Compile Include="Deveel.Data.Sql.Query\GroupNode.cs" />

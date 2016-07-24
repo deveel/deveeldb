@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Expressions {
 	/// which is the entire set of columns.
 	/// </remarks>
 	[Serializable]
-	public sealed class SelectColumn : IPreparable, ISerializable {
+	public sealed class SelectColumn : IPreparable, ISerializable, ISqlFormattable {
 		/// <summary>
 		/// Constructs a new <see cref="SelectColumn"/> for the given
 		/// expression and aliased with the given name.
@@ -141,6 +141,28 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </returns>
 		public static SelectColumn Glob(string glob) {
 			return new SelectColumn(SqlExpression.Reference(ObjectName.Parse(glob)));
+		}
+
+		public override string ToString() {
+			var builder = new SqlStringBuilder();
+			(this as ISqlFormattable).AppendTo(builder);
+			return builder.ToString();
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			if (IsGlob) {
+				if (IsAll) {
+					builder.Append("*");
+				} else {
+					(TableName as ISqlFormattable).AppendTo(builder);
+					builder.Append(".*");
+				}
+			} else {
+				Expression.AppendTo(builder);
+			}
+
+			if (!String.IsNullOrEmpty(Alias))
+				builder.AppendFormat(" AS {0}", Alias);
 		}
 	}
 }
