@@ -46,5 +46,14 @@ namespace Deveel.Data.Sql.Statements {
 			// TODO: evaluate the condition against the context and return a boolean
 			return base.Loop(context);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			AppendLabelTo(builder);
+
+			builder.AppendFormat("WHILE {0}", ConditionExpression);
+			builder.AppendLine();
+
+			AppendBodyTo(builder);
+		}
 	}
 }

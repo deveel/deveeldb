@@ -22,8 +22,6 @@ using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Transactions {
 	public class TableRowEvent : Event, ITableEvent {
-		private ITableEvent tableEventImplementation;
-
 		public TableRowEvent(int tableId, int rowNumber, TableRowEventType eventType) {
 			TableId = tableId;
 			RowNumber = rowNumber;

@@ -44,5 +44,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Sequence, SequenceName);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("DROP SEQUENCE {0}", SequenceName);
+		}
 	}
 }

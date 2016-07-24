@@ -30,7 +30,7 @@ using SqlString = Deveel.Data.Sql.Objects.SqlString;
 
 namespace Deveel.Data.Sql {
 	[Serializable]
-	public sealed class Field : IComparable, IComparable<Field>, IEquatable<Field>, ISerializable {
+	public sealed class Field : IComparable, IComparable<Field>, IEquatable<Field>, ISerializable, ISqlFormattable {
 		/// <summary>
 		/// The representation of a BOOLEAN <c>true</c> as <see cref="Field"/>
 		/// </summary>
@@ -171,6 +171,14 @@ namespace Deveel.Data.Sql {
 					code = code ^ Value.GetHashCode();
 				return code;
 			}
+		}
+
+		public override string ToString() {
+			return Type.ToString(Value);
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			builder.Append(ToString());
 		}
 
 		/// <inheritdoc/>

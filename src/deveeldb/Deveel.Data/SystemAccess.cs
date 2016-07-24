@@ -348,7 +348,10 @@ namespace Deveel.Data {
 				throw new InvalidOperationException(
 					String.Format("The default schema of the session '{0}' is not defined in the database.", schema));
 
-			var objName = ObjectName.Parse(name);
+			ObjectName objName;
+			if (!ObjectName.TryParse(name, out objName))
+				throw new ArgumentException(String.Format("The name '{0}' is invalid.", name));
+
 			if (objName.Parent == null)
 				objName = new ObjectName(objSchemaName, objName.Name);
 

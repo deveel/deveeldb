@@ -385,6 +385,14 @@ namespace Deveel.Data.Transactions {
 			return tableManager.NextUniqueId(tableName);
 		}
 
+		public static SqlNumber CurrentTableId(this ITransaction transaction, ObjectName tableName) {
+			var tableManager = transaction.GetTableManager();
+			if (tableManager == null)
+				throw new InvalidOperationException();
+
+			return tableManager.CurrentUniqueId(tableName);
+		}
+
 		#endregion
 
 		#region Variables

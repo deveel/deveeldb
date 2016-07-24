@@ -83,5 +83,10 @@ namespace Deveel.Data.Sql.Statements {
 				context.Request.Access().RevokeAllGrantsOnView(ViewName);
 			}
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifExists = IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP VIEW {0}{1}", ifExists, ViewName);
+		}
 	}
 }

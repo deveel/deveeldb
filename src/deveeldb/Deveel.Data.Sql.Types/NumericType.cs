@@ -316,21 +316,19 @@ namespace Deveel.Data.Sql.Types {
 			return casted;
 		}
 
-		public override string ToString() {
-			var sb = new StringBuilder(TypeCode.ToString().ToUpperInvariant());
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append(TypeCode.ToString().ToUpperInvariant());
 
 			if (Size != -1) {
-				sb.Append('(');
-				sb.Append(Size);
+				builder.Append('(');
+				builder.Append(Size);
 				if (Scale > 0) {
-					sb.Append(',');
-					sb.Append(Scale);
+					builder.Append(',');
+					builder.Append(Scale);
 				}
 
-				sb.Append(')');
+				builder.Append(')');
 			}
-
-			return sb.ToString();
 		}
 
 		public override object ConvertTo(ISqlObject obj, Type destType) {

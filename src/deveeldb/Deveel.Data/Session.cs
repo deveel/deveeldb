@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -36,6 +37,7 @@ namespace Deveel.Data {
 
 		private DateTimeOffset? lastCommandTime;
 		private SqlQuery lastCommand;
+		private StatementResult[] lastCommandResult;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -59,7 +61,8 @@ namespace Deveel.Data {
             Transaction = transaction;
 		    Context = transaction.Context.CreateSessionContext();
 			Context.RegisterInstance(this);
-			Context.Route<QueryEvent>(OnQueryCommand);
+
+			Transaction.Context.Route<QueryEvent>(OnQueryCommand);
 
 			Transaction.GetTableManager().AddInternalTables(new SessionTableContainer(this));
 
@@ -103,29 +106,32 @@ namespace Deveel.Data {
 			get { return Context; }
 		}
 
+		private int AffectedRows {
+			get {
+				if (lastCommandResult == null ||
+					lastCommandResult.Length == 0)
+					return 0;
+
+				var result = lastCommandResult[0];
+				if (result.Type != StatementResultType.Result)
+					return 0;
+
+				return result.Result.RowCount;
+			}
+		}
+
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get { return GetMetadata(); }
 		}
-
-		public IDictionary<string, object> Metadata { get; set; }
 
 		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
 			var meta = new Dictionary<string, object> {
 				{KnownEventMetadata.UserName, User.Name},
 				{KnownEventMetadata.SessionStartTime, startedOn},
 				{KnownEventMetadata.LastCommandTime, lastCommandTime},
-				{KnownEventMetadata.LastCommand, lastCommand != null ? lastCommand.Text : null}
+				{KnownEventMetadata.LastCommand, lastCommand != null ? lastCommand.Text : null},
+				{KnownEventMetadata.AffectedRows, AffectedRows },
 			};
-
-			if (Metadata != null) {
-				foreach (var pair in Metadata) {
-					var key = pair.Key;
-					if (!key.StartsWith("session"))
-						key = String.Format("session.{0}", pair.Key);
-
-					meta[key] = pair.Value;
-				}
-			}
 
 			return meta;
 		}
@@ -144,6 +150,7 @@ namespace Deveel.Data {
 		private void OnQueryCommand(QueryEvent e) {
 			lastCommandTime = e.TimeStamp;
 			lastCommand = e.Query;
+			lastCommandResult = e.Result;
 		}
 
 		public void Commit() {

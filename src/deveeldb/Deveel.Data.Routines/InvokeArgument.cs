@@ -19,11 +19,12 @@ using System;
 using System.Runtime.Serialization;
 using System.Text;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Routines {
 	[Serializable]
-	public sealed class InvokeArgument : ISerializable, IPreparable {
+	public sealed class InvokeArgument : ISerializable, IPreparable, ISqlFormattable {
 		public InvokeArgument(SqlExpression value) 
 			: this(null, value) {
 		}
@@ -59,15 +60,12 @@ namespace Deveel.Data.Routines {
 			return new InvokeArgument(Name, preparedValue);
 		}
 
-		public override string ToString() {
-			var sb = new StringBuilder();
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
 			if (IsNamed) {
-				sb.AppendFormat("{0} => ", Name);
+				builder.AppendFormat("{0} => ", Name);
 			}
 
-			sb.Append(Value);
-
-			return sb.ToString();
+			Value.AppendTo(builder);
 		}
 	}
 }

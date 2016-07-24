@@ -491,7 +491,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, SqlStatement body) {
+			RoutineParameter[] parameters, SqlStatement body) {
 			CreateFunction(query, functionName, returnType, parameters, body, false);
 		}
 
@@ -500,7 +500,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, SqlStatement body, bool replace) {
+			RoutineParameter[] parameters, SqlStatement body, bool replace) {
 			query.ExecuteStatement(new CreateFunctionStatement(functionName, returnType, parameters, body) {
 				ReplaceIfExists = replace
 			});
@@ -511,7 +511,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateOrReplaceFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-	IEnumerable<RoutineParameter> parameters, SqlStatement body) {
+	RoutineParameter[] parameters, SqlStatement body) {
 			query.CreateFunction(functionName, returnType, parameters, body, true);
 		}
 
@@ -520,7 +520,7 @@ namespace Deveel.Data {
 		#region Create External Function
 
 		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, string externRef) {
+			RoutineParameter[] parameters, string externRef) {
 			CreateExternFunction(query, functionName, returnType, parameters, externRef, false);
 		}
 
@@ -533,7 +533,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, string externRef, bool replace) {
+			RoutineParameter[] parameters, string externRef, bool replace) {
 			query.ExecuteStatement(new CreateExternalFunctionStatement(functionName, returnType, parameters, externRef) {
 				ReplaceIfExists = replace
 			});
@@ -544,7 +544,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateOrReplaceExternFunction(this IQuery query, ObjectName functionName, SqlType returnType,
-			IEnumerable<RoutineParameter> parameters, string externRef) {
+			RoutineParameter[] parameters, string externRef) {
 			query.CreateExternFunction(functionName, returnType, parameters, externRef, true);
 		}
 
@@ -577,12 +577,12 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateProcedure(this IQuery query, ObjectName procedureName,
-			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			RoutineParameter[] parameters, PlSqlBlockStatement body) {
 			CreateProcedure(query, procedureName, parameters, body, false);
 		}
 
 		public static void CreateProcedure(this IQuery query, ObjectName procedureName,
-	IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body, bool replace) {
+	RoutineParameter[] parameters, PlSqlBlockStatement body, bool replace) {
 			query.ExecuteStatement(new CreateProcedureStatement(procedureName, parameters, body) {
 				ReplaceIfExists = replace
 			});
@@ -593,7 +593,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateOrReplaceProcedure(this IQuery query, ObjectName procedureName,
-			IEnumerable<RoutineParameter> parameters, PlSqlBlockStatement body) {
+			RoutineParameter[] parameters, PlSqlBlockStatement body) {
 			query.CreateProcedure(procedureName, parameters, body, true);
 		}
 
@@ -606,12 +606,12 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName,
-			IEnumerable<RoutineParameter> parameters, string externalRef) {
+			RoutineParameter[] parameters, string externalRef) {
 			CreateExternProcedure(query, procedureName, parameters, externalRef, false);
 		}
 
 		public static void CreateExternProcedure(this IQuery query, ObjectName procedureName,
-			IEnumerable<RoutineParameter> parameters, string externalRef, bool replace) {
+			RoutineParameter[] parameters, string externalRef, bool replace) {
 			query.ExecuteStatement(new CreateExternalProcedureStatement(procedureName, parameters, externalRef) {
 				ReplaceIfExists = replace
 			});
@@ -622,7 +622,7 @@ namespace Deveel.Data {
 		}
 
 		public static void CreateOrReplaceExternProcedure(this IQuery query, ObjectName procedureName,
-			IEnumerable<RoutineParameter> parameters, string externalRef) {
+			RoutineParameter[] parameters, string externalRef) {
 			query.CreateExternProcedure(procedureName, parameters, externalRef, true);
 		}
 

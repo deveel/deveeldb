@@ -101,6 +101,45 @@ namespace Deveel.Data.Sql.Statements {
 			return new Prepared(queryPlan);
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append(QueryExpression);
+
+			if (Limit != null) {
+				builder.AppendLine();
+				builder.Indent();
+				builder.Append(" LIMIT ");
+
+				if (Limit.Offset > -1)
+					builder.AppendFormat("{0}, ", Limit.Offset);
+
+				builder.Append(Limit.Count);
+				builder.DeIndent();
+			}
+
+			if (OrderBy != null) {
+				builder.AppendLine();
+				builder.Indent();
+
+				builder.Append("ORDER BY ");
+
+				var orderBy = OrderBy.ToArray();
+				for (int i = 0; i < orderBy.Length; i++) {
+					builder.Append(orderBy[i].Expression);
+
+					if (orderBy[i].Ascending) {
+						builder.Append(" ASC");
+					} else {
+						builder.Append(" DESC");
+					}
+
+					if (i < orderBy.Length - 1)
+						builder.Append(", ");
+				}
+
+				builder.DeIndent();
+			}
+		}
+
 		#region Prepared
 
 		[Serializable]

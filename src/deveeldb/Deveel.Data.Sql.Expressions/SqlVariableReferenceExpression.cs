@@ -50,5 +50,9 @@ namespace Deveel.Data.Sql.Expressions {
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Variable", VariableName);
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat(":{0}", VariableName);
+		}
 	}
 }

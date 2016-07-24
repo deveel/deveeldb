@@ -88,5 +88,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			cursor.Open(Arguments);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("OPEN {0}", CursorName);
+
+			if (Arguments != null && Arguments.Length > 0) {
+				builder.Append("(");
+				for (int i = 0; i < Arguments.Length; i++) {
+					Arguments[i].AppendTo(builder);
+
+					if (i < Arguments.Length - 1)
+						builder.Append(", ");
+				}
+
+				builder.Append(")");
+			}
+		}
 	}
 }

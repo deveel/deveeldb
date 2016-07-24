@@ -21,9 +21,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Index;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Transactions {
 	internal class TransactionTable : IMutableTable, ILockable {
@@ -238,6 +240,11 @@ namespace Deveel.Data.Transactions {
 			GC.SuppressFinalize(this);
 		}
 
+		private void RegisterEvent(TableRowEvent rowEvent) {
+			EventRegistry.Register(rowEvent);
+			Transaction.Context.OnEvent(rowEvent);
+		}
+
 		public RowId AddRow(Row row) {
 			AssertNotDisposed();
 
@@ -260,7 +267,7 @@ namespace Deveel.Data.Transactions {
 			// Note this doesn't need to be synchronized because we are exclusive on
 			// this table.
 
-			EventRegistry.Register(new TableRowEvent(TableId, rowNum, TableRowEventType.Add));
+			RegisterEvent(new TableRowEvent(TableId, rowNum, TableRowEventType.Add));
 
 			return new RowId(TableId, rowNum);
 		}
@@ -302,7 +309,7 @@ namespace Deveel.Data.Transactions {
 
 			// Note this doesn't need to be synchronized because we are exclusive on
 			// this table.
-			EventRegistry.Register(new TableRowEvent(TableId, newRowIndex, TableRowEventType.UpdateAdd));
+			RegisterEvent(new TableRowEvent(TableId, newRowIndex, TableRowEventType.UpdateAdd));
 		}
 
 		public bool RemoveRow(RowId rowId) {
@@ -330,7 +337,7 @@ namespace Deveel.Data.Transactions {
 
 			// Note this doesn't need to be synchronized because we are exclusive on
 			// this table.
-			EventRegistry.Register(new TableRowEvent(rowId.TableId, rowId.RowNumber, TableRowEventType.Remove));
+			RegisterEvent(new TableRowEvent(rowId.TableId, rowId.RowNumber, TableRowEventType.Remove));
 
 			return true;
 		}

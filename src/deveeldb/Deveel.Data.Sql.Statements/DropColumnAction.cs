@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DropColumnAction : IAlterTableAction {
+	public sealed class DropColumnAction : AlterTableAction {
 		public DropColumnAction(string columnName) {
 			ColumnName = columnName;
 		}
@@ -31,12 +31,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ColumnName { get; private set; }
 
-		AlterTableActionType IAlterTableAction.ActionType {
+		protected override AlterTableActionType ActionType {
 			get { return AlterTableActionType.DropColumn; }
 		}
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Column", ColumnName);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("DROP COLUMN {0}", ColumnName);
 		}
 	}
 }

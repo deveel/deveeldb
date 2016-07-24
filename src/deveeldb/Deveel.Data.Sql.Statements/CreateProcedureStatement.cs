@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 			: this(procedureName, null, body) {
 		}
 
-		public CreateProcedureStatement(ObjectName procedureName, IEnumerable<RoutineParameter> parameters, SqlStatement body) {
+		public CreateProcedureStatement(ObjectName procedureName, RoutineParameter[] parameters, SqlStatement body) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 			if (body == null)
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public ObjectName ProcedureName { get; private set; }
 
-		public IEnumerable<RoutineParameter> Parameters { get; set; }
+		public RoutineParameter[] Parameters { get; set; }
 
 		public bool ReplaceIfExists { get; set; }
 
@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			var body = (PlSqlBlockStatement)Body.Prepare(context);
-			return new CreateProcedureStatement(functionName, parameters, body) {
+			return new CreateProcedureStatement(functionName, parameters.ToArray(), body) {
 				ReplaceIfExists = ReplaceIfExists
 			};
 		}
@@ -85,6 +85,32 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.CreateRoutine(functionInfo);
 			context.DirectAccess.GrantOn(DbObjectType.Routine, ProcedureName, context.User.Name, Privileges.Execute, true);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var orReplace = ReplaceIfExists ? "OR REPLACE" : "";
+			builder.AppendFormat("CREATE {0}PROCEDURE ", orReplace);
+			ProcedureName.AppendTo(builder);
+
+			builder.Append("(");
+			if (Parameters != null && Parameters.Length > 0) {
+				for (int i = 0; i < Parameters.Length; i++) {
+					Parameters[i].AppendTo(builder);
+
+					if (i < Parameters.Length - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+
+			builder.AppendLine(" IS");
+
+			builder.Indent();
+
+			Body.AppendTo(builder);
+
+			builder.DeIndent();
 		}
 	}
 }

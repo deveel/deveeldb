@@ -23,5 +23,9 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Request.Query.Session.Rollback();
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("ROLLBACK");
+		}
 	}
 }

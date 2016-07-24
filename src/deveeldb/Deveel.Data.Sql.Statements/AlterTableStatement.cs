@@ -240,6 +240,11 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("ALTER TABLE {0} ", TableName);
+			Action.AppendTo(builder);
+		}
+
 		#region PreparedSerializer
 
 		//internal class PreparedSerializer : ObjectBinarySerializer<AlterTableStatement> {
