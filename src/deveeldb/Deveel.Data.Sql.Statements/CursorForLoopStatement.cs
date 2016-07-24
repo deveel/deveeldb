@@ -88,5 +88,14 @@ namespace Deveel.Data.Sql.Statements {
 
 			base.GetData(info);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			AppendLabelTo(builder);
+
+			builder.AppendFormat("FOR {0} IN {1}", IndexName, CursorName);
+			builder.AppendLine();
+
+			AppendBodyTo(builder);
+		}
 	}
 }

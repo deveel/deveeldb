@@ -94,6 +94,23 @@ namespace Deveel.Data.Sql.Statements {
 			return new Prepared(viewName, QueryExpression, queryPlan, ReplaceIfExists);
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifNotExists = ReplaceIfExists ? "IF NOT EXISTS " : "";
+			builder.AppendFormat("CREATE {0}VIEW ", ifNotExists);
+			ViewName.AppendTo(builder);
+
+			if (ColumnNames != null) {
+				var colNames = String.Join(", ", ColumnNames.ToArray());
+				builder.AppendFormat("({0})", colNames);
+			}
+
+			builder.Append(" IS");
+			builder.AppendLine();
+			builder.Indent();
+			QueryExpression.AppendTo(builder);
+			builder.DeIndent();
+		}
+
 		#region Prepared
 
 		[Serializable]

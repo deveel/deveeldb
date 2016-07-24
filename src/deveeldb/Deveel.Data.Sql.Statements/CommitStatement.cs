@@ -23,5 +23,9 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Query.Session.Commit();
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("COMMIT");
+		}
 	}
 }

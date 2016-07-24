@@ -84,25 +84,23 @@ namespace Deveel.Data.Sql.Types {
 			return code;
 		}
 
-		public override string ToString() {
-			var sb = new StringBuilder(FullName.FullName);
+		protected override void AppendTo(SqlStringBuilder builder) {
+			FullName.AppendTo(builder);
 
-			sb.Append("(");
+			builder.Append("(");
 
 			for (int i = 0; i < MemberCount; i++) {
 				var member = TypeInfo.MemberAt(i);
 
-				sb.Append(member.MemberName);
-				sb.Append(" ");
-				sb.Append(member.MemberType);
+				builder.Append(member.MemberName);
+				builder.Append(" ");
+				member.MemberType.AppendTo(builder);
 
 				if (i < MemberCount - 1)
-					sb.Append(", ");
+					builder.Append(", ");
 			}
 
-			sb.Append(")");
-
-			return sb.ToString();
+			builder.Append(")");
 		}
 
 		/*

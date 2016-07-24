@@ -56,5 +56,25 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("Operand", Operand);
 			info.AddValue("Operator", (int)expressionType);
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			var unaryOpString = GetUnaryOperatorString(ExpressionType);
+			builder.Append(unaryOpString);
+			builder.Append(" ");
+			Operand.AppendTo(builder);
+		}
+
+		private string GetUnaryOperatorString(SqlExpressionType unaryType) {
+			switch (unaryType) {
+				case SqlExpressionType.UnaryPlus:
+					return "+";
+				case SqlExpressionType.Negate:
+					return "-";
+				case SqlExpressionType.Not:
+					return "NOT";
+				default:
+					throw new NotSupportedException();
+			}
+		}
 	}
 }

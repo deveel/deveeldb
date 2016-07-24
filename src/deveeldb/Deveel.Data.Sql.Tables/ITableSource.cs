@@ -22,6 +22,9 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
 	public interface ITableSource : IDisposable {
+		long CurrentUniqueId { get; }
+
+
 		void SetUniqueId(long value);
 
 		long GetNextUniqueId();

@@ -102,5 +102,19 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("Reverse", Reverse);
 			base.GetData(info);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			AppendLabelTo(builder);
+
+			builder.AppendFormat("FOR {0} ", IndexName);
+
+			if (Reverse)
+				builder.Append("REVERSE");
+
+			builder.AppendFormat("IN {0}...{1}", LowerBound, UpperBound);
+			builder.AppendLine();
+
+			AppendBodyTo(builder);
+		}
 	}
 }

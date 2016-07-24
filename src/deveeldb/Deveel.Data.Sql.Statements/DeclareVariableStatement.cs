@@ -94,5 +94,20 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.CreateObject(varInfo);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			if (IsConstant)
+				builder.Append("CONSTANT ");
+
+			builder.AppendFormat("{0} {1}", VariableName, VariableType);
+
+			if (IsNotNull)
+				builder.Append(" NOT NULL");
+
+			if (DefaultExpression != null) {
+				builder.Append(" := ");
+				DefaultExpression.AppendTo(builder);
+			}
+		}
 	}
 }

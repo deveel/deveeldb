@@ -44,5 +44,24 @@ namespace Deveel.Data.Sql.Statements {
 
 			Assert.AreEqual(expected.ToString(), sql);
 		}
+
+		[Test]
+		public static void ForLoopGoto() {
+			var loop = new ForLoopStatement("i", SqlExpression.Constant(0), SqlExpression.Reference(new ObjectName("x")));
+			loop.Statements.Add(new ConditionStatement(SqlExpression.Equal(SqlExpression.VariableReference("i"), SqlExpression.Constant(3)), new SqlStatement[] {
+				new GoToStatement("lbl_3") 
+			}));
+
+			var sql = loop.ToString();
+			var expected = new StringBuilder();
+			expected.AppendLine("FOR i IN 0...x");
+			expected.AppendLine("LOOP");
+			expected.AppendLine("  IF :i = 3 THEN");
+			expected.AppendLine("    GOTO 'lbl_3'");
+			expected.AppendLine("  END IF");
+			expected.Append("END LOOP");
+
+			Assert.AreEqual(expected.ToString(), sql);
+		}
 	}
 }

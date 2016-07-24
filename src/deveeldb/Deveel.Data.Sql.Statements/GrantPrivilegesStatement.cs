@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
@@ -91,6 +92,22 @@ namespace Deveel.Data.Sql.Statements {
 
 			// TODO: Veirfy the current user has grant option
 			context.Request.Access().GrantTo(Grantee, obj.ObjectInfo.ObjectType, obj.ObjectInfo.FullName, Privilege, WithGrant);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			// TODO: Make it SQL string
+			var privs = Privilege.ToString().ToUpperInvariant();
+			builder.AppendFormat("GRANT {0} TO {1} ON {2}", privs, Grantee, ObjectName);
+
+			if (Columns != null) {
+				var columns = Columns.ToArray();
+				if (columns.Length > 0) {
+					builder.AppendFormat("({0})", String.Join(", ", columns));
+				}
+			}
+
+			if (WithGrant)
+				builder.Append(" WITH GRANT OPTION");
 		}
 	}
 }

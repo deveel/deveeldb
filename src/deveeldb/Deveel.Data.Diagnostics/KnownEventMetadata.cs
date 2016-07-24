@@ -19,6 +19,7 @@ using System;
 
 namespace Deveel.Data.Diagnostics {
 	public static class KnownEventMetadata {
+		public const string AffectedRows = "session.lastCommand.affectedRows";
 		public const string UserName = "session.userName";
 		public const string SessionStartTime = "session.startTime";
 		public const string LastCommandTime = "session.lastCommandTime";

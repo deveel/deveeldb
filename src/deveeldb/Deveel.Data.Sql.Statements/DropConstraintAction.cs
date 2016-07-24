@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DropConstraintAction : IAlterTableAction, ISerializable {
+	public sealed class DropConstraintAction : AlterTableAction {
 		public DropConstraintAction(string constraintName) {
 			if (String.IsNullOrEmpty(constraintName))
 				throw new ArgumentNullException("constraintName");
@@ -34,12 +34,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ConstraintName { get; private set; }
 
-		AlterTableActionType IAlterTableAction.ActionType {
+		protected override AlterTableActionType ActionType {
 			get { return AlterTableActionType.DropConstraint; }
 		}
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Constraint", ConstraintName);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("DROP CONSTRAINT {0}", ConstraintName);
 		}
 	}
 }

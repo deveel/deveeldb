@@ -331,7 +331,7 @@ namespace Deveel.Data.Sql.Sequences {
 				var sequence = (Sequence) GetSequence(name);
 
 				if (sequence.SequenceInfo.Type == SequenceType.Native)
-					return Transaction.NextTableId(name);
+					return Transaction.CurrentTableId(name);
 
 				// Custom sequence generator
 				return sequence.CurrentValue;

@@ -82,5 +82,9 @@ namespace Deveel.Data.Sql.Expressions {
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("Value", Value, typeof(Field));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.Append(Value.ToString());
+		}
 	}
 }

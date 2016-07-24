@@ -547,6 +547,10 @@ namespace Deveel.Data {
 			}
 		}
 
+		ITableSource ITableSourceComposite.GetTableSource(int tableId) {
+			return GetTableSource(tableId);
+		}
+
 		public ILargeObject CreateLargeObject(long maxSize, bool compressed) {
 			return LargeObjectStore.CreateNewObject(maxSize, compressed);
 		}

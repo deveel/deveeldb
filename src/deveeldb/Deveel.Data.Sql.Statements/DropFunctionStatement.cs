@@ -65,5 +65,10 @@ namespace Deveel.Data.Sql.Statements {
 			if (!context.DirectAccess.DropObject(DbObjectType.Routine, FunctionName))
 				throw new InvalidOperationException(String.Format("Unable to drop the function '{0}' from the system.", FunctionName));
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			string ifExists = IfExists ? "IF EXISTS " : "";
+			builder.AppendFormat("DROP FUNCTION {0}{1}", ifExists, FunctionName);
+		}
 	}
 }

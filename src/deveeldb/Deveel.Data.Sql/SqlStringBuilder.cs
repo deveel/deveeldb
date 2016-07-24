@@ -18,14 +18,14 @@
 using System;
 using System.Text;
 
-namespace Deveel.Data.Sql.Statements {
+namespace Deveel.Data.Sql {
 	public sealed class SqlStringBuilder {
 		private readonly StringBuilder builder;
 
 		public const int DefaultIndentSize = 2;
 		public const char DefaultIndentChar = ' ';
 
-		internal SqlStringBuilder() {
+		public SqlStringBuilder() {
 			builder = new StringBuilder();
 
 			IndentSize = DefaultIndentSize;

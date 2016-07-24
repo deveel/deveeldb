@@ -48,5 +48,8 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("CursorName", CursorName);
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("CLOSE {0}", CursorName);
+		}
 	}
 }

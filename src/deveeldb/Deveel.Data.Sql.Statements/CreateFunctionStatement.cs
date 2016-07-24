@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Statements {
 			: this(functionName, returnType, null, body) {
 		}
 
-		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, IEnumerable<RoutineParameter> parameters, SqlStatement body) {
+		public CreateFunctionStatement(ObjectName functionName, SqlType returnType, RoutineParameter[] parameters, SqlStatement body) {
 			if (functionName == null)
 				throw new ArgumentNullException("functionName");
 			if (returnType == null)
@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlType ReturnType { get; private set; }
 
-		public IEnumerable<RoutineParameter> Parameters { get; set; }
+		public RoutineParameter[] Parameters { get; set; }
 
 		public bool ReplaceIfExists { get; set; }
 
@@ -75,7 +75,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			var body = (PlSqlBlockStatement) Body.Prepare(context);
-			return new CreateFunctionStatement(functionName, returnType, parameters, body) {
+			return new CreateFunctionStatement(functionName, returnType, parameters.ToArray(), body) {
 				ReplaceIfExists = ReplaceIfExists
 			};
 		}
@@ -101,6 +101,34 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.CreateRoutine(functionInfo);
 			context.DirectAccess.GrantOn(DbObjectType.Routine, FunctionName, context.User.Name, Privileges.Execute, true);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var orReplace = ReplaceIfExists ? "OR REPLACE" : "";
+			builder.AppendFormat("CREATE {0}FUNCTION ", orReplace);
+			FunctionName.AppendTo(builder);
+
+			builder.Append("(");
+			if (Parameters != null && Parameters.Length > 0) {
+				for (int i = 0; i < Parameters.Length; i++) {
+					Parameters[i].AppendTo(builder);
+
+					if (i < Parameters.Length - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+
+			builder.Append(" RETURN ");
+			ReturnType.AppendTo(builder);
+			builder.AppendLine(" IS");
+
+			builder.Indent();
+
+			Body.AppendTo(builder);
+
+			builder.DeIndent();
 		}
 	}
 }

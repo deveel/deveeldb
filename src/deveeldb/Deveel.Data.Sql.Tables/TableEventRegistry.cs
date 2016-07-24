@@ -38,7 +38,9 @@ namespace Deveel.Data {
 			events = new List<ITableEvent>();
 		}
 
-		internal TableSource TableSource { get; private set; }
+		private TableSource TableSource { get; set; }
+
+		private IContext Context { get; set; }
 
 		public int TableId {
 			get { return TableSource.TableId; }

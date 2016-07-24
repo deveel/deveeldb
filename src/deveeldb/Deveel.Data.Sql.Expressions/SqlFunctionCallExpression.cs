@@ -46,5 +46,25 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("FunctionName", FunctioName, typeof(ObjectName));
 			info.AddValue("Arguments", Arguments, typeof(InvokeArgument[]));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			FunctioName.AppendTo(builder);
+			builder.Append("(");
+
+			if (Arguments != null &&
+				Arguments.Length > 0) {
+				var args = Arguments;
+				var argc = args.Length;
+
+				for (int i = 0; i < argc; i++) {
+					args[i].AppendTo(builder);
+
+					if (i < argc - 1)
+						builder.Append(", ");
+				}
+			}
+
+			builder.Append(")");
+		}
 	}
 }

@@ -77,5 +77,17 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("When", WhenExpression);
 			info.AddValue("ControlType", (int)ControlType);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			var type = ControlType.ToString().ToUpperInvariant();
+			builder.Append(type);
+
+			if (!String.IsNullOrEmpty(Label))
+				builder.AppendFormat(" '{0}'", Label);
+
+			if (WhenExpression != null) {
+				builder.AppendFormat(" WHEN {0}", WhenExpression);
+			}
+		}
 	}
 }

@@ -75,12 +75,10 @@ namespace Deveel.Data.Sql.Types {
 			return typeof (Stream);
 		}
 
-		public override string ToString() {
-			var sb = new StringBuilder(Name);
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append(Name);
 			if (MaxSize > 0)
-				sb.AppendFormat("({0})", MaxSize);
-
-			return sb.ToString();
+				builder.AppendFormat("({0})", MaxSize);
 		}
 
 		private SqlBoolean ToBoolean(ISqlBinary binary) {

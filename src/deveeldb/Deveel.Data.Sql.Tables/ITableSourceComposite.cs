@@ -24,6 +24,8 @@ namespace Deveel.Data.Sql.Tables {
 	public interface ITableSourceComposite : IDisposable {
 		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
 
+		ITableSource GetTableSource(int tableId);
+
 		ITableSource CopySourceTable(ITableSource tableSource, IIndexSet indexSet);
 
 		ILargeObject CreateLargeObject(long maxSize, bool compressed);

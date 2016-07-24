@@ -98,6 +98,39 @@ namespace Deveel.Data.Sql.Statements {
 			};
 		}
 
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("CREATE TABLE ");
+			if (IfNotExists)
+				builder.Append("IF NOT EXISTS ");
+
+			builder.Append(TableName);
+			builder.AppendLine(" (");
+			builder.Indent();
+
+			for (int i = 0; i < Columns.Count; i++) {
+				var column = Columns[i];
+
+				builder.AppendFormat("{0} {1}", column.ColumnName, column.ColumnType.ToString());
+
+				if (column.IsIdentity) {
+					builder.Append(" IDENTITY");
+				} else {
+					if (column.IsNotNull)
+						builder.Append(" NOT NULL");
+					if (column.HasDefaultExpression)
+						builder.AppendFormat(" DEFAULT {0}", column.DefaultExpression);
+				}
+
+				if (i < Columns.Count - 1)
+					builder.Append(",");
+
+				builder.AppendLine();
+			}
+
+			builder.DeIndent();
+			builder.Append(")");
+		}
+
 		#region Prepared
 
 		[Serializable]

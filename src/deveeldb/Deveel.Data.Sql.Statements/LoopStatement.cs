@@ -90,5 +90,30 @@ namespace Deveel.Data.Sql.Statements {
 				AfterLoop(context);
 			}
 		}
+
+		internal void AppendLabelTo(SqlStringBuilder builder) {
+			if (!String.IsNullOrEmpty(Label)) {
+				builder.AppendFormat("<<{0}>>", Label);
+				builder.AppendLine();
+			}
+		}
+
+		internal void AppendBodyTo(SqlStringBuilder builder) {
+			builder.AppendLine("LOOP");
+			builder.Indent();
+
+			foreach (var child in Statements) {
+				child.AppendTo(builder);
+				builder.AppendLine();
+			}
+
+			builder.DeIndent();
+			builder.Append("END LOOP");
+		} 
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			AppendLabelTo(builder);
+			AppendBodyTo(builder);
+		}
 	}
 }

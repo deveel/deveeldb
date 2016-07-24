@@ -19,7 +19,6 @@ using System;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
-using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Schemas;
 
 namespace Deveel.Data.Sql.Statements {
@@ -54,6 +53,10 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.DirectAccess.CreateSchema(SchemaName, SchemaTypes.User);
 			context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, PrivilegeSets.SchemaAll, true);
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("CREATE SCHEMA {0}", SchemaName);
 		}
 	}
 }

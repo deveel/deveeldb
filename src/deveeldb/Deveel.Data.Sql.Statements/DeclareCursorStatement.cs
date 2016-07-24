@@ -103,5 +103,34 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.Request.Context.DeclareCursor(cursorInfo, context.Request);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			// TODO: Flags ...
+
+			builder.AppendFormat("CURSOR {0}", CursorName);
+
+			if (Parameters != null) {
+				var pars = Parameters.ToArray();
+
+				builder.Append("(");
+
+				for (int i = 0; i < pars.Length; i++) {
+					pars[i].AppendTo(builder);
+
+					if (i < pars.Length - 1)
+						builder.Append(", ");
+				}
+
+				builder.Append(")");
+			}
+
+			builder.Append(" IS");
+			builder.AppendLine();
+			builder.Indent();
+
+			QueryExpression.AppendTo(builder);
+
+			builder.DeIndent();
+		}
 	}
 }

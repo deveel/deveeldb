@@ -314,6 +314,15 @@ namespace Deveel.Data.Sql.Tables {
 			return new SqlNumber(value);
 		}
 
+		public SqlNumber CurrentUniqueId(ObjectName tableName) {
+			var tableSource = FindVisibleTable(tableName, false);
+			if (tableSource == null)
+				throw new ObjectNotFoundException(tableName,
+					String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
+
+			return new SqlNumber(tableSource.CurrentUniqueId);
+		}
+
 		private bool IsDynamicTable(ObjectName tableName) {
 			if (internalTables == null)
 				return false;

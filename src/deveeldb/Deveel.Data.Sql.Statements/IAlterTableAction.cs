@@ -20,7 +20,7 @@ using System.Runtime.Serialization;
 
 
 namespace Deveel.Data.Sql.Statements {
-	public interface IAlterTableAction : ISerializable {
+	public interface IAlterTableAction : ISerializable, ISqlFormattable {
 		AlterTableActionType ActionType { get; }
 	}
 }

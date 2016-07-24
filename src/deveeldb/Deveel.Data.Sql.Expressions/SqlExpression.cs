@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Expressions {
 	/// only through this class, calling factory methods (for example <see cref="Binary"/>).
 	/// </remarks>
 	[Serializable]
-	public abstract class SqlExpression : ISerializable {
+	public abstract class SqlExpression : ISerializable, ISqlFormattable {
 		private int precedence;
 
 		/// <summary>
@@ -207,8 +207,17 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override string ToString() {
-			var builder = new ExpressionStringBuilder();
-			return builder.ToSqlString(this);
+			var builder = new SqlStringBuilder();
+			AppendTo(builder);
+			return builder.ToString();
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			AppendTo(builder);
+		}
+
+		internal virtual void AppendTo(SqlStringBuilder builder) {
+			
 		}
 
 		/// <summary>

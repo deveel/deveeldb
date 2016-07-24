@@ -51,5 +51,12 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("Reference", ReferenceExpression, typeof(SqlExpression));
 			info.AddValue("Value", ValueExpression, typeof(SqlExpression));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			ReferenceExpression.AppendTo(builder);
+			builder.Append(" = ");
+			ValueExpression.AppendTo(builder);
+
+		}
 	}
 }

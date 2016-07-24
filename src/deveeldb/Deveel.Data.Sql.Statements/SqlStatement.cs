@@ -32,7 +32,7 @@ namespace Deveel.Data.Sql.Statements {
 	/// </summary>
 	[Serializable]
 	[DebuggerDisplay("{ToString()}")]
-	public abstract class SqlStatement : IPreparable, ISerializable {
+	public abstract class SqlStatement : IPreparable, ISerializable, ISqlFormattable {
 		protected SqlStatement() {
 		}
 
@@ -227,8 +227,17 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public override string ToString() {
-			var visitor = new StringFormatterVisitor();
-			return visitor.Format(this);
+			var builder = new SqlStringBuilder();
+			AppendTo(builder);
+			return builder.ToString();
+		}
+
+		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
+			AppendTo(builder);
+		}
+
+		protected virtual void AppendTo(SqlStringBuilder builder) {
+			
 		}
 	}
 }

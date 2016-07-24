@@ -80,5 +80,9 @@ namespace Deveel.Data.Sql.Statements {
 
 			context.SetResult(variable.Evaluate(context.Request));
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("{0} := {1}", VariableReference, ValueExpression);
+		}
 	}
 }

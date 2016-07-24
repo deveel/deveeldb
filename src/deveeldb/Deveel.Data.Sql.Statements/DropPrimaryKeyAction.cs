@@ -20,18 +20,19 @@ using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class DropPrimaryKeyAction : IAlterTableAction {
+	public sealed class DropPrimaryKeyAction : AlterTableAction {
 		public DropPrimaryKeyAction() {
 		}
 
 		private DropPrimaryKeyAction(SerializationInfo info, StreamingContext context) {
 		}
 
-		AlterTableActionType IAlterTableAction.ActionType {
+		protected override AlterTableActionType ActionType {
 			get { return AlterTableActionType.DropPrimaryKey; }
 		}
 
-		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("DROP PRIMARY KEY");
 		}
 	}
 }

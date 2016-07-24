@@ -42,5 +42,9 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			context.Raise(ExceptionName);
 		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.AppendFormat("RAISE {0}", ExceptionName);
+		}
 	}
 }
