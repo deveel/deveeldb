@@ -16,6 +16,15 @@ namespace Deveel.Data.Client {
 			target.Write(Environment.NewLine);
 		}
 
+		public static void Write(this IOutputTarget target, string format, params object[] args) {
+			target.Write(String.Format(format, args));
+		}
+
+		public static void WriteLine(this IOutputTarget target, string format, params object[] args) {
+			target.Write(format, args);
+			target.WriteLine();
+		}
+
 		public static void ResetAttributes(this IOutputTarget target) {
 			target.SetAttribute(OutputAttributes.None);
 		}

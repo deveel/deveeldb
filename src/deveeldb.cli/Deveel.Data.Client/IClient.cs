@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Data;
 
 namespace Deveel.Data.Client {
-	public interface IClient : IDisposable {
+	public interface IClient : IInterruptable, IDisposable {
 		bool IsConnected { get; }
 
 
@@ -10,6 +10,6 @@ namespace Deveel.Data.Client {
 
 		void Disconnect();
 
-		IEnumerable<IResult> ExecuteQuery(string commandText);
+		IDbCommand CreateDbCommand();
 	}
 }

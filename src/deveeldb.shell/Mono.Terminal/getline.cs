@@ -167,7 +167,7 @@ namespace Mono.Terminal {
 		///    When there are multiple results, the result should be the full
 		///    text
 		/// </remarks>
-		public AutoCompleteHandler AutoCompleteEvent;
+		public event AutoCompleteHandler AutoCompleteEvent;
 
 		static Handler[] handlers;
 
