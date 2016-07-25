@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Client {
 	public interface ICompleter {
-		bool CanComplete(CompleteRequest request);
+		IEnumerable<string> Complete(string[] tokens, string currentToken);
 
-		CompleteResult Complete(CompleteRequest request);
+		bool IsComplete(string text);
 	}
 }

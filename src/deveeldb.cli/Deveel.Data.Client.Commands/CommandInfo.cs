@@ -13,6 +13,10 @@ namespace Deveel.Data.Client.Commands {
 
 		public string DisplayName { get; set; }
 
-		public string Description { get; set; }
+		public string ShortDescription { get; set; }
+
+		public string LongDescription { get; set; }
+
+		public string Synopsis { get; set; }
 	}
 }

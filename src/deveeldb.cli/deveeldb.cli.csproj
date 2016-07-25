@@ -41,22 +41,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Client.Commands\CommandBase.cs" />
     <Compile Include="Deveel.Data.Client.Commands\CommandInfo.cs" />
+    <Compile Include="Deveel.Data.Client.Commands\CommandResultCode.cs" />
+    <Compile Include="Deveel.Data.Client.Commands\ICommandEventHandler.cs" />
     <Compile Include="Deveel.Data.Client.Commands\ICommandRegistry.cs" />
-    <Compile Include="Deveel.Data.Client\CompleteRequest.cs" />
-    <Compile Include="Deveel.Data.Client\CompleteResult.cs" />
-    <Compile Include="Deveel.Data.Client\CompletionException.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\CreateTableCommand.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\CommandExecutionResult.cs" />
     <Compile Include="Deveel.Data.Client.Commands\ICommand.cs" />
+    <Compile Include="Deveel.Data.Client.Commands\CommandExtensions.cs" />
     <Compile Include="Deveel.Data.Client\IClient.cs" />
     <Compile Include="Deveel.Data.Client\ICompleter.cs" />
-    <Compile Include="Deveel.Data.Client\IOption.cs" />
-    <Compile Include="Deveel.Data.Client\IOptionRegistry.cs" />
-    <Compile Include="Deveel.Data.Client\IPrintable.cs" />
-    <Compile Include="Deveel.Data.Client\IPrintTarget.cs" />
+    <Compile Include="Deveel.Data.Client\IInterruptable.cs" />
+    <Compile Include="Deveel.Data.Client\IOptionHandler.cs" />
+    <Compile Include="Deveel.Data.Client\IOptions.cs" />
+    <Compile Include="Deveel.Data.Client\IOutputTarget.cs" />
     <Compile Include="Deveel.Data.Client\IResult.cs" />
+    <Compile Include="Deveel.Data.Client\OutputAttributes.cs" />
+    <Compile Include="Deveel.Data.Client\Output.cs" />
+    <Compile Include="Deveel.Data.Client\OutputTargetExtensions.cs" />
+    <Compile Include="Deveel.Data.Client\TextOutputTarget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

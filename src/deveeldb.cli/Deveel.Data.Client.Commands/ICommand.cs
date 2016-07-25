@@ -1,11 +1,13 @@
 ﻿using System;
 
 namespace Deveel.Data.Client.Commands {
-	public interface ICommand {
+	public interface ICommand : IDisposable {
 		CommandInfo CommandInfo { get; }
 
 		bool Matches(string[] tokens);
 
-		CommandExecutionResult Execute(string commandText);
+		CommandResultCode Execute(string commandText, string[] args);
+
+		void Cancel();
 	}
 }
