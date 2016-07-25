@@ -4,16 +4,18 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ABF13AC2-791D-4AAD-AC2D-088A76A1286E}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{227E4FEA-9413-488C-939F-2108D090AED6}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Deveel.Data</RootNamespace>
+    <RootNamespace>deveeldb.cli</RootNamespace>
     <AssemblyName>deveeldb.cli</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -31,35 +34,38 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net35\CommandLine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="DryIoc, Version=2.6.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DryIoc.dll.2.6.3\lib\net35\DryIoc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deveel.Data.Client.Commands\CommandInfo.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\CommandResultCode.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\ICommandEventHandler.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\ICommandRegistry.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\ICommand.cs" />
-    <Compile Include="Deveel.Data.Client.Commands\CommandExtensions.cs" />
-    <Compile Include="Deveel.Data.Client\IClient.cs" />
-    <Compile Include="Deveel.Data.Client\ICompleter.cs" />
-    <Compile Include="Deveel.Data.Client\IInterruptable.cs" />
-    <Compile Include="Deveel.Data.Client\IOptionHandler.cs" />
-    <Compile Include="Deveel.Data.Client\IOptions.cs" />
-    <Compile Include="Deveel.Data.Client\IOutputTarget.cs" />
-    <Compile Include="Deveel.Data.Client\IResult.cs" />
-    <Compile Include="Deveel.Data.Client\OutputAttributes.cs" />
-    <Compile Include="Deveel.Data.Client\Output.cs" />
-    <Compile Include="Deveel.Data.Client\OutputTargetExtensions.cs" />
-    <Compile Include="Deveel.Data.Client\TextOutputTarget.cs" />
+    <Compile Include="Deveel.Data.Client\ConsoleOutputTarget.cs" />
+    <Compile Include="Mono.Terminal\getline.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deveeldb.cli\deveeldb.cli.csproj">
+      <Project>{abf13ac2-791d-4aad-ac2d-088a76a1286e}</Project>
+      <Name>deveeldb.cli</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
