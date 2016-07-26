@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/koo12o4q2ik8isej/branch/master?svg=true)](https://ci.appveyor.com/project/deveel/deveeldb/branch/master)[![Coverage Status](https://coveralls.io/repos/github/deveel/deveeldb/badge.svg?branch=master)](https://coveralls.io/github/deveel/deveeldb?branch=master) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8341/badge.svg)](https://scan.coverity.com/projects/deveel-deveeldb) [![Join the chat! https://gitter.im/deveel/deveeldb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deveel/deveeldb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Slack Status](https://deveeldb-slackin.herokuapp.com/badge.svg)](https://deveeldb-slackin.herokuapp.com/)
+[![Build status][appveyor-image]][appveyor-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Coverity Scan Build Status][coverity-image]][coverity-url] [![Join the chat!][gitter-image]][gitter-url] [![Slack Status][slack-image]][slack-url]
 
 DeveelDB 2.0
 ==========
@@ -95,3 +95,14 @@ The following kind of help is very welcome:
 * **Documentation**: document the code and the project in a way that other users or developers can be helped using DeveelDB or collaborating
 
 If you wish to contribute, please feel free to get in touch with me, dropping an email to `antonello at deveel dot org` or joining the chat on [Gitter](https://gitter.im/deveel/deveeldb)!
+
+[appveyor-image]:https://ci.appveyor.com/api/projects/status/koo12o4q2ik8isej?svg=true
+[appveyor-url]:https://ci.appveyor.com/project/deveel/deveeldb
+[coveralls-url]:https://coveralls.io/r/deveel/deveeldb
+[coveralls-image]:https://coveralls.io/repos/deveel/deveeldb/badge.png
+[coverity-image]:https://scan.coverity.com/projects/8341/badge.svg
+[coverity-url]:https://scan.coverity.com/projects/deveel-deveeldb
+[gitter-image]:https://badges.gitter.im/Join%20Chat.svg
+[gitter-url]:https://gitter.im/deveel/deveeldb
+[slack-image]:https://deveeldb-slackin.herokuapp.com/badge.svg
+[slack-url]:https://deveeldb-slackin.herokuapp.com/

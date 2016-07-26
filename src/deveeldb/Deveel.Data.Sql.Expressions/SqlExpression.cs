@@ -252,11 +252,49 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		private static SqlExpression Parse(string s, IExpressionParser parser) {
+			Exception error;
+			SqlExpression expression;
+			if (!TryParse(s, parser, out expression, out error)) {
+				throw new ExpressionFormatException("Unable to parse the exception.", error);
+			}
+
+			return expression;
+		}
+
+		public static bool TryParse(string s, IExpressionParser parser, out SqlExpression expression) {
+			Exception error;
+			return TryParse(s, parser, out expression, out error);
+		}
+
+		private static bool TryParse(string s, IExpressionParser parser, out SqlExpression expression, out Exception error) {
+			if (parser == null) {
+				expression = null;
+				error = new ArgumentNullException("parser");
+				return false;
+			}
+
 			try {
-				return parser.Parse(s);
+				var result = parser.Parse(s);
+				if (!result.IsValid) {
+					var errors = result.Errors;
+					if (errors.Length == 1) {
+						error = new FormatException(errors[0]);
+					} else {
+						// TODO: aggregate the errors ...
+						error = new FormatException(String.Join(", ", errors));
+					}
+
+					expression = null;
+					return false;
+				}
+
+				expression = result.Expression;
+				error = null;
+				return true;
 			} catch (Exception ex) {
-				throw new SqlExpressionException(ExpressionErrorCodes.CannotParse,
-"Could not parse input expression: see inner exception for details.", ex);
+				error = ex;
+				expression = null;
+				return false;
 			}
 		}
 
@@ -514,7 +552,7 @@ namespace Deveel.Data.Sql.Expressions {
 		#region ExpressionParser
 
 		class ExpressionParser : IExpressionParser {
-			public SqlExpression Parse(string s) {
+			public ExpressionParseResult Parse(string s) {
 				return new PlSqlCompiler().ParseExpression(s);
 			}
 		}

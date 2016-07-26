@@ -17,16 +17,12 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql {
 	/// <summary>
 	///  A database exception that represents a constraint violation.
 	/// </summary>
 	public class ConstraintViolationException : SqlErrorException {
-		public ConstraintViolationException(int errorCode)
-			: this(errorCode, null) {
-		}
-
-		public ConstraintViolationException(int errorCode, string message)
+		internal ConstraintViolationException(int errorCode, string message)
 			: base(errorCode, message) {
 		}
 	}

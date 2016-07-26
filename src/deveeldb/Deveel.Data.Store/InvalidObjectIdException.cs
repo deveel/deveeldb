@@ -18,13 +18,13 @@
 using System;
 
 namespace Deveel.Data.Store {
-	public sealed class InvalidObjectIdException : DataStorageException {
+	public sealed class InvalidObjectIdException : StorageException {
 		public InvalidObjectIdException(ObjectId id)
 			: this(id, String.Format("The given object reference {0} is invalid.", id)) {
 		}
 
 		public InvalidObjectIdException(ObjectId id, string message)
-			: base(StorageErrorCodes.InvalidObjectId, message) {
+			: base(SystemErrorCodes.InvalidObjectId, message) {
 			ObjectId = id;
 		}
 

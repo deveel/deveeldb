@@ -40,7 +40,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		public ErrorException(string message, Exception innerException)
-			: this(SystemErrorCodes.Unknown, message, innerException) {
+			: this(SystemErrorCodes.UnknownSystemError, message, innerException) {
 		}
 
 		public ErrorException(int errorCode, string message, Exception innerException)
@@ -61,6 +61,10 @@ namespace Deveel.Data.Diagnostics {
 			get { return ErrorLevel.Error; }
 		}
 
+		public override string Message {
+			get { return String.Format("[DVL-{0}] - {1}", ErrorCode, base.Message); }
+		}
+
 		/// <summary>
 		/// Transforms the error to an event to be passed to the diagnostics,
 		/// given a source where this was generated.
@@ -70,7 +74,7 @@ namespace Deveel.Data.Diagnostics {
 		/// Returns an instance of <see cref="ErrorEvent"/> that encapsulates all the information
 		/// about this exception, that can be routed to the diagnostics.
 		/// </returns>
-		public ErrorEvent AsEvent(IEventSource source) {
+		public ErrorEvent AsEvent(IEventSource source = null) {
 			var e = new ErrorEvent(this, ErrorCode, ErrorLevel);
 
 			if (source != null)

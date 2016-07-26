@@ -132,11 +132,6 @@ namespace Deveel.Data.Transactions {
 			TableManager.AddInternalTables(new TransactionTableContainer(this));
 		}
 
-		private void AssertNotReadOnly() {
-			if (this.ReadOnly())
-				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
-		}
-
 		private void CheckAccess(ILockable[] lockables, AccessType accessType) {
 			if (lockHandles == null || lockables == null)
 				return;
