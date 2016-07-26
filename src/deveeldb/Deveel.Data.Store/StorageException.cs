@@ -21,28 +21,28 @@ using Deveel.Data;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Store {
-	public class DataStorageException : ErrorException {
-		public DataStorageException(int errorCode) 
+	public class StorageException : ErrorException {
+		public StorageException(int errorCode) 
 			: this(errorCode, null) {
 		}
 
-		public DataStorageException(int errorCode, string message) 
+		public StorageException(int errorCode, string message) 
 			: this(errorCode, message, null) {
 		}
 
-		public DataStorageException() 
+		public StorageException() 
 			: this(null) {
 		}
 
-		public DataStorageException(string message) 
+		public StorageException(string message) 
 			: this(message, null) {
 		}
 
-		public DataStorageException(string message, Exception innerException) 
-			: this(StorageErrorCodes.Unknown, message, innerException) {
+		public StorageException(string message, Exception innerException) 
+			: this(SystemErrorCodes.UnknownStorageError, message, innerException) {
 		}
 
-		public DataStorageException(int errorCode, string message, Exception innerException) 
+		public StorageException(int errorCode, string message, Exception innerException) 
 			: base(errorCode, message, innerException) {
 		}
 	}

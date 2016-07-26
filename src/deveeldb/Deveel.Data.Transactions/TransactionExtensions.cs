@@ -36,7 +36,7 @@ namespace Deveel.Data.Transactions {
 	public static class TransactionExtensions {
 		private static void AssertNotReadOnly(this ITransaction transaction) {
 			if (transaction.ReadOnly())
-				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
+				throw new ReadOnlyTransactionException(transaction.CommitId);
 		}
 
 		public static IEventSource AsEventSource(this ITransaction transaction) {

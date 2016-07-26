@@ -20,6 +20,11 @@ using System;
 using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data.Sql {
+	/// <summary>
+	/// An error thrown during the execution of a SQL statement
+	/// that violates the model.
+	/// </summary>
+	/// <seealso cref="ErrorException" />
 	public class SqlErrorException : ErrorException {
 		public SqlErrorException(int errorCode) 
 			: base(errorCode) {

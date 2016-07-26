@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
@@ -142,14 +143,19 @@ namespace Deveel.Data.Sql.Compile {
 			}
 		}
 
-		public SqlExpression ParseExpression(string text) {
+		public ExpressionParseResult ParseExpression(string text) {
 			SetInput(text);
 			//var plSqlParser = MakeParser(text, null);
 			var parseResult = plSqlParser.expressionUnit();
 
 			var visitor = new SqlExpressionVisitor();
 			var result = visitor.Visit(parseResult);
-			return result;
+
+			var errors = messages.Where(x => x.Level == CompileMessageLevel.Error).Select(x => x.Text).ToArray();
+			if (errors.Length > 0)
+				return new ExpressionParseResult(errors);
+
+			return new ExpressionParseResult(result);
 		}
 
 		public DataTypeInfo ParseDataType(string s) {
