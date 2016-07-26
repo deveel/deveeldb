@@ -116,7 +116,7 @@ namespace Deveel.Data.Deveel.Data {
 		public void DropReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table1");
 
-			Assert.Throws<ConstraintViolationException>(() => Query.DropTable(tableName));
+			Assert.Throws<DropTableViolationException>(() => Query.DropTable(tableName));
 
 			var exists = Query.Session.Access().TableExists(tableName);
 			Assert.IsTrue(exists);

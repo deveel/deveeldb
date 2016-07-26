@@ -63,13 +63,10 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterTableStatement(TableName, action);
 		}
 
-		private static void CheckColumnConstraint(string columnName, string[] columns, ObjectName table, string constraintName) {
+		private void CheckColumnConstraint(string columnName, string[] columns, ObjectName table, string constraintName) {
 			foreach (string column in columns) {
 				if (columnName.Equals(column)) {
-					throw new ConstraintViolationException(SqlModelErrorCodes.DropColumnViolation,
-							  "Constraint violation (" + constraintName +
-							  ") dropping column " + columnName + " because of " +
-							  "referential constraint in " + table);
+					throw new DropColumnViolationException(TableName, columnName, constraintName, table);
 				}
 			}
 

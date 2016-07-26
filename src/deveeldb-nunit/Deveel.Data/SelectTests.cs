@@ -224,7 +224,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void LimitToOne() {
-			var result = Execute("SELECT * FRPM test_table", new QueryLimit(1));
+			var result = Execute("SELECT * FROM test_table", new QueryLimit(1));
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);

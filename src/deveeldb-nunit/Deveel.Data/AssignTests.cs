@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
@@ -72,7 +73,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ToConstant() {
-			Assert.Throws<StatementException>(() => Query.Assign("b", SqlExpression.Constant(453)));
+			Assert.Throws<ConstantVariableViolationException>(() => Query.Assign("b", SqlExpression.Constant(453)));
 		}
 	}
 }

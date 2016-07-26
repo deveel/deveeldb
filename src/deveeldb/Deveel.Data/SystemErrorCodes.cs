@@ -19,7 +19,41 @@ using System;
 
 namespace Deveel.Data {
 	public static class SystemErrorCodes {
-		public const int Unknown = 0x001100;
-		public const int ObjectNotFound = 0x0021001;
+		// System errors: 100XXX
+		public const int UnknownSystemError = 100001;
+		public const int ObjectNotFound = 100030;
+		public const int StatementExecutionError = 100041;
+
+		// SQL Model Errors: 101XXX
+		public const int PrimaryKeyViolation = 101011;
+		public const int UniqueKeyViolation = 101012;
+		public const int CheckViolation = 101013;
+		public const int ForeignKeyViolation = 101014;
+		public const int NotNullColumnViolation = 101015;
+		public const int TableDropViolation = 101016;
+		public const int ColumnDropViolation = 101017;
+		public const int TypeDropViolation = 101018;
+
+		public const int NotNullVariableViolation = 101020;
+		public const int ConstantVariableViolation = 101021;
+
+		public const int UnknownExpressionError = 101040;
+		public const int InvalidExpressionFormat = 101041;
+		public const int ExpressionEvaluation = 101042;
+
+		// Transaction Error: 102XXX
+		public const int ReadOnlyTransaction = 102002;
+		public const int DirtySelectInTransaction = 102023;
+		public const int DroppedModifiedObjectConflict = 102031;
+		public const int DuplicateObjectConflict = 102032;
+		public const int NonCommittedConflict = 102033;
+		public const int RowRemoveConflict = 102034;
+
+		// I/O Errors: 501XXX
+		public const int UnknownStorageError = 501101;
+		public const int StorageReadError = 501105;
+
+		public const int ObjectLengthViolation = 501201;
+		public const int InvalidObjectId = 501202;
 	}
 }

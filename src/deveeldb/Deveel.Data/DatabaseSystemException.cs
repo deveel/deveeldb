@@ -55,7 +55,7 @@ namespace Deveel.Data {
 		/// <param name="message"></param>
 		/// <param name="innerException"></param>
 		public DatabaseSystemException(string message, Exception innerException)
-			: this(SystemErrorCodes.Unknown, message, innerException) {
+			: this(SystemErrorCodes.UnknownSystemError, message, innerException) {
 		}
 
 		/// <summary>

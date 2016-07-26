@@ -22,19 +22,12 @@ namespace Deveel.Data.Sql.Expressions {
 	/// An error occurring while evaluating an <see cref="SqlExpression"/>.
 	/// </summary>
 	/// <seealso cref="SqlExpression.Evaluate(Deveel.Data.Sql.Expressions.EvaluateContext)"/>
-	public class ExpressionEvaluateException : SqlExpressionException {
-		/// <summary>
-		/// Constructs a new exception with no detailed message.
-		/// </summary>
-		public ExpressionEvaluateException() 
-			: this("An error occurred while evaluating a SQL Expression.") {
-		}
-
+	public sealed class ExpressionEvaluateException : SqlExpressionException {
 		/// <summary>
 		/// Constructs an exception with a message detailing the error.
 		/// </summary>
 		/// <param name="message">The details message of the exception.</param>
-		public ExpressionEvaluateException(string message) 
+		internal ExpressionEvaluateException(string message) 
 			: this(message, null) {
 		}
 
@@ -44,8 +37,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// </summary>
 		/// <param name="message">The details message of the exception.</param>
 		/// <param name="innerException">The inner error of this exception.</param>
-		public ExpressionEvaluateException(string message, Exception innerException) 
-			: base(ExpressionErrorCodes.EvaluateError, message, innerException) {
+		internal ExpressionEvaluateException(string message, Exception innerException) 
+			: base(SystemErrorCodes.ExpressionEvaluation, message, innerException) {
 		}
 	}
 }

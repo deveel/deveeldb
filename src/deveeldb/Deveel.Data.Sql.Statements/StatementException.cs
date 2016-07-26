@@ -20,7 +20,7 @@ using System;
 namespace Deveel.Data.Sql.Statements {
 	public class StatementException : SqlErrorException {
 		public StatementException() 
-			: this(SqlModelErrorCodes.StatementExecute) {
+			: this(SystemErrorCodes.StatementExecutionError) {
 		}
 
 		public StatementException(int errorCode) 
@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public StatementException(string message) 
-			: this(SqlModelErrorCodes.StatementExecute, message) {
+			: this(SystemErrorCodes.StatementExecutionError, message) {
 		}
 
 		public StatementException(int errorCode, string message) 
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public StatementException(string message, Exception innerException) 
-			: this(SqlModelErrorCodes.StatementExecute, message, innerException) {
+			: this(SystemErrorCodes.StatementExecutionError, message, innerException) {
 		}
 
 		public StatementException(int errorCode, string message, Exception innerException) 

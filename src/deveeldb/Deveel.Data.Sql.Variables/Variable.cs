@@ -85,15 +85,15 @@ namespace Deveel.Data.Sql.Variables {
 				throw new ArgumentNullException("expression");
 
 			if (IsConstant)
-				throw new InvalidOperationException(String.Format("The variable '{0}' is constant and cannot be assigned.", Name));
+				throw new ConstantVariableViolationException(Name);
 
 			Expression = expression;
 		}
 
 		public void SetValue(Field value) {
-			if (!IsNotNull && 
-				(value.IsNull || Field.IsNullField(value)))
-				throw new ArgumentException(String.Format("The variable '{0}' cannot be assigned to NULL", Name));
+			if (!IsNotNull &&
+			    (value.IsNull || Field.IsNullField(value)))
+				throw new NotNullVariableViolationException(Name);
 
 			if (!Type.Equals(value.Type)) {
 				if (!value.Type.CanCastTo(Type))

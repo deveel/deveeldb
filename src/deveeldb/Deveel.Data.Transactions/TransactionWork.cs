@@ -106,17 +106,13 @@ namespace Deveel.Data.Transactions {
 					if (journalsSince.Any()) {
 						// Yes, there are changes so generate transaction error and
 						// rollback.
-						throw new TransactionException(
-							TransactionErrorCodes.DirtySelect,
-							"Concurrent Serializable Transaction Conflict(4): " +
-							"Select from table that has committed changes: " +
-							selectedTable.TableName);
+						throw new DirtySelectException(selectedTable.TableName);
 					}
 				}
 			}
 		}
 
-		internal void CheckConflicts(IEnumerable<TransactionObjectState> namespaceJournals) {
+		private void CheckConflicts(IEnumerable<TransactionObjectState> namespaceJournals) {
 			AssertNoDirtySelect();
 
 			// Check there isn't a namespace clash with database objects.
@@ -134,13 +130,13 @@ namespace Deveel.Data.Transactions {
 			// The list of all dropped objects since this transaction
 			// began.
 			bool conflict5 = false;
-			object conflictName = null;
+			ObjectName conflictName = null;
 			string conflictDesc = "";
 			foreach (ObjectName droppedOb in allDroppedObs) {
 				if (ObjectsDropped.Contains(droppedOb)) {
 					conflict5 = true;
 					conflictName = droppedOb;
-					conflictDesc = "Drop Clash";
+					conflictDesc = "dropped";
 				}
 			}
 			// The list of all created objects since this transaction
@@ -149,16 +145,12 @@ namespace Deveel.Data.Transactions {
 				if (ObjectsCreated.Contains(createdOb)) {
 					conflict5 = true;
 					conflictName = createdOb;
-					conflictDesc = "Create Clash";
+					conflictDesc = "created";
 				}
 			}
 			if (conflict5) {
 				// Namespace conflict...
-				throw new TransactionException(
-					TransactionErrorCodes.DuplicateTable,
-					"Concurrent Serializable Transaction Conflict(5): " +
-					"Namespace conflict: " + conflictName + " " +
-					conflictDesc);
+				throw new ObjectDuplicatedConflictException(conflictName, conflictDesc);
 			}
 
 			// For each journal,
@@ -174,10 +166,7 @@ namespace Deveel.Data.Transactions {
 				// Check this table is still in the committed tables list.
 				if (!CreatedTables.Contains(tableId) && !committedResource) {
 					// This table is no longer a committed table, so rollback
-					throw new TransactionException(
-						TransactionErrorCodes.TableDropped,
-						"Concurrent Serializable Transaction Conflict(2): " +
-						"Table altered/dropped: " + master.TableName);
+					throw new NonCommittedConflictException(master.TableName);
 				}
 
 				// Since this journal was created, check to see if any changes to the
@@ -202,10 +191,7 @@ namespace Deveel.Data.Transactions {
 				// Any journal entries made to this dropped table?
 				if (master.FindChangesSinceCmmit(CommitId).Any()) {
 					// Oops, yes, rollback!
-					throw new TransactionException(
-						TransactionErrorCodes.TableRemoveClash,
-						"Concurrent Serializable Transaction Conflict(3): " +
-						"Dropped table has modifications: " + master.TableName);
+					throw new DroppedModifiedObjectConflictException(master.TableName);
 				}
 			}
 		}
