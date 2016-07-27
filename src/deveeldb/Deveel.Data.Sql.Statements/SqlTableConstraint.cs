@@ -38,6 +38,9 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public SqlTableConstraint(string constraintName, ConstraintType constraintType, string[] columns) {
+			if (columns == null)
+				columns = new string[0];
+
 			ConstraintName = constraintName;
 			ConstraintType = constraintType;
 			Columns = columns;
@@ -91,7 +94,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		public static SqlTableConstraint Check(string constraintName, SqlExpression expression) {
-			return new SqlTableConstraint(constraintName, ConstraintType.Check, null) {
+			return new SqlTableConstraint(constraintName, ConstraintType.Check, new string[0]) {
 				CheckExpression = expression
 			};
 		}

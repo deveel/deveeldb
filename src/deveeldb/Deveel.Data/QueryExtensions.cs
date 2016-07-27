@@ -208,12 +208,32 @@ namespace Deveel.Data {
 			query.AlterTable(tableName, new AddConstraintAction(constraint));
 		}
 
+		public static void AddCheck(this IQuery query, ObjectName tableName, SqlExpression checkExpression) {
+			AddCheck(query, tableName, null, checkExpression);
+		}
+
+		public static void AddCheck(this IQuery query, ObjectName tableName, string constraintName, SqlExpression checkExpression) {
+			query.AddConstraint(tableName, SqlTableConstraint.Check(constraintName, checkExpression));
+		}
+
 		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, params string[] columnNames) {
 			query.AddPrimaryKey(tableName, null, columnNames);
 		}
 
 		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, string constraintName, params string[] columnNames) {
 			query.AddConstraint(tableName, SqlTableConstraint.PrimaryKey(constraintName, columnNames));
+		}
+
+		public static void AddForeignKey(this IQuery query, ObjectName tableName, string[] columnNames,
+			ObjectName foreignTableName, string[] foreignColumns, ForeignKeyAction onDelete, ForeignKeyAction onUpdate) {
+			AddForeignKey(query, tableName, null, columnNames, foreignTableName, foreignColumns, onDelete, onUpdate);
+		}
+
+		public static void AddForeignKey(this IQuery query, ObjectName tableName, string constraintName, string[] columnNames,
+			ObjectName foreignTableName, string[] foreignColumns, ForeignKeyAction onDelete, ForeignKeyAction onUpdate) {
+			query.AddConstraint(tableName,
+				SqlTableConstraint.ForeignKey(constraintName, columnNames, foreignTableName.FullName, foreignColumns, onDelete,
+					onUpdate));
 		}
 
 		public static void DropPrimaryKey(this IQuery query, ObjectName tableName) {

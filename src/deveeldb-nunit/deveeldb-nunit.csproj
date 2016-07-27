@@ -182,6 +182,7 @@
     <Compile Include="Deveel.Data\AssignTests.cs" />
     <Compile Include="Deveel.Data\CallTests.cs" />
     <Compile Include="Deveel.Data\CloseTests.cs" />
+    <Compile Include="Deveel.Data\CommitTests.cs" />
     <Compile Include="Deveel.Data\ConditionalTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\ConversionFunctionTests.cs" />

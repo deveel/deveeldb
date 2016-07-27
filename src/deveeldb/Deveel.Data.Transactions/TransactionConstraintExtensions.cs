@@ -520,7 +520,7 @@ namespace Deveel.Data.Transactions {
 								var b = ob.AsBoolean();
 
 								if (!b.IsNull) {
-									if (b) {
+									if (!((SqlBoolean)b.Value)) {
 										// Evaluated to false so don't allow this row to be added.
 										throw new CheckViolationException(tableName, check.ConstraintName, check.CheckExpression, deferred);
 									}

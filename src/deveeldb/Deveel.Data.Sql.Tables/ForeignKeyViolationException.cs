@@ -8,8 +8,8 @@ namespace Deveel.Data.Sql.Tables {
 			TableName = tableName;
 			ConstraintName = constraintName;
 			ColumnNames = columnNames;
-			ReferencedTableName = refTableName;
-			ReferencedColumnNames = refColumnNames;
+			LinkedTableName = refTableName;
+			LinkedColumnNames = refColumnNames;
 			Deferrability = deferrability;
 		}
 
@@ -19,9 +19,9 @@ namespace Deveel.Data.Sql.Tables {
 
 		public string[] ColumnNames { get; private set; }
 
-		public ObjectName ReferencedTableName { get; private set; }
+		public ObjectName LinkedTableName { get; private set; }
 
-		public string[] ReferencedColumnNames { get; private set; }
+		public string[] LinkedColumnNames { get; private set; }
 
 		public ConstraintDeferrability Deferrability { get; private set; }
 
