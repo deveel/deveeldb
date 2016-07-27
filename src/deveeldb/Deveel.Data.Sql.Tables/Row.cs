@@ -357,7 +357,7 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var columnType = Table.TableInfo[columnOffset].ColumnType;
-			SetValue(columnOffset, new Field(columnType, null));
+			SetValue(columnOffset, Field.Null(columnType));
 		}
 
 		/// <summary>

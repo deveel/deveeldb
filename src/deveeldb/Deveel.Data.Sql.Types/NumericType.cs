@@ -642,7 +642,7 @@ namespace Deveel.Data.Sql.Types {
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
-			if (obj is SqlNull) {
+			if (obj is SqlNull || obj == null) {
 				writer.Write((byte)0);
 			} else {
 				var number = (SqlNumber) obj;
@@ -692,7 +692,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		internal override int ColumnSizeOf(ISqlObject obj) {
-			if (obj is SqlNull)
+			if (obj is SqlNull || obj == null)
 				return 1;
 
 			if (!(obj is SqlNumber))

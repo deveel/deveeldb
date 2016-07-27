@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -32,8 +33,9 @@ namespace Deveel.Data {
 			return true;
 		}
 
-		private void CreateTestTable(string textName, IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+		private void CreateTestTable(string testName, IQuery query) {
+			var tableName1 = ObjectName.Parse("APP.test_table");
+			var tableInfo = new TableInfo(tableName1);
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
 				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
@@ -42,12 +44,41 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			if (textName.EndsWith("WithLob")) {
+			if (testName.EndsWith("WithLob")) {
 				tableInfo.AddColumn("bio", PrimitiveTypes.Clob());
 			}
 
 			query.Session.Access().CreateTable(tableInfo);
 			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+
+			if (testName.EndsWith("ConstraintCheck") ||
+				testName.EndsWith("Violation")) {
+				tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
+				tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()) {
+					DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)})
+				});
+				if (testName.EndsWith("Violation")) {
+					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+				} else {
+					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), false);
+				}
+
+				tableInfo.AddColumn("dept_no", PrimitiveTypes.Integer());
+
+				query.Access().CreateTable(tableInfo);
+				query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE2");
+
+				if (testName.StartsWith("SetNullOnDelete")) {
+					query.Access()
+						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.SetNull,
+							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+				} else if (testName.StartsWith("CascadeOnDelete")) {
+					query.Access()
+						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.Cascade,
+							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+				}
+			}
 		}
 
 		private void InsertTestData(string testName, IQuery query) {
@@ -72,6 +103,16 @@ namespace Deveel.Data {
 			row.SetValue("active", Field.BooleanFalse);
 			row.SetDefault(query);
 			table.AddRow(row);
+
+			if (testName.EndsWith("Violation") ||
+			    testName.EndsWith("ConstraintCheck")) {
+				table = query.Access().GetMutableTable(ObjectName.Parse("APP.test_table2"));
+				row = table.NewRow();
+				row.SetValue("person_id", Field.Integer(1));
+				row.SetValue("dept_no", Field.Integer(45));
+				row.SetDefault(query);
+				table.AddRow(row);
+			}
 		}
 
 		private SqlLongString CreateClobData(IQuery query) {
@@ -128,6 +169,38 @@ namespace Deveel.Data {
 			var table = query.Access().GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
+		}
+
+		[Test]
+		public void SetNullOnDeleteConstraintCheck() {
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
+
+			var count = query.Delete(tableName, expr);
+			query.Commit();
+
+			Assert.AreEqual(2, count);
+
+			query = CreateQuery(CreateAdminSession(Database));
+
+			var linkedTable = query.Access().GetTable(ObjectName.Parse("APP.test_table2"));
+			var rows = linkedTable.GetIndex(0).SelectEqual(Field.Integer(1));
+			var value = linkedTable.GetValue(rows.First(), 1);
+
+			Assert.IsTrue(Field.IsNullField(value));
+		}
+
+		[Test]
+		public void SetNullOnDeleteViolation() {
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
+
+			query.Delete(tableName, expr);
+			Assert.Throws<ConstraintViolationException>(() => query.Commit());
 		}
 	}
 }
