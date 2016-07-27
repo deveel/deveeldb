@@ -25,6 +25,7 @@ using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
@@ -48,6 +49,10 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return sequence;
+		}
+
+		public override SqlStatement VisitNullStatement(PlSqlParser.NullStatementContext context) {
+			return new NullStatement();
 		}
 
 		public override SqlStatement VisitCreateSchemaStatement(PlSqlParser.CreateSchemaStatementContext context) {
@@ -77,7 +82,6 @@ namespace Deveel.Data.Sql.Compile {
 			var orReplace = context.OR() != null && context.REPLACE() != null;
 
 			var simpleDml = context.simpleDmlTrigger();
-			var nonDml = context.nonDmlTrigger();
 
 			ObjectName onObject = null;
 			TriggerEventType eventType = new TriggerEventType();
@@ -112,8 +116,6 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				onObject = Name.Object(simpleDml.dmlEventClause().objectName());
-			} else if (nonDml != null) {
-				throw new NotSupportedException();
 			}
 
 			var triggerBody = context.triggerBody();

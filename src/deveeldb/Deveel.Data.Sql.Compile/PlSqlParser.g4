@@ -565,7 +565,7 @@ loopStatement
 
 cursorLoopParam	
     : id IN REVERSE? lowerBound DOUBLE_PERIOD upperBound
-    | record_name IN ( cursor_name expression_list? | '(' selectStatement ')')
+    | id IN ( cursor_name expression_list? | '(' selectStatement ')')
     ;
 
 // $>
@@ -580,7 +580,7 @@ upperBound
     ;
 
 nullStatement
-    : NULL
+    : NULL SEMICOLON?
     ;
 
 raiseStatement
@@ -722,13 +722,13 @@ triggerRenameAction
 
 createTriggerStatement
     : CREATE ( OR REPLACE )? TRIGGER objectName
-    (simpleDmlTrigger | nonDmlTrigger)
+    (simpleDmlTrigger)
     (ENABLE | DISABLE)? triggerWhenClause? triggerBody SEMICOLON?
     ;
 
 createCallbackTriggerStatement
     : CREATE ( OR REPLACE )? CALLBACK TRIGGER id
-	   (simpleDmlTrigger | nonDmlTrigger) SEMICOLON?
+	   (simpleDmlTrigger ) SEMICOLON?
 	;
 
 triggerWhenClause
@@ -744,10 +744,6 @@ forEachRow
     : FOR EACH ROW
     ;
 
-nonDmlTrigger
-    : (BEFORE | AFTER) non_dml_event (OR non_dml_event)* ON (DATABASE | (schema_name '.')? SCHEMA)
-    ;
-
 triggerBody
     : CALL objectName function_argument?
     | triggerBlock
@@ -755,21 +751,6 @@ triggerBody
 
 triggerBlock
     : (DECLARE? declaration+)? body
-    ;
-
-non_dml_event
-    : ALTER
-    | CREATE
-    | DROP
-    | GRANT
-    | NOAUDIT
-    | REVOKE
-    | TRUNCATE
-    | STARTUP
-    | SHUTDOWN
-    | SUSPEND
-    | DATABASE
-    | SCHEMA
     ;
 
 dmlEventClause
@@ -1010,7 +991,6 @@ likeEscapePart
 inElements
     : '(' subquery ')' #InSubquery
     | '(' concatenationWrapper (',' concatenationWrapper)* ')' #InArray
-    | constant #InConstant
     | bind_variable #InVariable
     | general_element #InElement
     ;
@@ -1032,21 +1012,12 @@ additiveOperator
 	;
 
 multiplyExpression
-    : datetimeExpression (multiplyOperator datetimeExpression)*
+    : unaryExpression (multiplyOperator unaryExpression)*
     ;
 
 multiplyOperator
     : ( '*' | '/' )
 	;
-
-datetimeExpression
-    : unaryExpression (AT (LOCAL | TIME ZONE concatenationWrapper) | interval_expression)?
-    ;
-
-interval_expression
-    : DAY ('(' concatenationWrapper ')')? TO SECOND ('(' concatenationWrapper ')')? #DayToSecondExpression
-    | YEAR ('(' concatenationWrapper ')')? TO MONTH #YearToMonthExpression
-    ;
 
 unaryExpression
     : unaryplusExpression
@@ -1292,11 +1263,6 @@ cursor_name
     | bind_variable
     ;
 
-record_name
-    : id
-    | bind_variable
-    ;
-
 exception_name
     : id 
     ;
@@ -1324,7 +1290,7 @@ constant
       ('(' (UNSIGNED_INTEGER | bind_variable) (',' (UNSIGNED_INTEGER | bind_variable) )? ')')?
       (TO ( DAY | HOUR | MINUTE | SECOND ('(' (UNSIGNED_INTEGER | bind_variable) ')')?))? #IntervalConstant
     | numeric #ConstantNumeric
-    | DATE quoted_string #DateConstant
+    | DATE quoted_string #DateImplicitConvert
     | quoted_string #ConstantString
     | NULL #ConstantNull
     | TRUE #ConstantTrue
@@ -1371,10 +1337,6 @@ lessThanOrEquals
 concat
     : '||'
     | '|' '|'
-    ;
-
-outer_join_sign
-    : '(' '+' ')'
     ;
 
 regular_id

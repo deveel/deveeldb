@@ -267,8 +267,197 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void InnerJoin() {
+			const string sql = "SELECT a.*, b.two FROM table1 AS a INNER JOIN table2 b ON a.id = b.a_id";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void LeftOuterJoin() {
+			const string sql = "SELECT a.*, b.two FROM table1 AS a LEFT OUTER JOIN table2 b ON a.id <> b.a_id";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void InVarRef() {
+			const string sql = "SELECT * FROM test WHERE test.a IN :aList";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void InFunction() {
+			const string sql = "SELECT * FROM test WHERE test.a IN remList()";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
 		public void SelectConcatOperator() {
 			const string sql = "SELECT a || b FROM table1 WHERE id > 2";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void Constant_CurrentSessionTimeZone() {
+			const string sql = "SELECT SESSION_TIMEZONE";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void MinValueFromSequence() {
+			const string sql = "SELECT MINVALUE FROM seq1";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void MaxValueFromSequence() {
+			const string sql = "SELECT MAXVALUE FROM seq1";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void DbTimeZone() {
+			const string sql = "SELECT DB_TIMEZONE";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+
+			var queryExpression = selectStatement.QueryExpression;
+		}
+
+		[Test]
+		public void SelectDateImplicitFunction() {
+			const string sql = "SELECT DATE '2015-09-22'";
 
 			var result = Compile(sql);
 			Assert.IsNotNull(result);

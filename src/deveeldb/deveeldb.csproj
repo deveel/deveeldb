@@ -275,6 +275,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\IStatementPreparable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopBreakChecker.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\NullStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokeRoleStatement.cs" />

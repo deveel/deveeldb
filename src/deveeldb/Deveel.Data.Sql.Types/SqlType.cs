@@ -402,7 +402,7 @@ namespace Deveel.Data.Sql.Types {
 					parser = context.ResolveService<IDataTypeParser>();
 
 				if (parser == null)
-					parser = new DefaultDataTypeParser();
+					parser = DataTypeInfo.DefaultParser;
 
 				var info = parser.Parse(s);
 
@@ -420,16 +420,6 @@ namespace Deveel.Data.Sql.Types {
 				throw new FormatException(String.Format("Unable to parse the string '{0}' to a valid data type.", s), ex);
 			}
 		}
-
-		#region DefaultDataTypeParser
-
-		class DefaultDataTypeParser : IDataTypeParser {
-			public DataTypeInfo Parse(string s) {
-				return new PlSqlCompiler().ParseDataType(s);
-			}
-		}
-
-		#endregion
 
 		/// <inheritdoc/>
 		public virtual int Compare(ISqlObject x, ISqlObject y) {

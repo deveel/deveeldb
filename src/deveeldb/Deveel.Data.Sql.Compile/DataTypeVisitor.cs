@@ -43,10 +43,10 @@ namespace Deveel.Data.Sql.Compile {
 			var name = Name.Object(context.objectName());
 			var args = context.type_argument();
 			if (args != null && args.type_argument_spec().Length > 0) {
-				// TODO:
+				throw new NotSupportedException("Arguments to user-defined type are not supported yet.");
 			}
 
-			return base.VisitUserDataType(context);
+			return new DataTypeInfo(name.FullName);
 		}
 
 		public override DataTypeInfo VisitInteger_type(PlSqlParser.Integer_typeContext context) {
