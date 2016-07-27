@@ -167,6 +167,29 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void WithAnonConstraint() {
+			const string sql = "CREATE TABLE test (id INT NOT NULL, UNIQUE(id))";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(2, result.Statements.Count);
+
+			Assert.IsInstanceOf<CreateTableStatement>(result.Statements.ElementAt(0));
+			Assert.IsInstanceOf<AlterTableStatement>(result.Statements.ElementAt(1));
+
+			var statement = (CreateTableStatement)result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateTableStatement>(statement);
+
+			var createTable = (CreateTableStatement)statement;
+
+			Assert.IsNotNull(createTable.TableName);
+			Assert.AreEqual("test", createTable.TableName.Name);
+		}
+
+		[Test]
 		public void WithColumnConstraints() {
 			const string sql = "CREATE TABLE test (id INT NOT NULL PRIMARY KEY, name VARCHAR NOT NULL)";
 

@@ -173,7 +173,7 @@ columnConstraint
 	;
 
 tableConstraint
-    : CONSTRAINT? id
+    : CONSTRAINT? id?
 	   ( primaryKeyConstraint | uniqueKeyConstraint | checkConstraint | foreignKeyConstraint)
 	;
 
@@ -190,8 +190,24 @@ checkConstraint
 	;
 
 foreignKeyConstraint
-    : FOREIGN KEY? '(' columns=columnList ')' REFERENCES objectName '(' refColumns=columnList ')'
+    : FOREIGN KEY? '(' columns=columnList ')' REFERENCES objectName '(' refColumns=columnList ')'(referentialAction)*
 	;
+
+referentialAction
+   : (onDelete | onUpdate)
+   ;
+
+onDelete
+   : ON DELETE referentialActionType
+   ;
+
+onUpdate
+   : ON UPDATE referentialActionType
+   ;
+
+referentialActionType
+   : (CASCADE | (SET NULL) | (SET DEFAULT) | (NO ACTION))
+   ;
 
 columnIndex
     : INDEX ( BLIST | NONE | id | CHAR_STRING )
@@ -1365,6 +1381,8 @@ regular_id
     : REGULAR_ID
     | A_LETTER
 	| ABSOLUTE
+	| ACTION
+	| ACCOUNT
     | ADD
 	| ADMIN
     | AFTER
