@@ -215,6 +215,8 @@ namespace Deveel.Data.Sql.Statements {
 
 					newConstraint.ForeignTable = refTname;
 					newConstraint.ForeignColumnNames = refCols.ToArray();
+					newConstraint.OnDelete = constraint.OnDelete;
+					newConstraint.OnUpdate = constraint.OnUpdate;
 				}
 
 				if (constraint.ConstraintType == ConstraintType.Check)

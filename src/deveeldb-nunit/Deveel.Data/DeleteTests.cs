@@ -59,7 +59,7 @@ namespace Deveel.Data {
 						new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)})
 				});
 				if (testName.EndsWith("Violation")) {
-					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
 				} else {
 					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), false);
 				}
@@ -124,6 +124,13 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.Access().DropAllTableConstraints(tableName);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+			if (testName.EndsWith("Violation") ||
+			    testName.EndsWith("ConstraintCheck")) {
+				tableName = ObjectName.Parse("APP.test_table2");
+				query.Access().DropAllTableConstraints(tableName);
+				query.Access().DropObject(DbObjectType.Table, tableName);
+			}
+
 			return true;
 		}
 
@@ -190,17 +197,6 @@ namespace Deveel.Data {
 			var value = linkedTable.GetValue(rows.First(), 1);
 
 			Assert.IsTrue(Field.IsNullField(value));
-		}
-
-		[Test]
-		public void SetNullOnDeleteViolation() {
-			var query = CreateQuery(CreateAdminSession(Database));
-
-			var tableName = ObjectName.Parse("APP.test_table");
-			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
-
-			query.Delete(tableName, expr);
-			Assert.Throws<ConstraintViolationException>(() => query.Commit());
 		}
 	}
 }

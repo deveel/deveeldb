@@ -41,7 +41,12 @@ namespace Deveel.Data {
 			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
-			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			if (testName.Equals("SetNullOnDeleteViolation")) {
+				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
+			} else {
+				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			}
+
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
 			query.Access().CreateTable(tableInfo);
@@ -56,7 +61,8 @@ namespace Deveel.Data {
 		}
 
 		protected override void AssertNoErrors(string testName) {
-			if (!testName.Equals("DropReferencedColumn"))
+			if (!testName.Equals("DropReferencedColumn") &&
+				!testName.EndsWith("Violation"))
 				base.AssertNoErrors(testName);
 		}
 
@@ -179,6 +185,16 @@ namespace Deveel.Data {
 				.And.TypeOf<DropColumnViolationException>();
 
 			Assert.Throws(expected, () => Query.DropColumn(tableName, "person_id"));
+		}
+
+		[Test]
+		public void SetNullOnDeleteViolation() {
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<NotNullColumnViolationException>()
+				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table2"))
+				.And.Property("ColumnName").EqualTo("person_id");
+			Assert.Throws(expected, () => Query.AddForeignKey(ObjectName.Parse("test_table2"), new[] {"person_id"}, ObjectName.Parse("test_table"),
+					new[] {"id"}, ForeignKeyAction.SetNull, ForeignKeyAction.NoAction));
 		}
 	}
 }

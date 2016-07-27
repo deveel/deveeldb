@@ -81,7 +81,9 @@ namespace Deveel.Data.Sql.Statements {
 			return new SqlTableConstraint(ConstraintName, ConstraintType, Columns) {
 				CheckExpression = checkExpression,
 				ReferenceTable = ReferenceTable,
-				ReferenceColumns = ReferenceColumns
+				ReferenceColumns = ReferenceColumns,
+				OnDelete = OnDelete,
+				OnUpdate = OnUpdate
 			};
 		}
 
