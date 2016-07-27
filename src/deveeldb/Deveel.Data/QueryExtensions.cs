@@ -330,7 +330,7 @@ namespace Deveel.Data {
 		#region Create User
 
 		public static void CreateUser(this IQuery query, string userName, SqlExpression password) {
-			query.ExecuteStatement(new CreateUserStatement(userName, password));
+			query.ExecuteStatement(new CreateUserStatement(userName, new Sql.Statements.SqlUserIdentifier(SqlIdentificationType.Password, password)));
 		}
 
 		public static void CreateUser(this IQuery query, string userName, string password) {

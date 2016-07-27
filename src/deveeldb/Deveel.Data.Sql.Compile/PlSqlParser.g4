@@ -228,7 +228,6 @@ alterTableStatement
 alterTableAction
      : addColumnAction
 	 | setDefaultAction
-	 | alterColumnAction
 	 | dropColumnAction
 	 | addConstraintAction
 	 | dropConstraintAction
@@ -238,10 +237,6 @@ alterTableAction
 
 addColumnAction
     : ADD COLUMN? tableColumn
-	;
-
-alterColumnAction
-    : ALTER COLUMN? tableColumn
 	;
 
 dropColumnAction
@@ -257,7 +252,7 @@ dropConstraintAction
 	;
 
 dropDefaultAction
-    : ALTER COLUMN? id DROP DEFAULT
+    : ALTER COLUMN? columnName DROP DEFAULT
 	; 
 
 dropPrimaryKeyAction
@@ -1137,10 +1132,6 @@ standardFunction
 column_alias
     : AS? (id | alias_quoted_string)
     | AS
-    ;
-
-table_alias
-    : (id | alias_quoted_string)
     ;
 
 alias_quoted_string

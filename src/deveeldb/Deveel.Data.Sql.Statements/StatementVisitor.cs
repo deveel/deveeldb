@@ -462,7 +462,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected virtual SqlStatement VisitCreateUser(CreateUserStatement statement) {
-			return new CreateUserStatement(statement.UserName, statement.Password);
+			return new CreateUserStatement(statement.UserName, statement.Identifier);
 		}
 
 		protected virtual SqlStatement VisitCreateProcedureTrigger(CreateProcedureTriggerStatement statement) {

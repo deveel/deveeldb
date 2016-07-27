@@ -67,7 +67,7 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				if (context.dropDefaultAction() != null) {
-					var columnName = Name.Simple(context.dropDefaultAction().id());
+					var columnName = Name.Simple(context.dropDefaultAction().columnName());
 					return new DropDefaultAction(columnName);
 				}
 
