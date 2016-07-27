@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -20,7 +21,7 @@ namespace Deveel.Data {
 
 		protected override bool OnSetUp(string testName, IQuery query) {
 			if (testName.EndsWith("Violation")) {
-				CreateTables(query);
+				CreateTables(query, testName);
 
 				if (testName.Equals("UniqueKeyViolation") ||
 					testName.Equals("PrimaryKeyViolation")) {
@@ -41,9 +42,18 @@ namespace Deveel.Data {
 			return true;
 		}
 
-		private void CreateTables(IQuery query) {
-			query.CreateTable(new ObjectName("a"), new SqlTableColumn("id", PrimitiveTypes.Integer()),
-				new SqlTableColumn("name", PrimitiveTypes.String()));
+		private void CreateTables(IQuery query, string testsName) {
+			var columns = new List<SqlTableColumn> {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.String())
+			};
+
+			if (testsName.Equals("NotNullColumnViolation"))
+				columns.Add(new SqlTableColumn("age", PrimitiveTypes.Integer()) {
+					IsNotNull = true
+				});
+
+			query.CreateTable(new ObjectName("a"), columns.ToArray());
 			query.AddPrimaryKey(new ObjectName("a"), new []{"id"});
 			query.AddUniqueKey(new ObjectName("a"), new[] {"name"});
 

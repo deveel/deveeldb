@@ -46,6 +46,11 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.Equals("NotNullColumnViolation"))
+				base.AssertNoErrors(testName);
+		}
+
 		private static void CreateTestTable(IQuery query, string testName) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
@@ -54,7 +59,12 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+
+			if (testName.Equals("NotNullColumnViolation")) {
+				tableInfo.AddColumn("active", PrimitiveTypes.Boolean(), true);
+			} else {
+				tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+			}
 
 			if (testName.EndsWith("WithLob")) {
 				tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
@@ -180,6 +190,23 @@ namespace Deveel.Data {
 
 		private SqlLongString CreateBio(string text) {
 			return SqlLongString.Ascii(Query, text);
+		}
+
+		[Test]
+		public void NotNullColumnViolation() {
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<NotNullColumnViolationException>()
+				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table"))
+				.And.Property("ColumnName").EqualTo("active");
+
+			Assert.Throws(expected, () => Query.Insert(new ObjectName("test_table"),
+				new[] { "first_name", "last_name", "birth_date", "active" },
+				new SqlExpression[] {
+				SqlExpression.Constant("Antonello"),
+				SqlExpression.Constant("Provenzano"),
+				SqlExpression.Constant(new SqlDateTime(1980, 06,  04)),
+				SqlExpression.Constant(Field.Null())
+			}));
 		}
 	}
 }

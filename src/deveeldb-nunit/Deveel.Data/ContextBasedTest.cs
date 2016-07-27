@@ -93,7 +93,7 @@ namespace Deveel.Data {
 		}
 
 		protected virtual void OnBeforeTearDown(string testName) {
-			AssertNoErrors();
+			AssertNoErrors(testName);
 		}
 
 		[SetUp]
@@ -168,7 +168,7 @@ namespace Deveel.Data {
 			Session = null;
 		}
 
-		protected void AssertNoErrors() {
+		protected virtual void AssertNoErrors(string testName) {
 			if (errors != null && errors.Count > 0)
 				throw new AggregateException(errors);
 		}

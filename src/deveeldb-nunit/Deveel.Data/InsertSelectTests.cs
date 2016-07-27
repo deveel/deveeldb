@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Data.SqlTypes;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -81,6 +82,5 @@ namespace Deveel.Data {
 			Assert.AreEqual(1, table.RowCount);
 
 		}
-
 	}
 }

@@ -46,12 +46,18 @@ namespace Deveel.Data {
 
 			query.Access().CreateTable(tableInfo);
 
-			if (testName == "DropConstraint") {
+			if (testName == "DropConstraint" ||
+				testName == "DropReferencedColumn") {
 				query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
 					new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
 
 			return true;
+		}
+
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.Equals("DropReferencedColumn"))
+				base.AssertNoErrors(testName);
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -162,6 +168,16 @@ namespace Deveel.Data {
 			var pkey = Query.Session.Access().QueryTablePrimaryKey(tableName);
 
 			Assert.IsNull(pkey);
+		}
+
+		[Test]
+		public void DropReferencedColumn() {
+			var tableName = ObjectName.Parse("APP.test_table2");
+
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<DropColumnViolationException>();
+
+			Assert.Throws(expected, () => Query.DropColumn(tableName, "person_id"));
 		}
 	}
 }
