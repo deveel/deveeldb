@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Sql.Types;
 
@@ -73,6 +74,27 @@ namespace Deveel.Data.Sql.Tables {
 
 			Assert.IsFalse(Field.IsNullField(cellValue));
 			Assert.IsTrue(fieldValue.Equals(cellValue));
+		}
+
+		[TestCase("name", 23, "n_24")]
+		public void EnumerateColumnValues(string columnName, int rowOffset, object expected) {
+			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+
+			var column = table.GetColumn(columnName);
+			Assert.IsNotNull(column);
+			Assert.IsNotNull(column.ColumnInfo);
+			Assert.IsNotNull(column.Table);
+			Assert.IsNotNull(column.Index);
+			Assert.AreEqual(columnName, column.Name);
+
+			var cellValue = column.ElementAt(rowOffset);
+			var fieldValue = new Field(column.Type, column.Type.CreateFrom(expected));
+
+			Assert.IsFalse(Field.IsNullField(cellValue));
+			Assert.IsTrue(fieldValue.Equals(cellValue));
+
 		}
 	}
 }

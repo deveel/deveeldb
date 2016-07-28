@@ -15,17 +15,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
-using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
-using Deveel.Data.Store;
 
 using NUnit.Framework;
 
@@ -88,6 +83,33 @@ namespace Deveel.Data {
 			}
 
 			return true;
+		}
+
+		[Test]
+		public void TwoValues_NoColumnes() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var values = new List<SqlExpression[]> {
+				new SqlExpression[] {
+					SqlExpression.Constant("Antonello"),
+					SqlExpression.Constant("Provenzano"),
+					SqlExpression.Constant(true)
+				},
+				new SqlExpression[] {
+					SqlExpression.Constant("Mart"),
+					SqlExpression.Constant("Roosmaa"),
+					SqlExpression.Constant(false)
+				}
+			};
+
+			var count = Query.Insert(tableName, values.ToArray());
+
+
+			Assert.AreEqual(2, count);
+
+			var table = Query.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.RowCount);
 		}
 
 		[Test]

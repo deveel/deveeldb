@@ -235,6 +235,14 @@ namespace Deveel.Data {
 			var result = Execute("SELECT * FROM test_table", new QueryLimit(1, 2));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
+
+			var first = result.FirstOrDefault();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual(5, first.ColumnCount);
+
+			Assert.AreEqual("Jane", first.GetValue(1).Value.ToString());
+			Assert.AreEqual("Doe", first.GetValue(2).Value.ToString());
 		}
 
 		[Test]
