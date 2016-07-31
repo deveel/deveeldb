@@ -38,7 +38,7 @@ namespace Deveel.Data {
 			var tableInfo = new TableInfo(tableName1);
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
+				new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)});
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
@@ -52,13 +52,17 @@ namespace Deveel.Data {
 			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			if (testName.EndsWith("ConstraintCheck") ||
-				testName.EndsWith("Violation")) {
+			    testName.EndsWith("Violation")) {
 				tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
 				tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()) {
 					DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
 						new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)})
 				});
-				if (testName.EndsWith("Violation")) {
+				if (testName.StartsWith("SetDefault")) {
+					tableInfo.AddColumn(new ColumnInfo("person_id", PrimitiveTypes.Integer()) {
+						DefaultExpression = SqlExpression.Constant(1)
+					});
+				} else if (testName.EndsWith("Violation")) {
 					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
 				} else {
 					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), false);
@@ -69,15 +73,20 @@ namespace Deveel.Data {
 				query.Access().CreateTable(tableInfo);
 				query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE2");
 
+				ForeignKeyAction? onDelete = null;
 				if (testName.StartsWith("SetNullOnDelete")) {
-					query.Access()
-						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.SetNull,
-							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+					onDelete = ForeignKeyAction.SetNull;
+				} else if (testName.StartsWith("SetDefaultOnDelete")) {
+					onDelete = ForeignKeyAction.SetDefault;
 				} else if (testName.StartsWith("CascadeOnDelete")) {
-					query.Access()
-						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.Cascade,
-							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+					onDelete = ForeignKeyAction.Cascade;
 				}
+
+				if (onDelete != null)
+					query.Access()
+						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, onDelete.Value,
+							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+
 			}
 		}
 
@@ -108,7 +117,7 @@ namespace Deveel.Data {
 			    testName.EndsWith("ConstraintCheck")) {
 				table = query.Access().GetMutableTable(ObjectName.Parse("APP.test_table2"));
 				row = table.NewRow();
-				row.SetValue("person_id", Field.Integer(1));
+				row.SetValue("person_id", Field.Integer(2));
 				row.SetValue("dept_no", Field.Integer(45));
 				row.SetDefault(query);
 				table.AddRow(row);
@@ -197,6 +206,27 @@ namespace Deveel.Data {
 			var value = linkedTable.GetValue(rows.First(), 1);
 
 			Assert.IsTrue(Field.IsNullField(value));
+		}
+
+		[Test]
+		public void SetDefaultOnDeleteConstraintCheck() {
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("first_name = 'Sebastiano' AND last_name = 'Provenzano'");
+
+			var count = query.Delete(tableName, expr);
+			query.Commit();
+
+			Assert.AreEqual(1, count);
+
+			query = CreateQuery(CreateAdminSession(Database));
+
+			var linkedTable = query.Access().GetTable(ObjectName.Parse("APP.test_table2"));
+			var rows = linkedTable.GetIndex(0).SelectEqual(Field.Integer(1));
+			var value = linkedTable.GetValue(rows.First(), 1);
+
+			Assert.AreEqual(1, ((SqlNumber)value.Value).ToInt32());
 		}
 	}
 }
