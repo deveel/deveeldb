@@ -200,6 +200,7 @@
     <Compile Include="Deveel.Data.DbSystem\SequenceManagerTests.cs" />
     <Compile Include="Deveel.Data\DeclareCursorTests.cs" />
     <Compile Include="Deveel.Data\DeclareVariableTests.cs" />
+    <Compile Include="Deveel.Data\DeleteCurrentTests.cs" />
     <Compile Include="Deveel.Data\DeleteTests.cs" />
     <Compile Include="Deveel.Data\DropCallbackTriggerTests.cs" />
     <Compile Include="Deveel.Data\DropFunctionTests.cs" />
@@ -267,11 +268,11 @@
     <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
     <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
     <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
-    <Compile Include="Deveel.Data\BooleanObjectTest.cs" />
+    <Compile Include="Deveel.Data.Sql\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NullObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />
     <Compile Include="Deveel.Data\ObjectNameTest.cs" />
-    <Compile Include="Deveel.Data\StringObjectTests.cs" />
+    <Compile Include="Deveel.Data.Sql\StringObjectTests.cs" />
     <Compile Include="Deveel.Data\UpdateTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

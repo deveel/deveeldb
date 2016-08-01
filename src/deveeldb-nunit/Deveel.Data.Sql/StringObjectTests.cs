@@ -15,13 +15,12 @@
 
 using System;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	[TestFixture]
 	[Category("Data Objects")]
 	[Category("Strings")]

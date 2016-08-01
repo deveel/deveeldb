@@ -53,6 +53,22 @@ namespace Deveel.Data {
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual("c1", cursor.CursorInfo.CursorName);
 			Assert.AreEqual(CursorStatus.Open, cursor.Status);
+			Assert.IsNotNull(cursor.Source);
+		}
+
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.EndsWith("Violation"))
+				base.AssertNoErrors(testName);
+		}
+
+		[Test]
+		public void DoubleOpenViolation() {
+			Query.Open("c1");
+
+			var expected = Is.InstanceOf<SqlErrorException>()
+				.And.TypeOf<CursorOpenException>();
+
+			Assert.Throws(expected, () => Query.Open("c1"));
 		}
 	}
 }

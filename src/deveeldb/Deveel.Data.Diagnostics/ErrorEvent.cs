@@ -40,6 +40,13 @@ namespace Deveel.Data.Diagnostics {
 			data["error.level"] = Level.ToString().ToLowerInvariant();
 			data["error.message"] = Error.Message;
 			data["error.stackTrace"] = Error.StackTrace;
+
+			if (Error is ErrorException) {
+				var errorMetadata = ((ErrorException) Error).ExtractMetadata();
+				foreach (var pair in errorMetadata) {
+					data[String.Format("error.{0}", pair.Key)] = pair.Value;
+				}
+			}
 		}
 	}
 }

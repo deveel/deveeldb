@@ -51,7 +51,7 @@ namespace Deveel.Data {
 
 			Query.Access().CreateObject(cursorInfo);
 			var c1 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
-			c1.Open();
+			c1.Open(Query);
 
 			if (testName.StartsWith("FetchInto")) {
 				var query2 = (SqlQueryExpression)SqlExpression.Parse("SELECT a FROM APP.test_table");
@@ -61,7 +61,7 @@ namespace Deveel.Data {
 
 				Query.Access().CreateObject(cursorInfo2);
 				var c2 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c2"));
-				c2.Open();
+				c2.Open(Query);
 
 				Query.Access().CreateObject(new VariableInfo("var1", PrimitiveTypes.BigInt(), false));
 				Query.Access().CreateObject(new VariableInfo("var2", PrimitiveTypes.String(), false));

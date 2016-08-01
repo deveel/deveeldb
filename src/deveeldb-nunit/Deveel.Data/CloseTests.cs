@@ -34,7 +34,7 @@ namespace Deveel.Data.Deveel.Data {
 
 		private static void OpenCursors(IQuery query) {
 			var cursor = (Cursor) query.Access().FindObject(new ObjectName("c1"));
-			cursor.Open();
+			cursor.Open(query);
 		}
 
 		[Test]

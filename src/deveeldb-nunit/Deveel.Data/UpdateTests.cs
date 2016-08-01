@@ -125,7 +125,15 @@ namespace Deveel.Data {
 
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
+			query.Access().DropAllTableConstraints(tableName);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+			if (testName.EndsWith("Violation") ||
+			    testName.EndsWith("ConstraintCheck")) {
+				tableName = ObjectName.Parse("APP.test_table2");
+				query.Access().DropAllTableConstraints(tableName);
+				query.Access().DropObject(DbObjectType.Table, tableName);
+			}
+
 			return true;
 		}
 

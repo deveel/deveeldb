@@ -41,6 +41,16 @@ namespace Deveel.Data {
 		public const int InvalidExpressionFormat = 101041;
 		public const int ExpressionEvaluation = 101042;
 
+		public const int MissingPrimaryKey = 101052;
+
+		public const int CursorGeneralError = 101060;
+		public const int CursorOutOfContext = 101061;
+		public const int CursorFetchError = 101063;
+		public const int CursorOutOfBounds = 101064;
+		public const int CursorOpen = 101065;
+		public const int CursorClosed = 101066;
+		public const int ScrollCursorFetch = 101067;
+
 		// Transaction Error: 102XXX
 		public const int ReadOnlyTransaction = 102002;
 		public const int DirtySelectInTransaction = 102023;

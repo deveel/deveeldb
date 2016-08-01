@@ -29,15 +29,12 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Cursors {
 	public sealed class Cursor : ICursor {
-		internal Cursor(CursorInfo cursorInfo, IRequest context) {
+		internal Cursor(CursorInfo cursorInfo) {
 			if (cursorInfo == null)
 				throw new ArgumentNullException("cursorInfo");
-			if (context == null)
-				throw new ArgumentNullException("context");
 
 			CursorInfo = cursorInfo;
 
-			Context = context;
 			State = new CursorState();
 		}
 
@@ -77,6 +74,16 @@ namespace Deveel.Data.Sql.Cursors {
 				throw new ObjectDisposedException("Cursor");
 		}
 
+		private void AssertNotClosed() {
+			if (Status == CursorStatus.Closed)
+				throw new CursorClosedException(CursorInfo.CursorName);
+		}
+
+		private void AssertNotOpen() {
+			if (Status != CursorStatus.Closed)
+				throw new CursorOpenException(CursorInfo.CursorName);
+		}
+
 		private SqlQueryExpression PrepareQuery(SqlExpression[] args) {
 			SqlQueryExpression query = CursorInfo.QueryExpression;
 			if (CursorInfo.Parameters.Count > 0) {
@@ -103,38 +110,41 @@ namespace Deveel.Data.Sql.Cursors {
 			return result;
 		}
 
-		private ITable Evaluate(SqlExpression[] args, out IList<IDbObject> refs) {
+		private ITable Evaluate(IRequest context, SqlExpression[] args, out IList<IDbObject> refs) {
 			try {
 				var prepared = PrepareQuery(args);
-				var queryPlan = Context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(Context, prepared));
+				var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, prepared));
 				var refNames = queryPlan.DiscoverTableNames();
 
-				refs = refNames.Select(x => Context.Access().FindObject(x)).ToArray();
-				Context.Query.Session.Enter(refs, AccessType.Read);
+				refs = refNames.Select(x => context.Access().FindObject(x)).ToArray();
+				context.Query.Session.Enter(refs, AccessType.Read);
 
 				var tables = refs.Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table).Select(x => x.ObjectInfo.FullName);
 				foreach (var table in tables) {
-					Context.Query.Session.Transaction.GetTableManager().SelectTable(table);
+					context.Query.Session.Transaction.GetTableManager().SelectTable(table);
 				}
 
-				return queryPlan.Evaluate(Context);
-			} catch (Exception) {
-
+				return queryPlan.Evaluate(context);
+			} catch(CursorException) {
 				throw;
+			} catch (Exception ex) {
+				throw new CursorException(CursorInfo.CursorName,ex);
 			}
 		}
 
-		public void Open(params SqlExpression[] args) {
+		public void Open(IRequest request, params SqlExpression[] args) {
 			lock (this) {
 				AssertNotDisposed();
+				AssertNotOpen();
 
 				IList<IDbObject> refs = new List<IDbObject>();
 
 				ITable result = null;
 				if (CursorInfo.IsInsensitive)
-					result = Evaluate(args, out refs);
+					result = Evaluate(request, args, out refs);
 
 				State.Open(refs.ToArray(), result, args);
+				Context = request;
 			}
 		}
 
@@ -156,31 +166,24 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public Row Fetch(FetchDirection direction) {
-			return Fetch(Context, direction);
-		}
-
-		public Row Fetch(IRequest request, FetchDirection direction) {
-			return Fetch(request, direction, -1);
+			return Fetch(direction, -1);
 		}
 
 		public Row Fetch(FetchDirection direction, int offset) {
-			return Fetch(Context, direction, offset);
-		}
-
-		public Row Fetch(IRequest request, FetchDirection direction, int offset) {
 			lock (this) {
+				AssertNotClosed();
+
 				if (!CursorInfo.IsScroll &&
 				    direction != FetchDirection.Next)
-					throw new ArgumentException(String.Format("Cursor '{0}' is not SCROLL: can fetch only NEXT value.",
-						CursorInfo.CursorName));
+					throw new ScrollCursorFetchException(CursorInfo.CursorName);
 
 				var table = State.Result;
 				if (!CursorInfo.IsInsensitive) {
-					if (request == null)
-						throw new ArgumentNullException("request", String.Format("The sensitive cursor '{0}' requires an active context.", CursorInfo.CursorName));
+					if (Context == null)
+						throw new CursorOutOfContextException(CursorInfo.CursorName);
 
 					IList<IDbObject> refs;
-					table = Evaluate(State.OpenArguments, out refs);
+					table = Evaluate(Context, State.OpenArguments, out refs);
 				}
 
 				return State.FetchRowFrom(table, direction, offset);
@@ -191,7 +194,7 @@ namespace Deveel.Data.Sql.Cursors {
 			if (context == null)
 				throw new ArgumentNullException("context");
 
-			var fetchRow = Fetch(context.Request, context.Direction, context.Offset);
+			var fetchRow = Fetch(context.Direction, context.Offset);
 
 			if (context.IsGlobalReference) {
 				var reference = ((SqlReferenceExpression) context.Reference).ReferenceName;
@@ -205,17 +208,14 @@ namespace Deveel.Data.Sql.Cursors {
 
 		private void FetchIntoVatiable(Row row, string[] varNames) {
 			if (row.ColumnCount != varNames.Length)
-				throw new InvalidOperationException("The destination number of variables does not match the source number of columns.");
+				throw new FetchException(CursorInfo.CursorName, "The destination number of variables does not match the source number of columns.");
 
 			for (int i = 0; i < varNames.Length; i++) {
 				var varName = varNames[i];
 
 				var variable = Context.Context.FindVariable(varName);
 				if (variable == null)
-					throw new InvalidOperationException(String.Format("Variable '{0}' was not found in current scope.", varName));
-
-				if (variable.IsConstant)
-					throw new InvalidOperationException(String.Format("The variable '{0}' is constant and cannot be set.", varName));
+					throw new ObjectNotFoundException(new ObjectName(varName));
 
 				if (variable.Type is TabularType) {
 					var tabular = (TabularType)variable.Type;
@@ -226,8 +226,8 @@ namespace Deveel.Data.Sql.Cursors {
 
 				var columnInfo = row.Table.TableInfo[i];
 				var columnType = columnInfo.ColumnType;
-				if (!variable.Type.IsComparable(columnType))
-					throw new InvalidOperationException(
+				if (!variable.Type.CanCastTo(columnType))
+					throw new FetchException(CursorInfo.CursorName, 
 						String.Format("The value of column '{0}' is not compatible with the type of the destination variable '{1}'.",
 							columnInfo.FullColumnName, varName));
 
@@ -258,14 +258,46 @@ namespace Deveel.Data.Sql.Cursors {
 
 				newRow.SetDefault(Context);
 				table.AddRow(newRow);
+			} catch (CursorException) {
+				throw;
+			} catch (Exception ex) {
+				throw new FetchException(CursorInfo.CursorName, ex);
 			} finally {
-				Context.Query.Session.Exit(new []{table}, AccessType.Write);
+				Context.Query.Session.Exit(new[] {table}, AccessType.Write);
 			}
 
 		}
 
 		public void DeleteCurrent(IMutableTable table, IRequest request) {
-			throw new NotImplementedException();
+			AssertNotDisposed();
+			AssertNotClosed();
+
+			var pkey = request.Query.Session.Transaction.QueryTablePrimaryKey(table.TableInfo.TableName);
+			if (pkey == null)
+				throw new MissingPrimaryKeyException(table.TableInfo.TableName);
+
+			var colIndexes = new int[pkey.ColumnNames.Length];
+			for (int i = 0; i < colIndexes.Length; i++) {
+				var colIdx = table.TableInfo.IndexOfColumn(pkey.ColumnNames[i]);
+				colIndexes[i] = colIdx;
+			}
+
+			var currentRow = State.CurrentRow;
+
+			var values = new Field[colIndexes.Length];
+			for (int i = 0; i < colIndexes.Length; i++) {
+				values[i] = currentRow.GetValue(colIndexes[i]);
+			}
+
+			ITable deleteSet = table;
+			for (int i = 0; i < colIndexes.Length; i++) {
+				deleteSet = deleteSet.SelectEqual(colIndexes[i], values[i]);
+			}
+
+			if (deleteSet.RowCount == 0)
+				return;
+
+			table.Delete(deleteSet, 1);
 		}
 
 		public void Dispose() {
@@ -282,8 +314,8 @@ namespace Deveel.Data.Sql.Cursors {
 			State = null;
 		}
 
-		public IEnumerator<Row> GetEnumerator(IRequest context) {
-			if (context == null &&
+		public IEnumerator<Row> GetEnumerator() {
+			if (Context == null &&
 				!CursorInfo.IsInsensitive)
 				throw new ArgumentNullException("context", "A context is required for a SCROLL cursor.");
 
@@ -293,11 +325,7 @@ namespace Deveel.Data.Sql.Cursors {
 			if (Status == CursorStatus.Fetching)
 				throw new InvalidOperationException(String.Format("Another enumeration is currently going on cursor '{0}': cannot double enumerate.", CursorInfo.CursorName));
 
-			return new CursorEnumerator(this, context);
-		}
-
-		public IEnumerator<Row> GetEnumerator() {
-			return GetEnumerator(null);
+			return new CursorEnumerator(this);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -333,19 +361,16 @@ namespace Deveel.Data.Sql.Cursors {
 
 		class CursorEnumerator : IEnumerator<Row> {
 			private Cursor cursor;
-			private IRequest context;
 			private Row currentRow;
 			private int offset = -1;
 
 			private bool disposed;
 
-			public CursorEnumerator(Cursor cursor, IRequest context) {
+			public CursorEnumerator(Cursor cursor) {
 				this.cursor = cursor;
-				this.context = context;
 			}
 
 			public void Dispose() {
-				context = null;
 				currentRow = null;
 				cursor = null;
 				disposed = true;
@@ -363,7 +388,7 @@ namespace Deveel.Data.Sql.Cursors {
 			public bool MoveNext() {
 				AssertNotDisposed();
 
-				currentRow = cursor.Fetch(context, FetchDirection.Absolute, ++offset);
+				currentRow = cursor.Fetch(FetchDirection.Absolute, ++offset);
 				return cursor.Status == CursorStatus.Fetching;
 			}
 
