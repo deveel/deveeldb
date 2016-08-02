@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid binary type.");
 			}
 
-			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), new[] {new DataTypeMeta("Size", size.ToString()) });
+			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), new[] {new DataTypeMeta("MaxSize", size.ToString()) });
 		}
 
 		public override DataTypeInfo VisitBoolean_type(PlSqlParser.Boolean_typeContext context) {

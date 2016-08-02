@@ -561,6 +561,28 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.FunctionCall("SQL_EXTRACT", new[] {exp, SqlExpression.Constant(part)});
 		}
 
+		public override SqlExpression VisitTimeStampFunction(PlSqlParser.TimeStampFunctionContext context) {
+			SqlExpression arg;
+			if (context.bind_variable() != null) {
+				arg = SqlExpression.VariableReference(Name.Variable(context.bind_variable()));
+			} else if (context.argString != null) {
+				arg = SqlExpression.Constant(InputString.AsNotQuoted(context.argString));
+			} else {
+				throw new ParseCanceledException("Invalid argument in a TIMESTAMP implicit function");
+			}
+
+			SqlExpression tzArg = null;
+			if (context.tzString != null) {
+				tzArg = SqlExpression.Constant(InputString.AsNotQuoted(context.tzString));
+			}
+
+			var args = tzArg != null
+				? new SqlExpression[] {arg, tzArg}
+				: new SqlExpression[] {arg};
+
+			return SqlExpression.FunctionCall("TOTIMESTAMP", args);
+		}
+
 		public override SqlExpression VisitNextValueFunction(PlSqlParser.NextValueFunctionContext context) {
 			var seqName = Name.Object(context.objectName());
 			return SqlExpression.FunctionCall("NEXTVAL", new SqlExpression[] {SqlExpression.Constant(seqName.ToString())});

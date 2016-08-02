@@ -768,7 +768,7 @@ deleteLimit
 	;
 
 insertStatement
-    : INSERT (singleTableInsert | multiTableInsert) SEMICOLON?
+    : INSERT singleTableInsert SEMICOLON?
     ;
 
 // $<Insert - Specific Clauses
@@ -778,25 +778,6 @@ singleTableInsert
 	| insertSetClause
     ;
 
-multiTableInsert
-    : (ALL multiTableElement+ | conditionalInsertClause) selectStatement
-    ;
-
-multiTableElement
-    : insertIntoClause valuesClause?
-    ;
-
-conditionalInsertClause
-    : (ALL | FIRST)? conditionalInsertWhenPart+ conditional_insert_else_part?
-    ;
-
-conditionalInsertWhenPart
-    : WHEN condition THEN multiTableElement+
-    ;
-
-conditional_insert_else_part
-    : ELSE multiTableElement+
-    ;
 
 insertIntoClause
     : INTO objectName ('(' columnName (',' columnName)* ')')?
@@ -1275,11 +1256,7 @@ labelName
 // $<Lexer Mappings
 
 constant
-    : TIMESTAMP (quoted_string | bind_variable) (AT TIME ZONE quoted_string)? #TimeStampConstant
-    | INTERVAL (quoted_string | bind_variable | objectName)
-      (DAY | HOUR | MINUTE | SECOND)
-      ('(' (UNSIGNED_INTEGER | bind_variable) (',' (UNSIGNED_INTEGER | bind_variable) )? ')')?
-      (TO ( DAY | HOUR | MINUTE | SECOND ('(' (UNSIGNED_INTEGER | bind_variable) ')')?))? #IntervalConstant
+    : TIMESTAMP (argString=quoted_string | bind_variable) (AT TIME ZONE tzString=quoted_string)? #TimeStampFunction
     | numeric #ConstantNumeric
     | DATE quoted_string #DateImplicitConvert
     | quoted_string #ConstantString

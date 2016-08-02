@@ -614,9 +614,6 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitInsertStatement(PlSqlParser.InsertStatementContext context) {
-			if (context.multiTableInsert() != null)
-				throw new NotImplementedException();
-
 			var singleTableInsert = context.singleTableInsert();
 			var insertInto = singleTableInsert.insertIntoClause();
 
