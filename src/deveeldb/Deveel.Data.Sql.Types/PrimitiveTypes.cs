@@ -412,8 +412,13 @@ namespace Deveel.Data.Sql.Types {
 
 				var maxSize = BinaryType.DefaultMaxSize;
 				var maxSizeMeta = context.GetMeta("MaxSize");
-				if (maxSizeMeta != null)
-					maxSize = maxSizeMeta.ToInt32();
+				if (maxSizeMeta != null) {
+					if (maxSizeMeta.Value == "MAX") {
+						maxSize = BinaryType.DefaultMaxSize;
+					} else {
+						maxSize = maxSizeMeta.ToInt32();
+					}
+				}
 
 				return Binary(sqlType, maxSize);
 			}

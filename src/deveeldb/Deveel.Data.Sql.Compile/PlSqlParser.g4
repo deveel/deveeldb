@@ -1176,7 +1176,7 @@ boolean_type
 	;
 
 binary_type
-    : (BLOB | BINARY | VARBINARY | long_varbinary) ( '(' numeric ')' )?
+    : (BLOB | BINARY | VARBINARY | long_varbinary) ( '(' (numeric | MAX) ')' )?
 	;
 
 string_type

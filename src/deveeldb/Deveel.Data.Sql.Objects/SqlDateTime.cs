@@ -600,7 +600,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public static bool TryParseTimeStamp(string s, out SqlDateTime value) {
-			return TryParseTimeStamp(s, TimeZoneInfo.Utc, out value);
+			return TryParseTimeStamp(s, null, out value);
 		}
 
 		public static bool TryParseTimeStamp(string s, TimeZoneInfo timeZone, out SqlDateTime value) {
