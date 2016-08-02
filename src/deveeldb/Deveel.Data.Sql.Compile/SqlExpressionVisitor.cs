@@ -227,12 +227,6 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid argument in a quantified expression.");
 			}
 
-			if (context.EXISTS() != null) {
-				if (!(arg is SqlQueryExpression))
-					throw new ParseCanceledException("The EXISTS function can be evaluated only against a sub-query.");
-
-				return SqlExpression.FunctionCall("EXISTS", new[] {arg});
-			}
 			if (context.ALL() != null) {
 				return SqlExpression.All(arg);
 			}
@@ -487,14 +481,6 @@ namespace Deveel.Data.Sql.Compile {
 				return exp;
 
 			return SqlExpression.Tuple(new[] {exp});
-		}
-
-		public override SqlExpression VisitAllExpression(PlSqlParser.AllExpressionContext context) {
-			return SqlExpression.All(Visit(context.unaryExpression()));
-		}
-
-		public override SqlExpression VisitAnyExpression(PlSqlParser.AnyExpressionContext context) {
-			return SqlExpression.Any(Visit(context.unaryExpression()));
 		}
 
 		public override SqlExpression VisitConcatenation(PlSqlParser.ConcatenationContext context) {

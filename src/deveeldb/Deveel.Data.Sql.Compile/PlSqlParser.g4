@@ -612,7 +612,6 @@ cursorStatement
     : closeStatement
     | openStatement
     | fetchStatement
-    | openForStatement
     ;
 
 closeStatement
@@ -631,10 +630,6 @@ fetchStatement
 fetchDirection
     : (NEXT | PRIOR | FIRST | LAST | ABSOLUTE numeric | RELATIVE numeric)
 	;
-
-openForStatement
-    : OPEN variable_name FOR (selectStatement | expression) SEMICOLON?
-    ;
 
 // $>
 
@@ -998,8 +993,6 @@ multiplyOperator
 unaryExpression
     : unaryplusExpression
     | unaryminusExpression
-    | allExpression
-	| anyExpression
     | caseExpression
     | quantifiedExpression
     | standardFunction
@@ -1012,14 +1005,6 @@ unaryplusExpression
 
 unaryminusExpression
     : '-' unaryExpression
-	;
-
-allExpression
-    : ALL unaryExpression
-	;
-
-anyExpression
-    : ( ANY | SOME ) unaryExpression
 	;
 
 caseStatement 
@@ -1093,7 +1078,7 @@ vectorExpression
     ;
 
 quantifiedExpression
-    : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | expression_list )
+    : (SOME | ALL | ANY) ('(' subquery ')' | expression_list )
     ;
 
 standardFunction

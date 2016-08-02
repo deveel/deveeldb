@@ -659,10 +659,6 @@ namespace Deveel.Data.Sql.Compile {
 			return base.VisitInsertStatement(context);
 		}
 
-		public override SqlStatement VisitOpenForStatement(PlSqlParser.OpenForStatementContext context) {
-			return base.VisitOpenForStatement(context);
-		}
-
 		public override SqlStatement VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {
 			var exp = Expression.Build(context.atom());
 
