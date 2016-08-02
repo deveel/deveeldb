@@ -262,7 +262,10 @@
     <Compile Include="Deveel.Data.Sql.Sequences\SequencesInit.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SequenceTableContainer.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableAction.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTriggerActionType.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\ChangeTriggerStatusAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ConditionStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateCallbackTriggerStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateExternalFunctionStatement.cs" />
@@ -278,11 +281,13 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropRoleStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\DropSequenceStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\FetchIntoStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\IAlterTriggerAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatementPreparable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopBreakChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\NullStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\RenameTriggerAction.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\ReturnStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RevokeRoleStatement.cs" />
@@ -357,6 +362,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\NotNullColumnViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\PrimaryKeyViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\UniqueKeyViolationException.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerStatus.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ConstantVariableViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\NotNullVariableViolationException.cs" />
     <Compile Include="Deveel.Data.Sql\MissingPrimaryKeyException.cs" />

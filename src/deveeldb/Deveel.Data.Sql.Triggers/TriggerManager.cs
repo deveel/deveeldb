@@ -298,6 +298,8 @@ namespace Deveel.Data.Sql.Triggers {
 				row.SetValue(8, body);
 			}
 
+			row.SetValue(9, Field.TinyInt((byte) triggerInfo.Status));
+
 			table.AddRow(row);
 
 			InvalidateTriggerCache();
@@ -401,11 +403,17 @@ namespace Deveel.Data.Sql.Triggers {
 				throw new InvalidOperationException();
 			}
 
+			triggerInfo.Status = (TriggerStatus) ((SqlNumber) row.GetValue(9).Value).ToByte();
+
 			return triggerInfo;
 		}
 
 		public bool AlterTrigger(TriggerInfo triggerInfo) {
-			throw new NotImplementedException();
+			if (!DropTrigger(triggerInfo.TriggerName))
+				return false;
+
+			CreateTrigger(triggerInfo);
+			return true;
 		}
 
 		public void FireTriggers(IRequest context, TableEvent tableEvent) {

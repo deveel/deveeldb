@@ -233,7 +233,29 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitAlterTriggerStatement(PlSqlParser.AlterTriggerStatementContext context) {
-			throw new NotImplementedException();
+			var triggerName = Name.Object(context.objectName());
+			IAlterTriggerAction action;
+
+			if (context.alterTriggerAction().triggerEnableAction() != null) {
+				var actionContext = context.alterTriggerAction().triggerEnableAction();
+				TriggerStatus status;
+				if (actionContext.ENABLE() != null) {
+					status = TriggerStatus.Enabled;
+				} else if (actionContext.DISABLE() != null) {
+					status = TriggerStatus.Disabled;
+				} else {
+					throw new ParseCanceledException("Invalid ALTER TRIGGER syntax");
+				}
+
+				action = new ChangeTriggerStatusAction(status);
+			} else if (context.alterTriggerAction().triggerRenameAction() != null) {
+				var name = Name.Object(context.alterTriggerAction().triggerRenameAction().objectName());
+				action = new RenameTriggerAction(name);
+			} else {
+				throw new ParseCanceledException("Invalid ALTER TRIGGER syntax");
+			}
+
+			return new AlterTriggerStatement(triggerName, action);
 		}
 
 		public override SqlStatement VisitAlterStatement(PlSqlParser.AlterStatementContext context) {

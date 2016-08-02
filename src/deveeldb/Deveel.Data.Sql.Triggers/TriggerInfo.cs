@@ -17,8 +17,6 @@
 
 using System;
 
-using Deveel.Data.Sql.Statements;
-
 namespace Deveel.Data.Sql.Triggers {
 	public abstract class TriggerInfo : IObjectInfo {
 		protected TriggerInfo(ObjectName triggerName, TriggerType triggerType, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
@@ -44,6 +42,8 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public TriggerEventType EventType { get; private set; }
 
+		public TriggerStatus Status { get; set; }
+
 		ObjectName IObjectInfo.FullName {
 			get { return TriggerName; }
 		}
@@ -67,5 +67,7 @@ namespace Deveel.Data.Sql.Triggers {
 
 			return (EventType & eventType) != 0;
 		}
+
+		public abstract TriggerInfo Rename(ObjectName name);
 	}
 }

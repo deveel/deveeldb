@@ -30,5 +30,9 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		public PlSqlBlockStatement Body { get; private set; }
+
+		public override TriggerInfo Rename(ObjectName name) {
+			return new PlSqlTriggerInfo(name, TableName, EventTime, EventType, Body);
+		}
 	}
 }

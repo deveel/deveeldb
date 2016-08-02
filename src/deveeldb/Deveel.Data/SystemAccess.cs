@@ -116,8 +116,8 @@ namespace Deveel.Data {
 			Session.Transaction.CreateObject(objectInfo);
 		}
 
-		public virtual void AlterObject(IObjectInfo objectInfo) {
-			Session.Transaction.AlterObject(objectInfo);
+		public virtual bool AlterObject(IObjectInfo objectInfo) {
+			return Session.Transaction.AlterObject(objectInfo);
 		}
 
 		public virtual bool ObjectExists(ObjectName objectName) {

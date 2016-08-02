@@ -100,6 +100,7 @@
     <Compile Include="Deveel.Data.Serialization\SerializationTestBase.cs" />
     <Compile Include="Deveel.Data.Serialization\StatementSerializationTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterTableCompileTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\AlterTriggerTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AlterUserTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\AssignVariableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\CallTests.cs" />
@@ -153,6 +154,7 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\AlterTriggerStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateFunctionStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CreateProcedureStringFormatTests.cs" />
@@ -181,6 +183,7 @@
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
+    <Compile Include="Deveel.Data\AlterTriggerTests.cs" />
     <Compile Include="Deveel.Data\AlterUserTests.cs" />
     <Compile Include="Deveel.Data\AssignTests.cs" />
     <Compile Include="Deveel.Data\CallTests.cs" />

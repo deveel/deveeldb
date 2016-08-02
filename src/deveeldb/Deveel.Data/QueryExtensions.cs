@@ -471,6 +471,30 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Alter Trigger
+
+		public static void AlterTrigger(this IQuery query, ObjectName triggerName, IAlterTriggerAction action) {
+			query.ExecuteStatement(new AlterTriggerStatement(triggerName, action));
+		}
+
+		public static void RenameTrigger(this IQuery query, ObjectName triggerName, ObjectName newName) {
+			query.AlterTrigger(triggerName, new RenameTriggerAction(newName));
+		}
+
+		public static void ChangeTriggerStatus(this IQuery query, ObjectName triggerName, TriggerStatus status) {
+			query.AlterTrigger(triggerName, new ChangeTriggerStatusAction(status));
+		}
+
+		public static void EnableTrigger(this IQuery query, ObjectName triggerName) {
+			query.ChangeTriggerStatus(triggerName, TriggerStatus.Enabled);
+		}
+
+		public static void DisableTrigger(this IQuery query, ObjectName triggerName) {
+			query.ChangeTriggerStatus(triggerName, TriggerStatus.Disabled);
+		}
+
+		#endregion
+
 		#region DropTrigger
 
 		public static void DropTrigger(this IQuery query, ObjectName triggerName) {

@@ -21,6 +21,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -300,6 +301,43 @@ namespace Deveel.Data.Serialization {
 			SerializeAndAssert(statement, (serialized, deserialized) => {
 				Assert.IsNotNull(deserialized);
 				Assert.AreEqual("error1", deserialized.ExceptionName);
+			});
+		}
+
+		[Test]
+		public void AlterTable_AddColumn() {
+			var addColumn = new AddColumnAction(new SqlTableColumn("a", PrimitiveTypes.BigInt()));
+			var statement = new AlterTableStatement(ObjectName.Parse("APP.test_table1"), addColumn);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(statement.TableName);
+				Assert.IsNotNull(statement.Action);
+				Assert.IsInstanceOf<AddColumnAction>(statement.Action);
+			});
+		}
+
+		[Test]
+		public void AlterTrigger_RenameTo() {
+			var statement = new AlterTriggerStatement(ObjectName.Parse("trig1"), new RenameTriggerAction(new ObjectName("t1")));
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.AreEqual("trig1", deserialized.TriggerName.FullName);
+				Assert.IsInstanceOf<RenameTriggerAction>(deserialized.Action);
+			});
+		}
+
+		[Test]
+		public void AlterTrigger_ChangeStatus() {
+			var statement = new AlterTriggerStatement(ObjectName.Parse("APP.trig1"), new ChangeTriggerStatusAction(TriggerStatus.Disabled));
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.IsInstanceOf<ChangeTriggerStatusAction>(deserialized.Action);
 			});
 		}
 
