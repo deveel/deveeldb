@@ -95,6 +95,7 @@
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
+    <Compile Include="Deveel.Data.Serialization\ExpressionSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectNameSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\SerializationTestBase.cs" />
     <Compile Include="Deveel.Data.Serialization\StatementSerializationTests.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\SchemaCompileTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SqlCompileTestBase.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\UpdateTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\SqlAssignExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
@@ -183,6 +185,7 @@
     <Compile Include="Deveel.Data\CallTests.cs" />
     <Compile Include="Deveel.Data\CloseTests.cs" />
     <Compile Include="Deveel.Data\CommitTests.cs" />
+    <Compile Include="Deveel.Data\CompositeSelectTests.cs" />
     <Compile Include="Deveel.Data\ConditionalTests.cs" />
     <Compile Include="Deveel.Data\ContextBasedTest.cs" />
     <Compile Include="Deveel.Data\ConversionFunctionTests.cs" />

@@ -194,7 +194,28 @@ namespace Deveel.Data.Sql.Types {
 			var b1 = (SqlBoolean)a;
 			var b2 = (SqlBoolean)b;
 
-			return b1.And(b2);
+			return b1.XOr(b2);
+		}
+
+		public override string ToString(ISqlObject obj) {
+			var b = (SqlBoolean) obj;
+			if (b.IsNull)
+				return "NULL";
+			if (b == SqlBoolean.True)
+				return "TRUE";
+			if (b == SqlBoolean.False)
+				return "FALSE";
+
+			return base.ToString(obj);
+		}
+
+		public override SqlBoolean IsEqualTo(ISqlObject a, ISqlObject b) {
+			if (a.IsNull && b.IsNull)
+				return true;
+
+			var b1 = (SqlBoolean) a;
+			var b2 = (SqlBoolean) b;
+			return b1.Equals(b2);
 		}
 	}
 }

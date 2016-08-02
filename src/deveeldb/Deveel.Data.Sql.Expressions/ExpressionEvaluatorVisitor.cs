@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
@@ -236,7 +237,7 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public override SqlExpression VisitAssign(SqlAssignExpression assign) {
-			if (context.Request == null)
+			if (context.Request == null && context.VariableResolver == null)
 				throw new ExpressionEvaluateException("Cannot assign a variable outside a query context.");
 
 			var valueExpression = Visit(assign.ValueExpression);
@@ -262,7 +263,17 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 
 			try {
-				context.Request.Context.SetVariable(variableName, valueExpression);
+				if (context.Request != null) {
+					context.Request.Context.SetVariable(variableName, valueExpression);
+				} else if (context.VariableResolver != null) {
+					var variable = context.VariableResolver.Resolve(new ObjectName(variableName));
+					if (variable == null)
+						throw new ObjectNotFoundException(new ObjectName(variableName));
+
+					variable.SetValue(valueExpression);
+				}
+			} catch (ErrorException) {
+				throw;
 			} catch (Exception ex) {
 				throw new ExpressionEvaluateException(String.Format("Could not assign value to variable '{0}'", reference), ex);
 			}
