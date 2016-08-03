@@ -81,6 +81,14 @@ namespace Deveel.Data.Sql.Compile {
 			var triggerName = Name.Object(context.objectName());
 			var orReplace = context.OR() != null && context.REPLACE() != null;
 
+			TriggerStatus status = TriggerStatus.Unknown;
+
+			if (context.DISABLE() != null) {
+				status = TriggerStatus.Disabled;
+			} else if (context.ENABLE() != null) {
+				status = TriggerStatus.Enabled;
+			}
+
 			var simpleDml = context.simpleDmlTrigger();
 
 			ObjectName onObject = null;
@@ -90,9 +98,6 @@ namespace Deveel.Data.Sql.Compile {
 			if (simpleDml != null) {
 				bool before = simpleDml.BEFORE() != null;
 				bool after = simpleDml.AFTER() != null;
-
-				if (simpleDml.INSTEAD() != null && simpleDml.OF() != null)
-					throw new NotSupportedException("The INSTEAD OF clause not yet supported.");
 
 				var events = simpleDml.dmlEventClause().dmlEventElement().Select(x => {
 					if (x.DELETE() != null)
@@ -128,7 +133,10 @@ namespace Deveel.Data.Sql.Compile {
 					plsqlBody.Declarations.Add(declaration);
 				}
 
-				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventTime, eventType);
+				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventTime, eventType) {
+					ReplaceIfExists = orReplace,
+					Status = status
+				};
 			}
 
 			var procName = Name.Object(triggerBody.objectName());
@@ -140,7 +148,10 @@ namespace Deveel.Data.Sql.Compile {
 					.Select(x => new InvokeArgument(x.Id, x.Expression))
 					.ToArray();
 
-			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType);
+			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType) {
+				ReplaceIfExists = orReplace,
+				Status = status
+			};
 		}
 
 		public override SqlStatement VisitCallStatement(PlSqlParser.CallStatementContext context) {

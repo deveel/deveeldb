@@ -375,6 +375,47 @@ namespace Deveel.Data.Serialization {
 		}
 
 		[Test]
+		public void CreateTrigger() {
+			var body = new PlSqlBlockStatement();
+			body.Statements.Add(new OpenStatement("c1"));
+			body.Statements.Add(new CursorForLoopStatement("i", "c1"));
+			body.Statements.Add(new ReturnStatement());
+
+			var statement = new CreateTriggerStatement(ObjectName.Parse("APP.trig1"), new ObjectName("tab1"), body,
+				TriggerEventTime.Before, TriggerEventType.Insert | TriggerEventType.Update);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.IsNotNull(deserialized.TableName);
+				Assert.IsNotNull(deserialized.Body);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.AreEqual("tab1", deserialized.TableName.FullName);
+				Assert.AreEqual(TriggerEventTime.Before, deserialized.EventTime);
+			});
+		}
+
+		[Test]
+		public void CreateProcedureTrigger() {
+			var procName = ObjectName.Parse("APP.proc1");
+			var args = new InvokeArgument[] {
+				new InvokeArgument(SqlExpression.Constant(2)), 
+			};
+			var statement = new CreateProcedureTriggerStatement(ObjectName.Parse("APP.trig1"), new ObjectName("tab1"), procName, args,
+				TriggerEventTime.Before, TriggerEventType.Insert | TriggerEventType.Update);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.IsNotNull(deserialized.TableName);
+				Assert.IsNotNull(deserialized.ProcedureArguments);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.AreEqual("tab1", deserialized.TableName.FullName);
+				Assert.AreEqual(TriggerEventTime.Before, deserialized.EventTime);
+			});
+		}
+
+		[Test]
 		public void WhileLoop() {
 			var whileLoop =
 				new WhileLoopStatement(SqlExpression.SmallerOrEqualThan(SqlExpression.VariableReference("a"),

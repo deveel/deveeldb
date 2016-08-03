@@ -469,6 +469,30 @@ namespace Deveel.Data {
 			query.ExecuteStatement(new CreateCallbackTriggerStatement(triggerName, tableName, eventTime, eventType));
 		}
 
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+			ObjectName procedureName,
+			TriggerEventTime eventTime, TriggerEventType eventType) {
+			CreateProcedureTrigger(query, triggerName, tableName, procedureName, new InvokeArgument[0], eventTime, eventType);
+		}
+
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+			ObjectName procedureName, InvokeArgument[] procedureArgs,
+			TriggerEventTime eventTime, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateProcedureTriggerStatement(triggerName, tableName, procedureName, procedureArgs,
+				eventTime, eventType));
+		}
+
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+	ObjectName procedureName, SqlExpression[] procedureArgs,
+	TriggerEventTime eventTime, TriggerEventType eventType) {
+			var args = new InvokeArgument[0];
+			if (procedureArgs != null)
+				args = procedureArgs.Select(x => new InvokeArgument(x)).ToArray();
+
+			query.ExecuteStatement(new CreateProcedureTriggerStatement(triggerName, tableName, procedureName, args,
+				eventTime, eventType));
+		}
+
 		#endregion
 
 		#region Alter Trigger

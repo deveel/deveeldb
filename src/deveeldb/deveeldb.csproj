@@ -362,6 +362,7 @@
     <Compile Include="Deveel.Data.Sql.Tables\NotNullColumnViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\PrimaryKeyViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\UniqueKeyViolationException.cs" />
+    <Compile Include="Deveel.Data.Sql.Triggers\TriggerEventTypeExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\TriggerStatus.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\ConstantVariableViolationException.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\NotNullVariableViolationException.cs" />

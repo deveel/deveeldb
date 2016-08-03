@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				if (context.dropConstraintAction() != null) {
-					var constraintName = context.dropConstraintAction().regular_id().GetText();
+					var constraintName = context.dropConstraintAction().id().GetText();
 					return new DropConstraintAction(constraintName);
 				}
 

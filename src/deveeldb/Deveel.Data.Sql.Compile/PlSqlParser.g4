@@ -248,7 +248,7 @@ addConstraintAction
 	;
 
 dropConstraintAction
-    : DROP CONSTRAINT regular_id
+    : DROP CONSTRAINT id
 	;
 
 dropDefaultAction
@@ -713,7 +713,7 @@ triggerRenameAction
 createTriggerStatement
     : CREATE ( OR REPLACE )? TRIGGER objectName
     (simpleDmlTrigger)
-    (ENABLE | DISABLE)? triggerWhenClause? triggerBody SEMICOLON?
+    (ENABLE | DISABLE)? triggerBody SEMICOLON?
     ;
 
 createCallbackTriggerStatement
@@ -721,13 +721,9 @@ createCallbackTriggerStatement
 	   (simpleDmlTrigger ) SEMICOLON?
 	;
 
-triggerWhenClause
-    : WHEN '(' condition ')'
-    ;
-
 // $<Create Trigger- Specific Clauses
 simpleDmlTrigger
-    : (BEFORE | AFTER | INSTEAD OF) dmlEventClause forEachRow?
+    : (BEFORE | AFTER ) dmlEventClause forEachRow?
     ;
 
 forEachRow
