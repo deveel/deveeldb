@@ -16,9 +16,9 @@ namespace Deveel.Data.Deveel.Data {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			Query.Access().CreateTable(tableInfo);
-			DeclareCursors(Query);
-			OpenCursors(Query);
+			AdminQuery.Access().CreateTable(tableInfo);
+			DeclareCursors(AdminQuery);
+			OpenCursors(AdminQuery);
 		}
 
 		private static void DeclareCursors(IQuery query) {
@@ -39,15 +39,15 @@ namespace Deveel.Data.Deveel.Data {
 
 		[Test]
 		public void TypicalClode() {
-			Query.Close("c1");
+			AdminQuery.Close("c1");
 
-			var cursor = (Cursor)Query.Access().FindObject(new ObjectName("c1"));
+			var cursor = (Cursor)AdminQuery.Access().FindObject(new ObjectName("c1"));
 			Assert.AreEqual(CursorStatus.Closed, cursor.Status);
 		}
 
 		[Test]
 		public void CloseNotOpened() {
-			Assert.DoesNotThrow(() => Query.Close("c2"));
+			Assert.DoesNotThrow(() => AdminQuery.Close("c2"));
 		}
 	}
 }

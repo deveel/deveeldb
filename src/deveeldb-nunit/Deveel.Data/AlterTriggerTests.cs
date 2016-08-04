@@ -27,25 +27,25 @@ namespace Deveel.Data {
 		public void RenameTo() {
 			var newName = ObjectName.Parse("APP.trigger2");
 
-			Query.RenameTrigger(triggerName, newName);
+			AdminQuery.RenameTrigger(triggerName, newName);
 
-			Assert.IsFalse(Query.Access().TriggerExists(triggerName));
-			Assert.IsTrue(Query.Access().TriggerExists(newName));
+			Assert.IsFalse(AdminQuery.Access().TriggerExists(triggerName));
+			Assert.IsTrue(AdminQuery.Access().TriggerExists(newName));
 		}
 
 		[Test]
 		public void Enable() {
-			Query.EnableTrigger(triggerName);
+			AdminQuery.EnableTrigger(triggerName);
 
-			var trigger = (Trigger) Query.Access().GetObject(DbObjectType.Trigger, triggerName);
+			var trigger = (Trigger) AdminQuery.Access().GetObject(DbObjectType.Trigger, triggerName);
 			Assert.AreEqual(TriggerStatus.Enabled, trigger.TriggerInfo.Status);
 		}
 
 		[Test]
 		public void Disable() {
-			Query.DisableTrigger(triggerName);
+			AdminQuery.DisableTrigger(triggerName);
 
-			var trigger = (Trigger)Query.Access().GetObject(DbObjectType.Trigger, triggerName);
+			var trigger = (Trigger)AdminQuery.Access().GetObject(DbObjectType.Trigger, triggerName);
 			Assert.AreEqual(TriggerStatus.Disabled, trigger.TriggerInfo.Status);
 		}
 	}

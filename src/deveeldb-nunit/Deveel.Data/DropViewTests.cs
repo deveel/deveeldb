@@ -57,9 +57,9 @@ namespace Deveel.Data {
 		public void DropView() {
 			var viewName = ObjectName.Parse("APP.test_view1");
 
-			Query.DropView(viewName);
+			AdminQuery.DropView(viewName);
 
-			var exists = Query.Session.Access().ViewExists(viewName);
+			var exists = AdminQuery.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -67,9 +67,9 @@ namespace Deveel.Data {
 		public void IfExists_Existing() {
 			var viewName = ObjectName.Parse("APP.test_view1");
 
-			Query.DropView(viewName, true);
+			AdminQuery.DropView(viewName, true);
 
-			var exists = Query.Session.Access().ViewExists(viewName);
+			var exists = AdminQuery.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 
@@ -77,9 +77,9 @@ namespace Deveel.Data {
 		public void IfExists_NotExisting() {
 			var viewName = ObjectName.Parse("APP.test_view2");
 
-			Query.DropView(viewName, true);
+			AdminQuery.DropView(viewName, true);
 
-			var exists = Query.Session.Access().ViewExists(viewName);
+			var exists = AdminQuery.Session.Access().ViewExists(viewName);
 			Assert.IsFalse(exists);
 		}
 

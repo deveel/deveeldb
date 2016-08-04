@@ -78,9 +78,9 @@ namespace Deveel.Data {
 		public void AddColumn() {
 			var tableName = ObjectName.Parse("test_table");
 
-			Query.AddColumn(tableName, "reserved", PrimitiveTypes.Boolean());
+			AdminQuery.AddColumn(tableName, "reserved", PrimitiveTypes.Boolean());
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
@@ -90,9 +90,9 @@ namespace Deveel.Data {
 		public void SetDefaultToColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.SetDefault(tableName, "active", SqlExpression.Constant(Field.Boolean(false)));
+			AdminQuery.SetDefault(tableName, "active", SqlExpression.Constant(Field.Boolean(false)));
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -106,9 +106,9 @@ namespace Deveel.Data {
 		public void DropDefaultFromColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropDefault(tableName, "id");
+			AdminQuery.DropDefault(tableName, "id");
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -126,9 +126,9 @@ namespace Deveel.Data {
 				ReferenceColumns = new[] { "id" }
 			};
 
-			Query.AddConstraint(tableName, constraint);
+			AdminQuery.AddConstraint(tableName, constraint);
 
-			var fkeys = Query.Session.Access().QueryTableForeignKeys(tableName);
+			var fkeys = AdminQuery.Session.Access().QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsNotEmpty(fkeys);
@@ -145,9 +145,9 @@ namespace Deveel.Data {
 		public void DropColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropColumn(tableName, "active");
+			AdminQuery.DropColumn(tableName, "active");
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -158,9 +158,9 @@ namespace Deveel.Data {
 		public void DropConstraint() {
 			var tableName = ObjectName.Parse("APP.test_table2");
 
-			Query.DropConstraint(tableName, "FK_1");
+			AdminQuery.DropConstraint(tableName, "FK_1");
 
-			var fkeys = Query.Session.Access().QueryTableForeignKeys(tableName);
+			var fkeys = AdminQuery.Session.Access().QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsEmpty(fkeys);
@@ -170,9 +170,9 @@ namespace Deveel.Data {
 		public void DropPrimary() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropPrimaryKey(tableName);
+			AdminQuery.DropPrimaryKey(tableName);
 
-			var pkey = Query.Session.Access().QueryTablePrimaryKey(tableName);
+			var pkey = AdminQuery.Session.Access().QueryTablePrimaryKey(tableName);
 
 			Assert.IsNull(pkey);
 		}
@@ -184,7 +184,7 @@ namespace Deveel.Data {
 			var expected = Is.InstanceOf<ConstraintViolationException>()
 				.And.TypeOf<DropColumnViolationException>();
 
-			Assert.Throws(expected, () => Query.DropColumn(tableName, "person_id"));
+			Assert.Throws(expected, () => AdminQuery.DropColumn(tableName, "person_id"));
 		}
 
 		[Test]
@@ -193,7 +193,7 @@ namespace Deveel.Data {
 				.And.TypeOf<NotNullColumnViolationException>()
 				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table2"))
 				.And.Property("ColumnName").EqualTo("person_id");
-			Assert.Throws(expected, () => Query.AddForeignKey(ObjectName.Parse("test_table2"), new[] {"person_id"}, ObjectName.Parse("test_table"),
+			Assert.Throws(expected, () => AdminQuery.AddForeignKey(ObjectName.Parse("test_table2"), new[] {"person_id"}, ObjectName.Parse("test_table"),
 					new[] {"id"}, ForeignKeyAction.SetNull, ForeignKeyAction.NoAction));
 		}
 	}

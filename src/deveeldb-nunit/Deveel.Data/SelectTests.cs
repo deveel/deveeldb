@@ -29,8 +29,8 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+			CreateTestTable(AdminQuery);
+			AddTestData(AdminQuery);
 		}
 
 		private static void CreateTestTable(IQuery context) {
@@ -86,7 +86,7 @@ namespace Deveel.Data {
 
 		private ITable Execute(string s, QueryLimit limit) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(s);
-			var result = Query.Select(query, limit);
+			var result = AdminQuery.Select(query, limit);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}
@@ -104,7 +104,7 @@ namespace Deveel.Data {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
 			var sort = new[] {new SortColumn(SqlExpression.Reference(new ObjectName("birth_date")), false)};
 
-			var result = Query.Select(query, sort);
+			var result = AdminQuery.Select(query, sort);
 
 			Assert.IsNotNull(result);
 
@@ -279,7 +279,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void FromMap() {
-			var result = Query.Select<TestClass>("SELECT * FROM test_table");
+			var result = AdminQuery.Select<TestClass>("SELECT * FROM test_table");
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(3, result.Count());

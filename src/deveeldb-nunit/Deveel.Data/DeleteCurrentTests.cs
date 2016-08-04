@@ -53,8 +53,8 @@ namespace Deveel.Data {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			DeclareCursor(Query);
-			OpenAndAdvanceCursor(Query);
+			DeclareCursor(AdminQuery);
+			OpenAndAdvanceCursor(AdminQuery);
 		}
 
 		private static void DeclareCursor(IQuery query) {
@@ -72,9 +72,9 @@ namespace Deveel.Data {
 		public void FirstElement() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DeleteCurrent(tableName, "c1");
+			AdminQuery.DeleteCurrent(tableName, "c1");
 
-			var table = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var table = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.AreEqual(1, table.RowCount);
 		}

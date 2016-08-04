@@ -40,9 +40,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ExistingTrigger() {
-			Query.DropTrigger(triggerName);
+			AdminQuery.DropTrigger(triggerName);
 
-			var exists = Query.Access().TriggerExists(triggerName);
+			var exists = AdminQuery.Access().TriggerExists(triggerName);
 
 			Assert.IsFalse(exists);
 		}

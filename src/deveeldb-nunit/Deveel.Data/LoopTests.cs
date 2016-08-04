@@ -40,9 +40,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String());
 
-			Query.Access().CreateObject(tableInfo);
+			AdminQuery.Access().CreateObject(tableInfo);
 
-			var table = Query.Access().GetMutableTable(tableName);
+			var table = AdminQuery.Access().GetMutableTable(tableName);
 
 			for (int i = 0; i < 50; i++) {
 				var row = table.NewRow();
@@ -57,7 +57,7 @@ namespace Deveel.Data {
 			var loop = new LoopStatement();
 			loop.Statements.Add(new ReturnStatement(SqlExpression.Constant(45)));
 
-			var result = Query.ExecuteStatement(loop);
+			var result = AdminQuery.ExecuteStatement(loop);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(StatementResultType.Result, result.Type);
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 				new ConditionStatement(SqlExpression.Equal(SqlExpression.VariableReference("i"), SqlExpression.Constant(200)),
 					new SqlStatement[] {new ReturnStatement(SqlExpression.VariableReference("a"))}));
 
-			 var result = Query.ExecuteStatement(loop);
+			 var result = AdminQuery.ExecuteStatement(loop);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(StatementResultType.Result, result.Type);
@@ -102,7 +102,7 @@ namespace Deveel.Data {
 					new SqlStatement[] { new ReturnStatement(SqlExpression.VariableReference("a")) }));
 			block.Statements.Add(new OpenStatement("c1"));
 			block.Statements.Add(loop);
-			var result = Query.ExecuteStatement(block);
+			var result = AdminQuery.ExecuteStatement(block);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(StatementResultType.Result, result.Type);
@@ -124,7 +124,7 @@ namespace Deveel.Data {
 			var block = new PlSqlBlockStatement();
 			block.Declarations.Add(new DeclareVariableStatement("a", PrimitiveTypes.Integer()));
 
-			var result = Query.ExecuteStatement(block);
+			var result = AdminQuery.ExecuteStatement(block);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(StatementResultType.Result, result.Type);

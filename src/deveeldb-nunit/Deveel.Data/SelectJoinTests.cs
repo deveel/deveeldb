@@ -27,8 +27,8 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectJoinTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			CreateTestTables(Query);
-			AddTestData(Query);
+			CreateTestTables(AdminQuery);
+			AddTestData(AdminQuery);
 		}
 
 		private void AddTestData(IQuery query) {
@@ -95,7 +95,7 @@ namespace Deveel.Data {
 
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression)SqlExpression.Parse(s);
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}

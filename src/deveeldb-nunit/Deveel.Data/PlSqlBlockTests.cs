@@ -49,11 +49,11 @@ namespace Deveel.Data {
 			block.Declarations.Add(new DeclareCursorStatement("c1", query));
 			block.Statements.Add(new OpenStatement("c1"));
 
-			Query.ExecuteStatement(block);
+			AdminQuery.ExecuteStatement(block);
 
-			Assert.IsTrue(Query.Context.CursorExists("c1"));
+			Assert.IsTrue(AdminQuery.Context.CursorExists("c1"));
 
-			var cursor = Query.Context.FindCursor("c1");
+			var cursor = AdminQuery.Context.FindCursor("c1");
 			Assert.AreEqual(CursorStatus.Open, cursor.Status);
 		}
 	}

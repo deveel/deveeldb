@@ -66,7 +66,7 @@ namespace Deveel.Data {
 
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression)SqlExpression.Parse(s);
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}

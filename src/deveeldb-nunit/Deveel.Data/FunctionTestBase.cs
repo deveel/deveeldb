@@ -31,7 +31,7 @@ namespace Deveel.Data {
 		}
 
 		protected Field Select(ObjectName functionName, params SqlExpression[] args) {
-			return Query.SelectFunction(functionName, args);
+			return AdminQuery.SelectFunction(functionName, args);
 		}
 
 		protected Field Select(string functionName, params SqlExpression[] args) {

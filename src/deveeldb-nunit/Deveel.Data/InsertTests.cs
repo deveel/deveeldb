@@ -101,12 +101,12 @@ namespace Deveel.Data {
 				}
 			};
 
-			var count = Query.Insert(tableName, values.ToArray());
+			var count = AdminQuery.Insert(tableName, values.ToArray());
 
 
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.RowCount);
@@ -129,12 +129,12 @@ namespace Deveel.Data {
 				}
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.RowCount);
@@ -165,12 +165,12 @@ namespace Deveel.Data {
 				}
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.RowCount);
@@ -200,18 +200,18 @@ namespace Deveel.Data {
 				},
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(1, table.RowCount);
 		}
 
 		private SqlLongString CreateBio(string text) {
-			return SqlLongString.Ascii(Query, text);
+			return SqlLongString.Ascii(AdminQuery, text);
 		}
 
 		[Test]
@@ -221,7 +221,7 @@ namespace Deveel.Data {
 				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table"))
 				.And.Property("ColumnName").EqualTo("active");
 
-			Assert.Throws(expected, () => Query.Insert(new ObjectName("test_table"),
+			Assert.Throws(expected, () => AdminQuery.Insert(new ObjectName("test_table"),
 				new[] { "first_name", "last_name", "birth_date", "active" },
 				new SqlExpression[] {
 				SqlExpression.Constant("Antonello"),

@@ -48,7 +48,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ShowSchema() {
-			var result = Query.ShowSchema();
+			var result = AdminQuery.ShowSchema();
 
 			Assert.IsNotNull(result);
 
@@ -74,7 +74,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ShowTables() {
-			var result = Query.ShowTables();
+			var result = AdminQuery.ShowTables();
 
 			Assert.IsNotNull(result);
 
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ShowProduct() {
-			var result = Query.ShowProduct();
+			var result = AdminQuery.ShowProduct();
 
 			Assert.IsNotNull(result);
 

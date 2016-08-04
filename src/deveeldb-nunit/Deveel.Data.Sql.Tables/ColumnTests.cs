@@ -42,7 +42,7 @@ namespace Deveel.Data.Sql.Tables {
 		[TestCase(0, "id")]
 		[TestCase(1, "name")]
 		public void ColumnName(int columnOffset, string columnName) {
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 
@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Tables {
 		[TestCase("id", 34, 35)]
 		[TestCase("name", 58, "n_59")]
 		public void ColumnValueAt(string columnName, int rowOffset, object value) {
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 
@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		[TestCase("name", 23, "n_24")]
 		public void EnumerateColumnValues(string columnName, int rowOffset, object expected) {
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 

@@ -40,23 +40,23 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ExistingRole() {
-			Query.DropRole("test_role");
+			AdminQuery.DropRole("test_role");
 
-			var exists = Query.Access().RoleExists("test_role");
+			var exists = AdminQuery.Access().RoleExists("test_role");
 
 			Assert.IsFalse(exists);
 		}
 
 		[Test]
 		public void NotExistingRole() {
-			Assert.Throws<StatementException>(() => Query.DropRole("another_role"));
+			Assert.Throws<StatementException>(() => AdminQuery.DropRole("another_role"));
 		}
 
 		[Test]
 		public void SystemRole() {
-			Assert.Throws<SecurityException>(() => Query.DropRole(SystemRoles.SecureAccessRole));
+			Assert.Throws<SecurityException>(() => AdminQuery.DropRole(SystemRoles.SecureAccessRole));
 
-			var exists = Query.Access().RoleExists(SystemRoles.SecureAccessRole);
+			var exists = AdminQuery.Access().RoleExists(SystemRoles.SecureAccessRole);
 			Assert.IsTrue(exists);
 		}
 	}

@@ -27,8 +27,8 @@ namespace Deveel.Data.Deveel.Data {
 	[TestFixture]
 	public class SelectCompositeTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+			CreateTestTable(AdminQuery);
+			AddTestData(AdminQuery);
 		}
 
 		private static void CreateTestTable(IQuery context) {
@@ -80,7 +80,7 @@ namespace Deveel.Data.Deveel.Data {
 
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression)SqlExpression.Parse(s);
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}

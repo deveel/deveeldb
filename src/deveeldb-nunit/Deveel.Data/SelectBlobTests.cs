@@ -84,7 +84,7 @@ namespace Deveel.Data.Deveel.Data {
 		[Test]
 		public void SelectData() {
 			var exp = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM test_table");
-			var result = Query.Select(exp);
+			var result = AdminQuery.Select(exp);
 
 			Assert.IsNotNull(result);
 			Assert.IsTrue(result.Any());

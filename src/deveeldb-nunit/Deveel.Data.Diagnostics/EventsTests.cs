@@ -29,7 +29,7 @@ namespace Deveel.Data.Diagnostics {
 		[Test]
 		public void AttachRouter() {
 			IEvent firedEvent = null;
-			Assert.DoesNotThrow(() => Query.Context.Route<ErrorEvent>(@event => firedEvent = @event));
+			Assert.DoesNotThrow(() => AdminQuery.Context.Route<ErrorEvent>(@event => firedEvent = @event));
 			Assert.IsNull(firedEvent);
 		}
 
@@ -38,12 +38,12 @@ namespace Deveel.Data.Diagnostics {
 			var reset = new AutoResetEvent(false);
 
 			IEvent firedEvent = null;
-			Query.Context.Route<ErrorEvent>(e => {
+			AdminQuery.Context.Route<ErrorEvent>(e => {
 				firedEvent = e;
 				reset.Set();
 			});
 
-			Query.AsEventSource().OnError(new Exception("Test Error"));
+			AdminQuery.AsEventSource().OnError(new Exception("Test Error"));
 
 			reset.WaitOne();
 
@@ -61,7 +61,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			Query.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.AsEventSource().OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 
@@ -86,12 +86,12 @@ namespace Deveel.Data.Diagnostics {
 
 			IEvent sessionFired = null;
 
-			Session.Context.Route<ErrorEvent>(e => {
+			AdminSession.Context.Route<ErrorEvent>(e => {
 				sessionFired = e;
 				reset2.Set();
 			});
 
-			Query.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -113,12 +113,12 @@ namespace Deveel.Data.Diagnostics {
 
 			IEvent sessionFired = null;
 
-			Session.Context.Route<InformationEvent>(e => {
+			AdminSession.Context.Route<InformationEvent>(e => {
 				sessionFired = e;
 				reset2.Set();
 			}, e => e.Level == InformationLevel.Debug);
 
-			Query.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -140,12 +140,12 @@ namespace Deveel.Data.Diagnostics {
 
 			IEvent sessionFired = null;
 
-			Session.Context.Route<InformationEvent>(e => {
+			AdminSession.Context.Route<InformationEvent>(e => {
 				sessionFired = e;
 				reset2.Set();
 			});
 
-			Query.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.AsEventSource().OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -168,7 +168,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			Query.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.AsEventSource().OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 

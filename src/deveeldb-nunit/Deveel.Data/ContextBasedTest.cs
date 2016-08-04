@@ -21,7 +21,6 @@ using System.Linq;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
-using Deveel.Data.Sql.Types;
 using Deveel.Data.Store;
 
 using NUnit.Framework;
@@ -31,6 +30,8 @@ namespace Deveel.Data {
 		protected const string AdminUserName = "SA";
 		protected const string AdminPassword = "1234567890";
 		protected const string DatabaseName = "testdb";
+		protected const string UserName = "test_user";
+		protected const string UserPassword = "abc12345";
 
 		protected ContextBasedTest(StorageType storageType) {
 			StorageType = storageType;
@@ -42,13 +43,21 @@ namespace Deveel.Data {
 
 		protected StorageType StorageType { get; private set; }
 
-		protected IQuery Query { get; private set; }
+		protected IQuery AdminQuery { get; private set; }
+
+		protected IQuery UserQuery { get; private set; }
+
+		protected virtual bool CreateTestUser {
+			get { return false; }
+		}
 
 		protected ISystem System { get; private set; }
 
 		protected IDatabase Database { get; private set; }
 
-		protected ISession Session { get; private set; }
+		protected ISession AdminSession { get; private set; }
+
+		protected ISession UserSession { get; private set; }
 
 		private List<Exception> errors;
 
@@ -148,8 +157,11 @@ namespace Deveel.Data {
 		}
 
 		private void CreateContext() {
-			Session = CreateAdminSession(Database);
-			Session.Context.RouteImmediate<ErrorEvent>(e => {
+			if (CreateTestUser)
+				CreateUserForTests();
+
+			AdminSession = CreateAdminSession(Database);
+			AdminSession.Context.RouteImmediate<ErrorEvent>(e => {
 				if (errors == null)
 					errors = new List<Exception>();
 
@@ -157,15 +169,40 @@ namespace Deveel.Data {
 					errors.Add(e.Error);
 			});
 
-			Query = CreateQuery(Session);
+			AdminQuery = CreateQuery(AdminSession);
+		}
+
+		private void CreateUserForTests() {
+			using (var session = CreateAdminSession(Database)) {
+				using (var query = CreateQuery(session)) {
+					query.CreateUser(UserName, UserPassword);
+					query.Commit();
+				}
+			}
+
+			UserSession = CreateUserSession(UserName, UserPassword);
+			UserQuery = CreateQuery(UserSession);
+		}
+
+		private void RemoveTesterUser() {
+			using (var session = CreateAdminSession(Database)) {
+				using (var query = session.CreateQuery()) {
+					query.DropUser(UserName);
+					query.Commit();
+				}
+			}
 		}
 
 		private void DisposeContext() {
-			if (Query != null)
-				Query.Dispose();
+			if (AdminQuery != null)
+				AdminQuery.Dispose();
+			if (UserQuery != null)
+				UserQuery.Dispose();
 
-			Query = null;
-			Session = null;
+			UserQuery = null;
+			UserSession = null;
+			AdminQuery = null;
+			AdminSession = null;
 		}
 
 		protected virtual void AssertNoErrors(string testName) {
@@ -192,6 +229,7 @@ namespace Deveel.Data {
 
 				errors = null;
 
+				RemoveTesterUser();
 				DisposeContext();
 			}
 		}

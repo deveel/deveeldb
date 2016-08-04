@@ -50,8 +50,8 @@ namespace Deveel.Data {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			Query.Context.DeclareVariable("a", PrimitiveTypes.String());
-			Query.Context.DeclareVariable("b", PrimitiveTypes.Integer());
+			AdminQuery.Context.DeclareVariable("a", PrimitiveTypes.String());
+			AdminQuery.Context.DeclareVariable("b", PrimitiveTypes.Integer());
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -63,32 +63,32 @@ namespace Deveel.Data {
 		[Test]
 		public void OneColumnIntoOneVariable() {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT a FROM test_table");
-			Query.SelectInto(query, "b");
+			AdminQuery.SelectInto(query, "b");
 
-			var variable = Query.Context.FindVariable("b");
+			var variable = AdminQuery.Context.FindVariable("b");
 
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<NumericType>(variable.Type);
-			Assert.IsFalse(variable.Evaluate(Query).IsNull);
-			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(Query).Value);
+			Assert.IsFalse(variable.Evaluate(AdminQuery).IsNull);
+			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(AdminQuery).Value);
 
-			var number = (SqlNumber) variable.Evaluate(Query).Value;
+			var number = (SqlNumber) variable.Evaluate(AdminQuery).Value;
 			Assert.AreEqual(new SqlNumber(13), number);
 		}
 
 		[Test]
 		public void TwoColumnsIntoTwoVariables() {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT a, b FROM test_table");
-			Query.SelectInto(query, "b", "a");
+			AdminQuery.SelectInto(query, "b", "a");
 
-			var variable = Query.Context.FindVariable("b");
+			var variable = AdminQuery.Context.FindVariable("b");
 
 			Assert.IsNotNull(variable);
 			Assert.IsInstanceOf<NumericType>(variable.Type);
-			Assert.IsFalse(variable.Evaluate(Query).IsNull);
-			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(Query).Value);
+			Assert.IsFalse(variable.Evaluate(AdminQuery).IsNull);
+			Assert.IsInstanceOf<SqlNumber>(variable.Evaluate(AdminQuery).Value);
 
-			var number = (SqlNumber)variable.Evaluate(Query).Value;
+			var number = (SqlNumber)variable.Evaluate(AdminQuery).Value;
 			Assert.AreEqual(new SqlNumber(13), number);
 		}
 	}

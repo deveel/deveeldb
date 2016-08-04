@@ -18,7 +18,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression) SqlExpression.Parse(sql);
 
-			var cursor = Query.Select(query);
+			var cursor = AdminQuery.Select(query);
 
 			Assert.IsNotNull(cursor);
 
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression)SqlExpression.Parse(sql);
 
-			var cursor = Query.Select(query);
+			var cursor = AdminQuery.Select(query);
 
 			Assert.IsNotNull(cursor);
 
@@ -65,7 +65,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression)SqlExpression.Parse(sql);
 
-			var cursor = Query.Select(query);
+			var cursor = AdminQuery.Select(query);
 
 			Assert.IsNotNull(cursor);
 

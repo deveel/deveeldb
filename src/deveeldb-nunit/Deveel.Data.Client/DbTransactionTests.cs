@@ -65,7 +65,7 @@ namespace Deveel.Data.Client {
 
 			transaction.Commit();
 
-			var testQuery = CreateUserSession(AdminUserName, AdminPassword).CreateQuery();
+			var testQuery = CreateQuery(CreateAdminSession(Database));
 
 			var table = testQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 			Assert.IsNotNull(table);
@@ -86,7 +86,7 @@ namespace Deveel.Data.Client {
 
 			transaction.Rollback();
 
-			var table = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var table = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 			Assert.IsNotNull(table);
 			Assert.AreEqual(23, table.RowCount);
 		}

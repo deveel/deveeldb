@@ -148,10 +148,10 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("first_name = 'Antonello'");
 
-			var count = Query.Delete(tableName, expr);
+			var count = AdminQuery.Delete(tableName, expr);
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -161,10 +161,10 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
 
-			var count = Query.Delete(tableName, expr);
+			var count = AdminQuery.Delete(tableName, expr);
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
 		}

@@ -145,7 +145,7 @@ namespace Deveel.Data {
 				new SqlColumnAssignment("birth_date", SqlExpression.Constant(Field.Date(new SqlDateTime(1970, 01, 20))))
 			};
 
-			var count = Query.Update(tableName, whereExp, assignments);
+			var count = AdminQuery.Update(tableName, whereExp, assignments);
 
 			Assert.AreEqual(1, count);
 		}

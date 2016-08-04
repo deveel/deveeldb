@@ -59,11 +59,11 @@ namespace Deveel.Data {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT 'Antonello', 'Provenzano', NULL, NULL");
 			var columns = new[] { "first_name", "last_name", "birth_date", "active" };
 
-			var count = Query.InsertSelect(tableName, columns, query);
+			var count = AdminQuery.InsertSelect(tableName, columns, query);
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -73,11 +73,11 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT 3, 'Antonello', 'Provenzano', NULL, NULL");
 
-			var count = Query.InsertSelect(tableName, query);
+			var count = AdminQuery.InsertSelect(tableName, query);
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 

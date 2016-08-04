@@ -81,13 +81,13 @@ namespace Deveel.Data {
 			var reset = new AutoResetEvent(false);
 
 			TriggerEvent firedEvent = null;
-			Query.Context.RouteImmediate<TriggerEvent>(e => {
+			AdminQuery.Context.RouteImmediate<TriggerEvent>(e => {
 				firedEvent = e;
 				reset.Set();
 			}, e => e.TriggerType == TriggerType.Procedural &&
 			        e.TriggerName.FullName.Equals("APP.trigger1"));
 
-			Query.Insert(tableName, new[] {"id", "name"},
+			AdminQuery.Insert(tableName, new[] {"id", "name"},
 				new SqlExpression[] {SqlExpression.Constant(2), SqlExpression.Constant("The Name")});
 
 			reset.WaitOne(500);
@@ -102,7 +102,7 @@ namespace Deveel.Data {
 			var reset = new AutoResetEvent(false);
 
 			TriggerEvent firedEvent = null;
-			Query.Context.RouteImmediate<TriggerEvent>(e => {
+			AdminQuery.Context.RouteImmediate<TriggerEvent>(e => {
 				firedEvent = e;
 				reset.Set();
 			}, e => {
@@ -110,7 +110,7 @@ namespace Deveel.Data {
 				       e.TriggerName.FullName.Equals("APP.trigger2");
 			});
 
-			Query.Insert(tableName, new[] { "id", "name" },
+			AdminQuery.Insert(tableName, new[] { "id", "name" },
 				new SqlExpression[] { SqlExpression.Constant(2), SqlExpression.Constant("The Name") });
 
 			reset.WaitOne(500);
@@ -122,18 +122,18 @@ namespace Deveel.Data {
 		public void Callback() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.Access().CreateCallbackTrigger("callback1", tableName, TriggerEventTime.After, TriggerEventType.Insert);
+			AdminQuery.Access().CreateCallbackTrigger("callback1", tableName, TriggerEventTime.After, TriggerEventType.Insert);
 
 			var reset = new AutoResetEvent(false);
 
 			TriggerEvent firedEvent = null;
-			Query.Context.RouteImmediate<TriggerEvent>(e => {
+			AdminQuery.Context.RouteImmediate<TriggerEvent>(e => {
 				firedEvent = e;
 				reset.Set();
 			}, e => e.TriggerType == TriggerType.Callback &&
 					e.TriggerName.Name.Equals("callback1"));
 
-			Query.Insert(tableName, new[] { "id", "name" },
+			AdminQuery.Insert(tableName, new[] { "id", "name" },
 				new SqlExpression[] { SqlExpression.Constant(2), SqlExpression.Constant("The Name") });
 
 			reset.WaitOne(300);
@@ -148,7 +148,7 @@ namespace Deveel.Data {
 			const string sql = "SELECT type FROM trigger1";
 			var query = (SqlQueryExpression) SqlExpression.Parse(sql);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Row row = null;
 			Assert.IsNotNull(result);
