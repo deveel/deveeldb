@@ -9,8 +9,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Sql.Compile {
 	[TestFixture]
 	public class AlterTriggerTests : SqlCompileTestBase {
-		[TestCase("ENABLE")]
-		[TestCase("DISABLE")]
+		[TestCase("ENABLE", TriggerStatus.Enabled)]
+		[TestCase("DISABLE", TriggerStatus.Disabled)]
 		public void ChangeStatus(string newStatus, TriggerStatus expectedStatus) {
 			var sql = String.Format("ALTER TRIGGER trig1 {0}", newStatus);
 
