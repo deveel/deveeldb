@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Compile {
 
 			var action = (ChangeTriggerStatusAction) alterTrigger.Action;
 
-			Assert.AreEqual(expectedStatus, action);
+			Assert.AreEqual(expectedStatus, action.Status);
 		}
 
 		[Test]
