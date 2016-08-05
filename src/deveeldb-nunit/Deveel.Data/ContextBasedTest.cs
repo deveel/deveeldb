@@ -185,10 +185,12 @@ namespace Deveel.Data {
 		}
 
 		private void RemoveTesterUser() {
-			using (var session = CreateAdminSession(Database)) {
-				using (var query = session.CreateQuery()) {
-					query.DropUser(UserName);
-					query.Commit();
+			if (CreateTestUser) {
+				using (var session = CreateAdminSession(Database)) {
+					using (var query = session.CreateQuery()) {
+						query.DropUser(UserName);
+						query.Commit();
+					}
 				}
 			}
 		}

@@ -450,6 +450,8 @@
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
+    <Compile Include="Deveel.Data\DeclaredException.cs" />
+    <Compile Include="Deveel.Data\ErrorNameAttribute.cs" />
     <Compile Include="Deveel.Data\IContext.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
     <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
@@ -544,6 +546,7 @@
     <Compile Include="Deveel.Data\IDatabaseCreatedCallback.cs" />
     <Compile Include="Deveel.Data\IDatabaseHandler.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\InformationSchema.cs" />
+    <Compile Include="Deveel.Data\IExceptionInitScope.cs" />
     <Compile Include="Deveel.Data\IRequest.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\ISystem.cs" />

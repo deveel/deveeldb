@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Sql.Variables;
 
@@ -35,13 +36,15 @@ namespace Deveel.Data {
 	/// lifetime, and dispose those defined during its existence at its disposal
 	/// </para>
 	/// </remarks>
-	public sealed class BlockContext : Context, IBlockContext, IVariableScope {
+	public sealed class BlockContext : Context, IBlockContext, IVariableScope, IExceptionInitScope {
 		private VariableManager variableManager;
+		private Dictionary<string, int> exceptions;
 
 		internal BlockContext(IContext parent)
 			: base(parent) {
 			this.RegisterInstance<IBlockContext>(this);
 			variableManager = new VariableManager(this);
+			exceptions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		}
 
 		IVariableManager IVariableScope.VariableManager {
@@ -64,6 +67,18 @@ namespace Deveel.Data {
 
 			variableManager = null;
 			base.Dispose(disposing);
+		}
+
+		void IExceptionInitScope.DeclareException(int errorCode, string exceptionName) {
+			exceptions[exceptionName] = errorCode;
+		}
+
+		DeclaredException IExceptionInitScope.FindExceptionByName(string exceptionName) {
+			int errorCode;
+			if (!exceptions.TryGetValue(exceptionName, out errorCode))
+				return null;
+
+			return new DeclaredException(errorCode, exceptionName);
 		}
 	}
 }

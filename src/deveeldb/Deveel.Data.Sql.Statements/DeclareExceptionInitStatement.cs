@@ -42,8 +42,7 @@ namespace Deveel.Data.Sql.Statements {
 		public int ErrorCode { get; private set; }
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			// TODO: Verify that the error code is valid and defined
-			context.Request.Context.MapErrorCode(ErrorCode, ExceptionName);
+			context.Request.Context.DeclareException(ErrorCode, ExceptionName);
 		}
 
 		protected override void GetData(SerializationInfo info) {

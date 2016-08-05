@@ -16,16 +16,33 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Deveel.Data {
 	public static class SystemErrorCodes {
+		private static readonly Dictionary<string, int> ErrorNameMap;
+
+		static SystemErrorCodes() {
+			ErrorNameMap = BuildErrorMap();
+		}
+
 		// System errors: 100XXX
 		public const int UnknownSystemError = 100001;
+		[ErrorName("OBJ_NOT_FOUND")]
 		public const int ObjectNotFound = 100030;
+		[ErrorName("PROGRAM_ERROR")]
 		public const int StatementExecutionError = 100041;
+		[ErrorName("ZERO_DIVIDE")]
+		public const int DivideByZero = 100067;
+		[ErrorName("TOO_MANY_ROWS")]
+		public const int RowCountOverLimit = 100081;
 
 		// SQL Model Errors: 101XXX
+		[ErrorName("PRIMARY_KEY_ERROR")]
 		public const int PrimaryKeyViolation = 101011;
+		[ErrorName("UNIQUE_KEY_ERROR")]
 		public const int UniqueKeyViolation = 101012;
 		public const int CheckViolation = 101013;
 		public const int ForeignKeyViolation = 101014;
@@ -47,6 +64,7 @@ namespace Deveel.Data {
 		public const int CursorOutOfContext = 101061;
 		public const int CursorFetchError = 101063;
 		public const int CursorOutOfBounds = 101064;
+		[ErrorName("CURSOR_OPEN")]
 		public const int CursorOpen = 101065;
 		public const int CursorClosed = 101066;
 		public const int ScrollCursorFetch = 101067;
@@ -65,5 +83,36 @@ namespace Deveel.Data {
 
 		public const int ObjectLengthViolation = 501201;
 		public const int InvalidObjectId = 501202;
+
+		private static Dictionary<string, int> BuildErrorMap() {
+			var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+			var fields = typeof(SystemErrorCodes).GetFields(BindingFlags.Public | BindingFlags.Static);
+			foreach (var field in fields) {
+				if (!Attribute.IsDefined(field, typeof(ErrorNameAttribute)))
+					continue;
+
+				var nameAttr = (ErrorNameAttribute) Attribute.GetCustomAttribute(field, typeof(ErrorNameAttribute));
+				map[nameAttr.Name] = (int) field.GetValue(null);
+			}
+
+			return map;
+		}
+
+		public static bool IsSystemError(int value) {
+			return ErrorNameMap.Values.Any(x => x == value);
+		}
+
+		public static bool IsSystemError(string name) {
+			return ErrorNameMap.ContainsKey(name);
+		}
+
+		public static int GetErrorCode(string errorName) {
+			int value;
+			if (!ErrorNameMap.TryGetValue(errorName, out value))
+				throw new InvalidOperationException(String.Format("Error '{0}' was not defined.", errorName));
+
+			return value;
+		}
 	}
 }
