@@ -24,7 +24,6 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
@@ -66,6 +65,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public QueryLimit Limit { get; set; }
 
+		public bool ForUpdate { get; set; }
+
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Query", QueryExpression);
 			info.AddValue("Limit", Limit);
@@ -98,7 +99,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var queryPlan = context.Query.Context.QueryPlanner().PlanQuery(new QueryInfo(context, QueryExpression, OrderBy, Limit));
-			return new Prepared(queryPlan);
+			return new Prepared(queryPlan, ForUpdate);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {
@@ -144,8 +145,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		[Serializable]
 		class Prepared : SqlStatement {
-			public Prepared(IQueryPlanNode queryPlan) {
+			public Prepared(IQueryPlanNode queryPlan, bool forUpdate) {
 				QueryPlan = queryPlan;
+				ForUpdate = forUpdate;
 			}
 
 			private Prepared(SerializationInfo info, StreamingContext context) {
@@ -153,6 +155,8 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			public IQueryPlanNode QueryPlan { get; private set; }
+
+			public bool ForUpdate { get; private set; }
 
 			protected override void GetData(SerializationInfo info) {
 				info.AddValue("QueryPlan", QueryPlan);
@@ -164,7 +168,7 @@ namespace Deveel.Data.Sql.Statements {
 				if (!context.User.CanSelectFrom(QueryPlan))
 					throw new SecurityException(String.Format("The user '{0}' has not enough rights to select from the query.", context.User.Name));
 
-				var cursorInfo = new NativeCursorInfo(QueryPlan);
+				var cursorInfo = new NativeCursorInfo(QueryPlan, ForUpdate);
 				var nativeCursor = new NativeCursor(cursorInfo, context.Request);
 
 				context.SetCursor(nativeCursor);

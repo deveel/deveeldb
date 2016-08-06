@@ -118,6 +118,26 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void ForUpdate() {
+			const string sql = "SELECT * FROM table1 WHERE a > 22 FOR UPDATE";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.FirstOrDefault();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var selectStatement = (SelectStatement)statement;
+			Assert.IsNotNull(selectStatement.QueryExpression);
+			Assert.IsTrue(selectStatement.ForUpdate);
+		}
+
+		[Test]
 		public void CountAll() {
 			const string sql = "SELECT COUNT(*) FROM table1";
 

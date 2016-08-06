@@ -437,6 +437,8 @@
     <Compile Include="Deveel.Data.Store\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Transactions\DirtySelectException.cs" />
     <Compile Include="Deveel.Data.Transactions\DroppedModifiedObjectConflictException.cs" />
+    <Compile Include="Deveel.Data.Transactions\LockEvent.cs" />
+    <Compile Include="Deveel.Data.Transactions\LockEventType.cs" />
     <Compile Include="Deveel.Data.Transactions\ObjectDuplicatedConflictException.cs" />
     <Compile Include="Deveel.Data.Transactions\ReadOnlyTransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\RowRemoveConflictException.cs" />

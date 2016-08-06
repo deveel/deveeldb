@@ -178,6 +178,9 @@ namespace Deveel.Data.Transactions {
 					lockHandles = new List<LockHandle>();
 
 				lockHandles.Add(handle);
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Lock, lockedNames, LockingMode.Exclusive, accessType));
 			}
 		}
 
@@ -212,6 +215,9 @@ namespace Deveel.Data.Transactions {
 
 					lockHandles.Add(handle);
 				}
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Enter, lockedNames, LockingMode.Exclusive, accessType));
 			}
 		}
 
@@ -242,6 +248,9 @@ namespace Deveel.Data.Transactions {
 						}
 					}
 				}
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Exit, lockedNames, LockingMode.Exclusive, accessType));
 			}
 		}
 

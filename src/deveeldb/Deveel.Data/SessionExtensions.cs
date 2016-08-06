@@ -67,10 +67,24 @@ namespace Deveel.Data {
 				session.Transaction.Enter(objects, accessType);
 		}
 
+		public static void Enter(this ISession session, IDbObject obj, AccessType accessType) {
+			session.Enter(new[] { obj }, accessType);
+		}
+
 		public static void Exit(this ISession session, IEnumerable<IDbObject> objects, AccessType accessType) {
 			// If a transaction is null, all references have already been released
 			if (session.Transaction != null)
 				session.Transaction.Exit(objects, accessType);
+		}
+
+		public static void Exit(this ISession session, IDbObject obj, AccessType accessType) {
+			session.Exit(new [] {obj}, accessType);
+		}
+
+		public static void Lock(this ISession session, IEnumerable<ObjectName> objectNames, AccessType accessType,
+			LockingMode mode) {
+			if (session.Transaction != null)
+				session.Transaction.Lock(objectNames, accessType, mode);
 		}
 
 		#region Variables
@@ -105,14 +119,6 @@ namespace Deveel.Data {
 
 		public static void ParameterStyle(this ISession session, QueryParameterStyle value) {
 			session.Transaction.ParameterStyle(value);
-		}
-
-		#endregion
-
-		#region Locks
-
-		public static void Enter(this ISession session, IDbObject obj, AccessType accessType) {
-			session.Enter(new[] { obj }, accessType);
 		}
 
 		#endregion

@@ -28,6 +28,12 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectIntoTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
+			CreateTables(query);
+			InsertTestData(query);
+			return true;
+		}
+
+		private void CreateTables(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
@@ -35,6 +41,16 @@ namespace Deveel.Data {
 
 			query.Access().CreateTable(tableInfo);
 
+			tableName = ObjectName.Parse("APP.dest_table");
+			tableInfo = new TableInfo(tableName);
+			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("b", PrimitiveTypes.String());
+
+			query.Access().CreateTable(tableInfo);
+		}
+
+		private void InsertTestData(IQuery query) {
+			var tableName = ObjectName.Parse("APP.test_table");
 			var table = query.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
@@ -46,7 +62,6 @@ namespace Deveel.Data {
 			row.SetValue(0, 38);
 			row.SetValue(1, "greetings");
 			table.AddRow(row);
-			return true;
 		}
 
 		protected override void OnAfterSetup(string testName) {
@@ -57,6 +72,7 @@ namespace Deveel.Data {
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.DropTable(tableName);
+			query.DropTable(ObjectName.Parse("APP.dest_table"));
 			return true;
 		}
 
@@ -90,6 +106,16 @@ namespace Deveel.Data {
 
 			var number = (SqlNumber)variable.Evaluate(AdminQuery).Value;
 			Assert.AreEqual(new SqlNumber(13), number);
+		}
+
+		[Test]
+		public void TwoColumnsIntoTable() {
+			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT a, b FROM test_table");
+			AdminQuery.SelectInto(query, ObjectName.Parse("APP.dest_table"));
+
+			var table = AdminQuery.Access().GetTable(ObjectName.Parse("APP.dest_table"));
+
+			Assert.AreEqual(2, table.RowCount);
 		}
 	}
 }
