@@ -301,6 +301,7 @@ TEMPORARY:                    T E M P O R A R Y;
 THE:                          T H E;
 THEN:                         T H E N;
 TIME:                         T I M E;
+TIMEOUT:                      T I M E O U T;
 TIMESTAMP:                    T I M E S T A M P;
 TIMEZONE_ABBR:                T I M E Z O N E '_' A B B R;
 TIMEZONE_HOUR:                T I M E Z O N E '_' H O U R;

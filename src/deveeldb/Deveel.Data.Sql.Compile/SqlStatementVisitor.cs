@@ -624,6 +624,14 @@ namespace Deveel.Data.Sql.Compile {
 			return new SetStatement(TransactionSettingKeys.ReadOnly, SqlExpression.Constant(readOnly));
 		}
 
+		public override SqlStatement VisitSetLockTimeout(PlSqlParser.SetLockTimeoutContext context) {
+			var value = Number.PositiveInteger(context.numeric());
+			if (value == null)
+				throw new ParseCanceledException("Invalid timeout value specified.");
+
+			return new SetStatement(TransactionSettingKeys.LockTimeout, SqlExpression.Constant(value.Value));
+		}
+
 		public override SqlStatement VisitShowStatement(PlSqlParser.ShowStatementContext context) {
 			ShowTarget target;
 			ObjectName tableName = null;

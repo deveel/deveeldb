@@ -66,7 +66,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void CheckAccess(Lock @lock) {
+		internal void CheckAccess(Lock @lock, int timeout) {
 			lock (this) {
 				// Error checking.  The queue must contain the Lock.
 				if (!locks.Contains(@lock))
@@ -89,7 +89,7 @@ namespace Deveel.Data.Transactions {
 						}
 
 						if (blocked) {
-							Monitor.Wait(this);
+							Monitor.Wait(this, timeout);
 						}
 					} while (blocked);
 				} else {
@@ -101,7 +101,7 @@ namespace Deveel.Data.Transactions {
 						if (index != 0) {
 							blocked = true;
 
-							Monitor.Wait(this);
+							Monitor.Wait(this, timeout);
 						}
 
 					} while (blocked);

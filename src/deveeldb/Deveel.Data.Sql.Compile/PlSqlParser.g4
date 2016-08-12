@@ -661,7 +661,7 @@ transactionControlStatement
 
 setTransactionCommand
     : SET TRANSACTION 
-      ( setTransactionAccess | setIsolationLevel | setIgnoreCase )
+      ( setTransactionAccess | setIsolationLevel | setIgnoreCase | setLockTimeout )
     ;
 
 setTransactionAccess
@@ -674,6 +674,10 @@ setIsolationLevel
 
 setIgnoreCase
    : IGNORE IDENTIFIERS? CASE (ON | OFF)?
+   ;
+
+setLockTimeout
+   : LOCK TIMEOUT numeric
    ;
 
 commitStatement

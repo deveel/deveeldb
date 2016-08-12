@@ -116,12 +116,12 @@ namespace Deveel.Data.Transactions {
 				Mode.ToString().ToUpperInvariant());
 		}
 
-		internal void CheckAccess(AccessType accessType) {
+		internal void CheckAccess(AccessType accessType, int timeout) {
 			if (AccessType != accessType)
 				throw new InvalidOperationException("Access error on lock: invalid access type");
 
 			if (!WasChecked) {
-				Queue.CheckAccess(this);
+				Queue.CheckAccess(this, timeout);
 				WasChecked = true;
 			}
 		}

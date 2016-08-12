@@ -78,5 +78,21 @@ namespace Deveel.Data.Sql.Variables {
 
 			return variable.Evaluate(null).AsVarChar();
 		}
+
+		public static int GetIntegerVariable(this IVariableScope scope, string name) {
+			return GetIntegerVariable(scope, name, 0);
+		}
+
+		public static int GetIntegerVariable(this IVariableScope scope, string name, int defaultValue) {
+			var variable = scope.GetVariable(name);
+			if (variable == null)
+				return defaultValue;
+
+			return variable.Evaluate(null).AsInteger();
+		}
+
+		public static void SetIntegerVariable(this IVariableScope scope, string name, int value) {
+			
+		}
 	}
 }

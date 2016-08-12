@@ -127,14 +127,14 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void CheckAccess(ILockable[] lockables, AccessType accessType) {
+		public void CheckAccess(ILockable[] lockables, AccessType accessType, int timeout) {
 			if (openHandles == null || lockables == null)
 				return;
 
 			foreach (var handle in openHandles) {
 				foreach (var lockable in lockables) {
 					if (handle.IsHandled(lockable))
-						handle.CheckAccess(lockable, accessType);
+						handle.CheckAccess(lockable, accessType, timeout);
 				}
 			}
 		}

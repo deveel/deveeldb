@@ -445,6 +445,10 @@ namespace Deveel.Data.Transactions {
 			transaction.Context.ErrorOnDirtySelect(value);
 		}
 
+		public static int LockTimeout(this ITransaction transaction) {
+			return transaction.Context.LockTimeout();
+		}
+
 		#endregion
 
 		#region Sequences
@@ -472,14 +476,6 @@ namespace Deveel.Data.Transactions {
 		public static LockHandle Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode) {
 			var lockables = tableNames.Select(transaction.FindObject).OfType<ILockable>();
 			return transaction.Database.Locker.Lock(lockables.ToArray(), accessType, mode);
-		}
-
-		public static bool IsLocked(this ITransaction transaction, ITable table) {
-			var lockable = table as ILockable;
-			if (lockable == null)
-				return false;
-
-			return transaction.Database.Locker.IsLocked(lockable);
 		}
 
 		#endregion

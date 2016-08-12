@@ -151,7 +151,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
+		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode, int timeout) {
 			lock (Database) {
 				var lockables = objects.OfType<ILockable>().ToArray();
 				if (lockables.Length == 0)
@@ -160,7 +160,7 @@ namespace Deveel.Data.Transactions {
 				// Before we can lock the objects, we must wait for them
 				//  to be available...
 				if (lockables.Any(x => Database.Locker.IsLocked(x)))
-					Database.Locker.CheckAccess(lockables, accessType);
+					Database.Locker.CheckAccess(lockables, AccessType.ReadWrite, timeout);
 
 				var handle = Database.Locker.Lock(lockables, accessType, mode);
 
@@ -183,17 +183,17 @@ namespace Deveel.Data.Transactions {
 				if (lockables.Length == 0)
 					return;
 
-				if (lockables.Any(x => Database.Locker.IsLocked(x)))
-					Database.Locker.CheckAccess(lockables, accessType);
+				var timeout = this.LockTimeout();
 
-				LockHandle handle;
-
-				if (Isolation == IsolationLevel.Serializable) {
-					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
-				} else {
-					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.",
-						Isolation));
+				if (lockables.Any(x => Database.Locker.IsLocked(x))) {
+					if (Isolation == IsolationLevel.ReadCommitted) {
+						Database.Locker.CheckAccess(lockables, AccessType.Read, timeout);
+					} else if (Isolation == IsolationLevel.Serializable) {
+						Database.Locker.CheckAccess(lockables, AccessType.ReadWrite, timeout);
+					}
 				}
+
+				var handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
 
 				var tables = lockables.OfType<IDbObject>().Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table)
 					.Select(x => x.ObjectInfo.FullName);
