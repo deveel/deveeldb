@@ -24,12 +24,15 @@ namespace Deveel.Data.Transactions {
 	public sealed class LockingQueue {
 		private readonly List<Lock> locks;
 
-		internal LockingQueue(ILockable lockable) {
+		internal LockingQueue(IDatabase database, ILockable lockable) {
+			Database = database;
 			Lockable = lockable;
 			locks = new List<Lock>();
 		}
 
 		public ILockable Lockable { get; private set; }
+
+		public IDatabase Database { get; private set; }
 
 		public bool IsEmpty {
 			get {
@@ -39,7 +42,16 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void Acquire(Lock @lock) {
+		public Lock NewLock(LockingMode mode, AccessType accessType) {
+			lock (this) {
+				var @lock = new Lock(this, mode, accessType);
+				Acquire(@lock);
+				@lock.OnAcquired();
+				return @lock;
+			}
+		}
+
+		private void Acquire(Lock @lock) {
 			lock (this) {
 				Lockable.Acquired(@lock);
 				locks.Add(@lock);

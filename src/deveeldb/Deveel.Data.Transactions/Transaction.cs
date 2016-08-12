@@ -132,18 +132,6 @@ namespace Deveel.Data.Transactions {
 			TableManager.AddInternalTables(new TransactionTableContainer(this));
 		}
 
-		private void CheckAccess(ILockable[] lockables, AccessType accessType) {
-			if (lockHandles == null || lockables == null)
-				return;
-
-			foreach (var handle in lockHandles) {
-				foreach (var lockable in lockables) {
-					if (handle.IsHandled(lockable))
-						handle.CheckAccess(lockable, accessType);
-				}
-			}
-		}
-
 		private void ReleaseLocks() {
 			if (Database == null)
 				return;
@@ -151,8 +139,9 @@ namespace Deveel.Data.Transactions {
 			lock (Database) {
 				if (lockHandles != null) {
 					foreach (var handle in lockHandles) {
-						if (handle != null)
-							handle.Release();
+						if (handle != null) {
+							Database.Locker.Unlock(handle);
+						}
 					}
 
 					lockHandles.Clear();
@@ -170,7 +159,8 @@ namespace Deveel.Data.Transactions {
 
 				// Before we can lock the objects, we must wait for them
 				//  to be available...
-				CheckAccess(lockables, accessType);
+				if (lockables.Any(x => Database.Locker.IsLocked(x)))
+					Database.Locker.CheckAccess(lockables, accessType);
 
 				var handle = Database.Locker.Lock(lockables, accessType, mode);
 
@@ -193,20 +183,22 @@ namespace Deveel.Data.Transactions {
 				if (lockables.Length == 0)
 					return;
 
-				var tables = lockables.OfType<IDbObject>().Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table)
-					.Select(x => x.ObjectInfo.FullName);
-				foreach (var table in tables) {
-					TableManager.SelectTable(table);
-				}
-
-				CheckAccess(lockables, accessType);
+				if (lockables.Any(x => Database.Locker.IsLocked(x)))
+					Database.Locker.CheckAccess(lockables, accessType);
 
 				LockHandle handle;
 
 				if (Isolation == IsolationLevel.Serializable) {
 					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
 				} else {
-					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.", Isolation));
+					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.",
+						Isolation));
+				}
+
+				var tables = lockables.OfType<IDbObject>().Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table)
+					.Select(x => x.ObjectInfo.FullName);
+				foreach (var table in tables) {
+					TableManager.SelectTable(table);
 				}
 
 				if (handle != null) {

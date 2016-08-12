@@ -16,7 +16,11 @@
 
 
 using System;
+using System.Text;
 using System.Threading;
+
+using Deveel.Data.Diagnostics;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	public sealed class Lock {
@@ -27,7 +31,6 @@ namespace Deveel.Data.Transactions {
 			Queue = queue;
 			AccessType = accessType;
 			Mode = mode;
-			Queue.Acquire(this);
 		}
 
 		private LockingQueue Queue { get; set; }
@@ -40,6 +43,10 @@ namespace Deveel.Data.Transactions {
 
 		internal ILockable Lockable {
 			get { return Queue.Lockable; }
+		}
+
+		internal void OnAcquired() {
+			StartMode();
 		}
 
 		private void StartMode() {
@@ -88,21 +95,30 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void Acquire() {
-			StartMode();
-		}
-
 		internal void Release() {
 			EndMode();
 			Queue.Release(this);
 
-			// TODO: if the lock was not check, silently report the error to the system
+			if (!WasChecked) {
+				Queue.Database.Context.OnWarning(String.Format("'{0}' was never checked", ToDebugString()));
+			}
+		}
+
+		private string ToDebugString() {
+			string objName;
+			if (Lockable is IDbObject) {
+				objName = ((IDbObject) Lockable).ObjectInfo.FullName.FullName;
+			} else {
+				objName = Lockable.ToString();
+			}
+
+			return String.Format("LOCK {0} ON {1} IN {2} MODE", AccessType.ToString().ToUpperInvariant(), objName,
+				Mode.ToString().ToUpperInvariant());
 		}
 
 		internal void CheckAccess(AccessType accessType) {
-			if (AccessType == AccessType.Write && 
-				accessType != AccessType.Write)
-				throw new InvalidOperationException("Access error on Lock: Tried to Write to a non Write Lock.");
+			if (AccessType != accessType)
+				throw new InvalidOperationException("Access error on lock: invalid access type");
 
 			if (!WasChecked) {
 				Queue.CheckAccess(this);

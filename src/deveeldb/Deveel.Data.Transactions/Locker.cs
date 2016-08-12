@@ -19,11 +19,17 @@ using System;
 using System.Collections.Generic;
 
 namespace Deveel.Data.Transactions {
-	public sealed class Locker {
-		private readonly Dictionary<object, LockingQueue> queuesMap = new Dictionary<object, LockingQueue>();
+	public sealed class Locker : IDisposable {
+		private Dictionary<object, LockingQueue> queuesMap = new Dictionary<object, LockingQueue>();
+		private List<LockHandle> openHandles;
 
 		public Locker(IDatabase database) {
 			Database = database;
+			openHandles = new List<LockHandle>();
+		}
+
+		~Locker() {
+			Dispose(false);
 		}
 
 		public IDatabase Database { get; private set; }
@@ -36,11 +42,34 @@ namespace Deveel.Data.Transactions {
 				var lockable = lockables[i];
 				var queue = GetQueueFor(lockable);
 
-				// slightly confusing: this will add Lock to given table queue
-				var @lock = new Lock(queue, mode, accessType);
-				@lock.Acquire();
-				handle.AddLock(@lock);
+				handle.AddLock(queue.NewLock(mode, accessType));
 			}
+		}
+
+		private void Dispose(bool disposing) {
+			lock (this) {
+				if (disposing) {
+					if (openHandles != null) {
+						foreach (var handle in openHandles) {
+							handle.Release();
+						}
+
+						openHandles.Clear();
+					}
+
+					if (queuesMap != null)
+						queuesMap.Clear();
+				}
+
+				queuesMap = null;
+				openHandles = null;
+				Database = null;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public LockHandle Lock(ILockable[] lockables, AccessType accessType, LockingMode mode) {
@@ -59,37 +88,7 @@ namespace Deveel.Data.Transactions {
 				if ((accessType & AccessType.Write) != 0)
 					AddToHandle(handle, lockables, AccessType.Write, mode);
 
-				return handle;
-			}
-		}
-
-		public LockHandle Lock(ILockable lockable, AccessType accessType, LockingMode mode) {
-			return Lock(new[] {lockable}, accessType, mode);
-		}
-
-		public LockHandle LockRead(ILockable lockable, LockingMode mode) {
-			return Lock(lockable, AccessType.Read, mode);
-		}
-
-		public LockHandle LockRead(ILockable[] lockables, LockingMode mode) {
-			return Lock(lockables, AccessType.Read, mode);
-		}
-
-		public LockHandle LockWrite(ILockable lockable, LockingMode mode) {
-			return Lock(lockable, AccessType.Write, mode);
-		}
-
-		public LockHandle LockWrite(ILockable[] lockables, LockingMode mode) {
-			return Lock(lockables, AccessType.Write, mode);
-		}
-
-		public LockHandle Lock(ILockable[] toWrite, ILockable[] toRead, LockingMode mode) {
-			lock (this) {
-				int lockCount = toRead.Length + toWrite.Length;
-				LockHandle handle = new LockHandle(lockCount);
-
-				AddToHandle(handle, toWrite, AccessType.Write, mode);
-				AddToHandle(handle, toRead, AccessType.Read, mode);
+				openHandles.Add(handle);
 
 				return handle;
 			}
@@ -99,7 +98,7 @@ namespace Deveel.Data.Transactions {
 			LockingQueue queue;
 
 			if (!queuesMap.TryGetValue(lockable.RefId, out queue)) {
-				queue = new LockingQueue(lockable);
+				queue = new LockingQueue(Database, lockable);
 				queuesMap[lockable.RefId] = queue;
 			}
 
@@ -108,13 +107,13 @@ namespace Deveel.Data.Transactions {
 
 		public void Unlock(LockHandle handle) {
 			lock (this) {
-				handle.Release();
-			}
-		}
+				if (openHandles != null) {
+					var index = openHandles.IndexOf(handle);
+					if (index >= 0)
+						openHandles.RemoveAt(index);
+				}
 
-		public void Reset() {
-			lock (this) {
-				queuesMap.Clear();
+				handle.Release();
 			}
 		}
 
@@ -125,6 +124,18 @@ namespace Deveel.Data.Transactions {
 					return false;
 
 				return !queue.IsEmpty;
+			}
+		}
+
+		public void CheckAccess(ILockable[] lockables, AccessType accessType) {
+			if (openHandles == null || lockables == null)
+				return;
+
+			foreach (var handle in openHandles) {
+				foreach (var lockable in lockables) {
+					if (handle.IsHandled(lockable))
+						handle.CheckAccess(lockable, accessType);
+				}
 			}
 		}
 	}

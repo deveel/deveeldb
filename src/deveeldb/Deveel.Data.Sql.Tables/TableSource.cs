@@ -259,7 +259,7 @@ namespace Deveel.Data.Sql.Tables {
 					// Close the store input the store system.
 					StoreSystem.CloseStore(Store);
 
-					TableInfo = null;
+					// TableInfo = null;
 					IsClosed = true;
 				}
 			}

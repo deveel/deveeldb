@@ -153,13 +153,13 @@ namespace Deveel.Data {
 					}
 
 					if (Locker != null)
-						Locker.Reset();
+						Locker.Dispose();
 
 					if (TableComposite != null)
 						TableComposite.Dispose();
 
 					if (TransactionFactory != null &&
-	(TransactionFactory is IDisposable))
+					    (TransactionFactory is IDisposable))
 						(TransactionFactory as IDisposable).Dispose();
 
 					if (Context != null)
