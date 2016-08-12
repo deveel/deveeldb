@@ -130,6 +130,7 @@
     <Compile Include="Deveel.Data.Sql.Compile\GrantTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\IfTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\InsertIntoTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Compile\LockTableTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\LoopTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\NextValueForTests.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\OpenTests.cs" />
@@ -168,6 +169,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\DropStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\GrantStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\InsertStringFormatTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LockTableStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\PlSqlBlockStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SelectStringFormatTests.cs" />
@@ -223,6 +225,7 @@
     <Compile Include="Deveel.Data\DropUserTests.cs" />
     <Compile Include="Deveel.Data\DropViewTests.cs" />
     <Compile Include="Deveel.Data\FetchTests.cs" />
+    <Compile Include="Deveel.Data\LockTableTests.cs" />
     <Compile Include="Deveel.Data\MathFunctionTests.cs" />
     <Compile Include="Deveel.Data\ObjectFunctionTests.cs" />
     <Compile Include="Deveel.Data\RaiseTests.cs" />

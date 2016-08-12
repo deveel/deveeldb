@@ -285,6 +285,7 @@
     <Compile Include="Deveel.Data.Sql.Statements\IStatementCache.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IStatementPreparable.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\IVisitableStatement.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements\LockTableStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\LoopBreakChecker.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\NullStatement.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\RenameTriggerAction.cs" />
@@ -439,6 +440,7 @@
     <Compile Include="Deveel.Data.Transactions\DroppedModifiedObjectConflictException.cs" />
     <Compile Include="Deveel.Data.Transactions\LockEvent.cs" />
     <Compile Include="Deveel.Data.Transactions\LockEventType.cs" />
+    <Compile Include="Deveel.Data.Transactions\LockTimeoutException.cs" />
     <Compile Include="Deveel.Data.Transactions\ObjectDuplicatedConflictException.cs" />
     <Compile Include="Deveel.Data.Transactions\ReadOnlyTransactionException.cs" />
     <Compile Include="Deveel.Data.Transactions\RowRemoveConflictException.cs" />

@@ -19,6 +19,7 @@ unitStatement
 	| cursorStatement
 
 	| showStatement
+	| lockTableStatement
 	| transactionControlStatement
 
 	| ifStatement
@@ -650,6 +651,12 @@ sqlStatement
     ;
 
 // $>
+
+lockTableStatement
+   : LOCK TABLE objectName (',' objectName)* 
+		IN ( EXCLUSIVE | SHARED ) MODE
+		( (WAIT numeric) | NOWAIT )?
+   ;
 
 // $<Transaction Control SQL PL/SQL Statements
 

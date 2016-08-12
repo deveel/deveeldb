@@ -76,6 +76,8 @@ namespace Deveel.Data {
 		public const int DuplicateObjectConflict = 102032;
 		public const int NonCommittedConflict = 102033;
 		public const int RowRemoveConflict = 102034;
+		[ErrorName("DDL_LOCK_TIMEOUT")]
+		public const int LockTimeout = 102051;
 
 		// I/O Errors: 501XXX
 		public const int UnknownStorageError = 501101;

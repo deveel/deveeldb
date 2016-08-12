@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
 	public sealed class LockingQueue {
 		private readonly List<Lock> locks;
@@ -66,6 +68,17 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		private LockTimeoutException TimeoutException(ILockable lockable, AccessType accessType, int timeout) {
+			ObjectName tableName;
+			if (lockable is IDbObject) {
+				tableName = ((IDbObject) lockable).ObjectInfo.FullName;
+			} else {
+				tableName = new ObjectName(lockable.RefId.ToString());
+			}
+
+			return new LockTimeoutException(tableName, accessType, timeout);
+		}
+
 		internal void CheckAccess(Lock @lock, int timeout) {
 			lock (this) {
 				// Error checking.  The queue must contain the Lock.
@@ -89,7 +102,8 @@ namespace Deveel.Data.Transactions {
 						}
 
 						if (blocked) {
-							Monitor.Wait(this, timeout);
+							if (!Monitor.Wait(this, timeout))
+								throw TimeoutException(@lock.Lockable, @lock.AccessType, timeout);
 						}
 					} while (blocked);
 				} else {
@@ -101,7 +115,8 @@ namespace Deveel.Data.Transactions {
 						if (index != 0) {
 							blocked = true;
 
-							Monitor.Wait(this, timeout);
+							if (!Monitor.Wait(this, timeout))
+								throw TimeoutException(@lock.Lockable, @lock.AccessType, timeout);
 						}
 
 					} while (blocked);

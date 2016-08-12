@@ -473,9 +473,9 @@ namespace Deveel.Data.Transactions {
 
 		#region Locks
 
-		public static LockHandle Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode) {
-			var lockables = tableNames.Select(transaction.FindObject).OfType<ILockable>();
-			return transaction.Database.Locker.Lock(lockables.ToArray(), accessType, mode);
+		public static void Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode, int timeout) {
+			var lockables = tableNames.Select(transaction.FindObject);
+			transaction.Lock(lockables.ToArray(), mode, timeout);
 		}
 
 		#endregion

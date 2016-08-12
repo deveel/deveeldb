@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using Antlr4.Runtime.Misc;
 
@@ -630,6 +631,40 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid timeout value specified.");
 
 			return new SetStatement(TransactionSettingKeys.LockTimeout, SqlExpression.Constant(value.Value));
+		}
+
+		public override SqlStatement VisitLockTableStatement(PlSqlParser.LockTableStatementContext context) {
+			var tableNames = context.objectName().Select(Name.Object).ToArray();
+			LockingMode mode;
+			if (context.SHARED() != null) {
+				mode = LockingMode.Shared;
+			} else if (context.EXCLUSIVE() != null) {
+				mode = LockingMode.Exclusive;
+			} else {
+				throw new ParseCanceledException("Invalid locking mode");
+			}
+
+			int timeout = Timeout.Infinite;
+			if (context.WAIT() != null) {
+				var wait = Number.PositiveInteger(context.numeric());
+				if (wait == null)
+					throw new ParseCanceledException("Invalid timeout wait value");
+
+				timeout = wait.Value;
+			} else if (context.NOWAIT() != null) {
+				timeout = 0;
+			}
+
+			if (tableNames.Length == 1)
+				return new LockTableStatement(tableNames[0], mode, timeout);
+
+			var seq = new SequenceOfStatements();
+
+			foreach (var tableName in tableNames) {
+				seq.Statements.Add(new LockTableStatement(tableName, mode, timeout));
+			}
+
+			return seq;
 		}
 
 		public override SqlStatement VisitShowStatement(PlSqlParser.ShowStatementContext context) {

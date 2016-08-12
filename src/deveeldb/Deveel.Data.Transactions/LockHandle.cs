@@ -67,7 +67,7 @@ namespace Deveel.Data.Transactions {
 
 		public bool IsHandled(ILockable lockable) {
 			for (int i = locks.Length - 1; i >= 0; i--) {
-				if (locks[i].Lockable == lockable)
+				if (locks[i].Lockable.RefId.Equals(lockable.RefId))
 					return true;
 			}
 

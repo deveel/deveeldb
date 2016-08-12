@@ -151,7 +151,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode, int timeout) {
+		public void Lock(IEnumerable<IDbObject> objects, LockingMode mode, int timeout) {
 			lock (Database) {
 				var lockables = objects.OfType<ILockable>().ToArray();
 				if (lockables.Length == 0)
@@ -162,7 +162,7 @@ namespace Deveel.Data.Transactions {
 				if (lockables.Any(x => Database.Locker.IsLocked(x)))
 					Database.Locker.CheckAccess(lockables, AccessType.ReadWrite, timeout);
 
-				var handle = Database.Locker.Lock(lockables, accessType, mode);
+				var handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, mode);
 
 				if (lockHandles == null)
 					lockHandles = new List<LockHandle>();
@@ -170,7 +170,7 @@ namespace Deveel.Data.Transactions {
 				lockHandles.Add(handle);
 
 				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
-				Context.OnEvent(new LockEvent(LockEventType.Lock, lockedNames, LockingMode.Exclusive, accessType));
+				Context.OnEvent(new LockEvent(LockEventType.Lock, lockedNames, LockingMode.Exclusive, AccessType.ReadWrite));
 			}
 		}
 

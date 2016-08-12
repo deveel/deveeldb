@@ -82,9 +82,9 @@ namespace Deveel.Data {
 		}
 
 		public static void Lock(this ISession session, IEnumerable<ObjectName> objectNames, AccessType accessType,
-			LockingMode mode) {
+			LockingMode mode, int timeout) {
 			if (session.Transaction != null)
-				session.Transaction.Lock(objectNames, accessType, mode);
+				session.Transaction.Lock(objectNames, accessType, mode, timeout);
 		}
 
 		#region Variables

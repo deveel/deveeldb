@@ -277,6 +277,7 @@ SET:                          S E T;
 SETS:                         S E T S;
 SETTINGS:                     S E T T I N G S;
 SHARE:                        S H A R E;
+SHARED:                       S H A R E D;
 SHOW:                         S H O W;
 SHUTDOWN:                     S H U T D O W N;
 SINGLE:                       S I N G L E;
