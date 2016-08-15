@@ -137,12 +137,12 @@ namespace Deveel.Data.Sql.Types {
 			return Numeric(sqlType, -1);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size) {
-			return Numeric(sqlType, size, 0);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision) {
+			return Numeric(sqlType, precision, 0);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size, byte scale) {
-			return new NumericType(sqlType, size, scale);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision, int scale) {
+			return new NumericType(sqlType, precision, scale);
 		}
 
 		public static NumericType TinyInt(int size) {

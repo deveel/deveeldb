@@ -384,7 +384,7 @@ namespace Deveel.Data.Routines {
 			var scale = result.Scale;
 			var precision = result.Precision;
 
-			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+			return new Field(new NumericType(SqlTypeCode.Numeric, scale, precision), result);
 		}
 
 		private static Field MathFunction(Func<SqlNumber, SqlNumber, SqlNumber> op, Field value, Field other) {
@@ -406,7 +406,7 @@ namespace Deveel.Data.Routines {
 			var scale = result.Scale;
 			var precision = result.Precision;
 
-			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, scale), result);
 		}
 
 		public static Field Cos(Field value) {

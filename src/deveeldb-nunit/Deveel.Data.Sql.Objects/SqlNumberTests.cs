@@ -52,8 +52,8 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(value.IsNull);
 			Assert.IsFalse(value.CanBeInt32);
 			Assert.IsFalse(value.CanBeInt64);
-			Assert.AreEqual(28, value.Scale);
-			Assert.AreEqual(34, value.Precision);
+			Assert.AreEqual(10, value.Scale);
+			Assert.AreEqual(16, value.Precision);
 			Assert.AreEqual(NumericState.None, value.State);
 			Assert.AreEqual(1, value.Sign);
 		}
@@ -325,7 +325,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		[Category("Numbers"), Category("Functions")]
-		[TestCase(99820, 48993, 1.0659007887179623)]
+		[TestCase(99820, 48993, 1.0659007887179619)]
 		public static void Function_Log(int value, int newBase, double expected) {
 			var number = new SqlNumber(value);
 			var result = number.Log(new SqlNumber(newBase));
@@ -353,7 +353,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		[Category("Numbers"), Category("Functions")]
-		[TestCase(0.36f, 1.0655028755774867)]
+		[TestCase(0.36f, 1.0655028755774869)]
 		public static void Function_CosH(float value, double expected) {
 			var number = new SqlNumber(value);
 			var result = number.CosH();
@@ -381,7 +381,7 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		[Category("Numbers"), Category("Functions")]
-		[TestCase(559604.003100, 23.625265230100787)]
+		[TestCase(559604.003100, 23.625265230100791)]
 		public static void Function_Tan(double value, double expected) {
 			var number = new SqlNumber(value);
 			var result = number.Tan();

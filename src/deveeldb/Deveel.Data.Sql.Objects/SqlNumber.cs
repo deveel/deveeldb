@@ -66,36 +66,28 @@ namespace Deveel.Data.Sql.Objects {
 			State = state;
 		}
 
-		public SqlNumber(byte[] bytes, int scale)
-			: this(new BigDecimal(new BigInteger(bytes), scale)) {
-		}
-
 		public SqlNumber(byte[] bytes, int scale, int precision)
 			: this(new BigDecimal(new BigInteger(bytes), scale, new MathContext(precision))) {
 		}
 
-		public SqlNumber(int value, int precision)
-			: this(new BigDecimal(value, new MathContext(precision))) {
-		}
-
 		public SqlNumber(int value)
-			: this(value, MathContext.Decimal32.Precision) {
-		}
-
-		public SqlNumber(long value, int precision)
-			: this(new BigDecimal(value, new MathContext(precision))) {
+			: this(value, 0, value.ToString().Length) {
 		}
 
 		public SqlNumber(long value)
-			: this(value, MathContext.Decimal64.Precision) {
+			: this(value, 0, value.ToString().Length) {
 		}
 
 		public SqlNumber(double value)
-			: this(value, MathContext.Decimal128.Precision) {
+			: this(value, MathContext.Decimal64.Precision) {
 		}
 
 		public SqlNumber(double value, int precision)
 			: this(new BigDecimal(value, new MathContext(precision))) {
+		}
+
+		private SqlNumber(BigInteger unscaled, int scale, int precision)
+			: this(new BigDecimal(unscaled, scale, new MathContext(precision))) {
 		}
 
 		private SqlNumber(SerializationInfo info, StreamingContext context)

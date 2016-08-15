@@ -185,6 +185,7 @@
     <Compile Include="Deveel.Data.Types\BinaryTypeTests.cs" />
     <Compile Include="Deveel.Data.Types\DateTypeTests.cs" />
     <Compile Include="Deveel.Data.Types\IntervalTypeTests.cs" />
+    <Compile Include="Deveel.Data.Types\NumericTypeTests.cs" />
     <Compile Include="Deveel.Data.Types\RefTypesTests.cs" />
     <Compile Include="Deveel.Data.Types\UserType.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
