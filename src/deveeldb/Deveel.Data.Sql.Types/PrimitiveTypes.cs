@@ -233,6 +233,14 @@ namespace Deveel.Data.Sql.Types {
 			return new IntervalType(sqlType);
 		}
 
+		public static IntervalType DayToSecond() {
+			return Interval(SqlTypeCode.DayToSecond);
+		}
+
+		public static IntervalType YearToMonth() {
+			return Interval(SqlTypeCode.YearToMonth);
+		}
+
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
 			if (sqlType == SqlTypeCode.Unknown ||
 			    sqlType == SqlTypeCode.Type ||

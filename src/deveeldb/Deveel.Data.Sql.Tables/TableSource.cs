@@ -177,6 +177,9 @@ namespace Deveel.Data.Sql.Tables {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
+				if (CellCache != null)
+					CellCache.Clear();
+
 				if (headerArea != null)
 					headerArea.Dispose();
 
@@ -201,6 +204,7 @@ namespace Deveel.Data.Sql.Tables {
 			indexSetStore = null;
 			ObjectStore = null;
 			Store = null;
+			CellCache = null;
 		}
 
 		public void Dispose() {

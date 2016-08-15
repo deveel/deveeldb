@@ -92,6 +92,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSourceTests.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\CounterTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
@@ -154,6 +155,8 @@
     <Compile Include="Deveel.Data.Sql.Expressions\SqlConditionalExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\SqlFunctionCallExpressionTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlNullTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Objects\SqlUserObjectTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTriggerStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStringFormatTests.cs" />
