@@ -483,6 +483,7 @@
     <Compile Include="Deveel.Data.Transactions\TransactionTableContainer.cs" />
     <Compile Include="Deveel.Data.Transactions\NonCommittedConflictException.cs" />
     <Compile Include="Deveel.Data.Util\BytesUtil.cs" />
+    <Compile Include="Deveel.Data.Util\ReadOnlyExtensions.cs" />
     <Compile Include="Deveel.Data\Context.cs" />
     <Compile Include="Deveel.Data\ContextExtensions.cs" />
     <Compile Include="Deveel.Data\ContextNames.cs" />
