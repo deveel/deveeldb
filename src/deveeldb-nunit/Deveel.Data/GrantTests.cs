@@ -77,28 +77,28 @@ namespace Deveel.Data {
 
 		[Test]
 		public void GrantCreateToUserOnSchema() {
-			Query.Grant("test_user", Privileges.Create, new ObjectName("APP"));
+			AdminQuery.Grant("test_user", Privileges.Create, new ObjectName("APP"));
 
 			// TODO: Query the user privileges and assert he was granted
 		}
 
 		[Test]
 		public void GrantSelectToUserOnTable() {
-			Query.Grant("test_user", Privileges.Create, new ObjectName("APP.test_table"));
+			AdminQuery.Grant("test_user", Privileges.Create, new ObjectName("APP.test_table"));
 
 			// TODO: Query the user privileges and assert he was granted
 		}
 
 		[Test]
 		public void GrantCreateToRoleOnSchema() {
-			Query.Grant("test_role", Privileges.Create, new ObjectName("APP"));
+			AdminQuery.Grant("test_role", Privileges.Create, new ObjectName("APP"));
 		}
 
 		[Test]
 		public void GrantRoleToUser() {
-			Query.GrantRole("test_user", "test_role");
+			AdminQuery.GrantRole("test_user", "test_role");
 
-			var inRole = Query.Access().UserIsInRole("test_user", "test_role");
+			var inRole = AdminQuery.Access().UserIsInRole("test_user", "test_role");
 			Assert.IsTrue(inRole);
 		}
 	}

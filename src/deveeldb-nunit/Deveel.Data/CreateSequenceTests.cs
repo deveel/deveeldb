@@ -50,23 +50,23 @@ namespace Deveel.Data {
 		public void Simple() {
 			var seqName = ObjectName.Parse("APP.seq2");
 
-			Query.CreateSequence(seqName);
+			AdminQuery.CreateSequence(seqName);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Sequence, seqName);
 			Assert.IsTrue(exists);
 		}
 
 		[Test]
 		public void WithValues() {
 			var seqName = ObjectName.Parse("APP.seq2");
-			Query.CreateSequence(seqName,
+			AdminQuery.CreateSequence(seqName,
 				SqlExpression.Constant(0),
 				SqlExpression.Constant(1),
 				SqlExpression.Constant(0),
 				SqlExpression.Constant(Int64.MaxValue),
 				SqlExpression.Constant(Int16.MaxValue));
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Sequence, seqName);
 			Assert.IsTrue(exists);
 		}
 
@@ -74,14 +74,14 @@ namespace Deveel.Data {
 		public void Existing_UserDefined() {
 			var seqName = ObjectName.Parse("APP.seq1");
 
-			Assert.Throws<StatementException>(() => Query.CreateSequence(seqName));
+			Assert.Throws<StatementException>(() => AdminQuery.CreateSequence(seqName));
 		}
 
 		[Test]
 		public void Existing_Native() {
 			var tableName = SystemSchema.TableInfoTableName;
 
-			Assert.Throws<StatementException>(() => Query.CreateSequence(tableName));
+			Assert.Throws<StatementException>(() => AdminQuery.CreateSequence(tableName));
 		}
 	}
 }

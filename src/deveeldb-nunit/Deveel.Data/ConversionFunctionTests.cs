@@ -73,5 +73,34 @@ namespace Deveel.Data {
 			var stringResult = result.Value.ToString();
 			Assert.AreEqual("455366", stringResult);
 		}
+
+		[Test]
+		public void ToTimeStamp_NoTimeZone() {
+			var value = SqlExpression.Constant("2016-05-22T06:33:22.456");
+
+			var result = Select("TOTIMESTAMP", value);
+
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<DateType>(result.Type);
+
+			var dateResult = (SqlDateTime) result.Value;
+			Assert.IsNotNull(dateResult);
+			Assert.AreEqual(2016, dateResult.Year);
+		}
+
+		[Test]
+		public void ToTimeStamp_WithTimeZone() {
+			var value = SqlExpression.Constant("2016-05-22T06:33:22.456");
+			var tz = SqlExpression.Constant("CET");
+
+			var result = Select("TOTIMESTAMP", value, tz);
+
+			Assert.IsNotNull(result);
+			Assert.IsInstanceOf<DateType>(result.Type);
+
+			var dateResult = (SqlDateTime)result.Value;
+			Assert.IsNotNull(dateResult);
+			Assert.AreEqual(2016, dateResult.Year);
+		}
 	}
 }

@@ -35,13 +35,13 @@ namespace Deveel.Data {
 			};
 
 			var externRef = ExternalRef.MakeRef(typeof(Test), "Procedure(int, int)");
-			Query.CreateExternProcedure(procName, parameters, externRef.ToString());
+			AdminQuery.CreateExternProcedure(procName, parameters, externRef.ToString());
 
-			var exists = Query.Access().RoutineExists(procName);
+			var exists = AdminQuery.Access().RoutineExists(procName);
 
 			Assert.IsTrue(exists);
 
-			var procedure = Query.Access().GetObject(DbObjectType.Routine, procName);
+			var procedure = AdminQuery.Access().GetObject(DbObjectType.Routine, procName);
 
 			Assert.IsNotNull(procedure);
 			Assert.IsInstanceOf<ExternalProcedure>(procedure);
@@ -58,13 +58,13 @@ namespace Deveel.Data {
 			block.Statements.Add(new AssignVariableStatement(SqlExpression.VariableReference("a"), SqlExpression.FunctionCall("user")));
 
 			var procName = ObjectName.Parse("APP.proc1");
-			Query.CreateProcedure(procName, block);
+			AdminQuery.CreateProcedure(procName, block);
 
-			var exists = Query.Access().RoutineExists(procName);
+			var exists = AdminQuery.Access().RoutineExists(procName);
 
 			Assert.IsTrue(exists);
 
-			var procedure = Query.Access().GetObject(DbObjectType.Routine, procName);
+			var procedure = AdminQuery.Access().GetObject(DbObjectType.Routine, procName);
 
 			Assert.IsNotNull(procedure);
 			Assert.IsInstanceOf<Procedure>(procedure);

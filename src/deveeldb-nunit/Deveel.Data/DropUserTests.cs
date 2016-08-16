@@ -39,20 +39,20 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Existing() {
-			Query.DropUser("tester");
+			AdminQuery.DropUser("tester");
 
-			var exists = Query.Session.Access().UserExists("tester");
+			var exists = AdminQuery.Session.Access().UserExists("tester");
 			Assert.IsFalse(exists);
 		}
 
 		[Test]
 		public void PublicUser() {
-			Assert.Throws<SecurityException>(() => Query.DropUser(User.PublicName));
+			Assert.Throws<SecurityException>(() => AdminQuery.DropUser(User.PublicName));
 		}
 
 		[Test]
 		public void SystemUser() {
-			Assert.Throws<SecurityException>(() => Query.DropUser(User.SystemName));
+			Assert.Throws<SecurityException>(() => AdminQuery.DropUser(User.SystemName));
 		}
 	}
 }

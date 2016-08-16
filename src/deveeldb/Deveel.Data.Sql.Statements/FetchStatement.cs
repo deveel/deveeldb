@@ -78,7 +78,7 @@ namespace Deveel.Data.Sql.Statements {
 			if (OffsetExpression != null)
 				offset = OffsetExpression.EvaluateToConstant(context.Request, null);
 
-			var row = cursor.Fetch(context.Request, Direction, offset);
+			var row = cursor.Fetch(Direction, offset);
 
 			if (row != null) {
 				var result = new VirtualTable(row.Table, new List<int> {row.RowId.RowNumber});

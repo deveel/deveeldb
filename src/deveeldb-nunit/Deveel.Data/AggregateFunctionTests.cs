@@ -67,7 +67,7 @@ namespace Deveel.Data {
 			var query = new SqlQueryExpression(new[] { column });
 			query.FromClause.AddTable("APP.test_table");
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			var row = result.FirstOrDefault();
 			if (row == null)

@@ -47,7 +47,8 @@ namespace Deveel.Data.Sql.Tables {
 
 				RemoveDuplicates(all);
 			} else {
-				throw new InvalidOperationException("Unrecognised composite function");
+				throw new NotSupportedException(String.Format("The composite function '{0}' is not supported (yet).",
+					function.ToString().ToUpperInvariant()));
 			}
 
 		}

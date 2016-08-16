@@ -117,9 +117,7 @@ namespace Deveel.Data.Transactions {
 					for (int i = 0; i < columns.Length; ++i) {
 						var columnInfo = tableInfo[tableInfo.IndexOfColumn(columns[i])];
 						if (columnInfo.IsNotNull) {
-							throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' update or delete triggered " +
-							                                  "action is SET NULL for columns that are constrained as " +
-							                                  "NOT NULL.", table, refTable));
+							throw new NotNullColumnViolationException(tableInfo.TableName, columnInfo.ColumnName);
 						}
 					}
 				}
@@ -520,7 +518,7 @@ namespace Deveel.Data.Transactions {
 								var b = ob.AsBoolean();
 
 								if (!b.IsNull) {
-									if (b) {
+									if (!((SqlBoolean)b.Value)) {
 										// Evaluated to false so don't allow this row to be added.
 										throw new CheckViolationException(tableName, check.ConstraintName, check.CheckExpression, deferred);
 									}

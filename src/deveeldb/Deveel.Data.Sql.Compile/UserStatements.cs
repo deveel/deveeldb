@@ -28,18 +28,23 @@ namespace Deveel.Data.Sql.Compile {
 	static class UserStatements {
 		public static SqlStatement Create(PlSqlParser.CreateUserStatementContext context) {
 			var userName = context.userName().GetText();
-			string password = null;
+			SqlExpression arg;
+			SqlIdentificationType type;
 			if (context.byPassword() != null) {
-				password = InputString.AsNotQuoted(context.byPassword().CHAR_STRING().GetText());
+				arg = SqlExpression.Constant(InputString.AsNotQuoted(context.byPassword().CHAR_STRING().GetText()));
+				type = SqlIdentificationType.Password;
 			} else if (context.externalId() != null) {
-				throw new NotImplementedException();
+				arg = SqlExpression.Constant(InputString.AsNotQuoted(context.externalId().CHAR_STRING()));
+				type = SqlIdentificationType.External;
 			} else if (context.globalId() != null) {
-				throw new NotImplementedException();
+				arg = SqlExpression.Constant(InputString.AsNotQuoted(context.globalId().CHAR_STRING()));
+				type = SqlIdentificationType.Global;
 			} else {
 				throw new ParseCanceledException();
 			}
 
-			return new CreateUserStatement(userName, SqlExpression.Constant(password));
+			var id = new SqlUserIdentifier(type, arg);
+			return new CreateUserStatement(userName, id);
 		}
 
 		private static SetPasswordAction SetPassword(PlSqlParser.AlterUserIdActionContext context) {

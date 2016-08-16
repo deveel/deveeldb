@@ -47,7 +47,7 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(query);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Row row = null;
 
@@ -70,7 +70,7 @@ namespace Deveel.Data {
 
 			Assert.IsNotNull(query);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Row row = null;
 

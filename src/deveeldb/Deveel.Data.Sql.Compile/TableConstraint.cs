@@ -26,6 +26,24 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Compile {
 	static class TableConstraint {
+		private static ForeignKeyAction GetForeignKeyAction(string text) {
+			switch (text.ToUpperInvariant()) {
+				case "SET NULL":
+				case "SETNULL":
+					return ForeignKeyAction.SetNull;
+				case "SET DEFAULT":
+				case "SETDEFAULT":
+					return ForeignKeyAction.SetDefault;
+				case "NO ACTION":
+				case "NOACTION":
+					return ForeignKeyAction.NoAction;
+				case "CASCADE":
+					return ForeignKeyAction.Cascade;
+				default:
+					throw new ParseCanceledException(String.Format("Invalid action '{0}' specified", text));
+			}
+		}
+
 		public static SqlTableConstraint Form(PlSqlParser.TableConstraintContext context) {
 			string constraintName = Name.Simple(context.id());
 
@@ -34,6 +52,8 @@ namespace Deveel.Data.Sql.Compile {
 			string refTable = null;
 			string[] refColumns = null;
 			SqlExpression checkExp =  null;
+			ForeignKeyAction? onDelete = null;
+			ForeignKeyAction? onUpdate = null;
 
 			if (context.primaryKeyConstraint() != null) {
 				type = ConstraintType.PrimaryKey;
@@ -50,6 +70,18 @@ namespace Deveel.Data.Sql.Compile {
 				columns = context.foreignKeyConstraint().columns.columnName().Select(Name.Simple).ToArray();
 				refColumns = context.foreignKeyConstraint().refColumns.columnName().Select(Name.Simple).ToArray();
 				refTable = Name.Object(context.foreignKeyConstraint().objectName()).ToString();
+				var refActions = context.foreignKeyConstraint().referentialAction();
+				if (refActions != null && refActions.Length > 0) {
+					foreach (var action in refActions) {
+						if (action.onDelete() != null) {
+							var actionType = GetForeignKeyAction(action.onDelete().referentialActionType().GetText());
+							onDelete = actionType;
+						} else if (action.onUpdate() != null) {
+							var actionType = GetForeignKeyAction(action.onUpdate().referentialActionType().GetText());
+							onUpdate = actionType;
+						}
+					}
+				}
 			} else {
 				throw new ParseCanceledException("Invalid ");
 			}
@@ -59,6 +91,8 @@ namespace Deveel.Data.Sql.Compile {
 			if (type == ConstraintType.ForeignKey) {
 				constraint.ReferenceTable = refTable;
 				constraint.ReferenceColumns = refColumns;
+				constraint.OnUpdate = onUpdate ?? ForeignKeyAction.NoAction;
+				constraint.OnDelete = onDelete ?? ForeignKeyAction.NoAction;
 			} else if (type == ConstraintType.Check) {
 				constraint.CheckExpression = checkExp;
 			}

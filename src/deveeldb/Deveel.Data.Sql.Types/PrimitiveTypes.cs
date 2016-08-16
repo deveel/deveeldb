@@ -137,12 +137,12 @@ namespace Deveel.Data.Sql.Types {
 			return Numeric(sqlType, -1);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size) {
-			return Numeric(sqlType, size, 0);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision) {
+			return Numeric(sqlType, precision, 0);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size, byte scale) {
-			return new NumericType(sqlType, size, scale);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision, int scale) {
+			return new NumericType(sqlType, precision, scale);
 		}
 
 		public static NumericType TinyInt(int size) {
@@ -231,6 +231,14 @@ namespace Deveel.Data.Sql.Types {
 
 		public static IntervalType Interval(SqlTypeCode sqlType) {
 			return new IntervalType(sqlType);
+		}
+
+		public static IntervalType DayToSecond() {
+			return Interval(SqlTypeCode.DayToSecond);
+		}
+
+		public static IntervalType YearToMonth() {
+			return Interval(SqlTypeCode.YearToMonth);
 		}
 
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
@@ -412,8 +420,13 @@ namespace Deveel.Data.Sql.Types {
 
 				var maxSize = BinaryType.DefaultMaxSize;
 				var maxSizeMeta = context.GetMeta("MaxSize");
-				if (maxSizeMeta != null)
-					maxSize = maxSizeMeta.ToInt32();
+				if (maxSizeMeta != null) {
+					if (maxSizeMeta.Value == "MAX") {
+						maxSize = BinaryType.DefaultMaxSize;
+					} else {
+						maxSize = maxSizeMeta.ToInt32();
+					}
+				}
 
 				return Binary(sqlType, maxSize);
 			}

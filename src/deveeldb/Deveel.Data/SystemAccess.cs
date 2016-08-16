@@ -116,8 +116,8 @@ namespace Deveel.Data {
 			Session.Transaction.CreateObject(objectInfo);
 		}
 
-		public virtual void AlterObject(IObjectInfo objectInfo) {
-			Session.Transaction.AlterObject(objectInfo);
+		public virtual bool AlterObject(IObjectInfo objectInfo) {
+			return Session.Transaction.AlterObject(objectInfo);
 		}
 
 		public virtual bool ObjectExists(ObjectName objectName) {
@@ -884,12 +884,14 @@ namespace Deveel.Data {
 					PrivilegesCache.Set(new GrantCacheKey(g.Grantee, g.ObjectType, g.ObjectName.FullName, g.WithOption, true), g.Privileges);
 				}
 
-				var grantOptions = grants.Where(x => x.WithOption &&
-															  x.ObjectType == objectType &&
-															  x.ObjectName.Equals(objectName));
+				if (withOption)
+					grants = grants.Where(x => x.WithOption &&
+					                           x.ObjectType == objectType &&
+					                           x.ObjectName.Equals(objectName))
+						.ToArray();
 
 				privs = Privileges.None;
-				foreach (var grant in grantOptions) {
+				foreach (var grant in grants) {
 					privs |= grant.Privileges;
 				}
 			}
@@ -1146,5 +1148,9 @@ namespace Deveel.Data {
 		}
 
 		#endregion
+
+		public void LockTable(ObjectName tableName, LockingMode mode, int waitTimeout) {
+			Session.Lock(new [] {tableName}, AccessType.ReadWrite, mode, waitTimeout);
+		}
 	}
 }

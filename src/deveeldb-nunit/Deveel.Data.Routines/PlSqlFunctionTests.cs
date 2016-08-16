@@ -26,13 +26,13 @@ namespace Deveel.Data.Routines {
 
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var functionName = ObjectName.Parse("APP.func1");
-			Query.Access().DropObject(DbObjectType.Routine, functionName);
+			AdminQuery.Access().DropObject(DbObjectType.Routine, functionName);
 			return true;
 		}
 
 		[Test]
 		public void InvokeFunction() {
-			var result = Query.SelectFunction(ObjectName.Parse("APP.func1"));
+			var result = AdminQuery.SelectFunction(ObjectName.Parse("APP.func1"));
 
 			Assert.IsNotNull(result);
 			Assert.IsFalse(Field.IsNullField(result));

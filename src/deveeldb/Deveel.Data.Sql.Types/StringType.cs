@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql.Types {
 			get { return MaxSize > 0; }
 		}
 
-		int ISizeableType.Size {
+		int ISizeableType.Precision {
 			get { return MaxSize; }
 		}
 

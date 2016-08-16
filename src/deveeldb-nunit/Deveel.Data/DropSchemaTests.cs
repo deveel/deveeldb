@@ -33,9 +33,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void DropEmptySchema() {
-			Query.DropSchema("test");
+			AdminQuery.DropSchema("test");
 
-			var exists = Query.Session.Access().SchemaExists("test");
+			var exists = AdminQuery.Session.Access().SchemaExists("test");
 			Assert.IsFalse(exists);
 		}
 	}

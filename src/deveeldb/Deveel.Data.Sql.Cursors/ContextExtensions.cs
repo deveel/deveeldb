@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Cursors {
 			while (currentContext != null) {
 				if (currentContext is ICursorScope) {
 					var scope = (ICursorScope)currentContext;
-					scope.CursorManager.DeclareCursor(cursorInfo, request);
+					scope.CursorManager.DeclareCursor(cursorInfo);
 					return true;
 				}
 
@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Cursors {
 		}
 
 		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, SqlQueryExpression query) {
-			DeclareCursor(context, request, cursorName, (CursorFlags)0, query);
+			DeclareCursor(context, request, cursorName, CursorFlags.Insensitive, query);
 		}
 
 		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, CursorFlags flags, SqlQueryExpression query) {

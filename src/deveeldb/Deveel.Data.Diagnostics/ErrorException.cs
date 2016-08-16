@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	/// <summary>
@@ -82,5 +83,14 @@ namespace Deveel.Data.Diagnostics {
 
 			return e;
 		}
-	}
+
+		internal IDictionary<string, object> ExtractMetadata() {
+			var metadata = new Dictionary<string, object>();
+			GetMetadata(metadata);
+			return metadata;
+		}
+
+		protected virtual void GetMetadata(IDictionary<string, object> metadata) {
+		}
+ 	}
 }

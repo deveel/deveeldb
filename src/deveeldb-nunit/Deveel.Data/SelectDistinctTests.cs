@@ -32,9 +32,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
 
-			Query.Access().CreateObject(tableInfo);
+			AdminQuery.Access().CreateObject(tableInfo);
 
-			var table = Query.Access().GetMutableTable(tableName);
+			var table = AdminQuery.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
 			row.SetValue(0, "Antonello");
@@ -64,7 +64,7 @@ namespace Deveel.Data {
 		private ITable Execute(string s) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(s);
 			Assert.IsTrue(query.Distinct);
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}

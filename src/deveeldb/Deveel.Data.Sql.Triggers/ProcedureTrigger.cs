@@ -30,7 +30,7 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return ((ProcedureTriggerInfo) TriggerInfo).ProcedureName; }
 		}
 
-		public SqlExpression[] Arguments {
+		public InvokeArgument[] Arguments {
 			get { return ((ProcedureTriggerInfo) TriggerInfo).Arguments; }
 		}
 
@@ -40,7 +40,6 @@ namespace Deveel.Data.Sql.Triggers {
 			if (procedure == null)
 				throw new TriggerException(String.Format("The procedure '{0}' was not found.", ProcedureName));
 
-			// TODO: The whole routine invoke API must be optimized...
 			var invoke = new Invoke(ProcedureName, Arguments);
 
 			try {

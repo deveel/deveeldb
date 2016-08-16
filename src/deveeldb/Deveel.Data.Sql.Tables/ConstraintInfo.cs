@@ -31,7 +31,7 @@ namespace Deveel.Data.Sql.Tables {
 			if (columnNames == null)
 				throw new ArgumentNullException("columnNames");
 
-			if (columnNames.Length == 0)
+			if (constraintType != ConstraintType.Check && columnNames.Length == 0)
 				throw new ArgumentException("The provided column names for the constraint is empty.", "columnNames");
 
 			ConstraintName = constraintName;

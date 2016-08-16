@@ -33,6 +33,7 @@ namespace Deveel.Data.Sql.Triggers {
 			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
 			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
+			tableInfo.AddColumn("status", PrimitiveTypes.TinyInt());
 			systemQuery.Access().CreateTable(tableInfo);
 		}
 	}

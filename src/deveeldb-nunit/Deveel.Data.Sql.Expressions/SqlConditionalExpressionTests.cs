@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -53,6 +54,18 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsNotNull(result);
 			Assert.IsFalse(Field.IsNullField(result));
 			Assert.AreEqual("It was not equal", result.Value.ToString());
+		}
+
+		[Test]
+		public static void FormatToString() {
+			var trueExp = SqlExpression.FunctionCall("testResult");
+			var falseExp = SqlExpression.Constant(false);
+			var testExp = SqlExpression.Equal(SqlExpression.VariableReference("a"), SqlExpression.Constant(22));
+			var condition = SqlExpression.Conditional(testExp, trueExp, falseExp);
+
+			var expected = "CASE WHEN :a = 22 THEN testResult() ELSE FALSE";
+
+			Assert.AreEqual(expected, condition.ToString());
 		}
 	}
 }

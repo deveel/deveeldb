@@ -39,7 +39,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void IncremementSequenceValue() {
-			var sequenceManager = new SequenceManager(Session.Transaction);
+			var sequenceManager = new SequenceManager(AdminSession.Transaction);
 
 			ISequence sequence = null;
 			Assert.DoesNotThrow(() => sequence = sequenceManager.GetSequence(testSequenceName));

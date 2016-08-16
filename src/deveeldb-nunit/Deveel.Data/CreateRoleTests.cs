@@ -30,20 +30,20 @@ namespace Deveel.Data {
 
 		[Test]
 		public void NewRole() {
-			Query.CreateRole("db_admin");
+			AdminQuery.CreateRole("db_admin");
 
-			var exists = Query.Access().RoleExists("db_admin");
+			var exists = AdminQuery.Access().RoleExists("db_admin");
 			Assert.IsTrue(exists);
 		}
 
 		[Test]
 		public void ExistingRole() {
-			Assert.Throws<StatementException>(() => Query.CreateRole("secure_access"));
+			Assert.Throws<StatementException>(() => AdminQuery.CreateRole("secure_access"));
 		}
 
 		[Test]
 		public void SystemRole() {
-			Assert.Throws<StatementException>(() => Query.CreateRole(SystemRoles.SecureAccessRole));
+			Assert.Throws<StatementException>(() => AdminQuery.CreateRole(SystemRoles.SecureAccessRole));
 		}
 	}
 }

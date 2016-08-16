@@ -30,8 +30,8 @@ namespace Deveel.Data {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			Query.Access().CreateTable(tableInfo);
-			DeclareCursors(Query);
+			AdminQuery.Access().CreateTable(tableInfo);
+			DeclareCursors(AdminQuery);
 		}
 
 		private static void DeclareCursors(IQuery query) {
@@ -47,12 +47,28 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Simple() {
-			Query.Open("c1");
+			AdminQuery.Open("c1");
 
-			var cursor = Query.Context.FindCursor("c1");
+			var cursor = AdminQuery.Context.FindCursor("c1");
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual("c1", cursor.CursorInfo.CursorName);
 			Assert.AreEqual(CursorStatus.Open, cursor.Status);
+			Assert.IsNotNull(cursor.Source);
+		}
+
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.EndsWith("Violation"))
+				base.AssertNoErrors(testName);
+		}
+
+		[Test]
+		public void DoubleOpenViolation() {
+			AdminQuery.Open("c1");
+
+			var expected = Is.InstanceOf<SqlErrorException>()
+				.And.TypeOf<CursorOpenException>();
+
+			Assert.Throws(expected, () => AdminQuery.Open("c1"));
 		}
 	}
 }

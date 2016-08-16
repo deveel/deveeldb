@@ -39,7 +39,7 @@ namespace Deveel.Data {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table WHERE a = 1");
 			var viewName = ObjectName.Parse("APP.text_view1");
 
-			Query.CreateView(viewName, query);
+			AdminQuery.CreateView(viewName, query);
 
 			// TODO: Assert the view exists
 		}

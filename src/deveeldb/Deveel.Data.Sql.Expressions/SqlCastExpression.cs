@@ -74,11 +74,11 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		internal override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("CAST ");
+			builder.Append("CAST(");
 			Value.AppendTo(builder);
 			builder.Append(" AS ");
-			// TODO: make SQL Types ISqlFormattable
-			builder.Append(SqlType);
+			SqlType.AppendTo(builder);
+			builder.Append(")");
 		}
 	}
 }

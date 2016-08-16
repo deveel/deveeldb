@@ -111,6 +111,70 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void ToTimeStamp_NoTimeZone() {
+			const string sql = "SELECT TIMESTAMP :a";
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var select = (SelectStatement)statement;
+
+			Assert.IsNotNull(select.QueryExpression.SelectColumns);
+			Assert.AreEqual(1, select.QueryExpression.SelectColumns.Count());
+			Assert.IsInstanceOf<SqlFunctionCallExpression>(select.QueryExpression.SelectColumns.ElementAt(0).Expression);
+
+			var function = (SqlFunctionCallExpression)select.QueryExpression.SelectColumns.ElementAt(0).Expression;
+			Assert.AreEqual("TOTIMESTAMP", function.FunctioName.FullName);
+			Assert.IsNotNull(function.Arguments);
+			Assert.AreEqual(1, function.Arguments.Length);
+
+			var arg = function.Arguments[0];
+			Assert.IsNotNull(arg);
+			Assert.IsInstanceOf<SqlVariableReferenceExpression>(arg.Value);
+		}
+
+		[Test]
+		public void ToTimeStamp_WithTimeZone() {
+			const string sql = "SELECT TIMESTAMP '2016-05-20T05:33:22' AT TIME ZONE 'CET'";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<SelectStatement>(statement);
+
+			var select = (SelectStatement)statement;
+
+			Assert.IsNotNull(select.QueryExpression.SelectColumns);
+			Assert.AreEqual(1, select.QueryExpression.SelectColumns.Count());
+			Assert.IsInstanceOf<SqlFunctionCallExpression>(select.QueryExpression.SelectColumns.ElementAt(0).Expression);
+
+			var function = (SqlFunctionCallExpression)select.QueryExpression.SelectColumns.ElementAt(0).Expression;
+			Assert.IsNotNull(function.Arguments);
+			Assert.AreEqual(2, function.Arguments.Length);
+
+			var arg1 = function.Arguments[0];
+			Assert.IsNotNull(arg1);
+			Assert.IsInstanceOf<SqlConstantExpression>(arg1.Value);
+
+			var arg2 = function.Arguments[1];
+			Assert.IsNotNull(arg2);
+			Assert.IsInstanceOf<SqlConstantExpression>(arg2.Value);
+		}
+
+		[Test]
 		public void NextValueFor() {
 			const string sql = "SELECT NEXT VALUE FOR seq1";
 

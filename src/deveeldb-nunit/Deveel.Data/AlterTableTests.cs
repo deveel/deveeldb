@@ -41,12 +41,18 @@ namespace Deveel.Data {
 			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
 
 			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
-			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			if (testName.Equals("SetNullOnDeleteViolation")) {
+				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
+			} else {
+				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			}
+
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
 			query.Access().CreateTable(tableInfo);
 
-			if (testName == "DropConstraint") {
+			if (testName == "DropConstraint" ||
+				testName == "DropReferencedColumn") {
 				query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
 					new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
@@ -54,8 +60,15 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.Equals("DropReferencedColumn") &&
+				!testName.EndsWith("Violation"))
+				base.AssertNoErrors(testName);
+		}
+
 		protected override bool OnTearDown(string testName, IQuery query) {
 			query.Access().DropAllTableConstraints(ObjectName.Parse("APP.test_table"));
+			query.Access().DropAllTableConstraints(ObjectName.Parse("APP.test_table2"));
 			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table"));
 			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table2"));
 			return true;
@@ -65,9 +78,9 @@ namespace Deveel.Data {
 		public void AddColumn() {
 			var tableName = ObjectName.Parse("test_table");
 
-			Query.AddColumn(tableName, "reserved", PrimitiveTypes.Boolean());
+			AdminQuery.AddColumn(tableName, "reserved", PrimitiveTypes.Boolean());
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 			Assert.AreEqual(6, testTable.TableInfo.ColumnCount);
@@ -77,9 +90,9 @@ namespace Deveel.Data {
 		public void SetDefaultToColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.SetDefault(tableName, "active", SqlExpression.Constant(Field.Boolean(false)));
+			AdminQuery.SetDefault(tableName, "active", SqlExpression.Constant(Field.Boolean(false)));
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -93,9 +106,9 @@ namespace Deveel.Data {
 		public void DropDefaultFromColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropDefault(tableName, "id");
+			AdminQuery.DropDefault(tableName, "id");
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -113,9 +126,9 @@ namespace Deveel.Data {
 				ReferenceColumns = new[] { "id" }
 			};
 
-			Query.AddConstraint(tableName, constraint);
+			AdminQuery.AddConstraint(tableName, constraint);
 
-			var fkeys = Query.Session.Access().QueryTableForeignKeys(tableName);
+			var fkeys = AdminQuery.Session.Access().QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsNotEmpty(fkeys);
@@ -132,9 +145,9 @@ namespace Deveel.Data {
 		public void DropColumn() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropColumn(tableName, "active");
+			AdminQuery.DropColumn(tableName, "active");
 
-			var testTable = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var testTable = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 
 			Assert.IsNotNull(testTable);
 
@@ -145,9 +158,9 @@ namespace Deveel.Data {
 		public void DropConstraint() {
 			var tableName = ObjectName.Parse("APP.test_table2");
 
-			Query.DropConstraint(tableName, "FK_1");
+			AdminQuery.DropConstraint(tableName, "FK_1");
 
-			var fkeys = Query.Session.Access().QueryTableForeignKeys(tableName);
+			var fkeys = AdminQuery.Session.Access().QueryTableForeignKeys(tableName);
 
 			Assert.IsNotNull(fkeys);
 			Assert.IsEmpty(fkeys);
@@ -157,11 +170,31 @@ namespace Deveel.Data {
 		public void DropPrimary() {
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.DropPrimaryKey(tableName);
+			AdminQuery.DropPrimaryKey(tableName);
 
-			var pkey = Query.Session.Access().QueryTablePrimaryKey(tableName);
+			var pkey = AdminQuery.Session.Access().QueryTablePrimaryKey(tableName);
 
 			Assert.IsNull(pkey);
+		}
+
+		[Test]
+		public void DropReferencedColumn() {
+			var tableName = ObjectName.Parse("APP.test_table2");
+
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<DropColumnViolationException>();
+
+			Assert.Throws(expected, () => AdminQuery.DropColumn(tableName, "person_id"));
+		}
+
+		[Test]
+		public void SetNullOnDeleteViolation() {
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<NotNullColumnViolationException>()
+				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table2"))
+				.And.Property("ColumnName").EqualTo("person_id");
+			Assert.Throws(expected, () => AdminQuery.AddForeignKey(ObjectName.Parse("test_table2"), new[] {"person_id"}, ObjectName.Parse("test_table"),
+					new[] {"id"}, ForeignKeyAction.SetNull, ForeignKeyAction.NoAction));
 		}
 	}
 }

@@ -382,7 +382,15 @@ namespace Deveel.Data.Routines {
 
 			Register(config => config.Named("totimestamp")
 				.WithParameter(p => p.Named("value").OfStringType())
-				.WhenExecute(context => Simple(context, args => SystemFunctions.ToTimeStamp(args[0])))
+				.WithParameter(p => p.Named("ts").OfStringType())
+				.WhenExecute(context => {
+					if (context.ArgumentCount == 1)
+						return Simple(context, args => SystemFunctions.ToTimeStamp(args[0]));
+					if (context.ArgumentCount == 2)
+						return Simple(context, args => SystemFunctions.ToTimeStamp(args[0], args[1]));
+
+					throw new InvalidOperationException("Invalid number of arguments for TOTIMESTAMP function");
+				})
 				.ReturnsType(PrimitiveTypes.TimeStamp()));
 		}
 

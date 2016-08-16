@@ -200,5 +200,37 @@ namespace Deveel.Data.Sql.Objects {
 			value = SqlBoolean.Null;
 			Assert.AreEqual("NULL", value.ToString());
 		}
+
+		[TestCase(true, true, false)]
+		[TestCase(true, false, true)]
+		[TestCase(false, false, false)]
+		[Category("Operators")]
+		public void XOr(bool b1, bool b2, bool expected) {
+			var value1 = (SqlBoolean) b1;
+			var value2 = (SqlBoolean) b2;
+
+			var result = value1.XOr(value2);
+
+			var bResult = (bool) result;
+
+			Assert.AreEqual(expected, bResult);
+		}
+
+		[TestCase("true", true)]
+		[TestCase("TRUE", true)]
+		[TestCase("TrUe", true)]
+		[TestCase("FALSE", false)]
+		[TestCase("false", false)]
+		[TestCase("FaLsE", false)]
+		[TestCase("NULL", null)]
+		[TestCase("null", null)]
+		[TestCase("1", true)]
+		[TestCase("0", false)]
+		public void Parse(string s, bool? expected) {
+			var result = SqlBoolean.Parse(s);
+
+			var bResult = (bool?) result;
+			Assert.AreEqual(expected, bResult);
+		}
 	}
 }

@@ -43,10 +43,10 @@ namespace Deveel.Data.Sql.Compile {
 			var name = Name.Object(context.objectName());
 			var args = context.type_argument();
 			if (args != null && args.type_argument_spec().Length > 0) {
-				// TODO:
+				throw new NotSupportedException("Arguments to user-defined type are not supported yet.");
 			}
 
-			return base.VisitUserDataType(context);
+			return new DataTypeInfo(name.FullName);
 		}
 
 		public override DataTypeInfo VisitInteger_type(PlSqlParser.Integer_typeContext context) {
@@ -144,7 +144,13 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override DataTypeInfo VisitBinary_type(PlSqlParser.Binary_typeContext context) {
-			var size = Number.PositiveInteger(context.numeric()) ?? -1;
+			string maxSize;
+			if (context.MAX() != null) {
+				maxSize = "MAX";
+			} else {
+				var size = Number.PositiveInteger(context.numeric()) ?? -1;
+				maxSize = size.ToString();
+			}
 
 			SqlTypeCode typeCode;
 
@@ -160,7 +166,7 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid binary type.");
 			}
 
-			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), new[] {new DataTypeMeta("Size", size.ToString()) });
+			return new DataTypeInfo(typeCode.ToString().ToUpperInvariant(), new[] {new DataTypeMeta("MaxSize", maxSize) });
 		}
 
 		public override DataTypeInfo VisitBoolean_type(PlSqlParser.Boolean_typeContext context) {

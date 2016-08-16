@@ -22,12 +22,8 @@ namespace Deveel.Data.Sql.Objects {
 	public struct SqlDayToSecond : ISqlObject, IComparable<SqlDayToSecond>, IEquatable<SqlDayToSecond> {
 		private readonly TimeSpan? value;
 
-		public static readonly SqlDayToSecond Null = new SqlDayToSecond(true);
+		public static readonly SqlDayToSecond Null = new SqlDayToSecond((TimeSpan?) null);
 		public static readonly SqlDayToSecond Zero = new SqlDayToSecond(0, 0, 0, 0, 0);
-
-		private SqlDayToSecond(bool isNull) {
-			value = null;
-		}
 
 		public SqlDayToSecond(int hours, int minutes, int seconds) 
 			: this(0, hours, minutes, seconds) {
@@ -37,8 +33,28 @@ namespace Deveel.Data.Sql.Objects {
 			: this(days, hours, minutes, seconds, 0) {
 		}
 
-		public SqlDayToSecond(int days, int hours, int minutes, int seconds, int milliseconds) {
-			value = new TimeSpan(days, hours, minutes, seconds, milliseconds);
+		public SqlDayToSecond(int days, int hours, int minutes, int seconds, int milliseconds)
+			: this(new TimeSpan(days, hours, minutes, seconds, milliseconds)) {
+		}
+
+		private SqlDayToSecond(TimeSpan? value) {
+			this.value = value;
+		}
+
+		public SqlDayToSecond(byte[] bytes) {
+			if (bytes == null)
+				throw new ArgumentNullException("bytes");
+
+			if (bytes.Length != 5)
+				throw new ArgumentException("Invalid byte representation of DAY TO SECOND");
+
+			var days = (int) bytes[0];
+			var hours = (int) bytes[1];
+			var minutes = (int) bytes[2];
+			var seconds = (int) bytes[3];
+			var millis = (int) bytes[4];
+
+			value = new TimeSpan(days, hours, minutes, seconds, millis);
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -138,7 +154,16 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public byte[] ToByArray() {
-			throw new NotImplementedException();
+			if (value == null)
+				return new byte[0];
+
+			var bytes = new byte[5];
+			bytes[0] = (byte) value.Value.Days;
+			bytes[1] = (byte) value.Value.Hours;
+			bytes[2] = (byte) value.Value.Minutes;
+			bytes[3] = (byte) value.Value.Seconds;
+			bytes[4] = (byte) value.Value.Milliseconds;
+			return bytes;
 		}
 
 		public bool Equals(SqlDayToSecond other) {

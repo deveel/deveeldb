@@ -14,7 +14,7 @@ namespace Deveel.Data {
 	public sealed class SelectFromVariablesTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
 			if (testName == "SelectSingleVariable") {
-				Query.Access().CreateObject(new VariableInfo("a", PrimitiveTypes.Bit(), false));
+				AdminQuery.Access().CreateObject(new VariableInfo("a", PrimitiveTypes.Bit(), false));
 			}
 
 			base.OnAfterSetup(testName);
@@ -26,7 +26,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression) SqlExpression.Parse(sql);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Assert.IsNotNull(result);
 
@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression)SqlExpression.Parse(sql);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Assert.IsNotNull(result);
 

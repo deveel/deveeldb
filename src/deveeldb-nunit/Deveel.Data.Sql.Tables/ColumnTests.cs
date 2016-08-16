@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using Deveel.Data.Sql.Types;
 
@@ -41,7 +42,7 @@ namespace Deveel.Data.Sql.Tables {
 		[TestCase(0, "id")]
 		[TestCase(1, "name")]
 		public void ColumnName(int columnOffset, string columnName) {
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 
@@ -57,7 +58,7 @@ namespace Deveel.Data.Sql.Tables {
 		[TestCase("id", 34, 35)]
 		[TestCase("name", 58, "n_59")]
 		public void ColumnValueAt(string columnName, int rowOffset, object value) {
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 
@@ -73,6 +74,27 @@ namespace Deveel.Data.Sql.Tables {
 
 			Assert.IsFalse(Field.IsNullField(cellValue));
 			Assert.IsTrue(fieldValue.Equals(cellValue));
+		}
+
+		[TestCase("name", 23, "n_24")]
+		public void EnumerateColumnValues(string columnName, int rowOffset, object expected) {
+			var table = AdminQuery.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+
+			var column = table.GetColumn(columnName);
+			Assert.IsNotNull(column);
+			Assert.IsNotNull(column.ColumnInfo);
+			Assert.IsNotNull(column.Table);
+			Assert.IsNotNull(column.Index);
+			Assert.AreEqual(columnName, column.Name);
+
+			var cellValue = column.ElementAt(rowOffset);
+			var fieldValue = new Field(column.Type, column.Type.CreateFrom(expected));
+
+			Assert.IsFalse(Field.IsNullField(cellValue));
+			Assert.IsTrue(fieldValue.Equals(cellValue));
+
 		}
 	}
 }

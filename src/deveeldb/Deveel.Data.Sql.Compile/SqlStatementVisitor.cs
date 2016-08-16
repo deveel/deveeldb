@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using Antlr4.Runtime.Misc;
 
@@ -25,6 +26,7 @@ using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
@@ -48,6 +50,10 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return sequence;
+		}
+
+		public override SqlStatement VisitNullStatement(PlSqlParser.NullStatementContext context) {
+			return new NullStatement();
 		}
 
 		public override SqlStatement VisitCreateSchemaStatement(PlSqlParser.CreateSchemaStatementContext context) {
@@ -76,8 +82,15 @@ namespace Deveel.Data.Sql.Compile {
 			var triggerName = Name.Object(context.objectName());
 			var orReplace = context.OR() != null && context.REPLACE() != null;
 
+			TriggerStatus status = TriggerStatus.Unknown;
+
+			if (context.DISABLE() != null) {
+				status = TriggerStatus.Disabled;
+			} else if (context.ENABLE() != null) {
+				status = TriggerStatus.Enabled;
+			}
+
 			var simpleDml = context.simpleDmlTrigger();
-			var nonDml = context.nonDmlTrigger();
 
 			ObjectName onObject = null;
 			TriggerEventType eventType = new TriggerEventType();
@@ -86,9 +99,6 @@ namespace Deveel.Data.Sql.Compile {
 			if (simpleDml != null) {
 				bool before = simpleDml.BEFORE() != null;
 				bool after = simpleDml.AFTER() != null;
-
-				if (simpleDml.INSTEAD() != null && simpleDml.OF() != null)
-					throw new NotSupportedException("The INSTEAD OF clause not yet supported.");
 
 				var events = simpleDml.dmlEventClause().dmlEventElement().Select(x => {
 					if (x.DELETE() != null)
@@ -112,8 +122,6 @@ namespace Deveel.Data.Sql.Compile {
 				}
 
 				onObject = Name.Object(simpleDml.dmlEventClause().objectName());
-			} else if (nonDml != null) {
-				throw new NotSupportedException();
 			}
 
 			var triggerBody = context.triggerBody();
@@ -126,7 +134,10 @@ namespace Deveel.Data.Sql.Compile {
 					plsqlBody.Declarations.Add(declaration);
 				}
 
-				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventTime, eventType);
+				return new CreateTriggerStatement(triggerName, onObject, plsqlBody, eventTime, eventType) {
+					ReplaceIfExists = orReplace,
+					Status = status
+				};
 			}
 
 			var procName = Name.Object(triggerBody.objectName());
@@ -138,7 +149,10 @@ namespace Deveel.Data.Sql.Compile {
 					.Select(x => new InvokeArgument(x.Id, x.Expression))
 					.ToArray();
 
-			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType);
+			return new CreateProcedureTriggerStatement(triggerName, onObject, procName, args, eventTime, eventType) {
+				ReplaceIfExists = orReplace,
+				Status = status
+			};
 		}
 
 		public override SqlStatement VisitCallStatement(PlSqlParser.CallStatementContext context) {
@@ -231,7 +245,29 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitAlterTriggerStatement(PlSqlParser.AlterTriggerStatementContext context) {
-			throw new NotImplementedException();
+			var triggerName = Name.Object(context.objectName());
+			IAlterTriggerAction action;
+
+			if (context.alterTriggerAction().triggerEnableAction() != null) {
+				var actionContext = context.alterTriggerAction().triggerEnableAction();
+				TriggerStatus status;
+				if (actionContext.ENABLE() != null) {
+					status = TriggerStatus.Enabled;
+				} else if (actionContext.DISABLE() != null) {
+					status = TriggerStatus.Disabled;
+				} else {
+					throw new ParseCanceledException("Invalid ALTER TRIGGER syntax");
+				}
+
+				action = new ChangeTriggerStatusAction(status);
+			} else if (context.alterTriggerAction().triggerRenameAction() != null) {
+				var name = Name.Object(context.alterTriggerAction().triggerRenameAction().objectName());
+				action = new RenameTriggerAction(name);
+			} else {
+				throw new ParseCanceledException("Invalid ALTER TRIGGER syntax");
+			}
+
+			return new AlterTriggerStatement(triggerName, action);
 		}
 
 		public override SqlStatement VisitAlterStatement(PlSqlParser.AlterStatementContext context) {
@@ -589,6 +625,48 @@ namespace Deveel.Data.Sql.Compile {
 			return new SetStatement(TransactionSettingKeys.ReadOnly, SqlExpression.Constant(readOnly));
 		}
 
+		public override SqlStatement VisitSetLockTimeout(PlSqlParser.SetLockTimeoutContext context) {
+			var value = Number.PositiveInteger(context.numeric());
+			if (value == null)
+				throw new ParseCanceledException("Invalid timeout value specified.");
+
+			return new SetStatement(TransactionSettingKeys.LockTimeout, SqlExpression.Constant(value.Value));
+		}
+
+		public override SqlStatement VisitLockTableStatement(PlSqlParser.LockTableStatementContext context) {
+			var tableNames = context.objectName().Select(Name.Object).ToArray();
+			LockingMode mode;
+			if (context.SHARED() != null) {
+				mode = LockingMode.Shared;
+			} else if (context.EXCLUSIVE() != null) {
+				mode = LockingMode.Exclusive;
+			} else {
+				throw new ParseCanceledException("Invalid locking mode");
+			}
+
+			int timeout = Timeout.Infinite;
+			if (context.WAIT() != null) {
+				var wait = Number.PositiveInteger(context.numeric());
+				if (wait == null)
+					throw new ParseCanceledException("Invalid timeout wait value");
+
+				timeout = wait.Value;
+			} else if (context.NOWAIT() != null) {
+				timeout = 0;
+			}
+
+			if (tableNames.Length == 1)
+				return new LockTableStatement(tableNames[0], mode, timeout);
+
+			var seq = new SequenceOfStatements();
+
+			foreach (var tableName in tableNames) {
+				seq.Statements.Add(new LockTableStatement(tableName, mode, timeout));
+			}
+
+			return seq;
+		}
+
 		public override SqlStatement VisitShowStatement(PlSqlParser.ShowStatementContext context) {
 			ShowTarget target;
 			ObjectName tableName = null;
@@ -612,9 +690,6 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlStatement VisitInsertStatement(PlSqlParser.InsertStatementContext context) {
-			if (context.multiTableInsert() != null)
-				throw new NotImplementedException();
-
 			var singleTableInsert = context.singleTableInsert();
 			var insertInto = singleTableInsert.insertIntoClause();
 
@@ -658,10 +733,6 @@ namespace Deveel.Data.Sql.Compile {
 			}
 
 			return base.VisitInsertStatement(context);
-		}
-
-		public override SqlStatement VisitOpenForStatement(PlSqlParser.OpenForStatementContext context) {
-			return base.VisitOpenForStatement(context);
 		}
 
 		public override SqlStatement VisitSimpleCaseStatement(PlSqlParser.SimpleCaseStatementContext context) {

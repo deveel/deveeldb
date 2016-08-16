@@ -208,12 +208,32 @@ namespace Deveel.Data {
 			query.AlterTable(tableName, new AddConstraintAction(constraint));
 		}
 
+		public static void AddCheck(this IQuery query, ObjectName tableName, SqlExpression checkExpression) {
+			AddCheck(query, tableName, null, checkExpression);
+		}
+
+		public static void AddCheck(this IQuery query, ObjectName tableName, string constraintName, SqlExpression checkExpression) {
+			query.AddConstraint(tableName, SqlTableConstraint.Check(constraintName, checkExpression));
+		}
+
 		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, params string[] columnNames) {
 			query.AddPrimaryKey(tableName, null, columnNames);
 		}
 
 		public static void AddPrimaryKey(this IQuery query, ObjectName tableName, string constraintName, params string[] columnNames) {
 			query.AddConstraint(tableName, SqlTableConstraint.PrimaryKey(constraintName, columnNames));
+		}
+
+		public static void AddForeignKey(this IQuery query, ObjectName tableName, string[] columnNames,
+			ObjectName foreignTableName, string[] foreignColumns, ForeignKeyAction onDelete, ForeignKeyAction onUpdate) {
+			AddForeignKey(query, tableName, null, columnNames, foreignTableName, foreignColumns, onDelete, onUpdate);
+		}
+
+		public static void AddForeignKey(this IQuery query, ObjectName tableName, string constraintName, string[] columnNames,
+			ObjectName foreignTableName, string[] foreignColumns, ForeignKeyAction onDelete, ForeignKeyAction onUpdate) {
+			query.AddConstraint(tableName,
+				SqlTableConstraint.ForeignKey(constraintName, columnNames, foreignTableName.FullName, foreignColumns, onDelete,
+					onUpdate));
 		}
 
 		public static void DropPrimaryKey(this IQuery query, ObjectName tableName) {
@@ -310,7 +330,7 @@ namespace Deveel.Data {
 		#region Create User
 
 		public static void CreateUser(this IQuery query, string userName, SqlExpression password) {
-			query.ExecuteStatement(new CreateUserStatement(userName, password));
+			query.ExecuteStatement(new CreateUserStatement(userName, new Sql.Statements.SqlUserIdentifier(SqlIdentificationType.Password, password)));
 		}
 
 		public static void CreateUser(this IQuery query, string userName, string password) {
@@ -447,6 +467,54 @@ namespace Deveel.Data {
 
 		public static void CreateCallbackTrigger(this IQuery query, string triggerName,  ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType) {
 			query.ExecuteStatement(new CreateCallbackTriggerStatement(triggerName, tableName, eventTime, eventType));
+		}
+
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+			ObjectName procedureName,
+			TriggerEventTime eventTime, TriggerEventType eventType) {
+			CreateProcedureTrigger(query, triggerName, tableName, procedureName, new InvokeArgument[0], eventTime, eventType);
+		}
+
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+			ObjectName procedureName, InvokeArgument[] procedureArgs,
+			TriggerEventTime eventTime, TriggerEventType eventType) {
+			query.ExecuteStatement(new CreateProcedureTriggerStatement(triggerName, tableName, procedureName, procedureArgs,
+				eventTime, eventType));
+		}
+
+		public static void CreateProcedureTrigger(this IQuery query, ObjectName triggerName, ObjectName tableName,
+	ObjectName procedureName, SqlExpression[] procedureArgs,
+	TriggerEventTime eventTime, TriggerEventType eventType) {
+			var args = new InvokeArgument[0];
+			if (procedureArgs != null)
+				args = procedureArgs.Select(x => new InvokeArgument(x)).ToArray();
+
+			query.ExecuteStatement(new CreateProcedureTriggerStatement(triggerName, tableName, procedureName, args,
+				eventTime, eventType));
+		}
+
+		#endregion
+
+		#region Alter Trigger
+
+		public static void AlterTrigger(this IQuery query, ObjectName triggerName, IAlterTriggerAction action) {
+			query.ExecuteStatement(new AlterTriggerStatement(triggerName, action));
+		}
+
+		public static void RenameTrigger(this IQuery query, ObjectName triggerName, ObjectName newName) {
+			query.AlterTrigger(triggerName, new RenameTriggerAction(newName));
+		}
+
+		public static void ChangeTriggerStatus(this IQuery query, ObjectName triggerName, TriggerStatus status) {
+			query.AlterTrigger(triggerName, new ChangeTriggerStatusAction(status));
+		}
+
+		public static void EnableTrigger(this IQuery query, ObjectName triggerName) {
+			query.ChangeTriggerStatus(triggerName, TriggerStatus.Enabled);
+		}
+
+		public static void DisableTrigger(this IQuery query, ObjectName triggerName) {
+			query.ChangeTriggerStatus(triggerName, TriggerStatus.Disabled);
 		}
 
 		#endregion

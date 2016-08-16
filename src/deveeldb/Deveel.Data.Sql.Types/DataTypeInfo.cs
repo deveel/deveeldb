@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Sql.Compile;
+
 namespace Deveel.Data.Sql.Types {
 	public sealed class DataTypeInfo {
 		public DataTypeInfo(string typeName) 
@@ -31,6 +33,10 @@ namespace Deveel.Data.Sql.Types {
 			Metadata = metadata;
 		}
 
+		static DataTypeInfo() {
+			DefaultParser = new DefaultDataTypeParser();
+		}
+
 		public string TypeName { get; private set; }
 
 		public DataTypeMeta[] Metadata { get; private set; }
@@ -38,5 +44,21 @@ namespace Deveel.Data.Sql.Types {
 		public bool IsPrimitive {
 			get { return PrimitiveTypes.IsPrimitive(TypeName); }
 		}
+
+		public static IDataTypeParser DefaultParser { get; private set; }
+
+		public static DataTypeInfo Parse(string s) {
+			return DefaultParser.Parse(s);
+		}
+
+		#region DefaultDataTypeParser
+
+		class DefaultDataTypeParser : IDataTypeParser {
+			public DataTypeInfo Parse(string s) {
+				return new PlSqlCompiler().ParseDataType(s);
+			}
+		}
+
+		#endregion
 	}
 }

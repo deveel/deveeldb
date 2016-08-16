@@ -19,6 +19,7 @@ unitStatement
 	| cursorStatement
 
 	| showStatement
+	| lockTableStatement
 	| transactionControlStatement
 
 	| ifStatement
@@ -173,7 +174,7 @@ columnConstraint
 	;
 
 tableConstraint
-    : CONSTRAINT? id
+    : CONSTRAINT? id?
 	   ( primaryKeyConstraint | uniqueKeyConstraint | checkConstraint | foreignKeyConstraint)
 	;
 
@@ -190,8 +191,24 @@ checkConstraint
 	;
 
 foreignKeyConstraint
-    : FOREIGN KEY? '(' columns=columnList ')' REFERENCES objectName '(' refColumns=columnList ')'
+    : FOREIGN KEY? '(' columns=columnList ')' REFERENCES objectName '(' refColumns=columnList ')'(referentialAction)*
 	;
+
+referentialAction
+   : (onDelete | onUpdate)
+   ;
+
+onDelete
+   : ON DELETE referentialActionType
+   ;
+
+onUpdate
+   : ON UPDATE referentialActionType
+   ;
+
+referentialActionType
+   : (CASCADE | (SET NULL) | (SET DEFAULT) | (NO ACTION))
+   ;
 
 columnIndex
     : INDEX ( BLIST | NONE | id | CHAR_STRING )
@@ -212,7 +229,6 @@ alterTableStatement
 alterTableAction
      : addColumnAction
 	 | setDefaultAction
-	 | alterColumnAction
 	 | dropColumnAction
 	 | addConstraintAction
 	 | dropConstraintAction
@@ -224,10 +240,6 @@ addColumnAction
     : ADD COLUMN? tableColumn
 	;
 
-alterColumnAction
-    : ALTER COLUMN? tableColumn
-	;
-
 dropColumnAction
     : DROP COLUMN? id
 	;
@@ -237,11 +249,11 @@ addConstraintAction
 	;
 
 dropConstraintAction
-    : DROP CONSTRAINT regular_id
+    : DROP CONSTRAINT id
 	;
 
 dropDefaultAction
-    : ALTER COLUMN? id DROP DEFAULT
+    : ALTER COLUMN? columnName DROP DEFAULT
 	; 
 
 dropPrimaryKeyAction
@@ -549,7 +561,7 @@ loopStatement
 
 cursorLoopParam	
     : id IN REVERSE? lowerBound DOUBLE_PERIOD upperBound
-    | record_name IN ( cursor_name expression_list? | '(' selectStatement ')')
+    | id IN ( cursor_name expression_list? | '(' selectStatement ')')
     ;
 
 // $>
@@ -564,7 +576,7 @@ upperBound
     ;
 
 nullStatement
-    : NULL
+    : NULL SEMICOLON?
     ;
 
 raiseStatement
@@ -601,7 +613,6 @@ cursorStatement
     : closeStatement
     | openStatement
     | fetchStatement
-    | openForStatement
     ;
 
 closeStatement
@@ -620,10 +631,6 @@ fetchStatement
 fetchDirection
     : (NEXT | PRIOR | FIRST | LAST | ABSOLUTE numeric | RELATIVE numeric)
 	;
-
-openForStatement
-    : OPEN variable_name FOR (selectStatement | expression) SEMICOLON?
-    ;
 
 // $>
 
@@ -645,6 +652,12 @@ sqlStatement
 
 // $>
 
+lockTableStatement
+   : LOCK TABLE objectName (',' objectName)* 
+		IN ( EXCLUSIVE | SHARED ) MODE
+		( (WAIT numeric) | NOWAIT )?
+   ;
+
 // $<Transaction Control SQL PL/SQL Statements
 
 transactionControlStatement
@@ -655,7 +668,7 @@ transactionControlStatement
 
 setTransactionCommand
     : SET TRANSACTION 
-      ( setTransactionAccess | setIsolationLevel | setIgnoreCase )
+      ( setTransactionAccess | setIsolationLevel | setIgnoreCase | setLockTimeout )
     ;
 
 setTransactionAccess
@@ -668,6 +681,10 @@ setIsolationLevel
 
 setIgnoreCase
    : IGNORE IDENTIFIERS? CASE (ON | OFF)?
+   ;
+
+setLockTimeout
+   : LOCK TIMEOUT numeric
    ;
 
 commitStatement
@@ -706,30 +723,22 @@ triggerRenameAction
 
 createTriggerStatement
     : CREATE ( OR REPLACE )? TRIGGER objectName
-    (simpleDmlTrigger | nonDmlTrigger)
-    (ENABLE | DISABLE)? triggerWhenClause? triggerBody SEMICOLON?
+    (simpleDmlTrigger)
+    (ENABLE | DISABLE)? triggerBody SEMICOLON?
     ;
 
 createCallbackTriggerStatement
     : CREATE ( OR REPLACE )? CALLBACK TRIGGER id
-	   (simpleDmlTrigger | nonDmlTrigger) SEMICOLON?
+	   (simpleDmlTrigger ) SEMICOLON?
 	;
-
-triggerWhenClause
-    : WHEN '(' condition ')'
-    ;
 
 // $<Create Trigger- Specific Clauses
 simpleDmlTrigger
-    : (BEFORE | AFTER | INSTEAD OF) dmlEventClause forEachRow?
+    : (BEFORE | AFTER ) dmlEventClause forEachRow?
     ;
 
 forEachRow
     : FOR EACH ROW
-    ;
-
-nonDmlTrigger
-    : (BEFORE | AFTER) non_dml_event (OR non_dml_event)* ON (DATABASE | (schema_name '.')? SCHEMA)
     ;
 
 triggerBody
@@ -739,21 +748,6 @@ triggerBody
 
 triggerBlock
     : (DECLARE? declaration+)? body
-    ;
-
-non_dml_event
-    : ALTER
-    | CREATE
-    | DROP
-    | GRANT
-    | NOAUDIT
-    | REVOKE
-    | TRUNCATE
-    | STARTUP
-    | SHUTDOWN
-    | SUSPEND
-    | DATABASE
-    | SCHEMA
     ;
 
 dmlEventClause
@@ -776,7 +770,7 @@ deleteLimit
 	;
 
 insertStatement
-    : INSERT (singleTableInsert | multiTableInsert) SEMICOLON?
+    : INSERT singleTableInsert SEMICOLON?
     ;
 
 // $<Insert - Specific Clauses
@@ -786,25 +780,6 @@ singleTableInsert
 	| insertSetClause
     ;
 
-multiTableInsert
-    : (ALL multiTableElement+ | conditionalInsertClause) selectStatement
-    ;
-
-multiTableElement
-    : insertIntoClause valuesClause?
-    ;
-
-conditionalInsertClause
-    : (ALL | FIRST)? conditionalInsertWhenPart+ conditional_insert_else_part?
-    ;
-
-conditionalInsertWhenPart
-    : WHEN condition THEN multiTableElement+
-    ;
-
-conditional_insert_else_part
-    : ELSE multiTableElement+
-    ;
 
 insertIntoClause
     : INTO objectName ('(' columnName (',' columnName)* ')')?
@@ -994,7 +969,6 @@ likeEscapePart
 inElements
     : '(' subquery ')' #InSubquery
     | '(' concatenationWrapper (',' concatenationWrapper)* ')' #InArray
-    | constant #InConstant
     | bind_variable #InVariable
     | general_element #InElement
     ;
@@ -1016,27 +990,16 @@ additiveOperator
 	;
 
 multiplyExpression
-    : datetimeExpression (multiplyOperator datetimeExpression)*
+    : unaryExpression (multiplyOperator unaryExpression)*
     ;
 
 multiplyOperator
     : ( '*' | '/' )
 	;
 
-datetimeExpression
-    : unaryExpression (AT (LOCAL | TIME ZONE concatenationWrapper) | interval_expression)?
-    ;
-
-interval_expression
-    : DAY ('(' concatenationWrapper ')')? TO SECOND ('(' concatenationWrapper ')')? #DayToSecondExpression
-    | YEAR ('(' concatenationWrapper ')')? TO MONTH #YearToMonthExpression
-    ;
-
 unaryExpression
     : unaryplusExpression
     | unaryminusExpression
-    | allExpression
-	| anyExpression
     | caseExpression
     | quantifiedExpression
     | standardFunction
@@ -1049,14 +1012,6 @@ unaryplusExpression
 
 unaryminusExpression
     : '-' unaryExpression
-	;
-
-allExpression
-    : ALL unaryExpression
-	;
-
-anyExpression
-    : ( ANY | SOME ) unaryExpression
 	;
 
 caseStatement 
@@ -1130,7 +1085,7 @@ vectorExpression
     ;
 
 quantifiedExpression
-    : (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | expression_list )
+    : (SOME | ALL | ANY) ('(' subquery ')' | expression_list )
     ;
 
 standardFunction
@@ -1150,10 +1105,6 @@ standardFunction
 column_alias
     : AS? (id | alias_quoted_string)
     | AS
-    ;
-
-table_alias
-    : (id | alias_quoted_string)
     ;
 
 alias_quoted_string
@@ -1217,7 +1168,7 @@ boolean_type
 	;
 
 binary_type
-    : (BLOB | BINARY | VARBINARY | long_varbinary) ( '(' numeric ')' )?
+    : (BLOB | BINARY | VARBINARY | long_varbinary) ( '(' (numeric | MAX) ')' )?
 	;
 
 string_type
@@ -1276,11 +1227,6 @@ cursor_name
     | bind_variable
     ;
 
-record_name
-    : id
-    | bind_variable
-    ;
-
 exception_name
     : id 
     ;
@@ -1302,13 +1248,9 @@ labelName
 // $<Lexer Mappings
 
 constant
-    : TIMESTAMP (quoted_string | bind_variable) (AT TIME ZONE quoted_string)? #TimeStampConstant
-    | INTERVAL (quoted_string | bind_variable | objectName)
-      (DAY | HOUR | MINUTE | SECOND)
-      ('(' (UNSIGNED_INTEGER | bind_variable) (',' (UNSIGNED_INTEGER | bind_variable) )? ')')?
-      (TO ( DAY | HOUR | MINUTE | SECOND ('(' (UNSIGNED_INTEGER | bind_variable) ')')?))? #IntervalConstant
+    : TIMESTAMP (argString=quoted_string | bind_variable) (AT TIME ZONE tzString=quoted_string)? #TimeStampFunction
     | numeric #ConstantNumeric
-    | DATE quoted_string #DateConstant
+    | DATE quoted_string #DateImplicitConvert
     | quoted_string #ConstantString
     | NULL #ConstantNull
     | TRUE #ConstantTrue
@@ -1357,14 +1299,12 @@ concat
     | '|' '|'
     ;
 
-outer_join_sign
-    : '(' '+' ')'
-    ;
-
 regular_id
     : REGULAR_ID
     | A_LETTER
 	| ABSOLUTE
+	| ACTION
+	| ACCOUNT
     | ADD
 	| ADMIN
     | AFTER

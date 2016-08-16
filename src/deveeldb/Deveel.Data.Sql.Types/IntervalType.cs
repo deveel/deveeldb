@@ -21,6 +21,7 @@ using System.IO;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class IntervalType : SqlType {
 		public IntervalType(SqlTypeCode typeCode) 
 			: base(GetTypeString(typeCode), typeCode) {
@@ -52,6 +53,8 @@ namespace Deveel.Data.Sql.Types {
 		public override Type GetRuntimeType() {
 			if (TypeCode == SqlTypeCode.DayToSecond)
 				return typeof (TimeSpan);
+			if (TypeCode == SqlTypeCode.YearToMonth)
+				return typeof(long);
 
 			return base.GetRuntimeType();
 		}
@@ -76,31 +79,58 @@ namespace Deveel.Data.Sql.Types {
 
 		protected override void AppendTo(SqlStringBuilder builder) {
 			if (TypeCode == SqlTypeCode.YearToMonth) {
-				builder.Append("YEAR TO MONTH");
+				builder.Append("INTERVAL YEAR TO MONTH");
 			} else if (TypeCode == SqlTypeCode.DayToSecond) {
-				builder.Append("DAY TO SECOND");
+				builder.Append("INTERVAL DAY TO SECOND");
 			}
+		}
+
+		internal override int ColumnSizeOf(ISqlObject obj) {
+			if (obj == null || obj.IsNull)
+				return 1;
+
+			if (obj is SqlDayToSecond)
+				return 1 + 5;
+
+			if (obj is SqlYearToMonth)
+				return 1 + 4;
+
+			return base.ColumnSizeOf(obj);
 		}
 
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
 			if (obj is SqlDayToSecond) {
-				var interval = (SqlDayToSecond) obj;
-				var bytes = interval.ToByArray();
-
 				writer.Write((byte)1);
-				writer.Write(bytes.Length);
-				writer.Write(bytes);
+
+				var interval = (SqlDayToSecond) obj;
+
+				if (interval.IsNull) {
+					writer.Write((byte) 0);
+				} else {
+					writer.Write((byte) 1);
+
+					var bytes = interval.ToByArray();
+
+					writer.Write(bytes.Length);
+					writer.Write(bytes);
+				}
 			} else if (obj is SqlYearToMonth) {
-				var interval = (SqlYearToMonth) obj;
-				var months = interval.TotalMonths;
-
 				writer.Write((byte)2);
-				writer.Write(months);
-			}
 
-			throw new FormatException();
+				var interval = (SqlYearToMonth) obj;
+				if (interval.IsNull) {
+					writer.Write((byte) 0);
+				} else {
+					writer.Write((byte) 1);
+
+					var months = interval.TotalMonths;
+					writer.Write(months);
+				}
+			} else {
+				throw new FormatException();
+			}
 		}
 
 		public override ISqlObject DeserializeObject(Stream stream) {
@@ -109,13 +139,19 @@ namespace Deveel.Data.Sql.Types {
 			var type = reader.ReadByte();
 
 			if (type == 1) {
+				var state = reader.ReadByte();
+				if (state == 0)
+					return SqlDayToSecond.Null;
+
 				var length = reader.ReadInt32();
 				var bytes = reader.ReadBytes(length);
-				
-				// TODO: implement the constructor from bytes
-				throw new NotImplementedException();
+				return new SqlDayToSecond(bytes);
 			}
 			if (type == 2) {
+				var state = reader.ReadByte();
+				if (state == 0)
+					return SqlYearToMonth.Null;
+
 				var months = reader.ReadInt32();
 				return new SqlYearToMonth(months);
 			}

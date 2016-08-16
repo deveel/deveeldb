@@ -20,7 +20,7 @@ namespace Deveel.Data.Sql.Statements {
 			var expected = new StringBuilder();
 			expected.AppendLine("LOOP");
 			expected.AppendLine("  :a := 'two'");
-			expected.AppendLine("  IF true THEN");
+			expected.AppendLine("  IF TRUE THEN");
 			expected.AppendLine("    EXIT");
 			expected.AppendLine("  END IF");
 			expected.Append("END LOOP");
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			var sql = loop.ToString();
 			var expected = new StringBuilder();
-			expected.AppendLine("WHILE true");
+			expected.AppendLine("WHILE TRUE");
 			expected.AppendLine("LOOP");
 			expected.AppendLine("  CALL SYSTEM.print('iterated')");
 			expected.Append("END LOOP");
