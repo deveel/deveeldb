@@ -137,5 +137,33 @@ namespace Deveel.Data.Sql.Compile {
 			Assert.AreEqual(1, handler.Handled.ExceptionNames.Count());
 			Assert.AreEqual("TOO_MANY_ROWS", handler.Handled.ExceptionNames.ElementAt(0));
 		}
+
+		[Test]
+		public void WithNullStatement() {
+			const string sql = @"DECLARE a INT := 23
+								BEGIN
+									:t := :a;
+                                    NULL;
+								END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsInstanceOf<PlSqlBlockStatement>(statement);
+
+			var block = (PlSqlBlockStatement)statement;
+			Assert.AreEqual(2, block.Statements.Count);
+
+			var nullStatement = block.Statements.ElementAt(1);
+
+			Assert.IsNotNull(nullStatement);
+			Assert.IsInstanceOf<NullStatement>(nullStatement);
+		}
 	}
 }

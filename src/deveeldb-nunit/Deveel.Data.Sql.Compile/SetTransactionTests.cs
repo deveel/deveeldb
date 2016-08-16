@@ -118,5 +118,34 @@ namespace Deveel.Data.Sql.Compile {
 			var setStatus = (bool)((SqlBoolean)field.Value);
 			Assert.AreEqual(expectedStatus, setStatus);
 		}
+
+		[TestCase(1000)]
+		public void SetLockTimeout(int timeout) {
+			var sql = String.Format("SET TRANSACTION LOCK TIMEOUT {0}", timeout);
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<SetStatement>(statement);
+
+			var set = (SetStatement)statement;
+			Assert.AreEqual(TransactionSettingKeys.LockTimeout, set.SettingName);
+			Assert.IsInstanceOf<SqlConstantExpression>(set.ValueExpression);
+
+			var value = (SqlConstantExpression)set.ValueExpression;
+			var field = value.Value;
+
+			Assert.IsInstanceOf<NumericType>(field.Type);
+
+			var setValue = ((SqlNumber) field.Value).ToInt32();
+			Assert.AreEqual(timeout, setValue);
+		}
 	}
 }

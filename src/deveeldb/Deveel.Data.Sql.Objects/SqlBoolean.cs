@@ -389,6 +389,13 @@ namespace Deveel.Data.Sql.Objects {
 			return value.value == 1;
 		}
 
+		public static implicit operator bool?(SqlBoolean value) {
+			if (value.IsNull)
+				return null;
+
+			return value.value == 1;
+		}
+
 		/// <summary>
 		/// Implicitly converts a given native boolean to the SQL object equivalent.
 		/// </summary>
@@ -458,6 +465,11 @@ namespace Deveel.Data.Sql.Objects {
 			if (String.Equals(s, "false", StringComparison.OrdinalIgnoreCase) ||
 				String.Equals(s, "0")) {
 				value = False;
+				return true;
+			}
+
+			if (String.Equals(s, "NULL", StringComparison.OrdinalIgnoreCase)) {
+				value = Null;
 				return true;
 			}
 

@@ -191,5 +191,15 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.AreEqual(new SqlString("2015-02-03"), value.Value);
 		}
 
+		[Test]
+		public void FormatToString() {
+			var exp = SqlExpression.Cast(SqlExpression.FunctionCall("test", new SqlExpression[] {
+				SqlExpression.Constant(56)
+			}), PrimitiveTypes.VarChar(45));
+
+			var expected = "CAST(test(56) AS VARCHAR(45))";
+
+			Assert.AreEqual(expected, exp.ToString());
+		}
 	}
 }

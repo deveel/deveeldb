@@ -69,5 +69,16 @@ namespace Deveel.Data.Types {
 			Assert.IsInstanceOf<SqlUserObject>(obj);
 			Assert.IsFalse(obj.IsNull);
 		}
+
+		[TestCase("MyType")]
+		[TestCase("S.MyType")]
+		public void ParseUserType(string s) {
+			var typeInfo = DataTypeInfo.DefaultParser.Parse(s);
+
+			Assert.IsNotNull(typeInfo);
+			Assert.IsNotNull(typeInfo.TypeName);
+			Assert.IsFalse(typeInfo.IsPrimitive);
+			Assert.AreEqual(s, typeInfo.TypeName);
+		}
 	}
 }

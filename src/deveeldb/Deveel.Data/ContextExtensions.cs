@@ -23,6 +23,42 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data {
 	public static class ContextExtensions {
+		public static void DeclareException(this IContext context, int errorCode, string exceptionName) {
+			if (SystemErrorCodes.IsSystemError(errorCode))
+				throw new ArgumentException(String.Format("The code '{0}' is reserved for system", errorCode));
+			if (SystemErrorCodes.IsSystemError(exceptionName))
+				throw new ArgumentException(String.Format("The exception name '{0}' is reserved for system", exceptionName));
+
+			var currentContext = context;
+			while (currentContext != null) {
+				if (currentContext is IExceptionInitScope) {
+					var scope = (IExceptionInitScope)currentContext;
+					scope.DeclareException(errorCode, exceptionName);
+					return;
+				}
+
+				currentContext = currentContext.Parent;
+			}
+
+			throw new InvalidOperationException("Unable to declare the exception.");
+		}
+
+		public static DeclaredException FindDeclaredException(this IContext context, string exceptionName) {
+			var currentContext = context;
+			while (currentContext != null) {
+				if (currentContext is IExceptionInitScope) {
+					var scope = (IExceptionInitScope)currentContext;
+					var exception = scope.FindExceptionByName(exceptionName);
+					if (exception != null)
+						return exception;
+				}
+
+				currentContext = currentContext.Parent;
+			}
+
+			return null;
+		}
+
 		public static object ResolveService(this IContext context, Type serviceType, object serviceKey) {
 			return context.Scope.Resolve(serviceType, serviceKey);
 		}

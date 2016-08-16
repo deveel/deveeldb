@@ -20,16 +20,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using Deveel.Data.Sql;
+
 namespace Deveel.Data.Transactions {
 	public sealed class LockingQueue {
 		private readonly List<Lock> locks;
 
-		internal LockingQueue(ILockable lockable) {
+		internal LockingQueue(IDatabase database, ILockable lockable) {
+			Database = database;
 			Lockable = lockable;
 			locks = new List<Lock>();
 		}
 
 		public ILockable Lockable { get; private set; }
+
+		public IDatabase Database { get; private set; }
 
 		public bool IsEmpty {
 			get {
@@ -39,7 +44,16 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void Acquire(Lock @lock) {
+		public Lock NewLock(LockingMode mode, AccessType accessType) {
+			lock (this) {
+				var @lock = new Lock(this, mode, accessType);
+				Acquire(@lock);
+				@lock.OnAcquired();
+				return @lock;
+			}
+		}
+
+		private void Acquire(Lock @lock) {
 			lock (this) {
 				Lockable.Acquired(@lock);
 				locks.Add(@lock);
@@ -54,7 +68,18 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void CheckAccess(Lock @lock) {
+		private LockTimeoutException TimeoutException(ILockable lockable, AccessType accessType, int timeout) {
+			ObjectName tableName;
+			if (lockable is IDbObject) {
+				tableName = ((IDbObject) lockable).ObjectInfo.FullName;
+			} else {
+				tableName = new ObjectName(lockable.RefId.ToString());
+			}
+
+			return new LockTimeoutException(tableName, accessType, timeout);
+		}
+
+		internal void CheckAccess(Lock @lock, int timeout) {
 			lock (this) {
 				// Error checking.  The queue must contain the Lock.
 				if (!locks.Contains(@lock))
@@ -77,7 +102,8 @@ namespace Deveel.Data.Transactions {
 						}
 
 						if (blocked) {
-							Monitor.Wait(this);
+							if (!Monitor.Wait(this, timeout))
+								throw TimeoutException(@lock.Lockable, @lock.AccessType, timeout);
 						}
 					} while (blocked);
 				} else {
@@ -89,7 +115,8 @@ namespace Deveel.Data.Transactions {
 						if (index != 0) {
 							blocked = true;
 
-							Monitor.Wait(this);
+							if (!Monitor.Wait(this, timeout))
+								throw TimeoutException(@lock.Lockable, @lock.AccessType, timeout);
 						}
 
 					} while (blocked);

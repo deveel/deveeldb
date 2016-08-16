@@ -21,6 +21,7 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -304,6 +305,43 @@ namespace Deveel.Data.Serialization {
 		}
 
 		[Test]
+		public void AlterTable_AddColumn() {
+			var addColumn = new AddColumnAction(new SqlTableColumn("a", PrimitiveTypes.BigInt()));
+			var statement = new AlterTableStatement(ObjectName.Parse("APP.test_table1"), addColumn);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(statement.TableName);
+				Assert.IsNotNull(statement.Action);
+				Assert.IsInstanceOf<AddColumnAction>(statement.Action);
+			});
+		}
+
+		[Test]
+		public void AlterTrigger_RenameTo() {
+			var statement = new AlterTriggerStatement(ObjectName.Parse("trig1"), new RenameTriggerAction(new ObjectName("t1")));
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.AreEqual("trig1", deserialized.TriggerName.FullName);
+				Assert.IsInstanceOf<RenameTriggerAction>(deserialized.Action);
+			});
+		}
+
+		[Test]
+		public void AlterTrigger_ChangeStatus() {
+			var statement = new AlterTriggerStatement(ObjectName.Parse("APP.trig1"), new ChangeTriggerStatusAction(TriggerStatus.Disabled));
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.IsInstanceOf<ChangeTriggerStatusAction>(deserialized.Action);
+			});
+		}
+
+		[Test]
 		public void CreateSimpleType() {
 			var typeName = ObjectName.Parse("APP.type1");
 			var members = new UserTypeMember[] {
@@ -333,6 +371,47 @@ namespace Deveel.Data.Serialization {
 				Assert.IsNotNull(deserialized);
 				Assert.IsNotNull(deserialized.TypeName);
 				Assert.AreEqual(typeName, deserialized.TypeName);
+			});
+		}
+
+		[Test]
+		public void CreateTrigger() {
+			var body = new PlSqlBlockStatement();
+			body.Statements.Add(new OpenStatement("c1"));
+			body.Statements.Add(new CursorForLoopStatement("i", "c1"));
+			body.Statements.Add(new ReturnStatement());
+
+			var statement = new CreateTriggerStatement(ObjectName.Parse("APP.trig1"), new ObjectName("tab1"), body,
+				TriggerEventTime.Before, TriggerEventType.Insert | TriggerEventType.Update);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.IsNotNull(deserialized.TableName);
+				Assert.IsNotNull(deserialized.Body);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.AreEqual("tab1", deserialized.TableName.FullName);
+				Assert.AreEqual(TriggerEventTime.Before, deserialized.EventTime);
+			});
+		}
+
+		[Test]
+		public void CreateProcedureTrigger() {
+			var procName = ObjectName.Parse("APP.proc1");
+			var args = new InvokeArgument[] {
+				new InvokeArgument(SqlExpression.Constant(2)), 
+			};
+			var statement = new CreateProcedureTriggerStatement(ObjectName.Parse("APP.trig1"), new ObjectName("tab1"), procName, args,
+				TriggerEventTime.Before, TriggerEventType.Insert | TriggerEventType.Update);
+
+			SerializeAndAssert(statement, (serialized, deserialized) => {
+				Assert.IsNotNull(deserialized);
+				Assert.IsNotNull(deserialized.TriggerName);
+				Assert.IsNotNull(deserialized.TableName);
+				Assert.IsNotNull(deserialized.ProcedureArguments);
+				Assert.AreEqual("APP.trig1", deserialized.TriggerName.FullName);
+				Assert.AreEqual("tab1", deserialized.TableName.FullName);
+				Assert.AreEqual(TriggerEventTime.Before, deserialized.EventTime);
 			});
 		}
 

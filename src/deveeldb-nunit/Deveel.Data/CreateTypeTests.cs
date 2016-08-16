@@ -31,7 +31,7 @@ namespace Deveel.Data {
 				typeInfo.AddMember("id", PrimitiveTypes.Integer());
 				typeInfo.AddMember("name", PrimitiveTypes.String());
 
-				Query.Access().CreateObject(typeInfo);
+				AdminQuery.Access().CreateObject(typeInfo);
 			}
 
 			base.OnAfterSetup(testName);
@@ -45,9 +45,9 @@ namespace Deveel.Data {
 		[Test]
 		public void SimpleType() {
 			var typeName = ObjectName.Parse("APP.type1");
-			Query.CreateType(typeName, new[] {new UserTypeMember("a", PrimitiveTypes.String())});
+			AdminQuery.CreateType(typeName, new[] {new UserTypeMember("a", PrimitiveTypes.String())});
 
-			var exists = Query.Access().TypeExists(typeName);
+			var exists = AdminQuery.Access().TypeExists(typeName);
 
 			Assert.IsTrue(exists);
 		}
@@ -57,9 +57,9 @@ namespace Deveel.Data {
 			var typeName = ObjectName.Parse("APP.type1");
 			var parentTypeName = ObjectName.Parse("APP.parentType");
 
-			Query.CreateType(typeName, parentTypeName, new UserTypeMember("age", PrimitiveTypes.Integer()));
+			AdminQuery.CreateType(typeName, parentTypeName, new UserTypeMember("age", PrimitiveTypes.Integer()));
 
-			var exists = Query.Access().TypeExists(typeName);
+			var exists = AdminQuery.Access().TypeExists(typeName);
 
 			Assert.IsTrue(exists);
 		}
@@ -69,7 +69,7 @@ namespace Deveel.Data {
 			var typeName = ObjectName.Parse("APP.type1");
 			var parentTypeName = ObjectName.Parse("APP.parentType");
 
-			Assert.Throws<StatementException>(() => Query.CreateType(typeName, parentTypeName, new UserTypeMember("age", PrimitiveTypes.Integer())));
+			Assert.Throws<StatementException>(() => AdminQuery.CreateType(typeName, parentTypeName, new UserTypeMember("age", PrimitiveTypes.Integer())));
 		}
 	}
 }

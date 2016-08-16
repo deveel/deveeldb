@@ -25,24 +25,16 @@ namespace Deveel.Data.Sql.Expressions {
 			: this(null) {
 		}
 
-		public SqlExpressionException(string message) 
+		internal SqlExpressionException(string message) 
 			: this(message, null) {
 		}
 
-		public SqlExpressionException(string message, Exception innerException) 
-			: this(ExpressionErrorCodes.Unknown, message, innerException) {
+		internal SqlExpressionException(string message, Exception innerException) 
+			: this(SystemErrorCodes.UnknownExpressionError, message, innerException) {
 		}
 
-		public SqlExpressionException(ExpressionErrorCodes errorCode) 
-			: this(errorCode, null) {
-		}
-
-		public SqlExpressionException(ExpressionErrorCodes errorCode, string message) 
-			: this(errorCode, message, null) {
-		}
-
-		public SqlExpressionException(ExpressionErrorCodes errorCode, string message, Exception innerException) 
-			: base((int)errorCode, message, innerException) {
+		internal SqlExpressionException(int errorCode, string message, Exception innerException) 
+			: base(errorCode, message, innerException) {
 		}
 	}
 }

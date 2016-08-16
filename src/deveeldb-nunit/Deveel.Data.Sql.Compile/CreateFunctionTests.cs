@@ -32,6 +32,26 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		[Test]
+		public void PlSqlFunctionReturnsTable() {
+			const string sql = @"CREATE OR REPLACE FUNCTION APP.func1(a INT, b VARCHAR NOT NULL)
+                                     RETURN TABLE IS
+                                 BEGIN
+                                   SELECT * FROM table1 WHERE id < a AND name LIKE '%' + b
+                                 END";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateFunctionStatement>(statement);
+		}
+
+		[Test]
 		public void ExternFunctionReturnsInterger() {
 			const string sql = @"CREATE OR REPLACE FUNCTION APP.func1(a INT, b VARCHAR NOT NULL)
                                      RETURN INTEGER IS LANGUAGE DOTNET 'Deveel.Data.Sql.Compile.CreteFucntionTest+TestClass.Func1'";

@@ -125,7 +125,7 @@ namespace Deveel.Data.Sql.Tables {
 		public int Size {
 			get {
 				var sizeable = ColumnType as ISizeableType;
-				return sizeable == null ? -1 : sizeable.Size;
+				return sizeable == null ? -1 : sizeable.Precision;
 			}
 		}
 

@@ -14,6 +14,8 @@
 //    limitations under the License.
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 using NUnit.Framework;
@@ -21,6 +23,38 @@ using NUnit.Framework;
 namespace Deveel.Data.Configuration {
 	[TestFixture]
 	public class DbConfigTests {
+		[SetUp]
+		public void TestSetup() {
+			var testName = TestContext.CurrentContext.Test.Name;
+			if (testName.StartsWith("LoadFromFile"))
+				CreatePropertiesFile();
+		}
+
+		private void CreatePropertiesFile() {
+			var propsFiile = Path.Combine(Environment.CurrentDirectory, "db.config");
+			if (File.Exists(propsFiile))
+				File.Delete(propsFiile);
+
+			using (var stream = File.Create(propsFiile)) {
+				using (var writer = new StreamWriter(stream)) {
+					writer.WriteLine("system.configKey=7829");
+					writer.WriteLine("db.name=testdb");
+					writer.Flush();
+				}
+			}
+		}
+
+		[TearDown]
+		public void TestTearDown() {
+			var testName = TestContext.CurrentContext.Test.Name;
+			if (testName.StartsWith("LoadFromFile") ||
+				testName.StartsWith("SaveToFile")) {
+				var propsFiile = Path.Combine(Environment.CurrentDirectory, "db.config");
+				if (File.Exists(propsFiile))
+					File.Delete(propsFiile);
+			}
+		}
+
 		[Test]
 		public void DefaultConfig() {
 			IConfiguration config = null;
@@ -150,6 +184,47 @@ namespace Deveel.Data.Configuration {
 			bool readOnly = true;
 			Assert.DoesNotThrow(() => readOnly = configuration.GetBoolean("system.readOnly"));
 			Assert.IsFalse(readOnly);
+		}
+
+		[Test]
+		public void LoadFromClosedStream() {
+			var bytes = new byte[256];
+			var stream = new MemoryStream(bytes, false);
+			stream.Close();
+
+			var config = new Configuration();
+
+			Assert.Throws<DatabaseConfigurationException>(() => config.Load(stream));
+		}
+
+		[Test]
+		public void LoadFromFile_Properties() {
+			var filePath = Path.Combine(Environment.CurrentDirectory, "db.config");
+
+			var config = new Configuration();
+			config.Load(new FileConfigSource(filePath), new PropertiesConfigFormatter());
+
+			Assert.AreEqual(2, config.Count());
+
+			var keys = config.GetKeys().ToArray();
+			Assert.IsNotEmpty(keys);
+			Assert.AreEqual("system.configKey", keys.First());
+
+			var configValue = config.GetValue("db.name");
+			Assert.IsNotNull(configValue);
+			Assert.IsInstanceOf<string>(configValue);
+			Assert.AreEqual("testdb", (string)configValue);
+		}
+
+		[Test]
+		public void SaveToFile_Properties() {
+			var filePath = Path.Combine(Environment.CurrentDirectory, "db.config");
+
+			var config = new Configuration();
+			config.SetValue("system.configKey", 7679);
+			config.SetValue("db.name", "testdb");
+
+			config.Save(filePath, new PropertiesConfigFormatter());
 		}
 	}
 }

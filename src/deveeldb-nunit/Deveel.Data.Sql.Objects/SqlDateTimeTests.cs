@@ -299,5 +299,58 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsTrue(value.IsNull);
 			Assert.AreEqual(SqlDateTime.Null, value);
 		}
+
+		[Test]
+		public void ParseTimeStamp_NoTimeZone() {
+			const string s = "2016-04-22T12:34:11.432";
+
+			SqlDateTime dateTime;
+			Assert.IsTrue(SqlDateTime.TryParseTimeStamp(s, out dateTime));
+
+			Assert.AreEqual(2016, dateTime.Year);
+			Assert.AreEqual(04, dateTime.Month);
+			Assert.AreEqual(22, dateTime.Day);
+			Assert.AreEqual(12, dateTime.Hour);
+			Assert.AreEqual(34, dateTime.Minute);
+			Assert.AreEqual(11, dateTime.Second);
+			Assert.AreEqual(432, dateTime.Millisecond);
+			Assert.AreEqual(0, dateTime.Offset.Hours);
+			Assert.AreEqual(0, dateTime.Offset.Minutes);
+		}
+
+		[Test]
+		public void ParseTimeStamp_WithTimeZone() {
+			const string s = "2016-04-22T12:34:11.432";
+			var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+
+			SqlDateTime dateTime;
+			Assert.IsTrue(SqlDateTime.TryParseTimeStamp(s, timeZone, out dateTime));
+
+			Assert.AreEqual(2016, dateTime.Year);
+			Assert.AreEqual(04, dateTime.Month);
+			Assert.AreEqual(22, dateTime.Day);
+			Assert.AreEqual(12, dateTime.Hour);
+			Assert.AreEqual(34, dateTime.Minute);
+			Assert.AreEqual(11, dateTime.Second);
+			Assert.AreEqual(432, dateTime.Millisecond);
+			Assert.AreEqual(2, dateTime.Offset.Hours);
+			Assert.AreEqual(0, dateTime.Offset.Minutes);
+		}
+
+		[Test]
+		public void AtCetTimeZone() {
+			var value = new SqlDateTime(2016, 12, 03, 22, 45, 0, 0);
+			var dateTime = value.AtTimeZone("CET");
+
+			Assert.AreEqual(2016, dateTime.Year);
+			Assert.AreEqual(12, dateTime.Month);
+			Assert.AreEqual(03, dateTime.Day);
+			Assert.AreEqual(23, dateTime.Hour);
+			Assert.AreEqual(45, dateTime.Minute);
+			Assert.AreEqual(0, dateTime.Second);
+			Assert.AreEqual(0, dateTime.Millisecond);
+			Assert.AreEqual(1, dateTime.Offset.Hours);
+			Assert.AreEqual(0, dateTime.Offset.Minutes);
+		}
 	}
 }

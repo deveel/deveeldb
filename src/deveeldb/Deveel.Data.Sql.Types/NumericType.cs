@@ -26,10 +26,10 @@ using Deveel.Math;
 namespace Deveel.Data.Sql.Types {
 	[Serializable]
 	public sealed class NumericType : SqlType, ISizeableType {
-		public NumericType(SqlTypeCode typeCode, int size, byte scale) 
+		public NumericType(SqlTypeCode typeCode, int precision, int scale) 
 			: base("NUMERIC", typeCode) {
 			AssertIsNumeric(typeCode);
-			Size = size;
+			Precision = precision;
 			Scale = scale;
 		}
 
@@ -43,27 +43,16 @@ namespace Deveel.Data.Sql.Types {
 
 		private NumericType(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
-			Size = info.GetInt32("Size");
+			Precision = info.GetInt32("Precision");
 			Scale = info.GetByte("Scale");
 		}
 
-		public int Size { get; private set; }
+		public int Precision { get; private set; }
 
-		public int MaxSize {
-			get {
-				switch (TypeCode) {
-					case SqlTypeCode.BigInt:
-						return 127;
-					default:
-						return -1;
-				}
-			}
-		}
-
-		public byte Scale { get; private set; }
+		public int Scale { get; private set; }
 
 		protected override void GetData(SerializationInfo info, StreamingContext context) {
-			info.AddValue("Size", Size);
+			info.AddValue("Precision", Precision);
 			info.AddValue("Scale", Scale);
 		}
 
@@ -73,12 +62,29 @@ namespace Deveel.Data.Sql.Types {
 				return false;
 
 			return TypeCode == other.TypeCode &&
-			       Size == other.Size &&
+			       Precision == other.Precision &&
 			       Scale == other.Scale;
 		}
 
 		public override Type GetObjectType() {
 			return typeof(SqlNumber);
+		}
+
+		private int GetPrecision() {
+			switch (TypeCode) {
+				case SqlTypeCode.TinyInt:
+				case SqlTypeCode.SmallInt:
+				case SqlTypeCode.Integer:
+				case SqlTypeCode.BigInt:
+					return 0;
+				case SqlTypeCode.Float:
+				case SqlTypeCode.Real:
+					return MathContext.Decimal32.Precision;
+				case SqlTypeCode.Double:
+					return MathContext.Decimal64.Precision;
+				default:
+					return MathContext.Unlimited.Precision;
+			}
 		}
 
 		public override Type GetRuntimeType() {
@@ -97,7 +103,7 @@ namespace Deveel.Data.Sql.Types {
 				return typeof(double);
 			if (TypeCode == SqlTypeCode.Numeric ||
 				TypeCode == SqlTypeCode.Decimal)
-				return typeof(BigDecimal);
+				return typeof(SqlNumber);
 
 			return base.GetRuntimeType();
 		}
@@ -109,19 +115,19 @@ namespace Deveel.Data.Sql.Types {
 				return (SqlNumber) value;
 
 			if (value is byte)
-				return new SqlNumber((byte)value, Scale);
+				return new SqlNumber((byte)value);
 			if (value is short)
-				return new SqlNumber((short)value, Scale);
+				return new SqlNumber((short)value);
 			if (value is int)
-				return new SqlNumber((int)value, Scale);
+				return new SqlNumber((int)value);
 			if (value is long)
-				return new SqlNumber((long)value, Scale);
+				return new SqlNumber((long)value);
 			if (value is float)
-				return new SqlNumber((float)value, Scale);
+				return new SqlNumber((float)value, GetPrecision());
 			if (value is double)
-				return new SqlNumber((double)value, Scale);
+				return new SqlNumber((double)value, GetPrecision());
 			if (value is byte[])
-				return new SqlNumber((byte[])value, Scale, Size);
+				return new SqlNumber((byte[])value, Scale, GetPrecision());
 			if (value is string)
 				return SqlNumber.Parse((string) value);
 
@@ -133,7 +139,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public override int GetHashCode() {
-			return (TypeCode.GetHashCode() * Scale) + Size.GetHashCode();
+			return (TypeCode.GetHashCode() * Scale) + Precision.GetHashCode();
 		}
 
 		private static void AssertIsNumeric(SqlTypeCode typeCode) {
@@ -319,9 +325,9 @@ namespace Deveel.Data.Sql.Types {
 		protected override void AppendTo(SqlStringBuilder builder) {
 			builder.Append(TypeCode.ToString().ToUpperInvariant());
 
-			if (Size != -1) {
+			if (Precision != -1) {
 				builder.Append('(');
-				builder.Append(Size);
+				builder.Append(Precision);
 				if (Scale > 0) {
 					builder.Append(',');
 					builder.Append(Scale);
@@ -642,7 +648,7 @@ namespace Deveel.Data.Sql.Types {
 		public override void SerializeObject(Stream stream, ISqlObject obj) {
 			var writer = new BinaryWriter(stream);
 
-			if (obj is SqlNull) {
+			if (obj is SqlNull || obj == null) {
 				writer.Write((byte)0);
 			} else {
 				var number = (SqlNumber) obj;
@@ -692,7 +698,7 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		internal override int ColumnSizeOf(ISqlObject obj) {
-			if (obj is SqlNull)
+			if (obj is SqlNull || obj == null)
 				return 1;
 
 			if (!(obj is SqlNumber))

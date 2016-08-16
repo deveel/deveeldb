@@ -90,7 +90,7 @@ namespace Deveel.Data {
 			var procName = ObjectName.Parse("APP.proc1");
 			var arg = SqlExpression.Constant("Hello!");
 
-			Query.Call(procName, arg);
+			AdminQuery.Call(procName, arg);
 		}
 
 		[Test]
@@ -98,7 +98,7 @@ namespace Deveel.Data {
 			var procName = ObjectName.Parse("APP.proc1");
 			var arg = new InvokeArgument("a", SqlExpression.Constant("Hello!"));
 
-			Query.Call(procName, arg);
+			AdminQuery.Call(procName, arg);
 		}
 
 		[Test]
@@ -107,7 +107,7 @@ namespace Deveel.Data {
 			var arg1 = SqlExpression.Constant("Hello");
 			var arg2 = SqlExpression.Constant("World!");
 
-			Query.Call(procName, arg1, arg2);
+			AdminQuery.Call(procName, arg1, arg2);
 		}
 
 		[Test]
@@ -116,7 +116,7 @@ namespace Deveel.Data {
 			var arg1 = new InvokeArgument("a", SqlExpression.Constant("Hello"));
 			var arg2 = new InvokeArgument("b", SqlExpression.Constant("World!"));
 
-			Query.Call(procName, arg1, arg2);
+			AdminQuery.Call(procName, arg1, arg2);
 		}
 
 		[Test]
@@ -124,7 +124,7 @@ namespace Deveel.Data {
 			var procName = ObjectName.Parse("APP.proc3");
 			var arg = new InvokeArgument("a", SqlExpression.Constant("Hello"));
 
-			var result = Query.Call(procName, arg);
+			var result = AdminQuery.Call(procName, arg);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.Count);
@@ -142,7 +142,7 @@ namespace Deveel.Data {
 			var arg1 = new InvokeArgument("a", SqlExpression.Constant("Hello"));
 			var arg2 = new InvokeArgument("b", SqlExpression.Constant("World!"));
 
-			var result = Query.Call(procName, arg1, arg2);
+			var result = AdminQuery.Call(procName, arg1, arg2);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.Count);

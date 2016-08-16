@@ -34,13 +34,13 @@ namespace Deveel.Data {
 			body.Statements.Add(new ReturnStatement(SqlExpression.VariableReference("a")));
 
 			var funName = ObjectName.Parse("APP.fun1");
-			Query.CreateFunction(funName, PrimitiveTypes.Numeric(), body);
+			AdminQuery.CreateFunction(funName, PrimitiveTypes.Numeric(), body);
 
-			var exists = Query.Access().RoutineExists(funName);
+			var exists = AdminQuery.Access().RoutineExists(funName);
 
 			Assert.IsTrue(exists);
 
-			var function = Query.Access().GetObject(DbObjectType.Routine, funName);
+			var function = AdminQuery.Access().GetObject(DbObjectType.Routine, funName);
 			Assert.IsNotNull(function);
 			Assert.IsInstanceOf<PlSqlFunction>(function);
 
@@ -57,13 +57,13 @@ namespace Deveel.Data {
 			};
 
 			var externRef = ExternalRef.MakeRef(typeof(Test), "Function(int, int)");
-			Query.CreateExternFunction(funName, PrimitiveTypes.Integer(), parameters, externRef.ToString());
+			AdminQuery.CreateExternFunction(funName, PrimitiveTypes.Integer(), parameters, externRef.ToString());
 
-			var exists = Query.Access().RoutineExists(funName);
+			var exists = AdminQuery.Access().RoutineExists(funName);
 
 			Assert.IsTrue(exists);
 
-			var function = Query.Access().GetObject(DbObjectType.Routine, funName);
+			var function = AdminQuery.Access().GetObject(DbObjectType.Routine, funName);
 
 			Assert.IsNotNull(function);
 			Assert.IsInstanceOf<ExternalFunction>(function);

@@ -21,7 +21,6 @@ using System.Linq;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Routines {

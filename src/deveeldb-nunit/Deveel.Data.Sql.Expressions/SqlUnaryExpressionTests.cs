@@ -85,5 +85,36 @@ namespace Deveel.Data.Sql.Expressions {
 			var expectedResult = new SqlBoolean(expected);
 			Assert.AreEqual(expectedResult, actual);
 		}
+
+		[TestCase("NOT TRUE")]
+		[TestCase("NOT FALSE")]
+		[TestCase("NOT ((a + 2) = 22)")]
+		public void ParseNot(string s) {
+			var exp = SqlExpression.Parse(s);
+
+			Assert.IsNotNull(exp);
+			Assert.IsInstanceOf<SqlUnaryExpression>(exp);
+			Assert.AreEqual(SqlExpressionType.Not, exp.ExpressionType);
+		}
+
+		[TestCase("-34")]
+		[TestCase("-98.0990")]
+		public void ParseNegate(string s) {
+			var exp = SqlExpression.Parse(s);
+
+			Assert.IsNotNull(exp);
+			Assert.IsInstanceOf<SqlUnaryExpression>(exp);
+			Assert.AreEqual(SqlExpressionType.Negate, exp.ExpressionType);
+		}
+
+		[TestCase("+45")]
+		[TestCase("+90049.9930")]
+		public void ParseUnaryPlus(string s) {
+			var exp = SqlExpression.Parse(s);
+
+			Assert.IsNotNull(exp);
+			Assert.IsInstanceOf<SqlUnaryExpression>(exp);
+			Assert.AreEqual(SqlExpressionType.UnaryPlus, exp.ExpressionType);
+		}
 	}
 }

@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Types {
 			if (type.IsPrimitive) {
 				if (type is NumericType) {
 					var numericType = (NumericType) type;
-					writer.Write(numericType.Size);
+					writer.Write(numericType.Precision);
 					writer.Write(numericType.Scale);
 				} else if (type is StringType) {
 					var stringType = (StringType) type;
@@ -93,7 +93,7 @@ namespace Deveel.Data.Sql.Types {
 
 			if (NumericType.IsNumericType(typeCode)) {
 				var size = reader.ReadInt32();
-				var scale = reader.ReadByte();
+				var scale = reader.ReadInt32();
 
 				return PrimitiveTypes.Numeric(typeCode, size, scale);
 			}

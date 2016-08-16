@@ -27,8 +27,8 @@ namespace Deveel.Data.Sql.Expressions {
 	[TestFixture]
 	public sealed class SqlQueryExpressionTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+			CreateTestTable(AdminQuery);
+			AddTestData(AdminQuery);
 		}
 
 		private void CreateTestTable(IQuery query) {
@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Expressions {
 			expression.FromClause.AddTable("test_table");
 
 			Field result = null;
-			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(Query, null));
+			Assert.DoesNotThrow(() => result = expression.EvaluateToConstant(AdminQuery, null));
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOf<QueryType>(result.Type);
 			Assert.IsNotNull(result.Value);
@@ -88,7 +88,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			ITable queryResult = null;
 
-			Assert.DoesNotThrow(() => queryResult = ((SqlQueryObject) result.Value).QueryPlan.Evaluate(Query));
+			Assert.DoesNotThrow(() => queryResult = ((SqlQueryObject) result.Value).QueryPlan.Evaluate(AdminQuery));
 			Assert.IsNotNull(queryResult);
 			Assert.AreEqual(3, queryResult.RowCount);
 		}

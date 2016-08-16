@@ -211,6 +211,10 @@ namespace Deveel.Data.Sql.Objects {
 			return new StreamReader(stream, encoding);
 		}
 
+		public TextReader GetInput() {
+			return GetInput(Encoding.Unicode);
+		}
+
 		public bool Equals(SqlString other) {
 			if (source == null && other.source == null)
 				return true;
@@ -261,7 +265,13 @@ namespace Deveel.Data.Sql.Objects {
 			if (source == null)
 				return new byte[0];
 
-			return (byte[]) source.Clone();
+			var copy = (byte[]) source.Clone();
+			var chars = encoding.GetChars(copy, 0, copy.Length);
+			return encoding.GetBytes(chars, 0, chars.Length);
+		}
+
+		public byte[] ToByteArray() {
+			return ToByteArray(Encoding.Unicode);
 		}
 
 		public SqlString Concat(ISqlString other) {
@@ -325,7 +335,7 @@ namespace Deveel.Data.Sql.Objects {
 			return bytes.Length;
 		}
 
-#region StringEnumerator
+		#region StringEnumerator
 
 		class StringEnumerator : IEnumerator<char> {
 			private readonly SqlString sqlString;
@@ -362,7 +372,7 @@ namespace Deveel.Data.Sql.Objects {
 			}
 		}
 
-#endregion
+		#endregion
 
 		public override string ToString() {
 			return Value;

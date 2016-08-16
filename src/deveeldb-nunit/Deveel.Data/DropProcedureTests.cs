@@ -51,9 +51,9 @@ namespace Deveel.Data {
 		public void Existing() {
 			var procName = ObjectName.Parse("APP.proc1");
 
-			Query.DropProcedure(procName);
+			AdminQuery.DropProcedure(procName);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Routine, procName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Routine, procName);
 			Assert.IsFalse(exists);
 		}
 
@@ -61,14 +61,14 @@ namespace Deveel.Data {
 		public void NotExisting() {
 			var procName = ObjectName.Parse("APP.proc2");
 
-			Assert.Throws<ObjectNotFoundException>(() => Query.DropProcedure(procName));
+			Assert.Throws<ObjectNotFoundException>(() => AdminQuery.DropProcedure(procName));
 		}
 
 		[Test]
 		public void NotExisting_IfExistsClause() {
 			var procName = ObjectName.Parse("APP.proc2");
 
-			Assert.DoesNotThrow(() => Query.DropProcedure(procName, true));
+			Assert.DoesNotThrow(() => AdminQuery.DropProcedure(procName, true));
 		}
 	}
 }

@@ -14,6 +14,7 @@
 //    limitations under the License.
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -32,22 +33,61 @@ namespace Deveel.Data {
 			return true;
 		}
 
-		private void CreateTestTable(string textName, IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
+		private void CreateTestTable(string testName, IQuery query) {
+			var tableName1 = ObjectName.Parse("APP.test_table");
+			var tableInfo = new TableInfo(tableName1);
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
+				new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)});
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
 			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			if (textName.EndsWith("WithLob")) {
+			if (testName.EndsWith("WithLob")) {
 				tableInfo.AddColumn("bio", PrimitiveTypes.Clob());
 			}
 
 			query.Session.Access().CreateTable(tableInfo);
 			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+
+			if (testName.EndsWith("ConstraintCheck") ||
+			    testName.EndsWith("Violation")) {
+				tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
+				tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()) {
+					DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)})
+				});
+				if (testName.StartsWith("SetDefault")) {
+					tableInfo.AddColumn(new ColumnInfo("person_id", PrimitiveTypes.Integer()) {
+						DefaultExpression = SqlExpression.Constant(1)
+					});
+				} else if (testName.EndsWith("Violation")) {
+					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
+				} else {
+					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), false);
+				}
+
+				tableInfo.AddColumn("dept_no", PrimitiveTypes.Integer());
+
+				query.Access().CreateTable(tableInfo);
+				query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE2");
+
+				ForeignKeyAction? onDelete = null;
+				if (testName.StartsWith("SetNullOnDelete")) {
+					onDelete = ForeignKeyAction.SetNull;
+				} else if (testName.StartsWith("SetDefaultOnDelete")) {
+					onDelete = ForeignKeyAction.SetDefault;
+				} else if (testName.StartsWith("CascadeOnDelete")) {
+					onDelete = ForeignKeyAction.Cascade;
+				}
+
+				if (onDelete != null)
+					query.Access()
+						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, onDelete.Value,
+							ForeignKeyAction.NoAction, "FKEY_TEST_TABLE2");
+
+			}
 		}
 
 		private void InsertTestData(string testName, IQuery query) {
@@ -72,6 +112,16 @@ namespace Deveel.Data {
 			row.SetValue("active", Field.BooleanFalse);
 			row.SetDefault(query);
 			table.AddRow(row);
+
+			if (testName.EndsWith("Violation") ||
+			    testName.EndsWith("ConstraintCheck")) {
+				table = query.Access().GetMutableTable(ObjectName.Parse("APP.test_table2"));
+				row = table.NewRow();
+				row.SetValue("person_id", Field.Integer(2));
+				row.SetValue("dept_no", Field.Integer(45));
+				row.SetDefault(query);
+				table.AddRow(row);
+			}
 		}
 
 		private SqlLongString CreateClobData(IQuery query) {
@@ -83,6 +133,13 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.Access().DropAllTableConstraints(tableName);
 			query.Access().DropObject(DbObjectType.Table, tableName);
+			if (testName.EndsWith("Violation") ||
+			    testName.EndsWith("ConstraintCheck")) {
+				tableName = ObjectName.Parse("APP.test_table2");
+				query.Access().DropAllTableConstraints(tableName);
+				query.Access().DropObject(DbObjectType.Table, tableName);
+			}
+
 			return true;
 		}
 
@@ -91,10 +148,10 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("first_name = 'Antonello'");
 
-			var count = Query.Delete(tableName, expr);
+			var count = AdminQuery.Delete(tableName, expr);
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(1, table.RowCount);
 		}
@@ -104,10 +161,10 @@ namespace Deveel.Data {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
 
-			var count = Query.Delete(tableName, expr);
+			var count = AdminQuery.Delete(tableName, expr);
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
 		}
@@ -128,6 +185,48 @@ namespace Deveel.Data {
 			var table = query.Access().GetTable(tableName);
 
 			Assert.AreEqual(0, table.RowCount);
+		}
+
+		[Test]
+		public void SetNullOnDeleteConstraintCheck() {
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("last_name = 'Provenzano'");
+
+			var count = query.Delete(tableName, expr);
+			query.Commit();
+
+			Assert.AreEqual(2, count);
+
+			query = CreateQuery(CreateAdminSession(Database));
+
+			var linkedTable = query.Access().GetTable(ObjectName.Parse("APP.test_table2"));
+			var rows = linkedTable.GetIndex(0).SelectEqual(Field.Integer(1));
+			var value = linkedTable.GetValue(rows.First(), 1);
+
+			Assert.IsTrue(Field.IsNullField(value));
+		}
+
+		[Test]
+		public void SetDefaultOnDeleteConstraintCheck() {
+			var query = CreateQuery(CreateAdminSession(Database));
+
+			var tableName = ObjectName.Parse("APP.test_table");
+			var expr = SqlExpression.Parse("first_name = 'Sebastiano' AND last_name = 'Provenzano'");
+
+			var count = query.Delete(tableName, expr);
+			query.Commit();
+
+			Assert.AreEqual(1, count);
+
+			query = CreateQuery(CreateAdminSession(Database));
+
+			var linkedTable = query.Access().GetTable(ObjectName.Parse("APP.test_table2"));
+			var rows = linkedTable.GetIndex(0).SelectEqual(Field.Integer(1));
+			var value = linkedTable.GetValue(rows.First(), 1);
+
+			Assert.AreEqual(1, ((SqlNumber)value.Value).ToInt32());
 		}
 	}
 }

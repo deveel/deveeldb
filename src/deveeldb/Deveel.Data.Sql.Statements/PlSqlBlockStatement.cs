@@ -56,6 +56,9 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
+			if (context.Request is IQuery)
+				context = context.NewBlock(this);
+
 			if (Declarations != null) {
 				foreach (var declaration in Declarations) {
 					declaration.Execute(context);
@@ -63,12 +66,16 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			try {
-				base.ExecuteStatement(context);
+				ExecuteBlock(context);
 			} catch (SqlErrorException ex) {
 				FireHandler(context, ex);
 			} catch (Exception ex) {
 				FireOthersHandler(context, ex);
 			}
+		}
+
+		internal bool Handles(string exceptionName) {
+			return ExceptionHandlers.Any(x => x.Handles(exceptionName));
 		}
 
 		internal void FireHandler(ExecutionContext context, string exception) {

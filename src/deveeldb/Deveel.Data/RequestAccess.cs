@@ -114,7 +114,7 @@ namespace Deveel.Data {
 			return base.DropObject(objectType, objectName);
 		}
 
-		public override void AlterObject(IObjectInfo objectInfo) {
+		public override bool AlterObject(IObjectInfo objectInfo) {
 			if (objectInfo == null)
 				throw new ArgumentNullException("objectInfo");
 
@@ -124,8 +124,7 @@ namespace Deveel.Data {
 			}
 
 			if (objectInfo.ObjectType == DbObjectType.Table) {
-				AlterTable((TableInfo) objectInfo);
-				return;
+				return AlterTable((TableInfo) objectInfo);
 			}
 
 			if (objectInfo.ObjectType == DbObjectType.Trigger &&
@@ -133,12 +132,12 @@ namespace Deveel.Data {
 				// TODO:
 			}
 
-			base.AlterObject(objectInfo);
+			return base.AlterObject(objectInfo);
 		}
 
-		private void AlterTable(TableInfo tableInfo) {
+		private bool AlterTable(TableInfo tableInfo) {
 			try {
-				base.AlterObject(tableInfo);
+				return base.AlterObject(tableInfo);
 			} finally {
 				if (TableCache != null)
 					TableCache.Remove(tableInfo.TableName.FullName);

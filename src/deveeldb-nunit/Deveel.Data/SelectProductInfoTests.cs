@@ -16,7 +16,7 @@ namespace Deveel.Data {
 
 			var query = (SqlQueryExpression) SqlExpression.Parse(sql);
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 
 			Assert.IsNotNull(result);
 

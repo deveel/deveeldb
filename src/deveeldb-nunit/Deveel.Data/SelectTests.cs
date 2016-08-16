@@ -28,8 +28,8 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			CreateTestTable(Query);
-			AddTestData(Query);
+			CreateTestTable(AdminQuery);
+			AddTestData(AdminQuery);
 		}
 
 		private static void CreateTestTable(IQuery context) {
@@ -85,7 +85,7 @@ namespace Deveel.Data {
 
 		private ITable Execute(string s, QueryLimit limit) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(s);
-			var result = Query.Select(query, limit);
+			var result = AdminQuery.Select(query, limit);
 			result.GetEnumerator().MoveNext();
 			return result.Source;
 		}
@@ -103,7 +103,7 @@ namespace Deveel.Data {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
 			var sort = new[] {new SortColumn(SqlExpression.Reference(new ObjectName("birth_date")), false)};
 
-			var result = Query.Select(query, sort);
+			var result = AdminQuery.Select(query, sort);
 
 			Assert.IsNotNull(result);
 
@@ -223,7 +223,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void LimitToOne() {
-			var result = Execute("SELECT * FRPM test_table", new QueryLimit(1));
+			var result = Execute("SELECT * FROM test_table", new QueryLimit(1));
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.RowCount);
@@ -234,6 +234,14 @@ namespace Deveel.Data {
 			var result = Execute("SELECT * FROM test_table", new QueryLimit(1, 2));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.RowCount);
+
+			var first = result.FirstOrDefault();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual(5, first.ColumnCount);
+
+			Assert.AreEqual("Jane", first.GetValue(1).Value.ToString());
+			Assert.AreEqual("Doe", first.GetValue(2).Value.ToString());
 		}
 
 		[Test]

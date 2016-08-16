@@ -24,9 +24,9 @@ namespace Deveel.Data {
 		public void CreateNewSchema() {
 			const string schemaName = "Sch1";
 
-			Query.CreateSchema(schemaName);
+			AdminQuery.CreateSchema(schemaName);
 
-			var exists = Query.Session.Access().SchemaExists(schemaName);
+			var exists = AdminQuery.Session.Access().SchemaExists(schemaName);
 
 			Assert.IsTrue(exists);
 		}

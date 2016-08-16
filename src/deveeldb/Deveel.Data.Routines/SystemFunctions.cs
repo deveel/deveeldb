@@ -16,19 +16,18 @@
 
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
+
+using DryIoc;
 
 namespace Deveel.Data.Routines {
 	public static class SystemFunctions {
@@ -56,7 +55,19 @@ namespace Deveel.Data.Routines {
 		}
 
 		public static Field ToTimeStamp(Field obj) {
-			return obj.CastTo(PrimitiveTypes.TimeStamp());
+			return ToTimeStamp(obj, null);
+		}
+
+		public static Field ToTimeStamp(Field obj, Field timeZone) {
+			var result = obj.CastTo(PrimitiveTypes.TimeStamp());
+
+			if (!Field.IsNullField(timeZone)) {
+				var tz = timeZone.Value.ToString();
+				var timeStamp = ((SqlDateTime) result.Value).AtTimeZone(tz);
+				result = Field.TimeStamp(timeStamp);
+			}
+
+			return result;
 		}
 
 		public static Field Cast(IRequest context, Field value, SqlType destType) {
@@ -373,7 +384,7 @@ namespace Deveel.Data.Routines {
 			var scale = result.Scale;
 			var precision = result.Precision;
 
-			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+			return new Field(new NumericType(SqlTypeCode.Numeric, scale, precision), result);
 		}
 
 		private static Field MathFunction(Func<SqlNumber, SqlNumber, SqlNumber> op, Field value, Field other) {
@@ -395,7 +406,7 @@ namespace Deveel.Data.Routines {
 			var scale = result.Scale;
 			var precision = result.Precision;
 
-			return new Field(new NumericType(SqlTypeCode.Numeric, precision, (byte)scale), result);
+			return new Field(new NumericType(SqlTypeCode.Numeric, precision, scale), result);
 		}
 
 		public static Field Cos(Field value) {

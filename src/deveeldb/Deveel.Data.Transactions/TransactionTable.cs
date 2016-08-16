@@ -372,18 +372,8 @@ namespace Deveel.Data.Transactions {
 			// Are there keys effected?
 			if (keyEntries.Any()) {
 				if (updateRule == ForeignKeyAction.NoAction)
-
-					// Throw an exception;
-					throw new ConstraintViolationException(
-						SqlModelErrorCodes.ForeignKeyViolation,
-						constraint.Deferred.AsDebugString() +
-						" foreign key constraint violation on update (" +
-						constraint.ConstraintName + ") Columns = " +
-						constraint.TableName + "( " +
-						String.Join(", ", constraint.ColumnNames) +
-						" ) -> " + constraint.ForeignTable.FullName + "( " +
-						String.Join(", ", constraint.ForeignColumnNames) +
-						" )");
+					throw new ForeignKeyViolationException(constraint.TableName, constraint.ConstraintName, constraint.ColumnNames,
+						constraint.ForeignTable, constraint.ForeignColumnNames, constraint.Deferred);
 
 				// Perform a referential action on each updated key
 				foreach (int rowNum in keyEntries) {
@@ -566,17 +556,8 @@ namespace Deveel.Data.Transactions {
 			// Are there keys effected?
 			if (keyEntries.Count > 0) {
 				if (deleteRule == ForeignKeyAction.NoAction) {
-					// Throw an exception;
-					throw new ConstraintViolationException(
-						SqlModelErrorCodes.ForeignKeyViolation,
-						constraint.Deferred.AsDebugString() +
-						" foreign key constraint violation on delete (" +
-						constraint.ConstraintName + ") Columns = " +
-						constraint.TableName + "( " +
-						String.Join(", ", constraint.ColumnNames) +
-						" ) -> " + constraint.ForeignTable.FullName + "( " +
-						String.Join(", ", constraint.ForeignColumnNames) +
-						" )");
+					throw new ForeignKeyViolationException(constraint.TableName, constraint.ConstraintName, constraint.ColumnNames,
+						constraint.ForeignTable, constraint.ForeignColumnNames, constraint.Deferred);
 				}
 
 				// Perform a referential action on each updated key

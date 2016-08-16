@@ -23,13 +23,13 @@ namespace Deveel.Data.Routines {
 	[TestFixture]
 	public class SystemFunctionTests : ContextBasedTest {
 		private Field InvokeFunction(string name) {
-			return Query.Access().InvokeSystemFunction(Query, name);
+			return AdminQuery.Access().InvokeSystemFunction(AdminQuery, name);
 		}
 
 		[Test]
 		public void ResolveSystemFunctionWithNoSchema() {
 			IFunction function = null;
-			Assert.DoesNotThrow(() => function = Query.Session.Access().ResolveFunction(Query, new ObjectName("user")));
+			Assert.DoesNotThrow(() => function = AdminQuery.Session.Access().ResolveFunction(AdminQuery, new ObjectName("user")));
 			Assert.IsNotNull(function);
 			Assert.IsNull(function.RoutineInfo.RoutineName.ParentName);
 			Assert.AreEqual("user", function.RoutineInfo.RoutineName.Name);
@@ -37,7 +37,7 @@ namespace Deveel.Data.Routines {
 
 		[Test]
 		public void ResolveSystemFunctionFullyQualified() {
-			var function = Query.Session.Access().ResolveFunction(Query, ObjectName.Parse("SYSTEM.user"));
+			var function = AdminQuery.Session.Access().ResolveFunction(AdminQuery, ObjectName.Parse("SYSTEM.user"));
 
 			Assert.IsNotNull(function);
 			Assert.IsNull(function.RoutineInfo.RoutineName.ParentName);

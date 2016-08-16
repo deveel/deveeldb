@@ -26,5 +26,6 @@ namespace Deveel.Data.Transactions {
 		public const string AutoCommit = "autocommit";
 		public const string CurrentSchema = "current schema";
 		public const string ErrorOnDirtySelect = "error on dirty select";
+		public const string LockTimeout = "lock timeout";
 	}
 }

@@ -25,7 +25,7 @@ namespace Deveel.Data.Types {
 		[TestCase("APP.test_table.a", "INTEGER")]
 		public void ColumnType(string column, string typeString) {
 			var refType = new FieldRefType(ObjectName.Parse(column));
-			var resolved = refType.Resolve(Query);
+			var resolved = refType.Resolve(AdminQuery);
 
 			Assert.IsNotNull(resolved);
 			Assert.AreEqual(resolved.ToString(), typeString);
@@ -35,7 +35,7 @@ namespace Deveel.Data.Types {
 		public void RowType(string tableName, string typeString) {
 			var refType = new RowRefType(ObjectName.Parse(tableName));
 			SqlType resolved;
-			Assert.Throws<NotImplementedException>(() => resolved = refType.Resolve(Query));
+			Assert.Throws<NotImplementedException>(() => resolved = refType.Resolve(AdminQuery));
 		}
 	}
 }

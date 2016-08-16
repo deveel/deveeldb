@@ -33,6 +33,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		private SqlAssignExpression(SerializationInfo info, StreamingContext context)
 			: base(info, context) {
+			ReferenceExpression = (SqlExpression) info.GetValue("Reference", typeof(SqlExpression));
+			ValueExpression = (SqlExpression) info.GetValue("Value", typeof(SqlExpression));
 		}
 
 		public SqlExpression ReferenceExpression { get; private set; }
@@ -54,7 +56,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		internal override void AppendTo(SqlStringBuilder builder) {
 			ReferenceExpression.AppendTo(builder);
-			builder.Append(" = ");
+			builder.Append(" := ");
 			ValueExpression.AppendTo(builder);
 
 		}

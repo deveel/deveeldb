@@ -12,8 +12,8 @@ namespace Deveel.Data.Diagnostics {
 	public sealed class LoggerTests : ContextBasedTest {
 		[Test]
 		public void LogToConsole() {
-			Query.AsEventSource().UseLogger(new ConsoleLogger());
-			Query.CreateTable(new ObjectName("test_table"), new []{new SqlTableColumn("a", PrimitiveTypes.String())});
+			AdminQuery.AsEventSource().UseLogger(new ConsoleLogger());
+			AdminQuery.CreateTable(new ObjectName("test_table"), new []{new SqlTableColumn("a", PrimitiveTypes.String())});
 		}
 
 		[Test]
@@ -21,8 +21,8 @@ namespace Deveel.Data.Diagnostics {
 			string logged = null;
 
 			var reset = new AutoResetEvent(false);
-			Query.AsEventSource().UseLogger(new TestLogger(reset, message => logged = message));
-			Query.Context.OnDebug("Message to debug");
+			AdminQuery.AsEventSource().UseLogger(new TestLogger(reset, message => logged = message));
+			AdminQuery.Context.OnDebug("Message to debug");
 			reset.WaitOne(1000);
 			Assert.IsNotNull(logged);
 

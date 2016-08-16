@@ -127,12 +127,26 @@ namespace Deveel.Data.Sql {
 				while (statement != null) {
 					if (statement is PlSqlBlockStatement) {
 						var block = (PlSqlBlockStatement) statement;
-						block.FireHandler(this, exceptionName);
-						return;
+						if (block.Handles(exceptionName)) {
+							block.FireHandler(this, exceptionName);
+							return;
+						}
 					}
 
 					statement = statement.Parent;
 				}
+
+				if (SystemErrorCodes.IsSystemError(exceptionName)) {
+					var errorCode = SystemErrorCodes.GetErrorCode(exceptionName);
+					throw new StatementException(errorCode, String.Format("Exception '{0}' explicitly risen from code", exceptionName));
+				}
+
+				var declared = Request.Context.FindDeclaredException(exceptionName);
+				if (declared == null)
+					throw new InvalidOperationException(String.Format("Exception '{0}' was not declared in the context.", exceptionName));
+
+				throw new StatementException(declared.ErrorCode,
+					String.Format("Declared exception '{0}' explicitly risen from code", exceptionName));
 			} finally {
 				Terminate();
 			}

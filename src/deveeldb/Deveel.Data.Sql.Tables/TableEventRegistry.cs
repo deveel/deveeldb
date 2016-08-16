@@ -135,9 +135,7 @@ namespace Deveel.Data {
 						foreach (var otherRowEvent in journal.events.OfType<TableRowEvent>()) {
 							if (otherRowEvent.RowNumber == rowNum &&
 							    otherRowEvent.EventType == TableRowEventType.Remove) {
-								throw new TransactionException(TransactionErrorCodes.RowRemoveClash,
-									String.Format("Concurrent Serializable Transaction Conflict(1): " +
-									"Current row remove clash ( row: {0}, table: {1})", rowNum, tableInfo.TableName));
+								throw new RowRemoveConflictException(tableInfo.TableName, new RowId(tableInfo.Id, rowNum));
 							}
 						}
 					}

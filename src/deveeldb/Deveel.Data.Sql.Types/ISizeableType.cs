@@ -19,6 +19,6 @@ using System;
 
 namespace Deveel.Data.Sql.Types {
 	public interface ISizeableType {
-		int Size { get; }
+		int Precision { get; }
 	}
 }

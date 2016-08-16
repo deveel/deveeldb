@@ -85,7 +85,7 @@ namespace Deveel.Data {
 		[Test]
 		public void SelectBio() {
 			var exp = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table");
-			var result = Query.Select(exp);
+			var result = AdminQuery.Select(exp);
 
 			Assert.IsNotNull(result);
 			Assert.IsTrue(result.Any());

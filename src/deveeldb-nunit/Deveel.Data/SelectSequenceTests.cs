@@ -44,7 +44,7 @@ namespace Deveel.Data {
 			var query = new SqlQueryExpression(new [] {new SelectColumn(SqlExpression.Reference(new ObjectName(column))) });
 			query.FromClause.AddTable("seq1");
 
-			var result = Query.Select(query);
+			var result = AdminQuery.Select(query);
 			var row = result.FirstOrDefault();
 			if (row == null)
 				return Field.Null();

@@ -47,9 +47,9 @@ namespace Deveel.Data {
 		public void Existing() {
 			var funcName = ObjectName.Parse("APP.func1");
 
-			Query.DropFunction(funcName);
+			AdminQuery.DropFunction(funcName);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Routine, funcName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Routine, funcName);
 			Assert.IsFalse(exists);
 		}
 
@@ -57,14 +57,14 @@ namespace Deveel.Data {
 		public void NotExisting() {
 			var funcName = ObjectName.Parse("APP.func2");
 
-			Assert.Throws<ObjectNotFoundException>(() => Query.DropFunction(funcName));
+			Assert.Throws<ObjectNotFoundException>(() => AdminQuery.DropFunction(funcName));
 		}
 
 		[Test]
 		public void NotExisting_IfExistsClause() {
 			var funcName = ObjectName.Parse("APP.func2");
 
-			Assert.DoesNotThrow(() => Query.DropFunction(funcName, true));
+			Assert.DoesNotThrow(() => AdminQuery.DropFunction(funcName, true));
 		}
 	}
 }

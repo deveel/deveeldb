@@ -38,6 +38,10 @@ namespace Deveel.Data.Sql.Triggers {
 			get { return TriggerInfo; }
 		}
 
+		public TriggerStatus Status {
+			get { return TriggerInfo.Status; }
+		}
+
 		public bool CanFire(TableEvent tableEvent) {
 			return TriggerInfo.CanFire(tableEvent);
 		}

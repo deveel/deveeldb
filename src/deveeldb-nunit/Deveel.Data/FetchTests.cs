@@ -34,9 +34,9 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Access().CreateTable(tableInfo);
+			AdminQuery.Access().CreateTable(tableInfo);
 
-			var table = Query.Access().GetMutableTable(tableName);
+			var table = AdminQuery.Access().GetMutableTable(tableName);
 			for (int i = 0; i < 10; i++) {
 				var row = table.NewRow();
 				row.SetValue(0, i);
@@ -49,9 +49,9 @@ namespace Deveel.Data {
 			var cursorInfo = new CursorInfo("c1", query);
 			cursorInfo.Flags = CursorFlags.Scroll;
 
-			Query.Access().CreateObject(cursorInfo);
-			var c1 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
-			c1.Open();
+			AdminQuery.Access().CreateObject(cursorInfo);
+			var c1 = (Cursor)AdminQuery.Access().GetObject(DbObjectType.Cursor, new ObjectName("c1"));
+			c1.Open(AdminQuery);
 
 			if (testName.StartsWith("FetchInto")) {
 				var query2 = (SqlQueryExpression)SqlExpression.Parse("SELECT a FROM APP.test_table");
@@ -59,18 +59,18 @@ namespace Deveel.Data {
 				var cursorInfo2 = new CursorInfo("c2", query2);
 				cursorInfo2.Flags = CursorFlags.Scroll;
 
-				Query.Access().CreateObject(cursorInfo2);
-				var c2 = (Cursor)Query.Access().GetObject(DbObjectType.Cursor, new ObjectName("c2"));
-				c2.Open();
+				AdminQuery.Access().CreateObject(cursorInfo2);
+				var c2 = (Cursor)AdminQuery.Access().GetObject(DbObjectType.Cursor, new ObjectName("c2"));
+				c2.Open(AdminQuery);
 
-				Query.Access().CreateObject(new VariableInfo("var1", PrimitiveTypes.BigInt(), false));
-				Query.Access().CreateObject(new VariableInfo("var2", PrimitiveTypes.String(), false));
+				AdminQuery.Access().CreateObject(new VariableInfo("var1", PrimitiveTypes.BigInt(), false));
+				AdminQuery.Access().CreateObject(new VariableInfo("var2", PrimitiveTypes.String(), false));
 			}
 		}
 
 		[Test]
 		public void FetchNext() {
-			var row = Query.FetchNext("c1");
+			var row = AdminQuery.FetchNext("c1");
 
 			Assert.IsNotNull(row);
 			Assert.AreEqual(2, row.ColumnCount);
@@ -90,7 +90,7 @@ namespace Deveel.Data {
 
 		[Test]
 		public void FetchAbsolute() {
-			var row = Query.FetchAbsolute("c1", SqlExpression.Constant(5));
+			var row = AdminQuery.FetchAbsolute("c1", SqlExpression.Constant(5));
 
 			Assert.IsNotNull(row);
 			Assert.AreEqual(2, row.ColumnCount);
@@ -110,15 +110,15 @@ namespace Deveel.Data {
 
 		[Test]
 		public void FetchIntoOneVar() {
-			Query.FetchNextInto("c2", SqlExpression.VariableReference("var1"));
+			AdminQuery.FetchNextInto("c2", SqlExpression.VariableReference("var1"));
 
-			var var1 = (Variable) Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
+			var var1 = (Variable) AdminQuery.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
 
 			Assert.IsNotNull(var1);
-			Assert.IsNotNull(var1.Evaluate(Query));
-			Assert.IsFalse(Field.IsNullField(var1.Evaluate(Query)));
+			Assert.IsNotNull(var1.Evaluate(AdminQuery));
+			Assert.IsFalse(Field.IsNullField(var1.Evaluate(AdminQuery)));
 
-			var value = ((SqlNumber) var1.Evaluate(Query).Value).ToInt32();
+			var value = ((SqlNumber) var1.Evaluate(AdminQuery).Value).ToInt32();
 			Assert.AreEqual(0, value);
 		}
 
@@ -126,15 +126,15 @@ namespace Deveel.Data {
 		public void FetchIntoTwoVars() {
 			var tuple = SqlExpression.Tuple(SqlExpression.VariableReference("var1"), SqlExpression.VariableReference("var2"));
 
-			Query.FetchNextInto("c1", tuple);
+			AdminQuery.FetchNextInto("c1", tuple);
 
-			var var1 = (Variable)Query.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
+			var var1 = (Variable)AdminQuery.Access().GetObject(DbObjectType.Variable, new ObjectName("var1"));
 
 			Assert.IsNotNull(var1);
-			Assert.IsNotNull(var1.Evaluate(Query));
-			Assert.IsFalse(Field.IsNullField(var1.Evaluate(Query)));
+			Assert.IsNotNull(var1.Evaluate(AdminQuery));
+			Assert.IsFalse(Field.IsNullField(var1.Evaluate(AdminQuery)));
 
-			var value = ((SqlNumber)var1.Evaluate(Query).Value).ToInt32();
+			var value = ((SqlNumber)var1.Evaluate(AdminQuery).Value).ToInt32();
 			Assert.AreEqual(0, value);
 		}
 	}

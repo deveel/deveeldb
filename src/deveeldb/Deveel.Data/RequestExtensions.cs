@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
@@ -29,6 +30,8 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
+
+using ExecutionContext = Deveel.Data.Sql.ExecutionContext;
 
 namespace Deveel.Data {
 	public static class RequestExtensions {
@@ -400,6 +403,18 @@ namespace Deveel.Data {
 
 		#endregion
 
+		#region Lock Table
+
+		public static void LockTable(this IRequest request, ObjectName tableName, LockingMode mode) {
+			LockTable(request, tableName, mode, Timeout.Infinite);
+		}
+
+		public static void LockTable(this IRequest request, ObjectName tableName, LockingMode mode, int timeout) {
+			request.ExecuteStatement(new LockTableStatement(tableName, mode, timeout));
+		}
+
+		#endregion
+
 		#region Call
 
 		public static IDictionary<string, Field> Call(this IRequest request, ObjectName procedureName, params InvokeArgument[] args) {
@@ -560,6 +575,18 @@ namespace Deveel.Data {
 				return result.Result;
 
 			throw new NotSupportedException("Cursor-ref in condition not supported (yet).");
+		}
+
+		#endregion
+
+		#region Set
+
+		public static void Set(this IQuery query, string key, SqlExpression value) {
+			query.ExecuteStatement(new SetStatement(key, value));
+		}
+
+		public static void Set(this IQuery query, string key, object value) {
+			query.Set(key, SqlExpression.Constant(value));
 		}
 
 		#endregion

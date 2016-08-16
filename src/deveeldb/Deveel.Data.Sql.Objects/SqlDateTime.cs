@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 
@@ -75,6 +76,8 @@ namespace Deveel.Data.Sql.Objects {
 
 		public static readonly SqlDateTime MaxDate = new SqlDateTime(9999, 12, 31, 23, 59, 59, 999);
 		public static readonly SqlDateTime MinDate = new SqlDateTime(1, 1, 1, 0, 0, 0, 0);
+
+		private static readonly Dictionary<string, string> tsAbbreviations;
 
 		public SqlDateTime(int year, int month, int day)
 			: this(year, month, day, 0, 0, 0, 0, SqlDayToSecond.Zero) {
@@ -146,6 +149,16 @@ namespace Deveel.Data.Sql.Objects {
             }
 
 			value = new DateTimeOffset(year, month, day, hour, minute, second, millis, new TimeSpan(0, tzh, tzm, 0, 0));
+		}
+
+		static SqlDateTime() {
+			tsAbbreviations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+				{"CET", "Central European Standard Time" },
+				{"EST", "Eastern Standard Time" },
+				{"PST", "Pacific Standard Time" },
+				{"GMT", "Greenwich Mean Time" }
+				// TODO: Continue!
+			};
 		}
 
 		int IComparable.CompareTo(object obj) {
@@ -587,12 +600,23 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public static bool TryParseTimeStamp(string s, out SqlDateTime value) {
+			return TryParseTimeStamp(s, null, out value);
+		}
+
+		public static bool TryParseTimeStamp(string s, TimeZoneInfo timeZone, out SqlDateTime value) {
 			value = new SqlDateTime();
 
 			// We delegate parsing DATE and TIME strings to the .NET DateTime object...
 			DateTimeOffset date;
 			if (DateTimeOffset.TryParseExact(s, SqlTimeStampFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out date)) {
-				var offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes, 0);
+				SqlDayToSecond offset;
+				if (timeZone != null) {
+					var utcOffset = timeZone.GetUtcOffset(date);
+					offset = new SqlDayToSecond(utcOffset.Hours, utcOffset.Minutes,0);
+				} else {
+					offset = new SqlDayToSecond(date.Offset.Hours, date.Offset.Minutes, 0);
+				}
+
 				value = new SqlDateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Millisecond, offset);
 				return true;
 			}
@@ -692,6 +716,26 @@ namespace Deveel.Data.Sql.Objects {
 				throw new InvalidCastException();
 
 			return value.Value;
+		}
+
+		public SqlDateTime AtTimeZone(TimeZoneInfo timeZone) {
+			if (IsNull)
+				return this;
+
+			var utcOffset = timeZone.GetUtcOffset(value.Value.LocalDateTime);
+			return value.Value.ToOffset(utcOffset);
+		}
+
+		public SqlDateTime AtTimeZone(string timeZone) {
+			string norm;
+			if (tsAbbreviations.TryGetValue(timeZone, out norm))
+				timeZone = norm;
+
+			var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+			if (timeZoneInfo == null)
+				throw new ArgumentException(String.Format("Time-zone ID '{0}' is invalid", timeZone));
+
+			return AtTimeZone(timeZoneInfo);
 		}
 	}
 }

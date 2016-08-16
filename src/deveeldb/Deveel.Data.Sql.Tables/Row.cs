@@ -254,11 +254,8 @@ namespace Deveel.Data.Sql.Tables {
 			var column = Table.TableInfo[columnOffset];
 			var columnType = column.ColumnType;
 
-			//if (!value.Type.IsComparable(columnType)) {
-			//	throw new ArgumentException(
-			//		String.Format("The specified value of type '{0}' is not comparable to '{1}' defined by '{2}'.",
-			//			value.Type, columnType, column.FullColumnName));
-			//}
+			if (value.IsNull && column.IsNotNull)
+				throw new NotNullColumnViolationException(Table.TableInfo.TableName, column.ColumnName);
 
 			if (!value.Type.Equals(columnType)) {
 				if (!value.Type.CanCastTo(columnType))
@@ -359,7 +356,7 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var columnType = Table.TableInfo[columnOffset].ColumnType;
-			SetValue(columnOffset, new Field(columnType, null));
+			SetValue(columnOffset, Field.Null(columnType));
 		}
 
 		/// <summary>

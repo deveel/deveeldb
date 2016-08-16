@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Types {
 
 		public int Length { get; private set; }
 
-		int ISizeableType.Size {
+		int ISizeableType.Precision {
 			get { return Length; }
 		}
 

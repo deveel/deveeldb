@@ -51,6 +51,13 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
 
 			query.Access().CreateTable(tableInfo);
+
+			var body = new PlSqlBlockStatement();
+			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] {
+				new InvokeArgument(SqlExpression.Constant("One row was inserted"))
+			}));
+			var procedureInfo = new PlSqlProcedureInfo(ObjectName.Parse("APP.proc1"), new RoutineParameter[0], body);
+			query.Access().CreateObject(procedureInfo);
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -66,9 +73,9 @@ namespace Deveel.Data {
 		[Test]
 		public void CallbackTrigger() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			Query.CreateCallbackTrigger("trigger1", tableName, TriggerEventTime.Before, TriggerEventType.Insert);
+			AdminQuery.CreateCallbackTrigger("trigger1", tableName, TriggerEventTime.Before, TriggerEventType.Insert);
 
-			var trigger = Query.Access().GetObject(DbObjectType.Trigger, new ObjectName("trigger1")) as Trigger;
+			var trigger = AdminQuery.Access().GetObject(DbObjectType.Trigger, new ObjectName("trigger1")) as Trigger;
 
 			Assert.IsNotNull(trigger);
 			Assert.AreEqual("trigger1", trigger.TriggerInfo.TriggerName.FullName);
@@ -78,15 +85,29 @@ namespace Deveel.Data {
 		}
 
 		[Test]
-		public void ProcedureTrigger_PlSql() {
+		public void PlSqlTrigger() {
 			var body = new PlSqlBlockStatement();
-			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] { new InvokeArgument(SqlExpression.Constant("One row was inserted")) }));
+			body.Statements.Add(new CallStatement(ObjectName.Parse("system.output"), new[] {
+				new InvokeArgument(SqlExpression.Constant("One row was inserted"))
+			}));
 			var triggerName = new ObjectName("trigger1");
 			var tableName = ObjectName.Parse("APP.test_table");
 
-			Query.CreateTrigger(triggerName, tableName, body, TriggerEventTime.After, TriggerEventType.Insert);
+			AdminQuery.CreateTrigger(triggerName, tableName, body, TriggerEventTime.After, TriggerEventType.Insert);
 
-			var exists = Query.Access().TriggerExists(ObjectName.Parse("APP.trigger1"));
+			var exists = AdminQuery.Access().TriggerExists(ObjectName.Parse("APP.trigger1"));
+
+			Assert.IsTrue(exists);
+		}
+
+		[Test]
+		public void ProcedureTrigger() {
+			var triggerName = new ObjectName("trigger1");
+			var tableName = ObjectName.Parse("APP.test_table");
+			var procName = new ObjectName("proc1");
+			AdminQuery.CreateProcedureTrigger(triggerName, tableName, procName, TriggerEventTime.After, TriggerEventType.Insert);
+
+			var exists = AdminQuery.Access().TriggerExists(ObjectName.Parse("APP.trigger1"));
 
 			Assert.IsTrue(exists);
 		}
