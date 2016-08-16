@@ -53,6 +53,8 @@ namespace Deveel.Data.Sql.Types {
 		public override Type GetRuntimeType() {
 			if (TypeCode == SqlTypeCode.DayToSecond)
 				return typeof (TimeSpan);
+			if (TypeCode == SqlTypeCode.YearToMonth)
+				return typeof(long);
 
 			return base.GetRuntimeType();
 		}

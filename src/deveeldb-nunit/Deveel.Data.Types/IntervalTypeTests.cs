@@ -95,5 +95,23 @@ namespace Deveel.Data.Types {
 
 			Assert.AreEqual(obj, serialized);
 		}
+
+		[TestCase(SqlTypeCode.YearToMonth, typeof(SqlYearToMonth))]
+		[TestCase(SqlTypeCode.DayToSecond, typeof(SqlDayToSecond))]
+		public void GetObjectType(SqlTypeCode code, Type expectedType) {
+			var type = PrimitiveTypes.Interval(code);
+			var objType = type.GetObjectType();
+
+			Assert.AreEqual(expectedType, objType);
+		}
+
+		[TestCase(SqlTypeCode.YearToMonth, typeof(long))]
+		[TestCase(SqlTypeCode.DayToSecond, typeof(TimeSpan))]
+		public void GetRuntimeType(SqlTypeCode code, Type expectedType) {
+			var type = PrimitiveTypes.Interval(code);
+			var objType = type.GetRuntimeType();
+
+			Assert.AreEqual(expectedType, objType);
+		}
 	}
 }
