@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Deveel.Data.Linq {
 	static class TypeUtil {
-		public static MemberInfo SelectMember<T>(Expression<Func<T, object>> selector) {
+		public static MemberInfo SelectMember<TSource, TMember>(Expression<Func<TSource, TMember>> selector) {
 			Expression body = selector;
 			if (body is LambdaExpression) {
 				body = ((LambdaExpression)body).Body;
@@ -14,7 +14,7 @@ namespace Deveel.Data.Linq {
 				case ExpressionType.MemberAccess:
 					return ((MemberExpression)body).Member;
 				default:
-					throw new InvalidOperationException();
+					throw new InvalidOperationException(String.Format("Expression of type '{0}' is not valid for selection of members", body.NodeType));
 			}
 		}
 	}

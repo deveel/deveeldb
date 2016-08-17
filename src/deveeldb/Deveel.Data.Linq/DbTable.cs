@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using IQToolkit;
 
 namespace Deveel.Data.Linq {
-	public sealed class DbTable<T> : IQueryable<T>, IDisposable where T : class {
+	public sealed class DbTable<T> : IDbTable<T> where T : class {
 		private QueryProvider provider;
 		private TableQuery query;
 
@@ -59,7 +59,7 @@ namespace Deveel.Data.Linq {
 
 		class TableQuery : Query<T> {
 			public TableQuery(QueryProvider provider) 
-				: base(provider, typeof(DbTable<T>)) {
+				: base(provider) {
 			}
 		}
 

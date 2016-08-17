@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
+using Deveel.Data.Sql.Types;
+
 using IQToolkit;
 using IQToolkit.Data.Common;
 
@@ -67,6 +69,7 @@ namespace Deveel.Data.Linq {
 					var columnModel = typeModel.GetColumn(memberName);
 					memberMapping = new ModelMappingEntityMember {
 						ColumnName = columnModel.ColumnName,
+						ColumnType = columnModel.ColumnType,
 						MemberName = columnModel.Member.Name,
 						IsKey = columnModel.IsKey
 					};
@@ -105,11 +108,23 @@ namespace Deveel.Data.Linq {
 		}
 
 		public override bool IsRelationshipSource(MappingEntity entity, MemberInfo member) {
-			throw new NotImplementedException();
+			var modelEntity = (ModelMappingEntity) entity;
+			var entityMember = modelEntity.GetMember(member.Name);
+			if (entityMember == null ||
+				!entityMember.IsAssociation)
+				return false;
+
+			return entityMember.AssociationType != AssociationType.Dependant;
 		}
 
 		public override bool IsRelationshipTarget(MappingEntity entity, MemberInfo member) {
-			throw new NotImplementedException();
+			var modelEntity = (ModelMappingEntity)entity;
+			var entityMember = modelEntity.GetMember(member.Name);
+			if (entityMember == null ||
+				!entityMember.IsAssociation)
+				return false;
+
+			return entityMember.AssociationType == AssociationType.Dependant;
 		}
 
 		public override bool IsNestedEntity(MappingEntity entity, MemberInfo member) {
@@ -186,7 +201,7 @@ namespace Deveel.Data.Linq {
 			}
 
 			public void AddMember(ModelMappingEntityMember memberMapping) {
-				throw new NotImplementedException();
+				members.Add(memberMapping.MemberName, memberMapping);
 			}
 		}
 		#endregion
@@ -198,13 +213,15 @@ namespace Deveel.Data.Linq {
 
 			public string ColumnName { get; set; }
 
+			public SqlType ColumnType { get; set; }
+
 			public string AliasName { get; set; }
 
 			public bool IsKey { get; set; }
 
 			public bool IsAssociation { get; set; }
 
-			public bool IsForeignKey { get; set; }
+			public AssociationType AssociationType { get; set; }
 
 			public string RelatedId { get; set; }
 

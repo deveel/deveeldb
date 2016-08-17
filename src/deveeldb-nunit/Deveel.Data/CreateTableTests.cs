@@ -203,39 +203,5 @@ namespace Deveel.Data {
 
 			AdminQuery.CreateTable(tableName, columns);
 		}
-
-		[Test]
-		public void FromMap() {
-			AdminQuery.CreateTable<TestClass>();
-
-			tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = AdminQuery.Access().GetTableInfo(tableName);
-
-			Assert.IsNotNull(tableInfo);
-			Assert.AreEqual(3, tableInfo.ColumnCount);
-
-			var idColumn = tableInfo[0];
-			Assert.IsNotNull(idColumn);
-			Assert.AreEqual("Id", idColumn.ColumnName);
-			Assert.IsNotNull(idColumn.DefaultExpression);
-
-			var primaryKey = AdminQuery.Access().QueryTablePrimaryKey(tableName);
-			Assert.IsNotNull(primaryKey);
-		}
-
-		[TableName("test_table")]
-		class TestClass {
-			[Column, Identity]
-			public int Id { get; set; }
-
-			[Column]
-			public string FirstName { get; set; }
-
-			[Column(Null = true)]
-			public string LastName { get; set; }
-
-			[Mapping.Ignore]
-			public int Dummy { get; set; }
-		}
 	}
 }

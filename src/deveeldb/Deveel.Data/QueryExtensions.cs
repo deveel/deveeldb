@@ -171,18 +171,6 @@ namespace Deveel.Data {
 			query.ExecuteStatement(statement);
 		}
 
-		public static void CreateTable(this IQuery query, Type type) {
-			var mapInfo = Mapper.GetMapInfo(type);
-			query.CreateTable(mapInfo.TableName, mapInfo.Columns.ToArray());
-
-			foreach (var constraint in mapInfo.Constraints) {
-				query.AlterTable(mapInfo.TableName, constraint.AsAddConstraintAction());
-			}
-		}
-
-		public static void CreateTable<T>(this IQuery query) where T : class {
-			query.CreateTable(typeof(T));
-		}
 
 		#endregion
 

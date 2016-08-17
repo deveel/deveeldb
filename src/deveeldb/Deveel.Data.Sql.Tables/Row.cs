@@ -439,22 +439,6 @@ namespace Deveel.Data.Sql.Tables {
 			RowId = new RowId(Table.TableInfo.Id, number);
 		}
 
-		public object ToObject(Type destType) {
-			return ToObject(null, destType);
-		}
-
-		public object ToObject(IRequest context, Type destType) {
-			return Mapper.ToObject(destType, this);
-		}
-
-		public T ToObject<T>() where T : class {
-			return ToObject<T>(null);
-		}
-
-		public T ToObject<T>(IRequest context) where T : class {
-			return Mapper.ToObject<T>(this);
-		}
-
 		#region RowVariableResolver
 
 		private class RowVariableResolver : IVariableResolver {
