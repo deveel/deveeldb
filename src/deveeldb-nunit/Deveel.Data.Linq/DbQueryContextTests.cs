@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Mapping;
@@ -31,11 +32,18 @@ namespace Deveel.Data.Linq {
 		}
 
 		private void CreateTables(IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
+			var tableName = ObjectName.Parse("APP.persons");
 			var tableInfo = new TableInfo(tableName);
 			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
+
+			query.Access().CreateTable(tableInfo);
+
+			tableName = ObjectName.Parse("APP.person_class");
+			tableInfo = new TableInfo(tableName);
+			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
+			tableInfo.AddColumn("class_name", PrimitiveTypes.String());
 
 			query.Access().CreateTable(tableInfo);
 		}
@@ -146,6 +154,8 @@ namespace Deveel.Data.Linq {
 			public string FirstName { get; set; }
 
 			public string LastName { get; set; }
+
+			public ICollection<PersonClass> Classes { get; set; }
 		}
 
 		#endregion
