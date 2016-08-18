@@ -17,6 +17,8 @@ using QueryType = IQToolkit.Data.Common.QueryType;
 
 namespace Deveel.Data.Linq {
 	class SqlQueryExecutor : QueryExecutor {
+		private int rowsAffected;
+
 		public SqlQueryExecutor(QueryProvider provider) {
 			Provider = provider;
 		}
@@ -27,7 +29,7 @@ namespace Deveel.Data.Linq {
 			throw new NotImplementedException();
 		}
 
-		public override IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues) {
+		private static SqlQuery MakeSqlQuery(QueryCommand command, object[] paramValues) {
 			var sqlQuery = new SqlQuery(command.CommandText, QueryParameterStyle.Named);
 			var queryParams = command.Parameters.Select(x => new Sql.QueryParameter(EnsureParamName(x.Name), GetSqlType(x.Type, x.QueryType))).ToArray();
 			for (int i = 0; i < queryParams.Length; i++) {
@@ -37,6 +39,11 @@ namespace Deveel.Data.Linq {
 				sqlQuery.Parameters.Add(parameter);
 			}
 
+			return sqlQuery;
+		}
+
+		public override IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues) {
+			var sqlQuery = MakeSqlQuery(command, paramValues);
 			var results = Provider.Context.Query.ExecuteQuery(sqlQuery);
 			if (results.Length > 1)
 				throw new InvalidOperationException("Too many results from query");
@@ -50,7 +57,7 @@ namespace Deveel.Data.Linq {
 			throw new NotImplementedException();
 		}
 
-		private string EnsureParamName(string name) {
+		private static string EnsureParamName(string name) {
 			if (name == QueryParameter.Marker)
 				return name;
 			if (name[0] != QueryParameter.NamePrefix)
@@ -73,11 +80,11 @@ namespace Deveel.Data.Linq {
 		}
 
 
-		private ISqlObject ToSqlObject(SqlType sqlType, object paramValue) {
+		private static ISqlObject ToSqlObject(SqlType sqlType, object paramValue) {
 			return sqlType.CreateFrom(paramValue);
 		}
 
-		private SqlTypeCode GetSqlTypeCode(Type type) {
+		private static SqlTypeCode GetSqlTypeCode(Type type) {
 			if (type == typeof(bool))
 				return SqlTypeCode.Boolean;
 			if (type == typeof(byte))
@@ -105,7 +112,7 @@ namespace Deveel.Data.Linq {
 			throw new NotSupportedException();
 		}
 
-		private SqlType GetSqlType(Type type, QueryType queryType) {
+		private static SqlType GetSqlType(Type type, QueryType queryType) {
 			var sqlTypeCode = GetSqlTypeCode(type);
 
 			switch (sqlTypeCode) {
@@ -152,14 +159,30 @@ namespace Deveel.Data.Linq {
 		}
 
 		public override IEnumerable<T> ExecuteDeferred<T>(QueryCommand query, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues) {
-			throw new NotImplementedException();
+			return Execute(query, fnProjector, entity, paramValues);
 		}
 
 		public override int ExecuteCommand(QueryCommand query, object[] paramValues) {
-			throw new NotImplementedException();
+			var sqlQuery = MakeSqlQuery(query, paramValues);
+
+			var results = Provider.Context.Query.ExecuteQuery(sqlQuery);
+			if (results.Length > 1)
+				throw new InvalidOperationException("Too many results for the statement");
+
+			var result = results[0];
+
+			if (result.Type == StatementResultType.Exception)
+				throw new InvalidOperationException("An error occurred while executing the command", result.Error);
+
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException("An invalid result was returned from the execution.");
+
+			return result.Result.RowCount;
 		}
 
-		public override int RowsAffected { get; }
+		public override int RowsAffected {
+			get { return rowsAffected; }
+		}
 
 		#region RowFieldReader
 
@@ -180,11 +203,16 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override T GetValue<T>(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				return (T) value.ConvertTo(typeof(T));
 			}
 
 			protected override byte GetByte(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				if (!(value.Type is NumericType))
+					value = value.CastTo(PrimitiveTypes.TinyInt());
+				return ((SqlNumber)value.Value).ToByte();
+
 			}
 
 			protected override char GetChar(int ordinal) {
@@ -200,11 +228,17 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override double GetDouble(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				if (!(value.Type is NumericType))
+					value = value.CastTo(PrimitiveTypes.Double());
+				return ((SqlNumber)value.Value).ToDouble();
 			}
 
 			protected override float GetSingle(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				if (!(value.Type is NumericType))
+					value = value.CastTo(PrimitiveTypes.Real());
+				return ((SqlNumber)value.Value).ToSingle();
 			}
 
 			protected override Guid GetGuid(int ordinal) {
@@ -212,7 +246,10 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override short GetInt16(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				if (!(value.Type is NumericType))
+					value = value.CastTo(PrimitiveTypes.SmallInt());
+				return ((SqlNumber)value.Value).ToInt16();
 			}
 
 			protected override int GetInt32(int ordinal) {
@@ -223,7 +260,10 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override long GetInt64(int ordinal) {
-				throw new NotImplementedException();
+				var value = row.GetValue(ordinal);
+				if (!(value.Type is NumericType))
+					value = value.CastTo(PrimitiveTypes.BigInt());
+				return ((SqlNumber)value.Value).ToInt64();
 			}
 
 			protected override string GetString(int ordinal) {
@@ -234,9 +274,7 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override int FieldCount {
-				get {
-					return row.ColumnCount;
-				}
+				get { return row.ColumnCount; }
 			}
 		}
 

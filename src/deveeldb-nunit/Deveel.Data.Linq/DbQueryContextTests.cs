@@ -75,9 +75,9 @@ namespace Deveel.Data.Linq {
 			Assert.DoesNotThrow(() => queryContext = new DbQueryContext(AdminQuery));
 			Assert.IsNotNull(queryContext);
 
-			DbTable<TestClass> table = null;
+			DbTable<Person> table = null;
 
-			Assert.DoesNotThrow(() => table = queryContext.Table<TestClass>());
+			Assert.DoesNotThrow(() => table = queryContext.Table<Person>());
 			Assert.IsNotNull(table);
 		}
 
@@ -87,9 +87,9 @@ namespace Deveel.Data.Linq {
 			Assert.DoesNotThrow(() => queryContext = new TestDbQueryContext(AdminQuery));
 			Assert.IsNotNull(queryContext);
 
-			DbTable<TestClass> table = null;
+			DbTable<Person> table = null;
 
-			Assert.DoesNotThrow(() => table = queryContext.Table<TestClass>());
+			Assert.DoesNotThrow(() => table = queryContext.Table<Person>());
 			Assert.IsNotNull(table);
 		}
 
@@ -99,9 +99,9 @@ namespace Deveel.Data.Linq {
 			Assert.DoesNotThrow(() => queryContext = new TestDbQueryContext(AdminQuery));
 			Assert.IsNotNull(queryContext);
 
-			DbTable<TestClass> table = null;
+			DbTable<Person> table = null;
 
-			Assert.DoesNotThrow(() => table = queryContext.Table<TestClass>());
+			Assert.DoesNotThrow(() => table = queryContext.Table<Person>());
 			Assert.IsNotNull(table);
 
 			var result = table.Where(x => x.LastName == "Provenzano").ToList();
@@ -118,16 +118,16 @@ namespace Deveel.Data.Linq {
 			}
 
 			protected override void OnBuildModel(DbModelBuilder modelBuilder) {
-				modelBuilder.Type<TestClass>()
+				modelBuilder.Type<Person>()
 					.HasKey(x => x.Id)
 					.OfType(KeyType.Identity);
 
-				modelBuilder.Type<TestClass>()
+				modelBuilder.Type<Person>()
 					.Member(x => x.FirstName)
 					.HasColumnName("first_name")
 					.HasSize(50);
 
-				modelBuilder.Type<TestClass>()
+				modelBuilder.Type<Person>()
 					.Member(x => x.LastName)
 					.HasColumnName("last_name")
 					.Nullable(false)
@@ -137,15 +137,30 @@ namespace Deveel.Data.Linq {
 
 		#endregion
 
-		#region TestClass
+		#region Person
 
-		[TableName("test_table")]
-		class TestClass {
+		[TableName("persons")]
+		class Person {
 			public int Id { get; set; }
 
 			public string FirstName { get; set; }
 
 			public string LastName { get; set; }
+		}
+
+		#endregion
+
+		#region PersonClass
+
+		[TableName("person_class")]
+		class PersonClass {
+			public int PersonId { get; set; }
+
+			public Person Person { get; set; }
+
+			public string ClassName { get; set; }
+
+			public bool Active { get; set; }
 		}
 
 		#endregion
