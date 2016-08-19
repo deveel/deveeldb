@@ -1,29 +1,44 @@
 ﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
+
+using Deveel.Data.Sql.Statements;
+
+using IQToolkit.Data.Common;
 
 namespace Deveel.Data.Linq {
-	public abstract class QueryProvider : IQueryProvider {
-		public IQueryable CreateQuery(Expression expression) {
+	class QueryProvider : IQToolkit.Data.EntityProvider {
+		public QueryProvider(IRequest context, QueryMapping mapping, QueryPolicy policy) 
+			: base(new DeveelDbQueryLanguage(), mapping, policy) {
+			Context = context;
+		}
+
+		public IRequest Context { get; private set; }
+
+		protected override QueryExecutor CreateExecutor() {
+			return new SqlQueryExecutor(this);
+		}
+
+		public override void DoTransacted(Action action) {
 			throw new NotImplementedException();
 		}
 
-		IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression) {
-			return new Query<TElement>(this, expression);
+		public override void DoConnected(Action action) {
+			action();
 		}
 
-		protected abstract object Execute(Expression expression);
+		public override int ExecuteCommand(string commandText) {
+			var query = Context.Query;
+			var results = query.ExecuteQuery(commandText);
+			if (results == null)
+				throw new InvalidOperationException();
 
-		internal object ExecuteExpression(Expression expression) {
-			return Execute(expression);
-		}
+			if (results.Length > 1)
+				throw new NotSupportedException();
 
-		object IQueryProvider.Execute(Expression expression) {
-			return Execute(expression);
-		}
+			var result = results[0];
+			if (result.Type == StatementResultType.Exception)
+				throw new InvalidOperationException("The execution caused an exception", result.Error);
 
-		TResult IQueryProvider.Execute<TResult>(Expression expression) {
-			return (TResult) Execute(expression);
+			return result.Result.RowCount;
 		}
 	}
 }

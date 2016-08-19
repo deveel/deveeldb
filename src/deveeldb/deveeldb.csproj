@@ -89,6 +89,12 @@
       <HintPath>..\packages\DryIoc.dll.2.2.2\lib\net35\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="IQToolkit">
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="IQToolkit.Data">
+      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
@@ -167,47 +173,37 @@
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\AggregateChecker.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\AggregateExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\AggregateSubqueryExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\Alias.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\AliasedExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\BetweenExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\BlockExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ColumnExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ColumnProjector.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\DeclaredAliasGatherer.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\EntityExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ExistsExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ExpressionReplacer.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ExpressionTypeExtensions.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\FunctionExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\InExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\IsNullExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\JoinExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\OrderExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\OrderType.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\OuterJoinedExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ProjectedColumns.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ProjectionExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\QueryColumn.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\QueryExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\QueryExpressionType.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\QueryExpressionVisitor.cs" />
-    <Compile Include="Deveel.Data.Linq\QueryLanguage.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\ScalarExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\SelectExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\SubqueryExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\TableExpression.cs" />
-    <Compile Include="Deveel.Data.Linq.Expressions\VariableExpression.cs" />
-    <Compile Include="Deveel.Data.Linq\Grouping.cs" />
-    <Compile Include="Deveel.Data.Linq\IEntityProvider.cs" />
-    <Compile Include="Deveel.Data.Linq\IEntityTable.cs" />
-    <Compile Include="Deveel.Data.Linq\IEntityTable_T.cs" />
-    <Compile Include="Deveel.Data.Linq\ITypeMapper.cs" />
-    <Compile Include="Deveel.Data.Linq\Query.cs" />
+    <Compile Include="Deveel.Data.Linq\AssociationConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\AssociationSourceConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\DbAssociationModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbCompiledModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbModelBuilder.cs" />
+    <Compile Include="Deveel.Data.Linq\DbModelMapping.cs" />
+    <Compile Include="Deveel.Data.Linq\DbQueryContext.cs" />
+    <Compile Include="Deveel.Data.Linq\DbTable.cs" />
+    <Compile Include="Deveel.Data.Linq\DbColumnModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DbTypeModel.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbLinguist.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbQueryFormatter.cs" />
+    <Compile Include="Deveel.Data.Linq\DeveelDbQueryLanguage.cs" />
+    <Compile Include="Deveel.Data.Linq\IDbModel.cs" />
+    <Compile Include="Deveel.Data.Linq\ITypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\KeyConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\KeyType.cs" />
+    <Compile Include="Deveel.Data.Linq\MemberConfiguration.cs" />
     <Compile Include="Deveel.Data.Linq\QueryProvider.cs" />
-    <Compile Include="Deveel.Data.Mapping\IEntityMapping.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlQueryExecutor.cs" />
+    <Compile Include="Deveel.Data.Linq\TypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Linq\TypeUtil.cs" />
+    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />
+    <Compile Include="Deveel.Data.Mapping\IdentityAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\Mapper.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberMapInfo.cs" />
+    <Compile Include="Deveel.Data.Mapping\TableNameAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedureInfo.cs" />
@@ -1026,7 +1022,7 @@
     <Compile Include="Deveel.Data\SessionContext.cs" />
     <Compile Include="Deveel.Data.Transactions\ITransactionContext.cs" />
     <Compile Include="Deveel.Data\ISessionContext.cs" />
-    <Compile Include="System.Linq.Expressions\ExpressionVisitor.cs" />
+    <Compile Include="System.Linq\ExpressionVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Antlr4 Include="Deveel.Data.Sql.Compile\PlSqlLexer.g4">

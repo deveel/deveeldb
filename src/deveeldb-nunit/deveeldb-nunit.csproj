@@ -95,6 +95,7 @@
     <Compile Include="Deveel.Data.Diagnostics\CounterTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
+    <Compile Include="Deveel.Data.Linq\DbQueryContextTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ExpressionSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectNameSerializationTests.cs" />
