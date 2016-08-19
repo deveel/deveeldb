@@ -8,7 +8,7 @@ namespace Deveel.Data.Linq {
 		[Test]
 		public void CreateNew() {
 			DbQueryContext queryContext = null;
-			Assert.DoesNotThrow(() => queryContext = new DbQueryContext(Query));
+			Assert.DoesNotThrow(() => queryContext = new DbQueryContext(AdminQuery));
 			Assert.IsNotNull(queryContext);
 		}
 	}
