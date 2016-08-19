@@ -25,8 +25,7 @@ namespace Deveel.Data {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			var session = CreateUserSession(AdminUserName, AdminPassword);
-			testQuery = session.CreateQuery();
+			testQuery = CreateQuery(CreateAdminSession(Database));
 
 			base.OnAfterSetup(testName);
 		}
@@ -55,7 +54,7 @@ namespace Deveel.Data {
 
 			testQuery.Rollback();
 
-			Assert.IsFalse(Query.Access().TableExists(ObjectName.Parse("APP.test_table")));
+			Assert.IsFalse(AdminQuery.Access().TableExists(ObjectName.Parse("APP.test_table")));
 		}
 
 		[Test]
@@ -67,7 +66,7 @@ namespace Deveel.Data {
 
 			testQuery.Rollback();
 
-			var table = Query.Access().GetTable(ObjectName.Parse("APP.test_table"));
+			var table = AdminQuery.Access().GetTable(ObjectName.Parse("APP.test_table"));
 			Assert.IsNotNull(table);
 			Assert.AreEqual(0, table.RowCount);
 		}

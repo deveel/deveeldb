@@ -42,17 +42,17 @@ namespace Deveel.Data {
 
 		[Test]
 		public void SetPassword() {
-			Query.SetPassword("test_user", "1234");
+			AdminQuery.SetPassword("test_user", "1234");
 
-			var authenticated = Query.Access().Authenticate("test_user", "1234");
+			var authenticated = AdminQuery.Access().Authenticate("test_user", "1234");
 			Assert.IsTrue(authenticated);
 		}
 
 		[Test]
 		public void SetRoles() {
-			Query.SetRoles("test_user", "test_role1", "role2");
+			AdminQuery.SetRoles("test_user", "test_role1", "role2");
 
-			var userRoles = Query.Access().GetUserRoles("test_user");
+			var userRoles = AdminQuery.Access().GetUserRoles("test_user");
 
 			Assert.IsNotNull(userRoles);
 			Assert.IsNotEmpty(userRoles);
@@ -64,18 +64,18 @@ namespace Deveel.Data {
 
 		[Test]
 		public void Unlock() {
-			Query.SetAccountUnlocked("test_user");
+			AdminQuery.SetAccountUnlocked("test_user");
 
-			var newStatus = Query.Access().GetUserStatus("test_user");
+			var newStatus = AdminQuery.Access().GetUserStatus("test_user");
 
 			Assert.AreEqual(UserStatus.Unlocked, newStatus);
 		}
 
 		[Test]
 		public void Lock() {
-			Query.SetAccountLocked("test_user");
+			AdminQuery.SetAccountLocked("test_user");
 
-			var newStatus = Query.Access().GetUserStatus("test_user");
+			var newStatus = AdminQuery.Access().GetUserStatus("test_user");
 
 			Assert.AreEqual(UserStatus.Locked, newStatus);
 		}

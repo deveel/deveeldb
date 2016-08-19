@@ -15,17 +15,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
-using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
-using Deveel.Data.Store;
 
 using NUnit.Framework;
 
@@ -46,6 +41,11 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override void AssertNoErrors(string testName) {
+			if (!testName.Equals("NotNullColumnViolation"))
+				base.AssertNoErrors(testName);
+		}
+
 		private static void CreateTestTable(IQuery query, string testName) {
 			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
 			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
@@ -54,7 +54,12 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
 			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+
+			if (testName.Equals("NotNullColumnViolation")) {
+				tableInfo.AddColumn("active", PrimitiveTypes.Boolean(), true);
+			} else {
+				tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+			}
 
 			if (testName.EndsWith("WithLob")) {
 				tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
@@ -81,6 +86,33 @@ namespace Deveel.Data {
 		}
 
 		[Test]
+		public void TwoValues_NoColumnes() {
+			var tableName = ObjectName.Parse("APP.test_table");
+			var values = new List<SqlExpression[]> {
+				new SqlExpression[] {
+					SqlExpression.Constant("Antonello"),
+					SqlExpression.Constant("Provenzano"),
+					SqlExpression.Constant(true)
+				},
+				new SqlExpression[] {
+					SqlExpression.Constant("Mart"),
+					SqlExpression.Constant("Roosmaa"),
+					SqlExpression.Constant(false)
+				}
+			};
+
+			var count = AdminQuery.Insert(tableName, values.ToArray());
+
+
+			Assert.AreEqual(2, count);
+
+			var table = AdminQuery.Access().GetTable(tableName);
+
+			Assert.IsNotNull(table);
+			Assert.AreEqual(2, table.RowCount);
+		}
+
+		[Test]
 		public void TwoValues() {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var columns = new[] { "first_name", "last_name", "active" };
@@ -97,12 +129,12 @@ namespace Deveel.Data {
 				}
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.RowCount);
@@ -133,12 +165,12 @@ namespace Deveel.Data {
 				}
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 
 			Assert.AreEqual(2, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.RowCount);
@@ -168,18 +200,35 @@ namespace Deveel.Data {
 				},
 			};
 
-			var count = Query.Insert(tableName, columns, values.ToArray());
+			var count = AdminQuery.Insert(tableName, columns, values.ToArray());
 
 			Assert.AreEqual(1, count);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(1, table.RowCount);
 		}
 
 		private SqlLongString CreateBio(string text) {
-			return SqlLongString.Ascii(Query, text);
+			return SqlLongString.Ascii(AdminQuery, text);
+		}
+
+		[Test]
+		public void NotNullColumnViolation() {
+			var expected = Is.InstanceOf<ConstraintViolationException>()
+				.And.TypeOf<NotNullColumnViolationException>()
+				.And.Property("TableName").EqualTo(ObjectName.Parse("APP.test_table"))
+				.And.Property("ColumnName").EqualTo("active");
+
+			Assert.Throws(expected, () => AdminQuery.Insert(new ObjectName("test_table"),
+				new[] { "first_name", "last_name", "birth_date", "active" },
+				new SqlExpression[] {
+				SqlExpression.Constant("Antonello"),
+				SqlExpression.Constant("Provenzano"),
+				SqlExpression.Constant(new SqlDateTime(1980, 06,  04)),
+				SqlExpression.Constant(Field.Null())
+			}));
 		}
 	}
 }

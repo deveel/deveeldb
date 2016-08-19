@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
+using Deveel.Data.Sql.Types;
+
 using IQToolkit;
 using IQToolkit.Data.Common;
 
@@ -57,7 +59,7 @@ namespace Deveel.Data.Linq {
 			if (typeModel == null)
 				return null;
 
-			var entity = new ModelMappingEntity(elementType, tableId, entityType);
+			var entity = new ModelMappingEntity(elementType, tableId, entityType, typeModel.TableName);
 
 			var memberNames = typeModel.MemberNames;
 			foreach (var memberName in memberNames) {
@@ -67,6 +69,7 @@ namespace Deveel.Data.Linq {
 					var columnModel = typeModel.GetColumn(memberName);
 					memberMapping = new ModelMappingEntityMember {
 						ColumnName = columnModel.ColumnName,
+						ColumnType = columnModel.ColumnType,
 						MemberName = columnModel.Member.Name,
 						IsKey = columnModel.IsKey
 					};
@@ -105,19 +108,32 @@ namespace Deveel.Data.Linq {
 		}
 
 		public override bool IsRelationshipSource(MappingEntity entity, MemberInfo member) {
-			throw new NotImplementedException();
+			var modelEntity = (ModelMappingEntity) entity;
+			var entityMember = modelEntity.GetMember(member.Name);
+			if (entityMember == null ||
+				!entityMember.IsAssociation)
+				return false;
+
+			return entityMember.AssociationType != AssociationType.Dependant;
 		}
 
 		public override bool IsRelationshipTarget(MappingEntity entity, MemberInfo member) {
-			throw new NotImplementedException();
+			var modelEntity = (ModelMappingEntity)entity;
+			var entityMember = modelEntity.GetMember(member.Name);
+			if (entityMember == null ||
+				!entityMember.IsAssociation)
+				return false;
+
+			return entityMember.AssociationType == AssociationType.Dependant;
 		}
 
 		public override bool IsNestedEntity(MappingEntity entity, MemberInfo member) {
-			throw new NotImplementedException();
+			// TODO: should support nested entities?
+			return false;
 		}
 
 		public override IList<MappingTable> GetTables(MappingEntity entity) {
-			throw new NotImplementedException();
+			return new[] { ((ModelMappingEntity) entity).Table };
 		}
 
 		public override string GetAlias(MappingTable table) {
@@ -130,6 +146,21 @@ namespace Deveel.Data.Linq {
 
 		public override string GetTableName(MappingTable table) {
 			throw new NotImplementedException();
+		}
+
+		public override string GetTableName(MappingEntity entity) {
+			var modelEntity = (ModelMappingEntity) entity;
+			return modelEntity.TableName;
+		}
+
+		public override string GetColumnName(MappingEntity entity, MemberInfo member) {
+			var modelEntity = (ModelMappingEntity) entity;
+			var memberModel = modelEntity.GetMember(member.Name);
+			if (memberModel == null || 
+				String.IsNullOrEmpty(memberModel.ColumnName))
+				return member.Name;
+
+			return memberModel.ColumnName;
 		}
 
 		public override bool IsExtensionTable(MappingTable table) {
@@ -157,13 +188,18 @@ namespace Deveel.Data.Linq {
 
 			private Dictionary<string, ModelMappingEntityMember> members;
 
-			public ModelMappingEntity(Type elementType, string tableId, Type entityType) {
+			public ModelMappingEntity(Type elementType, string tableId, Type entityType, string tableName) {
 				this.elementType = elementType;
 				this.tableId = tableId;
 				this.entityType = entityType;
 
 				members = new Dictionary<string, ModelMappingEntityMember>();
+				Table = new ModelMappingTable(this);
+
+				TableName = tableName;
 			}
+
+			public string TableName { get; private set; }
 
 			public override string TableId {
 				get { return tableId; }
@@ -177,6 +213,8 @@ namespace Deveel.Data.Linq {
 				get { return entityType; }
 			}
 
+			public MappingTable Table { get; private set; }
+
 			public ModelMappingEntityMember GetMember(string memberName) {
 				ModelMappingEntityMember member;
 				if (!members.TryGetValue(memberName, out member))
@@ -186,9 +224,22 @@ namespace Deveel.Data.Linq {
 			}
 
 			public void AddMember(ModelMappingEntityMember memberMapping) {
-				throw new NotImplementedException();
+				members.Add(memberMapping.MemberName, memberMapping);
 			}
+
+			#region ModelMappingTable
+
+			class ModelMappingTable : MappingTable {
+				public ModelMappingTable(ModelMappingEntity entity) {
+					Entity = entity;
+				}
+
+				public ModelMappingEntity Entity { get; private set; }
+			}
+
+			#endregion
 		}
+
 		#endregion
 
 		#region ModelMappingEntityMember
@@ -198,13 +249,15 @@ namespace Deveel.Data.Linq {
 
 			public string ColumnName { get; set; }
 
+			public SqlType ColumnType { get; set; }
+
 			public string AliasName { get; set; }
 
 			public bool IsKey { get; set; }
 
 			public bool IsAssociation { get; set; }
 
-			public bool IsForeignKey { get; set; }
+			public AssociationType AssociationType { get; set; }
 
 			public string RelatedId { get; set; }
 

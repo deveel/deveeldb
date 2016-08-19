@@ -52,17 +52,17 @@ namespace Deveel.Data {
 		[Test]
 		public void PrivilegeFromUser() {
 			var tableName = ObjectName.Parse("APP.test_table");
-			Query.Revoke("test_user", Privileges.Alter, ObjectName.Parse("APP.test_table"));
+			AdminQuery.Revoke("test_user", Privileges.Alter, ObjectName.Parse("APP.test_table"));
 
-			var hasPrivs = Query.Access().UserHasPrivilege("test_user", DbObjectType.Table, tableName, Privileges.Alter);
+			var hasPrivs = AdminQuery.Access().UserHasPrivilege("test_user", DbObjectType.Table, tableName, Privileges.Alter);
 			Assert.IsFalse(hasPrivs);
 		}
 
 		[Test]
 		public void RoleFromUser() {
-			Query.RevokeRole("test_user", "test_role");
+			AdminQuery.RevokeRole("test_user", "test_role");
 
-			var inRole = Query.Access().UserIsInRole("test_user", "test_role");
+			var inRole = AdminQuery.Access().UserIsInRole("test_user", "test_role");
 			Assert.IsFalse(inRole);
 		}
 	}

@@ -46,11 +46,18 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void CheckAccess(ILockable lockable, AccessType accessType) {
+		internal void CheckAccess(ILockable lockable, AccessType accessType, int timeout) {
+			if (accessType == AccessType.ReadWrite) {
+				CheckAccess(lockable, AccessType.Read, timeout);
+				CheckAccess(lockable, AccessType.Write, timeout);
+				return;
+			}
+
 			for (int i = locks.Length - 1; i >= 0; --i) {
-				var tableLock = locks[i];
-				if (tableLock.Lockable == lockable) {
-					tableLock.CheckAccess(accessType);
+				var @lock = locks[i];
+				if (@lock.Lockable.RefId.Equals(lockable.RefId) &&
+					@lock.AccessType == accessType) {
+					@lock.CheckAccess(accessType, timeout);
 					return;
 				}
 			}
@@ -60,7 +67,7 @@ namespace Deveel.Data.Transactions {
 
 		public bool IsHandled(ILockable lockable) {
 			for (int i = locks.Length - 1; i >= 0; i--) {
-				if (locks[i].Lockable == lockable)
+				if (locks[i].Lockable.RefId.Equals(lockable.RefId))
 					return true;
 			}
 

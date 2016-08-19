@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Types {
 			Assert.DoesNotThrow(() => type = SqlType.Parse(typeString));
 			Assert.IsNotNull(type);
 			Assert.IsInstanceOf<NumericType>(type);
-			Assert.AreEqual(-1, ((NumericType)type).Size);
+			Assert.AreEqual(-1, ((NumericType)type).Precision);
 		}
 
 		[TestCase("BOOLEAN")]

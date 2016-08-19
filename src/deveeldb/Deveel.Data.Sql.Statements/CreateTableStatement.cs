@@ -154,25 +154,21 @@ namespace Deveel.Data.Sql.Statements {
 			public bool IfNotExists { get; private set; }
 
 			protected override void ExecuteStatement(ExecutionContext context) {
-				try {
-					var tableName = TableInfo.TableName;
+				var tableName = TableInfo.TableName;
 
-					if (!context.User.CanCreateTable(tableName))
-						throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
+				if (!context.User.CanCreateTable(tableName))
+					throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
 
-					if (context.Request.Access().TableExists(tableName)) {
-						if (!IfNotExists)
-							throw new InvalidOperationException(
-								String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
+				if (context.Request.Access().TableExists(tableName)) {
+					if (!IfNotExists)
+						throw new InvalidOperationException(
+							String.Format("The table {0} already exists and the IF NOT EXISTS clause was not specified.", tableName));
 
-						return;
-					}
-
-					context.Request.Access().CreateTable(TableInfo, Temporary);
-					context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
-				} catch (SecurityException ex) {
-					throw new StatementException(String.Format("A security error occurred while creating the table '{0}'.", TableInfo.TableName), ex);
+					return;
 				}
+
+				context.Request.Access().CreateTable(TableInfo, Temporary);
+				context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
 			}
 
 			protected override void GetData(SerializationInfo info) {

@@ -137,36 +137,28 @@ namespace Deveel.Data.Sql.Types {
 			return Numeric(sqlType, -1);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size) {
-			return Numeric(sqlType, size, 0);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision) {
+			return Numeric(sqlType, precision, 0);
 		}
 
-		public static NumericType Numeric(SqlTypeCode sqlType, int size, byte scale) {
-			return new NumericType(sqlType, size, scale);
-		}
-
-		public static NumericType TinyInt(int size) {
-			return Numeric(SqlTypeCode.TinyInt, size);
+		public static NumericType Numeric(SqlTypeCode sqlType, int precision, int scale) {
+			return new NumericType(sqlType, precision, scale);
 		}
 
 		public static NumericType TinyInt() {
-			return TinyInt(-1);
+			return Numeric(SqlTypeCode.TinyInt);
+		}
+
+		public static NumericType SmallInt() {
+			return Numeric(SqlTypeCode.SmallInt);
 		}
 
 		public static NumericType Integer() {
-			return Integer(-1);
-		}
-
-		public static NumericType Integer(int size) {
-			return Numeric(SqlTypeCode.Integer, size);
+			return Numeric(SqlTypeCode.Integer);
 		}
 
 		public static SqlType BigInt() {
-			return BigInt(-1);
-		}
-
-		public static SqlType BigInt(int size) {
-			return Numeric(SqlTypeCode.BigInt, size);
+			return Numeric(SqlTypeCode.BigInt);
 		}
 
 		public static NumericType Real() {
@@ -177,8 +169,32 @@ namespace Deveel.Data.Sql.Types {
 			return Numeric(SqlTypeCode.Real, precision);
 		}
 
-		public static NumericType Real(int precision, byte scale) {
+		public static NumericType Real(int precision, int scale) {
 			return Numeric(SqlTypeCode.Real, precision, scale);
+		}
+
+		public static NumericType Float() {
+			return Float(-1);
+		}
+
+		public static NumericType Float(int precision) {
+			return Float(precision, -1);
+		}
+
+		public static NumericType Float(int precision, int scale) {
+			return Numeric(SqlTypeCode.Float, precision, scale);
+		}
+
+		public static NumericType Double(int precision, int scale) {
+			return Numeric(SqlTypeCode.Double, precision, scale);
+		}
+
+		public static NumericType Double() {
+			return Double(-1);
+		}
+
+		public static NumericType Double(int precision) {
+			return Double(precision, -1);
 		}
 
 		public static NullType Null() {
@@ -231,6 +247,14 @@ namespace Deveel.Data.Sql.Types {
 
 		public static IntervalType Interval(SqlTypeCode sqlType) {
 			return new IntervalType(sqlType);
+		}
+
+		public static IntervalType DayToSecond() {
+			return Interval(SqlTypeCode.DayToSecond);
+		}
+
+		public static IntervalType YearToMonth() {
+			return Interval(SqlTypeCode.YearToMonth);
 		}
 
 		public static bool IsPrimitive(SqlTypeCode sqlType) {
@@ -412,8 +436,13 @@ namespace Deveel.Data.Sql.Types {
 
 				var maxSize = BinaryType.DefaultMaxSize;
 				var maxSizeMeta = context.GetMeta("MaxSize");
-				if (maxSizeMeta != null)
-					maxSize = maxSizeMeta.ToInt32();
+				if (maxSizeMeta != null) {
+					if (maxSizeMeta.Value == "MAX") {
+						maxSize = BinaryType.DefaultMaxSize;
+					} else {
+						maxSize = maxSizeMeta.ToInt32();
+					}
+				}
 
 				return Binary(sqlType, maxSize);
 			}

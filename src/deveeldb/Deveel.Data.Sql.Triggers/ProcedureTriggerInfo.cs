@@ -17,16 +17,16 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Routines;
 
 namespace Deveel.Data.Sql.Triggers {
 	public sealed class ProcedureTriggerInfo : TriggerInfo {
-		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName) 
-			: this(triggerName, tabbleName, eventTime, eventType, procedureName, new SqlExpression[0]) {
+		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName) 
+			: this(triggerName, tableName, eventTime, eventType, procedureName, new InvokeArgument[0]) {
 		}
 
-		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tabbleName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName, SqlExpression[] args) 
-			: base(triggerName, TriggerType.External, tabbleName, eventTime, eventType) {
+		public ProcedureTriggerInfo(ObjectName triggerName, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType, ObjectName procedureName, InvokeArgument[] args) 
+			: base(triggerName, TriggerType.External, tableName, eventTime, eventType) {
 			if (procedureName == null)
 				throw new ArgumentNullException("procedureName");
 
@@ -36,6 +36,14 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public ObjectName ProcedureName { get; private set; }
 
-		public SqlExpression[] Arguments { get; set; }
+		public InvokeArgument[] Arguments { get; set; }
+
+		public override TriggerInfo Rename(ObjectName name) {
+			var args = Arguments == null ? new InvokeArgument[0] : new InvokeArgument[Arguments.Length];
+			if (Arguments != null)
+				Array.Copy(Arguments, args, Arguments.Length);
+
+			return new ProcedureTriggerInfo(name, TableName, EventTime, EventType, ProcedureName, args);
+		}
 	}
 }

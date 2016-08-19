@@ -60,5 +60,17 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("True", TrueExpression, typeof(SqlExpression));
 			info.AddValue("False", FalseExpression, typeof(SqlExpression));
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("CASE WHEN ");
+			TestExpression.AppendTo(builder);
+			builder.Append(" THEN ");
+			TrueExpression.AppendTo(builder);
+
+			if (FalseExpression != null) {
+				builder.Append(" ELSE ");
+				FalseExpression.AppendTo(builder);
+			}
+		}
 	}
 }

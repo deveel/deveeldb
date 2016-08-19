@@ -86,7 +86,7 @@ namespace Deveel.Data.Protocol {
 		/// few of the types, ie VARCHAR.
 		/// </summary>
 		public int Size {
-			get { return (Type is ISizeableType) ? ((ISizeableType)Type).Size : -1; }
+			get { return (Type is ISizeableType) ? ((ISizeableType)Type).Precision : -1; }
 		}
 
 		/// <summary>

@@ -17,6 +17,7 @@ using System;
 
 using Deveel.Data.Index;
 using Deveel.Data.Mapping;
+using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -37,6 +38,10 @@ namespace Deveel.Data {
 		}
 
 		private ObjectName tableName;
+
+		protected override bool CreateTestUser {
+			get { return true; }
+		}
 
 		private static void CreateUserType(IQuery query) {
 			var typeName = ObjectName.Parse("APP.test_type");
@@ -90,14 +95,27 @@ namespace Deveel.Data {
 				new SqlTableColumn("name", PrimitiveTypes.VarChar()),
 			};
 
-			Query.CreateTable(tableName, columns);
+			AdminQuery.CreateTable(tableName, columns);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
 
 			// TODO: Assert it exists and has the structure desired...
+		}
+
+		[Test]
+		public void SimpleCreateFromUnauthorized() {
+			tableName = ObjectName.Parse("APP.test");
+			var columns = new SqlTableColumn[] {
+				new SqlTableColumn("id", PrimitiveTypes.Integer()),
+				new SqlTableColumn("name", PrimitiveTypes.VarChar()),
+			};
+
+			var expected = Is.InstanceOf<SecurityException>();
+
+			Assert.Throws(expected, () => UserQuery.CreateTable(tableName, columns));
 		}
 
 		[Test]
@@ -110,9 +128,9 @@ namespace Deveel.Data {
 				},
 			};
 
-			Query.CreateTable(tableName, columns);
+			AdminQuery.CreateTable(tableName, columns);
 
-			var table = Query.Access().GetTable(tableName);
+			var table = AdminQuery.Access().GetTable(tableName);
 
 			Assert.IsNotNull(table);
 			Assert.AreEqual(2, table.TableInfo.ColumnCount);
@@ -154,7 +172,7 @@ namespace Deveel.Data {
 				}
 			};
 
-			Query.CreateTable(tableName, columns);
+			AdminQuery.CreateTable(tableName, columns);
 
 			// TODO: Assert it exists and has the structure desired...
 		}
@@ -172,7 +190,7 @@ namespace Deveel.Data {
 				}
 			};
 
-			Query.CreateTable(tableName, columns);
+			AdminQuery.CreateTable(tableName, columns);
 		}
 
 		[Test]
@@ -180,44 +198,10 @@ namespace Deveel.Data {
 			tableName = ObjectName.Parse("APP.test");
 			var columns = new[] {
 				new SqlTableColumn("id", PrimitiveTypes.Integer()),
-				new SqlTableColumn("t", Query.Context.ResolveType("APP.test_type")),  
+				new SqlTableColumn("t", AdminQuery.Context.ResolveType("APP.test_type")),  
 			};
 
-			Query.CreateTable(tableName, columns);
-		}
-
-		[Test]
-		public void FromMap() {
-			Query.CreateTable<TestClass>();
-
-			tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = Query.Access().GetTableInfo(tableName);
-
-			Assert.IsNotNull(tableInfo);
-			Assert.AreEqual(3, tableInfo.ColumnCount);
-
-			var idColumn = tableInfo[0];
-			Assert.IsNotNull(idColumn);
-			Assert.AreEqual("Id", idColumn.ColumnName);
-			Assert.IsNotNull(idColumn.DefaultExpression);
-
-			var primaryKey = Query.Access().QueryTablePrimaryKey(tableName);
-			Assert.IsNotNull(primaryKey);
-		}
-
-		[TableName("test_table")]
-		class TestClass {
-			[Column, Identity]
-			public int Id { get; set; }
-
-			[Column]
-			public string FirstName { get; set; }
-
-			[Column(Null = true)]
-			public string LastName { get; set; }
-
-			[Mapping.Ignore]
-			public int Dummy { get; set; }
+			AdminQuery.CreateTable(tableName, columns);
 		}
 	}
 }

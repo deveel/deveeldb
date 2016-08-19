@@ -36,7 +36,7 @@ namespace Deveel.Data.Transactions {
 	public static class TransactionExtensions {
 		private static void AssertNotReadOnly(this ITransaction transaction) {
 			if (transaction.ReadOnly())
-				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
+				throw new ReadOnlyTransactionException(transaction.CommitId);
 		}
 
 		public static IEventSource AsEventSource(this ITransaction transaction) {
@@ -445,6 +445,10 @@ namespace Deveel.Data.Transactions {
 			transaction.Context.ErrorOnDirtySelect(value);
 		}
 
+		public static int LockTimeout(this ITransaction transaction) {
+			return transaction.Context.LockTimeout();
+		}
+
 		#endregion
 
 		#region Sequences
@@ -469,17 +473,9 @@ namespace Deveel.Data.Transactions {
 
 		#region Locks
 
-		public static LockHandle Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode) {
-			var lockables = tableNames.Select(transaction.FindObject).OfType<ILockable>();
-			return transaction.Database.Locker.Lock(lockables.ToArray(), accessType, mode);
-		}
-
-		public static bool IsLocked(this ITransaction transaction, ITable table) {
-			var lockable = table as ILockable;
-			if (lockable == null)
-				return false;
-
-			return transaction.Database.Locker.IsLocked(lockable);
+		public static void Lock(this ITransaction transaction, IEnumerable<ObjectName> tableNames, AccessType accessType, LockingMode mode, int timeout) {
+			var lockables = tableNames.Select(transaction.FindObject);
+			transaction.Lock(lockables.ToArray(), mode, timeout);
 		}
 
 		#endregion

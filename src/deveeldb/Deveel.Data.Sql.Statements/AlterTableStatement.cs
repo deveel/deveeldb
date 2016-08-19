@@ -63,13 +63,10 @@ namespace Deveel.Data.Sql.Statements {
 			return new AlterTableStatement(TableName, action);
 		}
 
-		private static void CheckColumnConstraint(string columnName, string[] columns, ObjectName table, string constraintName) {
+		private void CheckColumnConstraint(string columnName, string[] columns, ObjectName table, string constraintName) {
 			foreach (string column in columns) {
 				if (columnName.Equals(column)) {
-					throw new ConstraintViolationException(SqlModelErrorCodes.DropColumnViolation,
-							  "Constraint violation (" + constraintName +
-							  ") dropping column " + columnName + " because of " +
-							  "referential constraint in " + table);
+					throw new DropColumnViolationException(TableName, columnName, constraintName, table);
 				}
 			}
 
@@ -218,6 +215,8 @@ namespace Deveel.Data.Sql.Statements {
 
 					newConstraint.ForeignTable = refTname;
 					newConstraint.ForeignColumnNames = refCols.ToArray();
+					newConstraint.OnDelete = constraint.OnDelete;
+					newConstraint.OnUpdate = constraint.OnUpdate;
 				}
 
 				if (constraint.ConstraintType == ConstraintType.Check)
@@ -244,91 +243,5 @@ namespace Deveel.Data.Sql.Statements {
 			builder.AppendFormat("ALTER TABLE {0} ", TableName);
 			Action.AppendTo(builder);
 		}
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<AlterTableStatement> {
-		//	public override void Serialize(AlterTableStatement obj, BinaryWriter writer) {
-		//		ObjectName.Serialize(obj.TableName, writer);
-		//		SerializeAction(obj.Action, writer);
-		//	}
-
-		//	private static void SerializeAction(IAlterTableAction action, BinaryWriter writer) {
-		//		writer.Write((byte) action.ActionType);
-
-		//		if (action is AddColumnAction) {
-		//			var addColumn = (AddColumnAction) action;
-		//			SqlTableColumn.Serialize(addColumn.Column, writer);
-		//		} else if (action is AddConstraintAction) {
-		//			var addConstraint = (AddConstraintAction) action;
-		//			SqlTableConstraint.Serialize(addConstraint.Constraint, writer);
-		//		} else if (action is DropColumnAction) {
-		//			var dropColumn = (DropColumnAction) action;
-		//			writer.Write(dropColumn.ColumnName);
-		//		} else if (action is DropConstraintAction) {
-		//			var dropConstraint = (DropConstraintAction) action;
-		//			writer.Write(dropConstraint.ConstraintName);
-		//		} else if (action is DropDefaultAction) {
-		//			var dropDefault = (DropDefaultAction) action;
-		//			writer.Write(dropDefault.ColumnName);
-		//		} else if (action is DropPrimaryKeyAction) {
-		//			// Nothing to write here
-		//		} else if (action is SetDefaultAction) {
-		//			var setDefault = (SetDefaultAction) action;
-		//			writer.Write(setDefault.ColumnName);
-		//			SqlExpression.Serialize(setDefault.DefaultExpression, writer);
-		//		} else {
-		//			throw new NotSupportedException();
-		//		}
-		//	}
-
-		//	public override AlterTableStatement Deserialize(BinaryReader reader) {
-		//		var tableName = ObjectName.Deserialize(reader);
-		//		var action = DeserializeAction(reader);
-		//		return new AlterTableStatement(tableName, action);
-		//	}
-
-		//	private IAlterTableAction DeserializeAction(BinaryReader reader) {
-		//		var actionType = (AlterTableActionType) reader.ReadByte();
-		//		if (actionType == AlterTableActionType.AddColumn) {
-		//			var sqlColumn = SqlTableColumn.Deserialize(reader);
-		//			return new AddColumnAction(sqlColumn);
-		//		}
-
-		//		if (actionType == AlterTableActionType.AddConstraint) {
-		//			var sqlConstraint = SqlTableConstraint.Deserialize(reader);
-		//			return new AddConstraintAction(sqlConstraint);
-		//		}
-
-		//		if (actionType == AlterTableActionType.DropColumn) {
-		//			var dropColumn = reader.ReadString();
-		//			return new DropColumnAction(dropColumn);
-		//		}
-
-		//		if (actionType == AlterTableActionType.DropConstraint) {
-		//			var dropConstraint = reader.ReadString();
-		//			return new DropConstraintAction(dropConstraint);
-		//		}
-
-		//		if (actionType == AlterTableActionType.DropDefault) {
-		//			var columnName = reader.ReadString();
-		//			return new DropDefaultAction(columnName);
-		//		}
-
-		//		if (actionType == AlterTableActionType.DropPrimaryKey) {
-		//			return new DropPrimaryKeyAction();
-		//		}
-
-		//		if (actionType == AlterTableActionType.SetDefault) {
-		//			var columnName = reader.ReadString();
-		//			var expression = SqlExpression.Deserialize(reader);
-		//			return new SetDefaultAction(columnName, expression);
-		//		}
-
-		//		throw new NotSupportedException();
-		//	}
-		//}
-
-		#endregion
 	}
 }

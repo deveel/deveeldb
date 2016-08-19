@@ -113,7 +113,7 @@ namespace Deveel.Data.Sql.Objects {
 		[Test]
 		[Category("Conversion")]
 		[Category("Date Time")]
-		public void String_Convert_Date() {
+		public void String_Convert_SqlDateTime() {
 			const string s = "2011-01-23";
 			var sqlString = new SqlString(s);
 
@@ -132,6 +132,23 @@ namespace Deveel.Data.Sql.Objects {
 
 		[Test]
 		[Category("Conversion")]
+		[Category("Date Time")]
+		public void String_Convert_DateTime() {
+			const string s = "2011-01-23";
+			var sqlString = new SqlString(s);
+
+			var date = new DateTime();
+			Assert.DoesNotThrow(() => date = (DateTime)Convert.ChangeType(sqlString, typeof(DateTime)));
+			Assert.AreEqual(2011, date.Year);
+			Assert.AreEqual(01, date.Month);
+			Assert.AreEqual(23, date.Day);
+			Assert.AreEqual(0, date.Hour);
+			Assert.AreEqual(0, date.Minute);
+			Assert.AreEqual(0, date.Millisecond);
+		}
+
+		[Test]
+		[Category("Conversion")]
 		[Category("Numbers")]
 		public void String_Convert_BigNumber() {
 			const string s = "7689994.0000033992988477226661525553666370058812345883288477383";
@@ -143,6 +160,33 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.IsFalse(number.CanBeInt32);
 			Assert.IsFalse(number.CanBeInt64);
 			Assert.AreEqual(NumericState.None, number.State);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Numbers")]
+		public void String_Convert_Int32() {
+			const string s = "673";
+			var sqlString = new SqlString(s);
+
+			int? number = null;
+			Assert.DoesNotThrow(() => number = (int)Convert.ChangeType(sqlString, typeof(int)));
+			Assert.IsNotNull(number);
+			Assert.AreEqual(673, number);
+		}
+
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Numbers")]
+		public void String_Convert_Int64() {
+			const string s = "894005920033";
+			var sqlString = new SqlString(s);
+
+			long? number = null;
+			Assert.DoesNotThrow(() => number = (long)Convert.ChangeType(sqlString, typeof(long)));
+			Assert.IsNotNull(number);
+			Assert.AreEqual(894005920033, number);
 		}
 
 		[Test]
@@ -182,6 +226,59 @@ namespace Deveel.Data.Sql.Objects {
 			Assert.DoesNotThrow(() => b = (SqlBoolean)Convert.ChangeType(sqlString, typeof(SqlBoolean)));
 			Assert.IsTrue(b.IsNull);
 			Assert.AreEqual(SqlBoolean.Null, b);
+		}
+
+		[Test]
+		[Category("Conversion")]
+		[Category("Booleans")]
+		public void String_Convert_Boolean() {
+			const string s = "true";
+			var sqlString = new SqlString(s);
+
+			bool? b = null;
+			Assert.DoesNotThrow(() => b = (bool)Convert.ChangeType(sqlString, typeof(bool)));
+			Assert.IsNotNull(b);
+			Assert.AreEqual(true, b.Value);
+		}
+
+		[Test]
+		public void UseReader() {
+			const string s = "Test string to use the reader";
+			var sqlString = new SqlString(s);
+			var reader = sqlString.GetInput();
+
+			Assert.IsNotNull(reader);
+
+			var result = reader.ReadToEnd();
+
+			Assert.AreEqual(s, result);
+		}
+
+		[Test]
+		public void ToByteArray() {
+			const string s = "Test string to use the bytes";
+			var sqlString = new SqlString(s);
+			var bytes = sqlString.ToByteArray();
+
+			Assert.IsNotNull(bytes);
+
+			var newString = new SqlString(bytes);
+
+			Assert.AreEqual(sqlString, newString);
+		}
+
+		[Test]
+		public void ConvertToBinary() {
+			const string s = "Test string to convert";
+			var sqlString = new SqlString(s);
+
+			var binary = sqlString.ToBinary();
+
+			Assert.IsNotNull(binary);
+
+			var newString = new SqlString(binary.ToByteArray());
+
+			Assert.AreEqual(sqlString, newString);
 		}
 	}
 }

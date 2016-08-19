@@ -22,5 +22,9 @@ namespace Deveel.Data.Sql.Triggers {
 		public CallbackTriggerInfo(string triggerName, ObjectName tableName, TriggerEventTime eventTime, TriggerEventType eventType)
 			: base(new ObjectName(triggerName), TriggerType.Callback, tableName, eventTime, eventType) {
 		}
+
+		public override TriggerInfo Rename(ObjectName name) {
+			return new CallbackTriggerInfo(name.Name, TableName, EventTime, EventType);
+		}
 	}
 }

@@ -46,7 +46,7 @@ namespace Deveel.Data.Store {
 		/// Returns an instance of <see cref="ILargeObject"/> that is used to access the
 		/// object stored.
 		/// </returns>
-		/// <exception cref="DataStorageException">
+		/// <exception cref="StorageException">
 		/// If an error occurred when creating the object.
 		/// </exception>
 		ILargeObject CreateNewObject(long maxSize, bool compressed);

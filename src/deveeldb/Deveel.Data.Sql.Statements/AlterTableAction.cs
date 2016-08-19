@@ -21,7 +21,7 @@ using System.Runtime.Serialization;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements {
-	public abstract class AlterTableAction : IAlterTableAction, IPreparable, IStatementPreparable {
+	public abstract class AlterTableAction : IAlterTableAction, IPreparable, IStatementPreparable, ISerializable {
 		protected AlterTableAction() {
 		}
 

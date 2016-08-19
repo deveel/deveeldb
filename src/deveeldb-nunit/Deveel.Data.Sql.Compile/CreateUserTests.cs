@@ -43,7 +43,31 @@ namespace Deveel.Data.Sql.Compile {
 			var createUser = (CreateUserStatement) statement;
 
 			Assert.AreEqual("test", createUser.UserName);
-			Assert.IsInstanceOf<SqlConstantExpression>(createUser.Password);
+			Assert.IsNotNull(createUser.Identifier);
+			Assert.AreEqual(SqlIdentificationType.Password, createUser.Identifier.Type);
+			Assert.IsInstanceOf<SqlConstantExpression>(createUser.Identifier.Argument);
+		}
+
+		[Test]
+		public void IdentifiedExternally() {
+			const string sql = "CREATE USER test IDENTIFIED EXTERNALLY AS ('db_test');";
+
+			var result = Compile(sql);
+
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.ElementAt(0);
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<CreateUserStatement>(statement);
+
+			var createUser = (CreateUserStatement)statement;
+
+			Assert.AreEqual("test", createUser.UserName);
+			Assert.AreEqual(SqlIdentificationType.External, createUser.Identifier.Type);
 		}
 	}
 }

@@ -23,7 +23,7 @@ using System.Runtime.Serialization;
 namespace Deveel.Data.Sql.Objects {
 	[Serializable]
 	public sealed class SqlUserObject : ISqlObject, ISerializable, IDisposable {
-		private Dictionary<string, ISqlObject> values;
+		private readonly Dictionary<string, ISqlObject> values;
 
 		private SqlUserObject(bool isNull) {
 			IsNull = isNull;
@@ -34,8 +34,8 @@ namespace Deveel.Data.Sql.Objects {
 
 			if (!isNull) {
 				var valueCount = info.GetInt32("ValueCount");
-				var memberNames = (string[]) info.GetValue("MemberNames", typeof(string));
-				var memberValues = (ISqlObject[]) info.GetValue("MemberValues", typeof(ISqlObject[]));
+				var memberNames = (string[]) info.GetValue("MemberNames", typeof(string[]));
+				var memberValues = (object[]) info.GetValue("MemberValues", typeof(object[]));
 
 				if (memberNames == null || memberNames.Length == 0 || memberNames.Length != valueCount)
 					throw new SerializationException("Invalid number of member names");
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Objects {
 				values = new Dictionary<string, ISqlObject>(valueCount);
 
 				for (int i = 0; i < valueCount; i++) {
-					values[memberNames[i]] = memberValues[i];
+					values[memberNames[i]] = (ISqlObject) memberValues[i];
 				}
 			} else {
 				values = new Dictionary<string, ISqlObject>(0);
@@ -92,8 +92,6 @@ namespace Deveel.Data.Sql.Objects {
 					values.Clear();
 				}
 			}
-
-			values = null;
 		}
 
 		public ISqlObject GetValue(string memberName) {
@@ -126,8 +124,36 @@ namespace Deveel.Data.Sql.Objects {
 
 				info.AddValue("ValueCount", count);
 				info.AddValue("MemberNames", names, typeof(string[]));
-				info.AddValue("MemberValues", valuesArray, typeof(ISqlObject[]));
+				info.AddValue("MemberValues", valuesArray, typeof(object[]));
 			}
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as SqlUserObject;
+			if (other == null)
+				return false;
+
+			if (values.Count != other.values.Count)
+				return false;
+
+			foreach (var value in values) {
+				ISqlObject otherValue;
+				if (!other.values.TryGetValue(value.Key, out otherValue))
+					return false;
+				if (!value.Value.Equals(otherValue))
+					return false;
+			}
+
+			return true;
+		}
+
+		public override int GetHashCode() {
+			var code = 97411;
+			foreach (var pair in values) {
+				code += (pair.Key.GetHashCode()*pair.Value.GetHashCode());
+			}
+
+			return code;
 		}
 	}
 }

@@ -22,7 +22,6 @@ using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Security {
 	public class PrivilegeManager : IPrivilegeManager {

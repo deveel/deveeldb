@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Threading;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Variables;
@@ -54,6 +55,14 @@ namespace Deveel.Data.Transactions {
 
 		public static string CurrentSchema(this ITransactionContext transaction) {
 			return transaction.GetStringVariable(TransactionSettingKeys.CurrentSchema);
+		}
+
+		public static int LockTimeout(this ITransactionContext context) {
+			return context.GetIntegerVariable(TransactionSettingKeys.LockTimeout, Timeout.Infinite);
+		}
+
+		public static void LockTimeout(this ITransactionContext context, int value) {
+			context.SetIntegerVariable(TransactionSettingKeys.LockTimeout, value);
 		}
 
 		public static bool ErrorOnDirtySelect(this ITransactionContext transaction) {

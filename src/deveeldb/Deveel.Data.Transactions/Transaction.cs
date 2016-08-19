@@ -132,23 +132,6 @@ namespace Deveel.Data.Transactions {
 			TableManager.AddInternalTables(new TransactionTableContainer(this));
 		}
 
-		private void AssertNotReadOnly() {
-			if (this.ReadOnly())
-				throw new TransactionException(TransactionErrorCodes.ReadOnly, "The transaction is in read-only mode.");
-		}
-
-		private void CheckAccess(ILockable[] lockables, AccessType accessType) {
-			if (lockHandles == null || lockables == null)
-				return;
-
-			foreach (var handle in lockHandles) {
-				foreach (var lockable in lockables) {
-					if (handle.IsHandled(lockable))
-						handle.CheckAccess(lockable, accessType);
-				}
-			}
-		}
-
 		private void ReleaseLocks() {
 			if (Database == null)
 				return;
@@ -156,8 +139,9 @@ namespace Deveel.Data.Transactions {
 			lock (Database) {
 				if (lockHandles != null) {
 					foreach (var handle in lockHandles) {
-						if (handle != null)
-							handle.Release();
+						if (handle != null) {
+							Database.Locker.Unlock(handle);
+						}
 					}
 
 					lockHandles.Clear();
@@ -167,7 +151,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
+		public void Lock(IEnumerable<IDbObject> objects, LockingMode mode, int timeout) {
 			lock (Database) {
 				var lockables = objects.OfType<ILockable>().ToArray();
 				if (lockables.Length == 0)
@@ -175,14 +159,18 @@ namespace Deveel.Data.Transactions {
 
 				// Before we can lock the objects, we must wait for them
 				//  to be available...
-				CheckAccess(lockables, accessType);
+				if (lockables.Any(x => Database.Locker.IsLocked(x)))
+					Database.Locker.CheckAccess(lockables, AccessType.ReadWrite, timeout);
 
-				var handle = Database.Locker.Lock(lockables, accessType, mode);
+				var handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, mode);
 
 				if (lockHandles == null)
 					lockHandles = new List<LockHandle>();
 
 				lockHandles.Add(handle);
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Lock, lockedNames, LockingMode.Exclusive, AccessType.ReadWrite));
 			}
 		}
 
@@ -195,20 +183,22 @@ namespace Deveel.Data.Transactions {
 				if (lockables.Length == 0)
 					return;
 
+				var timeout = this.LockTimeout();
+
+				if (lockables.Any(x => Database.Locker.IsLocked(x))) {
+					if (Isolation == IsolationLevel.ReadCommitted) {
+						Database.Locker.CheckAccess(lockables, AccessType.Read, timeout);
+					} else if (Isolation == IsolationLevel.Serializable) {
+						Database.Locker.CheckAccess(lockables, AccessType.ReadWrite, timeout);
+					}
+				}
+
+				var handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
+
 				var tables = lockables.OfType<IDbObject>().Where(x => x.ObjectInfo.ObjectType == DbObjectType.Table)
 					.Select(x => x.ObjectInfo.FullName);
 				foreach (var table in tables) {
 					TableManager.SelectTable(table);
-				}
-
-				CheckAccess(lockables, accessType);
-
-				LockHandle handle;
-
-				if (Isolation == IsolationLevel.Serializable) {
-					handle = Database.Locker.Lock(lockables, AccessType.ReadWrite, LockingMode.Exclusive);
-				} else {
-					throw new NotImplementedException(string.Format("The locking for isolation '{0}' is not implemented yet.", Isolation));
 				}
 
 				if (handle != null) {
@@ -217,6 +207,9 @@ namespace Deveel.Data.Transactions {
 
 					lockHandles.Add(handle);
 				}
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Enter, lockedNames, LockingMode.Exclusive, accessType));
 			}
 		}
 
@@ -247,6 +240,9 @@ namespace Deveel.Data.Transactions {
 						}
 					}
 				}
+
+				var lockedNames = objects.Where(x => x is ILockable).Select(x => x.ObjectInfo.FullName);
+				Context.OnEvent(new LockEvent(LockEventType.Exit, lockedNames, LockingMode.Exclusive, accessType));
 			}
 		}
 

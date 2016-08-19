@@ -24,8 +24,6 @@ namespace Deveel.Data.Sql.Cursors {
 	public interface ICursor : IDbObject, IEnumerable<Row>, IDisposable {
 		CursorStatus Status { get; }
 
-		IRequest Context { get; }
-
 		ITable Source { get; }
 
 		Row Fetch(FetchDirection direction, int offset);

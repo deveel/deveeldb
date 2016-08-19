@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -107,6 +108,118 @@ namespace Deveel.Data.Sql.Compile {
 			
 			Assert.AreEqual("test", alterStatement.TableName.FullName);
 			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);			
+		}
+
+		[Test]
+		public void AddCheckConstraint() {
+			const string sql = "ALTER TABLE test ADD CONSTRAINT c CHECK (id > 3 AND name IS NOT NULL)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alterStatement = (AlterTableStatement)statement;
+
+			Assert.AreEqual("test", alterStatement.TableName.FullName);
+			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);
+
+			var action = (AddConstraintAction) alterStatement.Action;
+
+			Assert.AreEqual(ConstraintType.Check, action.Constraint.ConstraintType);
+			Assert.IsNotNull(action.Constraint.CheckExpression);
+		}
+
+		[Test]
+		public void AddForeignKey_AllRules() {
+			const string sql = "ALTER TABLE test ADD CONSTRAINT fk FOREIGN KEY (a) REFERENCES APP.test2(a) ON DELETE CASCADE ON UPDATE NO ACTION";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alterStatement = (AlterTableStatement)statement;
+
+			Assert.AreEqual("test", alterStatement.TableName.FullName);
+			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);
+
+			var action = (AddConstraintAction)alterStatement.Action;
+
+			Assert.AreEqual(ConstraintType.ForeignKey, action.Constraint.ConstraintType);
+			Assert.AreEqual(new[] {"a"}, action.Constraint.Columns);
+			Assert.AreEqual("APP.test2", action.Constraint.ReferenceTable);
+			Assert.AreEqual(new[] {"a"}, action.Constraint.ReferenceColumns);
+			Assert.AreEqual(ForeignKeyAction.Cascade, action.Constraint.OnDelete);
+			Assert.AreEqual(ForeignKeyAction.NoAction, action.Constraint.OnUpdate);
+		}
+
+		[Test]
+		public void AddForeignKey_CascadeOnUpdate() {
+			const string sql = "ALTER TABLE test ADD CONSTRAINT fk FOREIGN KEY (a) REFERENCES APP.test2(a) ON UPDATE CASCADE";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alterStatement = (AlterTableStatement)statement;
+
+			Assert.AreEqual("test", alterStatement.TableName.FullName);
+			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);
+
+			var action = (AddConstraintAction)alterStatement.Action;
+
+			Assert.AreEqual(ConstraintType.ForeignKey, action.Constraint.ConstraintType);
+			Assert.AreEqual(new[] { "a" }, action.Constraint.Columns);
+			Assert.AreEqual("APP.test2", action.Constraint.ReferenceTable);
+			Assert.AreEqual(new[] { "a" }, action.Constraint.ReferenceColumns);
+			Assert.AreEqual(ForeignKeyAction.Cascade, action.Constraint.OnUpdate);
+			Assert.AreEqual(ForeignKeyAction.NoAction, action.Constraint.OnDelete);
+		}
+
+		[Test]
+		public void AddUniqueKey_Named() {
+			const string sql = "ALTER TABLE test ADD CONSTRAINT uk UNIQUE (name)";
+
+			var result = Compile(sql);
+			Assert.IsNotNull(result);
+			Assert.IsFalse(result.HasErrors);
+			Assert.IsNotEmpty(result.Statements);
+			Assert.AreEqual(1, result.Statements.Count);
+
+			var statement = result.Statements.First();
+
+			Assert.IsNotNull(statement);
+			Assert.IsInstanceOf<AlterTableStatement>(statement);
+
+			var alterStatement = (AlterTableStatement)statement;
+
+			Assert.AreEqual("test", alterStatement.TableName.FullName);
+			Assert.IsInstanceOf<AddConstraintAction>(alterStatement.Action);
+
+			var action = (AddConstraintAction)alterStatement.Action;
+
+			Assert.AreEqual(ConstraintType.Unique, action.Constraint.ConstraintType);
+			Assert.AreEqual(new[] { "name" }, action.Constraint.Columns);
 		}
 
 		[Test]

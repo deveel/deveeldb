@@ -26,9 +26,9 @@ namespace Deveel.Data {
 	public sealed class DeclareVariableTests : ContextBasedTest {
 		[Test]
 		public void SimpleVariableInQueryContext() {
-			Query.DeclareVariable("a", PrimitiveTypes.String());
+			AdminQuery.DeclareVariable("a", PrimitiveTypes.String());
 
-			var obj = Query.Access().GetObject(DbObjectType.Variable, new ObjectName("a"));
+			var obj = AdminQuery.Access().GetObject(DbObjectType.Variable, new ObjectName("a"));
 
 			Assert.IsNotNull(obj);
 			Assert.IsInstanceOf<Variable>(obj);

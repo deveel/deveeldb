@@ -255,11 +255,8 @@ namespace Deveel.Data.Sql.Tables {
 			var column = Table.TableInfo[columnOffset];
 			var columnType = column.ColumnType;
 
-			//if (!value.Type.IsComparable(columnType)) {
-			//	throw new ArgumentException(
-			//		String.Format("The specified value of type '{0}' is not comparable to '{1}' defined by '{2}'.",
-			//			value.Type, columnType, column.FullColumnName));
-			//}
+			if (value.IsNull && column.IsNotNull)
+				throw new NotNullColumnViolationException(Table.TableInfo.TableName, column.ColumnName);
 
 			if (!value.Type.Equals(columnType)) {
 				if (!value.Type.CanCastTo(columnType))
@@ -360,7 +357,7 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentOutOfRangeException("columnOffset");
 
 			var columnType = Table.TableInfo[columnOffset].ColumnType;
-			SetValue(columnOffset, new Field(columnType, null));
+			SetValue(columnOffset, Field.Null(columnType));
 		}
 
 		/// <summary>
@@ -440,22 +437,6 @@ namespace Deveel.Data.Sql.Tables {
 		/// </remarks>
 		public void SetNumber(int number) {
 			RowId = new RowId(Table.TableInfo.Id, number);
-		}
-
-		public object ToObject(Type destType) {
-			return ToObject(null, destType);
-		}
-
-		public object ToObject(IRequest context, Type destType) {
-			return Mapper.ToObject(destType, this);
-		}
-
-		public T ToObject<T>() where T : class {
-			return ToObject<T>(null);
-		}
-
-		public T ToObject<T>(IRequest context) where T : class {
-			return Mapper.ToObject<T>(this);
 		}
 
 		#region RowVariableResolver

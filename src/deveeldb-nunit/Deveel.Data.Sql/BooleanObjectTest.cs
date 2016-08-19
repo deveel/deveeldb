@@ -15,12 +15,11 @@
 
 using System;
 
-using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 
 using NUnit.Framework;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Sql {
 	[TestFixture]
 	public class BooleanObjectTest {
 		[Test]

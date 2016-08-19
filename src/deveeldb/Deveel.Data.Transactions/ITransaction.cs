@@ -55,6 +55,8 @@ namespace Deveel.Data.Transactions {
 
 		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
 
+		void Lock(IEnumerable<IDbObject> objects, LockingMode mode, int timeout);
+
 		/// <summary>
 		/// Commits all write operation done during the lifetime of 
 		/// this transaction and invalidates it.

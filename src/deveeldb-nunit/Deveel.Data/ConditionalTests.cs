@@ -12,7 +12,7 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class ConditionalTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			Query.Access().CreateObject(new VariableInfo("a", PrimitiveTypes.Integer(), false) {
+			AdminQuery.Access().CreateObject(new VariableInfo("a", PrimitiveTypes.Integer(), false) {
 				DefaultExpression = SqlExpression.Constant(34)
 			});
 
@@ -20,7 +20,7 @@ namespace Deveel.Data {
 		}
 
 		protected override void OnBeforeTearDown(string testName) {
-			Query.Access().DropObject(DbObjectType.Variable, new ObjectName("a"));
+			AdminQuery.Access().DropObject(DbObjectType.Variable, new ObjectName("a"));
 			base.OnBeforeTearDown(testName);
 		}
 
@@ -32,7 +32,7 @@ namespace Deveel.Data {
 				new AssignVariableStatement(SqlExpression.VariableReference("b"), SqlExpression.Constant(21)),  
 			};
 
-			var result = Query.If(condition, ifTrue);
+			var result = AdminQuery.If(condition, ifTrue);
 
 			Assert.IsNotNull(result);
 		}

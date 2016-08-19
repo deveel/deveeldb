@@ -205,9 +205,5 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		#endregion
-
-		public static void MapErrorCode(this IContext context, int errorCode, string exceptionName) {
-			throw new NotImplementedException();
-		}
 	}
 }

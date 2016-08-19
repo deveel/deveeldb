@@ -56,10 +56,7 @@ namespace Deveel.Data.Sql.Compile {
 				statement.OrderBy = sortColumns;
 			}
 
-			if (forUpdate != null) {
-				// TODO: support FOR UPDATE in Select
-				throw new NotImplementedException();
-			}
+			statement.ForUpdate = forUpdate != null;
 
 			var limit = context.queryLimitClause();
 			if (limit != null) {

@@ -23,11 +23,10 @@ using System.Runtime.Serialization;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Tables;
-using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Statements {
 	public sealed class SelectIntoStatement : SqlStatement, IPlSqlStatement {
@@ -156,9 +155,17 @@ namespace Deveel.Data.Sql.Statements {
 				if (table == null)
 					throw new StatementException(String.Format("Referenced table of the INTO statement '{0}' was not found or is not mutable.", TableName));
 
-				var addedd = InsertIntoTable(table, cursor);
+				int count;
 
-				context.SetResult(addedd);
+				try {
+					context.Query.Session.Enter(table, AccessType.Write);
+
+					count = InsertIntoTable(table, cursor);
+				} finally {
+					context.Query.Session.Exit(table, AccessType.Write);
+				}
+
+				context.SetResult(count);
 			}
 
 			protected override void GetData(SerializationInfo info) {

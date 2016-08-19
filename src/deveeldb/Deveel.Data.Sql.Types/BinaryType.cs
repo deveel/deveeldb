@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Types {
 			MaxSize = info.GetInt32("MaxSize");
 		}
 
-		int ISizeableType.Size {
+		int ISizeableType.Precision {
 			get { return MaxSize; }
 		}
 

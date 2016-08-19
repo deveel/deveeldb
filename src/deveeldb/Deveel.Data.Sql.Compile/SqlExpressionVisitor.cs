@@ -227,12 +227,6 @@ namespace Deveel.Data.Sql.Compile {
 				throw new ParseCanceledException("Invalid argument in a quantified expression.");
 			}
 
-			if (context.EXISTS() != null) {
-				if (!(arg is SqlQueryExpression))
-					throw new ParseCanceledException("The EXISTS function can be evaluated only against a sub-query.");
-
-				return SqlExpression.FunctionCall("EXISTS", new[] {arg});
-			}
 			if (context.ALL() != null) {
 				return SqlExpression.All(arg);
 			}
@@ -359,7 +353,7 @@ namespace Deveel.Data.Sql.Compile {
 		}
 
 		public override SqlExpression VisitMultiplyExpression(PlSqlParser.MultiplyExpressionContext context) {
-			var exps = context.datetimeExpression().Select(Visit).ToArray();
+			var exps = context.unaryExpression().Select(Visit).ToArray();
 			if (exps.Length == 1)
 				return exps[0];
 
@@ -407,6 +401,14 @@ namespace Deveel.Data.Sql.Compile {
 		public override SqlExpression VisitConstantString(PlSqlParser.ConstantStringContext context) {
 			var value = InputString.AsNotQuoted(context.quoted_string());
 			return SqlExpression.Constant(Field.String(value));
+		}
+
+		public override SqlExpression VisitDateImplicitConvert(PlSqlParser.DateImplicitConvertContext context) {
+			var s = InputString.AsNotQuoted(context.quoted_string());
+			return SqlExpression.FunctionCall("CAST", new SqlExpression[] {
+				SqlExpression.Constant(s),
+				SqlExpression.Constant("DATE")
+			});
 		}
 
 		public override SqlExpression VisitGeneral_element(PlSqlParser.General_elementContext context) {
@@ -468,10 +470,6 @@ namespace Deveel.Data.Sql.Compile {
 			return Visit(context.subquery());
 		}
 
-		public override SqlExpression VisitInConstant(PlSqlParser.InConstantContext context) {
-			return Visit(context.constant());
-		}
-
 		public override SqlExpression VisitInVariable(PlSqlParser.InVariableContext context) {
 			return Visit(context.bind_variable());
 		}
@@ -483,22 +481,6 @@ namespace Deveel.Data.Sql.Compile {
 				return exp;
 
 			return SqlExpression.Tuple(new[] {exp});
-		}
-
-		public override SqlExpression VisitAllExpression(PlSqlParser.AllExpressionContext context) {
-			return SqlExpression.All(Visit(context.unaryExpression()));
-		}
-
-		public override SqlExpression VisitAnyExpression(PlSqlParser.AnyExpressionContext context) {
-			return SqlExpression.Any(Visit(context.unaryExpression()));
-		}
-
-		public override SqlExpression VisitDatetimeExpression(PlSqlParser.DatetimeExpressionContext context) {
-			var exp = Visit(context.unaryExpression());
-			if (context.AT() == null)
-				return exp;
-
-			throw new NotImplementedException();
 		}
 
 		public override SqlExpression VisitConcatenation(PlSqlParser.ConcatenationContext context) {
@@ -565,6 +547,28 @@ namespace Deveel.Data.Sql.Compile {
 			return SqlExpression.FunctionCall("SQL_EXTRACT", new[] {exp, SqlExpression.Constant(part)});
 		}
 
+		public override SqlExpression VisitTimeStampFunction(PlSqlParser.TimeStampFunctionContext context) {
+			SqlExpression arg;
+			if (context.bind_variable() != null) {
+				arg = SqlExpression.VariableReference(Name.Variable(context.bind_variable()));
+			} else if (context.argString != null) {
+				arg = SqlExpression.Constant(InputString.AsNotQuoted(context.argString));
+			} else {
+				throw new ParseCanceledException("Invalid argument in a TIMESTAMP implicit function");
+			}
+
+			SqlExpression tzArg = null;
+			if (context.tzString != null) {
+				tzArg = SqlExpression.Constant(InputString.AsNotQuoted(context.tzString));
+			}
+
+			var args = tzArg != null
+				? new SqlExpression[] {arg, tzArg}
+				: new SqlExpression[] {arg};
+
+			return SqlExpression.FunctionCall("TOTIMESTAMP", args);
+		}
+
 		public override SqlExpression VisitNextValueFunction(PlSqlParser.NextValueFunctionContext context) {
 			var seqName = Name.Object(context.objectName());
 			return SqlExpression.FunctionCall("NEXTVAL", new SqlExpression[] {SqlExpression.Constant(seqName.ToString())});
@@ -602,6 +606,18 @@ namespace Deveel.Data.Sql.Compile {
 			var arg3 = SqlExpression.Constant(toTrim);
 
 			return SqlExpression.FunctionCall("SQL_TRIM", new SqlExpression[] {arg1, arg2, arg3});
+		}
+
+		public override SqlExpression VisitConstantMinValue(PlSqlParser.ConstantMinValueContext context) {
+			return SqlExpression.Reference(new ObjectName("MINVALUE"));
+		}
+
+		public override SqlExpression VisitConstantMaxValue(PlSqlParser.ConstantMaxValueContext context) {
+			return SqlExpression.Reference(new ObjectName("MAXVALUE"));
+		}
+
+		public override SqlExpression VisitConstantSessionTimeZone(PlSqlParser.ConstantSessionTimeZoneContext context) {
+			return SqlExpression.FunctionCall("CurrentSessionTimeZone");
 		}
 	}
 }

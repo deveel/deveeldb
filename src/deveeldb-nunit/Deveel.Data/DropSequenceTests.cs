@@ -39,9 +39,9 @@ namespace Deveel.Data {
 		public void Existing() {
 			var seqName = ObjectName.Parse("APP.seq1");
 
-			Query.DropSequence(seqName);
+			AdminQuery.DropSequence(seqName);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Sequence, seqName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Sequence, seqName);
 			Assert.IsFalse(exists);
 		}
 	}

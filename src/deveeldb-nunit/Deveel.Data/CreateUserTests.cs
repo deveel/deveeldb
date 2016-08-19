@@ -31,25 +31,25 @@ namespace Deveel.Data {
 		public void WithSimplePassword() {
 			const string userName = "tester";
 
-			Query.CreateUser(userName, "12345");
+			AdminQuery.CreateUser(userName, "12345");
 
-			var exists = Query.Session.Access().UserExists(userName);
+			var exists = AdminQuery.Session.Access().UserExists(userName);
 			Assert.IsTrue(exists);
 		}
 
 		[Test]
 		public void ExistingUser() {
-			Assert.Throws<SecurityException>(() => Query.CreateUser(AdminUserName, "0123456789"));
+			Assert.Throws<SecurityException>(() => AdminQuery.CreateUser(AdminUserName, "0123456789"));
 		}
 
 		[Test]
 		public void PublicUser() {
-			Assert.Throws<SecurityException>(() => Query.CreateUser(User.PublicName, "12345"));
+			Assert.Throws<SecurityException>(() => AdminQuery.CreateUser(User.PublicName, "12345"));
 		}
 
 		[Test]
 		public void WithRoleName() {
-			Assert.Throws<SecurityException>(() => Query.CreateUser(SystemRoles.LockedRole, "0123456789"));
+			Assert.Throws<SecurityException>(() => AdminQuery.CreateUser(SystemRoles.LockedRole, "0123456789"));
 		}
 	}
 }

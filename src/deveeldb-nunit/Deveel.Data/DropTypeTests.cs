@@ -27,9 +27,9 @@ namespace Deveel.Data {
 		[Test]
 		public void SimpleTypeThatExists() {
 			var typeName = ObjectName.Parse("APP.type1");
-			Query.DropType(typeName);
+			AdminQuery.DropType(typeName);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Type, typeName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Type, typeName);
 
 			Assert.IsFalse(exists);
 		}
@@ -37,9 +37,9 @@ namespace Deveel.Data {
 		[Test]
 		public void IfExists() {
 			var typeName = ObjectName.Parse("APP.type2");
-			Query.DropType(typeName, true);
+			AdminQuery.DropType(typeName, true);
 
-			var exists = Query.Access().ObjectExists(DbObjectType.Type, typeName);
+			var exists = AdminQuery.Access().ObjectExists(DbObjectType.Type, typeName);
 			Assert.IsFalse(exists);
 		}
 	}

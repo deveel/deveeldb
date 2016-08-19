@@ -31,7 +31,7 @@ namespace Deveel.Data {
 			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
 			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			Query.Access().CreateTable(tableInfo);
+			AdminQuery.Access().CreateTable(tableInfo);
 		}
 
 		[Test]
@@ -39,9 +39,9 @@ namespace Deveel.Data {
 			const string cursorName = "c";
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
 
-			Query.DeclareCursor(cursorName, query);
+			AdminQuery.DeclareCursor(cursorName, query);
 
-			var cursor = Query.Context.FindCursor(cursorName);
+			var cursor = AdminQuery.Context.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsEmpty(cursor.CursorInfo.Parameters);
@@ -53,9 +53,9 @@ namespace Deveel.Data {
 			var query = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table WHERE a = :a");
 			var parameters = new[] { new CursorParameter("a", PrimitiveTypes.Integer()) };
 
-			Query.DeclareCursor(cursorName, parameters, query);
+			AdminQuery.DeclareCursor(cursorName, parameters, query);
 
-			var cursor = Query.Context.FindCursor(cursorName);
+			var cursor = AdminQuery.Context.FindCursor(cursorName);
 			Assert.IsNotNull(cursor);
 			Assert.AreEqual(cursorName, cursor.CursorInfo.CursorName);
 			Assert.IsNotEmpty(cursor.CursorInfo.Parameters);

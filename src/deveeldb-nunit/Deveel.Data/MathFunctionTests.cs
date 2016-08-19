@@ -41,7 +41,7 @@ namespace Deveel.Data {
 
 			var number = ((SqlNumber)result.Value).ToDouble();
 
-			Assert.AreEqual(1.0655028755774867, number);
+			Assert.AreEqual(1.0655028755774869, number);
 		}
 
 		[Test]
@@ -59,7 +59,7 @@ namespace Deveel.Data {
 
 			var number = ((SqlNumber)result.Value).ToDouble();
 
-			Assert.AreEqual(1.0659007887179623, number);
+			Assert.AreEqual(1.0659007887179619, number);
 		}
 
 		[Test]
@@ -93,7 +93,7 @@ namespace Deveel.Data {
 
 			var number = ((SqlNumber)result.Value).ToDouble();
 
-			Assert.AreEqual(23.625265230100787, number);
+			Assert.AreEqual(23.625265230100791, number);
 		}
 
 		// TODO: Function overloads are not supported yet...

@@ -86,9 +86,9 @@ namespace Deveel.Data.Deveel.Data {
 		[Test]
 		public void DropNonReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table2");
-			Query.DropTable(tableName);
+			AdminQuery.DropTable(tableName);
 
-			var exists = Query.Session.Access().TableExists(tableName);
+			var exists = AdminQuery.Session.Access().TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -96,9 +96,9 @@ namespace Deveel.Data.Deveel.Data {
 		public void DropIfExists_TableExists() {
 			var tableName = ObjectName.Parse("APP.test_table2");
 
-			Query.DropTable(tableName, true);
+			AdminQuery.DropTable(tableName, true);
 
-			var exists = Query.Session.Access().TableExists(tableName);
+			var exists = AdminQuery.Session.Access().TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -106,9 +106,9 @@ namespace Deveel.Data.Deveel.Data {
 		public void DropIfExists_TableNotExists() {
 			var tableName = ObjectName.Parse("APP.test_table3");
 
-			Query.DropTable(tableName, true);
+			AdminQuery.DropTable(tableName, true);
 
-			var exists = Query.Session.Access().TableExists(tableName);
+			var exists = AdminQuery.Session.Access().TableExists(tableName);
 			Assert.IsFalse(exists);
 		}
 
@@ -116,9 +116,9 @@ namespace Deveel.Data.Deveel.Data {
 		public void DropReferencedTable() {
 			var tableName = ObjectName.Parse("APP.test_table1");
 
-			Assert.Throws<ConstraintViolationException>(() => Query.DropTable(tableName));
+			Assert.Throws<DropTableViolationException>(() => AdminQuery.DropTable(tableName));
 
-			var exists = Query.Session.Access().TableExists(tableName);
+			var exists = AdminQuery.Session.Access().TableExists(tableName);
 			Assert.IsTrue(exists);
 		}
 	}

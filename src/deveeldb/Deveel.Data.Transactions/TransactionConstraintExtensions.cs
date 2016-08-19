@@ -61,17 +61,10 @@ namespace Deveel.Data.Transactions {
 					row.SetValue(2, i); // Sequence number
 					tcols.AddRow(row);
 				}
-
-			} catch (ConstraintViolationException e) {
-				// Constraint violation when inserting the data.  Check the type and
-				// wrap around an appropriate error message.
-				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation) {
-					// This means we gave a constraint name that's already being used
-					// for a primary key.
-					throw new Exception(String.Format("Primary key constraint name '{0}' is already being used.", constraintName));
-				}
-
-				throw;
+			} catch (UniqueKeyViolationException) {
+				// This means we gave a constraint name that's already being used
+				// for a primary key.
+				throw new Exception(String.Format("Primary key constraint name '{0}' is already being used.", constraintName));
 			}
 		}
 
@@ -124,9 +117,7 @@ namespace Deveel.Data.Transactions {
 					for (int i = 0; i < columns.Length; ++i) {
 						var columnInfo = tableInfo[tableInfo.IndexOfColumn(columns[i])];
 						if (columnInfo.IsNotNull) {
-							throw new Exception(String.Format("Foreign key reference '{0}' -> '{1}' update or delete triggered " +
-							                                  "action is SET NULL for columns that are constrained as " +
-							                                  "NOT NULL.", table, refTable));
+							throw new NotNullColumnViolationException(tableInfo.TableName, columnInfo.ColumnName);
 						}
 					}
 				}
@@ -156,16 +147,10 @@ namespace Deveel.Data.Transactions {
 					tcols.AddRow(row);
 				}
 
-			} catch (ConstraintViolationException e) {
-				// Constraint violation when inserting the data.  Check the type and
-				// wrap around an appropriate error message.
-				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation)
-
-					// This means we gave a constraint name that's already being used
-					// for a primary key.
-					throw new Exception(String.Format("Foreign key constraint name '{0}' is already being used.", constraintName));
-
-				throw;
+			} catch (UniqueKeyViolationException) {
+				// This means we gave a constraint name that's already being used
+				// for a primary key.
+				throw new Exception(String.Format("Foreign key constraint name '{0}' is already being used.", constraintName));
 			}
 		}
 
@@ -200,16 +185,10 @@ namespace Deveel.Data.Transactions {
 					tcols.AddRow(row);
 				}
 
-			} catch (ConstraintViolationException e) {
-				// Constraint violation when inserting the data.  Check the type and
-				// wrap around an appropriate error message.
-				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation)
-
-					// This means we gave a constraint name that's already being used
-					// for a primary key.
-					throw new Exception(String.Format("Unique constraint name '{0}' is already being used.", constraintName));
-
-				throw;
+			} catch (UniqueKeyViolationException) {
+				// This means we gave a constraint name that's already being used
+				// for a primary key.
+				throw new Exception(String.Format("Unique constraint name '{0}' is already being used.", constraintName));
 			}
 		}
 
@@ -246,14 +225,8 @@ namespace Deveel.Data.Transactions {
 
 				t.AddRow(rd);
 
-			} catch (ConstraintViolationException e) {
-				// Constraint violation when inserting the data.  Check the type and
-				// wrap around an appropriate error message.
-				if (e.ErrorCode == SqlModelErrorCodes.UniqueViolation) {
-					// This means we gave a constraint name that's already being used.
-					throw new InvalidOperationException("Check constraint name '" + constraintName + "' is already being used.");
-				}
-				throw;
+			} catch (UniqueKeyViolationException) {
+				throw new InvalidOperationException("Check constraint name '" + constraintName + "' is already being used.");
 			}
 		}
 
@@ -427,11 +400,7 @@ namespace Deveel.Data.Transactions {
 					// Check: Column defined as not null and cell being inserted is
 					// not null.
 					if (columnInfo.IsNotNull && value.IsNull) {
-						throw new ConstraintViolationException(
-							SqlModelErrorCodes.NullableViolation,
-							"Attempt to set NULL value to column '" +
-							tableInfo[i].ColumnName +
-							"' which is declared as NOT NULL");
+						throw new NotNullColumnViolationException(tableInfo.TableName, tableInfo[i].ColumnName);
 					}
 
 					// Check: If column is an object, then deserialize and check the
@@ -477,12 +446,7 @@ namespace Deveel.Data.Transactions {
 						// For each row added to this column
 						foreach (int rowIndex in rowIndices) {
 							if (!IsUniqueColumns(table, rowIndex, primaryKey.ColumnNames, false)) {
-								throw new ConstraintViolationException(
-									SqlModelErrorCodes.PrimaryKeyViolation,
-									deferred.AsDebugString() + " primary Key constraint violation (" +
-									primaryKey.ConstraintName + ") Columns = ( " +
-									String.Join(", ", primaryKey.ColumnNames) +
-									" ) Table = ( " + tableName + " )");
+								throw new PrimaryKeyViolationException(tableName, primaryKey.ConstraintName, primaryKey.ColumnNames, deferred);
 							}
 						} // For each row being added
 					}
@@ -496,12 +460,7 @@ namespace Deveel.Data.Transactions {
 							// For each row added to this column
 							foreach (int rowIndex in rowIndices) {
 								if (!IsUniqueColumns(table, rowIndex, unique.ColumnNames, true)) {
-									throw new ConstraintViolationException(
-										SqlModelErrorCodes.UniqueViolation,
-										deferred.AsDebugString() + " unique constraint violation (" +
-										unique.ConstraintName + ") Columns = ( " +
-										String.Join(", ", unique.ColumnNames) + " ) Table = ( " +
-										tableName + " )");
+									throw new UniqueKeyViolationException(tableName, unique.ConstraintName, unique.ColumnNames, deferred);
 								}
 							} // For each row being added
 						}
@@ -532,14 +491,8 @@ namespace Deveel.Data.Transactions {
 								}
 
 								if (rowCount == 0) {
-									throw new ConstraintViolationException(
-										SqlModelErrorCodes.ForeignKeyViolation,
-										deferred.AsDebugString() + " foreign key constraint violation (" +
-										reference.ConstraintName + ") Columns = " +
-										reference.TableName + "( " +
-										String.Join(", ", reference.ColumnNames) + " ) -> " +
-										reference.ForeignTable + "( " +
-										String.Join(", ", reference.ForeignColumnNames) + " )");
+									throw new ForeignKeyViolationException(tableName, reference.ConstraintName, reference.ColumnNames,
+										reference.ForeignTable, reference.ForeignColumnNames, deferred);
 								}
 							} // For each row being added.
 						}
@@ -554,8 +507,7 @@ namespace Deveel.Data.Transactions {
 						if (deferred == ConstraintDeferrability.InitiallyDeferred ||
 						    check.Deferred == ConstraintDeferrability.InitiallyImmediate) {
 
-							// TODO: var exp = tableInfo.ResolveColumns(transaction.IgnoreIdentifierCase(), check.CheckExpression);
-							var exp = tableInfo.ResolveColumns(true, check.CheckExpression);
+							var exp = tableInfo.ResolveColumns(transaction.IgnoreIdentifiersCase(), check.CheckExpression);
 
 							// For each row being added to this column
 							for (int rn = 0; rn < rowIndices.Length; ++rn) {
@@ -566,13 +518,9 @@ namespace Deveel.Data.Transactions {
 								var b = ob.AsBoolean();
 
 								if (!b.IsNull) {
-									if (b) {
+									if (!((SqlBoolean)b.Value)) {
 										// Evaluated to false so don't allow this row to be added.
-										throw new ConstraintViolationException(
-											SqlModelErrorCodes.CheckViolation,
-											deferred.AsDebugString() + " check constraint violation (" +
-											check.ConstraintName + ") - '" + exp +
-											"' evaluated to false for inserted/updated row.");
+										throw new CheckViolationException(tableName, check.ConstraintName, check.CheckExpression, deferred);
 									}
 								} else {
 									// NOTE: This error will pass the row by default
@@ -617,14 +565,7 @@ namespace Deveel.Data.Transactions {
 						// There must be 0 references otherwise the delete isn't allowed to
 						// happen.
 						if (rowCount > 0) {
-							throw new ConstraintViolationException(SqlModelErrorCodes.ForeignKeyViolation,
-								deferred.AsDebugString() + " foreign key constraint violation " +
-								"on delete (" +
-								reference.ConstraintName + ") Columns = " +
-								reference.TableName + "( " +
-								String.Join(", ", reference.ColumnNames) + " ) -> " +
-								reference.ForeignTable + "( " +
-								String.Join(", ", reference.ForeignColumnNames) + " )");
+							throw new ForeignKeyViolationException(tableName, reference.ConstraintName, reference.ColumnNames, reference.ForeignTable, reference.ForeignColumnNames, deferred);
 						}
 					}
 				}

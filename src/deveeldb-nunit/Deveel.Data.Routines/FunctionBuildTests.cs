@@ -35,7 +35,7 @@ namespace Deveel.Data.Routines {
 			Assert.IsNotNull(function);
 
 			InvokeResult result=null;
-			Assert.DoesNotThrow(() => result = function.Execute(Query));
+			Assert.DoesNotThrow(() => result = function.Execute(AdminQuery));
 			Assert.IsNotNull(result);
 			Assert.AreEqual(AdminUserName, result.ReturnValue.Value.ToString());
 		}

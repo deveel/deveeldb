@@ -69,9 +69,7 @@ namespace Deveel.Data.Sql.Statements {
 			var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);
 			if (refs.Length > 0) {
 				var reference = refs[0];
-				throw new ConstraintViolationException(SqlModelErrorCodes.DropTableViolation,
-					String.Format("Constraint violation ({0}) dropping table '{1}' because of referential link from '{2}'",
-						reference.ConstraintName, TableName, reference.TableName));
+				throw new DropTableViolationException(TableName, reference.ConstraintName, reference.TableName);
 			}
 
 			// If the 'only if exists' flag is false, we need to check tables to drop
