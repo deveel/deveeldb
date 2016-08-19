@@ -13,7 +13,7 @@ namespace Deveel.Data.Linq {
 	[TestFixture]
 	public sealed class DbQueryContextTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
-			if (testName.Equals("SelectFromTables")) {
+			if (testName.StartsWith("SelectFromTables")) {
 				CreateTables(query);
 				InsertTestData(query);
 				return true;
@@ -23,7 +23,7 @@ namespace Deveel.Data.Linq {
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
-			if (testName.Equals("SelectFromTables")) {
+			if (testName.StartsWith("SelectFromTables")) {
 				DropTables(query);
 				return true;
 			}
@@ -49,7 +49,7 @@ namespace Deveel.Data.Linq {
 		}
 
 		private void InsertTestData(IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
+			var tableName = ObjectName.Parse("APP.persons");
 			var table = query.Access().GetMutableTable(tableName);
 
 			var row = table.NewRow();
@@ -63,10 +63,18 @@ namespace Deveel.Data.Linq {
 			row["first_name"] = Field.String("Sebastiano");
 			row["last_name"] = Field.String("Provenzano");
 			table.AddRow(row);
+
+			tableName = ObjectName.Parse("APP.person_class");
+			table = query.Access().GetMutableTable(tableName);
+
+			row = table.NewRow();
+			row["person_id"] = Field.Integer(0);
+			row["class_name"] = Field.String("Systems and Networks");
+			table.AddRow(row);
 		}
 
 		private void DropTables(IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
+			var tableName = ObjectName.Parse("APP.persons");
 			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
@@ -116,7 +124,35 @@ namespace Deveel.Data.Linq {
 
 			Assert.IsNotEmpty(result);
 			Assert.AreEqual(2, result.Count);
+
+			var first = result[0];
+			Assert.AreEqual("Antonello", first.FirstName);
+			Assert.AreEqual("Provenzano", first.LastName);
 		}
+
+		[Test]
+		public void SelectFromTables_LinqExpr() {
+			DbQueryContext queryContext = null;
+			Assert.DoesNotThrow(() => queryContext = new TestDbQueryContext(AdminQuery));
+			Assert.IsNotNull(queryContext);
+
+			DbTable<Person> table = null;
+
+			Assert.DoesNotThrow(() => table = queryContext.Table<Person>());
+			Assert.IsNotNull(table);
+
+			var query = (from person in table where person.LastName == "Provenzano" select person);
+
+			var result = query.ToList();
+
+			Assert.IsNotEmpty(result);
+			Assert.AreEqual(2, result.Count);
+
+			var first = result[0];
+			Assert.AreEqual("Antonello", first.FirstName);
+			Assert.AreEqual("Provenzano", first.LastName);
+		}
+
 
 		#region TestDbQueryContext
 

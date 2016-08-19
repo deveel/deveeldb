@@ -163,6 +163,70 @@ namespace Deveel.Data.Linq {
 			return memberModel.ColumnName;
 		}
 
+		public override string GetColumnDbType(MappingEntity entity, MemberInfo member) {
+			var modelEntity = (ModelMappingEntity)entity;
+			var memberModel = modelEntity.GetMember(member.Name);
+			if (memberModel == null)
+				return GetSqlTypeName(GetMemberType(member));
+
+			return base.GetColumnDbType(entity, member);
+		}
+
+		private static Type GetMemberType(MemberInfo member) {
+			if (member is PropertyInfo)
+				return ((PropertyInfo) member).PropertyType;
+			if (member is FieldInfo)
+				return ((FieldInfo) member).FieldType;
+
+			throw new NotSupportedException();
+		}
+
+		private static string GetSqlTypeName(Type type) {
+			if (type == typeof(bool))
+				return "BOOLEAN";
+			if (type == typeof(byte))
+				return "TINYINT";
+			if (type == typeof(short))
+				return "SMALLINT";
+			if (type == typeof(int))
+				return "INTEGER";
+			if (type == typeof(long))
+				return "BIGINT";
+			if (type == typeof(float))
+				return "REAL";
+			if (type == typeof(double))
+				return "DOUBLE";
+
+			if (type == typeof(string))
+				return "VARCHAR";
+
+			throw new NotSupportedException();
+		}
+
+		public override bool IsColumn(MappingEntity entity, MemberInfo member) {
+			var modelEntity = (ModelMappingEntity)entity;
+			var memberModel = modelEntity.GetMember(member.Name);
+			if (memberModel == null)
+				return false;
+
+			return !memberModel.IsAssociation;
+		}
+
+		public override bool IsAssociationRelationship(MappingEntity entity, MemberInfo member) {
+			var modelEntity = (ModelMappingEntity)entity;
+			var memberModel = modelEntity.GetMember(member.Name);
+			if (memberModel == null)
+				return false;
+
+			return memberModel.IsAssociation;
+		}
+
+		public override bool IsMapped(MappingEntity entity, MemberInfo member) {
+			var modelEntity = (ModelMappingEntity)entity;
+			var memberModel = modelEntity.GetMember(member.Name);
+			return memberModel != null;
+		}
+
 		public override bool IsExtensionTable(MappingTable table) {
 			throw new NotImplementedException();
 		}
