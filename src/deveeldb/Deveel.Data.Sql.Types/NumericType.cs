@@ -70,8 +70,8 @@ namespace Deveel.Data.Sql.Types {
 			return typeof(SqlNumber);
 		}
 
-		private int GetPrecision() {
-			switch (TypeCode) {
+		public static int GetPrecision(SqlTypeCode typeCode) {
+			switch (typeCode) {
 				case SqlTypeCode.TinyInt:
 				case SqlTypeCode.SmallInt:
 				case SqlTypeCode.Integer:
@@ -85,6 +85,10 @@ namespace Deveel.Data.Sql.Types {
 				default:
 					return MathContext.Unlimited.Precision;
 			}
+		}
+
+		private int GetPrecision() {
+			return GetPrecision(TypeCode);
 		}
 
 		public override Type GetRuntimeType() {

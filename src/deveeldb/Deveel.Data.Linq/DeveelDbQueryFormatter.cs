@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 
 using IQToolkit.Data.Common;
 
+using QueryParameter = Deveel.Data.Sql.QueryParameter;
+
 namespace Deveel.Data.Linq {
 	class DeveelDbQueryFormatter : SqlFormatter {
 		public DeveelDbQueryFormatter(DeveelDbQueryLanguage language) 
@@ -17,6 +19,14 @@ namespace Deveel.Data.Linq {
 
 		protected override Expression VisitSelect(SelectExpression @select) {
 			return base.VisitSelect(@select);
+		}
+
+		protected override void WriteParameterName(string name) {
+			if (name == QueryParameter.Marker) {
+				Write(QueryParameter.Marker);
+			} else {
+				Write(String.Format("{0}{1}", QueryParameter.NamePrefix, name));
+			}
 		}
 	}
 }

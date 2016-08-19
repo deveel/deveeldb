@@ -41,8 +41,8 @@ namespace Deveel.Data.Types {
 
 		[Test]
 		public static void SimpleTypesEqual() {
-			var type1 = PrimitiveTypes.Integer(255);
-			var type2 = PrimitiveTypes.Integer(255);
+			var type1 = PrimitiveTypes.Integer();
+			var type2 = PrimitiveTypes.Integer();
 
 			Assert.AreEqual(type1, type2);
 		}

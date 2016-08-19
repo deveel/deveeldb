@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 using IQToolkit.Data.Common;
 
@@ -29,6 +30,10 @@ namespace Deveel.Data.Linq {
 				return null;
 
 			return model;
+		}
+
+		public DbAssociationModel GetAssociationModel(Type sourceType, MemberInfo sourceMember) {
+			throw new NotImplementedException();
 		}
 
 		public bool IsMapped(Type type) {
