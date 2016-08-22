@@ -76,6 +76,9 @@ namespace Deveel.Data.Linq {
 		private void DropTables(IQuery query) {
 			var tableName = ObjectName.Parse("APP.persons");
 			query.Access().DropObject(DbObjectType.Table, tableName);
+
+			tableName = ObjectName.Parse("APP.person_class");
+			query.Access().DropObject(DbObjectType.Table, tableName);
 		}
 
 		[Test]
