@@ -36,6 +36,10 @@ namespace Deveel.Data.Sql.Objects {
 			Dispose(false);
 		}
 
+		long IObjectRef.Size {
+			get { return Length; }
+		}
+
 		private void AssertNotDisposed() {
 			if (largeObject == null)
 				throw new ObjectDisposedException("SqlLongBinary");

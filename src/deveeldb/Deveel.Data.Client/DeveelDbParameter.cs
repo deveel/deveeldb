@@ -242,5 +242,47 @@ namespace Deveel.Data.Client {
 		public byte Scale { get; set; }
 
 		public string Locale { get; set; }
+
+		internal SqlType GetSqlType() {
+			switch (SqlType) {
+				case SqlTypeCode.Boolean:
+				case SqlTypeCode.Bit:
+					return PrimitiveTypes.Boolean(SqlType);
+				case SqlTypeCode.TinyInt:
+				case SqlTypeCode.SmallInt:
+				case SqlTypeCode.Integer:
+				case SqlTypeCode.BigInt:
+					return PrimitiveTypes.Numeric(SqlType);
+				case SqlTypeCode.Real:
+				case SqlTypeCode.Float:
+				case SqlTypeCode.Decimal:
+				case SqlTypeCode.Double:
+				case SqlTypeCode.Numeric:
+					return PrimitiveTypes.Numeric(SqlType, Precision, Scale);
+				case SqlTypeCode.String:
+				case SqlTypeCode.Char:
+				case SqlTypeCode.VarChar:
+					return PrimitiveTypes.String(SqlType, Size);
+				case SqlTypeCode.Binary:
+					case SqlTypeCode.VarBinary:
+					return PrimitiveTypes.Binary(SqlType, Size);
+				case SqlTypeCode.Time:
+				case SqlTypeCode.Date:
+				case SqlTypeCode.DateTime:
+				case SqlTypeCode.TimeStamp:
+					return PrimitiveTypes.DateTime(SqlType);
+				case SqlTypeCode.DayToSecond:
+				case SqlTypeCode.YearToMonth:
+					return PrimitiveTypes.Interval(SqlType);
+				case SqlTypeCode.Clob:
+				case SqlTypeCode.LongVarChar:
+					return PrimitiveTypes.Clob(Size);
+				case SqlTypeCode.Blob:
+				case SqlTypeCode.LongVarBinary:
+					return PrimitiveTypes.Blob(Size);
+				default:
+					throw new NotSupportedException();
+			}
+		}
 	}
 }

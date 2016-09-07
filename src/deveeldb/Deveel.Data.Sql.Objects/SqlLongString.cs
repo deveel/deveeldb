@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Objects {
 			IsNull = isNull;
 
 			if (!isNull) {
-				Length = largeObject.RawSize;
+				Length = encoding.GetMaxCharCount((int)largeObject.RawSize);
 			}
 		}
 
@@ -50,6 +50,10 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		public Encoding Encoding { get; private set; }
+
+		long IObjectRef.Size {
+			get { return LargeObject.RawSize; }
+		}
 
 		public void Dispose() {
 			Dispose(true);

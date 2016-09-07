@@ -20,10 +20,12 @@ using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.IO;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Store;
 
 using SysDataTable = System.Data.DataTable;
 using SysDataRow = System.Data.DataRow;
@@ -238,8 +240,34 @@ namespace Deveel.Data.Client {
 			return GetFinalValue<byte>(ordinal);
 		}
 
+		public DeveelDbLob GetLob(int ordinal) {
+			var value = GetRawValue(ordinal);
+			if (!(value is IObjectRef))
+				throw new InvalidOperationException(String.Format("The field at ordinal '{0}' is not a binary", ordinal));
+
+			var objRef = ((IObjectRef) value);
+			return new DeveelDbLob(command.Connection, objRef.ObjectId, objRef.Size);
+		}
+
 		public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) {
-			throw new NotImplementedException();
+			var value = GetRawValue(ordinal);
+			if (value is SqlBinary) {
+				var binary = (SqlBinary) value;
+				var input = binary.GetInput();
+				input.Seek(dataOffset, SeekOrigin.Begin);
+				return input.Read(buffer, bufferOffset, length);
+			}
+			if (value is IObjectRef) {
+				var objRef = ((IObjectRef) value);
+				var lob = new DeveelDbLob(command.Connection, objRef.ObjectId, objRef.Size);
+				if (!lob.CanRead)
+					throw new NotSupportedException();
+
+				lob.Seek(dataOffset, SeekOrigin.Begin);
+				return lob.Read(buffer, bufferOffset, length);
+			}
+
+			throw new NotSupportedException();
 		}
 
 		public override char GetChar(int ordinal) {
