@@ -23,6 +23,7 @@ using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -452,6 +453,14 @@ namespace Deveel.Data {
 			} finally {
 				IsOpen = false;
 			}
+		}
+
+		public ILargeObject CreateLargeObject(long objectSize, bool compressed) {
+			return TableComposite.CreateLargeObject(objectSize, compressed);
+		}
+
+		public ILargeObject GetLargeObject(ObjectId objId) {
+			return TableComposite.GetLargeObject(objId);
 		}
 
 		public static IDatabase New(IConfiguration config, string adminName, string adminPassword) {
