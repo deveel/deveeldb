@@ -100,6 +100,7 @@ namespace Deveel.Data.Sql.Types {
 
 			switch (sqlType) {
 				case SqlTypeCode.Bit:
+				case SqlTypeCode.Boolean:
 					casted = ToBoolean(binary);
 					break;
 					// TODO: All other casts
@@ -132,7 +133,7 @@ namespace Deveel.Data.Sql.Types {
 
 				return 1 + 1 + 4 + (int) binary.Length;
 			} else if (obj is SqlLongBinary) {
-				throw new NotImplementedException();
+				return 1 + 8 + 8;
 			} else if (obj is SqlNull) {
 				return 1;
 			}

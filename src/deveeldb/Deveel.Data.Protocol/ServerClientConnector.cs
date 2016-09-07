@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Sql.Triggers;
+using Deveel.Data.Store;
 
 namespace Deveel.Data.Protocol {
 	public abstract class ServerClientConnector : ClientConnector {
@@ -42,7 +43,7 @@ namespace Deveel.Data.Protocol {
 			return ServerConnector.LocalEndPoint;
 		}
 
-		protected override ILargeObjectChannel CreateObjectChannel(long objectId) {
+		protected override ILargeObjectChannel CreateObjectChannel(ObjectId objectId) {
 			return ServerConnector.CreateObjectChannel(objectId);
 		}
 

@@ -19,6 +19,7 @@ using System;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -133,5 +134,9 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		void Close();
+
+		ILargeObject CreateLargeObject(long objectSize, bool compressed);
+
+		ILargeObject GetLargeObject(ObjectId objId);
 	}
 }
