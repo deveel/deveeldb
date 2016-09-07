@@ -168,15 +168,6 @@
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
-    <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />
-    <Compile Include="Deveel.Data.Mapping\IdentityAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\Mapper.cs" />
-    <Compile Include="Deveel.Data.Mapping\MemberMapInfo.cs" />
-    <Compile Include="Deveel.Data.Mapping\TableNameAttribute.cs" />
-    <Compile Include="Deveel.Data.Mapping\TypeMapInfo.cs" />
     <Compile Include="Deveel.Data.Protocol\RemoteObjectRef.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
@@ -1015,7 +1006,9 @@
     <None Include="deveeldb.snk" />
     <None Include="packages.deveeldb.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Deveel.Data.Mapping\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
