@@ -36,8 +36,9 @@ namespace Deveel.Data {
 	/// and services, provides functionalities for the management of data
 	/// in the relational model.
 	/// </remarks>
-	public sealed class Database : IDatabase, IEventSource {
-		internal Database(DatabaseSystem system, IDatabaseContext context) {
+	public sealed class Database : EventSource, IDatabase {
+		internal Database(DatabaseSystem system, IDatabaseContext context)
+			: base(system) {
 			System = system;
 			Context = context;
 
@@ -111,21 +112,15 @@ namespace Deveel.Data {
 		/// <seealso cref="ITransactionFactory" />
 		public ITransactionFactory TransactionFactory { get; private set; }
 
-		IEventSource IEventSource.ParentSource {
-			get { return System.AsEventSource(); }
-		}
-
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
 		}
 
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get {
-				return new Dictionary<string, object> {
-					{ KnownEventMetadata.DatabaseName, Name },
-                    { KnownEventMetadata.SessionCount, Sessions.Count }
-				};
-			}
+		protected override void GetMetadata(Dictionary<string, object> metadata) {
+			metadata[MetadataKeys.Database.Name] = Name;
+			metadata[MetadataKeys.Database.SessionCount] = Sessions.Count;
+
+			// TODO: add the configurations
 		}
 
 		private void DiscoverDataVersion() {
@@ -239,8 +234,7 @@ namespace Deveel.Data {
 					try {
 						callback.OnDatabaseCreate(context);
 					} catch (Exception ex) {
-						context.AsEventSource()
-							.OnError(new Exception(String.Format("Database-Create callback '{0}' caused an error.", callback.GetType()), ex));
+						context.OnError(new Exception(String.Format("Database-Create callback '{0}' caused an error.", callback.GetType()), ex));
 					}
 				}
 			}
@@ -256,8 +250,7 @@ namespace Deveel.Data {
 					try {
 						callback.OnDatabaseCreated(context);
 					} catch (Exception ex) {
-						context.AsEventSource()
-							.OnError(new Exception(String.Format("Database-Created callback '{0}' caused an error.", callback.GetType()), ex));
+						context.OnError(new Exception(String.Format("Database-Created callback '{0}' caused an error.", callback.GetType()), ex));
 					}
 				}
 			}

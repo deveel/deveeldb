@@ -29,8 +29,8 @@ namespace Deveel.Data.Transactions {
 	/// This contract allows implementors to define simple transactions
 	/// that can be eventually forbid any data write operation.
 	/// </remarks>
-	public interface ITransaction : IDisposable {
-        ITransactionContext Context { get; }
+	public interface ITransaction : IContextBased, IDisposable {
+        new ITransactionContext Context { get; }
 
 		/// <summary>
 		/// Gets a number uniquely identifying a transaction within a database context.

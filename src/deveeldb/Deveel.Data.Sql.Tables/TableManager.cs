@@ -92,7 +92,7 @@ namespace Deveel.Data.Sql.Tables {
 					tableIndices.Clear();
 				}
 			} catch (Exception ex) {
-				Transaction.AsEventSource().OnError(ex);
+				Transaction.OnError(ex);
 			}
 
 			// Dispose all tables we dropped (they will be in the cleanup_queue.
@@ -107,7 +107,7 @@ namespace Deveel.Data.Sql.Tables {
 					cleanupQueue.Clear();
 				}
 			} catch (Exception ex) {
-				Transaction.AsEventSource().OnError(ex);
+				Transaction.OnError(ex);
 			} finally { 
 				cleanupQueue = null;
 			}
@@ -123,7 +123,7 @@ namespace Deveel.Data.Sql.Tables {
 					accessedTables.Clear();
 				}
 			} catch (Exception ex) {
-				Transaction.AsEventSource().OnError(ex);
+				Transaction.OnError(ex);
 			} finally {
 				accessedTables = null;
 			}

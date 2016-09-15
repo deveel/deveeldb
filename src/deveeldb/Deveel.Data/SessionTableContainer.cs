@@ -143,9 +143,7 @@ namespace Deveel.Data {
 					throw new ArgumentOutOfRangeException("rowNumber");
 
 				var openSession = session.Database().Sessions[(int)rowNumber];
-				var lastCommandTime = !openSession.HasCommandTime()
-					? SqlDateTime.Null
-					: (SqlDateTime)session.LastCommandTime();
+				var lastCommandTime = (SqlDateTime)session.LastCommandTime();
 
 				switch (columnOffset) {
 					case 0:

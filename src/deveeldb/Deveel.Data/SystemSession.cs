@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Store;
@@ -83,12 +82,8 @@ namespace Deveel.Data {
 
         public ISessionContext Context { get; private set; }
 
-		public ILargeObject CreateLargeObject(int tableId, long maxSize, bool compressed) {
-			throw new NotSupportedException();
-		}
-
-		public ILargeObject GetLargeObject(int tableId, ObjectId objectId) {
-			throw new NotSupportedException();
+		IContext IContextBased.Context {
+			get { return Context; }
 		}
 
 		public ILargeObject CreateLargeObject(long size, bool compressed) {
@@ -99,16 +94,7 @@ namespace Deveel.Data {
 			throw new NotSupportedException();
 		}
 
-		public void Enter(IEnumerable<IDbObject> objects, AccessType accessType) {
-			// A system session bypasses any lock
-		}
-
-		public void Exit(IEnumerable<IDbObject> objects, AccessType accessType) {
-			// A system session does not hold any lock
-		}
-
-		public void Lock(IEnumerable<IDbObject> objects, AccessType accessType, LockingMode mode) {
-			// A system session does not hold any lock
+		public void SetTimeZone(int hours, int minutes) {
 		}
 
 		public void Commit() {

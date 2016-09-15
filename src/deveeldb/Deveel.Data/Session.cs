@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// This is a session that is constructed around a given user and a transaction,
 	/// to the given database.
 	/// </summary>
-	public sealed class Session : ISession, IEventSource, IProvidesDirectAccess {
+	public sealed class Session : EventSource, ISession, IProvidesDirectAccess {
 		private bool disposed;
 		private readonly DateTimeOffset startedOn;
 		private SystemAccess access;
@@ -38,6 +38,7 @@ namespace Deveel.Data {
 		private DateTimeOffset? lastCommandTime;
 		private SqlQuery lastCommand;
 		private StatementResult[] lastCommandResult;
+		private TimeSpan tzOffset;
 
 		/// <summary>
 		/// Constructs the session for the given user and transaction to the
@@ -47,7 +48,8 @@ namespace Deveel.Data {
 		/// the user during the session.</param>
 		/// <param name="userName"></param>
 		/// <seealso cref="ITransaction"/>
-		public Session(ITransaction transaction, string userName) {
+		public Session(ITransaction transaction, string userName)
+			: base(transaction as IEventSource) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 			
@@ -74,7 +76,7 @@ namespace Deveel.Data {
 			User = new User(this, userName);
 			startedOn = DateTimeOffset.UtcNow;
 
-			this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.Begin));
+			this.OnEvent(new SessionEvent(SessionEventType.Begin));
 		}
 
 		~Session() {
@@ -98,11 +100,7 @@ namespace Deveel.Data {
 			get { return access; }
 		}
 
-		IEventSource IEventSource.ParentSource {
-			get { return Transaction.AsEventSource(); }
-		}
-
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
 		}
 
@@ -120,20 +118,17 @@ namespace Deveel.Data {
 			}
 		}
 
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return GetMetadata(); }
+		public void SetTimeZone(int hours, int minutes) {
+			tzOffset = new TimeSpan(0, hours, minutes, 0);
 		}
 
-		private IEnumerable<KeyValuePair<string, object>> GetMetadata() {
-			var meta = new Dictionary<string, object> {
-				{KnownEventMetadata.UserName, User.Name},
-				{KnownEventMetadata.SessionStartTime, startedOn},
-				{KnownEventMetadata.LastCommandTime, lastCommandTime},
-				{KnownEventMetadata.LastCommand, lastCommand != null ? lastCommand.Text : null},
-				{KnownEventMetadata.AffectedRows, AffectedRows },
-			};
-
-			return meta;
+		protected override void GetMetadata(Dictionary<string, object> metadata) {
+			metadata[MetadataKeys.Session.UserName] = User.Name;
+			metadata[MetadataKeys.Session.StartTimeUtc] = startedOn;
+			metadata[MetadataKeys.Session.LastCommandTime] = lastCommandTime;
+			metadata[MetadataKeys.Session.LastCommandText] = lastCommand != null ? lastCommand.Text : null;
+			metadata[MetadataKeys.Session.LastCommandAffectedRows] = AffectedRows;
+			metadata[MetadataKeys.Session.TimeZone] = tzOffset.ToString();
 		}
 
 		public ITransaction Transaction { get; private set; }
@@ -157,7 +152,7 @@ namespace Deveel.Data {
 			AssertNotDisposed();
 
 			try {
-				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.BeforeCommit));
+				this.OnEvent(new SessionEvent(SessionEventType.BeforeCommit));
 
 				if (Transaction != null) {
 					try {
@@ -167,7 +162,7 @@ namespace Deveel.Data {
 					}
 				}
 			} finally {
-				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.AfterCommit));
+				this.OnEvent(new SessionEvent(SessionEventType.AfterCommit));
 			}
 		}
 
@@ -175,7 +170,7 @@ namespace Deveel.Data {
 			AssertNotDisposed();
 
 			try {
-				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.BeforeRollback));
+				this.OnEvent(new SessionEvent(SessionEventType.BeforeRollback));
 
 				if (Transaction != null) {
 					try {
@@ -185,7 +180,7 @@ namespace Deveel.Data {
 					}
 				}
 			} finally {
-				this.AsEventSource().OnEvent(new SessionEvent(SessionEventType.AfterRollback));
+				this.OnEvent(new SessionEvent(SessionEventType.AfterRollback));
 			}
 		}
 

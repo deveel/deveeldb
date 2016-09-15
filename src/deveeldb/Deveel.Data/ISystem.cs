@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
+using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -30,7 +31,7 @@ namespace Deveel.Data {
 	/// to existing <see cref="IDatabase">databases</see>.
 	/// </para>
 	/// </remarks>
-	public interface ISystem : IDatabaseHandler, IDisposable {
+	public interface ISystem : IContextBased, IDatabaseHandler, IDisposable {
 		/// <summary>
 		/// Gets a list of the modules handled by the system.
 		/// </summary>
@@ -39,7 +40,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets a context that provides the state of the system.
 		/// </summary>
-		ISystemContext Context { get; }
+		new ISystemContext Context { get; }
 
 		/// <summary>
 		/// Gets a list of the names of all the databases handled

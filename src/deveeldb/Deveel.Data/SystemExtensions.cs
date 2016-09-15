@@ -23,20 +23,19 @@ using Deveel.Data.Security;
 
 namespace Deveel.Data {
 	public static class SystemExtensions {
+		public static IEventSource AsEventSource(this ISystem system) {
+			if (system == null)
+				return null;
+
+			if (system is IEventSource)
+				return (IEventSource) system;
+
+			return new EventSource();
+		}
+
 		public static IDatabase CreateDatabase(this ISystem system, IConfiguration configuration, string adminName,
 			string adminPassword) {
 			return system.CreateDatabase(configuration, adminName, KnownUserIdentifications.ClearText, adminPassword);
-		}
-
-		public static IEventSource AsEventSource(this ISystem system) {
-			if (system == null)
-				throw new ArgumentNullException("system");
-
-			var source = system as IEventSource;
-			if (source != null)
-				return source;
-
-			return new EventSource(system.Context, null);
 		}
 	}
 }

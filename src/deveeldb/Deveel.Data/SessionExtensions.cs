@@ -38,20 +38,18 @@ namespace Deveel.Data {
 			return ((IProvidesDirectAccess) session).DirectAccess;
 		}
 
+		public static IEventSource AsEventSource(this ISession session) {
+			if (session == null)
+				return null;
+			if (session is IEventSource)
+				return (IEventSource) session;
+
+			return new EventSource(session.Transaction.AsEventSource());
+		}
+
 		public static bool IsFinished(this ISession session) {
 			return session.Transaction == null ||
 			       session.Transaction.State == TransactionState.Finished;
-		}
-
-		public static IEventSource AsEventSource(this ISession session) {
-			if (session == null)
-				throw new ArgumentNullException("session");
-
-			var source = session as IEventSource;
-			if (source == null)
-				source = new EventSource(session.Context, session.Transaction.AsEventSource());
-
-			return source;
 		}
 
 		// TODO: In a future version of deveeldb the transaction will be a child of
@@ -125,58 +123,26 @@ namespace Deveel.Data {
 
 		#region Metadata
 
-		private static T GetMeta<T>(this ISession session, string key) {
-			var eventSource = session.AsEventSource();
-			if (eventSource == null ||
-				eventSource.Metadata == null)
-				return default(T);
-
-			var dict = eventSource.Metadata.ToDictionary(x => x.Key, y => y.Value);
-			object value;
-			if (!dict.TryGetValue(key, out value))
-				return default(T);
-
-			if (value is T)
-				return (T) value;
-
-#if !PCL
-			if (value is IConvertible)
-				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
-
-			throw new InvalidCastException();
-#else
-			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
-#endif
+		public static DateTimeOffset? LastCommandTime(this ISession session) {
+			return session.AsEventSource().SessionLastCommandTime();
 		}
 
-		private static bool HasMeta(this ISession session, string key) {
-			var eventSource = session.AsEventSource();
-			if (eventSource == null)
-				return false;
-
-			return eventSource.Metadata != null && eventSource.Metadata.Any(x => x.Key == key);
-		}
-
-		public static bool HasCommandTime(this ISession session) {
-			return session.HasMeta("lastCommandTime");
-		}
-
-		public static DateTimeOffset LastCommandTime(this ISession session) {
-			return session.GetMeta<DateTimeOffset>("lastCommandTime");
-		}
-
-		public static DateTimeOffset StartedOn(this ISession session) {
-			return session.HasMeta("startTime") ? session.GetMeta<DateTimeOffset>("startTime") : DateTimeOffset.MinValue;
+		public static DateTimeOffset? StartedOn(this ISession session) {
+			return session.AsEventSource().SessionStartTimeUtc();
 		}
 
 		public static TimeSpan TimeZoneOffset(this ISession session) {
-			if (!session.HasMeta("timeZone.hours") ||
-				!session.HasMeta("timeZone.minutes"))
+			var timeZone = session.AsEventSource().SessionTimeZone();
+			if (String.IsNullOrEmpty(timeZone))
 				return TimeSpan.Zero;
 
-			var hours = session.GetMeta<int>("timeZone.hours");
-			var minutes = session.GetMeta<int>("timeZone.minutes");
-			return new TimeSpan(0, hours, minutes, 0);
+			TimeSpan result;
+			if (!TimeSpan.TryParse(timeZone, out result)) {
+				session.OnWarning(new Exception(String.Format("A session timezone was set but it is invalid: {0}", timeZone)));
+				return TimeSpan.Zero;
+			}
+
+			return result;
 		}
 
 		#endregion

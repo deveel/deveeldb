@@ -57,24 +57,6 @@ namespace Deveel.Data {
 			return ((IProvidesDirectAccess) request).DirectAccess;
 		}
 
-		public static IEventSource AsEventSource(this IRequest request) {
-			if (request == null)
-				throw new ArgumentNullException("request");
-
-			var source = request as IEventSource;
-			if (source != null)
-				return source;
-
-			IEventSource parentSource;
-			if (request is IQuery) {
-				parentSource = ((IQuery) request).Session.AsEventSource();
-			} else {
-				parentSource = request.Query.AsEventSource();
-			}
-
-			return new EventSource(request.Context, parentSource);
-		}
-
 		#region Statements
 
 		private static int GetResult(StatementResult result) {

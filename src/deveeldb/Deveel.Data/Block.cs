@@ -30,11 +30,12 @@ namespace Deveel.Data {
 	/// </remarks>
 	/// <seealso cref="IBlock"/>
 	/// <seealso cref="IEventSource"/>
-	public class Block : IBlock, IEventSource, IProvidesDirectAccess {
+	public class Block : EventSource, IBlock, IProvidesDirectAccess {
 		private IQuery query;
 
-		internal Block(IRequest request) {
-			if (request == null)
+		internal Block(IRequest request)
+			: base(request as IEventSource) {
+ 			if (request == null)
 				throw new ArgumentNullException("request");
 
 			query = request as IQuery;
@@ -69,18 +70,6 @@ namespace Deveel.Data {
 			get { return Access; }
 		}
 
-		IEventSource IEventSource.ParentSource {
-			get { return Parent.AsEventSource(); }
-		}
-
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return GetEventMetadata(); }
-		}
-
-		protected virtual IEnumerable<KeyValuePair<string, object>> GetEventMetadata() {
-			return new KeyValuePair<string, object>[0];
-		}
-
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -98,7 +87,7 @@ namespace Deveel.Data {
 
 		public IBlockContext Context { get; private set; }
 
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
 		}
 

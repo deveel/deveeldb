@@ -24,13 +24,12 @@ namespace Deveel.Data {
 	public static class DatabaseExtensions {
 		public static IEventSource AsEventSource(this IDatabase database) {
 			if (database == null)
-				throw new ArgumentNullException("database");
+				return null;
 
-			var source = database as IEventSource;
-			if (source != null)
-				return source;
+			if (database is IEventSource)
+				return (IEventSource) database;
 
-			return new EventSource(database.Context, database.System.AsEventSource());
+			return new EventSource(database.System.AsEventSource());
 		}
 
 		#region Transactions

@@ -92,6 +92,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSourceTests.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ErrorEventTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
@@ -179,11 +180,11 @@
     <Compile Include="Deveel.Data.Sql\ArrayFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanFieldTests.cs" />
     <Compile Include="Deveel.Data.Sql\ObjectNameTests.cs" />
-    <Compile Include="Deveel.Data.Types\BinaryTypeTests.cs" />
-    <Compile Include="Deveel.Data.Types\DateTypeTests.cs" />
-    <Compile Include="Deveel.Data.Types\IntervalTypeTests.cs" />
-    <Compile Include="Deveel.Data.Types\RefTypesTests.cs" />
-    <Compile Include="Deveel.Data.Types\UserType.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\BinaryTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\DateTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\IntervalTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\RefTypesTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\UserType.cs" />
     <Compile Include="Deveel.Data\AggregateFunctionTests.cs" />
     <Compile Include="Deveel.Data\AlterTableTests.cs" />
     <Compile Include="Deveel.Data\AlterTriggerTests.cs" />
@@ -278,9 +279,9 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongStringTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlNumberTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
-    <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
-    <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
-    <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\BooleanTypeTest.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\DataTypeParseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NullObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />

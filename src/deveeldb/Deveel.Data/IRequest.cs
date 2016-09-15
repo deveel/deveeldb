@@ -17,6 +17,8 @@
 
 using System;
 
+using Deveel.Data.Diagnostics;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Represents a generic request for execution of a 
@@ -28,7 +30,7 @@ namespace Deveel.Data {
 	/// </remarks>
 	/// <seealso cref="IBlock"/>
 	/// <seealso cref="IQuery"/>
-	public interface IRequest : IDisposable {
+	public interface IRequest : IContextBased, IDisposable {
 		/// <summary>
 		/// Gets the query that provides the request.
 		/// </summary>
@@ -43,7 +45,7 @@ namespace Deveel.Data {
 		/// </summary>
 		/// <seealso cref="IContext"/>
 		/// <seealso cref="IBlockContext"/>
-		IBlockContext Context { get; }
+		new IBlockContext Context { get; }
 
 
 		/// <summary>

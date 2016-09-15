@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Objects {
 
 		/// <inheritdoc/>
 		public IEnumerator<byte> GetEnumerator() {
-			throw new NotImplementedException();
+			return new ByteEnumerator(this);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -133,5 +133,41 @@ namespace Deveel.Data.Sql.Objects {
 				return new SqlBinary(stream.ToArray());
 			}
 		}
+
+		#region ByteEnumerator
+
+		class ByteEnumerator : IEnumerator<byte> {
+			private readonly SqlBinary binary;
+			private int index;
+
+			public ByteEnumerator(SqlBinary binary) {
+				this.binary = binary;
+				Reset();
+			}
+
+			public byte Current {
+				get { return binary.bytes[index]; }
+			}
+
+			object IEnumerator.Current {
+				get { return Current; }
+			}
+
+			public bool MoveNext() {
+				if (binary.IsNull)
+					return false;
+
+				return ++index < binary.bytes.Length;
+			}
+
+			public void Reset() {
+				index = -1;
+			}
+
+			public void Dispose() {
+			}
+		}
+
+		#endregion
 	}
 }

@@ -20,6 +20,10 @@ using System.Globalization;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventExtensions {
+		public static EventMessage AsMessage(this IEvent @event) {
+			return new EventMessage(@event);
+		}
+
 		public static T GetData<T>(this IEvent @event, string key) {
 			if (@event == null || @event.EventData == null)
 				return default(T);
