@@ -50,5 +50,20 @@ namespace Deveel.Data.Diagnostics {
 			public const string StartTime = "query.startTime";
 			public const string SourceText = "query.source.text";
 		}
+
+		public static class Event {
+			public static class Information {
+				public const string Level = "info.level";
+				public const string Message = "info.message";
+			}
+
+			public static class Error {
+				public const string Level = "error.level";
+				public const string Code = "error.code";
+				public const string Message = "error.message";
+				public const string StackTrace = "error.stackTrace";
+				public const string MetaKeyFormat = "error.meta[{key}]";
+			}
+		}
 	}
 }

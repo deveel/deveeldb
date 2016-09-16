@@ -106,7 +106,7 @@ namespace Deveel.Data {
 
 		protected override void GetMetadata(Dictionary<string, object> metadata) {
 			metadata[MetadataKeys.Query.StartTime] = StartedOn;
-			metadata[MetadataKeys.Query.SourceText] = SourceQuery.Text;
+			metadata[MetadataKeys.Query.SourceText] = SourceQuery == null ? "" : SourceQuery.Text;
 		}
 	}
 }

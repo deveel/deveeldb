@@ -36,15 +36,16 @@ namespace Deveel.Data.Diagnostics {
 		public ErrorLevel Level { get; private set; }
 
 		protected override void GetEventData(Dictionary<string, object> data) {
-			data["error.code"] = ErrorCode;
-			data["error.level"] = Level.ToString().ToLowerInvariant();
-			data["error.message"] = Error.Message;
-			data["error.stackTrace"] = Error.StackTrace;
+			data[MetadataKeys.Event.Error.Code] = ErrorCode;
+			data[MetadataKeys.Event.Error.Level] = Level.ToString().ToLowerInvariant();
+			data[MetadataKeys.Event.Error.Message] = Error.Message;
+			data[MetadataKeys.Event.Error.StackTrace] = Error.StackTrace;
 
 			if (Error is ErrorException) {
 				var errorMetadata = ((ErrorException) Error).ExtractMetadata();
 				foreach (var pair in errorMetadata) {
-					data[String.Format("error.{0}", pair.Key)] = pair.Value;
+					var key = MetadataKeys.Event.Error.MetaKeyFormat.Replace("{key}", pair.Key);
+					data[key] = pair.Value;
 				}
 			}
 		}

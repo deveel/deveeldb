@@ -22,31 +22,10 @@ using System.Linq;
 namespace Deveel.Data.Diagnostics {
 	public static class EventSourceExtensions {
 		public static T GetMetadata<T>(this IEventSource source, string key, CultureInfo formatProvider) {
-			if (String.IsNullOrEmpty(key))
-				throw new ArgumentNullException("key");
-
 			if (source == null || source.Metadata == null)
 				return default(T);
 
-			var meta = source.Metadata.ToDictionary(pair => pair.Key, pair => pair.Value);
-			object value;
-			if (!meta.TryGetValue(key, out value) ||
-				value == null)
-				return default(T);
-
-			if (!(value is T)) {
-				if (formatProvider == null)
-					throw new ArgumentNullException("formatProvider");
-
-				var nullableType = Nullable.GetUnderlyingType(typeof(T));
-				if (nullableType != null) {
-					value = Convert.ChangeType(value, nullableType, formatProvider);
-				} else {
-					value = Convert.ChangeType(value, typeof(T), formatProvider);
-				}
-			}
-
-			return (T) value;
+			return source.Metadata.GetValue<T>(key, formatProvider);
 		}
 
 		public static T GetMetadata<T>(this IEventSource source, string key) {

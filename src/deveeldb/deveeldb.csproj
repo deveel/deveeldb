@@ -150,6 +150,7 @@
     <Compile Include="Deveel.Data.Diagnostics\Counter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterRegistryExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\DictionaryExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ErrorEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Event.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventExtensions.cs" />

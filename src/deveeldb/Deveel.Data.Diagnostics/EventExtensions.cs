@@ -24,29 +24,23 @@ namespace Deveel.Data.Diagnostics {
 			return new EventMessage(@event);
 		}
 
-		public static T GetData<T>(this IEvent @event, string key) {
+		public static T GetData<T>(this IEvent @event, string key, IFormatProvider formatProvider) {
 			if (@event == null || @event.EventData == null)
 				return default(T);
 
-			object value;
-			if (!@event.EventData.TryGetValue(key, out value))
-				return default(T);
+			return @event.EventData.GetValue<T>(key, formatProvider);
+		}
 
-			if (value is T)
-				return (T) value;
+		public static T GetData<T>(this IEvent @event, string key) {
+			return @event.GetData<T>(key, CultureInfo.InvariantCulture);
+		}
 
-#if !PCL
-			if (value is string &&
-			    typeof(T).IsEnum)
-				return (T) Enum.Parse(typeof(T), (string) value, true);
+		public static string DatabaseName(this IEvent @event) {
+			return @event.EventSource.DatabaseName();
+		}
 
-			if (value is IConvertible)
-				return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
-
-			throw new InvalidCastException();
-#else
-			return (T) Convert.ChangeType(value, typeof (T), CultureInfo.InvariantCulture);
-#endif
+		public static string OsPlatform(this IEvent @event) {
+			return @event.EventSource.OsPlatform();
 		}
 	}
 }
