@@ -27,7 +27,6 @@ namespace Deveel.Data.Configuration {
 			Assert.DoesNotThrow(() => config = new Configuration());
 			Assert.IsNotNull(config);
 			Assert.IsNull(config.Parent);
-			Assert.IsNull(config.Source);
 		}
 
 		[Test]
@@ -141,9 +140,9 @@ namespace Deveel.Data.Configuration {
 			properties.AppendLine("caching.type = Memory");
 
 			IConfiguration configuration = null;
-			Assert.DoesNotThrow(() => configuration = new Configuration(new StringConfigSource(properties.ToString())));
+			Assert.DoesNotThrow(() => configuration = new Configuration());
 			Assert.IsNotNull(configuration);
-			Assert.DoesNotThrow(() => configuration.Load(new PropertiesConfigFormatter()));
+			Assert.DoesNotThrow(() => configuration.Load(new StringConfigurationSource(properties.ToString()), new PropertiesConfigurationFormatter()));
 
 			Assert.DoesNotThrow(() => Assert.IsNotNull(configuration.GetValue("system.readOnly")));
 

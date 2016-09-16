@@ -16,23 +16,12 @@
 
 
 using System;
-using System.IO;
-using System.Text;
 
 namespace Deveel.Data.Configuration {
-	public sealed class StringConfigSource : IConfigSource {
-		public StringConfigSource(string source) {
-			Source = source;
-		}
-
-		public string Source { get; private set; }
-
-		public Stream InputStream {
-			get { return new MemoryStream(Encoding.UTF8.GetBytes(Source), false); }
-		}
-
-		public Stream OutputStream {
-			get { return new MemoryStream(Encoding.UTF8.GetBytes(Source), true);}
-		}
+	/// <summary>
+	/// A source for stored configurations or destination
+	/// to configurations to store.
+	/// </summary>
+	public interface IConfigurationSource {
 	}
 }

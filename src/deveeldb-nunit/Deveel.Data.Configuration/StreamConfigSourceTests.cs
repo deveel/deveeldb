@@ -25,7 +25,7 @@ namespace Deveel.Data.Configuration {
 			var stream = CreatePropertiesStreamToLoad();
 
 			var dbConfig = new Configuration();
-			dbConfig.Load(stream, new PropertiesConfigFormatter());
+			dbConfig.Load(stream, new PropertiesConfigurationFormatter());
 
 			Assert.AreEqual(2, dbConfig.GetKeys().Count());
 
@@ -47,7 +47,7 @@ namespace Deveel.Data.Configuration {
 			dbConfig.SetValue("second", 345.33);
 
 			var stream = new MemoryStream();
-			dbConfig.Save(stream, new PropertiesConfigFormatter());
+			dbConfig.Save(stream, new PropertiesConfigurationFormatter());
 
 			Assert.Greater(stream.Length, 0);
 

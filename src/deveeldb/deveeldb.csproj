@@ -90,6 +90,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
@@ -133,17 +134,28 @@
     <Compile Include="Deveel.Data.Client\LocalRowCache.cs" />
     <Compile Include="Deveel.Data.Configuration\Configuration.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationLevel.cs" />
+    <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationElement.cs" />
+    <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationElementCollection.cs" />
     <Compile Include="Deveel.Data.Configuration\DatabaseConfigurationException.cs" />
     <Compile Include="Deveel.Data.Configuration\ConfigurationExtensions.cs" />
-    <Compile Include="Deveel.Data.Configuration\FileConfigSource.cs" />
-    <Compile Include="Deveel.Data.Configuration\IConfigFormatter.cs" />
-    <Compile Include="Deveel.Data.Configuration\IConfigSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\DotNetDatabaseConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\DotNetSectionLoader.cs" />
+    <Compile Include="Deveel.Data.Configuration\IDotNetConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\SettingConfigurationElement.cs" />
+    <Compile Include="Deveel.Data.Configuration\SettingConfigurationElementCollection.cs" />
+    <Compile Include="Deveel.Data.Configuration\SystemConfigurationSection.cs" />
+    <Compile Include="Deveel.Data.Configuration\DotNetConfigurationFormatter.cs" />
+    <Compile Include="Deveel.Data.Configuration\DotNetConfigurationSectionSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\FileConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\IConfigurationFormatter.cs" />
+    <Compile Include="Deveel.Data.Configuration\IConfigurationSource.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfiguration.cs" />
     <Compile Include="Deveel.Data.Configuration\IConfigurationProvider.cs" />
-    <Compile Include="Deveel.Data.Configuration\PropertiesConfigFormatter.cs" />
-    <Compile Include="Deveel.Data.Configuration\StreamConfigSource.cs" />
-    <Compile Include="Deveel.Data.Configuration\StringConfigSource.cs" />
-    <Compile Include="Deveel.Data.Configuration\UrlConfigSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\IStreamConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\PropertiesConfigurationFormatter.cs" />
+    <Compile Include="Deveel.Data.Configuration\StreamConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\StringConfigurationSource.cs" />
+    <Compile Include="Deveel.Data.Configuration\UrlConfigurationSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextBasedExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />

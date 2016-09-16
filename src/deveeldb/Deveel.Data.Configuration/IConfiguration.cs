@@ -32,16 +32,16 @@ namespace Deveel.Data.Configuration {
 	/// </para>
 	/// </remarks>
 	public interface IConfiguration : IEnumerable<KeyValuePair<string, object>> {
-		/// <summary>
-		/// Gets or sets an optional source of the configuration object
-		/// </summary>
-		/// <remarks>
-		/// This property is optional and it is convenient when it is
-		/// required to save or reload the values to/from the source, retaining
-		/// a reference to the origin.
-		/// </remarks>
-		/// <seealso cref="IConfigSource"/>
-		IConfigSource Source { get; set; }
+		///// <summary>
+		///// Gets or sets an optional source of the configuration object
+		///// </summary>
+		///// <remarks>
+		///// This property is optional and it is convenient when it is
+		///// required to save or reload the values to/from the source, retaining
+		///// a reference to the origin.
+		///// </remarks>
+		///// <seealso cref="IConfigurationSource"/>
+		//IConfigurationSource Source { get; set; }
 
 		/// <summary>
 		/// Gets or sets an optional parent object of this configuration.

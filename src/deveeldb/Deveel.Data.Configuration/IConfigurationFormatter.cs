@@ -26,43 +26,43 @@ namespace Deveel.Data.Configuration {
 	/// <remarks>
 	/// Implementations of this interface will apply a specific
 	/// format to the data stored and retrieved (for example
-	/// an XML fragmanet, a key/value file, a binary file, etc.).
+	/// an XML fragment, a key/value file, a binary file, etc.).
 	/// </remarks>
-	public interface IConfigFormatter {
+	public interface IConfigurationFormatter {
 		/// <summary>
-		/// Loads a stored configuration from the given stream
+		/// Loads a stored configuration from the given source
 		/// into the configuration argument.
 		/// </summary>
 		/// <param name="config">The configuration object inside of which
-		/// to load the configurations from the the given stream.</param>
-		/// <param name="inputStream">The stream from where to read the
+		/// to load the configurations from the given source.</param>
+		/// <param name="source">The source from where to read the
 		/// configurations formatted into the object provided as argument.</param>
 		/// <exception cref="ArgumentException">
-		/// If the provided <paramref name="inputStream"/> cannot be read.
+		/// If the provided <paramref name="source"/> cannot be read.
 		/// </exception>
 		/// <exception cref="ArgumentNullException">
-		/// If either <paramref name="config"/> or <paramref name="inputStream"/>
+		/// If either <paramref name="config"/> or <paramref name="source"/>
 		/// are <c>null</c>.
 		/// </exception>
-		void LoadInto(IConfiguration config, Stream inputStream);
+		void LoadInto(IConfiguration config, IConfigurationSource source);
 
 		/// <summary>
-		/// Stores the given level of configurations into the output stream
+		/// Stores the given level of configurations into the source
 		/// provided, in the format handled by this interface.
 		/// </summary>
 		/// <param name="config">The source of the configurations to store.</param>
 		/// <param name="level">The level of the configurations to load from
 		/// the source and store.</param>
-		/// <param name="outputStream">The destination stream where the formatter
+		/// <param name="source">The destination where the formatter
 		/// saves the configurations retrieved from the source.</param>
 		/// <seealso cref="ConfigurationLevel"/>
 		/// <exception cref="ArgumentException">
-		/// If the provided <paramref name="outputStream"/> cannot be written.
+		/// If the provided <paramref name="source"/> cannot be written.
 		/// </exception>
 		/// <exception cref="ArgumentNullException">
-		/// If either <paramref name="config"/> or <paramref name="outputStream"/>
+		/// If either <paramref name="config"/> or <paramref name="source"/>
 		/// are <c>null</c>.
 		/// </exception>
-		void SaveFrom(IConfiguration config, ConfigurationLevel level, Stream outputStream);
+		void SaveFrom(IConfiguration config, ConfigurationLevel level, IConfigurationSource source);
 	}
 }

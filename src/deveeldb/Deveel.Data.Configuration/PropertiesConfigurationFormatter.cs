@@ -22,18 +22,22 @@ using System.IO;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Configuration {
-	public sealed class PropertiesConfigFormatter : IConfigFormatter {
+	public sealed class PropertiesConfigurationFormatter : IConfigurationFormatter {
 		private void SetValue(IConfiguration config, string propKey, string value) {
 			config.SetValue(propKey, value);
 		}
 
-		public void LoadInto(IConfiguration config, Stream inputStream) {
-			if (inputStream == null)
-				throw new ArgumentNullException("inputStream");
+		public void LoadInto(IConfiguration config, IConfigurationSource source) {
+			if (source == null)
+				throw new ArgumentNullException("source");
 
 			try {
+				var streamSource = source as IStreamConfigurationSource;
+				if (streamSource == null)
+					throw new ArgumentException("The provided source is not valid");
+
 				var properties = new Properties();
-				properties.Load(inputStream);
+				properties.Load(streamSource.InputStream);
 
 				foreach (var entry in properties) {
 					var propKey = entry.Key;
@@ -46,8 +50,12 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public void SaveFrom(IConfiguration config, ConfigurationLevel level, Stream outputStream) {
+		public void SaveFrom(IConfiguration config, ConfigurationLevel level, IConfigurationSource source) {
 			try {
+				var streamSource = source as IStreamConfigurationSource;
+				if (streamSource == null)
+					throw new ArgumentException("The provided source is not valid");
+
 				var keys = config.GetKeys(level);
 				var properties = new Properties();
 
@@ -59,7 +67,7 @@ namespace Deveel.Data.Configuration {
 					}
 				}
 
-				properties.Store(outputStream, String.Empty);
+				properties.Store(streamSource.OutputStream, String.Empty);
 			} catch (DatabaseConfigurationException) {
 				throw;
 			} catch (Exception ex) {

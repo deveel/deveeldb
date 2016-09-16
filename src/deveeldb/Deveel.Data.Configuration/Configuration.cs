@@ -20,8 +20,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data;
-
 namespace Deveel.Data.Configuration {
 	public class Configuration : IConfiguration {
 		private readonly bool isRoot;
@@ -41,30 +39,14 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		/// <param name="parent">The parent <see cref="Configuration"/> object that
 		/// will provide fallback configurations</param>
-		/// <param name="source"></param>
-		public Configuration(IConfiguration parent, IConfigSource source)
+		public Configuration(IConfiguration parent)
 			: this(parent == null) {
 			Parent = parent;
-			Source = source;
-
-			if (source != null)
-				this.Load(source);
-		}
-
-		public Configuration(IConfigSource source)
-			: this(null, source) {
 		}
 
 		public Configuration()
 			: this(true) {
 		}
-
-		public Configuration(IConfiguration parent)
-			: this(parent, null) {
-		}
-
-		/// <inheritdoc/>
-		public IConfigSource Source { get; set; }
 
 		/// <inheritdoc/>
 		public IConfiguration Parent { get; set; }

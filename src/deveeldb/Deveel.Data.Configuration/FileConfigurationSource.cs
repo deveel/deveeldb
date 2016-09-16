@@ -23,14 +23,14 @@ namespace Deveel.Data.Configuration {
 	/// A channel used to read from and write to a given file
 	/// in the underlying file-system.
 	/// </summary>
-	public sealed class FileConfigSource : IConfigSource {
+	public sealed class FileConfigurationSource : IStreamConfigurationSource {
 		/// <summary>
 		/// Constructs the source over the file located at the
 		/// given path within the underlying file-system.
 		/// </summary>
 		/// <param name="filePath">The string describing the path where
 		/// the file is located.</param>
-		public FileConfigSource(string filePath) {
+		public FileConfigurationSource(string filePath) {
 			if (filePath == null)
 				throw new ArgumentNullException("filePath");
 

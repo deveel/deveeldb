@@ -216,93 +216,70 @@ namespace Deveel.Data.Configuration {
 			return config.GetValue<double>(propertyKey, defaultValue);
 		}
 
-#endregion
+		#endregion
 
-#endregion
+		#endregion
 
-#region Load / Save
-
-		public static void Load(this IConfiguration config, IConfigSource source) {
-			config.Load(source, new PropertiesConfigFormatter());
-		}
-
-		public static void Load(this IConfiguration config, IConfigFormatter formatter) {
-			if (config.Source == null)
-				throw new InvalidOperationException("Source was not configured");
-
-			config.Load(config.Source, formatter);
-		}
-
-		public static void Load(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
+		#region Load / Save
+		public static void Load(this IConfiguration config, IConfigurationSource source, IConfigurationFormatter formatter) {
 			try {
 				if (source != null) {
-					using (var sourceStream = source.InputStream) {
-						if (!sourceStream.CanRead)
-							throw new ArgumentException("The input stream cannot be read.");
-
-						sourceStream.Seek(0, SeekOrigin.Begin);
-						formatter.LoadInto(config, sourceStream);
-					}
+					formatter.LoadInto(config, source);
 				}
 			} catch (Exception ex) {
-				throw new DatabaseConfigurationException(String.Format("Cannot load data from source"), ex);
+				throw new DatabaseConfigurationException("Cannot load data from source", ex);
 			}
+		}
+
+		public static void LoadProperties(this IConfiguration config, IStreamConfigurationSource source) {
+			config.Load(source, new PropertiesConfigurationFormatter());
 		}
 
 #if !PCL
-		public static void Load(this IConfiguration config, string fileName, IConfigFormatter formatter) {
-			config.Load(new FileConfigSource(fileName), formatter);
+		public static void LoadFile(this IConfiguration config, string fileName, IConfigurationFormatter formatter) {
+			config.Load(new FileConfigurationSource(fileName), formatter);
 		}
 
-		public static void Load(this IConfiguration config, string fileName) {
-			config.Load(fileName, new PropertiesConfigFormatter());
+		public static void LoadFile(this IConfiguration config, string fileName) {
+			config.LoadFile(fileName, new PropertiesConfigurationFormatter());
 		}
 #endif
 
-		public static void Load(this IConfiguration config, Stream inputStream, IConfigFormatter formatter) {
-			config.Load(new StreamConfigSource(inputStream), formatter);
+		public static void LoadStream(this IConfiguration config, Stream inputStream, IConfigurationFormatter formatter) {
+			config.Load(new StreamConfigurationSource(inputStream), formatter);
 		}
 
-		public static void Load(this IConfiguration config, Stream inputStream) {
-			config.Load(inputStream, new PropertiesConfigFormatter());
+		public static void LoadStream(this IConfiguration config, Stream inputStream) {
+			config.LoadStream(inputStream, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
+		public static void LoadSystemConfiguration(this IConfiguration config, string sectionName) {
+			LoadSystemConfiguration(config, null, sectionName);
+		}
+
+		public static void LoadSystemConfiguration(this IConfiguration config, string fileName, string sectionName) {
+			config.Load(new DotNetConfigurationSectionSource(fileName, sectionName), new DotNetConfigurationFormatter());
+		}
+
+		public static void LoadDatabaseConfiguration(this IConfiguration config, string sectionName, string databaseName) {
+			LoadDatabaseConfiguration(config, null, sectionName, databaseName);
+		}
+
+		public static void LoadDatabaseConfiguration(this IConfiguration config, string fileName, string sectionName, string databaseName) {
+			config.Load(new DotNetDatabaseConfigurationSource(fileName, sectionName, databaseName), new DotNetConfigurationFormatter());
+		}
+
+		public static void Save(this IConfiguration config, IConfigurationSource source, IConfigurationFormatter formatter) {
 			Save(config, source, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IConfiguration config, IConfigSource source, ConfigurationLevel level,
-			IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigurationSource source, ConfigurationLevel level,
+			IConfigurationFormatter formatter) {
 			try {
-				var outputStream = source.OutputStream;
-				if (!outputStream.CanWrite)
-					throw new InvalidOperationException("The destination source cannot be written.");
-
-				outputStream.Seek(0, SeekOrigin.Begin);
-				formatter.SaveFrom(config, level, outputStream);
-				outputStream.Flush();
+				formatter.SaveFrom(config, level, source);
 			} catch (Exception ex) {
 				throw new DatabaseConfigurationException("Cannot save the configuration.", ex);
 			}
-		}
-
-		public static void Save(this IConfiguration config, IConfigFormatter formatter) {
-			Save(config, ConfigurationLevel.Current, formatter);
-		}
-
-		public static void Save(this IConfiguration config, ConfigurationLevel level, IConfigFormatter formatter) {
-			if (config.Source == null)
-				throw new DatabaseConfigurationException("The source was not configured in the configuration.");
-
-			config.Save(config.Source, level, formatter);
-		}
-
-		public static void Save(this IConfiguration config) {
-			Save(config, ConfigurationLevel.Current);
-		}
-
-		public static void Save(this IConfiguration config, ConfigurationLevel level) {
-			Save(config, level, new PropertiesConfigFormatter());
 		}
 
 #if !PCL
@@ -311,14 +288,14 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName) {
-			Save(config, level, fileName, new PropertiesConfigFormatter());
+			Save(config, level, fileName, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, string fileName, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, string fileName, IConfigurationFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, fileName, formatter);
 		}
-		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
-			config.Save(new FileConfigSource(fileName), level, formatter);
+		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigurationFormatter formatter) {
+			config.Save(new FileConfigurationSource(fileName), level, formatter);
 		}
 #endif
 
@@ -327,15 +304,15 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream) {
-			Save(config, level, outputStream, new PropertiesConfigFormatter());
+			Save(config, level, outputStream, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, Stream outputStream, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, Stream outputStream, IConfigurationFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, outputStream, formatter);
 		}
 
-		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
-			config.Save(new StreamConfigSource(outputStream), level, formatter);
+		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream, IConfigurationFormatter formatter) {
+			config.Save(new StreamConfigurationSource(outputStream), level, formatter);
 		}
 
 #endregion
