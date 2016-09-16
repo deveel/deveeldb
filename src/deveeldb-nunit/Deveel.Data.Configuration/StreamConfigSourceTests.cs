@@ -25,7 +25,7 @@ namespace Deveel.Data.Configuration {
 			var stream = CreatePropertiesStreamToLoad();
 
 			var dbConfig = new Configuration();
-			dbConfig.Load(stream, new PropertiesConfigurationFormatter());
+			dbConfig.LoadStream(stream, new PropertiesConfigurationFormatter());
 
 			Assert.AreEqual(2, dbConfig.GetKeys().Count());
 
