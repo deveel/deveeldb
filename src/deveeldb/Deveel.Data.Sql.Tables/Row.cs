@@ -447,11 +447,11 @@ namespace Deveel.Data.Sql.Tables {
 			return Mapper.ToObject(destType, this);
 		}
 
-		public T ToObject<T>() where T : class {
+		public T ToObject<T>() {
 			return ToObject<T>(null);
 		}
 
-		public T ToObject<T>(IRequest context) where T : class {
+		public T ToObject<T>(IRequest context) {
 			return Mapper.ToObject<T>(this);
 		}
 

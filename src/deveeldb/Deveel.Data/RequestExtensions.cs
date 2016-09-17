@@ -479,11 +479,11 @@ namespace Deveel.Data {
 			return request.Select(query);
 		}
 
-		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) where T : class {
+		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) {
 			return request.Select(query).Select(x => x.ToObject<T>());
 		}
 
-		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) where T : class {
+		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) {
 			var query = (SqlQueryExpression) SqlExpression.Parse(queryText);
 			return request.Select<T>(query);
 		}

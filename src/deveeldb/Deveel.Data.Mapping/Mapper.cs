@@ -52,7 +52,7 @@ namespace Deveel.Data.Mapping {
 			return mapInfo.ToObject(row);
 		}
 
-		public static T ToObject<T>(Row row) where T : class {
+		public static T ToObject<T>(Row row) {
 			return (T) ToObject(typeof (T), row);
 		}
 
