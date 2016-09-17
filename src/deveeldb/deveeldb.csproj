@@ -1025,9 +1025,7 @@
     <None Include="deveeldb.snk" />
     <None Include="packages.deveeldb.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Deveel.Data.Mapping\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
