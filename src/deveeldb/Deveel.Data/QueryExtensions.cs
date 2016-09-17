@@ -170,6 +170,7 @@ namespace Deveel.Data {
 			query.ExecuteStatement(statement);
 		}
 
+
 		#endregion
 
 		#region Alter Table

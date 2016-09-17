@@ -282,7 +282,6 @@ SHOW:                         S H O W;
 SHUTDOWN:                     S H U T D O W N;
 SINGLE:                       S I N G L E;
 SIZE:                         S I Z E;
-SKIP:                         S K I P;
 SMALLINT:                     S M A L L I N T;
 SNAPSHOT:                     S N A P S H O T;
 SOME:                         S O M E;
