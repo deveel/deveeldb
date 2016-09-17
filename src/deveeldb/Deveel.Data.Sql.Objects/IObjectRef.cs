@@ -22,5 +22,7 @@ using Deveel.Data.Store;
 namespace Deveel.Data.Sql.Objects {
 	public interface IObjectRef {
 		ObjectId ObjectId { get; }
+
+		long Size { get; }
 	}
 }

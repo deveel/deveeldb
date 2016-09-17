@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using Deveel.Data.Deveel.Data.Protocol;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
@@ -59,6 +60,7 @@ namespace Deveel.Data.Protocol {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				ClearResults();
+				ClearObjectCache();
 			}
 
 			Database = null;
@@ -110,6 +112,17 @@ namespace Deveel.Data.Protocol {
 				}
 
 				resultMap.Clear();
+			}
+		}
+
+		private void ClearObjectCache() {
+			lock (lobLock) {
+				foreach (var lob in lobMap.Values) {
+					if (lob != null)
+						lob.Dispose();
+				}
+
+				lobMap.Clear();
 			}
 		}
 
@@ -374,9 +387,45 @@ namespace Deveel.Data.Protocol {
 			return CreateEnvelope(metadata, message);
 		}
 
+		private Dictionary<ObjectId, ILargeObject> lobMap;
+		private readonly object lobLock = new object();
 
-		public ILargeObjectChannel CreateObjectChannel(long objectId) {
-			throw new NotImplementedException();
+		private ILargeObject GetLargeObject(ObjectId objId) {
+			lock (lobLock) {
+				if (lobMap == null)
+					lobMap = new Dictionary<ObjectId, ILargeObject>();
+
+				ILargeObject obj;
+				if (!lobMap.TryGetValue(objId, out obj)) {
+					obj = Database.GetLargeObject(objId);
+					lobMap[objId] = obj;
+				}
+
+				return obj;
+			}
+		}
+
+
+		public ILargeObjectChannel CreateObjectChannel(ObjectId objectId) {
+			var lob = GetLargeObject(objectId);
+			if (lob == null)
+				throw new InvalidOperationException();
+
+
+			return new DirectLargeObjectChannel(this, lob);
+		}
+
+		private void DisposeChannel(ObjectId objId) {
+			lock (lobLock) {
+				ILargeObject obj;
+				if (lobMap.TryGetValue(objId, out obj)) {
+					obj.Dispose();
+				}
+
+				if (!lobMap.Remove(objId)) {
+					// TODO: log the error
+				}
+			}
 		}
 
 		public ITriggerChannel CreateTriggerChannel(string triggerName, string objectName, TriggerEventType eventType) {
@@ -442,7 +491,7 @@ namespace Deveel.Data.Protocol {
 						ISqlObject clientOb = null;
 						if (value.Value is IObjectRef) {
 							var reference = (IObjectRef)value.Value;
-							// TODO: Make a protocol placeholder for the large object ref
+							clientOb = new RemoteObjectRef(reference.ObjectId, reference.Size);
 						} else {
 							clientOb = value.Value;
 						}
@@ -471,7 +520,16 @@ namespace Deveel.Data.Protocol {
 		}
 
 		private ObjectId CreateLargeObject(long objectLength) {
-			throw new NotImplementedException();
+			lock (lobLock) {
+				try {
+					var obj = Database.CreateLargeObject(objectLength, true);
+					lobMap[obj.Id] = obj;
+					return obj.Id;
+				} catch (Exception) {
+					// TODO: log the error into the context
+					throw;
+				}
+			}
 		}
 
 		#region QueryResponse
@@ -720,6 +778,48 @@ namespace Deveel.Data.Protocol {
 					// TODO: Log the error ...
 					return CreateErrorResponse(metadata, ex);
 				}
+			}
+		}
+
+		#endregion
+
+		#region DirectLargeObjectChannel
+
+		class DirectLargeObjectChannel : ILargeObjectChannel {
+			private ILargeObject obj;
+			private ServerConnector connector;
+
+			public DirectLargeObjectChannel(ServerConnector connector, ILargeObject obj) {
+				this.connector = connector;
+				this.obj = obj;
+			}
+
+			~DirectLargeObjectChannel() {
+				Dispose(false);
+			}
+
+			private void Dispose(bool disposing) {
+				if (disposing) {
+					connector.DisposeChannel(obj.Id);
+				}
+
+				connector = null;
+				obj = null;
+			}
+
+			public void Dispose() {
+				Dispose(true);
+				GC.SuppressFinalize(this);
+			}
+
+			public void PushData(long offset, byte[] buffer, int length) {
+				obj.Write(offset, buffer, length);
+			}
+
+			public byte[] ReadData(long offset, int length) {
+				var buffer = new byte[length];
+				obj.Read(offset, buffer, length);
+				return buffer;
 			}
 		}
 

@@ -17,12 +17,14 @@
 
 using System;
 
+using Deveel.Data.Store;
+
 namespace Deveel.Data.Protocol {
 	public sealed class LargeObjectDisposeRequest : IMessage {
-		public LargeObjectDisposeRequest(long objectId) {
+		public LargeObjectDisposeRequest(ObjectId objectId) {
 			ObjectId = objectId;
 		}
 
-		public long ObjectId { get; private set; }
+		public ObjectId ObjectId { get; private set; }
 	}
 }

@@ -130,6 +130,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbEnlistment.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbServerException.cs" />
@@ -205,6 +206,8 @@
     <Compile Include="Deveel.Data.Mapping\IdentityAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\TableNameAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapInfo.cs" />
+    <Compile Include="Deveel.Data.Protocol\RemoteObjectRef.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedureInfo.cs" />
