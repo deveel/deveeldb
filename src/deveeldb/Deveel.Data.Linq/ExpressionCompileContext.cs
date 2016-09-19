@@ -6,6 +6,7 @@ using Deveel.Data.Design;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Linq {
 	class ExpressionCompileContext {
@@ -24,7 +25,7 @@ namespace Deveel.Data.Linq {
 			sources = new List<Type>();
 
 			Columns = new List<SelectColumn>();
-			Parameters = new List<QueryParameter>();
+			Parameters = new Dictionary<string, SqlExpression>();
 		}
 
 		public CompiledModel Model { get; private set; }
@@ -36,7 +37,7 @@ namespace Deveel.Data.Linq {
 			}
 		}
 
-		public ICollection<QueryParameter> Parameters { get; private set; }
+		public Dictionary<string, SqlExpression> Parameters { get; private set; }
 
 		public IList<SelectColumn> Columns { get; private set; }
 
@@ -115,6 +116,18 @@ namespace Deveel.Data.Linq {
 				sortColumns = new List<SortColumn>();
 
 			sortColumns.Add(new SortColumn(expression, ascending));
+		}
+
+		private int paramIndex = -1;
+
+		public string AddParameter(Field value) {
+			var i = ++paramIndex;
+			var name = String.Format("p{0}", i);
+			var exp = SqlExpression.Constant(value);
+
+			Parameters.Add(name, exp);
+
+			return name;
 		}
 	}
 }

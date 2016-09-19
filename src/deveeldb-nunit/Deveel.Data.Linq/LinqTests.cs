@@ -12,6 +12,8 @@ using NUnit.Framework;
 namespace Deveel.Data.Linq {
 	[TestFixture]
 	public class LinqTests : ContextBasedTest {
+		private SessionQueryContext Context { get; set; }
+
 		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			var tableInfo = new TableInfo(tableName);
@@ -44,7 +46,13 @@ namespace Deveel.Data.Linq {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			AdminQuery.Context.RegisterInstance<IMappingContext>(new TestMappingContext());
+			AdminSession.Context.RegisterInstance<IMappingContext>(new TestMappingContext());
+			Context = new SessionQueryContext(AdminSession);
+		}
+
+		protected override void OnBeforeTearDown(string testName) {
+			if (Context != null)
+				Context.Dispose();
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {
@@ -55,11 +63,37 @@ namespace Deveel.Data.Linq {
 
 		[Test]
 		public void QueryFirstOrDefault() {
-			var result = AdminQuery.AsQueryable<TestClass>()
+			var result = Context.Table<TestClass>()
 				.FirstOrDefault();
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual("Antonello Provenzano", result.Name);
+		}
+
+		[Test]
+		public void QueryAgeGreaterThan() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Age > 32)
+				.ToList();
+
+			Assert.IsNotEmpty(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.ElementAt(0);
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void QueryLastOrDefault() {
+			TestClass result = null;
+			Assert.Throws<NotSupportedException>(() => result = Context.Table<TestClass>().LastOrDefault());
+
+			result = Context.Table<TestClass>().AsEnumerable().LastOrDefault();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual("Mart Roosmaa", result.Name);
 		}
 
 		#region TestClass

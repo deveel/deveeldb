@@ -91,8 +91,9 @@ namespace Deveel.Data.Linq {
 
 		protected override Expression VisitConstant(ConstantExpression c) {
 			var value = Field.Create(c.Value);
+			var paramName = Context.AddParameter(value);
 
-			Result = SqlExpression.Constant(value);
+			Result = SqlExpression.VariableReference(paramName);
 
 			return c;
 		}

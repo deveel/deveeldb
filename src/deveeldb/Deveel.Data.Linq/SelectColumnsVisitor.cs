@@ -22,16 +22,34 @@ namespace Deveel.Data.Linq {
 		}
 
 		public override void VisitResultOperator(ResultOperatorBase resultOperator, QueryModel queryModel, int index) {
-			var column = Context.Columns[index];
-			var expression = column.Expression;
+			bool handled = true;
 
-			if (resultOperator is CountResultOperator) {
-				expression = SqlExpression.FunctionCall("COUNT", new[] {expression});
+			if (Context.Columns.Count > 0) {
+				var column = Context.Columns[index];
+				var expression = column.Expression;
+
+
+				if (resultOperator is CountResultOperator) {
+					expression = SqlExpression.FunctionCall("COUNT", new[] {expression});
+				} else if (resultOperator is FirstResultOperator) {
+					// TODO: emit a LIMIT(0,1) clause
+				} else {
+					handled = false;
+				}
+
+				Context.Columns[index] = new SelectColumn(expression, column.Alias);
 			} else {
-				throw new NotSupportedException();
+				if (resultOperator is CountResultOperator) {
+					// TODO: COUNT(*) for the proper source
+				} else if (resultOperator is FirstResultOperator) {
+					// TODO: emit a LIMIT(0,1) clause
+				} else {
+					handled = false;
+				}
 			}
 
-			Context.Columns[index] = new SelectColumn(expression, column.Alias);
+			if (!handled)
+				throw new NotSupportedException();
 
 			base.VisitResultOperator(resultOperator, queryModel, index);
 		}

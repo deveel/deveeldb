@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using Deveel.Data.Design;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
@@ -480,7 +481,8 @@ namespace Deveel.Data {
 		}
 
 		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) {
-			return request.Select(query).Select(x => x.ToObject<T>(request));
+			var model = request.CompileModel();
+			return request.Select(query).Select(x => x.ToObject<T>(model));
 		}
 
 		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) {
