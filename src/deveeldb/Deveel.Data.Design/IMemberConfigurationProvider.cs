@@ -3,7 +3,7 @@
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	interface IMemberConfigurationProvider : IMemberConfiguration {
 		string ColumnName { get; }
 

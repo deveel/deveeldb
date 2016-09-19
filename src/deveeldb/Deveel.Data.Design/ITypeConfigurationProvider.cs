@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	interface ITypeConfigurationProvider {
 		Type Type { get; }
 

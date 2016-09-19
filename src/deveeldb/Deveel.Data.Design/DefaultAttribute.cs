@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public class DefaultAttribute : Attribute {
 		public DefaultAttribute(object value) 

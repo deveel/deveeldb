@@ -9,7 +9,7 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public class TypeConfiguration<TType> : ITypeConfigurationProvider where TType : class {
 		private string tableName;
 		private IDictionary<string, IMemberConfigurationProvider> members;

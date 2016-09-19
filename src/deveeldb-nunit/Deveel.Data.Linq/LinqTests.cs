@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;

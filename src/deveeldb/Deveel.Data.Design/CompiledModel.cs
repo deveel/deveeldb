@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Sql.Tables;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public sealed class CompiledModel {
 		private readonly Dictionary<Type, TypeMapInfo> typeMap;
 

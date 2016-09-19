@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public abstract class MappingContext : IMappingContext {
 		void IMappingContext.OnBuildMap(MapModelBuilder builder) {
 			OnBuildMap(builder);

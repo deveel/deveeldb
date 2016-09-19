@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class CheckAttribute : Attribute {
 		public CheckAttribute(string expression) {

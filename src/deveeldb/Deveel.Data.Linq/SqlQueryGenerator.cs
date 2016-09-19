@@ -6,7 +6,7 @@ using System.Text;
 
 using Antlr4.Runtime;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 using Deveel.Data.Sql;
 
 using Remotion.Linq;

@@ -17,8 +17,8 @@
 
 using System;
 
-namespace Deveel.Data.Mapping {
-	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-	public sealed class IgnoreAttribute : Attribute {
+namespace Deveel.Data.Design {
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+	public sealed class IdentityAttribute : Attribute {
 	}
 }

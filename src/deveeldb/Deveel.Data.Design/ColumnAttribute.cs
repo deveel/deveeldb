@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public sealed class ColumnAttribute : Attribute {
 		public string Name { get; set; }

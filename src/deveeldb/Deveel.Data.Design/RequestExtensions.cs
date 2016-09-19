@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public static class RequestExtensions {
 		public static CompiledModel CompileModel(this IRequest query) {
 			var providers = query.Context.ResolveAllServices<IMappingContext>();

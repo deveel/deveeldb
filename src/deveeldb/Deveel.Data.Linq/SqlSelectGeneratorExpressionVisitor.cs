@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 using Deveel.Data.Sql;
 
 using Remotion.Linq.Clauses.Expressions;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public enum ColumnConstraintType {
 		None = 0,
 		PrimaryKey = 1,

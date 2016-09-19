@@ -4,7 +4,7 @@ using System.Linq;
 
 using Deveel.Data.Sql.Tables;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public sealed class TypeMapInfo {
 		internal TypeMapInfo(Type type, string tableName, IEnumerable<TypeMemberMapInfo> members, IEnumerable<TypeConstraintMapInfo> constraints) {
 			Type = type;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public sealed class TypeConstraintMapInfo {
 		internal TypeConstraintMapInfo(ConstraintType constraintType, IEnumerable<TypeMemberMapInfo> members, SqlExpression checkExpression) {
 			ConstraintType = constraintType;

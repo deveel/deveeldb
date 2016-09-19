@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 
 namespace Deveel.Data.Linq {
 	class ExpressionCompileContext {

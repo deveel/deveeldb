@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public sealed class TypeConfigurationRegistry : IDisposable {
 		private Dictionary<Type, ITypeConfigurationProvider> configurations;
 
@@ -44,6 +44,16 @@ namespace Deveel.Data.Mapping {
 
 		public void AddFromAssembly(Assembly assembly) {
 			throw new NotImplementedException();
+		}
+
+		internal TypeConfiguration<TType> GetOrAdd<TType>() where TType : class {
+			ITypeConfigurationProvider configuration;
+			if (!configurations.TryGetValue(typeof(TType), out configuration)) {
+				configuration = new TypeConfiguration<TType>();
+				configurations[typeof(TType)] = configuration;
+			}
+
+			return (TypeConfiguration<TType>) configuration;
 		}
 	}
 }

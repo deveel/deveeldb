@@ -4,7 +4,7 @@ using System.Reflection;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	public sealed class TypeMemberMapInfo {
 		internal TypeMemberMapInfo(MemberInfo member, string columnName, SqlType columnType, SqlExpression defaultExpression) {
 			Member = member;

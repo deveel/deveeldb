@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Mapping {
+namespace Deveel.Data.Design {
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public sealed class DefaultExpressionAttribute : DefaultAttribute {
 		public DefaultExpressionAttribute(string expression)
