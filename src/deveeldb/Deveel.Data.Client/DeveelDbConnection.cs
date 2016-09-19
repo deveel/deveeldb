@@ -23,6 +23,7 @@ using System.Transactions;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
+using Deveel.Data.Store;
 
 using IsolationLevel = System.Data.IsolationLevel;
 
@@ -297,6 +298,31 @@ namespace Deveel.Data.Client {
 				Client.DisposeResult(resultId);
 			} catch (Exception ex) {
 				throw new DeveelDbException(String.Format("The remote result '{0}' could not be disposed.", resultId), ex);
+			}
+		}
+
+		internal ObjectId CreateLargeObject(long size) {
+			try {
+				return Client.CreateLargeObject(size);
+			} catch (Exception ex) {
+				throw new DeveelDbException("Could not create a large object because of a server error.", ex);
+			}
+		}
+
+		internal ILargeObjectChannel OpenLargeObjectChannel(ObjectId objId) {
+			try {
+				return Client.CreateLargeObjectChannel(objId);
+			} catch (Exception ex) {
+				throw new DeveelDbException(String.Format("Error when creating a channel for LOB '{0}'.", objId), ex);
+			}
+		}
+
+		internal void DisposeObject(ObjectId objectId) {
+			try {
+				Client.DisposeLargeObject(objectId);
+			} catch (Exception) {
+				
+				throw;
 			}
 		}
 

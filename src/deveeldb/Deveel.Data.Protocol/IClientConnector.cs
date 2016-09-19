@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 
+
 namespace Deveel.Data.Protocol {
 	public interface IClientConnector : IConnector {
 		ConnectionEndPoint MakeEndPoint(IDictionary<string, object> properties);

@@ -217,8 +217,7 @@ namespace Deveel.Data.Client {
 
 		public void Disconnect() {
 			try {
-				if (Connector != null)
-				{
+				if (Connector != null) {
 					var response = SendMessage(new CloseRequest())
 						as AcknowledgeResponse;
 
@@ -229,6 +228,11 @@ namespace Deveel.Data.Client {
 						throw new DeveelDbServerException("Unable to close the connection on the server.", -1, -1);
 				}
 			} finally {
+				if (Connector != null && OwnsConnector) {
+					Connector.Dispose();
+					Connector = null;
+				}
+
 				IsClosed = true;
 			}
 		}
@@ -325,7 +329,7 @@ namespace Deveel.Data.Client {
 
 		}
 
-		public void DisposeLargeObject(long objId) {
+		public void DisposeLargeObject(ObjectId objId) {
 			var response = SendMessage(new LargeObjectDisposeRequest(objId))
 				as AcknowledgeResponse;
 
@@ -334,6 +338,16 @@ namespace Deveel.Data.Client {
 
 			if (!response.State)
 				throw new InvalidOperationException("Unable to dispose the large object on the server.");
+		}
+
+		public ObjectId CreateLargeObject(long size) {
+			var response = SendMessage(new LargeObjectCreateRequest(size))
+				as LargeObjectCreateResponse;
+
+			if (response == null)
+				throw new InvalidOperationException();
+
+			return response.ObjectId;
 		}
 
 		public void Dispose() {
@@ -349,6 +363,10 @@ namespace Deveel.Data.Client {
 			}
 
 			Connector = null;
+		}
+
+		public ILargeObjectChannel CreateLargeObjectChannel(ObjectId objId) {
+			return Connector.CreateObjectChannel(objId);
 		}
 	}
 }

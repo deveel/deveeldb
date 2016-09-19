@@ -23,11 +23,13 @@ using System.IO;
 
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
 
 using SysParameterDirection = System.Data.ParameterDirection;
 using System.Text;
+
+using Deveel.Data.Store;
+using Deveel.Data.Util;
 
 namespace Deveel.Data.Client {
 	public sealed class DeveelDbCommand : DbCommand {
@@ -200,7 +202,29 @@ namespace Deveel.Data.Client {
 		}
 
 		private void PrepareCommand() {
-			
+			if (Parameters != null && Parameters.Count > 0) {
+				preparedParameters = new List<QueryParameter>(Parameters.Count);
+
+				foreach (DeveelDbParameter parameter in Parameters) {
+					DeveelDbLob lob = null;
+					if (parameter.Value is DeveelDbLob) {
+						lob = (DeveelDbLob) parameter.Value;
+					} else if (parameter.Value is Stream) {
+						var stream = (Stream) parameter.Value;
+						lob = new DeveelDbLob(parameter.Size);
+						stream.CopyTo(lob);
+					}
+
+					if (lob != null) {
+						var objId = DeveelDbLob.Upload(connection, lob);
+					}
+
+					var sqlType = parameter.GetSqlType();
+					var queryParam = new QueryParameter(parameter.ParameterName, sqlType);
+					queryParam.Value = sqlType.CreateFrom(parameter.Value);
+					preparedParameters.Add(queryParam);
+				}
+			}
 		}
 
 		internal LocalQueryResult CurrentResult {
@@ -429,6 +453,12 @@ namespace Deveel.Data.Client {
 							} catch (Exception) {
 							}
 						}
+					}
+				}
+
+				if (results != null) {
+					foreach (var result in results) {
+						result.Dispose();
 					}
 				}
 			}

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Antlr4.4.3.0\build\Antlr4.props" Condition="Exists('..\packages\Antlr4.4.3.0\build\Antlr4.props')" />
+  <Import Project="..\packages\Antlr4.4.5.3\build\Antlr4.props" Condition="Exists('..\packages\Antlr4.4.5.3\build\Antlr4.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -77,8 +77,8 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Antlr4.Runtime.net35, Version=4.3.0.0, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Antlr4.Runtime.4.3.0\lib\net35-client\Antlr4.Runtime.net35.dll</HintPath>
+    <Reference Include="Antlr4.Runtime, Version=4.5.0.0, Culture=neutral, PublicKeyToken=09abb75b9ed49849, processorArchitecture=MSIL">
+      <HintPath>..\packages\Antlr4.Runtime.4.5.3\lib\net35-client\Antlr4.Runtime.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Deveel.Math, Version=1.5.71.0, Culture=neutral, processorArchitecture=MSIL">
@@ -89,11 +89,9 @@
       <HintPath>..\packages\DryIoc.dll.2.2.2\lib\net35\DryIoc.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="IQToolkit">
-      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="IQToolkit.Data">
-      <HintPath>..\..\lib\iqtoolkit-1.0.0.0\anycpu\IQToolkit.Data.dll</HintPath>
+    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net35\Remotion.Linq.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -130,6 +128,7 @@
     <Compile Include="Deveel.Data.Client\DeveelDbDataReader.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbEnlistment.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbException.cs" />
+    <Compile Include="Deveel.Data.Client\DeveelDbLob.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameter.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbParameterCollection.cs" />
     <Compile Include="Deveel.Data.Client\DeveelDbServerException.cs" />
@@ -173,38 +172,27 @@
     <Compile Include="Deveel.Data.Diagnostics\QueryEventType.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
-    <Compile Include="Deveel.Data.Linq\AssociationConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\AssociationSourceConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\AssociationType.cs" />
-    <Compile Include="Deveel.Data.Linq\DbAssociationModel.cs" />
-    <Compile Include="Deveel.Data.Linq\DbCompiledModel.cs" />
-    <Compile Include="Deveel.Data.Linq\DbModelBuildContext.cs" />
-    <Compile Include="Deveel.Data.Linq\DbModelBuilder.cs" />
-    <Compile Include="Deveel.Data.Linq\DbModelMapping.cs" />
-    <Compile Include="Deveel.Data.Linq\DbQueryContext.cs" />
-    <Compile Include="Deveel.Data.Linq\DbTable.cs" />
-    <Compile Include="Deveel.Data.Linq\DbColumnModel.cs" />
-    <Compile Include="Deveel.Data.Linq\DbTypeModel.cs" />
-    <Compile Include="Deveel.Data.Linq\DeveelDbLinguist.cs" />
-    <Compile Include="Deveel.Data.Linq\DeveelDbQueryFormatter.cs" />
-    <Compile Include="Deveel.Data.Linq\DeveelDbQueryLanguage.cs" />
-    <Compile Include="Deveel.Data.Linq\IAssociationConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\IDbModel.cs" />
-    <Compile Include="Deveel.Data.Linq\IDbTable.cs" />
-    <Compile Include="Deveel.Data.Linq\IMemberConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\ITypeConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\KeyConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\KeyType.cs" />
-    <Compile Include="Deveel.Data.Linq\MemberConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\QueryProvider.cs" />
-    <Compile Include="Deveel.Data.Linq\SqlQueryExecutor.cs" />
-    <Compile Include="Deveel.Data.Linq\TypeConfiguration.cs" />
-    <Compile Include="Deveel.Data.Linq\TypeUtil.cs" />
+    <Compile Include="Deveel.Data.Linq\LinqQueryable.cs" />
+    <Compile Include="Deveel.Data.Linq\LinqQueryExecutor.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryExtensions.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlGeneratorExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlQueryGenerator.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlSelectGeneratorExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Mapping\ColumnAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\ConstraintAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\ConstraintMapInfo.cs" />
     <Compile Include="Deveel.Data.Mapping\IdentityAttribute.cs" />
     <Compile Include="Deveel.Data.Mapping\IgnoreAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\IMemberConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\IMemberConfigurationProvider.cs" />
+    <Compile Include="Deveel.Data.Mapping\ITypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\ITypeConfigurationProvider.cs" />
+    <Compile Include="Deveel.Data.Mapping\Mapper.cs" />
+    <Compile Include="Deveel.Data.Mapping\MemberMapInfo.cs" />
     <Compile Include="Deveel.Data.Mapping\TableNameAttribute.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeConfiguration.cs" />
+    <Compile Include="Deveel.Data.Mapping\TypeMapInfo.cs" />
+    <Compile Include="Deveel.Data.Protocol\RemoteObjectRef.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedureInfo.cs" />
@@ -1053,8 +1041,8 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\Antlr4.4.3.0\build\Antlr4.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.3.0\build\Antlr4.props'))" />
-    <Error Condition="!Exists('..\packages\Antlr4.4.3.0\build\Antlr4.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.3.0\build\Antlr4.targets'))" />
+    <Error Condition="!Exists('..\packages\Antlr4.4.5.3\build\Antlr4.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.5.3\build\Antlr4.props'))" />
+    <Error Condition="!Exists('..\packages\Antlr4.4.5.3\build\Antlr4.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.5.3\build\Antlr4.targets'))" />
   </Target>
   <!--
   <Target Name="AfterBuild">
@@ -1099,5 +1087,5 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <Import Project="..\packages\Antlr4.4.3.0\build\Antlr4.targets" Condition="Exists('..\packages\Antlr4.4.3.0\build\Antlr4.targets')" />
+  <Import Project="..\packages\Antlr4.4.5.3\build\Antlr4.targets" Condition="Exists('..\packages\Antlr4.4.5.3\build\Antlr4.targets')" />
 </Project>
