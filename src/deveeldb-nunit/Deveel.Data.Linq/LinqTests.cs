@@ -62,7 +62,8 @@ namespace Deveel.Data.Linq {
 
 		[TableName("test_table")]
 		class TestClass {
-			[Column(Name = "id", Default = "UNIQUEKEY(test_table)", DefaultIsExpression = true)]
+			[Column(Name = "id")]
+			[DefaultExpression("UNIQUEKEY(test_table)")]
 			public int Id { get; set; }
 
 			[Column(Name = "name")]

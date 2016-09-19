@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
 using Deveel.Data.Mapping;
-using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 
 using Remotion.Linq.Clauses.Expressions;
@@ -15,17 +13,17 @@ using Remotion.Linq.Parsing;
 namespace Deveel.Data.Linq {
 	class SqlGeneratorExpressionVisitor : ThrowingExpressionVisitor {
 		private readonly ICollection<QueryParameter> parameters;
-		private readonly IDictionary<string, string> sources;
 		private StringBuilder sql;
+		private ExpressionCompileContext context;
 
-		public SqlGeneratorExpressionVisitor(IDictionary<string, string> sources, ICollection<QueryParameter> parameters) {
-			this.sources = sources;
+		public SqlGeneratorExpressionVisitor(ExpressionCompileContext context, ICollection<QueryParameter> parameters) {
+			this.context = context;
 			sql = new StringBuilder();
 			this.parameters = parameters;
 		}
 
-		public static string GetSqlExpression(Expression linqExpression, IDictionary<string, string> sources, ICollection<QueryParameter> parameters) {
-			var visitor = new SqlGeneratorExpressionVisitor(sources, parameters);
+		public static string GetSqlExpression(Expression linqExpression, ExpressionCompileContext context, ICollection<QueryParameter> parameters) {
+			var visitor = new SqlGeneratorExpressionVisitor(context, parameters);
 			visitor.Visit(linqExpression);
 			return visitor.GetSqlExpression();
 		}
@@ -36,9 +34,7 @@ namespace Deveel.Data.Linq {
 
 		protected override Expression VisitQuerySourceReference(QuerySourceReferenceExpression expression) {
 			var source = expression.ReferencedQuerySource;
-			string name;
-			if (!sources.TryGetValue(source.ItemName, out name))
-				throw new InvalidOperationException();
+			var name = context.FindTableName(source.ItemName);
 
 			sql.Append(name);
 
@@ -141,12 +137,9 @@ namespace Deveel.Data.Linq {
 
 		protected override Expression VisitMember(MemberExpression expression) {
 			var type = expression.Member.ReflectedType;
-			var mapInfo = Mapper.GetMapInfo(type);
-			var memberInfo = mapInfo.Members.FirstOrDefault(x => x.Member.Name == expression.Member.Name);
-			if (memberInfo == null)
-				throw new InvalidOperationException();
+			var mapInfo = context.GetMemberMap(type, expression.Member.Name);
 
-			sql.AppendFormat(".{0}", memberInfo.ColumnName);
+			sql.AppendFormat(".{0}", mapInfo.ColumnName);
 
 			return expression;
 		}

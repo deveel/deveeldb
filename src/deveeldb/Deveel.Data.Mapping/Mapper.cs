@@ -143,7 +143,7 @@ namespace Deveel.Data.Mapping {
 				defaultValue = attribute.Default;
 				defaultIsExpression = attribute.DefaultIsExpression;
 
-				nullable = attribute.Null;
+				// nullable = attribute.Null;
 			}
 
 			if (nullable && !canBeNull)

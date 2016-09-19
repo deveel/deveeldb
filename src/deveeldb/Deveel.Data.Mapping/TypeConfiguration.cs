@@ -10,24 +10,20 @@ using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Mapping {
-	public class TypeConfiguration<TType> : ITypeConfigurationProvider<TType> {
+	public class TypeConfiguration<TType> : ITypeConfigurationProvider where TType : class {
 		private string tableName;
 		private IDictionary<string, IMemberConfigurationProvider> members;
 
-		string ITypeConfigurationProvider<TType>.TableName {
+		string ITypeConfigurationProvider.TableName {
 			get { return tableName; }
 		}
 
-		IEnumerable<IMemberConfigurationProvider> ITypeConfigurationProvider<TType>.MemberConfigurations {
+		Type ITypeConfigurationProvider.Type {
+			get { return typeof(TType); }
+		}
+
+		IEnumerable<IMemberConfigurationProvider> ITypeConfigurationProvider.MemberConfigurations {
 			get { return members == null ? new IMemberConfigurationProvider[0] : members.Values.AsEnumerable(); }
-		}
-
-		ITypeConfiguration<TType> ITypeConfiguration<TType>.HasTableName(string value) {
-			return HasTableName(value);
-		}
-
-		IMemberConfiguration ITypeConfiguration<TType>.Member<TMember>(Expression<Func<TType, TMember>> selector) {
-			throw new NotImplementedException();
 		}
 
 		public TypeConfiguration<TType> HasTableName(string value) {
@@ -49,9 +45,7 @@ namespace Deveel.Data.Mapping {
 			if (type != memberInfo.ReflectedType &&
 			    !type.IsSubclassOf(memberInfo.ReflectedType))
 				throw new ArgumentException(string.Format(
-					"Expresion '{0}' refers to a property that is not from type {1}.",
-					selector.ToString(),
-					type));
+					"Expression '{0}' refers to a property that is not from type {1}.", selector, type));
 
 			return memberInfo;
 		}
@@ -95,38 +89,36 @@ namespace Deveel.Data.Mapping {
 						if (!String.IsNullOrEmpty(column.Name))
 							ColumnName = column.Name;
 
-						if (!String.IsNullOrEmpty(column.TypeName))
-							ColumnType = SqlType.Parse(column.TypeName);
-
-						if (column.Default != null) {
-							SqlExpression defaultExpr;
-							if (column.DefaultIsExpression) {
-								if (!(column.Default is string))
-									throw new InvalidOperationException();
-
-								defaultExpr = SqlExpression.Parse((string) column.Default);
-							} else {
-								var value = Field.Create(column.Default);
-								defaultExpr = SqlExpression.Constant(value);
-							}
-
-							DefaultExpression = defaultExpr;
+						if (!String.IsNullOrEmpty(column.Type)) {
+							ColumnType = SqlType.Parse(column.Type);
+						} else if (!String.IsNullOrEmpty(column.TypeName)) {
+							ColumnType = PrimitiveTypes.Resolve(column.TypeName, new [] {
+								new DataTypeMeta("Precision", column.Precision.ToString()),
+								new DataTypeMeta("Scale", column.Scale.ToString()),
+								new DataTypeMeta("MaxSize", column.Size.ToString()),   
+							});
 						}
+					} else if (attribute is ColumnConstraintAttribute) {
+						var constraint = (ColumnConstraintAttribute) attribute;
 
-						IsNotNull = !column.Null;
-					} else if (attribute is ConstraintAttribute) {
-						var constraint = (ConstraintAttribute) attribute;
-
-						if (constraint.Type == ConstraintType.PrimaryKey) {
+						if (constraint.ConstraintType == ColumnConstraintType.PrimaryKey) {
 							IsPrimaryKey = true;
-						} else if (constraint.Type == ConstraintType.Unique) {
+						} else if (constraint.ConstraintType == ColumnConstraintType.Unique) {
 							IsUnique = true;
-						} else {
-							throw new NotImplementedException();
+						} else if (constraint.ConstraintType == ColumnConstraintType.NotNull) {
+							IsNotNull = true;
 						}
 					} else if (attribute is IdentityAttribute) {
 						// TODO:
 						throw new NotImplementedException();
+					} else if (attribute is DefaultAttribute) {
+						var columnDefault = (DefaultAttribute) attribute;
+						if (columnDefault.DefaultType == ColumnDefaultType.Constant) {
+							var defaultValue = Field.Create(columnDefault.Value);
+							DefaultExpression = SqlExpression.Constant(defaultValue);
+						} else {
+							DefaultExpression = SqlExpression.Parse((string) columnDefault.Value);
+						}
 					}
 				}
 			}
@@ -140,27 +132,36 @@ namespace Deveel.Data.Mapping {
 			}
 
 			public IMemberConfiguration HasColumnType(SqlType value) {
-				throw new NotImplementedException();
+				if (value == null)
+					throw new ArgumentNullException("value");
+
+				ColumnType = value;
+				return this;
 			}
 
 			public IMemberConfiguration NotNull(bool value = true) {
-				throw new NotImplementedException();
+				IsNotNull = value;
+				return this;
 			}
 
 			public IMemberConfiguration PrimaryKey(bool value = true) {
-				throw new NotImplementedException();
+				IsPrimaryKey = value;
+				return this;
 			}
 
 			public IMemberConfiguration Unique(bool value = true) {
-				throw new NotImplementedException();
+				IsUnique = value;
+				return this;
 			}
 
 			public IMemberConfiguration HasDefault(SqlExpression defaultExpression) {
-				throw new NotImplementedException();
+				DefaultExpression = defaultExpression;
+				return this;
 			}
 
 			public IMemberConfiguration Ignore(bool value = true) {
-				throw new NotImplementedException();
+				IsIgnored = value;
+				return this;
 			}
 
 			public string ColumnName { get; private set; }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
+using Antlr4.Runtime;
+
 using Deveel.Data.Mapping;
 using Deveel.Data.Sql;
 
@@ -17,10 +19,13 @@ namespace Deveel.Data.Linq {
 	class SqlQueryGenerator : QueryModelVisitorBase {
 		private SqlQueryBuilder sql;
 		private List<QueryParameter> parameters = new List<QueryParameter>();
+		private ExpressionCompileContext buildContext;
 		private IDictionary<string, string> uniqueSourceNames = new Dictionary<string, string>();
 
 		private SqlQueryGenerator(IQuery query) {
-			sql = new SqlQueryBuilder(query);
+			var model = query.CompileModel();
+			buildContext = new ExpressionCompileContext(model);
+			sql = new SqlQueryBuilder(buildContext);
 		}
 
 		public static SqlQuery GenerateSqlQuery(IQuery query, QueryModel queryModel) {
@@ -30,11 +35,11 @@ namespace Deveel.Data.Linq {
 		}
 
 		private string GetSqlExpression(Expression expression) {
-			return SqlGeneratorExpressionVisitor.GetSqlExpression(expression, uniqueSourceNames, parameters);
+			return SqlGeneratorExpressionVisitor.GetSqlExpression(expression, buildContext, parameters);
 		}
 
 		private string GetSqlSelectExpression(Expression selectExpression) {
-			return SqlSelectGeneratorExpressionVisitor.GetSqlExpression(selectExpression, uniqueSourceNames);
+			return SqlSelectGeneratorExpressionVisitor.GetSqlExpression(selectExpression, buildContext);
 		}
 
 		private static IDictionary<string, string> DiscoverSources(MainFromClause fromClause) {
@@ -166,15 +171,15 @@ namespace Deveel.Data.Linq {
 		#region SqlQueryBuilder
 
 		class SqlQueryBuilder {
-			private IQuery query;
-
-			public SqlQueryBuilder(IQuery query) {
+			public SqlQueryBuilder(ExpressionCompileContext context) {
+				Context = context;
 				Select = new List<string>();
 				From = new List<string>();
 				Where = new List<string>();
 				OrderBy = new List<string>();
-				this.query = query;
 			}
+
+			public ExpressionCompileContext Context { get; private set; }
 
 
 			private IList<string> Select { get; set; }
@@ -186,11 +191,7 @@ namespace Deveel.Data.Linq {
 			private ICollection<string> OrderBy { get; set; }
 
 			private string GetObjectName(Type type) {
-				var mapInfo = Mapper.GetMapInfo(type);
-				if (mapInfo == null)
-					throw new InvalidOperationException(String.Format("The type '{0}' is not mapped.", type));
-
-				return mapInfo.TableName.FullName;
+				return Context.FindTableName(type);
 			}
 
 			public void AddSelect(string value) {

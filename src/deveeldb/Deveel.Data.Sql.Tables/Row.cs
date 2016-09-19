@@ -444,7 +444,8 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public object ToObject(IRequest context, Type destType) {
-			return Mapper.ToObject(destType, this);
+			var model = context.CompileModel();
+			return model.ToObject(destType, this);
 		}
 
 		public T ToObject<T>() {
@@ -452,7 +453,8 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public T ToObject<T>(IRequest context) {
-			return Mapper.ToObject<T>(this);
+			var model = context.CompileModel();
+			return (T) model.ToObject(typeof(T), this);
 		}
 
 		#region RowVariableResolver

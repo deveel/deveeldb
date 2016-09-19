@@ -12,17 +12,17 @@ using Remotion.Linq.Parsing;
 
 namespace Deveel.Data.Linq {
 	class SqlSelectGeneratorExpressionVisitor : RelinqExpressionVisitor {
-		private IDictionary<string, string> sources;
 		private string lastSource;
 		private IDictionary<string, List<string>> items;
+		private ExpressionCompileContext compileContext;
 
-		private SqlSelectGeneratorExpressionVisitor(IDictionary<string, string> sources) {
+		private SqlSelectGeneratorExpressionVisitor(ExpressionCompileContext compileContext) {
 			items = new Dictionary<string, List<string>>();
-			this.sources = sources;
+			this.compileContext = compileContext;
 		}
 
-		public static string GetSqlExpression(Expression selectExpression, IDictionary<string, string> sources) {
-			var visitor = new SqlSelectGeneratorExpressionVisitor(sources);
+		public static string GetSqlExpression(Expression selectExpression, ExpressionCompileContext compileContext) {
+			var visitor = new SqlSelectGeneratorExpressionVisitor(compileContext);
 			visitor.Visit(selectExpression);
 			return visitor.GetSqlExpression();
 		}
@@ -31,9 +31,7 @@ namespace Deveel.Data.Linq {
 			var list = new List<string>();
 
 			foreach (var itemGroup in items) {
-				string tableName;
-				if (!sources.TryGetValue(itemGroup.Key, out tableName))
-					throw new InvalidOperationException();
+				var tableName = compileContext.FindTableName(itemGroup.Key);
 
 				var members = itemGroup.Value;
 				if (members == null || members.Count == 0) {
@@ -48,10 +46,8 @@ namespace Deveel.Data.Linq {
 
 		protected override Expression VisitMember(MemberExpression expression) {
 			var type = expression.Member.ReflectedType;
-			var typeInfo = Mapper.GetMapInfo(type);
-			var memberName = expression.Member.Name;
 
-			var memberInfo = typeInfo.Members.FirstOrDefault(x => x.Member.Name == memberName);
+			var memberInfo = compileContext.GetMemberMap(type, expression.Member.Name);
 			if (memberInfo == null)
 				throw new NotSupportedException();
 
