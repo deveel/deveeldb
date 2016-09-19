@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Reflection;
 
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Design {
 	interface IMemberConfigurationProvider : IMemberConfiguration {
+		MemberInfo Member { get; }
+
 		string ColumnName { get; }
 
 		SqlType ColumnType { get; }

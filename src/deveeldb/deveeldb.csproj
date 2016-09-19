@@ -173,12 +173,15 @@
     <Compile Include="Deveel.Data.Diagnostics\SessionEvent.cs" />
     <Compile Include="Deveel.Data.Diagnostics\SessionEventType.cs" />
     <Compile Include="Deveel.Data.Linq\ExpressionCompileContext.cs" />
+    <Compile Include="Deveel.Data.Linq\ExpressionToSqlExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\LinqQueryable.cs" />
     <Compile Include="Deveel.Data.Linq\LinqQueryExecutor.cs" />
+    <Compile Include="Deveel.Data.Linq\OrderByVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\QueryExtensions.cs" />
-    <Compile Include="Deveel.Data.Linq\SqlGeneratorExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Linq\SelectColumnsVisitor.cs" />
+    <Compile Include="Deveel.Data.Linq\SourceVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\SqlQueryGenerator.cs" />
-    <Compile Include="Deveel.Data.Linq\SqlSelectGeneratorExpressionVisitor.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlSelectExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Design\AssociationType.cs" />
     <Compile Include="Deveel.Data.Design\CheckAttribute.cs" />
     <Compile Include="Deveel.Data.Design\ColumnAttribute.cs" />
@@ -207,6 +210,7 @@
     <Compile Include="Deveel.Data.Design\TypeMapInfo.cs" />
     <Compile Include="Deveel.Data.Design\TypeMemberMapInfo.cs" />
     <Compile Include="Deveel.Data.Design\UniqueAttribute.cs" />
+    <Compile Include="Deveel.Data.Linq\WhereQueryVisitor.cs" />
     <Compile Include="Deveel.Data.Protocol\RemoteObjectRef.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalFunctionInfo.cs" />
     <Compile Include="Deveel.Data.Routines\ExternalProcedure.cs" />

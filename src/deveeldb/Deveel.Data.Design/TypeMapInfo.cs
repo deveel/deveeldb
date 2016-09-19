@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Deveel.Data.Sql.Tables;
 
@@ -35,7 +36,21 @@ namespace Deveel.Data.Design {
 		}
 
 		internal object Construct(Row row) {
-			throw new NotImplementedException();
+			var obj = Activator.CreateInstance(Type);
+
+			foreach (var mapInfo in Members) {
+				var sourceValue = row[mapInfo.ColumnName];
+
+				if (mapInfo.Member is PropertyInfo) {
+					var propInfo = (PropertyInfo) mapInfo.Member;
+					propInfo.SetValue(obj, sourceValue.ConvertTo(propInfo.PropertyType), null);
+				} else if (mapInfo.Member is FieldInfo) {
+					var fieldInfo = (FieldInfo) mapInfo.Member;
+					fieldInfo.SetValue(obj, sourceValue.ConvertTo(fieldInfo.FieldType));
+				}
+			}
+
+			return obj;
 		}
 	}
 }

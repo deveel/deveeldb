@@ -480,7 +480,7 @@ namespace Deveel.Data {
 		}
 
 		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) {
-			return request.Select(query).Select(x => x.ToObject<T>());
+			return request.Select(query).Select(x => x.ToObject<T>(request));
 		}
 
 		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) {

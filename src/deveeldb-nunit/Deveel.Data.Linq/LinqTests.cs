@@ -43,6 +43,10 @@ namespace Deveel.Data.Linq {
 			table.AddRow(row);
 		}
 
+		protected override void OnAfterSetup(string testName) {
+			AdminQuery.Context.RegisterInstance<IMappingContext>(new TestMappingContext());
+		}
+
 		protected override bool OnTearDown(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
 			query.Access().DropObject(DbObjectType.Table, tableName);
@@ -71,6 +75,16 @@ namespace Deveel.Data.Linq {
 
 			[Column(Name = "age")]
 			public int Age { get; set; }
+		}
+
+		#endregion
+
+		#region TestMappingContext
+
+		class TestMappingContext : IMappingContext {
+			public void OnBuildMap(MapModelBuilder builder) {
+				builder.Type<TestClass>();
+			}
 		}
 
 		#endregion

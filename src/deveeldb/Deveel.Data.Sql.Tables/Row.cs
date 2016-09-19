@@ -448,10 +448,6 @@ namespace Deveel.Data.Sql.Tables {
 			return model.ToObject(destType, this);
 		}
 
-		public T ToObject<T>() {
-			return ToObject<T>(null);
-		}
-
 		public T ToObject<T>(IRequest context) {
 			var model = context.CompileModel();
 			return (T) model.ToObject(typeof(T), this);

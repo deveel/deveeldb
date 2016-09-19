@@ -3,16 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Design {
 	public class TypeConfiguration<TType> : ITypeConfigurationProvider where TType : class {
 		private string tableName;
 		private IDictionary<string, IMemberConfigurationProvider> members;
+		private SqlExpression checkExpression;
+
+		public TypeConfiguration() {
+			DiscoverAttributes();
+			DiscoverMembers();
+		}
 
 		string ITypeConfigurationProvider.TableName {
 			get { return tableName; }
@@ -22,12 +28,41 @@ namespace Deveel.Data.Design {
 			get { return typeof(TType); }
 		}
 
+		SqlExpression ITypeConfigurationProvider.Check {
+			get { return checkExpression; }
+		}
+
 		IEnumerable<IMemberConfigurationProvider> ITypeConfigurationProvider.MemberConfigurations {
 			get { return members == null ? new IMemberConfigurationProvider[0] : members.Values.AsEnumerable(); }
 		}
 
+		private void DiscoverAttributes() {
+			var attributes = typeof(TType).GetCustomAttributes(false);
+			foreach (var attribute in attributes) {
+				if (attribute is TableNameAttribute) {
+					var tableNameAttr = (TableNameAttribute) attribute;
+
+					var sb = new StringBuilder();
+					if (!String.IsNullOrEmpty(tableNameAttr.Schema))
+						sb.Append(tableNameAttr.Schema).Append(".");
+
+					sb.Append(tableNameAttr.Name);
+
+					tableName = sb.ToString();
+				} else if (attribute is CheckAttribute) {
+					var checkAttr = (CheckAttribute) attribute;
+					checkExpression = SqlExpression.Parse(checkAttr.Expression);
+				}
+			}
+		}
+
 		public TypeConfiguration<TType> HasTableName(string value) {
 			tableName = value;
+			return this;
+		}
+
+		public TypeConfiguration<TType> Check(SqlExpression expression) {
+			checkExpression = expression;
 			return this;
 		}
 
@@ -59,6 +94,22 @@ namespace Deveel.Data.Design {
 			var config = new MemberConfiguration(memberInfo);
 			members[memberInfo.Name] = config;
 			return config;
+		}
+
+		private void DiscoverMembers() {
+			var typeMembers = typeof(TType).GetMembers(BindingFlags.Instance | BindingFlags.Public)
+				.Where(x => x is FieldInfo || x is PropertyInfo);
+
+			foreach (var typeMember in typeMembers) {
+				if (typeMember is PropertyInfo &&
+					((PropertyInfo)typeMember).IsSpecialName)
+					continue;
+
+				if (members == null)
+					members = new Dictionary<string, IMemberConfigurationProvider>();
+
+				members[typeMember.Name] = new MemberConfiguration(typeMember);
+			}
 		}
 
 		#region MemberConfiguration

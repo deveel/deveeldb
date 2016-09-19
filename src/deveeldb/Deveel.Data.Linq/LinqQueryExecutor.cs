@@ -17,7 +17,7 @@ namespace Deveel.Data.Linq {
 			this.query = query;
 		}
 
-		private SqlQuery ToQueryExpression(QueryModel queryModel) {
+		private SelectStatement ToQueryExpression(QueryModel queryModel) {
 			return SqlQueryGenerator.GenerateSqlQuery(query, queryModel);
 		}
 
@@ -34,19 +34,12 @@ namespace Deveel.Data.Linq {
 
 		public IEnumerable<T> ExecuteCollection<T>(QueryModel queryModel) {
 			var expression = ToQueryExpression(queryModel);
-			var results = query.ExecuteQuery(expression);
-			if (results.Length == 0)
-				return new T[0];
-
-			if (results.Length > 1)
-				throw new InvalidOperationException();
-
-			var result = results[0];
+			var result = query.ExecuteStatement(expression);
 			if (result.Type == StatementResultType.Exception)
 				throw result.Error;
 
 			if (result.Type == StatementResultType.CursorRef)
-				return result.Cursor.Select(x => x.ToObject<T>());
+				return result.Cursor.Select(x => x.ToObject<T>(query));
 
 			if (result.Type == StatementResultType.Result)
 				return result.Result.Select(x => x.ToObject<T>(query));
