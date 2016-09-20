@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
@@ -13,6 +14,7 @@ namespace Deveel.Data.Design {
 	public class TypeConfiguration<TType> : ITypeConfigurationProvider where TType : class {
 		private string tableName;
 		private IDictionary<string, IMemberConfigurationProvider> members;
+		private IList<IAssociationConfigurationProvider> associations;
 		private SqlExpression checkExpression;
 
 		public TypeConfiguration() {
@@ -66,7 +68,7 @@ namespace Deveel.Data.Design {
 			return this;
 		}
 
-		private MemberInfo FindMember<TMember>(Expression<Func<TType, TMember>> selector) {
+		private static MemberInfo FindMember<TEntity, TMember>(Expression<Func<TEntity, TMember>> selector) {
 			var type = typeof(TType);
 
 			MemberExpression member = selector.Body as MemberExpression;
@@ -94,6 +96,17 @@ namespace Deveel.Data.Design {
 			var config = new MemberConfiguration(memberInfo);
 			members[memberInfo.Name] = config;
 			return config;
+		}
+
+		public IRequiredAssociationConfiguration<TType, TTarget> Require<TTarget>(Expression<Func<TType, TTarget>> selector) where TTarget : class {
+			var member = FindMember(selector);
+			var association = new RequiredAssociationConfiguration<TTarget>(member);
+			if (associations == null)
+				associations = new List<IAssociationConfigurationProvider>();
+
+			associations.Add(association);
+
+			return association;
 		}
 
 		private void DiscoverMembers() {
@@ -228,6 +241,98 @@ namespace Deveel.Data.Design {
 			public SqlExpression DefaultExpression { get; private set; }
 
 			public bool IsIgnored { get; private set; }
+		}
+
+		#endregion
+
+		#region AssociationConfiguration<TType, TTarget>
+
+		abstract class AssociationConfiguration<TTarget> : IAssociationConfiguration<TType, TTarget>, IAssociationConfigurationProvider where TTarget : class {
+			protected AssociationConfiguration(MemberInfo sourceMember) {
+				SourceMember = sourceMember;
+			}
+
+			public abstract AssociationType AssociationType { get; }
+
+			public abstract AssociationCardinality Cardinality { get; }
+
+			public Type SourceType {
+				get { return typeof(TType); }
+			}
+
+			public Type OtherType {
+				get { return typeof(TTarget); }
+			}
+
+			public MemberInfo SourceMember { get; private set; }
+
+			public MemberInfo OtherMember { get; protected set; }
+
+			public MemberInfo KeyMember { get; protected set; }
+
+			public bool Cascade { get; protected set; }
+		}
+
+		#endregion
+
+		#region RequiredAssociationConfiguration
+
+		class RequiredAssociationConfiguration<TTarget> : AssociationConfiguration<TTarget>,
+			IRequiredAssociationConfiguration<TType, TTarget> where TTarget : class {
+			public RequiredAssociationConfiguration(MemberInfo sourceMember) 
+				: base(sourceMember) {
+			}
+
+			public override AssociationType AssociationType {
+				get { return AssociationType.Destination; }
+			}
+
+			public override AssociationCardinality Cardinality {
+				get { return AssociationCardinality.ManyToOne; }
+			}
+
+			public void SetKeyMember(MemberInfo keyMember) {
+				KeyMember = keyMember;
+			}
+
+			public void SetCascaseOnDelete(bool value) {
+				Cascade = value;
+			}
+
+			public IDependantAssociationConfiguration<TType, TTarget> WithMany(Expression<Func<TTarget, ICollection<TType>>> selector) {
+				var otherMember = FindMember(selector);
+				if (otherMember == null)
+					throw new InvalidOperationException();
+
+				OtherMember = otherMember;
+				return new DependantAssociationConfiguration<TTarget>(this);
+			}
+
+			public IForeignKeyAssociationConfiguration<TType, TTarget> WithOptional(Expression<Func<TTarget, TType>> selector) {
+				throw new NotImplementedException();
+			}
+		}
+
+		#endregion
+
+		#region DependantAssociationConfiguration
+
+		class DependantAssociationConfiguration<TTarget> : IDependantAssociationConfiguration<TType, TTarget>, ICascableAssociationConfiguration where TTarget : class {
+			public DependantAssociationConfiguration(RequiredAssociationConfiguration<TTarget> parent) {
+				Association = parent;
+			}
+
+			public RequiredAssociationConfiguration<TTarget> Association { get; private set; }
+
+			public ICascableAssociationConfiguration HasForeignKey<TKey>(Expression<Func<TType, TKey>> selector) {
+				var member = FindMember(selector);
+				Association.SetKeyMember(member);
+				return this;
+			}
+
+			public void CascadeOnDelete(bool value = true) {
+				Association.SetCascaseOnDelete(value);
+			}
 		}
 
 		#endregion

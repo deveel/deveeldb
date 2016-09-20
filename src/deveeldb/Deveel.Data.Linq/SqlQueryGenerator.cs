@@ -15,11 +15,11 @@ namespace Deveel.Data.Linq {
 	class SqlQueryGenerator : QueryModelVisitorBase {
 		private ExpressionCompileContext buildContext;
 
-		private SqlQueryGenerator(CompiledModel model) {
+		private SqlQueryGenerator(DbCompiledModel model) {
 			buildContext = new ExpressionCompileContext(model);
 		}
 
-		public static SelectStatement GenerateSelect(IQuery context, CompiledModel model, QueryModel queryModel) {
+		public static SelectStatement GenerateSelect(IQuery context, DbCompiledModel model, QueryModel queryModel) {
 			var visitor = new SqlQueryGenerator(model);
 			visitor.VisitQueryModel(queryModel);
 			return visitor.GetQuery(context);

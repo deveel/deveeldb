@@ -55,5 +55,11 @@ namespace Deveel.Data.Design {
 
 			return (TypeConfiguration<TType>) configuration;
 		}
+
+		internal TypeConfigurationRegistry Clone() {
+			return new TypeConfigurationRegistry {
+				configurations = new Dictionary<Type, ITypeConfigurationProvider>(configurations)
+			};
+		}
 	}
 }

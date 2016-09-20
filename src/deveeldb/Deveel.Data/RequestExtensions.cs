@@ -481,7 +481,7 @@ namespace Deveel.Data {
 		}
 
 		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) {
-			var model = request.CompileModel();
+			var model = request.CompiledModel();
 			return request.Select(query).Select(x => x.ToObject<T>(model));
 		}
 

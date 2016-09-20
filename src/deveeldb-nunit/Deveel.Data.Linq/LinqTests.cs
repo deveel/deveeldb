@@ -46,7 +46,7 @@ namespace Deveel.Data.Linq {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			AdminSession.Context.RegisterInstance<IMappingContext>(new TestMappingContext());
+			AdminSession.Context.RegisterInstance<IModelBuildContext>(new TestModelBuildContext());
 			Context = new SessionQueryContext(AdminSession);
 		}
 
@@ -113,10 +113,10 @@ namespace Deveel.Data.Linq {
 
 		#endregion
 
-		#region TestMappingContext
+		#region TestModelBuildContext
 
-		class TestMappingContext : IMappingContext {
-			public void OnBuildMap(MapModelBuilder builder) {
+		class TestModelBuildContext : IModelBuildContext {
+			public void OnBuildModel(DbModelBuilder builder) {
 				builder.Type<TestClass>();
 			}
 		}

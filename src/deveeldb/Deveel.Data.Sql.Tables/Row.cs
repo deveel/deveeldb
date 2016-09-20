@@ -439,11 +439,11 @@ namespace Deveel.Data.Sql.Tables {
 			RowId = new RowId(Table.TableInfo.Id, number);
 		}
 
-		public object ToObject(CompiledModel model, Type destType) {
+		public object ToObject(DbCompiledModel model, Type destType) {
 			return model.ToObject(destType, this);
 		}
 
-		public T ToObject<T>(CompiledModel model) {
+		public T ToObject<T>(DbCompiledModel model) {
 			return (T) model.ToObject(typeof(T), this);
 		}
 

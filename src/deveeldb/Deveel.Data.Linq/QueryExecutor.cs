@@ -11,7 +11,7 @@ using Remotion.Linq.Clauses.ResultOperators;
 namespace Deveel.Data.Linq {
 	class QueryExecutor : IQueryExecutor {
 		private ISession session;
-		private CompiledModel model;
+		private DbCompiledModel model;
 
 		public QueryExecutor(ISession session) {
 			this.session = session;

@@ -17,7 +17,7 @@ namespace Deveel.Data.Linq {
 		private bool hasGroupBy;
 		private List<SortColumn> sortColumns;
 
-		public ExpressionCompileContext(CompiledModel model) {
+		public ExpressionCompileContext(DbCompiledModel model) {
 			Model = model;
 			typeAliases = new Dictionary<string, string>();
 			typeAliaseseReverse = new Dictionary<Type, string>();
@@ -28,7 +28,7 @@ namespace Deveel.Data.Linq {
 			Parameters = new Dictionary<string, SqlExpression>();
 		}
 
-		public CompiledModel Model { get; private set; }
+		public DbCompiledModel Model { get; private set; }
 
 		public void AddAlias(Type type, string itemName, string aliasName) {
 			if (!typeAliases.ContainsKey(itemName)) {
@@ -45,12 +45,12 @@ namespace Deveel.Data.Linq {
 			return Model.FindTableName(type);
 		}
 
-		public TypeMemberMapInfo GetMemberMap(Type type, string memberName) {
+		public DbMemberInfo GetMemberMap(Type type, string memberName) {
 			var typeInfo = Model.GetTypeInfo(type);
 			if (typeInfo == null)
 				throw new InvalidOperationException(String.Format("Type '{0}' is not mapped.", type));
 
-			var memberMapInfo = typeInfo.FindMemberMap(memberName);
+			var memberMapInfo = typeInfo.GetMember(memberName);
 			if (memberMapInfo == null)
 				throw new InvalidOperationException(String.Format("Member '{0}' not found in type '{1}' or not mapped in the model", memberName, type));
 

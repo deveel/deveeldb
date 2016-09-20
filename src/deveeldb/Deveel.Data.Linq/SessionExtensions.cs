@@ -4,22 +4,23 @@ using Deveel.Data.Design;
 
 namespace Deveel.Data.Linq {
 	public static class SessionExtensions {
-		public static CompiledModel GetObjectModel(this ISession session) {
-			var model = session.Context.ResolveService<CompiledModel>();
-			if (model == null) {
-				var builder = new MapModelBuilder();
+		public static DbCompiledModel GetObjectModel(this ISession session) {
+			var compiledModel = session.Context.ResolveService<DbCompiledModel>();
+			if (compiledModel == null) {
+				var builder = new DbModelBuilder();
 
-				var providers = session.Context.ResolveAllServices<IMappingContext>();
+				var providers = session.Context.ResolveAllServices<IModelBuildContext>();
 				foreach (var provider in providers) {
-					provider.OnBuildMap(builder);
+					provider.OnBuildModel(builder);
 				}
 
-				model = builder.CompileModel();
+				var model = builder.Build();
+				compiledModel = model.Compile();
 
-				session.Context.RegisterInstance(model);
+				session.Context.RegisterInstance(compiledModel);
 			}
 
-			return model;
+			return compiledModel;
 		}
 	}
 }
