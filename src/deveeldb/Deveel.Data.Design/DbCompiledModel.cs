@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Linq;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Design {
@@ -95,6 +96,10 @@ namespace Deveel.Data.Design {
 				throw new ArgumentException(String.Format("The type '{0}' is not mapped in this context.", destType));
 
 			return mapInfo.CreateObject(row);
+		}
+
+		public SessionQueryContext CreateContext(ISession session) {
+			return new SessionQueryContext(session, this);
 		}
 	}
 }

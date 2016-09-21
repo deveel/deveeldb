@@ -7,7 +7,7 @@ using Deveel.Data.Design.Conventions;
 
 namespace Deveel.Data.Design {
 	public sealed class DbModelBuilder : ICloneable {
-		private ModelConfiguration configuration;
+		internal ModelConfiguration ModelConfiguration { get; private set; }
 
 		private static readonly IConvention[] DefaultConventions;
 
@@ -20,7 +20,7 @@ namespace Deveel.Data.Design {
 		}
 
 		private DbModelBuilder(ModelConfiguration configuration, ConventionRegistry conventions) {
-			this.configuration = configuration;
+			ModelConfiguration = configuration;
 			Configurations = new TypeConfigurationRegistry(configuration);
 			Conventions = conventions;
 		}
@@ -47,7 +47,7 @@ namespace Deveel.Data.Design {
 		}
 
 		public DbModelBuilder Clone() {
-			return new DbModelBuilder(configuration.Clone(), Conventions.Clone());
+			return new DbModelBuilder(ModelConfiguration.Clone(), Conventions.Clone());
 		}
 
 		public DbModel Build() {

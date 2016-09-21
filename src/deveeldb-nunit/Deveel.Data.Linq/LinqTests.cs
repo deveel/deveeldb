@@ -46,8 +46,7 @@ namespace Deveel.Data.Linq {
 		}
 
 		protected override void OnAfterSetup(string testName) {
-			AdminSession.Context.RegisterInstance<IModelBuildContext>(new TestModelBuildContext());
-			Context = new SessionQueryContext(AdminSession);
+			Context = new TestQueryContext(AdminSession);
 		}
 
 		protected override void OnBeforeTearDown(string testName) {
@@ -115,9 +114,13 @@ namespace Deveel.Data.Linq {
 
 		#region TestModelBuildContext
 
-		class TestModelBuildContext : IModelBuildContext {
-			public void OnBuildModel(DbModelBuilder builder) {
-				builder.Type<TestClass>();
+		class TestQueryContext : SessionQueryContext {
+			public TestQueryContext(ISession session) 
+				: base(session) {
+			}
+
+			protected override void OnBuildModel(DbModelBuilder modelBuilder) {
+				modelBuilder.Type<TestClass>();
 			}
 		}
 

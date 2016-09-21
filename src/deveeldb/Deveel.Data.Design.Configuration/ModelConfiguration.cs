@@ -14,6 +14,10 @@ namespace Deveel.Data.Design.Configuration {
 			ignoredTypes = new List<Type>();
 		}
 
+		internal IEnumerable<Type> Types {
+			get { return typeConfigurations.Keys.AsEnumerable(); }
+		}
+
 		public void IgnoreType(Type type) {
 			if (!ignoredTypes.Contains(type))
 				ignoredTypes.Add(type);

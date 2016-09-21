@@ -204,12 +204,10 @@
     <Compile Include="Deveel.Data.Linq\IQueryTable.cs" />
     <Compile Include="Deveel.Data.Linq\IQueryTable_T.cs" />
     <Compile Include="Deveel.Data.Linq\IUpdateQueryTable.cs" />
-    <Compile Include="Deveel.Data.Linq\LinqQueryable.cs" />
     <Compile Include="Deveel.Data.Linq\QueryExecutor.cs" />
     <Compile Include="Deveel.Data.Linq\OrderByVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\QueryTable.cs" />
     <Compile Include="Deveel.Data.Linq\SelectColumnsVisitor.cs" />
-    <Compile Include="Deveel.Data.Linq\SessionExtensions.cs" />
     <Compile Include="Deveel.Data.Linq\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data.Linq\SourceVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\SqlQueryGenerator.cs" />
@@ -225,11 +223,9 @@
     <Compile Include="Deveel.Data.Design\DefaultExpressionAttribute.cs" />
     <Compile Include="Deveel.Data.Design\IdentityAttribute.cs" />
     <Compile Include="Deveel.Data.Design\IgnoreAttribute.cs" />
-    <Compile Include="Deveel.Data.Design\IModelBuildContext.cs" />
     <Compile Include="Deveel.Data.Design\DbModelBuilder.cs" />
     <Compile Include="Deveel.Data.Design\NotNullAttribute.cs" />
     <Compile Include="Deveel.Data.Design\PrimaryKeyAttribute.cs" />
-    <Compile Include="Deveel.Data.Design\RequestExtensions.cs" />
     <Compile Include="Deveel.Data.Design\TableNameAttribute.cs" />
     <Compile Include="Deveel.Data.Design.Configuration\TypeConfiguration.cs" />
     <Compile Include="Deveel.Data.Design.Configuration\TypeConfigurationRegistry.cs" />

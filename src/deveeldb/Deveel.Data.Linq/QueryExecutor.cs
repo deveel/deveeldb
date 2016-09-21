@@ -13,9 +13,9 @@ namespace Deveel.Data.Linq {
 		private ISession session;
 		private DbCompiledModel model;
 
-		public QueryExecutor(ISession session) {
+		public QueryExecutor(ISession session, DbCompiledModel model) {
 			this.session = session;
-			model = session.GetObjectModel();
+			this.model = model;
 		}
 
 		private SelectStatement ToQueryExpression(IQuery context, QueryModel queryModel) {

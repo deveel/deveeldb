@@ -128,12 +128,18 @@ namespace Deveel.Data.Design.Conventions {
 			return conventions.Remove(conventionType);
 		}
 
-		internal IEnumerable<IConvention> SortedConfigurationConventions() {
-			return conventions.Values.Where(x => x.IsConfiguration).OrderBy(x => x.Offset).Select(x => x.Convention);
+		internal IEnumerable<IConfigurationConvention> SortedConfigurationConventions() {
+			return conventions.Values.Where(x => x.IsConfiguration)
+				.OrderBy(x => x.Offset)
+				.Select(x => x.Convention)
+				.Cast<IConfigurationConvention>();
 		}
 
-		internal IEnumerable<IConvention> SortedStructuralConventions() {
-			return conventions.Values.Where(x => x.IsStructural).OrderBy(x => x.Offset).Select(x => x.Convention);
+		internal IEnumerable<IStructuralConvention> SortedStructuralConventions() {
+			return conventions.Values.Where(x => x.IsStructural)
+				.OrderBy(x => x.Offset)
+				.Select(x => x.Convention)
+				.Cast<IStructuralConvention>();
 		}
 
 		internal ConventionRegistry Clone() {
