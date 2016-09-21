@@ -2,29 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Design.Configuration;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Design {
 	public sealed class DbConstraintInfo {
 		private IEqualityComparer<DbMemberInfo> uniqueMemberComparer;
 
-		internal DbConstraintInfo(TypeBuildConstraintInfo constraintInfo) {
-			ConstraintInfo = constraintInfo;
+		internal DbConstraintInfo(ConstraintModelConfiguration configuration) {
+			Configuration = configuration;
 			uniqueMemberComparer = new UniqueMemberComparer();
 		}
 
-		private TypeBuildConstraintInfo ConstraintInfo { get; set; }
+		private ConstraintModelConfiguration Configuration { get; set; }
 
 		public DbTypeInfo TypeInfo {
-			get { return new DbTypeInfo(ConstraintInfo.TypeInfo); }
+			get { return new DbTypeInfo(Configuration.TypeModel); }
 		}
 
 		public ConstraintType ConstraintType {
-			get { return ConstraintInfo.ConstraintType; }
+			get { return Configuration.ConstraintType; }
 		}
 
 		public IEnumerable<DbMemberInfo> Members {
-			get { return ConstraintInfo.Members.Select(x => new DbMemberInfo(x)).Distinct(uniqueMemberComparer); }
+			get { return Configuration.Members.Select(x => new DbMemberInfo(x)).Distinct(uniqueMemberComparer); }
 		}
 
 		#region UniqueMemberComparer

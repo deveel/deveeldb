@@ -2,26 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Design.Configuration;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Design {
 	public sealed class DbTypeInfo {
-		internal DbTypeInfo(TypeBuildInfo buildInfo) {
-			BuildInfo = buildInfo;
+		internal DbTypeInfo(TypeModelConfiguration configuration) {
+			Configuration = configuration;
 		}
 
-		private TypeBuildInfo BuildInfo { get; set; }
+		private TypeModelConfiguration Configuration { get; set; }
 
 		public string TableName {
-			get { return BuildInfo.TableName; }
+			get { return Configuration.TableName; }
 		}
 
 		public Type Type {
-			get { return BuildInfo.Type; }
+			get { return Configuration.Type; }
 		}
 
 		public DbMemberInfo GetMember(string memberName) {
-			var buildInfo = BuildInfo.GetMember(memberName);
+			var buildInfo = Configuration.GetMember(memberName);
 			if (buildInfo == null)
 				return null;
 
@@ -29,7 +30,7 @@ namespace Deveel.Data.Design {
 		}
 
 		internal IEnumerable<DbConstraintInfo> GetConstraints() {
-			return BuildInfo.GetConstraints().Select(x => new DbConstraintInfo(x));
+			return Configuration.GetConstraints().Select(x => new DbConstraintInfo(x));
 		}
 
 		internal object CreateObject(Row row) {
@@ -40,7 +41,7 @@ namespace Deveel.Data.Design {
 
 			var obj = Activator.CreateInstance(Type, true);
 
-			foreach (var memberInfo in BuildInfo.GetMembers().Select(x => new DbMemberInfo(x))) {
+			foreach (var memberInfo in Configuration.MemberNames.Select(GetMember)) {
 				memberInfo.ApplyFromRow(obj, row);
 			}
 

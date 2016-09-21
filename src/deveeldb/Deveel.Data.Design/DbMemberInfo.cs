@@ -1,32 +1,33 @@
 ﻿using System;
 using System.Reflection;
 
+using Deveel.Data.Design.Configuration;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Design {
 	public sealed class DbMemberInfo {
-		internal DbMemberInfo(TypeBuildMemberInfo buildInfo) {
-			BuildInfo = buildInfo;
+		internal DbMemberInfo(MemberModelConfiguration configuration) {
+			Configuration = configuration;
 		}
 
-		private TypeBuildMemberInfo BuildInfo { get; set; }
+		private MemberModelConfiguration Configuration { get; set; }
 
 		public MemberInfo Member {
-			get { return BuildInfo.Member; }
+			get { return Configuration.Member; }
 		}
 
 		public Type MemberType {
-			get { return BuildInfo.MemberType; }
+			get { return Configuration.MemberType; }
 		}
 
 		public DbTypeInfo TypeInfo {
-			get { return new DbTypeInfo(BuildInfo.TypeInfo); }
+			get { return new DbTypeInfo(Configuration.TypeModel); }
 		}
 
 		public string ColumnName {
-			get { return BuildInfo.ColumnName; }
+			get { return Configuration.ColumnName; }
 		}
 
 		public string FullColumnName {
@@ -34,11 +35,11 @@ namespace Deveel.Data.Design {
 		}
 
 		public SqlType ColumnType {
-			get { return BuildInfo.ColumnType; }
+			get { return Configuration.ColumnType; }
 		}
 
 		public bool NotNull {
-			get { return BuildInfo.NotNull; }
+			get { return Configuration.NotNull; }
 		}
 
 		internal void ApplyFromRow(object obj, Row row) {

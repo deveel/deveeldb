@@ -6,7 +6,6 @@ using Deveel.Data.Design;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
-using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Linq {
 	class ExpressionCompileContext {

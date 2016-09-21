@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 
-namespace Deveel.Data.Design {
+namespace Deveel.Data.Design.Conventions {
 	public sealed class ConventionRegistry {
 		private Dictionary<Type, ConventionInfo> conventions;
-		private Dictionary<Type, ConventionInfo> structuralConventions;
 
-		internal ConventionRegistry() {
+		internal ConventionRegistry()
+			: this(new IConvention[0]) {
+		}
+
+		internal ConventionRegistry(IEnumerable<IConvention> initialConventions) {
 			conventions = new Dictionary<Type, ConventionInfo>();
-			structuralConventions = new Dictionary<Type, ConventionInfo>();
+
+			if (initialConventions != null) {
+				foreach (var convention in initialConventions) {
+					Add(convention);
+				}
+			}
 		}
 
 		private int GreaterOffset() {
@@ -29,6 +36,12 @@ namespace Deveel.Data.Design {
 			}
 		}
 
+		public void Add(params IConvention[] conventionsToAdd) {
+			foreach (var convention in conventionsToAdd) {
+				Add(convention);
+			}
+		}
+
 		public void Add(IConvention convention) {
 			if (convention == null)
 				throw new ArgumentNullException("convention");
@@ -38,7 +51,7 @@ namespace Deveel.Data.Design {
 				throw new ArgumentException(String.Format("It is possible to add one single convention type: another '{0}' is in the registry.", type));
 
 			var offset = GreaterOffset();
-			conventions[type] = new ConventionInfo(type, convention, offset+1);
+			conventions[type] = new ConventionInfo(type, convention, offset + 1);
 		}
 
 		public void Add<TConvention>(TConvention convention) where TConvention : class, IConvention {
