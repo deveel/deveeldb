@@ -16,8 +16,8 @@ namespace Deveel.Data.Design {
 				convention.Apply(this);
 			}
 
-			foreach (var convention in ModelBuilder.Conventions.SortedConfigurationConventions()) {
-				foreach (var type in ModelBuilder.ModelConfiguration.Types) {
+			foreach (var type in ModelBuilder.ModelConfiguration.Types) {
+				foreach (var convention in ModelBuilder.Conventions.SortedConfigurationConventions()) {
 					convention.Apply(type, builder.ModelConfiguration);
 
 					var members = type.GetMembers(BindingFlags.Instance | BindingFlags.Public);

@@ -20,8 +20,21 @@ namespace Deveel.Data.Design.Conventions {
 			}
 		}
 
-		private int GreaterOffset() {
-			return conventions.Values.Max(x => x.Offset);
+		private int GreaterOffset(Type conventionType) {
+			IEnumerable<ConventionInfo> list;
+
+			if (typeof(IStructuralConvention).IsAssignableFrom(conventionType)) {
+				list = conventions.Values.Where(x => x.IsStructural).ToList();
+			} else if (typeof(IConfigurationConvention).IsAssignableFrom(conventionType)) {
+				list = conventions.Values.Where(x => x.IsConfiguration).ToList();
+			} else {
+				throw new NotSupportedException();
+			}
+
+			if (!list.Any())
+				return 0;
+
+			return list.Max(x => x.Offset);
 		}
 
 		private int OffsetOfType(Type conventionType) {
@@ -50,7 +63,7 @@ namespace Deveel.Data.Design.Conventions {
 			if (conventions.ContainsKey(type))
 				throw new ArgumentException(String.Format("It is possible to add one single convention type: another '{0}' is in the registry.", type));
 
-			var offset = GreaterOffset();
+			var offset = GreaterOffset(type);
 			conventions[type] = new ConventionInfo(type, convention, offset + 1);
 		}
 

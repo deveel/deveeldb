@@ -12,7 +12,7 @@ namespace Deveel.Data.Design.Configuration {
 		}
 
 		internal TypeConfiguration(ModelConfiguration model) {
-			TypeModel = new TypeModelConfiguration(model, typeof(TType));
+			TypeModel = model.Type(typeof(TType));
 		}
 
 		private TypeModelConfiguration TypeModel { get; set; }
