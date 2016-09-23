@@ -34,12 +34,15 @@ namespace Deveel.Data.Design.Configuration {
 
 		public SqlExpression DefaultExpression { get; set; }
 
+		public bool Generated { get; set; }
+
 		internal MemberModelConfiguration Clone(TypeModelConfiguration type) {
 			return new MemberModelConfiguration(type, Member) {
 				ColumnName = ColumnName,
 				ColumnType = ColumnType,
 				NotNull = NotNull,
-				DefaultExpression = DefaultExpression
+				DefaultExpression = DefaultExpression,
+				Generated = Generated
 			};
 		}
 	}

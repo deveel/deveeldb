@@ -5,8 +5,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Types;
+using Deveel.Data.Sql.Variables;
 
 namespace Deveel.Data.Linq {
 	public sealed class QueryTable<TType> : IQueryTable<TType>, IUpdateQueryTable where TType : class {
@@ -95,6 +98,9 @@ namespace Deveel.Data.Linq {
 		}
 
 		public TType Insert(TType obj) {
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+
 			throw new NotImplementedException();
 		}
 
@@ -103,15 +109,79 @@ namespace Deveel.Data.Linq {
 		}
 
 		public bool Update(TType obj) {
-			throw new NotImplementedException();
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+
+			var typeInfo = Context.FindTypeInfo(typeof(TType));
+			var parameters = new List<KeyValuePair<string, Field>>();
+			var statement = typeInfo.GenerateUpdate(obj, parameters);
+
+			using (var query = Context.CreateQuery()) {
+				foreach (var parameter in parameters) {
+					query.DeclareConstantVariable(parameter.Value, parameter.Value.Type, SqlExpression.Constant(parameter.Value));
+				}
+
+				return Result(query.ExecuteStatement(statement));
+			}
+		}
+
+		private bool Result(StatementResult result) {
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException();
+
+			var rowCount = result.Result.GetValue(0, 0);
+			if (Field.IsNullField(rowCount))
+				throw new InvalidOperationException();
+
+			return rowCount.CastTo(PrimitiveTypes.Integer()) > 0;
 		}
 
 		bool IUpdateQueryTable.Delete(object obj) {
 			return Delete((TType) obj);
 		}
 
-		public bool Delete(object obj) {
-			throw new NotImplementedException();
+		public bool Delete(TType obj) {
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+
+			var typeInfo = Context.FindTypeInfo(typeof(TType));
+			var parameters = new List<KeyValuePair<string, Field>>();
+			var statement = typeInfo.GenerateDelete(obj, parameters);
+
+			using (var query = Context.CreateQuery()) {
+				statement = statement.Prepare(new ParameterExpressionPreparer(parameters));
+
+				return Result(query.ExecuteStatement(statement));
+			}
 		}
+
+		#region ParameterExpressionPreparer
+
+		class ParameterExpressionPreparer : IExpressionPreparer {
+			private readonly IDictionary<string, Field> parameters;
+
+			public ParameterExpressionPreparer(IEnumerable<KeyValuePair<string, Field>> parameters) {
+				this.parameters = parameters.ToDictionary(x => x.Key, y => y.Value);
+			}
+
+			public bool CanPrepare(SqlExpression expression) {
+				return expression is SqlVariableReferenceExpression;
+			}
+
+			public SqlExpression Prepare(SqlExpression expression) {
+				var variableExp = (SqlVariableReferenceExpression) expression;
+
+				Field value;
+				if (!parameters.TryGetValue(variableExp.VariableName, out value))
+					throw new InvalidOperationException();
+
+				return SqlExpression.Constant(value);
+			}
+		}
+
+		#endregion
 	}
 }

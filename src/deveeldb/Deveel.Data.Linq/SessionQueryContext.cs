@@ -39,7 +39,7 @@ namespace Deveel.Data.Linq {
 			Provider = new SessionQueryProvider(Session, model);
 		}
 
-		public IQueryTable<TType> Table<TType>() where TType : class {
+		public QueryTable<TType> Table<TType>() where TType : class {
 			return new QueryTable<TType>(this, new LinqQueryable<TType>(Provider));
 		}
 
@@ -87,5 +87,9 @@ namespace Deveel.Data.Linq {
 		}
 
 		#endregion
+
+		internal IQuery CreateQuery() {
+			return Session.CreateQuery();
+		}
 	}
 }

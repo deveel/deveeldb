@@ -70,6 +70,15 @@ namespace Deveel.Data.Linq {
 		}
 
 		[Test]
+		public void DeleteByKey() {
+			var result = Context.Table<TestClass>().Delete(new TestClass {
+				Id = 1
+			});
+
+			Assert.IsTrue(result);
+		}
+
+		[Test]
 		public void QueryAgeGreaterThan() {
 			var result = Context.Table<TestClass>()
 				.Where(x => x.Age > 32)

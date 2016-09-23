@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Design.Configuration;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Design {
@@ -64,6 +67,108 @@ namespace Deveel.Data.Design {
 			}
 
 			return obj;
+		}
+
+		private DbConstraintInfo SelectUniqueConstraint(object obj) {
+			foreach (var constraint in Configuration.GetConstraints().Select(x => new DbConstraintInfo(x))) {
+				bool toPick = true;
+				foreach (var member in constraint.Members) {
+					var value = member.GetFieldValue(obj);
+					if (Field.IsNullField(value)) {
+						toPick = false;
+						break;
+					}
+				}
+
+				if (toPick)
+					return constraint;
+			}
+
+			return null;
+		}
+
+		private SqlExpression Where(object obj, IList<string> members, IList<KeyValuePair<string, Field>> parameters) {
+			var key = KeyMember;
+			if (key != null) {
+				var varName = String.Format("p{0}", parameters.Count);
+				var value = key.GetFieldValue(obj);
+
+				if (Field.IsNullField(value))
+					throw new InvalidOperationException();
+
+				members.Add(key.Member.Name);
+				parameters.Add(new KeyValuePair<string, Field>(varName, value));
+				return SqlExpression.Equal(SqlExpression.Reference(new ObjectName(key.ColumnName)),
+					SqlExpression.VariableReference(varName));
+			}
+
+			var uniqueConstraint = SelectUniqueConstraint(obj);
+			if (uniqueConstraint == null)
+				throw new InvalidOperationException();
+
+			var uniqueKeys = uniqueConstraint.Members.ToArray();
+
+			SqlExpression where = null;
+			for (int i = 0; i < uniqueKeys.Length; i++) {
+				var uniqueKey = uniqueKeys[i];
+
+				var varName = String.Format("p{0}", parameters.Count - i);
+				var value = uniqueKey.GetFieldValue(obj);
+
+				if (Field.IsNullField(value))
+					throw new InvalidOperationException();
+
+				members.Add(uniqueKey.Member.Name);
+
+				parameters.Add(new KeyValuePair<string, Field>(varName, value));
+
+				var colRef = SqlExpression.Reference(new ObjectName(uniqueKey.ColumnName));
+				var eq = SqlExpression.Equal(colRef, SqlExpression.VariableReference(varName));
+
+				if (where == null) {
+					where = eq;
+				} else {
+					where = SqlExpression.And(where, eq);
+				}
+			}
+
+			return where;
+		}
+
+		private IEnumerable<SqlColumnAssignment> GenerateAssignments(object obj, IList<KeyValuePair<string, Field>> parameters, IList<string> exclude) {
+			var assignments = new List<SqlColumnAssignment>();
+
+			var members = Configuration.MemberNames.Select(GetMember).ToArray();
+			for (int i = 0; i < members.Length; i++) {
+				var member = members[i];
+					
+				if (exclude.Contains(member.Member.Name))
+					continue;
+
+				var value = member.GetFieldValue(obj);
+				var varName = String.Format("p{0}", parameters.Count - i);
+
+				parameters.Add(new KeyValuePair<string, Field>(varName, value));
+				assignments.Add(new SqlColumnAssignment(member.ColumnName, SqlExpression.VariableReference(varName)));
+			}
+
+			return assignments;
+		}
+
+		internal SqlStatement GenerateUpdate(object obj, IList<KeyValuePair<string, Field>> parameters) {
+			var filterMembers = new List<string>();
+			var where = Where(obj, filterMembers, parameters);
+
+			var assignments = GenerateAssignments(obj, parameters, filterMembers);
+
+			return new UpdateStatement(ObjectName.Parse(TableName), where, assignments);
+		}
+
+		internal SqlStatement GenerateDelete(object obj, IList<KeyValuePair<string, Field>> parameters) {
+			var filterMembers = new List<string>();
+			var where = Where(obj, filterMembers, parameters);
+
+			return new DeleteStatement(ObjectName.Parse(TableName), where);
 		}
 	}
 }

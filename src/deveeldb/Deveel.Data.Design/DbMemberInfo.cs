@@ -100,5 +100,20 @@ namespace Deveel.Data.Design {
 				((FieldInfo) Member).SetValue(obj, value);
 			}
 		}
+
+		internal Field GetFieldValue(object obj) {
+			object value = null;
+			if (Member is PropertyInfo) {
+				value = ((PropertyInfo) Member).GetValue(obj, null);
+			} else if (Member is FieldInfo) {
+				value = ((FieldInfo) Member).GetValue(obj);
+			}
+
+			if (value == null)
+				return Field.Null(ColumnType);
+
+			var fieldValue = ColumnType.CreateFrom(value);
+			return new Field(ColumnType, fieldValue);
+		}
 	}
 }
