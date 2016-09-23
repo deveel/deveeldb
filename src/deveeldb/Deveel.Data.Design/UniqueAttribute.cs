@@ -6,5 +6,7 @@ namespace Deveel.Data.Design {
 		public UniqueAttribute()
 			: base(ColumnConstraintType.Unique) {
 		}
+
+		public string ConstraintName { get; set; }
 	}
 }
