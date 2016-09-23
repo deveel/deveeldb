@@ -42,6 +42,14 @@ namespace Deveel.Data.Design {
 			get { return Configuration.NotNull; }
 		}
 
+		public bool IsKey {
+			get { return Configuration.TypeModel.IsMemberOfConstraint(null, ConstraintType.PrimaryKey, Member.Name); }
+		}
+
+		public bool IsUnique {
+			get { return Configuration.TypeModel.IsMemberOfAnyConstraint(ConstraintType.Unique, Member.Name); }
+		}
+
 		internal void ApplyFromRow(object obj, Row row) {
 			if (row == null)
 				throw new ArgumentNullException("row");
@@ -59,11 +67,18 @@ namespace Deveel.Data.Design {
 
 			var columnValue = row.GetValue(columnOffset);
 
-			if (Field.IsNullField(columnValue) &&
-			    NotNull)
-				throw new InvalidOperationException(
-					String.Format("The member '{0}' of type '{1}' is marked as NOT NULL but the selected field is NULL", Member.Name,
-						TypeInfo.Type));
+			if (Field.IsNullField(columnValue)) {
+				if (IsKey)
+					throw new InvalidOperationException(
+						String.Format("The member '{0}' of type '{1}' is the PRIMARY KEY of the table but the selected field is NULL",
+							Member.Name,
+							TypeInfo.Type));
+
+				if (NotNull)
+					throw new InvalidOperationException(
+						String.Format("The member '{0}' of type '{1}' is marked as NOT NULL but the selected field is NULL", Member.Name,
+							TypeInfo.Type));
+			}
 
 			var finalValue = columnValue.CastTo(ColumnType);
 			var value = finalValue.ConvertTo(MemberType);

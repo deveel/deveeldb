@@ -160,6 +160,8 @@
     <Compile Include="Deveel.Data.Design.Conventions\IgnoredPropertyAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\MemberAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\IgnoredTypeAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\PrimaryKeyAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\PrimaryKeyDiscoveryConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\PrimitiveTypeResolvingConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\TableNameAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\TypeMemberDiscoveryConvention.cs" />

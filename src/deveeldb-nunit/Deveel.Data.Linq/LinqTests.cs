@@ -95,12 +95,22 @@ namespace Deveel.Data.Linq {
 			Assert.AreEqual("Mart Roosmaa", result.Name);
 		}
 
+		[Test]
+		public void FindByKey() {
+			var obj = Context.Table<TestClass>().FindByKey(1);
+
+			Assert.IsNotNull(obj);
+			Assert.AreEqual(1, obj.Id);
+			Assert.AreEqual("Antonello Provenzano", obj.Name);
+		}
+
 		#region TestClass
 
 		[TableName("test_table")]
 		class TestClass {
 			[Column(Name = "id")]
 			[DefaultExpression("UNIQUEKEY(test_table)")]
+			[PrimaryKey]
 			public int Id { get; set; }
 
 			[Column(Name = "name")]

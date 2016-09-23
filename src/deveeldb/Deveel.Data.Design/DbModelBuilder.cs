@@ -31,7 +31,9 @@ namespace Deveel.Data.Design {
 				new TypeMemberDiscoveryConvention(), 
 				new IgnoredPropertyAttributeConvention(), 
 				new ColumnAttributeConvention(),
+				new PrimaryKeyAttributeConvention(), 
 				new PrimitiveTypeResolvingConvention(), 
+				new PrimaryKeyDiscoveryConvention(), 
 			};
 		}
 

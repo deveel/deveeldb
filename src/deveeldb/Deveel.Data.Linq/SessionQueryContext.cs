@@ -56,6 +56,10 @@ namespace Deveel.Data.Linq {
 		protected virtual void OnBuildModel(DbModelBuilder modelBuilder) {
 		}
 
+		internal DbTypeInfo FindTypeInfo(Type type) {
+			return Model.GetTypeInfo(type);
+		}
+
 		#region SessionQueryProvider
 
 		class SessionQueryProvider : QueryProviderBase {

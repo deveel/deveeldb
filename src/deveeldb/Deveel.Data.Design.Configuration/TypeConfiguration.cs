@@ -30,7 +30,7 @@ namespace Deveel.Data.Design.Configuration {
 			if (expression == null)
 				throw new ArgumentNullException("expression");
 
-			var constraint = TypeModel.GetConstraint(ConstraintType.Check);
+			var constraint = TypeModel.Constraint(ConstraintType.Check);
 			constraint.CheckExpression = expression;
 
 			return this;

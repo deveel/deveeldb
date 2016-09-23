@@ -56,5 +56,9 @@ namespace Deveel.Data.Design.Configuration {
 				memberNames = new List<string>(memberNames)
 			};
 		}
+
+		internal bool HasMember(string memberName) {
+			return memberNames.Contains(memberName, StringComparer.Ordinal);
+		}
 	}
 }

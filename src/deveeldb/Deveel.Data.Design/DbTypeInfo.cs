@@ -21,6 +21,16 @@ namespace Deveel.Data.Design {
 			get { return Configuration.Type; }
 		}
 
+		public DbMemberInfo KeyMember {
+			get {
+				var key = GetConstraint(ConstraintType.PrimaryKey);
+				if (key == null)
+					return null;
+
+				return key.Members.FirstOrDefault();
+			}
+		}
+
 		public DbMemberInfo GetMember(string memberName) {
 			var buildInfo = Configuration.GetMember(memberName);
 			if (buildInfo == null)
@@ -29,8 +39,16 @@ namespace Deveel.Data.Design {
 			return new DbMemberInfo(buildInfo);
 		}
 
-		internal IEnumerable<DbConstraintInfo> GetConstraints() {
-			return Configuration.GetConstraints().Select(x => new DbConstraintInfo(x));
+		public DbConstraintInfo GetConstraint(ConstraintType constraintType) {
+			return GetConstraint(null, constraintType);
+		}
+
+		public DbConstraintInfo GetConstraint(string name, ConstraintType constraintType) {
+			var config = Configuration.GetConstraint(name, constraintType);
+			if (config == null)
+				return null;
+
+			return new DbConstraintInfo(config);
 		}
 
 		internal object CreateObject(Row row) {

@@ -34,7 +34,7 @@ namespace Deveel.Data.Design.Configuration {
 		}
 
 		private void AddToConstraint(ConstraintType constraintType) {
-			var constraint = Configuration.TypeModel.GetConstraint(constraintType);
+			var constraint = Configuration.TypeModel.Constraint(constraintType);
 			constraint.AddMember(Configuration.Member.Name);
 		}
 

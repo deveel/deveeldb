@@ -27,6 +27,45 @@ namespace Deveel.Data.Design.Configuration {
 			get { return members.Keys; }
 		}
 
+		internal bool HasPrimaryKey {
+			get { return HasConstraint(null, ConstraintType.PrimaryKey); }
+		}
+
+		internal bool HasConstraint(string name, ConstraintType constraintType) {
+			var key = new ConstraintKey(name, constraintType);
+			return constraints.ContainsKey(key);
+		}
+
+		internal bool IsMemberOfConstraint(string name, ConstraintType constraintType, string memberName) {
+			var key = new ConstraintKey(name, constraintType);
+
+			ConstraintModelConfiguration constraint;
+			if (!constraints.TryGetValue(key, out constraint))
+				return false;
+
+			return constraint.HasMember(memberName);
+		}
+
+		internal bool IsMemberOfAnyConstraint(ConstraintType constraintType, string memberName) {
+			var list = constraints.Values.Where(x => x.ConstraintType == constraintType);
+			foreach (var constraint in list) {
+				if (constraint.HasMember(memberName))
+					return true;
+			}
+
+			return false;
+		}
+
+		internal ConstraintModelConfiguration GetConstraint(string name, ConstraintType constraintType) {
+			var key = new ConstraintKey(name, constraintType);
+
+			ConstraintModelConfiguration constraint;
+			if (!constraints.TryGetValue(key, out constraint))
+				return null;
+
+			return constraint;
+		}
+
 		public void IgnoreMember(string memberName) {
 			if (!members.Remove(memberName))
 				throw new InvalidOperationException(String.Format("Member '{0}' was not found in type '{1}'.", memberName, Type));
@@ -62,11 +101,11 @@ namespace Deveel.Data.Design.Configuration {
 			return configuration;
 		}
 
-		public IEnumerable<ConstraintModelConfiguration> GetConstraints() {
+		internal IEnumerable<ConstraintModelConfiguration> GetConstraints() {
 			return constraints.Values.AsEnumerable();
 		}
 
-		public ConstraintModelConfiguration GetConstraint(string name, ConstraintType type) {
+		public ConstraintModelConfiguration Constraint(string name, ConstraintType type) {
 			var key = new ConstraintKey(name, type);
 			ConstraintModelConfiguration constraintConfiguration;
 			if (!constraints.TryGetValue(key, out constraintConfiguration)) {
@@ -77,8 +116,8 @@ namespace Deveel.Data.Design.Configuration {
 			return constraintConfiguration;
 		}
 
-		public ConstraintModelConfiguration GetConstraint(ConstraintType type) {
-			return GetConstraint(null, type);
+		public ConstraintModelConfiguration Constraint(ConstraintType type) {
+			return Constraint(null, type);
 		}
 
 		internal bool HasMember(string memberName) {
@@ -108,6 +147,32 @@ namespace Deveel.Data.Design.Configuration {
 			public bool Equals(ConstraintKey other) {
 				return String.Equals(Name, other.Name) &&
 				       ConstraintType == other.ConstraintType;
+			}
+
+			public override bool Equals(object obj) {
+				return Equals((ConstraintKey) obj);
+			}
+
+			public override int GetHashCode() {
+				var code = ConstraintType.GetHashCode();
+				if (Name != null)
+					code = Name.GetHashCode() ^ code;
+
+				return code;
+			}
+		}
+
+		#endregion
+
+		#region ConstraintKeyEqualityComparer
+
+		class ConstraintKeyEqualityComparer : IEqualityComparer<ConstraintKey> {
+			public bool Equals(ConstraintKey x, ConstraintKey y) {
+				return x.Equals(y);
+			}
+
+			public int GetHashCode(ConstraintKey obj) {
+				return obj.GetHashCode();
 			}
 		}
 
