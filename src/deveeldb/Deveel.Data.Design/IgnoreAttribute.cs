@@ -18,7 +18,7 @@
 using System;
 
 namespace Deveel.Data.Design {
-	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field)]
 	public sealed class IgnoreAttribute : Attribute {
 	}
 }

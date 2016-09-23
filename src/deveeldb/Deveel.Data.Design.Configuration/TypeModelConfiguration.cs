@@ -87,6 +87,7 @@ namespace Deveel.Data.Design.Configuration {
 
 		internal TypeModelConfiguration Clone(ModelConfiguration model) {
 			var cloned = new TypeModelConfiguration(model, Type);
+			cloned.TableName = TableName;
 			cloned.members = new Dictionary<string, MemberModelConfiguration>(members.ToDictionary(x => x.Key, y => y.Value.Clone(cloned)));
 			cloned.constraints = new Dictionary<ConstraintKey, ConstraintModelConfiguration>(constraints.ToDictionary(x => x.Key, y => y.Value.Clone(cloned)));
 			return cloned;

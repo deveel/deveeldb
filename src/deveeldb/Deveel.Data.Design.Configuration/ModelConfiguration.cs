@@ -70,6 +70,20 @@ namespace Deveel.Data.Design.Configuration {
 			return cloned;
 		}
 
+		internal bool IsDependantMember(Type type, string memberName) {
+			var fwdKey = new AssociationKey(type, memberName, AssociationType.Destination);
+			if (associationConfigurations.ContainsKey(fwdKey))
+				return true;
+
+			foreach (var association in associationConfigurations.Values) {
+				if (association.TargetType.Type == type &&
+				    association.TargetMember.Member.Name == memberName)
+					return true;
+			}
+
+			return false;
+		}
+
 		public AssociationModelConfiguration Associate(Type sourceType, string sourceMemberName, AssociationType associationType) {
 			var key = new AssociationKey(sourceType, sourceMemberName, associationType);
 			AssociationModelConfiguration configuration;

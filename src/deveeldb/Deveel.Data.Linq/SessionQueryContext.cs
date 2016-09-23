@@ -32,7 +32,7 @@ namespace Deveel.Data.Linq {
 				OnBuildModel(builder);
 
 				var builtModel = builder.Build();
-				Model = builtModel.Compile();
+				model = builtModel.Compile();
 			}
 
 			Model = model;

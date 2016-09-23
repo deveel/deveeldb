@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Deveel.Data.Design.Configuration;
 using Deveel.Data.Design.Conventions;
@@ -27,10 +26,12 @@ namespace Deveel.Data.Design {
 
 		static DbModelBuilder() {
 			DefaultConventions = new IConvention[] {
+				new IgnoredTypeAttributeConvention(),
 				new TableNameAttributeConvention(),
-				new IgnoredMemberConvention(), 
-				new ColumnAttributeConvention(), 
-				new PluralizeTableNameConvention(), 
+				new TypeMemberDiscoveryConvention(), 
+				new IgnoredPropertyAttributeConvention(), 
+				new ColumnAttributeConvention(),
+				new PrimitiveTypeResolvingConvention(), 
 			};
 		}
 

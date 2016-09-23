@@ -157,9 +157,12 @@
     <Compile Include="Deveel.Data.Design.Configuration\RequiredAssociationConfiguration.cs" />
     <Compile Include="Deveel.Data.Design.Configuration\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\ColumnAttributeConvention.cs" />
-    <Compile Include="Deveel.Data.Design.Conventions\IgnoredMemberConvention.cs" />
-    <Compile Include="Deveel.Data.Design.Conventions\PluralizeTableNameConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\IgnoredPropertyAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\MemberAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\IgnoredTypeAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\PrimitiveTypeResolvingConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\TableNameAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\TypeMemberDiscoveryConvention.cs" />
     <Compile Include="Deveel.Data.Design\AssociationCardinality.cs" />
     <Compile Include="Deveel.Data.Design\AssociationFunction.cs" />
     <Compile Include="Deveel.Data.Design\DbConstraintInfo.cs" />

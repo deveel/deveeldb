@@ -256,6 +256,9 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public override bool CanCastTo(SqlType destType) {
+			if (destType == null)
+				throw new ArgumentNullException("destType");
+
 			return destType.TypeCode != SqlTypeCode.Array &&
 			       destType.TypeCode != SqlTypeCode.Object;
 		}
