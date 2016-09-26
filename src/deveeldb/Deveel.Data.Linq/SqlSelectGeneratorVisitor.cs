@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using Deveel.Data.Design;
@@ -12,15 +11,15 @@ using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
 
 namespace Deveel.Data.Linq {
-	class SqlQueryGenerator : QueryModelVisitorBase {
+	class SqlSelectGeneratorVisitor : QueryModelVisitorBase {
 		private ExpressionCompileContext buildContext;
 
-		private SqlQueryGenerator(DbCompiledModel model) {
+		private SqlSelectGeneratorVisitor(DbCompiledModel model) {
 			buildContext = new ExpressionCompileContext(model);
 		}
 
 		public static SelectStatement GenerateSelect(IQuery context, DbCompiledModel model, QueryModel queryModel) {
-			var visitor = new SqlQueryGenerator(model);
+			var visitor = new SqlSelectGeneratorVisitor(model);
 			visitor.VisitQueryModel(queryModel);
 			return visitor.GetQuery(context);
 		}
@@ -36,8 +35,8 @@ namespace Deveel.Data.Linq {
 		public override void VisitQueryModel(QueryModel queryModel) {
 			DiscoverSources(queryModel.MainFromClause);
 
-			queryModel.SelectClause.Accept(new SelectColumnsVisitor(buildContext), queryModel);
 			queryModel.MainFromClause.Accept(this, queryModel);
+			queryModel.Accept(new SelectColumnsVisitor(buildContext));
 			queryModel.Accept(new OrderByVisitor(buildContext));
 			queryModel.Accept(new WhereQueryVisitor(buildContext));
 			VisitResultOperators(queryModel.ResultOperators, queryModel);

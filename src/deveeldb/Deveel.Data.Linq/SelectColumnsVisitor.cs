@@ -31,8 +31,6 @@ namespace Deveel.Data.Linq {
 
 				if (resultOperator is CountResultOperator) {
 					expression = SqlExpression.FunctionCall("COUNT", new[] {expression});
-				} else if (resultOperator is FirstResultOperator) {
-					// TODO: emit a LIMIT(0,1) clause
 				} else {
 					handled = false;
 				}
@@ -41,11 +39,28 @@ namespace Deveel.Data.Linq {
 			} else {
 				if (resultOperator is CountResultOperator) {
 					// TODO: COUNT(*) for the proper source
-				} else if (resultOperator is FirstResultOperator) {
-					// TODO: emit a LIMIT(0,1) clause
 				} else {
 					handled = false;
 				}
+			}
+
+			if (resultOperator is FirstResultOperator) {
+				Context.Limit(1);
+				Context.StartAt(0);
+				handled = true;
+			} else if (resultOperator is TakeResultOperator) {
+				var take = (TakeResultOperator) resultOperator;
+				var count = take.GetConstantCount();	// TODO: support also non-constant
+				Context.Limit(count);
+				handled = true;
+			} else if (resultOperator is SkipResultOperator) {
+				var skip = (SkipResultOperator) resultOperator;
+				var count = skip.GetConstantCount();    // TODO: support also non-constant
+				Context.StartAt(count);
+				handled = true;
+			} else if (resultOperator is SingleResultOperator) {
+				Context.Limit(1);
+				handled = true;
 			}
 
 			if (!handled)

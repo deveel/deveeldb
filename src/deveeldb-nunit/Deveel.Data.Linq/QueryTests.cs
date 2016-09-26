@@ -11,7 +11,7 @@ using NUnit.Framework;
 
 namespace Deveel.Data.Linq {
 	[TestFixture]
-	public class LinqTests : ContextBasedTest {
+	public class QueryTests : ContextBasedTest {
 		private SessionQueryContext Context { get; set; }
 
 		protected override bool OnSetUp(string testName, IQuery query) {
@@ -91,6 +91,29 @@ namespace Deveel.Data.Linq {
 
 			Assert.IsNotNull(first);
 			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void QueryAgeSmallerThan() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Age < 32)
+				.ToList();
+
+			Assert.IsNotEmpty(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.ElementAt(0);
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Mart Roosmaa", first.Name);
+		}
+
+		[Test]
+		public void QuerySingle() {
+			var result = Context.Table<TestClass>().Single();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual("Antonello Provenzano", result.Name);
 		}
 
 		[Test]

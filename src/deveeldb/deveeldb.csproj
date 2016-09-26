@@ -217,7 +217,7 @@
     <Compile Include="Deveel.Data.Linq\SelectColumnsVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\SessionQueryContext.cs" />
     <Compile Include="Deveel.Data.Linq\SourceVisitor.cs" />
-    <Compile Include="Deveel.Data.Linq\SqlQueryGenerator.cs" />
+    <Compile Include="Deveel.Data.Linq\SqlSelectGeneratorVisitor.cs" />
     <Compile Include="Deveel.Data.Linq\SqlSelectExpressionVisitor.cs" />
     <Compile Include="Deveel.Data.Design\AssociationType.cs" />
     <Compile Include="Deveel.Data.Design\CheckAttribute.cs" />

@@ -15,6 +15,8 @@ namespace Deveel.Data.Linq {
 		private SqlExpression filter;
 		private bool hasGroupBy;
 		private List<SortColumn> sortColumns;
+		private int? limitCount;
+		private int? limitOffset;
 
 		public ExpressionCompileContext(DbCompiledModel model) {
 			Model = model;
@@ -98,6 +100,14 @@ namespace Deveel.Data.Linq {
 				statement.OrderBy = sortColumns.AsReadOnly();
 			}
 
+			if (limitCount != null) {
+				if (limitOffset != null) {
+					statement.Limit = new QueryLimit(limitOffset.Value, limitCount.Value);
+				} else {
+					statement.Limit = new QueryLimit(limitCount.Value);
+				}
+			}
+
 			return statement;
 		}
 
@@ -127,6 +137,14 @@ namespace Deveel.Data.Linq {
 			Parameters.Add(name, exp);
 
 			return name;
+		}
+
+		public void Limit(int value) {
+			limitCount = value;
+		}
+
+		public void StartAt(int value) {
+			limitOffset = value;
 		}
 	}
 }
