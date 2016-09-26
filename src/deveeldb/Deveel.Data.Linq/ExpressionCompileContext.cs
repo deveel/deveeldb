@@ -12,6 +12,7 @@ namespace Deveel.Data.Linq {
 		private Dictionary<string, string> typeAliases;
 		private Dictionary<Type, string> typeAliaseseReverse;
 		private List<Type> sources;
+		private Dictionary<string, SqlQueryExpression> querySources;
 		private SqlExpression filter;
 		private bool hasGroupBy;
 		private List<SortColumn> sortColumns;
@@ -24,6 +25,7 @@ namespace Deveel.Data.Linq {
 			typeAliaseseReverse = new Dictionary<Type, string>();
 
 			sources = new List<Type>();
+			querySources = new Dictionary<string, SqlQueryExpression>(StringComparer.OrdinalIgnoreCase);
 
 			Columns = new List<SelectColumn>();
 			Parameters = new Dictionary<string, SqlExpression>();
@@ -42,6 +44,12 @@ namespace Deveel.Data.Linq {
 
 		public IList<SelectColumn> Columns { get; private set; }
 
+		public void Clear() {
+			sources.Clear();
+			querySources.Clear();
+			Columns.Clear();
+		}
+
 		public string FindTableName(Type type) {
 			return Model.FindTableName(type);
 		}
@@ -58,12 +66,16 @@ namespace Deveel.Data.Linq {
 			return memberMapInfo;
 		}
 
-		public void AddSource(Type type) {
+		public void AddTypeSource(Type type) {
 			if (!sources.Contains(type))
 				sources.Add(type);
 		}
 
-		public SelectStatement BuildQueryExpression() {
+		public void AddQuerySource(SqlQueryExpression expression, string alias) {
+			querySources[alias] = expression;
+		}
+
+		public SqlQueryExpression BuildQueryExpression() {
 			List<SelectColumn> selected;
 			if (Columns.Any()) {
 				selected = Columns.ToList();
@@ -86,6 +98,10 @@ namespace Deveel.Data.Linq {
 				}
 			}
 
+			foreach (var source in querySources) {
+				expression.FromClause.AddSubQuery(source.Key, source.Value);
+			}
+
 			if (filter != null) {
 				if (!hasGroupBy) {
 					expression.WhereExpression = filter;
@@ -93,6 +109,12 @@ namespace Deveel.Data.Linq {
 					expression.HavingExpression = filter;
 				}
 			}
+
+			return expression;
+		}
+
+		public SelectStatement BuildSelectStatement() {
+			var expression = BuildQueryExpression();
 
 			var statement = new SelectStatement(expression);
 
@@ -106,6 +128,8 @@ namespace Deveel.Data.Linq {
 				} else {
 					statement.Limit = new QueryLimit(limitCount.Value);
 				}
+			} else if (limitOffset != null) {
+				statement.Limit = new QueryLimit(limitOffset.Value, Int64.MaxValue);
 			}
 
 			return statement;

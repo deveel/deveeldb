@@ -21,14 +21,14 @@ namespace Deveel.Data.Linq {
 		public static SelectStatement GenerateSelect(IQuery context, DbCompiledModel model, QueryModel queryModel) {
 			var visitor = new SqlSelectGeneratorVisitor(model);
 			visitor.VisitQueryModel(queryModel);
-			return visitor.GetQuery(context);
+			return visitor.GetSelect(context);
 		}
 
 		private void DiscoverSources(MainFromClause fromClause) {
 			var visitor = new SourceDiscoveryVisitor(buildContext);
 			visitor.Visit(fromClause.FromExpression);
 
-			buildContext.AddSource(fromClause.ItemType);
+			buildContext.AddTypeSource(fromClause.ItemType);
 			buildContext.AddAlias(fromClause.ItemType, fromClause.ItemName, "t0");
 		}
 
@@ -36,15 +36,15 @@ namespace Deveel.Data.Linq {
 			DiscoverSources(queryModel.MainFromClause);
 
 			queryModel.MainFromClause.Accept(this, queryModel);
+			queryModel.Accept(new WhereQueryVisitor(buildContext));
 			queryModel.Accept(new SelectColumnsVisitor(buildContext));
 			queryModel.Accept(new OrderByVisitor(buildContext));
-			queryModel.Accept(new WhereQueryVisitor(buildContext));
 			VisitResultOperators(queryModel.ResultOperators, queryModel);
 			VisitBodyClauses(queryModel.BodyClauses, queryModel);
 		}
 
-		public SelectStatement GetQuery(IQuery context) {
-			var statement = buildContext.BuildQueryExpression();
+		public SelectStatement GetSelect(IQuery context) {
+			var statement = buildContext.BuildSelectStatement();
 			if (buildContext.Parameters.Count > 0) {
 				foreach (var parameter in buildContext.Parameters) {
 					context.Context.SetVariable(parameter.Key, parameter.Value);
@@ -52,12 +52,6 @@ namespace Deveel.Data.Linq {
 			}
 
 			return statement;
-		}
-
-		public override void VisitResultOperator(ResultOperatorBase resultOperator, QueryModel queryModel, int index) {
-			resultOperator.Accept(new SelectColumnsVisitor(buildContext), queryModel, index);
-
-			base.VisitResultOperator(resultOperator, queryModel, index);
 		}
 
 		#region SourceDiscoveryVisitor
@@ -72,7 +66,7 @@ namespace Deveel.Data.Linq {
 
 			protected override Expression VisitQuerySourceReference(QuerySourceReferenceExpression expression) {
 				var source = expression.ReferencedQuerySource;
-				context.AddSource(source.ItemType);
+				context.AddTypeSource(source.ItemType);
 				var name = String.Format("t{0}", ++sourceCount);
 
 				context.AddAlias(source.ItemType, source.ItemName, name);

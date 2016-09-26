@@ -80,7 +80,7 @@ namespace Deveel.Data.Sql.Expressions {
 			get {
 				return (Expression is SqlReferenceExpression) &&
 				       ((SqlReferenceExpression) Expression).ReferenceName.IsGlob &&
-					   ((SqlReferenceExpression)Expression).ReferenceName.FullName == "*";
+				       ((SqlReferenceExpression) Expression).ReferenceName.FullName == "*";
 			}
 		}
 

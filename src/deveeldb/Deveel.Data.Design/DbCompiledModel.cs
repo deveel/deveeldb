@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Deveel.Data.Linq;
 using Deveel.Data.Sql.Tables;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Design {
 	public sealed class DbCompiledModel {
@@ -43,6 +44,15 @@ namespace Deveel.Data.Design {
 		}
 
 		internal object ToObject(Type destType, Row row) {
+			if (PrimitiveTypes.IsPrimitive(destType)) {
+				if (row.ColumnCount > 1)
+					throw new InvalidOperationException(String.Format("A result of type '{0}' cannot have more than one column.", destType));
+				if (row.ColumnCount == 0)
+					return null;
+
+				return row[0].ConvertTo(destType);
+			}
+
 			var mapInfo = GetTypeInfo(destType);
 			if (mapInfo == null)
 				throw new ArgumentException(String.Format("The type '{0}' is not mapped in this context.", destType));

@@ -128,6 +128,114 @@ namespace Deveel.Data.Linq {
 		}
 
 		[Test]
+		public void QueryAgeEqual() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Age == 35)
+				.ToList();
+
+			Assert.IsNotEmpty(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.ElementAt(0);
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void CountAll() {
+			var result = Context.Table<TestClass>().Count();
+
+			Assert.AreEqual(2, result);
+		}
+
+		[Test]
+		public void CountWhereAgeEqual() {
+			var result = Context.Table<TestClass>().Count(x => x.Age == 35);
+
+			Assert.AreEqual(1, result);
+		}
+
+		[Test]
+		public void AnyAll() {
+			var result = Context.Table<TestClass>().Any();
+
+			Assert.AreEqual(true, result);
+		}
+
+		[Test]
+		public void AnyAgeGreater() {
+			var result = Context.Table<TestClass>().Any(x => x.Age > 20);
+
+			Assert.AreEqual(true, result);
+		}
+
+		[Test]
+		public void QuerySkippingFirst() {
+			var result = Context.Table<TestClass>().Skip(1).ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Mart Roosmaa", first.Name);
+		}
+
+		[Test]
+		public void QueryTakeOne() {
+			var result = Context.Table<TestClass>().Take(1).ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void QuerySkipAndTake() {
+			var result = Context.Table<TestClass>()
+				.Skip(1).Take(1)
+				.ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Mart Roosmaa", first.Name);
+		}
+
+		[Test]
+		public void QueryAverageAge() {
+			var result = Context.Table<TestClass>()
+				.Average(x => x.Age);
+
+			Assert.AreEqual(32.5, result);
+		}
+
+		[Test]
+		public void QueryMaxAge() {
+			var result = Context.Table<TestClass>()
+				.Max(x => x.Age);
+
+			Assert.AreEqual(35, result);
+		}
+
+		[Test]
+		public void QueryMinAge() {
+			var result = Context.Table<TestClass>()
+				.Min(x => x.Age);
+
+			Assert.AreEqual(30, result);
+		}
+
+		[Test]
 		public void FindByKey() {
 			var obj = Context.Table<TestClass>().FindByKey(1);
 
