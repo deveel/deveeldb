@@ -135,13 +135,14 @@ namespace Deveel.Data.Design {
 			return where;
 		}
 
-		private IEnumerable<SqlColumnAssignment> GenerateAssignments(object obj, IList<KeyValuePair<string, Field>> parameters, IList<string> exclude) {
+		private IEnumerable<SqlColumnAssignment> GenerateAssignments(object obj, IList<KeyValuePair<string, Field>> parameters,
+			IList<string> exclude) {
 			var assignments = new List<SqlColumnAssignment>();
 
 			var members = Configuration.MemberNames.Select(GetMember).ToArray();
 			for (int i = 0; i < members.Length; i++) {
 				var member = members[i];
-					
+
 				if (exclude.Contains(member.Member.Name))
 					continue;
 
@@ -169,6 +170,42 @@ namespace Deveel.Data.Design {
 			var where = Where(obj, filterMembers, parameters);
 
 			return new DeleteStatement(ObjectName.Parse(TableName), where);
+		}
+
+		internal SqlStatement GenerateInsert(object obj, IList<KeyValuePair<string, Field>> parameters) {
+			var columnNames = new List<string>();
+			var values = GenerateInsertValues(obj, columnNames, parameters);
+			return new InsertStatement(ObjectName.Parse(TableName), columnNames.ToArray(), new SqlExpression[][] {values});
+		}
+
+		private SqlExpression[] GenerateInsertValues(object obj, IList<string> columnNames,
+			IList<KeyValuePair<string, Field>> parameters) {
+
+			var members = Configuration.MemberNames.Select(GetMember).ToArray();
+			var expressions = new List<SqlExpression>();
+
+			for (int i = 0; i < members.Length; i++) {
+				var member = members[i];
+
+				var value = member.GetFieldValue(obj);
+
+				if (member.IsKey && 
+					Field.IsNullField(value) &&
+					!member.IsGenerated) {
+					throw new InvalidOperationException();
+				}
+
+				if (member.IsGenerated)
+					continue;
+
+				var paramName = String.Format("p{0}", i);
+
+				columnNames.Add(member.ColumnName);
+				expressions.Add(SqlExpression.VariableReference(paramName));
+				parameters.Add(new KeyValuePair<string, Field>(paramName, value));
+			}
+
+			return expressions.ToArray();
 		}
 	}
 }

@@ -5,8 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Deveel.Data.Design;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
@@ -101,7 +103,45 @@ namespace Deveel.Data.Linq {
 			if (obj == null)
 				throw new ArgumentNullException("obj");
 
-			throw new NotImplementedException();
+			var typeInfo = Context.FindTypeInfo(typeof(TType));
+			var parameters = new List<KeyValuePair<string, Field>>();
+			var statement = typeInfo.GenerateInsert(obj, parameters);
+
+			using (var query = Context.CreateQuery()) {
+				statement = statement.Prepare(new ParameterExpressionPreparer(parameters));
+
+				if (!Result(query.ExecuteStatement(statement)))
+					return null;
+
+				var lastId = FindLastInsertedId(query, typeInfo);
+
+				// TODO: query by ID: this seems simple, but it's not granted
+				//       that the key of the object is the unique ID
+
+				return obj;
+			}
+		}
+
+		private long FindLastInsertedId(IQuery query, DbTypeInfo typeInfo) {
+			var tableName = typeInfo.TableName;
+			var expression = SqlExpression.FunctionCall("CURKEY", new SqlExpression[] {SqlExpression.Constant(tableName)});
+			var queryExpression = new SqlQueryExpression(new [] {new SelectColumn(expression) });
+			var statement = new SelectStatement(queryExpression);
+
+			var result = query.ExecuteStatement(statement);
+
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.CursorRef)
+				throw new InvalidOperationException();
+
+			var value = result.Cursor.FirstOrDefault();
+
+			if (value == null)
+				throw new InvalidOperationException();
+
+			return ((SqlNumber) value.GetValue(0).AsBigInt().Value).ToInt64();
 		}
 
 		bool IUpdateQueryTable.Update(object obj) {
@@ -117,9 +157,7 @@ namespace Deveel.Data.Linq {
 			var statement = typeInfo.GenerateUpdate(obj, parameters);
 
 			using (var query = Context.CreateQuery()) {
-				foreach (var parameter in parameters) {
-					query.DeclareConstantVariable(parameter.Value, parameter.Value.Type, SqlExpression.Constant(parameter.Value));
-				}
+				statement = statement.Prepare(new ParameterExpressionPreparer(parameters));
 
 				return Result(query.ExecuteStatement(statement));
 			}

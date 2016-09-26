@@ -50,6 +50,10 @@ namespace Deveel.Data.Design {
 			get { return Configuration.TypeModel.IsMemberOfAnyConstraint(ConstraintType.Unique, Member.Name); }
 		}
 
+		public bool IsGenerated {
+			get { return Configuration.Generated; }
+		}
+
 		internal void ApplyFromRow(object obj, Row row) {
 			if (row == null)
 				throw new ArgumentNullException("row");

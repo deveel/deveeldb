@@ -158,6 +158,7 @@
     <Compile Include="Deveel.Data.Design.Configuration\TypeUtil.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\ColumnAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\DefaultAttributeConvention.cs" />
+    <Compile Include="Deveel.Data.Design.Conventions\GeneratedAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\IgnoredPropertyAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\MemberAttributeConvention.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\IgnoredTypeAttributeConvention.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="Deveel.Data.Design.Configuration\TypeModelConfiguration.cs" />
     <Compile Include="Deveel.Data.Design.Configuration\MemberModelConfiguration.cs" />
     <Compile Include="Deveel.Data.Design.Conventions\IStructuralConvention.cs" />
+    <Compile Include="Deveel.Data.Design\GeneratedAttribute.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleLogger.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Counter.cs" />
