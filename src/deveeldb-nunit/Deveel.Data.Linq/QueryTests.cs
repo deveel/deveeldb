@@ -244,6 +244,51 @@ namespace Deveel.Data.Linq {
 			Assert.AreEqual("Antonello Provenzano", obj.Name);
 		}
 
+		[Test]
+		public void QueryNameStartsWith() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Name.StartsWith("Anto"))
+				.ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void QueryNameEndsWith() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Name.EndsWith("zano"))
+				.ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Antonello Provenzano", first.Name);
+		}
+
+		[Test]
+		public void QueryNameContains() {
+			var result = Context.Table<TestClass>()
+				.Where(x => x.Name.Contains("art"))
+				.ToList();
+
+			Assert.IsNotNull(result);
+			Assert.AreEqual(1, result.Count);
+
+			var first = result.First();
+
+			Assert.IsNotNull(first);
+			Assert.AreEqual("Mart Roosmaa", first.Name);
+		}
+
 		#region TestClass
 
 		[TableName("test_table")]

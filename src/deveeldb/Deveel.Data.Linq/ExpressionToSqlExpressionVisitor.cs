@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Text;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Objects;
 
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Parsing;
@@ -98,6 +100,18 @@ namespace Deveel.Data.Linq {
 			return c;
 		}
 
+		private static string Unquote(string s) {
+			if (String.IsNullOrEmpty(s))
+				return "";
+
+			if (s[0] == '\"')
+				s = s.Substring(1);
+			if (s[s.Length - 1] == '\"')
+				s = s.Substring(0, s.Length - 1);
+
+			return s;
+		}
+
 		protected override Expression VisitMethodCall(MethodCallExpression expression) {
 			var methodName = expression.Method.Name;
 			var type = expression.Method.DeclaringType;
@@ -106,21 +120,26 @@ namespace Deveel.Data.Linq {
 				switch (methodName) {
 					case "StartsWith": {
 						var left = GetSqlExpression(expression.Object);
-						var s = String.Format("'{0}%'", expression.Arguments[0]);
+						var like = Unquote((string) ((ConstantExpression) expression.Arguments[0]).Value);
+						var s = String.Format("{0}%", like);
+
 
 						Result = SqlExpression.Like(left, SqlExpression.Constant(s));
 						break;
 					}
 					case "Contains": {
 						var left = GetSqlExpression(expression.Object);
-						var s = String.Format("'%{0}%'", expression.Arguments[0]);
+						var like = Unquote((string) ((ConstantExpression) expression.Arguments[0]).Value);
+						var s = String.Format("%{0}%", like);
 
 						Result = SqlExpression.Like(left, SqlExpression.Constant(s));
 						break;
 					}
 					case "EndsWith": {
 						var left = GetSqlExpression(expression.Object);
-						var s = String.Format("'%{0}'", expression.Arguments[0]);
+						var like = Unquote((string) ((ConstantExpression) expression.Arguments[0]).Value);
+
+						var s = String.Format("%{0}", like);
 
 						Result = SqlExpression.Like(left, SqlExpression.Constant(s));
 

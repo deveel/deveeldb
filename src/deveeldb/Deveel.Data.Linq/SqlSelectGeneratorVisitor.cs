@@ -36,8 +36,8 @@ namespace Deveel.Data.Linq {
 			DiscoverSources(queryModel.MainFromClause);
 
 			queryModel.MainFromClause.Accept(this, queryModel);
-			queryModel.Accept(new WhereQueryVisitor(buildContext));
 			queryModel.Accept(new SelectColumnsVisitor(buildContext));
+			queryModel.Accept(new WhereQueryVisitor(buildContext));
 			queryModel.Accept(new OrderByVisitor(buildContext));
 			VisitResultOperators(queryModel.ResultOperators, queryModel);
 			VisitBodyClauses(queryModel.BodyClauses, queryModel);

@@ -36,5 +36,10 @@ namespace Deveel.Data.Linq {
 			lastSource = expression.ReferencedQuerySource.ItemName;
 			return expression;
 		}
+
+		protected override Expression VisitMethodCall(MethodCallExpression expression) {
+			// TODO: support mapping to a function expression
+			return base.VisitMethodCall(expression);
+		}
 	}
 }
