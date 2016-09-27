@@ -102,9 +102,9 @@ namespace Deveel.Data.Linq {
 					IEnumerable<T> enumerable;
 
 					if (parent.result.Type == StatementResultType.CursorRef) {
-						enumerable = parent.result.Cursor.Select(x => x.ToObject<T>(parent.model));
+						enumerable = parent.result.Cursor.Select(x => x.ToObject<T>(parent.query, parent.model));
 					} else if (parent.result.Type == StatementResultType.Result) {
-						enumerable = parent.result.Result.Select(x => x.ToObject<T>(parent.model));
+						enumerable = parent.result.Result.Select(x => x.ToObject<T>(parent.query, parent.model));
 					} else {
 						enumerable = new T[0];
 					}

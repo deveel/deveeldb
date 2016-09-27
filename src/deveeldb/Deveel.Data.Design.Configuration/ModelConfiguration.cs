@@ -98,6 +98,58 @@ namespace Deveel.Data.Design.Configuration {
 			return configuration;
 		}
 
+		//internal AssociationModelConfiguration FindAssociation(Type type, string memberName) {
+		//	var key = new AssociationKey(type, memberName, AssociationType.Source);
+		//	AssociationModelConfiguration configuration;
+
+		//	if (associationConfigurations.TryGetValue(key, out configuration))
+		//		return configuration;
+
+		//	key = new AssociationKey(type, memberName, AssociationType.Destination);
+		//	if (associationConfigurations.TryGetValue(key, out configuration))
+		//		return configuration;
+
+		//	return null;
+		//}
+
+		internal AssociationModelConfiguration FindAssociation(Type type, string memberName, AssociationType associationType) {
+			var key = new AssociationKey(type, memberName, associationType);
+			AssociationModelConfiguration configuration;
+			if (!associationConfigurations.TryGetValue(key, out configuration))
+				return null;
+
+			return configuration;
+		}
+
+		internal bool IsAssociationSource(Type sourceType, string memberName) {
+			var key = new AssociationKey(sourceType, memberName, AssociationType.Source);
+			return associationConfigurations.ContainsKey(key);
+		}
+
+		internal bool IsAssociationTarget(Type destinarionType, string memberName) {
+			var key = new AssociationKey(destinarionType, memberName, AssociationType.Destination);
+			return associationConfigurations.ContainsKey(key);
+		}
+
+		internal MemberModelConfiguration GetTargetMember(Type sourceType, string sourceMember) {
+			var key = new AssociationKey(sourceType, sourceMember, AssociationType.Source);
+			AssociationModelConfiguration configuration;
+			if (!associationConfigurations.TryGetValue(key, out configuration))
+				return null;
+
+			var targetTypeInfo = Type(configuration.TargetType.Type);
+			return targetTypeInfo.GetMember(configuration.MemberName);
+		}
+
+		internal MemberModelConfiguration GetSourceMember(Type sourceType, string sourceMember) {
+			var key = new AssociationKey(sourceType, sourceMember, AssociationType.Destination);
+			AssociationModelConfiguration configuration;
+			if (!associationConfigurations.TryGetValue(key, out configuration))
+				return null;
+
+			return configuration.SourceMember;
+		}
+
 		#region AssociationKey
 
 		class AssociationKey : IEquatable<AssociationKey> {

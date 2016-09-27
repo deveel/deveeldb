@@ -54,7 +54,7 @@ namespace Deveel.Data.Design {
 			return new DbConstraintInfo(config);
 		}
 
-		internal object CreateObject(Row row) {
+		internal object CreateObject(IRequest context, Row row) {
 			if (row == null)
 				throw new ArgumentNullException("row");
 
@@ -63,7 +63,7 @@ namespace Deveel.Data.Design {
 			var obj = Activator.CreateInstance(Type, true);
 
 			foreach (var memberInfo in Configuration.MemberNames.Select(GetMember)) {
-				memberInfo.ApplyFromRow(obj, row);
+				memberInfo.ApplyFromRow(context, obj, row);
 			}
 
 			return obj;

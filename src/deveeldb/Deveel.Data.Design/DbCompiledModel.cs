@@ -43,7 +43,7 @@ namespace Deveel.Data.Design {
 			return FindType(type);
 		}
 
-		internal object ToObject(Type destType, Row row) {
+		internal object ToObject(IRequest context, Type destType, Row row) {
 			if (PrimitiveTypes.IsPrimitive(destType)) {
 				if (row.ColumnCount > 1)
 					throw new InvalidOperationException(String.Format("A result of type '{0}' cannot have more than one column.", destType));
@@ -57,7 +57,7 @@ namespace Deveel.Data.Design {
 			if (mapInfo == null)
 				throw new ArgumentException(String.Format("The type '{0}' is not mapped in this context.", destType));
 
-			return mapInfo.CreateObject(row);
+			return mapInfo.CreateObject(context, row);
 		}
 
 		public SessionQueryContext CreateContext(ISession session) {

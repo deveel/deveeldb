@@ -439,12 +439,12 @@ namespace Deveel.Data.Sql.Tables {
 			RowId = new RowId(Table.TableInfo.Id, number);
 		}
 
-		public object ToObject(DbCompiledModel model, Type destType) {
-			return model.ToObject(destType, this);
+		public object ToObject(IRequest context, DbCompiledModel model, Type destType) {
+			return model.ToObject(context, destType, this);
 		}
 
-		public T ToObject<T>(DbCompiledModel model) {
-			return (T) model.ToObject(typeof(T), this);
+		public T ToObject<T>(IRequest context, DbCompiledModel model) {
+			return (T) model.ToObject(context, typeof(T), this);
 		}
 
 		#region RowVariableResolver

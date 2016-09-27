@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Deveel.Data.Design.Configuration;
@@ -54,10 +55,15 @@ namespace Deveel.Data.Design {
 			get { return Configuration.Generated; }
 		}
 
-		internal void ApplyFromRow(object obj, Row row) {
-			if (row == null)
-				throw new ArgumentNullException("row");
+		public bool IsAssociationSource {
+			get { return Configuration.TypeModel.Model.IsAssociationSource(TypeInfo.Type, Member.Name); }
+		}
 
+		public bool IsAssociationTarget {
+			get { return Configuration.TypeModel.Model.IsAssociationTarget(TypeInfo.Type, Member.Name); }
+		}
+
+		private void ApplyMemberValue(object obj, Row row) {
 			if (String.IsNullOrEmpty(ColumnName))
 				throw new InvalidOperationException(String.Format("No column name was set for the member {0} in type '{1}'.",
 					Member.Name, TypeInfo.Type));
@@ -90,9 +96,54 @@ namespace Deveel.Data.Design {
 			Apply(obj, value);
 		}
 
-		internal void Apply(object obj, object value) {
+		internal void ApplyFromRow(IRequest context, object obj, Row row) {
+			if (row == null)
+				throw new ArgumentNullException("row");
+
+			if (IsAssociationTarget) {
+				ApplyAssociationTarget(context, obj, row);
+			} else if (IsAssociationSource) {
+				ApplyAssociationSource(context, obj, row);
+			} else {
+				ApplyMemberValue(obj, row);
+			}
+		}
+
+		private void ApplyAssociationSource(IRequest context, object obj, Row row) {
+			throw new NotImplementedException();
+		}
+
+		private void ApplyAssociationTarget(IRequest context, object obj, Row row) {
+			var association = Configuration.TypeModel.Model.FindAssociation(TypeInfo.Type, Member.Name, AssociationType.Source);
+			var destMember = association.TargetMember;
+			var memberType = destMember.MemberType;
+			var genMemberType = memberType.GetGenericTypeDefinition();
+			if (genMemberType == typeof(ICollection<>) ||
+			    genMemberType == typeof(IList<>) ||
+			    genMemberType == typeof(IEnumerable<>)) {
+				ApplyLazyAssociationTarget(context, obj, row, association);
+			} else {
+				ApplyDirectAssociationTarget(context, obj, row, association);
+			}
+		}
+
+		private void ApplyDirectAssociationTarget(IRequest context, object obj, Row row, AssociationModelConfiguration association) {
+			var keyMember = association.KeyMember;
+
+
+			throw new NotImplementedException();
+		}
+
+		private void ApplyLazyAssociationTarget(IRequest context, object obj, Row row, AssociationModelConfiguration association) {
+			var keyMember = association.KeyMember;
+
+			throw new NotImplementedException();
+		}
+
+		private void Apply(object obj, object value) {
 			if (obj == null)
 				throw new ArgumentNullException("obj");
+
 			if (value == null && NotNull)
 				throw new InvalidOperationException(
 					String.Format("The member '{0}' of type '{1}' is marked as NOT NULL but the selected field is NULL", Member.Name,
