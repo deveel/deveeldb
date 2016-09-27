@@ -16,6 +16,7 @@
 using System;
 
 using Deveel.Data.Index;
+using Deveel.Data.Design;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;

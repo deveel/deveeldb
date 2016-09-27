@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Mapping;
+using Deveel.Data.Design;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Types;
@@ -439,20 +439,12 @@ namespace Deveel.Data.Sql.Tables {
 			RowId = new RowId(Table.TableInfo.Id, number);
 		}
 
-		public object ToObject(Type destType) {
-			return ToObject(null, destType);
+		public object ToObject(IRequest context, DbCompiledModel model, Type destType) {
+			return model.ToObject(context, destType, this);
 		}
 
-		public object ToObject(IRequest context, Type destType) {
-			return Mapper.ToObject(destType, this);
-		}
-
-		public T ToObject<T>() {
-			return ToObject<T>(null);
-		}
-
-		public T ToObject<T>(IRequest context) {
-			return Mapper.ToObject<T>(this);
+		public T ToObject<T>(IRequest context, DbCompiledModel model) {
+			return (T) model.ToObject(context, typeof(T), this);
 		}
 
 		#region RowVariableResolver

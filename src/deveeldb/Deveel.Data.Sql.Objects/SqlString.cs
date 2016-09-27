@@ -42,9 +42,9 @@ namespace Deveel.Data.Sql.Objects {
 	[Serializable]
 	public struct SqlString : ISqlString, IEquatable<SqlString>, ISerializable
 #if !PCL
-		, IConvertible
+			, IConvertible
 #endif
-		{
+	{
 		/// <summary>
 		/// The maximum length of characters a <see cref="SqlString"/> can handle.
 		/// </summary>
@@ -288,8 +288,8 @@ namespace Deveel.Data.Sql.Objects {
 				var otherChars = otheString.ToCharArray();
 				var destChars = new char[length];
 
-				Array.Copy(sourceChars, 0, destChars, 0, (int)Length);
-				Array.Copy(otherChars, 0, destChars, (int)Length, (int)otheString.Length);
+				Array.Copy(sourceChars, 0, destChars, 0, (int) Length);
+				Array.Copy(otherChars, 0, destChars, (int) Length, (int) otheString.Length);
 				return new SqlString(destChars, length);
 			}
 
@@ -444,43 +444,43 @@ namespace Deveel.Data.Sql.Objects {
 		}
 
 		object IConvertible.ToType(Type conversionType, IFormatProvider provider) {
-			if (conversionType == typeof (bool))
+			if (conversionType == typeof(bool))
 				return Convert.ToBoolean(Value, provider);
-			if (conversionType == typeof (byte))
+			if (conversionType == typeof(byte))
 				return Convert.ToByte(Value, provider);
-			if (conversionType == typeof (sbyte))
+			if (conversionType == typeof(sbyte))
 				return Convert.ToSByte(Value, provider);
-			if (conversionType == typeof (short))
+			if (conversionType == typeof(short))
 				return Convert.ToInt16(Value, provider);
-			if (conversionType == typeof (ushort))
+			if (conversionType == typeof(ushort))
 				return Convert.ToUInt16(Value, provider);
-			if (conversionType == typeof (int))
+			if (conversionType == typeof(int))
 				return Convert.ToInt32(Value, provider);
-			if (conversionType == typeof (uint))
+			if (conversionType == typeof(uint))
 				return Convert.ToUInt32(Value, provider);
-			if (conversionType == typeof (long))
+			if (conversionType == typeof(long))
 				return Convert.ToInt64(Value, provider);
-			if (conversionType == typeof (ulong))
+			if (conversionType == typeof(ulong))
 				return Convert.ToUInt64(Value, provider);
-			if (conversionType == typeof (float))
+			if (conversionType == typeof(float))
 				return Convert.ToSingle(Value, provider);
-			if (conversionType == typeof (double))
+			if (conversionType == typeof(double))
 				return Convert.ToDouble(Value, provider);
-			if (conversionType == typeof (decimal))
+			if (conversionType == typeof(decimal))
 				return Convert.ToDecimal(Value, provider);
-			if (conversionType == typeof (string))
+			if (conversionType == typeof(string))
 				return Convert.ToString(Value, provider);
 
-			if (conversionType == typeof (char[]))
+			if (conversionType == typeof(char[]))
 				return ToCharArray();
 
-			if (conversionType == typeof (SqlNumber))
+			if (conversionType == typeof(SqlNumber))
 				return ToNumber();
-			if (conversionType == typeof (SqlBoolean))
+			if (conversionType == typeof(SqlBoolean))
 				return ToBoolean();
-			if (conversionType == typeof (SqlDateTime))
+			if (conversionType == typeof(SqlDateTime))
 				return ToDateTime();
-			if (conversionType == typeof (SqlBinary))
+			if (conversionType == typeof(SqlBinary))
 				return ToBinary();
 
 			throw new InvalidCastException(String.Format("Cannot convet SQL STRING to {0}", conversionType.FullName));
@@ -491,7 +491,7 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlBoolean ToBoolean() {
 			SqlBoolean value;
 			if (!SqlBoolean.TryParse(Value, out value))
-				return SqlBoolean.Null;			// TODO: Should we throw an exception?
+				return SqlBoolean.Null; // TODO: Should we throw an exception?
 
 			return value;
 		}
@@ -499,7 +499,7 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlNumber ToNumber() {
 			SqlNumber value;
 			if (!SqlNumber.TryParse(Value, out value))
-				return SqlNumber.Null;			// TODO: Shoudl we throw an exception?
+				return SqlNumber.Null; // TODO: Shoudl we throw an exception?
 
 			return value;
 		}
@@ -507,7 +507,7 @@ namespace Deveel.Data.Sql.Objects {
 		public SqlDateTime ToDateTime() {
 			SqlDateTime value;
 			if (!SqlDateTime.TryParse(Value, out value))
-				return SqlDateTime.Null;		// TODO: Shoudl we throw an exception?
+				return SqlDateTime.Null; // TODO: Shoudl we throw an exception?
 
 			return value;
 		}
@@ -523,5 +523,29 @@ namespace Deveel.Data.Sql.Objects {
 
 			return Encoding.Unicode.GetChars(source);
 		}
+
+		#region Operators
+
+		public static bool operator ==(SqlString s1, SqlString s2) {
+			return s1.Equals(s2);
+		}
+
+		public static bool operator !=(SqlString s1, SqlString s2) {
+			return !(s1 == s2);
+		}
+
+		#endregion
+
+		#region Implicit Operators
+
+		public static implicit operator SqlString(string s) {
+			return new SqlString(s);
+		}
+
+		public static implicit operator string(SqlString s) {
+			return s.Value;
+		}
+
+		#endregion
 	}
 }

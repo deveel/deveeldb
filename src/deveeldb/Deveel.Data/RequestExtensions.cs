@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using Deveel.Data.Design;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
@@ -477,15 +478,6 @@ namespace Deveel.Data {
 			var columns = args.Select(x => new SelectColumn(x));
 			var query = new SqlQueryExpression(columns);
 			return request.Select(query);
-		}
-
-		public static IEnumerable<T> Select<T>(this IRequest request, SqlQueryExpression query) {
-			return request.Select(query).Select(x => x.ToObject<T>());
-		}
-
-		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) {
-			var query = (SqlQueryExpression) SqlExpression.Parse(queryText);
-			return request.Select<T>(query);
 		}
 
 		#region Select Function

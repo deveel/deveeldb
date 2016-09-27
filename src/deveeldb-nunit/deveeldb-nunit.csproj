@@ -95,7 +95,8 @@
     <Compile Include="Deveel.Data.Diagnostics\CounterTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
-    <Compile Include="Deveel.Data.Linq\LinqTests.cs" />
+    <Compile Include="Deveel.Data.Linq\InsertTests.cs" />
+    <Compile Include="Deveel.Data.Linq\QueryTests.cs" />
     <Compile Include="Deveel.Data.Routines\PlSqlFunctionTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ExpressionSerializationTests.cs" />
     <Compile Include="Deveel.Data.Serialization\ObjectNameSerializationTests.cs" />
@@ -299,7 +300,9 @@
     <None Include="deveeldb-nunit.snk" />
     <None Include="packages.deveeldb-nunit.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Deveel.Data.Design\" />
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

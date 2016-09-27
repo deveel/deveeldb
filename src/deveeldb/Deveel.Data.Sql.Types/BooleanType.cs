@@ -53,7 +53,12 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		public override Type GetRuntimeType() {
-			return typeof(bool);
+			return typeof(bool?);
+		}
+
+		public override object ConvertTo(ISqlObject obj, Type destType) {
+			var b = (SqlBoolean) obj;
+			return (bool?) b;
 		}
 
 		public override int Compare(ISqlObject x, ISqlObject y) {

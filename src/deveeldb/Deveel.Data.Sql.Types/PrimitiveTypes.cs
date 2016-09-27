@@ -17,9 +17,11 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Objects;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Types {
@@ -267,6 +269,7 @@ namespace Deveel.Data.Sql.Types {
 			return true;
 		}
 
+
 		public static bool IsPrimitive(string name) {
 			if (System.String.IsNullOrEmpty(name))
 				return false;
@@ -482,6 +485,22 @@ namespace Deveel.Data.Sql.Types {
 			throw new ArgumentException(System.String.Format("The SQL type {0} is not primitive.", sqlType));
 		}
 
+		public static bool IsPrimitive(Type type) {
+			if (typeof(ISqlObject).IsAssignableFrom(type))
+				return true;
+
+			if (type.IsPrimitive)
+				return true;
+
+			return type == typeof(string) ||
+			       type == typeof(BigInteger) ||
+			       type == typeof(DateTime) ||
+			       type == typeof(DateTimeOffset) ||
+				   type == typeof(TimeSpan) ||
+				   type == typeof(byte[]) ||
+				   type == typeof(Stream);
+		}
+
 		public static SqlType FromType(Type type) {
 			if (type == typeof(bool))
 				return Boolean();
@@ -500,7 +519,15 @@ namespace Deveel.Data.Sql.Types {
 				return Real();
 			if (type == typeof (BigInteger))
 				return Numeric();
-			if (type == typeof (DateTime))
+			if (type == typeof (DateTime) ||
+				type == typeof(DateTimeOffset))
+				return TimeStamp();
+
+			if (type == typeof(byte[]) ||
+			    type == typeof(Stream))
+				return Binary();
+
+			if (type == typeof(TimeSpan))
 				return TimeStamp();
 
 			throw new NotSupportedException(System.String.Format("The runtime type '{0}' is not supported as SQL type (yet).", type));
