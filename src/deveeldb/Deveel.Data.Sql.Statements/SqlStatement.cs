@@ -22,9 +22,11 @@ using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
+
 using System.Text;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -67,6 +69,15 @@ namespace Deveel.Data.Sql.Statements {
 			try {
 				context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
 
+				var result = context.Assert();
+				if (result.IsDenied) {
+					foreach (var error in result.Errors) {
+						context.Request.OnError(error);
+					}
+
+					throw result.SecurityError;
+				}
+
 				ExecuteStatement(context);
 
 				context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
@@ -81,6 +92,27 @@ namespace Deveel.Data.Sql.Statements {
 
 		protected virtual void ExecuteStatement(ExecutionContext context) {
 			throw new NotSupportedException(String.Format("The statement '{0}' does not support execution", GetType().Name));
+		}
+
+		protected virtual void AssertSecurity(ISecurityContext context) {
+
+		}
+
+		internal void Assert(ISecurityContext context) {
+			try {
+				AssertSecurity(context);
+			} catch (SecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new SecurityException("An error occurred while asserting the security state.", ex);
+			}
+		}
+
+		internal void SetAssertions(ExecutionContext context) {
+			GetAssertions(context);
+		}
+
+		protected virtual void GetAssertions(ExecutionContext context) {
 		}
 
 		internal void SetSource(SqlQuery query) {

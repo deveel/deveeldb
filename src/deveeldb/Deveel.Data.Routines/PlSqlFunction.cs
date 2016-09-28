@@ -32,23 +32,24 @@ namespace Deveel.Data.Routines {
 		}
 
 		public override InvokeResult Execute(InvokeContext context) {
-			var execContext = new ExecutionContext(context.Request, Body);
-			Body.Execute(execContext);
+			using (var execContext = new ExecutionContext(context.Request, Body)) {
+				Body.Execute(execContext);
 
-			if (!execContext.HasResult)
-				throw new InvalidOperationException("The execution of the function has no returns");
+				if (!execContext.HasResult)
+					throw new InvalidOperationException("The execution of the function has no returns");
 
-			var result = execContext.Result;
-			var returnType = ReturnType(context);
+				var result = execContext.Result;
+				var returnType = ReturnType(context);
 
-			if (returnType is TabularType)
-				return context.Result(result);
+				if (returnType is TabularType)
+					return context.Result(result);
 
-			if (result.RowCount == 0)
-				throw new InvalidOperationException("The execution of the function has no returns");
+				if (result.RowCount == 0)
+					throw new InvalidOperationException("The execution of the function has no returns");
 
-			var retunValue = result.GetValue(0, 0);
-			return context.Result(retunValue);
+				var retunValue = result.GetValue(0, 0);
+				return context.Result(retunValue);
+			}
 		}
 	}
 }

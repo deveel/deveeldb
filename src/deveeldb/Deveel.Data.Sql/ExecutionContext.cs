@@ -16,6 +16,8 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Cursors;
@@ -24,7 +26,7 @@ using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
-	public sealed class ExecutionContext {
+	public sealed class ExecutionContext : ISecurityContext, IDisposable {
 		public ExecutionContext(IRequest request, SqlStatement statement)
 			: this(null, request, statement) {
 		}
@@ -36,6 +38,14 @@ namespace Deveel.Data.Sql {
 			Parent = parent;
 			Request = request;
 			Statement = statement;
+
+			Assertions = new SecurityAssertionRegistrar(parent != null ? parent.Assertions : null);
+
+			GatherAssertions();
+		}
+
+		~ExecutionContext() {
+			Dispose(false);
 		}
 
 		private SqlStatement Statement { get; set; }
@@ -72,6 +82,8 @@ namespace Deveel.Data.Sql {
 			get { return Request.Access(); }
 		}
 
+		public SecurityAssertionRegistrar Assertions { get; private set; }
+
 		private void AssertNotFinished() {
 			if (HasTermination)
 				throw new InvalidOperationException("The context has already terminated.");
@@ -86,6 +98,40 @@ namespace Deveel.Data.Sql {
 				Parent.Result = Result;
 				Parent.Terminate();
 			}
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (Assertions != null)
+					Assertions.Dispose();
+			}
+
+			Statement = null;
+			Parent = null;
+			Request = null;
+			Result = null;
+			Cursor = null;
+			Assertions = null;
+		}
+
+		public void Dispose() {
+			GC.SuppressFinalize(this);
+			Dispose(true);
+		}
+
+		private void GatherAssertions() {
+			var attributes =
+				Statement.GetType().GetCustomAttributes(typeof(SecurityAssertAttribute), true).Cast<ISecurityAssert>();
+			foreach (var attribute in attributes) {
+				Assertions.Add(attribute);
+			}
+
+			Assertions.Add(Statement.Assert);
+			Statement.SetAssertions(this);
+		}
+
+		IEnumerable<ISecurityAssert> ISecurityContext.Assertions {
+			get { return Assertions; }
 		}
 
 		public void SetResult(ITable result) {
