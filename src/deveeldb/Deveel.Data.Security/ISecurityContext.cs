@@ -7,6 +7,8 @@ namespace Deveel.Data.Security {
 
 		User User { get; }
 
+		object Target { get; }
+
 		IEnumerable<ISecurityAssert> Assertions { get; }
 	}
 }

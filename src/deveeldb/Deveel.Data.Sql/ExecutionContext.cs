@@ -50,6 +50,10 @@ namespace Deveel.Data.Sql {
 
 		private SqlStatement Statement { get; set; }
 
+		object ISecurityContext.Target {
+			get { return Statement; }
+		}
+
 		public IRequest Request { get; private set; }
 
 		public ITable Result { get; private set; }

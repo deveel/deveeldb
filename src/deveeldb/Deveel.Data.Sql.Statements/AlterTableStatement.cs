@@ -26,7 +26,8 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AlterTableStatement : SqlStatement {
+	[AssertResourceAccess]
+	public sealed class AlterTableStatement : SqlStatement, IResourceAccess {
 		public AlterTableStatement(ObjectName tableName, IAlterTableAction action) {
 			if (tableName == null)
 				throw new ArgumentNullException("tableName");
@@ -45,6 +46,10 @@ namespace Deveel.Data.Sql.Statements {
 		public ObjectName TableName { get; private set; }
 
 		public IAlterTableAction Action { get; private set; }
+
+		IEnumerable<ResourceAccessRequest> IResourceAccess.Requests {
+			get { return new[] {new ResourceAccessRequest(TableName, DbObjectType.Table, Privileges.Alter)}; }
+		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access().ResolveTableName(TableName);
@@ -83,8 +88,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanAlterTable(TableName))
-				throw new InvalidAccessException(context.Request.UserName(), TableName);
+			//if (!context.User.CanAlterTable(TableName))
+			//	throw new InvalidAccessException(context.Request.UserName(), TableName);
 
 			var table = context.Request.Access().GetTable(TableName);
 			if (table == null)

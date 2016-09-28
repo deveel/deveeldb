@@ -160,8 +160,11 @@
     <Compile Include="Deveel.Data.Diagnostics\EventMessage.cs" />
     <Compile Include="Deveel.Data.Diagnostics\MetadataKeys.cs" />
     <Compile Include="Deveel.Data.Security\AccessPolicy.cs" />
+    <Compile Include="Deveel.Data.Security\IResourceAccess.cs" />
     <Compile Include="Deveel.Data.Security\ISecurityAssert.cs" />
     <Compile Include="Deveel.Data.Security\ISecurityContext.cs" />
+    <Compile Include="Deveel.Data.Security\ResourceAccessRequest.cs" />
+    <Compile Include="Deveel.Data.Security\AssertResourceAccessAttribute.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertAttribute.cs" />
     <Compile Include="Deveel.Data.Security\AssertResult.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertionRegistrar.cs" />

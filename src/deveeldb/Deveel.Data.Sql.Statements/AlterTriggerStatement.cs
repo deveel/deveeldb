@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
@@ -23,7 +24,8 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	public sealed class AlterTriggerStatement : SqlStatement {
+	[AssertResourceAccess]
+	public sealed class AlterTriggerStatement : SqlStatement, IResourceAccess {
 		public AlterTriggerStatement(ObjectName triggerName, IAlterTriggerAction action) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
@@ -44,6 +46,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTriggerAction Action { get; private set; }
 
+		IEnumerable<ResourceAccessRequest> IResourceAccess.Requests {
+			get { return new[] {new ResourceAccessRequest(TriggerName, DbObjectType.Trigger, Privileges.Alter)}; }
+		}
+
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var triggerName = context.Access().ResolveObjectName(DbObjectType.Trigger, TriggerName);
 			var action = Action;
@@ -56,8 +62,8 @@ namespace Deveel.Data.Sql.Statements {
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.TriggerExists(TriggerName))
 				throw new ObjectNotFoundException(TriggerName);
-			if (!context.User.CanAlter(DbObjectType.Trigger, TriggerName))
-				throw new MissingPrivilegesException(context.User.Name, TriggerName, Privileges.Alter);
+			//if (!context.User.CanAlter(DbObjectType.Trigger, TriggerName))
+			//	throw new MissingPrivilegesException(context.User.Name, TriggerName, Privileges.Alter);
 
 			var trigger = context.DirectAccess.GetObject(DbObjectType.Trigger, TriggerName) as Trigger;
 			if (trigger == null)
