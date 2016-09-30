@@ -31,9 +31,10 @@ namespace Deveel.Data.Routines {
 		}
 
 		protected override Field ExecuteRoutine(IBlock context) {
-			var execContext = new ExecutionContext(context, Body);
-			Body.Execute(execContext);
-			return Field.Null();
+			using (var execContext = new ExecutionContext(context, Body)) {
+				Body.Execute(execContext);
+				return Field.Null();
+			}
 		}
 	}
 }

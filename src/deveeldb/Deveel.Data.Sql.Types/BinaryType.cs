@@ -82,6 +82,9 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		private SqlBoolean ToBoolean(ISqlBinary binary) {
+			if (binary == null || binary.IsNull)
+				return SqlBoolean.Null;
+
 			if (binary.Length != 1)
 				throw new InvalidCastException();
 

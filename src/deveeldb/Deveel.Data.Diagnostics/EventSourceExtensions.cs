@@ -16,64 +16,52 @@
 
 
 using System;
+using System.Globalization;
+using System.Linq;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventSourceExtensions {
-		public static void OnEvent(this IEventSource source, IEvent @event) {
-			source.Context.RegisterEvent(@event);
+		public static T GetMetadata<T>(this IEventSource source, string key, CultureInfo formatProvider) {
+			if (source == null || source.Metadata == null)
+				return default(T);
+
+			return source.Metadata.GetValue<T>(key, formatProvider);
 		}
 
-		public static void OnError(this IEventSource source, Exception error) {
-			OnError(source, error, -1);
+		public static T GetMetadata<T>(this IEventSource source, string key) {
+			return source.GetMetadata<T>(key, CultureInfo.InvariantCulture);
 		}
 
-		public static void OnError(this IEventSource source, Exception error, int errorCode) {
-			OnError(source, error, errorCode, ErrorLevel.Error);
+		public static string OsPlatform(this IEventSource source) {
+			return source.GetMetadata<string>(MetadataKeys.System.Environment.OsPlatform);
 		}
 
-		public static void OnError(this IEventSource source, Exception error, ErrorLevel level) {
-			OnError(source, error, -1, level);
+		public static string OsVersion(this IEventSource source) {
+			return source.GetMetadata<string>(MetadataKeys.System.Environment.OsVersion);
 		}
 
-		public static void OnError(this IEventSource source, Exception error, int errorCode, ErrorLevel level) {
-			var errorEvent = new ErrorEvent(error, errorCode, level);
-			source.OnEvent(errorEvent);
+		public static string SessionLastCommandText(this IEventSource source) {
+			return source.GetMetadata<string>(MetadataKeys.Session.LastCommandText);
 		}
 
-		public static void OnWarning(this IEventSource source, Exception warning) {
-			OnWarning(source, warning, -1);
+		public static DateTimeOffset? SessionLastCommandTime(this IEventSource source) {
+			return source.GetMetadata<DateTimeOffset?>(MetadataKeys.Session.LastCommandTime);
 		}
 
-		public static void OnWarning(this IEventSource source, Exception warning, int errorCode) {
-			source.OnError(warning, errorCode, ErrorLevel.Warning);
+		public static DateTimeOffset? SessionStartTimeUtc(this IEventSource source) {
+			return source.GetMetadata<DateTimeOffset?>(MetadataKeys.Session.StartTimeUtc);
 		}
 
-		public static void OnInformation(this IEventSource source, string message) {
-			source.OnInformation(message, InformationLevel.Information);
+		public static string SessionTimeZone(this IEventSource source) {
+			return source.GetMetadata<string>(MetadataKeys.Session.TimeZone);
 		}
 
-		public static void OnInformation(this IEventSource source, string message, InformationLevel level) {
-			source.OnEvent(new InformationEvent(message, level));
+		public static string DatabaseName(this IEventSource source) {
+			return source.GetMetadata<string>(MetadataKeys.Database.Name);
 		}
 
-		public static void OnVerbose(this IEventSource source, string message) {
-			source.OnInformation(message, InformationLevel.Verbose);
-		}
-
-		public static void OnDebug(this IEventSource source, string message) {
-			source.OnInformation(message, InformationLevel.Debug);
-		}
-
-		public static void OnCounter(this IEventSource source, string key) {
-			OnCounter(source, key, null);
-		}
-
-		public static void OnCounter(this IEventSource source, string key, object value) {
-			source.OnEvent(new CounterEvent(key, value));
-		}
-
-		public static void UseLogger<TLogger>(this IEventSource source, TLogger logger) where TLogger : LoggerBase {
-			source.Context.AttachRouter(logger);
+		public static int DatabaseSessionCount(this IEventSource source) {
+			return source.GetMetadata<int>(MetadataKeys.Database.SessionCount);
 		}
 	}
 }

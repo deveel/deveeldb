@@ -28,7 +28,7 @@ namespace Deveel.Data {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface ISession : IDisposable {
+	public interface ISession : IContextBased, IDisposable {
 		/// <summary>
 		/// Gets the name of the current schema of this session.
 		/// </summary>
@@ -48,8 +48,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the <see cref="IContext"/> of the session.
 		/// </summary>
-        ISessionContext Context { get; }
+        new ISessionContext Context { get; }
 
+		void SetTimeZone(int hours, int minutes);
 
 		/// <summary>
 		/// Creates a new large object from the underlying

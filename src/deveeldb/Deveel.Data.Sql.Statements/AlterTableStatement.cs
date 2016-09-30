@@ -46,6 +46,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestAlter(TableName, DbObjectType.Table);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override SqlStatement PrepareStatement(IRequest context) {
 			var tableName = context.Access().ResolveTableName(TableName);
 			var action = Action;
@@ -83,8 +89,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanAlterTable(TableName))
-				throw new InvalidAccessException(context.Request.UserName(), TableName);
+			//if (!context.User.CanAlterTable(TableName))
+			//	throw new InvalidAccessException(context.Request.UserName(), TableName);
 
 			var table = context.Request.Access().GetTable(TableName);
 			if (table == null)

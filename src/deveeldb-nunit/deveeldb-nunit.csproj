@@ -92,6 +92,7 @@
     <Compile Include="Deveel.Data.Configuration\DbConfigTests.cs" />
     <Compile Include="Deveel.Data.Configuration\FileConfigSourceTests.cs" />
     <Compile Include="Deveel.Data.Configuration\StreamConfigSourceTests.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ErrorEventTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventsTests.cs" />
     <Compile Include="Deveel.Data.Diagnostics\LoggerTests.cs" />
@@ -282,9 +283,9 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlLongStringTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlNumberTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlStringTests.cs" />
-    <Compile Include="Deveel.Data.Types\BooleanTypeTest.cs" />
-    <Compile Include="Deveel.Data.Types\DataTypeParseTests.cs" />
-    <Compile Include="Deveel.Data.Types\StringTypeTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\BooleanTypeTest.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\DataTypeParseTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Types\StringTypeTests.cs" />
     <Compile Include="Deveel.Data.Sql\BooleanObjectTest.cs" />
     <Compile Include="Deveel.Data\NullObjectTest.cs" />
     <Compile Include="Deveel.Data\NumericObjectTests.cs" />

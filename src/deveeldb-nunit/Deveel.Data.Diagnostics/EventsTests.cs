@@ -43,7 +43,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			AdminQuery.AsEventSource().OnError(new Exception("Test Error"));
+			AdminQuery.OnError(new Exception("Test Error"));
 
 			reset.WaitOne();
 
@@ -61,7 +61,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			AdminQuery.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 
@@ -91,7 +91,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			});
 
-			AdminQuery.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -118,7 +118,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			}, e => e.Level == InformationLevel.Debug);
 
-			AdminQuery.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -145,7 +145,7 @@ namespace Deveel.Data.Diagnostics {
 				reset2.Set();
 			});
 
-			AdminQuery.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.OnVerbose("Test Message");
 
 			reset1.WaitOne(300);
 			reset2.WaitOne(300);
@@ -168,7 +168,7 @@ namespace Deveel.Data.Diagnostics {
 				reset.Set();
 			});
 
-			AdminQuery.AsEventSource().OnVerbose("Test Message");
+			AdminQuery.OnVerbose("Test Message");
 
 			reset.WaitOne(300);
 
@@ -187,12 +187,37 @@ namespace Deveel.Data.Diagnostics {
 		public void GetEventData_ConvertEnum() {
 			var e = new InformationEvent("test", InformationLevel.Debug);
 
-			var level = e.GetData<InformationLevel>("info.level");
-			var message = e.GetData<string>("info.message");
+			var level = e.GetData<InformationLevel>(MetadataKeys.Event.Information.Level);
+			var message = e.GetData<string>(MetadataKeys.Event.Information.Message);
 
 			Assert.IsNotNull(message);
 			Assert.AreSame("test", message);
 			Assert.AreEqual(InformationLevel.Debug, level);
+		}
+
+		[Test]
+		public void FormMessageAndReadMeta() {
+			var reset = new AutoResetEvent(false);
+
+			Event info = null;
+			System.Context.RouteImmediate<InformationEvent>(e => {
+				info = e;
+				reset.Set();
+			}, e => e.Level == InformationLevel.Verbose);
+
+			AdminQuery.OnVerbose("Testing Messages");
+
+			reset.WaitOne(300);
+
+			Assert.IsNotNull(info);
+			Assert.IsInstanceOf<InformationEvent>(info);
+
+			var message = info.AsMessage();
+			Assert.IsNotNull(message);
+
+			var databaseName = message.DatabaseName();
+			Assert.IsNotNullOrEmpty(databaseName);
+			Assert.AreEqual(DatabaseName, databaseName);
 		}
 	}
 }

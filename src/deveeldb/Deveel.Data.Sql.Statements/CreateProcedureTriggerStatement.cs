@@ -74,6 +74,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		public TriggerStatus Status { get; set; }
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(TriggerName, DbObjectType.Trigger);
+			RequestReference(TableName, DbObjectType.Table);
+			RequestExecute(ProcedureName);
+
+			GrantAccess(ProcedureName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void AppendTo(SqlStringBuilder builder) {
 			builder.Append("CREATE ");
 
@@ -146,11 +156,11 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanCreateInSchema(TriggerName.ParentName))
-				throw new SecurityException(String.Format("The user '{0}' cannot create in schema '{1}'.", context.User.Name, TriggerName.ParentName));
+			//if (!context.User.CanCreateInSchema(TriggerName.ParentName))
+			//	throw new SecurityException(String.Format("The user '{0}' cannot create in schema '{1}'.", context.User.Name, TriggerName.ParentName));
 
-			if (!context.User.CanExecuteProcedure(new Invoke(ProcedureName, ProcedureArguments), context.Request))
-				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
+			//if (!context.User.CanExecuteProcedure(new Invoke(ProcedureName, ProcedureArguments), context.Request))
+			//	throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
 
 			if (!context.DirectAccess.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
@@ -168,7 +178,7 @@ namespace Deveel.Data.Sql.Statements {
 				triggerInfo.Status = Status;
 
 			context.DirectAccess.CreateObject(triggerInfo);
-			context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, PrivilegeSets.SchemaAll, true);
+			//context.DirectAccess.GrantOn(DbObjectType.Trigger, TableName, context.User.Name, PrivilegeSets.SchemaAll, true);
 		}
 
 		protected override void GetData(SerializationInfo info) {

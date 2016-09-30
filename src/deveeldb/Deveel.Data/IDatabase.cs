@@ -38,7 +38,7 @@ namespace Deveel.Data {
 	/// </list>
 	/// </para>
 	/// </remarks>
-	public interface IDatabase : IDisposable {
+	public interface IDatabase : IContextBased, IDisposable {
 		/// <summary>
 		/// Gets the name of the database.
 		/// </summary>
@@ -48,7 +48,7 @@ namespace Deveel.Data {
 		/// Gets the context that contains this database.
 		/// </summary>
 		/// <seealso cref="IDatabaseContext"/>
-		IDatabaseContext Context { get; }
+		new IDatabaseContext Context { get; }
 
 		ISystem System { get; }
 

@@ -43,8 +43,8 @@ namespace Deveel.Data.Transactions {
 		public IEnumerable<int> RemovedRows { get; private set; }
 
 		protected override void GetEventData(Dictionary<string, object> data) {
-			data[KnownEventMetadata.TableId] = TableId;
-			data[KnownEventMetadata.TableName] = TableName.FullName;
+			data["table.id"] = TableId;
+			data["table.name"] = TableName.FullName;
 			data["table.addedRows"] = AddedRows.ToArray();
 			data["table.removedRows"] = RemovedRows.ToArray();
 		}

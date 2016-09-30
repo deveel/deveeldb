@@ -30,14 +30,13 @@ namespace Deveel.Data {
 	/// all events and errors fired at the query level with have this
 	/// as <see cref="IEvent.EventSource"/>.
 	/// </remarks>
-	public sealed class Query : IQuery, IEventSource, IProvidesDirectAccess {
-		private Dictionary<string, object> metadata;
-
+	public sealed class Query : EventSource, IQuery, IProvidesDirectAccess {
 		internal Query(ISession session) 
 			: this(session, null) {
 		}
 
-		internal Query(ISession session, SqlQuery sourceQuery) {
+		internal Query(ISession session, SqlQuery sourceQuery)
+			: base(session as IEventSource) {
 			Session = session;
 			SourceQuery = sourceQuery;
 
@@ -47,15 +46,6 @@ namespace Deveel.Data {
 			StartedOn = DateTimeOffset.UtcNow;
 
 			Access = new RequestAccess(this);
-
-			metadata = GetMetadata();
-		}
-
-		private Dictionary<string, object> GetMetadata() {
-			return new Dictionary<string, object> {
-				{ "query.startTime", StartedOn },
-				{ "query.source", SourceQuery }
-			};
 		}
 
 		~Query() {
@@ -110,16 +100,13 @@ namespace Deveel.Data {
 			Session = null;
 		}
 
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
 		}
 
-		IEventSource IEventSource.ParentSource {
-			get { return Session.AsEventSource(); }
-		}
-
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return metadata; }
+		protected override void GetMetadata(Dictionary<string, object> metadata) {
+			metadata[MetadataKeys.Query.StartTime] = StartedOn;
+			metadata[MetadataKeys.Query.SourceText] = SourceQuery == null ? "" : SourceQuery.Text;
 		}
 	}
 }

@@ -21,26 +21,46 @@ using System.Linq;
 
 namespace Deveel.Data.Diagnostics {
 	public class EventSource : IEventSource {
-		public EventSource(IContext context) 
-			: this(context, null) {
+		private Dictionary<string, object> metadata;
+
+		public EventSource() 
+			: this(null) {
 		}
 
-		public EventSource(IContext context, IEventSource parentSource) {
-			if (context == null)
-				throw new ArgumentNullException("context");
-
-			Context = context;
+		public EventSource(IEventSource parentSource) {
 			ParentSource = parentSource;
 		}
 
-		public IContext Context { get; private set; }
+		IEventSource IEventSource.ParentSource {
+			get { return ParentSource; }
+		}
 
-		public IEventSource ParentSource { get; private set; }
+		protected IEventSource ParentSource { get; private set; }
 
-		public IEnumerable<KeyValuePair<string, object>> Metadata {
+		protected virtual bool CacheMetadata {
+			get { return false; }
+		}
+
+		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get {
-				var metadata = new Dictionary<string, object>();
-				GetMetadata(metadata);
+				if (metadata == null) {
+					var meta = new Dictionary<string, object>();
+
+					if (ParentSource != null) {
+						var parentMeta = ParentSource.Metadata;
+						foreach (var pair in parentMeta) {
+							meta[pair.Key] = pair.Value;
+						}
+					}
+
+					GetMetadata(meta);
+
+					if (!CacheMetadata)
+						return meta.AsEnumerable();
+
+					metadata = meta;
+				}
+
 				return metadata.AsEnumerable();
 			}
 		}

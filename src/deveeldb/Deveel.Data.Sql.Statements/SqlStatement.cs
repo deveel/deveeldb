@@ -18,13 +18,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
+
 using System.Text;
 
 using Deveel.Data.Diagnostics;
+using Deveel.Data.Security;
+using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -32,13 +36,32 @@ namespace Deveel.Data.Sql.Statements {
 	/// </summary>
 	[Serializable]
 	[DebuggerDisplay("{ToString()}")]
-	public abstract class SqlStatement : IPreparable, ISerializable, ISqlFormattable {
+	public abstract class SqlStatement : IPreparable, ISerializable, ISqlFormattable, IResourceAccess, IGrantAccess {
+		private IList<ResourceAccessRequest> resourceAccess;
+		private IList<ResourceGrantRequest> resourceGrant;
+
 		protected SqlStatement() {
+			resourceAccess = new List<ResourceAccessRequest>();
+			resourceGrant = new List<ResourceGrantRequest>();
 		}
 
 		protected SqlStatement(SerializationInfo info, StreamingContext context) {
 			SourceQuery = (SqlQuery) info.GetValue("SourceQuery", typeof(SqlQuery));
 			IsFromQuery = info.GetBoolean("IsFromQuery");
+
+			var accessRequests = (ResourceAccessRequest[]) info.GetValue("ResourceAccess", typeof(ResourceAccessRequest[]));
+			if (accessRequests != null) {
+				resourceAccess = new List<ResourceAccessRequest>(accessRequests);
+			} else {
+				resourceAccess = new List<ResourceAccessRequest>();
+			}
+
+			var grantRequests = (ResourceGrantRequest[]) info.GetValue("ResourceGrant", typeof(ResourceGrantRequest[]));
+			if (grantRequests != null) {
+				resourceGrant = new List<ResourceGrantRequest>(grantRequests);
+			} else {
+				resourceGrant = new List<ResourceGrantRequest>();
+			}
 		}
 
 		/// <summary>
@@ -63,24 +86,87 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlStatement Parent { get; internal set; }
 
+		IEnumerable<ResourceAccessRequest> IResourceAccess.AccessRequests {
+			get { return resourceAccess.AsEnumerable(); }
+		}
+
+		IEnumerable<ResourceGrantRequest> IGrantAccess.GrantRequests {
+			get { return resourceGrant.AsEnumerable(); }
+		}
+
 		internal void Execute(ExecutionContext context) {
 			try {
-				context.Request.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+				OnBeforeExecute(context);
 
 				ExecuteStatement(context);
 
-				context.Request.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
+				OnAfterExecute(context);
 			} catch (ErrorException ex) {
-				context.Request.AsEventSource().OnError(ex);
+				context.Request.OnError(ex);
 				throw;
 			} catch (Exception ex) {
-				context.Request.AsEventSource().OnError(ex);
+				context.Request.OnError(ex);
 				throw new StatementException("Statement execution caused an error", ex);
 			}
 		}
 
+		protected virtual void OnBeforeExecute(ExecutionContext context) {
+			context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+
+			var result = context.Assert();
+			if (result.IsDenied) {
+				foreach (var error in result.Errors) {
+					context.Request.OnError(error);
+				}
+
+				throw result.SecurityError;
+			}
+		}
+
+		protected virtual void OnAfterExecute(ExecutionContext context) {
+			GrantAccess(context);
+			context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
+		}
+
+		private void GrantAccess(ExecutionContext context) {
+			this.Grant(context);
+		}
+
 		protected virtual void ExecuteStatement(ExecutionContext context) {
 			throw new NotSupportedException(String.Format("The statement '{0}' does not support execution", GetType().Name));
+		}
+
+		protected virtual void AssertSecurity(ISecurityContext context) {
+			AssertResourceAccess(context);
+		}
+
+		private void AssertResourceAccess(ISecurityContext context) {
+			var result = (this as IResourceAccess).Assert(context);
+			if (!result.IsAllowed) {
+				var error = result.Error;
+				if (error is SecurityException)
+					throw error;
+				throw new SecurityException(
+					String.Format("Assertion to resource access from statement '{0}' failed because of an error.", GetType().Name),
+					error);
+			}
+		}
+
+		internal void Assert(ISecurityContext context) {
+			try {
+				AssertSecurity(context);
+			} catch (SecurityException) {
+				throw;
+			} catch (Exception ex) {
+				throw new SecurityException("An error occurred while asserting the security state.", ex);
+			}
+		}
+
+		internal void SetAssertions(ExecutionContext context) {
+			GetAssertions(context);
+		}
+
+		protected virtual void GetAssertions(ExecutionContext context) {
 		}
 
 		internal void SetSource(SqlQuery query) {
@@ -88,9 +174,62 @@ namespace Deveel.Data.Sql.Statements {
 			IsFromQuery = true;
 		}
 
+		protected void RequestAccess(ObjectName resource, DbObjectType objectType, Privileges privileges) {
+			resourceAccess.Add(new ResourceAccessRequest(resource, objectType, privileges));
+		}
+
+		protected void RequestDrop(ObjectName resource, DbObjectType objectType) {
+			RequestAccess(resource, objectType, Privileges.Drop);
+		}
+
+		protected void RequestCreate(ObjectName resource, DbObjectType objectType) {
+			RequestAccess(resource, objectType, Privileges.Create);
+		}
+
+		protected void RequestAlter(ObjectName resource, DbObjectType objectType) {
+			RequestAccess(resource, objectType, Privileges.Alter);
+		}
+
+		protected void RequestReference(ObjectName resource, DbObjectType resourceType) {
+			RequestAccess(resource, resourceType, Privileges.References);
+		}
+
+		protected void RequestSelect(ObjectName resource) {
+			RequestAccess(resource, DbObjectType.Table, Privileges.Select);
+		}
+
+		protected void RequestSelect(IQueryPlanNode queryPlan) {
+			var tables = queryPlan.DiscoverTableNames();
+			foreach (var table in tables) {
+				RequestSelect(table);
+			}
+		}
+
+		protected void RequestDelete(ObjectName resource) {
+			RequestAccess(resource, DbObjectType.Table, Privileges.Delete);
+		}
+
+		protected void RequestInsert(ObjectName resource) {
+			RequestAccess(resource, DbObjectType.Table, Privileges.Insert);
+		}
+
+		protected void RequestUpdate(ObjectName resource) {
+			RequestAccess(resource, DbObjectType.Table, Privileges.Update);
+		}
+
+		protected void RequestExecute(ObjectName resource) {
+			RequestAccess(resource, DbObjectType.Routine, Privileges.Execute);
+		}
+
+		protected void GrantAccess(ObjectName resource, DbObjectType resourceType, Privileges privileges) {
+			resourceGrant.Add(new ResourceGrantRequest(resource, resourceType, privileges));
+		}
+
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("SourceQuery", SourceQuery);
 			info.AddValue("IsFromQuery", IsFromQuery);
+			info.AddValue("ResourceAccess", resourceAccess.ToArray());
+			info.AddValue("ResourceGrant", resourceGrant.ToArray());
 
 			GetData(info);
 		}
@@ -122,7 +261,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		internal SqlStatement Prepare(IRequest context, IExpressionPreparer preparer) {
 			try {
-				context.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.BeforePrepare));
+				context.OnEvent(new StatementEvent(this, StatementEventType.BeforePrepare));
 
 				var prepared = PrepareExpressions(preparer);
 				if (prepared == null)
@@ -130,14 +269,14 @@ namespace Deveel.Data.Sql.Statements {
 
 				prepared = prepared.PrepareStatement(context);
 
-				context.AsEventSource().OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
+				context.OnEvent(new StatementEvent(this, StatementEventType.AfterPrepare));
 
 				return prepared;
 			} catch (ErrorException ex) {
-				context.AsEventSource().OnError(ex);
+				context.OnError(ex);
 				throw;
 			} catch (Exception ex) {
-				context.AsEventSource().OnError(ex);
+				context.OnError(ex);
 				throw new StatementException("Preparation of the statement caused an error.", ex);
 			}
 		}

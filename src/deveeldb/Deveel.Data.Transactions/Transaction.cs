@@ -31,10 +31,11 @@ namespace Deveel.Data.Transactions {
 	/// isolated operations within a database context.
 	/// </summary>
 	/// <seealso cref="ITransaction"/>
-	public sealed class Transaction : ITransaction, IEventSource, ITableStateHandler {
+	public sealed class Transaction : EventSource, ITransaction, ITableStateHandler {
 		private List<LockHandle> lockHandles;
 
-		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets) {
+		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation, IEnumerable<TableSource> committedTables, IEnumerable<IIndexSet> indexSets)
+			: base(database) {
 			CommitId = commitId;
 			Database = database;
 			Isolation = isolation;
@@ -60,7 +61,7 @@ namespace Deveel.Data.Transactions {
 			this.IgnoreIdentifiersCase(database.Context.IgnoreIdentifiersCase());
 			this.ParameterStyle(QueryParameterStyle.Marker);
 
-			this.AsEventSource().OnEvent(new TransactionEvent(commitId, TransactionEventType.Begin));
+			this.OnEvent(new TransactionEvent(TransactionEventType.Begin));
 		}
 
 		internal Transaction(ITransactionContext context, Database database, int commitId, IsolationLevel isolation)
@@ -92,23 +93,17 @@ namespace Deveel.Data.Transactions {
 		}
 
 		public Database Database { get; private set; }
-
-		IEventSource IEventSource.ParentSource {
-			get { return Database.AsEventSource(); }
-		}
-
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return new Dictionary<string, object> {
-				{ KnownEventMetadata.CommitId, CommitId },
-				{ KnownEventMetadata.IgnoreIdentifiersCase, this.IgnoreIdentifiersCase() },
-				{ KnownEventMetadata.IsolationLevel, Isolation },
-				{ KnownEventMetadata.CurrentSchema, this.CurrentSchema() },
-                { KnownEventMetadata.ReadOnlyTransaction, this.ReadOnly() }
-			};}
-		}
 			
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
+		}
+
+		protected override void GetMetadata(Dictionary<string, object> metadata) {
+			metadata[MetadataKeys.Transaction.CommitId] = CommitId;
+			metadata[MetadataKeys.Transaction.IgnoreIdentifiersCase] = this.IgnoreIdentifiersCase();
+			metadata[MetadataKeys.Transaction.IsolationLevel] = Isolation;
+			metadata[MetadataKeys.Transaction.Schema] = this.CurrentSchema();
+			metadata[MetadataKeys.Transaction.ReadOnly] = this.ReadOnly();
 		}
 
 		private TableSourceComposite TableComposite {
@@ -257,7 +252,7 @@ namespace Deveel.Data.Transactions {
 					var selected = TableManager.SelectedTables.ToArray();
 					TableComposite.Commit(this, visibleTables, selected, touchedTables, Registry);
 
-					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Commit));
+					this.OnEvent(new TransactionEvent(TransactionEventType.Commit));
 				} finally {
 					Finish();
 				}
@@ -296,7 +291,7 @@ namespace Deveel.Data.Transactions {
 					var touchedTables = TableManager.AccessedTables.ToList();
 					TableComposite.Rollback(this, touchedTables, Registry);
 
-					this.OnEvent(new TransactionEvent(CommitId, TransactionEventType.Rollback));
+					this.OnEvent(new TransactionEvent(TransactionEventType.Rollback));
 				} finally {
 					IsClosed = true;
 					Finish();

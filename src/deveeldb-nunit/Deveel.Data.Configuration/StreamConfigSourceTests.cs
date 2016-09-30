@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -37,6 +38,39 @@ namespace Deveel.Data.Configuration {
 			Assert.IsNotNull(secondSetting);
 			Assert.IsInstanceOf<string>(secondSetting);
 			Assert.AreEqual("345.33", secondSetting);
+		}
+
+		[Test]
+		public static void SaveToProperties() {
+			var dbConfig = new Configuration();
+			dbConfig.SetValue("first-setting", "one");
+			dbConfig.SetValue("second", 345.33);
+
+			var stream = new MemoryStream();
+			dbConfig.Save(stream, new PropertiesConfigFormatter());
+
+			Assert.Greater(stream.Length, 0);
+
+			stream.Seek(0, SeekOrigin.Begin);
+
+			var reader = new StreamReader(stream);
+			var line = reader.ReadLine();
+
+			Assert.IsNotNullOrEmpty(line);
+			Assert.IsTrue(line.StartsWith("#"));
+
+			line = reader.ReadLine();
+
+			Assert.IsNotNullOrEmpty(line);
+			Assert.IsTrue(line.StartsWith("#"));
+
+			line = reader.ReadLine();
+			Assert.IsNotNullOrEmpty(line);
+			Assert.AreEqual("first-setting=one", line);
+
+			line = reader.ReadLine();
+			Assert.IsNotNullOrEmpty(line);
+			Assert.AreEqual("second=345.33", line);
 		}
 	}
 }

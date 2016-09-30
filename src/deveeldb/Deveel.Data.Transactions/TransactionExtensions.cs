@@ -41,13 +41,11 @@ namespace Deveel.Data.Transactions {
 
 		public static IEventSource AsEventSource(this ITransaction transaction) {
 			if (transaction == null)
-				throw new ArgumentNullException("transaction");
+				return null;
+			if (transaction is IEventSource)
+				return (IEventSource) transaction;
 
-			var source = transaction as IEventSource;
-			if (source != null)
-				return source;
-
-			return new EventSource(transaction.Context, transaction.Database.AsEventSource());
+			return new EventSource(transaction.Database.AsEventSource());
 		}
 
 		#region Managers
@@ -483,27 +481,27 @@ namespace Deveel.Data.Transactions {
 		#region Events
 
 		public static void OnObjectCreated(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
-			transaction.AsEventSource().OnEvent(new ObjectCreatedEvent(objectName, objectType));
+			transaction.OnEvent(new ObjectCreatedEvent(objectName, objectType));
 		}
 
 		public static void OnObjectDropped(this ITransaction transaction, DbObjectType objectType, ObjectName objectName) {
-			transaction.AsEventSource().OnEvent(new ObjectDroppedEvent(objectType, objectName));
+			transaction.OnEvent(new ObjectDroppedEvent(objectType, objectName));
 		}
 
 		public static void OnTableCreated(this ITransaction transaction, int tableId, ObjectName tableName) {
-			transaction.AsEventSource().OnEvent(new TableCreatedEvent(tableId, tableName));
+			transaction.OnEvent(new TableCreatedEvent(tableId, tableName));
 		}
 
 		public static void OnTableDropped(this ITransaction transaction, int tableId, ObjectName tableName) {
-			transaction.AsEventSource().OnEvent(new TableDroppedEvent(tableId, tableName));
+			transaction.OnEvent(new TableDroppedEvent(tableId, tableName));
 		}
 
 		public static void OnTableAccessed(this ITransaction transaction, int tableId, ObjectName tableName) {
-			transaction.AsEventSource().OnEvent(new TableAccessEvent(tableId, tableName));
+			transaction.OnEvent(new TableAccessEvent(tableId, tableName));
 		}
 
 		public static void OnTableConstraintAltered(this ITransaction transaction, int tableId) {
-			transaction.AsEventSource().OnEvent(new TableConstraintAlteredEvent(tableId));
+			transaction.OnEvent(new TableConstraintAlteredEvent(tableId));
 		}
 
 		#endregion

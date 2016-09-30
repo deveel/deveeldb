@@ -34,5 +34,7 @@ namespace Deveel.Data.Security {
 		                                              Privileges.List;
 
 		public static readonly Privileges SchemaRead = Privileges.List;
+
+		public static readonly Privileges RoutineAll = Privileges.Drop | Privileges.Execute;
 	}
 }

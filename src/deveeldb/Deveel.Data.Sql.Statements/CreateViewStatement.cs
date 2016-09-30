@@ -144,6 +144,13 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("ReplaceIfExists", ReplaceIfExists);
 			}
 
+			protected override void OnBeforeExecute(ExecutionContext context) {
+				RequestCreate(ViewName, DbObjectType.View);
+				RequestSelect(QueryPlan);
+
+				base.OnBeforeExecute(context);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
 				// We have to execute the plan to get the TableInfo that represents the
 				// result of the view execution.

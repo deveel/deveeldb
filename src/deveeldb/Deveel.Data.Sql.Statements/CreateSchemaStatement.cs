@@ -44,15 +44,22 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("SchemaName", SchemaName);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(new ObjectName(SchemaName), DbObjectType.Schema);
+			GrantAccess(new ObjectName(SchemaName), DbObjectType.Schema, PrivilegeSets.SchemaAll);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanManageSchema())
-				throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Create);
+			//if (!context.User.CanManageSchema())
+			//	throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Create);
 
 			if (context.DirectAccess.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' already exists in the system.", SchemaName));
 
 			context.DirectAccess.CreateSchema(SchemaName, SchemaTypes.User);
-			context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, PrivilegeSets.SchemaAll, true);
+			// context.DirectAccess.GrantOnSchema(SchemaName, context.User.Name, PrivilegeSets.SchemaAll, true);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

@@ -37,38 +37,38 @@ namespace Deveel.Data {
 	/// <seealso cref="ISystem"/>
 	/// <seealso cref="ISystemContext"/>
 	/// <seealso cref="SystemContext"/>
-	public sealed class DatabaseSystem : ISystem, IEventSource {
-		private IDictionary<string, object> metadata;
-
+	public sealed class DatabaseSystem : EventSource, ISystem {
 		private IDictionary<string, IDatabase> databases; 
 
 		internal DatabaseSystem(ISystemContext context, IEnumerable<ModuleInfo> modules) {
 			Context = context;
 			Modules = modules;
 			OnCreated();
-			CreateMetadata();
 		}
 
 		~DatabaseSystem() {
 			Dispose(false);
 		}
 
-		private void CreateMetadata() {
-			metadata = new Dictionary<string, object>();
+		protected override bool CacheMetadata {
+			get { return true; }
+		}
 
+		protected override void GetMetadata(Dictionary<string, object> metadata) {
 #if !PCL
-			metadata["[env]:os.platform"] = Environment.OSVersion.Platform;
-			metadata["[env]:os.version"] = Environment.OSVersion.VersionString;
-			metadata["[env]:os.sp"] = Environment.OSVersion.ServicePack;
-			metadata["[env]:runtime.version"] = Environment.Version.ToString();
-			metadata["[env]:machineName"] = Environment.MachineName;
-			metadata["[env]:hostName"] = Dns.GetHostName();
+			metadata[MetadataKeys.System.Environment.OsPlatform] = Environment.OSVersion.Platform;
+			metadata[MetadataKeys.System.Environment.OsVersion] = Environment.OSVersion.VersionString;
+			metadata[MetadataKeys.System.Environment.ServicePack] = Environment.OSVersion.ServicePack;
+			metadata[MetadataKeys.System.Environment.RuntimeVersion] = Environment.Version.ToString();
+			metadata[MetadataKeys.System.Environment.MachineName] = Environment.MachineName;
+			metadata[MetadataKeys.System.Environment.HostName] = Dns.GetHostName();
 
 #endif
-			metadata["[env]processors"] = Environment.ProcessorCount;
+			metadata[MetadataKeys.System.Environment.ProcessorCount] = Environment.ProcessorCount;
 
 			foreach (var config in Configuration) {
-				metadata[String.Format("[config]:{0}", config.Key)] = config.Value;
+				var key = MetadataKeys.System.Configuration.KeyFormat.Replace("{key}", config.Key);
+				metadata[key] = config.Value;
 			}
 
 			foreach (var module in Modules) {
@@ -90,14 +90,6 @@ namespace Deveel.Data {
 		}
 
 		public IEnumerable<ModuleInfo> Modules { get; private set; } 
-			
-		IEventSource IEventSource.ParentSource {
-			get { return null; }
-		}
-
-		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
-			get { return metadata; }
-		}
 
 		public void Dispose() {
 			Dispose(true);
@@ -149,7 +141,7 @@ namespace Deveel.Data {
 			Context = null;
 		}
 
-		IContext IEventSource.Context {
+		IContext IContextBased.Context {
 			get { return Context; }
 		}
 

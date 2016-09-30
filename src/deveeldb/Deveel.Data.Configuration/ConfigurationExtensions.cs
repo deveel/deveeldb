@@ -271,16 +271,16 @@ namespace Deveel.Data.Configuration {
 			Save(config, source, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IConfiguration config, IConfigSource source, ConfigurationLevel level, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigSource source, ConfigurationLevel level,
+			IConfigFormatter formatter) {
 			try {
-				using (var outputStream = source.OutputStream) {
-					if (!outputStream.CanWrite)
-						throw new InvalidOperationException("The destination source cannot be written.");
+				var outputStream = source.OutputStream;
+				if (!outputStream.CanWrite)
+					throw new InvalidOperationException("The destination source cannot be written.");
 
-					outputStream.Seek(0, SeekOrigin.Begin);
-					formatter.SaveFrom(config, level, outputStream);
-					outputStream.Flush();
-				}
+				outputStream.Seek(0, SeekOrigin.Begin);
+				formatter.SaveFrom(config, level, outputStream);
+				outputStream.Flush();
 			} catch (Exception ex) {
 				throw new DatabaseConfigurationException("Cannot save the configuration.", ex);
 			}

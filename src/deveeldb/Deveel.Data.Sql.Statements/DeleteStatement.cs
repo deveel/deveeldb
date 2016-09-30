@@ -117,6 +117,13 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("QueryPlan", QueryPlan);
 			}
 
+			protected override void OnBeforeExecute(ExecutionContext context) {
+				RequestDelete(TableName);
+				RequestSelect(QueryPlan);
+
+				base.OnBeforeExecute(context);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
 				var deleteTable = context.Request.Access().GetMutableTable(TableName);
 

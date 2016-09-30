@@ -153,11 +153,17 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool IfNotExists { get; private set; }
 
+			protected override void OnBeforeExecute(ExecutionContext context) {
+				RequestCreate(TableInfo.TableName, DbObjectType.Table);
+
+				base.OnBeforeExecute(context);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
 				var tableName = TableInfo.TableName;
 
-				if (!context.User.CanCreateTable(tableName))
-					throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
+				//if (!context.User.CanCreateTable(tableName))
+				//	throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Create);
 
 				if (context.Request.Access().TableExists(tableName)) {
 					if (!IfNotExists)
@@ -168,7 +174,13 @@ namespace Deveel.Data.Sql.Statements {
 				}
 
 				context.Request.Access().CreateTable(TableInfo, Temporary);
-				context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
+				// context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
+			}
+
+			protected override void OnAfterExecute(ExecutionContext context) {
+				GrantAccess(TableInfo.TableName, DbObjectType.Table, PrivilegeSets.TableAll);
+
+				base.OnAfterExecute(context);
 			}
 
 			protected override void GetData(SerializationInfo info) {

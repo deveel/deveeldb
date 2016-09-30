@@ -83,6 +83,12 @@ namespace Deveel.Data.Sql.Statements {
 			return statement;
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(TypeName, DbObjectType.Type);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.User.CanCreateInSchema(TypeName.ParentName))
 				throw new SecurityException(String.Format("The user '{0}' has no rights to create in schema '{1}'.",

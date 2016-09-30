@@ -82,6 +82,13 @@ namespace Deveel.Data.Sql.Statements {
 			return new CreateTriggerStatement(triggerName, tableName, Body, EventTime, EventType);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(TriggerName, DbObjectType.Trigger);
+			RequestReference(TableName, DbObjectType.Table);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.User.CanCreateInSchema(TriggerName.ParentName))
 				throw new SecurityException(String.Format("The user '{0}' cannot create in schema '{1}'.", context.User.Name, TriggerName.ParentName));
