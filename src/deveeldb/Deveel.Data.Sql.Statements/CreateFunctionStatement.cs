@@ -55,6 +55,13 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlStatement Body { get; set; }
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(FunctionName, DbObjectType.Routine);
+			GrantAccess(FunctionName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var body = (PlSqlBlockStatement) Body.Prepare(preparer);
 			return new CreateFunctionStatement(FunctionName, ReturnType, Parameters, body) {
@@ -81,8 +88,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanCreateInSchema(FunctionName.ParentName))
-				throw new SecurityException();
+			//if (!context.User.CanCreateInSchema(FunctionName.ParentName))
+			//	throw new SecurityException();
 
 			if (context.DirectAccess.RoutineExists(FunctionName)) {
 				if (!ReplaceIfExists)
@@ -100,7 +107,7 @@ namespace Deveel.Data.Sql.Statements {
 			};
 
 			context.DirectAccess.CreateRoutine(functionInfo);
-			context.DirectAccess.GrantOn(DbObjectType.Routine, FunctionName, context.User.Name, Privileges.Execute, true);
+			//context.DirectAccess.GrantOn(DbObjectType.Routine, FunctionName, context.User.Name, Privileges.Execute, true);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

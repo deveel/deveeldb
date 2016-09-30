@@ -3,6 +3,6 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Security {
 	public interface IResourceAccess {
-		IEnumerable<ResourceAccessRequest> Requests { get; }
+		IEnumerable<ResourceAccessRequest> AccessRequests { get; }
 	}
 }

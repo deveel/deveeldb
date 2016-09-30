@@ -51,6 +51,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public InvokeArgument[] Arguments { get; private set; }
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestExecute(ProcedureName);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void GetData(SerializationInfo info) {
 			info.AddValue("Procedure", ProcedureName);
 

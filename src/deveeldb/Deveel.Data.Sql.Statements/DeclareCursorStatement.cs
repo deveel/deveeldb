@@ -85,6 +85,8 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
+		// TODO: assert access to the resources
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			var cursorInfo = new CursorInfo(CursorName, Flags, QueryExpression);
 			if (Parameters != null) {

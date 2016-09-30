@@ -53,9 +53,16 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ExternalReference { get; private set; }
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(FunctionName, DbObjectType.Routine);
+			GrantAccess(FunctionName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanCreateInSchema(FunctionName.ParentName))
-				throw new SecurityException();
+			//if (!context.User.CanCreateInSchema(FunctionName.ParentName))
+			//	throw new SecurityException();
 
 			if (context.DirectAccess.RoutineExists(FunctionName)) {
 				if (!ReplaceIfExists)
@@ -77,7 +84,7 @@ namespace Deveel.Data.Sql.Statements {
 			};
 
 			context.DirectAccess.CreateRoutine(functionInfo);
-			context.DirectAccess.GrantOn(DbObjectType.Routine, FunctionName, context.User.Name, Privileges.Execute, true);
+			//context.DirectAccess.GrantOn(DbObjectType.Routine, FunctionName, context.User.Name, Privileges.Execute, true);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {

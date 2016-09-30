@@ -44,6 +44,12 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropProcedureStatement(procedureName, IfExists);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestDrop(ProcedureName, DbObjectType.Routine);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.ObjectExists(DbObjectType.Routine, ProcedureName)) {
 				if (IfExists)

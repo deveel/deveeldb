@@ -54,6 +54,12 @@ namespace Deveel.Data.Sql.Statements {
 			return new DeleteCurrentStatement(tableName, CursorName);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestDelete(TableName);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);

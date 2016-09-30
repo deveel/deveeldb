@@ -21,16 +21,27 @@ using System.Runtime.Serialization;
 using Deveel.Data.Security;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Objects;
-using Deveel.Data.Sql.Schemas;
 using Deveel.Data.Sql.Sequences;
 
 namespace Deveel.Data.Sql.Statements {
+	[Serializable]
 	public sealed class CreateSequenceStatement : SqlStatement {
 		public CreateSequenceStatement(ObjectName sequenceName) {
 			if (sequenceName == null)
 				throw new ArgumentNullException("sequenceName");
 
 			SequenceName = sequenceName;
+		}
+
+		private CreateSequenceStatement(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			SequenceName = (ObjectName) info.GetValue("SequenceName", typeof(ObjectName));
+			StartWith = (SqlExpression) info.GetValue("StartWith", typeof(SqlExpression));
+			IncrementBy = (SqlExpression)info.GetValue("IncrementBy", typeof(SqlExpression));
+			MinValue = (SqlExpression)info.GetValue("MinValue", typeof(SqlExpression));
+			MaxValue = (SqlExpression)info.GetValue("MaxValue", typeof(SqlExpression));
+			Cache = (SqlExpression)info.GetValue("Cache", typeof(SqlExpression));
+			Cycle = info.GetBoolean("Cycle");
 		}
 
 		public ObjectName SequenceName { get; private set; }
@@ -46,6 +57,23 @@ namespace Deveel.Data.Sql.Statements {
 		public SqlExpression Cache { get; set; }
 
 		public bool Cycle { get; set; }
+
+		protected override void GetData(SerializationInfo info) {
+			info.AddValue("SequenceName", SequenceName);
+			info.AddValue("StartWith", StartWith);
+			info.AddValue("IncrementBy", IncrementBy);
+			info.AddValue("MinValue", MinValue);
+			info.AddValue("MaxValue", MaxValue);
+			info.AddValue("Cache", Cache);
+			info.AddValue("Cycle", Cycle);
+		}
+
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestCreate(SequenceName, DbObjectType.Schema);
+			GrantAccess(SequenceName, DbObjectType.Sequence, Privileges.Drop);
+			
+			base.OnBeforeExecute(context);
+		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
 			var start = StartWith;
@@ -93,8 +121,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanCreate(DbObjectType.Sequence, SequenceName))
-				throw new MissingPrivilegesException(context.Request.UserName(), SequenceName, Privileges.Create);
+			//if (!context.User.CanCreate(DbObjectType.Sequence, SequenceName))
+			//	throw new MissingPrivilegesException(context.Request.UserName(), SequenceName, Privileges.Create);
 
 			if (context.DirectAccess.ObjectExists(SequenceName))
 				throw new StatementException(String.Format("An object named '{0}' already exists.", SequenceName));

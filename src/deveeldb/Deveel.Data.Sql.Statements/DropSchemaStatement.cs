@@ -44,6 +44,11 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("SchemaName", SchemaName);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestDrop(new ObjectName(SchemaName), DbObjectType.Schema);
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' does not exist.", SchemaName));

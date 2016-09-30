@@ -61,6 +61,12 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropTableStatement(tableName, IfExists);
 		}
 
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestDrop(TableName, DbObjectType.Table);
+
+			base.OnBeforeExecute(context);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.User.CanDrop(DbObjectType.Table, TableName))
 				throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);

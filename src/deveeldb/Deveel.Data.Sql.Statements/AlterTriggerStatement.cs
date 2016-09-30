@@ -24,8 +24,7 @@ using Deveel.Data.Sql.Triggers;
 
 namespace Deveel.Data.Sql.Statements {
 	[Serializable]
-	[AssertResourceAccess]
-	public sealed class AlterTriggerStatement : SqlStatement, IResourceAccess {
+	public sealed class AlterTriggerStatement : SqlStatement {
 		public AlterTriggerStatement(ObjectName triggerName, IAlterTriggerAction action) {
 			if (triggerName == null)
 				throw new ArgumentNullException("triggerName");
@@ -46,8 +45,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTriggerAction Action { get; private set; }
 
-		IEnumerable<ResourceAccessRequest> IResourceAccess.Requests {
-			get { return new[] {new ResourceAccessRequest(TriggerName, DbObjectType.Trigger, Privileges.Alter)}; }
+		protected override void OnBeforeExecute(ExecutionContext context) {
+			RequestAlter(TriggerName, DbObjectType.Trigger);
+
+			base.OnBeforeExecute(context);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {

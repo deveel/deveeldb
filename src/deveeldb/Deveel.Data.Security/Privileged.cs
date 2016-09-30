@@ -100,14 +100,6 @@ namespace Deveel.Data.Security {
 			return references.All(CanSelectFromTable);
 		}
 
-		public bool CanAccessObject(DbObjectType objectType, ObjectName objectName) {
-			var privileges = Privileges.Select;
-			if (objectType == DbObjectType.Routine)
-				privileges = Privileges.Execute;
-
-			return HasPrivileges(objectType, objectName, privileges);
-		}
-
 		public bool CanInsertIntoTable(ObjectName tableName) {
 			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Insert);
 		}
