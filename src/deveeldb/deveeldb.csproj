@@ -167,9 +167,7 @@
     <Compile Include="Deveel.Data.Security\ISecurityContext.cs" />
     <Compile Include="Deveel.Data.Security\ResourceAccessExtensions.cs" />
     <Compile Include="Deveel.Data.Security\ResourceAccessRequest.cs" />
-    <Compile Include="Deveel.Data.Security\AssertResourceAccessAttribute.cs" />
     <Compile Include="Deveel.Data.Security\ResourceGrantRequest.cs" />
-    <Compile Include="Deveel.Data.Security\SecurityAssertAttribute.cs" />
     <Compile Include="Deveel.Data.Security\AssertResult.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertionRegistrar.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertionResult.cs" />

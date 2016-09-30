@@ -96,6 +96,7 @@ namespace Deveel.Data.Sql.Statements {
 
 		internal void Execute(ExecutionContext context) {
 			try {
+				ConfigureSecurity(context);
 				OnBeforeExecute(context);
 
 				ExecuteStatement(context);
@@ -110,17 +111,20 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		protected virtual void OnBeforeExecute(ExecutionContext context) {
-			context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+		protected virtual void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.Add(Assert);
+		}
 
+		protected virtual void AssertSecurity(ExecutionContext context) {
 			var result = context.Assert();
-			if (result.IsDenied) {
-				foreach (var error in result.Errors) {
-					context.Request.OnError(error);
-				}
-
+			if (result.IsDenied)
 				throw result.SecurityError;
-			}
+		}
+
+		protected virtual void OnBeforeExecute(ExecutionContext context) {
+			AssertSecurity(context);
+
+			context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
 		}
 
 		protected virtual void OnAfterExecute(ExecutionContext context) {
@@ -136,37 +140,22 @@ namespace Deveel.Data.Sql.Statements {
 			throw new NotSupportedException(String.Format("The statement '{0}' does not support execution", GetType().Name));
 		}
 
-		protected virtual void AssertSecurity(ISecurityContext context) {
-			AssertResourceAccess(context);
-		}
-
-		private void AssertResourceAccess(ISecurityContext context) {
-			var result = (this as IResourceAccess).Assert(context);
-			if (!result.IsAllowed) {
-				var error = result.Error;
-				if (error is SecurityException)
-					throw error;
-				throw new SecurityException(
-					String.Format("Assertion to resource access from statement '{0}' failed because of an error.", GetType().Name),
-					error);
-			}
-		}
-
-		internal void Assert(ISecurityContext context) {
+		private void Assert(ISecurityContext context) {
 			try {
-				AssertSecurity(context);
+				var result = (this as IResourceAccess).Assert(context);
+				if (!result.IsAllowed) {
+					var error = result.Error;
+					if (error is SecurityException)
+						throw error;
+					throw new SecurityException(
+						String.Format("Assertion to resource access from statement '{0}' failed because of an error.", GetType().Name),
+						error);
+				}
 			} catch (SecurityException) {
 				throw;
 			} catch (Exception ex) {
 				throw new SecurityException("An error occurred while asserting the security state.", ex);
 			}
-		}
-
-		internal void SetAssertions(ExecutionContext context) {
-			GetAssertions(context);
-		}
-
-		protected virtual void GetAssertions(ExecutionContext context) {
 		}
 
 		internal void SetSource(SqlQuery query) {

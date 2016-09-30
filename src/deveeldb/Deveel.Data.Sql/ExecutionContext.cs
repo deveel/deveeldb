@@ -40,8 +40,6 @@ namespace Deveel.Data.Sql {
 			Statement = statement;
 
 			Assertions = new SecurityAssertionRegistrar(parent != null ? parent.Assertions : null);
-
-			GatherAssertions();
 		}
 
 		~ExecutionContext() {
@@ -121,17 +119,6 @@ namespace Deveel.Data.Sql {
 		public void Dispose() {
 			GC.SuppressFinalize(this);
 			Dispose(true);
-		}
-
-		private void GatherAssertions() {
-			var attributes =
-				Statement.GetType().GetCustomAttributes(typeof(SecurityAssertAttribute), true).Cast<ISecurityAssert>();
-			foreach (var attribute in attributes) {
-				Assertions.Add(attribute);
-			}
-
-			Assertions.Add(Statement.Assert);
-			Statement.SetAssertions(this);
 		}
 
 		IEnumerable<ISecurityAssert> ISecurityContext.Assertions {
