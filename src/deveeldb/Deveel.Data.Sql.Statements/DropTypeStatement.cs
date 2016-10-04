@@ -49,6 +49,10 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropTypeStatement(typeName, IfExists);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(TypeName, DbObjectType.Type);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.TypeExists(TypeName)) {
 				if (!IfExists)
@@ -57,8 +61,8 @@ namespace Deveel.Data.Sql.Statements {
 				return;
 			}
 
-			if (!context.User.CanDrop(DbObjectType.Type, TypeName))
-				throw new MissingPrivilegesException(context.User.Name, TypeName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.Type, TypeName))
+			//	throw new MissingPrivilegesException(context.User.Name, TypeName, Privileges.Drop);
 
 			var children = context.DirectAccess.GetChildTypes(TypeName);
 			foreach (var child in children) {

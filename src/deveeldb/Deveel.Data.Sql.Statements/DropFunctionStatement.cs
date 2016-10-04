@@ -44,10 +44,8 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropFunctionStatement(funcionName, IfExists);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDrop(FunctionName, DbObjectType.Routine);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(FunctionName, DbObjectType.Routine);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
@@ -58,8 +56,8 @@ namespace Deveel.Data.Sql.Statements {
 				throw new ObjectNotFoundException(FunctionName);
 			}
 
-			if (!context.User.CanDrop(DbObjectType.Routine, FunctionName))
-				throw new MissingPrivilegesException(context.User.Name, FunctionName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.Routine, FunctionName))
+			//	throw new MissingPrivilegesException(context.User.Name, FunctionName, Privileges.Drop);
 
 			if (context.DirectAccess.IsSystemFunction(new Invoke(FunctionName), context.Request))
 				throw new InvalidOperationException(String.Format("Cannot drop the system function '{0}'.", FunctionName));

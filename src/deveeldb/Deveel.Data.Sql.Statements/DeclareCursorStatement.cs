@@ -95,15 +95,16 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
-			var queryPlan = context.Request.Context.QueryPlanner().PlanQuery(new QueryInfo(context.Request, QueryExpression));
-			var selectedTables = queryPlan.DiscoverTableNames();
-			foreach (var tableName in selectedTables) {
-				if (!context.User.CanSelectFromTable(tableName))
-					throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Select);
-			}
+			// TODO:
+			//var queryPlan = context.Request.Context.QueryPlanner().PlanQuery(new QueryInfo(context.Request, QueryExpression));
+			//var selectedTables = queryPlan.DiscoverTableNames();
+			//foreach (var tableName in selectedTables) {
+			//	if (!context.User.CanSelectFromTable(tableName))
+			//		throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Select);
+			//}
 
 
-			context.Request.Context.DeclareCursor(cursorInfo, context.Request);
+			context.Request.Context.DeclareCursor(cursorInfo);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {
@@ -134,5 +135,16 @@ namespace Deveel.Data.Sql.Statements {
 
 			builder.DeIndent();
 		}
+
+		#region Prepared
+
+		[Serializable]
+		class Prepared : SqlStatement {
+			public IQueryPlanNode QueryPlan { get; private set; }
+
+			public CursorInfo CursorInfo { get; private set; }
+		}
+
+		#endregion
 	}
 }

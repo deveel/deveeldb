@@ -45,21 +45,26 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDrop(new ObjectName(SchemaName), DbObjectType.Schema);
+			RevokeAccess(new ObjectName(SchemaName), DbObjectType.Schema);
+
 			base.OnBeforeExecute(context);
+		}
+
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(new ObjectName(SchemaName), DbObjectType.Schema);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.SchemaExists(SchemaName))
 				throw new InvalidOperationException(String.Format("The schema '{0}' does not exist.", SchemaName));
 
-			if (!context.User.CanDropSchema(SchemaName))
-				throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Drop);
+			//if (!context.User.CanDropSchema(SchemaName))
+			//	throw new MissingPrivilegesException(context.User.Name, new ObjectName(SchemaName), Privileges.Drop);
 
 			// TODO: Check if the schema is empty before deleting it
 
 			context.DirectAccess.DropSchema(SchemaName);
-			context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Schema, new ObjectName(SchemaName));
+			// context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Schema, new ObjectName(SchemaName));
 		}
 	}
 }

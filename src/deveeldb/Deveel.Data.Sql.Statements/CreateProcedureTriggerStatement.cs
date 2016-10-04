@@ -74,14 +74,12 @@ namespace Deveel.Data.Sql.Statements {
 
 		public TriggerStatus Status { get; set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(TriggerName, DbObjectType.Trigger);
-			RequestReference(TableName, DbObjectType.Table);
-			RequestExecute(ProcedureName);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddCreate(TriggerName, DbObjectType.Trigger);
+			context.Assertions.AddReference(TableName, DbObjectType.Table);
+			context.Assertions.AddExecute(ProcedureName, ProcedureArguments);
 
-			GrantAccess(ProcedureName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
-
-			base.OnBeforeExecute(context);
+			context.Actions.AddResourceGrant(ProcedureName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {

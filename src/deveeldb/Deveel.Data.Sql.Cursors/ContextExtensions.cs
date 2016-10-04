@@ -21,7 +21,7 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Cursors {
 	public static class ContextExtensions {
-		public static bool DeclareCursor(this IContext context, CursorInfo cursorInfo, IRequest request) {
+		public static bool DeclareCursor(this IContext context, CursorInfo cursorInfo) {
 			if (context.CursorExists(cursorInfo.CursorName))
 				throw new InvalidOperationException(String.Format("A cursor named '{0}' was already defined in the context.",
 					cursorInfo.CursorName));
@@ -40,12 +40,12 @@ namespace Deveel.Data.Sql.Cursors {
 			return false;
 		}
 
-		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, SqlQueryExpression query) {
-			DeclareCursor(context, request, cursorName, CursorFlags.Insensitive, query);
+		public static void DeclareCursor(this IContext context, string cursorName, SqlQueryExpression query) {
+			DeclareCursor(context, cursorName, CursorFlags.Insensitive, query);
 		}
 
-		public static void DeclareCursor(this IContext context, IRequest request, string cursorName, CursorFlags flags, SqlQueryExpression query) {
-			context.DeclareCursor(new CursorInfo(cursorName, flags, query), request);
+		public static void DeclareCursor(this IContext context, string cursorName, CursorFlags flags, SqlQueryExpression query) {
+			context.DeclareCursor(new CursorInfo(cursorName, flags, query));
 		}
 
 

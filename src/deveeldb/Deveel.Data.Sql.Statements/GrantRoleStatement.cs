@@ -58,19 +58,42 @@ namespace Deveel.Data.Sql.Statements {
 			base.GetData(info);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.Add(c => {
+				if (!c.User.CanGrantRole(Role))
+					return AssertResult.Deny(new SecurityException(String.Format("User '{0}' cannot grant role '{1}' to '{2}'.", c.User.Name, Role, Grantee)));
+
+				return AssertResult.Allow();
+			});
+
+			context.Assertions.Add(c => {
+				if (WithAdmin) {
+					if (!c.User.IsRoleAdmin(Role))
+						return AssertResult.Deny(new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", c.User, Role)));
+				}
+
+				return AssertResult.Allow();
+			});
+
+			context.Assertions.Add(c => {
+				if (!c.User.CanManageUsers())
+					throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", c.User.Name));
+			});
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.UserExists(Grantee))
 				throw new InvalidOperationException(String.Format("The user '{0}' does not exist", Grantee));
 			if (!context.DirectAccess.RoleExists(Role))
 				throw new InvalidOperationException(String.Format("The role '{0}' does not exist", Role));
 
-			if (!context.User.CanGrantRole(Role))
-				throw new SecurityException(String.Format("User '{0}' cannot grant role '{1}' to '{2}'.", context.User.Name, Role, Grantee));
+			//if (!context.User.CanGrantRole(Role))
+			//	throw new SecurityException(String.Format("User '{0}' cannot grant role '{1}' to '{2}'.", context.User.Name, Role, Grantee));
 
-			if (WithAdmin) {
-				if (!context.User.IsRoleAdmin(Role))
-					throw new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", context.User, Role));
-			}
+			//if (WithAdmin) {
+			//	if (!context.User.IsRoleAdmin(Role))
+			//		throw new SecurityException(String.Format("User '{0}' does not administrate role '{1}'.", context.User, Role));
+			//}
 
 			if (!context.User.CanManageUsers())
 				throw new SecurityException(String.Format("The user '{0}' has not enough rights to manage other users.", context.User.Name));

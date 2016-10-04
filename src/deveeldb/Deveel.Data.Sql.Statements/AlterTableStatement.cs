@@ -46,10 +46,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTableAction Action { get; private set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestAlter(TableName, DbObjectType.Table);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddAlter(TableName, DbObjectType.Table);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {

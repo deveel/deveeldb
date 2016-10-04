@@ -162,11 +162,15 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("QueryPlan", QueryPlan);
 			}
 
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddSelect(QueryPlan);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
 				// TODO: Verify if a native cursor is already opened..
 				
-				if (!context.User.CanSelectFrom(QueryPlan))
-					throw new SecurityException(String.Format("The user '{0}' has not enough rights to select from the query.", context.User.Name));
+				//if (!context.User.CanSelectFrom(QueryPlan))
+				//	throw new SecurityException(String.Format("The user '{0}' has not enough rights to select from the query.", context.User.Name));
 
 				var cursorInfo = new NativeCursorInfo(QueryPlan, ForUpdate);
 				var nativeCursor = new NativeCursor(cursorInfo, context.Request);

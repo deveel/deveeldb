@@ -23,13 +23,13 @@ namespace Deveel.Data.Deveel.Data {
 
 		private static void DeclareCursors(IQuery query) {
 			var queryExp1 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
-			query.Context.DeclareCursor(query, "c1", queryExp1);
+			query.Context.DeclareCursor("c1", queryExp1);
 
 
 			var queryExp2 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table WHERE a > :a");
 			var cursorInfo = new CursorInfo("c2", queryExp2);
 			cursorInfo.Parameters.Add(new CursorParameter("a", PrimitiveTypes.Integer()));
-			query.Context.DeclareCursor(cursorInfo, query);
+			query.Context.DeclareCursor(cursorInfo);
 		}
 
 		private static void OpenCursors(IQuery query) {

@@ -133,8 +133,8 @@ namespace Deveel.Data {
 		}
 
 		public virtual bool DropObject(DbObjectType objectType, ObjectName objectName) {
-			if (!Session.User.CanDrop(objectType, objectName))
-				throw new MissingPrivilegesException(Session.User.Name, objectName, Privileges.Drop);
+			//if (!Session.User.CanDrop(objectType, objectName))
+			//	throw new MissingPrivilegesException(Session.User.Name, objectName, Privileges.Drop);
 
 			return Session.Transaction.DropObject(objectType, objectName);
 		}
@@ -237,8 +237,8 @@ namespace Deveel.Data {
 		}
 
 		public void AddPrimaryKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
-			if (!Session.User.CanAlterTable(tableName))
-				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Alter);
+			//if (!Session.User.CanAlterTable(tableName))
+			//	throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Alter);
 
 			Session.Transaction.AddPrimaryKey(tableName, columns, deferred, constraintName);
 		}
@@ -366,10 +366,10 @@ namespace Deveel.Data {
 			if (tableInfo == null)
 				throw new ArgumentNullException("tableInfo");
 
-			var tableName = tableInfo.TableName;
+			//var tableName = tableInfo.TableName;
 
-			if (!Session.User.CanCreateTable(tableName))
-				throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
+			//if (!Session.User.CanCreateTable(tableName))
+			//	throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
 
 			CreateTable(tableInfo, false);
 		}
@@ -910,6 +910,11 @@ namespace Deveel.Data {
 		public bool UserHasPrivilege(string grantee, DbObjectType objectType, ObjectName objectName, Privileges privileges) {
 			if (User.IsSystemUserName(grantee))
 				return true;
+
+			if ((privileges & Privileges.Create) != 0) {
+				objectName = objectName.Parent;
+				objectType = DbObjectType.Schema;
+			}
 
 			var privs = GetPrivileges(grantee, objectType, objectName, false);
 			return (privs & privileges) != 0;

@@ -45,10 +45,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IAlterTriggerAction Action { get; private set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestAlter(TriggerName, DbObjectType.Trigger);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddAlter(TriggerName, DbObjectType.Trigger);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {

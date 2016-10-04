@@ -53,11 +53,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string ExternalReference { get; private set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(FunctionName, DbObjectType.Routine);
-			GrantAccess(FunctionName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddCreate(FunctionName, DbObjectType.Routine);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

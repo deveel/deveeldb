@@ -145,9 +145,14 @@ namespace Deveel.Data.Sql.Statements {
 
 			public ObjectName TableName { get; private set; }
 
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddInsert(TableName);
+				context.Assertions.AddSelect(QueryPlan);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.User.CanSelectFrom(QueryPlan))
-					throw new SecurityException();
+				//if (!context.User.CanSelectFrom(QueryPlan))
+				//	throw new SecurityException();
 
 				var cursor = new NativeCursor(new NativeCursorInfo(QueryPlan), context.Request);
 
@@ -196,9 +201,13 @@ namespace Deveel.Data.Sql.Statements {
 
 			public IQueryPlanNode QueryPlan { get; private set; }
 
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddSelect(QueryPlan);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
-				if (!context.User.CanSelectFrom(QueryPlan))
-					throw new SecurityException();
+				//if (!context.User.CanSelectFrom(QueryPlan))
+				//	throw new SecurityException();
 
 				var cursor = new NativeCursor(new NativeCursorInfo(QueryPlan), context.Request);
 

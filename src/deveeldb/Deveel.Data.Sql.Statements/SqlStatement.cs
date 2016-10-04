@@ -28,7 +28,6 @@ using System.Text;
 
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Statements {
 	/// <summary>
@@ -36,32 +35,13 @@ namespace Deveel.Data.Sql.Statements {
 	/// </summary>
 	[Serializable]
 	[DebuggerDisplay("{ToString()}")]
-	public abstract class SqlStatement : IPreparable, ISerializable, ISqlFormattable, IResourceAccess, IGrantAccess {
-		private IList<ResourceAccessRequest> resourceAccess;
-		private IList<ResourceGrantRequest> resourceGrant;
-
-		protected SqlStatement() {
-			resourceAccess = new List<ResourceAccessRequest>();
-			resourceGrant = new List<ResourceGrantRequest>();
-		}
-
+	public abstract class SqlStatement : IPreparable, ISerializable, ISqlFormattable {
 		protected SqlStatement(SerializationInfo info, StreamingContext context) {
 			SourceQuery = (SqlQuery) info.GetValue("SourceQuery", typeof(SqlQuery));
 			IsFromQuery = info.GetBoolean("IsFromQuery");
+		}
 
-			var accessRequests = (ResourceAccessRequest[]) info.GetValue("ResourceAccess", typeof(ResourceAccessRequest[]));
-			if (accessRequests != null) {
-				resourceAccess = new List<ResourceAccessRequest>(accessRequests);
-			} else {
-				resourceAccess = new List<ResourceAccessRequest>();
-			}
-
-			var grantRequests = (ResourceGrantRequest[]) info.GetValue("ResourceGrant", typeof(ResourceGrantRequest[]));
-			if (grantRequests != null) {
-				resourceGrant = new List<ResourceGrantRequest>(grantRequests);
-			} else {
-				resourceGrant = new List<ResourceGrantRequest>();
-			}
+		protected SqlStatement() {
 		}
 
 		/// <summary>
@@ -86,16 +66,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlStatement Parent { get; internal set; }
 
-		IEnumerable<ResourceAccessRequest> IResourceAccess.AccessRequests {
-			get { return resourceAccess.AsEnumerable(); }
-		}
-
-		IEnumerable<ResourceGrantRequest> IGrantAccess.GrantRequests {
-			get { return resourceGrant.AsEnumerable(); }
-		}
-
 		internal void Execute(ExecutionContext context) {
 			try {
+				context.Actions.Add<SecurityAssertionAction>();
+
 				ConfigureSecurity(context);
 				OnBeforeExecute(context);
 
@@ -112,50 +86,20 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected virtual void ConfigureSecurity(ExecutionContext context) {
-			context.Assertions.Add(Assert);
-		}
-
-		protected virtual void AssertSecurity(ExecutionContext context) {
-			var result = context.Assert();
-			if (result.IsDenied)
-				throw result.SecurityError;
 		}
 
 		protected virtual void OnBeforeExecute(ExecutionContext context) {
-			AssertSecurity(context);
-
 			context.Request.OnEvent(new StatementEvent(this, StatementEventType.BeforeExecute));
+			context.BeforeExecute();
 		}
 
 		protected virtual void OnAfterExecute(ExecutionContext context) {
-			GrantAccess(context);
+			context.AfterExecute();
 			context.Request.OnEvent(new StatementEvent(this, StatementEventType.AfterExecute));
-		}
-
-		private void GrantAccess(ExecutionContext context) {
-			this.Grant(context);
 		}
 
 		protected virtual void ExecuteStatement(ExecutionContext context) {
 			throw new NotSupportedException(String.Format("The statement '{0}' does not support execution", GetType().Name));
-		}
-
-		private void Assert(ISecurityContext context) {
-			try {
-				var result = (this as IResourceAccess).Assert(context);
-				if (!result.IsAllowed) {
-					var error = result.Error;
-					if (error is SecurityException)
-						throw error;
-					throw new SecurityException(
-						String.Format("Assertion to resource access from statement '{0}' failed because of an error.", GetType().Name),
-						error);
-				}
-			} catch (SecurityException) {
-				throw;
-			} catch (Exception ex) {
-				throw new SecurityException("An error occurred while asserting the security state.", ex);
-			}
 		}
 
 		internal void SetSource(SqlQuery query) {
@@ -163,62 +107,13 @@ namespace Deveel.Data.Sql.Statements {
 			IsFromQuery = true;
 		}
 
-		protected void RequestAccess(ObjectName resource, DbObjectType objectType, Privileges privileges) {
-			resourceAccess.Add(new ResourceAccessRequest(resource, objectType, privileges));
-		}
-
-		protected void RequestDrop(ObjectName resource, DbObjectType objectType) {
-			RequestAccess(resource, objectType, Privileges.Drop);
-		}
-
-		protected void RequestCreate(ObjectName resource, DbObjectType objectType) {
-			RequestAccess(resource, objectType, Privileges.Create);
-		}
-
-		protected void RequestAlter(ObjectName resource, DbObjectType objectType) {
-			RequestAccess(resource, objectType, Privileges.Alter);
-		}
-
-		protected void RequestReference(ObjectName resource, DbObjectType resourceType) {
-			RequestAccess(resource, resourceType, Privileges.References);
-		}
-
-		protected void RequestSelect(ObjectName resource) {
-			RequestAccess(resource, DbObjectType.Table, Privileges.Select);
-		}
-
-		protected void RequestSelect(IQueryPlanNode queryPlan) {
-			var tables = queryPlan.DiscoverTableNames();
-			foreach (var table in tables) {
-				RequestSelect(table);
-			}
-		}
-
-		protected void RequestDelete(ObjectName resource) {
-			RequestAccess(resource, DbObjectType.Table, Privileges.Delete);
-		}
-
-		protected void RequestInsert(ObjectName resource) {
-			RequestAccess(resource, DbObjectType.Table, Privileges.Insert);
-		}
-
-		protected void RequestUpdate(ObjectName resource) {
-			RequestAccess(resource, DbObjectType.Table, Privileges.Update);
-		}
-
-		protected void RequestExecute(ObjectName resource) {
-			RequestAccess(resource, DbObjectType.Routine, Privileges.Execute);
-		}
-
-		protected void GrantAccess(ObjectName resource, DbObjectType resourceType, Privileges privileges) {
-			resourceGrant.Add(new ResourceGrantRequest(resource, resourceType, privileges));
+		protected void RevokeAccess(ObjectName resource, DbObjectType resourceType) {
+			
 		}
 
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
 			info.AddValue("SourceQuery", SourceQuery);
 			info.AddValue("IsFromQuery", IsFromQuery);
-			info.AddValue("ResourceAccess", resourceAccess.ToArray());
-			info.AddValue("ResourceGrant", resourceGrant.ToArray());
 
 			GetData(info);
 		}

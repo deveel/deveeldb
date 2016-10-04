@@ -59,7 +59,7 @@ namespace Deveel.Data {
 
 		private static void DeclareCursor(IQuery query) {
 			var queryExp1 = (SqlQueryExpression)SqlExpression.Parse("SELECT * FROM APP.test_table");
-			query.Context.DeclareCursor(query, "c1", queryExp1);
+			query.Context.DeclareCursor("c1", queryExp1);
 		}
 
 		private static void OpenAndAdvanceCursor(IQuery query) {

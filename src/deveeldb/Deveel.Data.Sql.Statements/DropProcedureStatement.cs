@@ -44,10 +44,8 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropProcedureStatement(procedureName, IfExists);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDrop(ProcedureName, DbObjectType.Routine);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(ProcedureName, DbObjectType.Routine);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
@@ -58,8 +56,8 @@ namespace Deveel.Data.Sql.Statements {
 				throw new ObjectNotFoundException(ProcedureName);
 			}
 
-			if (!context.User.CanDrop(DbObjectType.Routine, ProcedureName))
-				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.Routine, ProcedureName))
+			//	throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Drop);
 
 			var routine = context.DirectAccess.GetObject(DbObjectType.Routine, ProcedureName);
 			if (!(routine is IProcedure))

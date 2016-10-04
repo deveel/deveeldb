@@ -117,11 +117,9 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("QueryPlan", QueryPlan);
 			}
 
-			protected override void OnBeforeExecute(ExecutionContext context) {
-				RequestDelete(TableName);
-				RequestSelect(QueryPlan);
-
-				base.OnBeforeExecute(context);
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddDelete(TableName);
+				context.Assertions.AddSelect(QueryPlan);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
@@ -130,10 +128,10 @@ namespace Deveel.Data.Sql.Statements {
 				if (deleteTable == null)
 					throw new ObjectNotFoundException(TableName);
 
-				if (!context.User.CanSelectFrom(QueryPlan))
-					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Select);
-				if (!context.User.CanDeleteFromTable(TableName))
-					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
+				//if (!context.User.CanSelectFrom(QueryPlan))
+				//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Select);
+				//if (!context.User.CanDeleteFromTable(TableName))
+				//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
 				
 				var result = QueryPlan.Evaluate(context.Request);
 				var count = deleteTable.Delete(result);

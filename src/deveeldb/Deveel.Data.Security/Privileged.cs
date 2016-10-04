@@ -76,86 +76,46 @@ namespace Deveel.Data.Security {
 			return false;
 		}
 
-		public bool CanCreate(DbObjectType objectType, ObjectName objectName) {
-			if (objectType == DbObjectType.Schema)
-				return CanManageSchema();
+		//public bool CanCreateInSchema(string schemaName) {
+		//	return HasSchemaPrivileges(schemaName, Privileges.Create);
+		//}
 
-			return HasSchemaPrivileges(objectName.ParentName, Privileges.Create);
-		}
+		//public bool CanDrop(DbObjectType objectType, ObjectName objectName) {
+		//	return HasPrivileges(objectType, objectName, Privileges.Drop) ||
+		//	       HasSchemaPrivileges(objectName.ParentName, Privileges.Drop);
+		//}
 
-		public bool CanCreateTable(ObjectName tableName) {
-			return CanCreate(DbObjectType.Table, tableName);
-		}
+		//public bool CanDropSchema(string schemaName) {
+		//	return HasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), Privileges.Drop) ||
+		//	       CanManageSchema();
+		//}
 
-		public bool CanSelectFrom(DbObjectType objectType, ObjectName objectName) {
-			return HasPrivileges(objectType, objectName, Privileges.Select);
-		}
+		//public bool CanAlter(DbObjectType objectType, ObjectName objectName) {
+		//	return HasPrivileges(objectType, objectName, Privileges.Alter) ||
+		//	       HasSchemaPrivileges(objectName.ParentName, Privileges.Alter);
+		//}
 
-		public bool CanSelectFromTable(ObjectName tableName) {
-			return CanSelectFrom(DbObjectType.Table, tableName);
-		}
+		//public bool CanAlterTable(ObjectName tableName) {
+		//	return CanAlter(DbObjectType.Table, tableName);
+		//}
 
-		public bool CanSelectFrom(IQueryPlanNode queryPlan) {
-			var references = queryPlan.DiscoverTableNames();
-			return references.All(CanSelectFromTable);
-		}
+		//public bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
+		//	AssertInContext();
 
-		public bool CanInsertIntoTable(ObjectName tableName) {
-			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Insert);
-		}
+		//	if (routineType == RoutineType.Function &&
+		//		Session.Access().IsSystemFunction(invoke, request))
+		//		return true;
 
-		public bool CanUpdateTable(ObjectName tableName) {
-			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Update);
-		}
+		//	return HasPrivileges(DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
+		//}
 
-		public bool CanDeleteFromTable(ObjectName tableName) {
-			return HasPrivileges(DbObjectType.Table, tableName, Privileges.Delete);
-		}
+		//public bool CanExecuteFunction(Invoke invoke, IRequest request) {
+		//	return CanExecute(RoutineType.Function, invoke, request);
+		//}
 
-		public bool HasSchemaPrivileges(string schemaName, Privileges privileges) {
-			return HasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), privileges);
-		}
-
-		public bool CanCreateInSchema(string schemaName) {
-			return HasSchemaPrivileges(schemaName, Privileges.Create);
-		}
-
-		public bool CanDrop(DbObjectType objectType, ObjectName objectName) {
-			return HasPrivileges(objectType, objectName, Privileges.Drop) ||
-			       HasSchemaPrivileges(objectName.ParentName, Privileges.Drop);
-		}
-
-		public bool CanDropSchema(string schemaName) {
-			return HasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), Privileges.Drop) ||
-			       CanManageSchema();
-		}
-
-		public bool CanAlter(DbObjectType objectType, ObjectName objectName) {
-			return HasPrivileges(objectType, objectName, Privileges.Alter) ||
-			       HasSchemaPrivileges(objectName.ParentName, Privileges.Alter);
-		}
-
-		public bool CanAlterTable(ObjectName tableName) {
-			return CanAlter(DbObjectType.Table, tableName);
-		}
-
-		public bool CanExecute(RoutineType routineType, Invoke invoke, IRequest request) {
-			AssertInContext();
-
-			if (routineType == RoutineType.Function &&
-				Session.Access().IsSystemFunction(invoke, request))
-				return true;
-
-			return HasPrivileges(DbObjectType.Routine, invoke.RoutineName, Privileges.Execute);
-		}
-
-		public bool CanExecuteFunction(Invoke invoke, IRequest request) {
-			return CanExecute(RoutineType.Function, invoke, request);
-		}
-
-		public bool CanExecuteProcedure(Invoke invoke, IRequest request) {
-			return CanExecute(RoutineType.Procedure, invoke, request);
-		}
+		//public bool CanExecuteProcedure(Invoke invoke, IRequest request) {
+		//	return CanExecute(RoutineType.Procedure, invoke, request);
+		//}
 
 		public override string ToString() {
 			return Name;

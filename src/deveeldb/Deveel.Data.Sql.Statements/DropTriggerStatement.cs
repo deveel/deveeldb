@@ -42,11 +42,15 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropTriggerStatement(triggerName);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(TriggerName, DbObjectType.Trigger);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.TriggerExists(TriggerName))
 				throw new ObjectNotFoundException(TriggerName);
-			if (!context.User.CanDrop(DbObjectType.Trigger, TriggerName))
-				throw new SecurityException(String.Format("User '{0}' has not enough rights to drop trigger '{1}'.", context.User.Name, TriggerName));
+			//if (!context.User.CanDrop(DbObjectType.Trigger, TriggerName))
+			//	throw new SecurityException(String.Format("User '{0}' has not enough rights to drop trigger '{1}'.", context.User.Name, TriggerName));
 
 			context.DirectAccess.DropTrigger(TriggerName);
 			context.DirectAccess.RevokeAllGrantsOn(DbObjectType.Trigger, TriggerName);

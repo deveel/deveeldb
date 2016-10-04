@@ -53,11 +53,9 @@ namespace Deveel.Data.Sql.Statements {
 			return base.PrepareExpressions(preparer);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(ProcedureName, DbObjectType.Routine);
-			GrantAccess(ProcedureName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddCreate(ProcedureName, DbObjectType.Routine);
+			context.Actions.AddResourceGrant(ProcedureName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
 		}
 
 		protected override SqlStatement PrepareStatement(IRequest context) {

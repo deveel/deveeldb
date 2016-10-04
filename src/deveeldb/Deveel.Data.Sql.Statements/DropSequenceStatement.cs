@@ -35,15 +35,13 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropSequenceStatement(seqName);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDrop(SequenceName, DbObjectType.Sequence);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(SequenceName, DbObjectType.Sequence);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanDrop(DbObjectType.Sequence, SequenceName))
-				throw new MissingPrivilegesException(context.User.Name, SequenceName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.Sequence, SequenceName))
+			//	throw new MissingPrivilegesException(context.User.Name, SequenceName, Privileges.Drop);
 
 			if (!context.DirectAccess.DropObject(DbObjectType.Sequence, SequenceName))
 				throw new StatementException(String.Format("Cannot drop sequence '{0}': maybe not found.", SequenceName));

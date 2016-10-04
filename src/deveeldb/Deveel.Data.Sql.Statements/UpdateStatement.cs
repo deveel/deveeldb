@@ -101,16 +101,21 @@ namespace Deveel.Data.Sql.Statements {
 
 			public int Limit { get; private set; }
 
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddUpdate(TableName);
+				context.Assertions.AddSelect(QueryPlan);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
-				var columnNames = Columns.Select(x => x.ReferenceExpression)
-					.Cast<SqlReferenceExpression>()
-					.Select(x => x.ReferenceName.Name).ToArray();
+				//var columnNames = Columns.Select(x => x.ReferenceExpression)
+				//	.Cast<SqlReferenceExpression>()
+				//	.Select(x => x.ReferenceName.Name).ToArray();
 
-				if (!context.User.CanUpdateTable(TableName))
-					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Update);
+				//if (!context.User.CanUpdateTable(TableName))
+				//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Update);
 
-				if (!context.User.CanSelectFrom(QueryPlan))
-					throw new InvalidOperationException();
+				//if (!context.User.CanSelectFrom(QueryPlan))
+				//	throw new InvalidOperationException();
 
 				var table = context.DirectAccess.GetMutableTable(TableName);
 				if (table == null)
