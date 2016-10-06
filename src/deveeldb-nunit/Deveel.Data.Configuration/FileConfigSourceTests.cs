@@ -57,11 +57,12 @@ namespace Deveel.Data.Configuration {
 
 		[Test]
 		public void LoadProperties() {
-			var path = Path.Combine(Environment.CurrentDirectory, FileName);
-			var source = new FileConfigSource(path);
-
 			var dbConfig = new Configuration();
-			dbConfig.Load(source, new PropertiesConfigFormatter());
+
+			var path = Path.Combine(Environment.CurrentDirectory, FileName);
+			using (var source = new FileConfigSource(path)) {
+				dbConfig.Load(source, new PropertiesConfigFormatter());
+			}
 
 			Assert.AreEqual(2, dbConfig.GetKeys().Count());
 

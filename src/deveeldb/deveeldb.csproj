@@ -167,7 +167,6 @@
     <Compile Include="Deveel.Data.Security\ISecurityPostExecuteAction.cs" />
     <Compile Include="Deveel.Data.Security\ResourceAccessSecurityAssert.cs" />
     <Compile Include="Deveel.Data.Security\ResourceGrantAction.cs" />
-    <Compile Include="Deveel.Data.Security\ResourceGrantRequest.cs" />
     <Compile Include="Deveel.Data.Security\AssertResult.cs" />
     <Compile Include="Deveel.Data.Security\SecurityActionRegistrar.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertionAction.cs" />
