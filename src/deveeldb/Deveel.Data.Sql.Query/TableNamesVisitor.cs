@@ -23,11 +23,11 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Query {
 	class TableNamesVisitor : SqlExpressionVisitor {
-		public TableNamesVisitor() {
-			TableNames = new List<ObjectName>();
-		}
+		private IList<ObjectName> tableNames;
 
-		public IList<ObjectName> TableNames { get; private set; }
+		public TableNamesVisitor(IList<ObjectName> tableNames) {
+			this.tableNames = tableNames;
+		}
 
 		public override SqlExpression VisitConstant(SqlConstantExpression constant) {
 			var value = constant.Value;
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Query {
 
 				var queryObject = (SqlQueryObject) value.Value;
 				var planNode = queryObject.QueryPlan;
-				TableNames = planNode.DiscoverTableNames();
+				planNode.DiscoverTableNames(tableNames);
 			}
 
 			return base.VisitConstant(constant);

@@ -25,7 +25,11 @@ using Deveel.Data.Sql.Objects;
 namespace Deveel.Data.Sql.Query {
 	static class QueryPlanNodeExtensions {
 		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node) {
-			var visitor = new QueryNodeTableNameVisitor();
+			return DiscoverTableNames(node, new List<ObjectName>());
+		}
+
+		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node, IList<ObjectName> tableNames) {
+			var visitor = new QueryNodeTableNameVisitor(tableNames);
 			return visitor.Discover(node);
 		}
 

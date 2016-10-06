@@ -21,8 +21,8 @@ namespace Deveel.Data.Sql.Query {
 	internal class QueryNodeTableNameVisitor : QueryPlanNodeVisitor {
 		private readonly IList<ObjectName> tableNames;
 
-		public QueryNodeTableNameVisitor() {
-			tableNames = new List<ObjectName>();
+		public QueryNodeTableNameVisitor(IList<ObjectName> tableNames) {
+			this.tableNames = tableNames;
 		}
 
 		public IList<ObjectName> Discover(IQueryPlanNode queryPlan) {

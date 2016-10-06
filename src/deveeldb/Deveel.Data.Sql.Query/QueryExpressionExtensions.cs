@@ -25,7 +25,7 @@ using Deveel.Data.Sql.Types;
 namespace Deveel.Data.Sql.Query {
 	static class QueryExpressionExtensions {
 		public static void DiscoverTableNames(this SqlExpression expression, IList<ObjectName> tableNames) {
-			var visitor = new TableNamesVisitor();
+			var visitor = new TableNamesVisitor(tableNames);
 			visitor.Visit(expression);
 		}
 
