@@ -115,9 +115,9 @@ namespace Deveel.Data.Security {
 
 		public void AddSelect(IQueryPlanNode queryPlan) {
 			// TODO: the current implementation returns table names and view names with no distinction
-			var tableNames = queryPlan.DiscoverTableNames();
-			foreach (var tableName in tableNames) {
-				AddSelect(tableName, DbObjectType.Table);
+			var accessedResources = queryPlan.DiscoverAccessedResources();
+			foreach (var resource in accessedResources) {
+				AddSelect(resource.ResourceName, resource.ResourceType);
 			}
 		}
 

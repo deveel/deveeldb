@@ -67,6 +67,7 @@ namespace Deveel.Data {
 			query.Access().DropAllTableConstraints(tableName1);
 			query.Access().DropObject(DbObjectType.Table, tableName2);
 			query.Access().DropObject(DbObjectType.Table, tableName1);
+			query.Access().DropObject(DbObjectType.Routine, ObjectName.Parse("APP.proc1"));
 			return true;
 		}
 

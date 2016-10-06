@@ -97,7 +97,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			// TODO:
 			//var queryPlan = context.Request.Context.QueryPlanner().PlanQuery(new QueryInfo(context.Request, QueryExpression));
-			//var selectedTables = queryPlan.DiscoverTableNames();
+			//var selectedTables = queryPlan.DiscoverAccessedResources();
 			//foreach (var tableName in selectedTables) {
 			//	if (!context.User.CanSelectFromTable(tableName))
 			//		throw new MissingPrivilegesException(context.User.Name, tableName, Privileges.Select);

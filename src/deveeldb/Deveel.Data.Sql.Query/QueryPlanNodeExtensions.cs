@@ -24,12 +24,12 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Query {
 	static class QueryPlanNodeExtensions {
-		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node) {
-			return DiscoverTableNames(node, new List<ObjectName>());
+		public static IList<QueryAccessedResource> DiscoverAccessedResources(this IQueryPlanNode node) {
+			return DiscoverAccessedResources(node, new Dictionary<ObjectName, QueryAccessedResource>());
 		}
 
-		public static IList<ObjectName> DiscoverTableNames(this IQueryPlanNode node, IList<ObjectName> tableNames) {
-			var visitor = new QueryNodeTableNameVisitor(tableNames);
+		public static IList<QueryAccessedResource> DiscoverAccessedResources(this IQueryPlanNode node, IDictionary<ObjectName, QueryAccessedResource> accessedResources) {
+			var visitor = new QueryAccessedResourceVisitor(accessedResources);
 			return visitor.Discover(node);
 		}
 

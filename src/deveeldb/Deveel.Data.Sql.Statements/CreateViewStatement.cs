@@ -160,7 +160,7 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private void DefineView(ExecutionContext context, ViewInfo viewInfo, bool replaceIfExists) {
-				//var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
+				//var tablesInPlan = viewInfo.QueryPlan.DiscoverAccessedResources();
 				//foreach (var tableName in tablesInPlan) {
 				//	if (!context.User.CanSelectFromTable(tableName))
 				//		throw new InvalidAccessException(context.User.Name, tableName);

@@ -23,9 +23,9 @@ using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Sql.Query {
 	class TableNamesVisitor : SqlExpressionVisitor {
-		private IList<ObjectName> tableNames;
+		private IDictionary<ObjectName, QueryAccessedResource> tableNames;
 
-		public TableNamesVisitor(IList<ObjectName> tableNames) {
+		public TableNamesVisitor(IDictionary<ObjectName, QueryAccessedResource> tableNames) {
 			this.tableNames = tableNames;
 		}
 
@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Query {
 
 				var queryObject = (SqlQueryObject) value.Value;
 				var planNode = queryObject.QueryPlan;
-				planNode.DiscoverTableNames(tableNames);
+				planNode.DiscoverAccessedResources(tableNames);
 			}
 
 			return base.VisitConstant(constant);

@@ -17,57 +17,59 @@
 
 using System;
 using System.Collections.Generic;
-namespace Deveel.Data.Sql.Query {
-	internal class QueryNodeTableNameVisitor : QueryPlanNodeVisitor {
-		private readonly IList<ObjectName> tableNames;
+using System.Linq;
 
-		public QueryNodeTableNameVisitor(IList<ObjectName> tableNames) {
+namespace Deveel.Data.Sql.Query {
+	internal class QueryAccessedResourceVisitor : QueryPlanNodeVisitor {
+		private readonly IDictionary<ObjectName, QueryAccessedResource> tableNames;
+
+		public QueryAccessedResourceVisitor(IDictionary<ObjectName, QueryAccessedResource> tableNames) {
 			this.tableNames = tableNames;
 		}
 
-		public IList<ObjectName> Discover(IQueryPlanNode queryPlan) {
+		public IList<QueryAccessedResource> Discover(IQueryPlanNode queryPlan) {
 			VisitNode(queryPlan);
-			return tableNames;
+			return tableNames.Values.ToList();
 		}
 
 		protected override IQueryPlanNode VisitFetchTable(FetchTableNode node) {
-			if (!tableNames.Contains(node.TableName))
-				tableNames.Add(node.TableName);
+			if (!tableNames.ContainsKey(node.TableName))
+				tableNames.Add(node.TableName, new QueryAccessedResource(node.TableName, DbObjectType.Table));
 
 			return base.VisitFetchTable(node);
 		}
 
 		protected override IQueryPlanNode VisitFetchView(FetchViewNode node) {
-			if (!tableNames.Contains(node.ViewName))
-				tableNames.Add(node.ViewName);
+			if (!tableNames.ContainsKey(node.ViewName))
+				tableNames.Add(node.ViewName, new QueryAccessedResource(node.ViewName, DbObjectType.View));
 
 			return base.VisitFetchView(node);
 		}
 
 		protected override IQueryPlanNode VisitJoin(JoinNode node) {
 			if (node.RightExpression != null)
-				node.RightExpression.DiscoverTableNames(tableNames);
+				node.RightExpression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitJoin(node);
 		}
 
 		protected override IQueryPlanNode VisitConstantSelect(ConstantSelectNode node) {
 			if (node.Expression != null)
-				node.Expression.DiscoverTableNames(tableNames);
+				node.Expression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitConstantSelect(node);
 		}
 
 		protected override IQueryPlanNode VisitRangeSelect(RangeSelectNode node) {
 			if (node.Expression != null)
-				node.Expression.DiscoverTableNames(tableNames);
+				node.Expression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitRangeSelect(node);
 		}
 
 		protected override IQueryPlanNode VisitSimpleSelect(SimpleSelectNode node) {
 			if (node.Expression != null)
-				node.Expression.DiscoverTableNames(tableNames);
+				node.Expression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitSimpleSelect(node);
 		}
@@ -75,7 +77,7 @@ namespace Deveel.Data.Sql.Query {
 		protected override IQueryPlanNode VisitGroup(GroupNode node) {
 			if (node.Functions != null) {
 				foreach (var function in node.Functions) {
-					function.DiscoverTableNames(tableNames);
+					function.DiscoverAccessedResources(tableNames);
 				}
 			}
 
@@ -84,14 +86,14 @@ namespace Deveel.Data.Sql.Query {
 
 		protected override IQueryPlanNode VisitExhaustiveSelect(ExhaustiveSelectNode node) {
 			if (node.Expression != null)
-				node.Expression.DiscoverTableNames(tableNames);
+				node.Expression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitExhaustiveSelect(node);
 		}
 
 		protected override IQueryPlanNode VisitSimplePatternSelect(SimplePatternSelectNode node) {
 			if (node.Expression != null)
-				node.Expression.DiscoverTableNames(tableNames);
+				node.Expression.DiscoverAccessedResources(tableNames);
 
 			return base.VisitSimplePatternSelect(node);
 		}
