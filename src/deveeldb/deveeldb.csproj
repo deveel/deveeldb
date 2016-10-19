@@ -148,6 +148,7 @@
     <Compile Include="Deveel.Data.Diagnostics\ContextBasedExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Counter.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\CounterExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterRegistryExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\DictionaryExtensions.cs" />
@@ -158,7 +159,10 @@
     <Compile Include="Deveel.Data.Diagnostics\EventSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventSourceExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\EventMessage.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\ICounter.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\KnownSystemCounterNames.cs" />
     <Compile Include="Deveel.Data.Diagnostics\MetadataKeys.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\SystemPerformanceCounter.cs" />
     <Compile Include="Deveel.Data.Security\AccessPolicy.cs" />
     <Compile Include="Deveel.Data.Security\ISecurityAction.cs" />
     <Compile Include="Deveel.Data.Security\ISecurityAssert.cs" />

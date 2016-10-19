@@ -20,7 +20,7 @@ using System;
 namespace Deveel.Data.Diagnostics {
 	public static class CounterRegistryExtensions {
 		public static bool TryCount<T>(this ICounterRegistry registry, string name, out T value) {
-			Counter counter;
+			ICounter counter;
 			if (!registry.TryCount(name, out counter)) {
 				value = default(T);
 				return false;
@@ -36,6 +36,15 @@ namespace Deveel.Data.Diagnostics {
 				return default(T);
 
 			return counter.ValueAs<T>();
+		}
+
+		public static bool Add<TCounter>(this ICounterRegistry registry, string name) where TCounter : ICounter {
+			var ctor = typeof(TCounter).GetConstructor(new Type[] {typeof(string)});
+			if (ctor == null)
+				throw new ArgumentException();
+
+			var counter = (ICounter) ctor.Invoke(new object[] {name});
+			return registry.Add(counter);
 		}
 	}
 }
