@@ -61,7 +61,7 @@ namespace Deveel.Data {
 			return base.OnSetUp(testName, query);
 		}
 
-		protected override void RegisterServices(ServiceContainer container) {
+		protected override void RegisterServices(ISystemBuilder builder) {
 			var mock = new Mock<IIndexFactory>();
 			mock.Setup(obj => obj.CreateIndex(It.IsAny<ColumnIndexContext>()))
 				.Returns<ColumnIndexContext>(context => {
@@ -71,7 +71,7 @@ namespace Deveel.Data {
 			mock.Setup(obj => obj.HandlesIndexType(It.IsAny<string>()))
 				.Returns(true);
 
-			container.Bind<IIndexFactory>()
+			builder.ServiceContainer.Bind<IIndexFactory>()
 				.ToInstance(mock.Object);
 		}
 

@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
@@ -33,74 +32,44 @@ using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
-using Deveel.Data.Store.Journaled;
 
 namespace Deveel.Data {
-	public class SystemBuilder {
-		public SystemBuilder() 
-			: this(new Configuration.Configuration()) {
-		}
-
-		public SystemBuilder(IConfiguration configuration) {
-			Configuration = configuration;
+	public class SystemBuilder : ISystemBuilder {
+		public SystemBuilder() {
 			ServiceContainer = new ServiceContainer();
 		}
 
-		public IConfiguration Configuration { get; set; }
+		public ServiceContainer ServiceContainer { get; private set; }
 
-		private ServiceContainer ServiceContainer { get; set; }
+		public static SystemBuilder Default {
+			get {
+				var builder = new SystemBuilder();
+				RegisterDefaultServices(builder);
+				return builder;
+			}
+		}
 
-		private void RegisterDefaultServices() {
+		private static void RegisterDefaultServices(ISystemBuilder builder) {
 #if !MICRO
-			ServiceContainer.Register<SecurityModule>();
+			builder.UseSecurity();
+
+			builder.UseDefaultSqlCompiler()
+				.UseDefaultStatementCache();
 #endif
 
-			ServiceContainer.UseTables();
-			ServiceContainer.UseRoutines();
-			ServiceContainer.UseSchema();
-			ServiceContainer.UseViews();
-			ServiceContainer.UseSequences();
-			ServiceContainer.UseTriggers();
-			ServiceContainer.UseTypes();
-			ServiceContainer.UseVariables();
+			builder.UseDefaultQueryPlanner();
 
-			ServiceContainer.UseDefaultCompiler();
-
-			ServiceContainer.Bind<IStatementCache>()
-				.To<StatementCache>()
-				.InSystemScope();
-
-			ServiceContainer.Bind<IQueryPlanner>()
-				.To<QueryPlanner>()
-				.InSystemScope();				
-
-			ServiceContainer.UseJournaledStore();
-
-			ServiceContainer.Bind<IStoreSystem>()
-				.To<InMemoryStorageSystem>()
-				.WithKey(DefaultStorageSystemNames.Heap)
-				.InDatabaseScope();
-
-			ServiceContainer.Bind<IStoreSystem>()
-				.To<SingleFileStoreSystem>()
-				.WithKey(DefaultStorageSystemNames.SingleFile)
-				.InDatabaseScope();
-
-			ServiceContainer.UseLocalFileSystem();
-
-			ServiceContainer.Bind<IStoreDataFactory>()
-				.To<ScatteringFileStoreDataFactory>()
-				.WithKey("scattering")
-				.InDatabaseScope();
+			builder.UseLocalFileSystem()
+				.UseInMemoryStoreSystem()
+				.UseSingleFileStoreSystem()
+				.UseJournaledStoreSystem()
+				.UseScatteringFileDataFactory();
 		}
 
 		private ISystemContext BuildContext(out IEnumerable<ModuleInfo> modules) {
-			RegisterDefaultServices();
-
-			OnServiceRegistration(ServiceContainer);
 			modules = LoadModules();
 
-			return new SystemContext(Configuration, ServiceContainer);
+			return new SystemContext(ServiceContainer);
 		}
 
 		private IEnumerable<ModuleInfo> LoadModules() {
@@ -117,10 +86,18 @@ namespace Deveel.Data {
 			return moduleInfo;
 		}
 
-		protected virtual void OnServiceRegistration(ServiceContainer container) {
-		}
+		public ISystem Build() {
+			// ensure the required components are configured in the builder
+			// TODO: in a future revision they will be optional too
+			this.UseTables()
+				.UseRoutines()
+				.UseSchema()
+				.UseViews()
+				.UseSequences()
+				.UseTriggers()
+				.UseTypes()
+				.UseVariables();
 
-		public ISystem BuildSystem() {
 			IEnumerable<ModuleInfo> modules;
 			var context = BuildContext(out modules);
 			return new DatabaseSystem(context, modules);

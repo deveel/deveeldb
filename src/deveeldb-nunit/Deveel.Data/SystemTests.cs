@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Services;
+using Deveel.Data.Configuration;
 
 using NUnit.Framework;
 
@@ -26,9 +26,9 @@ namespace Deveel.Data {
 	public class SystemTests {
 		[Test]
 		public void FromDefaultConfig() {
-			var builder = new SystemBuilder();
+			var builder = SystemBuilder.Default.UseDefaultConfiguration();
 			ISystem system = null;
-			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.DoesNotThrow(() => system = builder.Build());
 			Assert.IsNotNull(system);
 			Assert.IsFalse(system.Context.ReadOnly());
 			Assert.IsTrue(system.Context.IgnoreIdentifiersCase());
@@ -37,9 +37,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveSingleServiceFromRegister() {
-			var builder = new SystemBuilder();
+			var builder = SystemBuilder.Default.UseDefaultConfiguration();
 			ISystem system = null;
-			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.DoesNotThrow(() => system = builder.Build());
 			Assert.IsNotNull(system);
 
 			system.Context.RegisterService<TestService>();
@@ -55,9 +55,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveManyServicesForInterface() {
-			var builder = new SystemBuilder();
+			var builder = SystemBuilder.Default.UseDefaultConfiguration();
 			ISystem system = null;
-			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.DoesNotThrow(() => system = builder.Build());
 			Assert.IsNotNull(system);
 			
 			system.Context.RegisterService<TestService>();
@@ -78,9 +78,9 @@ namespace Deveel.Data {
 
 		[Test]
 		public void ResolveInstanceOfServiceByInterface() {
-			var builder = new SystemBuilder();
+			var builder = SystemBuilder.Default.UseDefaultConfiguration();
 			ISystem system = null;
-			Assert.DoesNotThrow(() => system = builder.BuildSystem());
+			Assert.DoesNotThrow(() => system = builder.Build());
 			Assert.IsNotNull(system);
 
 			system.Context.RegisterInstance(new TestService());

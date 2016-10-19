@@ -29,14 +29,8 @@ namespace Deveel.Data {
 	public sealed class SystemContext : Context, ISystemContext {
 		private IScope scope;
 
-		internal SystemContext(IConfiguration configuration, ServiceContainer container) {
-			if (configuration == null)
-				throw new ArgumentNullException("configuration");
-
-			Configuration = configuration;
-
+		internal SystemContext(ServiceContainer container) {
 			scope = container.OpenScope(ContextNames.System);
-			scope.RegisterInstance<IConfiguration>(configuration);
 			scope.RegisterInstance<ISystemContext>(this);
 
 			EventRegistry = new EventRegistry(this);
@@ -45,7 +39,9 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets the system configuration object
 		/// </summary>
-		public IConfiguration Configuration { get; private set; }
+		public IConfiguration Configuration {
+			get { return scope.Resolve<IConfiguration>(); }
+		}
 
 		protected override IScope ContextScope {
 			get { return scope; }

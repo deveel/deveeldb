@@ -84,8 +84,8 @@ namespace Deveel.Data.Client {
 		}
 
 		private IDatabase CreateDatabase(IConfiguration configuration, IConfiguration dbConfig, string userName, string password, bool createIfNotExists) {
-			var builder = new SystemBuilder(configuration);
-			var system = builder.BuildSystem();
+			var builder = SystemBuilder.Default.UseConfiguration(configuration);
+			var system = builder.Build();
 
 			var databaseName = dbConfig.GetString("database.name");
 
