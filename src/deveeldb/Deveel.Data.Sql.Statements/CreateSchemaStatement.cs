@@ -44,11 +44,10 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("SchemaName", SchemaName);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(new ObjectName(SchemaName), DbObjectType.Schema);
-			GrantAccess(new ObjectName(SchemaName), DbObjectType.Schema, PrivilegeSets.SchemaAll);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddCreate(new ObjectName(SchemaName), DbObjectType.Schema);
 
-			base.OnBeforeExecute(context);
+			context.Actions.AddResourceGrant(new ObjectName(SchemaName), DbObjectType.Schema, PrivilegeSets.SchemaAll);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {

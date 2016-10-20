@@ -144,11 +144,9 @@ namespace Deveel.Data.Sql.Statements {
 				info.AddValue("ReplaceIfExists", ReplaceIfExists);
 			}
 
-			protected override void OnBeforeExecute(ExecutionContext context) {
-				RequestCreate(ViewName, DbObjectType.View);
-				RequestSelect(QueryPlan);
-
-				base.OnBeforeExecute(context);
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddCreate(ViewName, DbObjectType.View);
+				context.Assertions.AddSelect(QueryPlan);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
@@ -162,11 +160,11 @@ namespace Deveel.Data.Sql.Statements {
 			}
 
 			private void DefineView(ExecutionContext context, ViewInfo viewInfo, bool replaceIfExists) {
-				var tablesInPlan = viewInfo.QueryPlan.DiscoverTableNames();
-				foreach (var tableName in tablesInPlan) {
-					if (!context.User.CanSelectFromTable(tableName))
-						throw new InvalidAccessException(context.User.Name, tableName);
-				}
+				//var tablesInPlan = viewInfo.QueryPlan.DiscoverAccessedResources();
+				//foreach (var tableName in tablesInPlan) {
+				//	if (!context.User.CanSelectFromTable(tableName))
+				//		throw new InvalidAccessException(context.User.Name, tableName);
+				//}
 
 				if (context.Request.Access().ViewExists(viewInfo.ViewName)) {
 					if (!replaceIfExists)

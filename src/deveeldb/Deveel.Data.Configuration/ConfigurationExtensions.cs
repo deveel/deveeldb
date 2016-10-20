@@ -317,8 +317,11 @@ namespace Deveel.Data.Configuration {
 		public static void Save(this IConfiguration config, string fileName, IConfigFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, fileName, formatter);
 		}
+
 		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
-			config.Save(new FileConfigSource(fileName), level, formatter);
+			using (var source = new FileConfigSource(fileName)) {
+				config.Save(source, level, formatter);
+			}
 		}
 #endif
 

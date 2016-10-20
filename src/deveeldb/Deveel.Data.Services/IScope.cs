@@ -28,6 +28,8 @@ namespace Deveel.Data.Services {
 
 		bool Unregister(Type serviceType, object serviceKey);
 
+		bool IsRegistered(Type serviceType, object serviceKey);
+
 		object Resolve(Type serviceType, object serviceKey);
 
 		IEnumerable ResolveAll(Type serviceType);

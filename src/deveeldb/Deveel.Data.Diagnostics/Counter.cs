@@ -21,7 +21,7 @@ using System.Globalization;
 using Deveel.Data.Sql.Objects;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class Counter {
+	public sealed class Counter : ICounter {
 		internal Counter(string name, object value) {
 			if (String.IsNullOrEmpty(name))
 				throw new ArgumentNullException("name");
@@ -51,32 +51,6 @@ namespace Deveel.Data.Diagnostics {
 			}
 
 			Value = value;
-		}
-
-		public T ValueAs<T>() {
-			if (Value == null)
-				return default(T);
-
-			if (Value is T)
-				return (T) Value;
-
-			return (T) Convert.ChangeType(Value, typeof(T), CultureInfo.InvariantCulture);
-		}
-
-		public SqlNumber ValueAsNumber() {
-			if (Value == null)
-				return SqlNumber.Null;
-
-			if (Value is byte ||
-				Value is int)
-				return new SqlNumber((int)Value);
-			if (Value is long)
-				return new SqlNumber((long)Value);
-			if (Value is float ||
-				Value is double)
-				return new SqlNumber((double)Value);
-
-			throw new InvalidOperationException();
 		}
 	}
 }

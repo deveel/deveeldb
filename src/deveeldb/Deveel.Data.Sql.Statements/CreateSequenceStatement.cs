@@ -68,11 +68,10 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("Cycle", Cycle);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(SequenceName, DbObjectType.Schema);
-			GrantAccess(SequenceName, DbObjectType.Sequence, Privileges.Drop);
-			
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddCreate(SequenceName, DbObjectType.Sequence);
+
+			context.Actions.AddResourceGrant(SequenceName, DbObjectType.Sequence, Privileges.Drop);
 		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {

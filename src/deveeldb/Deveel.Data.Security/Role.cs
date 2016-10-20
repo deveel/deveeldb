@@ -25,9 +25,9 @@ namespace Deveel.Data.Security {
 			: base(session, name) { 
 		}
 
-		public bool IsSystem {
-			get { return SystemRoles.IsSystemRole(Name); }
-		}
+		//public bool IsSystem {
+		//	get { return SystemRoles.IsSystemRole(Name); }
+		//}
 
 		public bool IsSecureAccess {
 			get { return String.Equals(Name, SystemRoles.SecureAccessRole); }
@@ -43,12 +43,12 @@ namespace Deveel.Data.Security {
 
 		public override bool CanManageUsers() {
 			return IsSecureAccess ||
-			       IsUserManager;
+				   IsUserManager;
 		}
 
 		public override bool CanManageSchema() {
 			return IsSecureAccess ||
-			       IsSchemaManager;
+				   IsSchemaManager;
 		}
 
 		public override bool HasPrivileges(DbObjectType objectType, ObjectName objectName, Privileges privileges) {

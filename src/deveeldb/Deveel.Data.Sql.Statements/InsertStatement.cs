@@ -299,11 +299,15 @@ namespace Deveel.Data.Sql.Statements {
 				}
 			}
 
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddInsert(TableName);
+			}
+
 			protected override void ExecuteStatement(ExecutionContext context) {
 				int insertCount = 0;
 
-				if (!context.User.CanInsertIntoTable(TableName))
-					throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Insert);
+				//if (!context.User.CanInsertIntoTable(TableName))
+				//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Insert);
 
 				var table = context.DirectAccess.GetMutableTable(TableName);
 				if (table == null)

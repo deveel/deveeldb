@@ -21,14 +21,14 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
 	public class CounterRegistry : ICounterRegistry, IDisposable {
-		private Dictionary<string, Counter> counters;
+		private Dictionary<string, ICounter> counters;
 		private readonly object countLock = new object();
 
 		public CounterRegistry() {
-			counters = new Dictionary<string, Counter>();
+			counters = new Dictionary<string, ICounter>();
 		}
 
-		public IEnumerator<Counter> GetEnumerator() {
+		public IEnumerator<ICounter> GetEnumerator() {
 			lock (countLock) {
 				return counters.Values.GetEnumerator();
 			}
@@ -45,8 +45,14 @@ namespace Deveel.Data.Diagnostics {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				lock (countLock) {
-					if (counters != null)
+					if (counters != null) {
+						foreach (var counter in counters.Values) {
+							if (counter is IDisposable)
+								(counter as IDisposable).Dispose();
+						}
+
 						counters.Clear();
+					}
 				}
 			}
 
@@ -60,23 +66,38 @@ namespace Deveel.Data.Diagnostics {
 			GC.SuppressFinalize(this);
 		}
 
+		public bool Add(ICounter counter) {
+			if (counter == null)
+				throw new ArgumentNullException("counter");
+
+			lock (countLock) {
+				if (counters.ContainsKey(counter.Name))
+					return false;
+
+				counters[counter.Name] = counter;
+				return true;
+			}
+		}
+
 		internal void SetValue(string key, object value) {
 			lock (countLock) {
-				counters[key] = new Counter(key, value);
+				if (!counters.ContainsKey(key))
+					counters[key] = new Counter(key, value);
 			}
 		}
 
 		internal void Increment(string key) {
 			lock (countLock) {
-				Counter counter;
+				ICounter counter;
 				if (!counters.TryGetValue(key, out counter))
 					counters[key] = counter = new Counter(key, null);
 
-				counter.Increment();
+				if (counter is Counter)
+					((Counter) counter).Increment();
 			}
 		}
 
-		public bool TryCount(string name, out Counter counter) {
+		public bool TryCount(string name, out ICounter counter) {
 			lock (countLock) {
 				return counters.TryGetValue(name, out counter);
 			}

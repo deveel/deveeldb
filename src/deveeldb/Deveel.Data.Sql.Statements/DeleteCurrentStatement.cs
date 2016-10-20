@@ -54,17 +54,15 @@ namespace Deveel.Data.Sql.Statements {
 			return new DeleteCurrentStatement(tableName, CursorName);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDelete(TableName);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDelete(TableName);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (!context.DirectAccess.TableExists(TableName))
 				throw new ObjectNotFoundException(TableName);
-			if (!context.User.CanDeleteFromTable(TableName))
-				throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
+			//if (!context.User.CanDeleteFromTable(TableName))
+			//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Delete);
 
 			if (!context.Request.Context.CursorExists(CursorName))
 				throw new StatementException(String.Format("The cursor '{0}' was not found in this scope.", CursorName));

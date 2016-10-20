@@ -193,7 +193,7 @@ namespace Deveel.Data {
 
 		class StatisticsTable : GeneratedTable {
 			private ISession session;
-			private List<Counter> stats;
+			private List<ICounter> stats;
 
 			public StatisticsTable(ISession session)
 				: base(session.Context) {

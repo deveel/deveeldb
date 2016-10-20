@@ -65,12 +65,13 @@ namespace Deveel.Data {
 			get { return errors == null ? new Exception[0] : errors.AsEnumerable(); }
 		}
 
-		protected virtual void RegisterServices(ServiceContainer container) {
+		protected virtual void RegisterServices(ISystemBuilder builder) {
 		}
 
 		protected virtual ISystem CreateSystem() {
-			var builder = new TestSystemBuilder(this);
-			return builder.BuildSystem();
+			var builder = SystemBuilder.Default.UseDefaultConfiguration();
+			RegisterServices(builder);
+			return builder.Build();
 		}
 
 		protected virtual IDatabase CreateDatabase(ISystem system, IConfiguration configuration) {
@@ -292,18 +293,6 @@ namespace Deveel.Data {
 
 		protected virtual void OnFixtureTearDown() {
 			
-		}
-
-		private class TestSystemBuilder : SystemBuilder {
-			private ContextBasedTest test;
-
-			public TestSystemBuilder(ContextBasedTest test) {
-				this.test = test;
-			}
-
-			protected override void OnServiceRegistration(ServiceContainer container) {
-				test.RegisterServices(container);
-			}
 		}
 	}
 }

@@ -148,5 +148,17 @@ namespace Deveel.Data.Services {
 			where TImplementation : class, TService {
 			scope.Replace(typeof(TService), typeof(TImplementation), serviceKey);
 		}
+
+		public static bool IsRegistered(this IScope scope, Type serviceType) {
+			return scope.IsRegistered(serviceType, null);
+		}
+
+		public static bool IsRegistered<T>(this IScope scope, object serviceKey) {
+			return scope.IsRegistered(typeof(T), serviceKey);
+		}
+
+		public static bool IsRegistered<T>(this IScope scope) {
+			return scope.IsRegistered<T>(null);
+		}
 	}
 }

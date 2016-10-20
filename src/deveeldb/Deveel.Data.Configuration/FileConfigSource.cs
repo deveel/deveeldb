@@ -23,7 +23,10 @@ namespace Deveel.Data.Configuration {
 	/// A channel used to read from and write to a given file
 	/// in the underlying file-system.
 	/// </summary>
-	public sealed class FileConfigSource : IConfigSource {
+	public sealed class FileConfigSource : IConfigSource, IDisposable {
+		private Stream inputStream;
+		private Stream outputStream;
+
 		/// <summary>
 		/// Constructs the source over the file located at the
 		/// given path within the underlying file-system.
@@ -37,6 +40,10 @@ namespace Deveel.Data.Configuration {
 			FilePath = filePath;
 		}
 
+		~FileConfigSource() {
+			Dispose(false);
+		}
+
 		/// <summary>
 		/// Gets the path to the file.
 		/// </summary>
@@ -46,7 +53,9 @@ namespace Deveel.Data.Configuration {
 		public Stream InputStream {
 			get {
 				try {
-					return new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024);
+					if (inputStream == null)
+						inputStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024);
+					return inputStream;
 				} catch (Exception ex) {
 					throw new DatabaseConfigurationException(String.Format("Cannot open a read stream from file '{0}'", FilePath), ex);
 				}
@@ -57,11 +66,30 @@ namespace Deveel.Data.Configuration {
 		public Stream OutputStream {
 			get {
 				try {
-					return new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);
+					if (outputStream == null)
+						outputStream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read, 1024);
+					return outputStream;
 				} catch (Exception ex) {
 					throw new DatabaseConfigurationException(String.Format("Cannot open a write stream to file '{0}'", FilePath), ex);
 				}
 			}
+		}
+
+		void IDisposable.Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing) {
+			if (disposing) {
+				if (inputStream != null)
+					inputStream.Dispose();
+				if (outputStream != null)
+					outputStream.Dispose();
+			}
+
+			inputStream = null;
+			outputStream = null;
 		}
 	}
 }

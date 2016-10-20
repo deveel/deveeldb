@@ -477,8 +477,8 @@ namespace Deveel.Data {
 
 			config.SetValue("database.name", dbName);
 
-			var builder = new SystemBuilder(config);
-			var system = builder.BuildSystem();
+			var builder = SystemBuilder.Default.UseConfiguration(config);
+			var system = builder.Build();
 			if (!system.DatabaseExists(dbName)) {
 
 				return system.CreateDatabase(config, adminName, adminPassword);

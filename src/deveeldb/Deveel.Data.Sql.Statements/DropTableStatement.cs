@@ -61,15 +61,13 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropTableStatement(tableName, IfExists);
 		}
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestDrop(TableName, DbObjectType.Table);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(TableName, DbObjectType.Table);
 		}
 
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanDrop(DbObjectType.Table, TableName))
-				throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.Table, TableName))
+			//	throw new MissingPrivilegesException(context.User.Name, TableName, Privileges.Drop);
 
 			// Check there are no referential links to any tables being dropped
 			var refs = context.Request.Access().QueryTableImportedForeignKeys(TableName);

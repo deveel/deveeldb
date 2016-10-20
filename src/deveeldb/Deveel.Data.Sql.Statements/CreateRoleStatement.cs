@@ -31,9 +31,18 @@ namespace Deveel.Data.Sql.Statements {
 
 		public string RoleName { get; private set; }
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.Add(c => {
+				if (!c.User.CanManageRoles())
+					return AssertResult.Deny(new SecurityException(String.Format("User '{0}' has not enough rights to create roles.", c.User.Name)));
+
+				return AssertResult.Allow();
+			});
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanManageRoles())
-				throw new SecurityException(String.Format("User '{0}' has not enough rights to create roles.", context.User.Name));
+			//if (!context.User.CanManageRoles())
+			//	throw new SecurityException(String.Format("User '{0}' has not enough rights to create roles.", context.User.Name));
 
 			if (context.DirectAccess.RoleExists(RoleName))
 				throw new InvalidOperationException(String.Format("Role '{0}' already exists.", RoleName));

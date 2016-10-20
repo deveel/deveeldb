@@ -51,10 +51,8 @@ namespace Deveel.Data.Sql.Statements {
 
 		public InvokeArgument[] Arguments { get; private set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestExecute(ProcedureName);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddExecute(ProcedureName, Arguments);
 		}
 
 		protected override void GetData(SerializationInfo info) {
@@ -95,8 +93,8 @@ namespace Deveel.Data.Sql.Statements {
 			if (procedure == null)
 				throw new StatementException(String.Format("Could not retrieve the procedure '{0}': maybe not a procedure.", ProcedureName));
 
-			if (!context.User.CanExecuteProcedure(invoke,context.Request))
-				throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
+			//if (!context.User.CanExecuteProcedure(invoke,context.Request))
+			//	throw new MissingPrivilegesException(context.User.Name, ProcedureName, Privileges.Execute);
 
 			var result = procedure.Execute(Arguments, context.Request);
 

@@ -40,6 +40,7 @@ namespace Deveel.Data.Sql {
 			Statement = statement;
 
 			Assertions = new SecurityAssertionRegistrar(parent != null ? parent.Assertions : null);
+			Actions = new SecurityActionRegistrar();
 		}
 
 		~ExecutionContext() {
@@ -84,6 +85,8 @@ namespace Deveel.Data.Sql {
 			get { return Request.Access(); }
 		}
 
+		public SecurityActionRegistrar Actions { get; private set; }
+
 		public SecurityAssertionRegistrar Assertions { get; private set; }
 
 		private void AssertNotFinished() {
@@ -106,6 +109,8 @@ namespace Deveel.Data.Sql {
 			if (disposing) {
 				if (Assertions != null)
 					Assertions.Dispose();
+				if (Actions != null)
+					(Actions as IDisposable).Dispose();
 			}
 
 			Statement = null;
@@ -114,6 +119,7 @@ namespace Deveel.Data.Sql {
 			Result = null;
 			Cursor = null;
 			Assertions = null;
+			Actions = null;
 		}
 
 		public void Dispose() {
@@ -122,7 +128,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		IEnumerable<ISecurityAssert> ISecurityContext.Assertions {
-			get { return Assertions; }
+			get { return Assertions.Assertions; }
 		}
 
 		public void SetResult(ITable result) {
@@ -240,6 +246,14 @@ namespace Deveel.Data.Sql {
 				SetResult(FunctionTable.ResultTable(Request, value));
 
 			Terminate();
+		}
+
+		internal void BeforeExecute() {
+			Actions.BeforeExecute(this);
+		}
+
+		internal void AfterExecute() {
+			Actions.AfterExecute(this);
 		}
 
 		private SqlStatement FindInTree(SqlStatement root, string label) {

@@ -54,6 +54,13 @@ namespace Deveel.Data.Sql.Statements {
 			return new CreateUserStatement(UserName, preparedPassword);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.Add(c => {
+				if (!c.User.CanManageUsers())
+					throw new SecurityException(String.Format("User '{0}' cannot create users.", c.User.Name));
+			});
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			if (Identifier.Type != SqlIdentificationType.Password)
 				throw new NotSupportedException(String.Format("The identification type '{0}' is not supported yet.", Identifier.Type));
@@ -61,9 +68,6 @@ namespace Deveel.Data.Sql.Statements {
 			var password = Identifier.Argument;
 			var evaluated = password.EvaluateToConstant(context.Request, null);
 			var passwordText = evaluated.AsVarChar().Value.ToString();
-
-			if (!context.User.CanManageUsers())
-				throw new SecurityException(String.Format("User '{0}' cannot create users.", context.User.Name));
 
 			if (context.DirectAccess.UserExists(UserName))
 				throw new SecurityException(String.Format("The user '{0}' already exists.", UserName));
@@ -73,23 +77,5 @@ namespace Deveel.Data.Sql.Statements {
 			context.DirectAccess.CreateUser(UserName, passwordText);
 
 		}
-
-		#region PreparedSerializer
-
-		//internal class PreparedSerializer : ObjectBinarySerializer<CreateUserStatement> {
-		//	public override void Serialize(CreateUserStatement obj, BinaryWriter writer) {
-		//		writer.Write(obj.UserName);
-		//		SqlExpression.Serialize(obj.Password, writer);
-		//	}
-
-		//	public override CreateUserStatement Deserialize(BinaryReader reader) {
-		//		var userName = reader.ReadString();
-		//		var expression = SqlExpression.Deserialize(reader);
-
-		//		return new CreateUserStatement(userName, expression);
-		//	}
-		//}
-
-		#endregion
 	}
 }

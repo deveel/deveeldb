@@ -202,7 +202,9 @@ namespace Deveel.Data.Configuration {
 			var filePath = Path.Combine(Environment.CurrentDirectory, "db.config");
 
 			var config = new Configuration();
-			config.Load(new FileConfigSource(filePath), new PropertiesConfigFormatter());
+			using (var source = new FileConfigSource(filePath)) {
+				config.Load(source, new PropertiesConfigFormatter());
+			}
 
 			Assert.AreEqual(2, config.Count());
 

@@ -60,9 +60,13 @@ namespace Deveel.Data.Sql.Statements {
 			return new DropViewStatement(viewName, IfExists);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.AddDrop(ViewName, DbObjectType.View);
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
-			if (!context.User.CanDrop(DbObjectType.View, ViewName))
-				throw new MissingPrivilegesException(context.Request.UserName(), ViewName, Privileges.Drop);
+			//if (!context.User.CanDrop(DbObjectType.View, ViewName))
+			//	throw new MissingPrivilegesException(context.Request.UserName(), ViewName, Privileges.Drop);
 
 			// If the 'only if exists' flag is false, we need to check tables to drop
 			// exist first.

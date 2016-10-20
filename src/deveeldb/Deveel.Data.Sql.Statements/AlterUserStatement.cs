@@ -57,17 +57,38 @@ namespace Deveel.Data.Sql.Statements {
 			info.AddValue("Action", AlterAction);
 		}
 
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			context.Assertions.Add(c => {
+				bool modifyOwnRecord = c.User.Name.Equals(UserName);
+				if (modifyOwnRecord)
+					return AssertResult.Allow();
+
+				if (!c.User.CanManageUsers())
+					return AssertResult.Deny(new SecurityException(String.Format("User '{0}' cannot create users", c.User.Name)));
+
+				return AssertResult.Allow();
+			});
+
+			context.Assertions.Add(c => {
+				if (String.Equals(UserName, User.PublicName, StringComparison.OrdinalIgnoreCase) ||
+				String.Equals(UserName, User.SystemName, StringComparison.OrdinalIgnoreCase))
+					return AssertResult.Deny(new SecurityException(String.Format("User name '{0}' is reserved for the system.", UserName)));
+
+				return AssertResult.Allow();
+			});
+		}
+
 		protected override void ExecuteStatement(ExecutionContext context) {
 			var userName = context.User.Name;
 
-			bool modifyOwnRecord = userName.Equals(UserName);
-			bool secureAccessPrivs = context.User.CanManageUsers();
+			//bool modifyOwnRecord = userName.Equals(UserName);
+			//bool secureAccessPrivs = context.User.CanManageUsers();
 
-			if (!(modifyOwnRecord || secureAccessPrivs))
-				throw new MissingPrivilegesException(userName, new ObjectName(UserName), Privileges.Alter);
+			//if (!(modifyOwnRecord || secureAccessPrivs))
+			//	throw new MissingPrivilegesException(userName, new ObjectName(UserName), Privileges.Alter);
 
-			if (String.Equals(UserName, "public", StringComparison.OrdinalIgnoreCase))
-				throw new SecurityException("User 'public' is reserved.");
+			//if (String.Equals(UserName, "public", StringComparison.OrdinalIgnoreCase))
+			//	throw new SecurityException("User 'public' is reserved.");
 
 			if (AlterAction.ActionType == AlterUserActionType.SetPassword) {
 				var password = ((SqlConstantExpression) ((SetPasswordAction) AlterAction).PasswordExpression).Value;

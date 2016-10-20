@@ -58,11 +58,16 @@ namespace Deveel.Data.Services {
 						container.Dispose();
 					}
 				}
+
+				if (registrationProviders != null)
+					registrationProviders.Clear();
 			}
 
 			lock (this) {
 				container = null;
 			}
+
+			registrationProviders = null;
 		}
 
 		private string ScopeName { get; set; }
@@ -174,6 +179,18 @@ namespace Deveel.Data.Services {
 			lock (this) {
 				container.Unregister(serviceType, serviceName);
 				return true;
+			}
+		}
+
+		public bool IsRegistered(Type serviceType, object serviceKey) {
+			if (serviceType == null)
+				throw new ArgumentNullException("serviceType");
+
+			if (container == null)
+				throw new InvalidOperationException("The container was not initialized.");
+
+			lock (this) {
+				return container.IsRegistered(serviceType, serviceKey);
 			}
 		}
 

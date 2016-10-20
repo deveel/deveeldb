@@ -153,10 +153,11 @@ namespace Deveel.Data.Sql.Statements {
 
 			public bool IfNotExists { get; private set; }
 
-			protected override void OnBeforeExecute(ExecutionContext context) {
-				RequestCreate(TableInfo.TableName, DbObjectType.Table);
+			protected override void ConfigureSecurity(ExecutionContext context) {
+				context.Assertions.AddCreate(TableInfo.TableName, DbObjectType.Table);
 
-				base.OnBeforeExecute(context);
+				if (!Temporary)
+					context.Actions.AddResourceGrant(TableInfo.TableName, DbObjectType.Table, PrivilegeSets.TableAll);
 			}
 
 			protected override void ExecuteStatement(ExecutionContext context) {
@@ -175,12 +176,6 @@ namespace Deveel.Data.Sql.Statements {
 
 				context.Request.Access().CreateTable(TableInfo, Temporary);
 				// context.Request.Access().GrantOnTable(TableInfo.TableName, context.User.Name, PrivilegeSets.TableAll);
-			}
-
-			protected override void OnAfterExecute(ExecutionContext context) {
-				GrantAccess(TableInfo.TableName, DbObjectType.Table, PrivilegeSets.TableAll);
-
-				base.OnAfterExecute(context);
 			}
 
 			protected override void GetData(SerializationInfo info) {

@@ -55,11 +55,10 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlStatement Body { get; set; }
 
-		protected override void OnBeforeExecute(ExecutionContext context) {
-			RequestCreate(FunctionName, DbObjectType.Routine);
-			GrantAccess(FunctionName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
-
-			base.OnBeforeExecute(context);
+		protected override void ConfigureSecurity(ExecutionContext context) {
+			// TODO: scan the body and find other assertions
+			context.Assertions.AddCreate(FunctionName, DbObjectType.Routine);
+			context.Actions.AddResourceGrant(FunctionName, DbObjectType.Routine, PrivilegeSets.RoutineAll);
 		}
 
 		protected override SqlStatement PrepareExpressions(IExpressionPreparer preparer) {
