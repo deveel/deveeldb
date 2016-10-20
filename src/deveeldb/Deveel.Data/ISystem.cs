@@ -35,7 +35,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets a list of the modules handled by the system.
 		/// </summary>
-		IEnumerable<ModuleInfo> Modules { get; }
+		IEnumerable<FeatureInfo> Modules { get; }
 		 
 		/// <summary>
 		/// Gets a context that provides the state of the system.

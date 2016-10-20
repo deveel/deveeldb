@@ -6,10 +6,10 @@ using Deveel.Data.Store.Journaled;
 namespace Deveel.Data.Store {
 	public static class SystemBuilderExtensions {
 		public static ISystemBuilder UseStoreSystem<T>(this ISystemBuilder builder, string key) where T : class, IStoreSystem {
-			builder.ServiceContainer.Bind<IStoreSystem>()
+			return builder.Use<IStoreSystem>(options => options
 				.To<T>()
-				.WithKey(key)
-				.InDatabaseScope();
+				.HavingKey(key)
+				.InDatabaseScope());
 
 			return builder;
 		}
@@ -27,12 +27,10 @@ namespace Deveel.Data.Store {
 		}
 
 		public static ISystemBuilder UseFileSystem<T>(this ISystemBuilder builder, string key) where T : class, IFileSystem {
-			builder.ServiceContainer.Bind<IFileSystem>()
+			return builder.Use<IFileSystem>(options => options
 				.To<T>()
-				.WithKey(key)
-				.InSystemScope();
-
-			return builder;
+				.HavingKey(key)
+				.InSystemScope());
 		}
 
 		public static ISystemBuilder UseLocalFileSystem(this ISystemBuilder builder) {
@@ -45,12 +43,10 @@ namespace Deveel.Data.Store {
 
 		public static ISystemBuilder UseStoreDataFactory<T>(this ISystemBuilder builder, string key)
 			where T : class, IStoreDataFactory {
-			builder.ServiceContainer.Bind<IStoreDataFactory>()
+			return builder.Use<IStoreDataFactory>(options => options
 				.To<T>()
-				.WithKey(key)
-				.InDatabaseScope();
-
-			return builder;
+				.HavingKey(key)
+				.InDatabaseScope());
 		}
 
 		public static ISystemBuilder UseScatteringFileDataFactory(this ISystemBuilder builder) {

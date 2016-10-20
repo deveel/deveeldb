@@ -49,6 +49,45 @@ namespace Deveel.Data {
 			}
 		}
 
+		ISystemBuilder ISystemBuilder.Use(ServiceUseOptions options) {
+			return Use(options);
+		}
+
+		public SystemBuilder Use(ServiceUseOptions options) {
+			if (options == null)
+				throw new ArgumentNullException("options");
+
+			options.Validate();
+
+			var key = options.Key;
+			var type = options.ServiceType;
+			var policy = options.Policy;
+
+			var registration = new ServiceRegistration(type, options.ImplementationType) {
+				Instance = options.Instance,
+				Scope = options.Scope,
+				ServiceKey = key
+			};
+
+			if (key != null) {
+				if (policy == ServiceUsePolicy.Replace) {
+					if (ServiceContainer.IsRegistered(type, key))
+						ServiceContainer.Unregister(type, key);
+				}
+
+				ServiceContainer.Register(registration);
+			} else {
+				if (policy == ServiceUsePolicy.Replace) {
+					if (ServiceContainer.IsRegistered(type))
+						ServiceContainer.Unregister(type);
+
+					ServiceContainer.Register(registration);
+				}
+			}
+
+			return this;
+		}
+
 		private static void RegisterDefaultServices(ISystemBuilder builder) {
 #if !MICRO
 			builder.UseSecurity();
@@ -66,24 +105,24 @@ namespace Deveel.Data {
 				.UseScatteringFileDataFactory();
 		}
 
-		private ISystemContext BuildContext(out IEnumerable<ModuleInfo> modules) {
-			modules = LoadModules();
+		private ISystemContext BuildContext(out IEnumerable<FeatureInfo> modules) {
+			modules = LoadFeatures();
 
 			return new SystemContext(ServiceContainer);
 		}
 
-		private IEnumerable<ModuleInfo> LoadModules() {
-			var moduleInfo = new List<ModuleInfo>();
+		private IEnumerable<FeatureInfo> LoadFeatures() {
+			var featureInfos = new List<FeatureInfo>();
 
-			var modules = ServiceContainer.ResolveAll<ISystemModule>();
-			foreach (var systemModule in modules) {
-				systemModule.Register(ServiceContainer);
+			var features = ServiceContainer.ResolveAll<ISystemFeature>();
+			foreach (var feature in features) {
+				feature.OnBuild(this);
 
-				moduleInfo.Add(new ModuleInfo(systemModule.ModuleName, systemModule.Version));
+				featureInfos.Add(new FeatureInfo(feature.Name, feature.Version));
 			}
 
-			ServiceContainer.Unregister<ISystemModule>();
-			return moduleInfo;
+			ServiceContainer.Unregister<ISystemFeature>();
+			return featureInfos;
 		}
 
 		public ISystem Build() {
@@ -98,7 +137,7 @@ namespace Deveel.Data {
 				.UseTypes()
 				.UseVariables();
 
-			IEnumerable<ModuleInfo> modules;
+			IEnumerable<FeatureInfo> modules;
 			var context = BuildContext(out modules);
 			return new DatabaseSystem(context, modules);
 		}

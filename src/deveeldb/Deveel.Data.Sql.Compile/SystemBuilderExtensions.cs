@@ -1,23 +1,13 @@
 ﻿using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Sql.Compile {
 	public static class SystemBuilderExtensions {
 		public static ISystemBuilder UseSqlCompiler(this ISystemBuilder builder, ISqlCompiler compiler) {
-			builder.ServiceContainer.Bind<ISqlCompiler>()
-				.ToInstance(compiler)
-				.InSystemScope();
-
-			return builder;
+			return builder.Use<ISqlCompiler>(options => options.ToInstance(compiler).InSystemScope());
 		}
 
 		public static ISystemBuilder UseSqlCompiler<T>(this ISystemBuilder builder) where T : class, ISqlCompiler {
-			builder.ServiceContainer.Bind<ISqlCompiler>()
-				.To<T>()
-				.InSystemScope();
-
-			return builder;
+			return builder.Use<ISqlCompiler>(options => options.To<T>().InSystemScope());
 		}
 
 		public static ISystemBuilder UseDefaultSqlCompiler(this ISystemBuilder builder) {

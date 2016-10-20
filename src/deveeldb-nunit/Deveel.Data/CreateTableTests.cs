@@ -71,8 +71,7 @@ namespace Deveel.Data {
 			mock.Setup(obj => obj.HandlesIndexType(It.IsAny<string>()))
 				.Returns(true);
 
-			builder.ServiceContainer.Bind<IIndexFactory>()
-				.ToInstance(mock.Object);
+			builder.Use(mock.Object);
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {

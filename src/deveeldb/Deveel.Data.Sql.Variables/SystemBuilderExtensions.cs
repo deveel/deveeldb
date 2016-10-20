@@ -6,11 +6,9 @@ using Deveel.Data.Services;
 namespace Deveel.Data.Sql.Variables {
 	static class SystemBuilderExtensions {
 		public static ISystemBuilder UseVariables(this ISystemBuilder builder) {
-			builder.ServiceContainer.Bind<ITableCellCache>()
+			return builder.Use<TableCellCache>(options => options
 				.To<TableCellCache>()
-				.InSystemScope();
-
-			return builder;
+				.InSystemScope());
 		}
 	}
 }

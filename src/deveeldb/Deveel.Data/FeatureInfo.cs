@@ -18,13 +18,16 @@
 using System;
 
 namespace Deveel.Data {
-	public sealed class ModuleInfo {
-		public ModuleInfo(string moduleName, string version) {
-			ModuleName = moduleName;
+	public sealed class FeatureInfo {
+		public FeatureInfo(string featureName, string version) {
+			if (String.IsNullOrEmpty(featureName))
+				throw new ArgumentNullException("featureName");
+
+			FeatureName = featureName;
 			Version = version;
 		}
 
-		public string ModuleName { get; private set; }
+		public string FeatureName { get; private set; }
 
 		public string Version { get; private set; }
 	}

@@ -24,7 +24,7 @@ using DryIoc;
 namespace Deveel.Data.Services {
 	public class ServiceContainer : IScope, IServiceProvider {
 		private IContainer container;
-		private List<IRegistrationConfigurationProvider> registrationProviders; 
+		// private List<IRegistrationConfigurationProvider> registrationProviders; 
 
 		public ServiceContainer() 
 			: this(null, null) {
@@ -40,7 +40,7 @@ namespace Deveel.Data.Services {
 				container = new Container(Rules.Default);
 			}
 
-			registrationProviders = new List<IRegistrationConfigurationProvider>();
+			// registrationProviders = new List<IRegistrationConfigurationProvider>();
 		}
 
 		~ServiceContainer() {
@@ -59,15 +59,15 @@ namespace Deveel.Data.Services {
 					}
 				}
 
-				if (registrationProviders != null)
-					registrationProviders.Clear();
+				//if (registrationProviders != null)
+				//	registrationProviders.Clear();
 			}
 
 			lock (this) {
 				container = null;
 			}
 
-			registrationProviders = null;
+			// registrationProviders = null;
 		}
 
 		private string ScopeName { get; set; }
@@ -77,28 +77,28 @@ namespace Deveel.Data.Services {
 			GC.SuppressFinalize(this);
 		}
 
-		private void RegisterConfigurations() {
-			if (registrationProviders != null && registrationProviders.Count > 0) {
-				foreach (var provider in registrationProviders) {
-					RegisterConfiguration(provider);
-				}
+		//private void RegisterConfigurations() {
+		//	if (registrationProviders != null && registrationProviders.Count > 0) {
+		//		foreach (var provider in registrationProviders) {
+		//			RegisterConfiguration(provider);
+		//		}
 
-				registrationProviders.Clear();
-			}
-		}
+		//		registrationProviders.Clear();
+		//	}
+		//}
 
-		private void RegisterConfiguration(IRegistrationConfigurationProvider provider) {
-			var registration = new ServiceRegistration(provider.ServiceType, provider.ImplementationType) {
-				Scope = provider.ScopeName,
-				ServiceKey = provider.ServiceKey,
-				Instance = provider.Instance
-			};
+		//private void RegisterConfiguration(IRegistrationConfigurationProvider provider) {
+		//	var registration = new ServiceRegistration(provider.ServiceType, provider.ImplementationType) {
+		//		Scope = provider.ScopeName,
+		//		ServiceKey = provider.ServiceKey,
+		//		Instance = provider.Instance
+		//	};
 
-			Register(registration);
-		}
+		//	Register(registration);
+		//}
 
 		public IScope OpenScope(string name) {
-			RegisterConfigurations();
+			// RegisterConfigurations();
 			return new ServiceContainer(this, name);
 		}
 
@@ -114,11 +114,11 @@ namespace Deveel.Data.Services {
 			}
 		}
 
-		public IRegistrationConfiguration<TService> Bind<TService>() {
-			var config = new RegistrationConfiguration<TService>(this);
-			registrationProviders.Add(config);
-			return config;
-		} 
+		//public IRegistrationConfiguration<TService> Bind<TService>() {
+		//	var config = new RegistrationConfiguration<TService>(this);
+		//	registrationProviders.Add(config);
+		//	return config;
+		//} 
 
 		public IEnumerable ResolveAll(Type serviceType) {
 			if (serviceType == null)
@@ -196,69 +196,69 @@ namespace Deveel.Data.Services {
 
 		#region RegistrationConfiguration
 
-		class RegistrationConfiguration<TService> : IRegistrationConfiguration<TService>, IRegistrationConfigurationProvider {
-			public RegistrationConfiguration(ServiceContainer container) {
-				Container = container;
-			}
+		//class RegistrationConfiguration<TService> : IRegistrationConfiguration<TService>, IRegistrationConfigurationProvider {
+		//	public RegistrationConfiguration(ServiceContainer container) {
+		//		Container = container;
+		//	}
 
-			public IRegistrationWithBindingConfiguration<TService, TImplementation> To<TImplementation>() where TImplementation : class, TService {
-				AssertNotBound();
-				ImplementationType = typeof (TImplementation);
-				IsBound = true;
-				return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
-			}
+		//	public IRegistrationWithBindingConfiguration<TService, TImplementation> To<TImplementation>() where TImplementation : class, TService {
+		//		AssertNotBound();
+		//		ImplementationType = typeof (TImplementation);
+		//		IsBound = true;
+		//		return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
+		//	}
 
-			public IRegistrationWithBindingConfiguration<TService, TImplementation> ToInstance<TImplementation>(TImplementation instance) where TImplementation : class, TService {
-				AssertNotBound();
-				ImplementationType = typeof (TImplementation);
-				Instance = instance;
-				IsBound = true;
-				return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
-			}
+		//	public IRegistrationWithBindingConfiguration<TService, TImplementation> ToInstance<TImplementation>(TImplementation instance) where TImplementation : class, TService {
+		//		AssertNotBound();
+		//		ImplementationType = typeof (TImplementation);
+		//		Instance = instance;
+		//		IsBound = true;
+		//		return new RegistrationWithBindingConfiguration<TService, TImplementation>(this);
+		//	}
 
-			public Type ServiceType {
-				get { return typeof (TService); }
-			}
+		//	public Type ServiceType {
+		//		get { return typeof (TService); }
+		//	}
 
-			private void AssertNotBound() {
-				if (IsBound)
-					throw new InvalidOperationException("The registration was already bound.");
-			}
+		//	private void AssertNotBound() {
+		//		if (IsBound)
+		//			throw new InvalidOperationException("The registration was already bound.");
+		//	}
 
-			public ServiceContainer Container { get; private set; }
+		//	public ServiceContainer Container { get; private set; }
 
-			private bool IsBound { get; set; }
+		//	private bool IsBound { get; set; }
 
-			public Type ImplementationType { get; set; }
+		//	public Type ImplementationType { get; set; }
 
-			public object ServiceKey { get; set; }
+		//	public object ServiceKey { get; set; }
 
-			public string ScopeName { get; set; }
+		//	public string ScopeName { get; set; }
 
-			public object Instance { get; private set; }
-		}
+		//	public object Instance { get; private set; }
+		//}
 
 		#endregion
 
 		#region RegistrationWithBindingConfiguration
 
-		class RegistrationWithBindingConfiguration<TService, TImplementation> : IRegistrationWithBindingConfiguration<TService, TImplementation> {
-			private RegistrationConfiguration<TService> configuration;
+		//class RegistrationWithBindingConfiguration<TService, TImplementation> : IRegistrationWithBindingConfiguration<TService, TImplementation> {
+		//	private RegistrationConfiguration<TService> configuration;
 
-			public RegistrationWithBindingConfiguration(RegistrationConfiguration<TService> configuration) {
-				this.configuration = configuration;
-			}
+		//	public RegistrationWithBindingConfiguration(RegistrationConfiguration<TService> configuration) {
+		//		this.configuration = configuration;
+		//	}
 
-			public IRegistrationWithBindingConfiguration<TService, TImplementation> InScope(string scopeName) {
-				configuration.ScopeName = scopeName;
-				return this;
-			}
+		//	public IRegistrationWithBindingConfiguration<TService, TImplementation> InScope(string scopeName) {
+		//		configuration.ScopeName = scopeName;
+		//		return this;
+		//	}
 
-			public IRegistrationWithBindingConfiguration<TService, TImplementation> WithKey(object serviceKey) {
-				configuration.ServiceKey = serviceKey;
-				return this;
-			}
-		}
+		//	public IRegistrationWithBindingConfiguration<TService, TImplementation> WithKey(object serviceKey) {
+		//		configuration.ServiceKey = serviceKey;
+		//		return this;
+		//	}
+		//}
 
 		#endregion
 	}

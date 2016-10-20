@@ -1,15 +1,9 @@
 ﻿using System;
 
-using Deveel.Data.Services;
-
 namespace Deveel.Data.Sql.Query {
 	public static class SystemBuilderExtensions {
 		public static ISystemBuilder UseQueryPlanner<T>(this ISystemBuilder builder) where T : class, IQueryPlanner {
-			builder.ServiceContainer.Bind<IQueryPlanner>()
-				.To<T>()
-				.InSystemScope();
-
-			return builder;
+ 			return builder.Use<IQueryPlanner>(options => options.To<T>().InSystemScope());
 		}
 
 		public static ISystemBuilder UseDefaultQueryPlanner(this ISystemBuilder builder) {

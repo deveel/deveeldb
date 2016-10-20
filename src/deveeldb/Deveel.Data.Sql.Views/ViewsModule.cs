@@ -19,29 +19,27 @@ using Deveel.Data.Services;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Views {
-	public sealed class ViewsModule : ISystemModule {
-		public string ModuleName {
-			get { return "System Views"; }
+	public sealed class ViewsModule : ISystemFeature {
+		public string Name {
+			get { return "Views"; }
 		}
 
 		public string Version {
 			get { return "2.0"; }
 		}
 
-		public void Register(IScope systemScope) {
-			systemScope.Bind<IObjectManager>()
-				.To<ViewManager>()
-				.InTransactionScope()
-				.WithKey(DbObjectType.View);
-
-			systemScope.Bind<ITableCompositeCreateCallback>()
-				.To<ViewsInit>()
-				.WithKey("Views")
-				.InTransactionScope();
-
-			systemScope.Bind<ITableContainer>()
-				.To<ViewTableContainer>()
-				.InTransactionScope();
+		public void OnBuild(ISystemBuilder builder) {
+			builder.Use<IObjectManager>(options => options
+					.To<ViewManager>()
+					.InTransactionScope()
+					.HavingKey(DbObjectType.View))
+				.Use<ITableCompositeCreateCallback>(options => options
+					.To<ViewsInit>()
+					.HavingKey("Views")
+					.InTransactionScope())
+				.Use<ITableContainer>(options => options
+					.To<ViewTableContainer>()
+					.InTransactionScope());
 		}
 	}
 }

@@ -21,40 +21,36 @@ using Deveel.Data.Services;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
-	public sealed class SecurityModule : ISystemModule {
-		public string ModuleName {
-			get { return "Security Management"; }
+	public sealed class SecurityFeature : ISystemFeature {
+		public string Name {
+			get { return "Security"; }
 		}
 
 		public string Version {
 			get { return "2.0"; }
 		}
 
-		public void Register(IScope systemScope) {
-			systemScope.Bind<IUserManager>()
-				.To<UserManager>()
-				.InSessionScope();
-
-			systemScope.Bind<IDatabaseCreateCallback>()
-				.To<UsersInit>()
-				.InQueryScope();
-
-			systemScope.Bind<IPrivilegeManager>()
-				.To<PrivilegeManager>()
-				.InSessionScope();
-
-			systemScope.Bind<ITableCompositeSetupCallback>()
-				.To<PrivilegesInit>()
-				.InQueryScope();
-
-			systemScope.Bind<IUserIdentifier>()
-				.To<ClearTextUserIdentifier>();
+		public void OnBuild(ISystemBuilder builder) {
+			builder
+				.Use<IUserManager>(options => options
+					.To<UserManager>()
+					.InSessionScope())
+				.Use<IDatabaseCreateCallback>(options => options
+					.To<UsersInit>()
+					.InQueryScope())
+				.Use<IPrivilegeManager>(options => options
+					.To<PrivilegeManager>()
+					.InSessionScope())
+				.Use<ITableCompositeSetupCallback>(options => options
+					.To<PrivilegesInit>()
+					.InQueryScope())
+				.Use<IUserIdentifier>(options => options
+					.To<ClearTextUserIdentifier>());
 
 			// TODO: Add the system callbacks
 
 #if !PCL
-			systemScope.Bind<IUserIdentifier>()
-				.To<Pkcs12UserIdentifier>();
+			builder.Use<IUserIdentifier, Pkcs12UserIdentifier>();
 #endif
 		}
 	}

@@ -4,11 +4,8 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Configuration {
 	public static class SystemBuilderExtensions {
-		public static ISystemBuilder UseConfiguration(this ISystemBuilder builder, IConfiguration configuration) {
-			builder.ServiceContainer.Bind<IConfiguration>()
-				.ToInstance(configuration);
-
-			return builder;
+		public static ISystemBuilder UseConfiguration<T>(this ISystemBuilder builder, T configuration) where T : class, IConfiguration {
+			return builder.Use<IConfiguration>(options => options.ToInstance(configuration));
 		}
 
 		public static ISystemBuilder UseDefaultConfiguration(this ISystemBuilder builder) {

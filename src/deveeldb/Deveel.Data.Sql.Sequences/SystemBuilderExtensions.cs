@@ -6,18 +6,18 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Sequences {
 	static class SystemBuilderExtensions {
 		public static ISystemBuilder UseSequences(this ISystemBuilder builder) {
-			builder.ServiceContainer.Bind<IObjectManager>()
+			builder.Use<IObjectManager>(options => options
 				.To<SequenceManager>()
-				.WithKey(DbObjectType.Sequence)
-				.InTransactionScope();
+				.HavingKey(DbObjectType.Sequence)
+				.InTransactionScope());
 
-			builder.ServiceContainer.Bind<ITableCompositeCreateCallback>()
+			builder.Use<ITableCompositeCreateCallback>(options => options
 				.To<SequencesInit>()
-				.InQueryScope();
+				.InQueryScope());
 
-			builder.ServiceContainer.Bind<ITableContainer>()
+			builder.Use<ITableContainer>(optiions => optiions
 				.To<SequenceTableContainer>()
-				.InTransactionScope();
+				.InTransactionScope());
 
 			return builder;
 		}

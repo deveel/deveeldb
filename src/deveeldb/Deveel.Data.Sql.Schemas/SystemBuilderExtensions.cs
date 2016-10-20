@@ -5,18 +5,18 @@ using Deveel.Data.Services;
 namespace Deveel.Data.Sql.Schemas {
 	static class SystemBuilderExtensions {
 		public static ISystemBuilder UseSchema(this ISystemBuilder builder) {
-			builder.ServiceContainer.Bind<IObjectManager>()
+			builder.Use<IObjectManager>(options => options
 				.To<SchemaManager>()
-				.WithKey(DbObjectType.Schema)
-				.InTransactionScope();
+				.HavingKey(DbObjectType.Schema)
+				.InTransactionScope());
 
-			builder.ServiceContainer.Bind<ITableCompositeCreateCallback>()
+			builder.Use<ITableCompositeCreateCallback>(options => options
 				.To<SchemaInit>()
-				.InQueryScope();
+				.InQueryScope());
 
-			builder.ServiceContainer.Bind<IDatabaseCreateCallback>()
+			builder.Use<IDatabaseCreateCallback>(options => options
 				.To<InfortmationSchemaCreate>()
-				.InTransactionScope();
+				.InTransactionScope());
 
 			return builder;
 		}

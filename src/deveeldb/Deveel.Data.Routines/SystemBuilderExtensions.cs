@@ -7,30 +7,30 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Routines {
 	static class SystemBuilderExtensions {
 		public static ISystemBuilder UseRoutines(this ISystemBuilder builder) {
-			builder.ServiceContainer.Bind<IObjectManager>()
-				.To<RoutineManager>()
-				.WithKey(DbObjectType.Routine)
-				.InTransactionScope();
+			builder.Use<IObjectManager>(
+				options => options.To<RoutineManager>()
+				.HavingKey(DbObjectType.Routine)
+				.InTransactionScope());
 
-			builder.ServiceContainer.Bind<ITableCompositeSetupCallback>()
+			builder.Use<ITableCompositeSetupCallback>(options => options
 				.To<RoutinesInit>()
-				.InQueryScope();
+				.InQueryScope());
 
-			builder.ServiceContainer.Bind<IDatabaseCreateCallback>()
+			builder.Use<IDatabaseCreateCallback>(options => options
 				.To<RoutinesInit>()
-				.InQueryScope();
+				.InQueryScope());
 
-			builder.ServiceContainer.Bind<IRoutineResolver>()
+			builder.Use<IRoutineResolver>(options => options
 				.To<SystemFunctionsProvider>()
-				.InDatabaseScope();
+				.InDatabaseScope());
 
-			builder.ServiceContainer.Bind<IRoutineResolver>()
+			builder.Use<IRoutineResolver>(options => options
 				.To<RoutineManager>()
-				.InTransactionScope();
+				.InTransactionScope());
 
-			builder.ServiceContainer.Bind<ITableContainer>()
+			builder.Use<ITableContainer>(options => options
 				.To<RoutinesTableContainer>()
-				.InTransactionScope();
+				.InTransactionScope());
 
 			return builder;
 		}

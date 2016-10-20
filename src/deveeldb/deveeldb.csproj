@@ -179,6 +179,7 @@
     <Compile Include="Deveel.Data.Security\SecurityAssertionResult.cs" />
     <Compile Include="Deveel.Data.Security\SecurityContextExtensions.cs" />
     <Compile Include="Deveel.Data.Security\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data\IServiceUseWithBindingConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryAccessedResource.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemBuilderExtensions.cs" />
@@ -191,6 +192,11 @@
     <Compile Include="Deveel.Data.Sql.Variables\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Views\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Store\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data\IServiceUseConfiguration.cs" />
+    <Compile Include="Deveel.Data\ISystemFeature.cs" />
+    <Compile Include="Deveel.Data\ServiceBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data\ServiceUseConfigurationExtensions.cs" />
+    <Compile Include="Deveel.Data\ServiceUseOptions.cs" />
     <Compile Include="Deveel.Data\IContextBased.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICounterRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
@@ -338,7 +344,7 @@
     <Compile Include="Deveel.Data.Security\PrivilegeManager.cs" />
     <Compile Include="Deveel.Data.Security\UserIdentification.cs" />
     <Compile Include="Deveel.Data.Security\UserInfo.cs" />
-    <Compile Include="Deveel.Data.Security\SecurityModule.cs" />
+    <Compile Include="Deveel.Data.Security\SecurityFeature.cs" />
     <Compile Include="Deveel.Data.Security\UserManager.cs" />
     <Compile Include="Deveel.Data.Serialization\BinarySerializer.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IExpressionParser.cs" />
@@ -484,11 +490,7 @@
     <Compile Include="Deveel.Data\DeclaredException.cs" />
     <Compile Include="Deveel.Data\ErrorNameAttribute.cs" />
     <Compile Include="Deveel.Data\IContext.cs" />
-    <Compile Include="Deveel.Data.Services\IRegistrationConfiguration.cs" />
-    <Compile Include="Deveel.Data.Services\IRegistrationConfigurationProvider.cs" />
     <Compile Include="Deveel.Data.Services\IScope.cs" />
-    <Compile Include="Deveel.Data.Services\IRegistrationWithBindingConfiguration.cs" />
-    <Compile Include="Deveel.Data.Services\RegistrationConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ScopeExtensions.cs" />
     <Compile Include="Deveel.Data.Services\ServiceContainer.cs" />
     <Compile Include="Deveel.Data.Services\ServiceRegistration.cs" />
@@ -581,7 +583,6 @@
     <Compile Include="Deveel.Data\IRequest.cs" />
     <Compile Include="Deveel.Data\IQuery.cs" />
     <Compile Include="Deveel.Data\ISystem.cs" />
-    <Compile Include="Deveel.Data.Services\ISystemModule.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSource.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ITableSourceComposite.cs" />
     <Compile Include="Deveel.Data\ISystemBuilder.cs" />
@@ -590,12 +591,13 @@
     <Compile Include="Deveel.Data\ISystemDisposeCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeCreateCallback.cs" />
     <Compile Include="Deveel.Data\ITableCompositeSetupCallback.cs" />
-    <Compile Include="Deveel.Data\ModuleInfo.cs" />
+    <Compile Include="Deveel.Data\FeatureInfo.cs" />
     <Compile Include="Deveel.Data\Query.cs" />
     <Compile Include="Deveel.Data\QueryContextExtensions.cs" />
     <Compile Include="Deveel.Data\QueryExtensions.cs" />
     <Compile Include="Deveel.Data\RequestAccess.cs" />
     <Compile Include="Deveel.Data\RequestExtensions.cs" />
+    <Compile Include="Deveel.Data\ServiceUsePolicy.cs" />
     <Compile Include="Deveel.Data\SessionExtensions.cs" />
     <Compile Include="Deveel.Data\SessionTableContainer.cs" />
     <Compile Include="Deveel.Data\SingleDatabaseHandler.cs" />

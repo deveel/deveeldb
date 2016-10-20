@@ -7,28 +7,23 @@ using Deveel.Data.Sql.Tables;
 namespace Deveel.Data.Sql.Types {
 	static class SystemBuilderExtensions {
 		public static ISystemBuilder UseTypes(this ISystemBuilder builder) {
-			builder.ServiceContainer.Bind<IObjectManager>()
-				.To<TypeManager>()
-				.WithKey(DbObjectType.Type)
-				.InTransactionScope();
-
-			builder.ServiceContainer.Bind<ITableContainer>()
-				.To<TypesTableContainer>()
-				.InTransactionScope();
-
-			builder.ServiceContainer.Bind<ITableCompositeCreateCallback>()
-				.To<TypesInit>()
-				.InTransactionScope();
-
-			builder.ServiceContainer.Bind<ITypeResolver>()
-				.To<TypeManager>()
-				.InTransactionScope();
-
-			builder.ServiceContainer.Bind<IRoutineResolver>()
-				.To<TypeManager>()
-				.InTransactionScope();
-
-			return builder;
+			return builder
+				.Use<IObjectManager>(options => options
+					.To<TypeManager>()
+					.HavingKey(DbObjectType.Type)
+					.InTransactionScope())
+				.Use<ITableContainer>(options => options
+					.To<TypesTableContainer>()
+					.InTransactionScope())
+				.Use<ITableCompositeCreateCallback>(options => options
+					.To<TypesInit>()
+					.InTransactionScope())
+				.Use<ITypeResolver>(options => options
+					.To<TypeManager>()
+					.InTransactionScope())
+				.Use<IRoutineResolver>(options => options
+					.To<TypeManager>()
+					.InTransactionScope());
 		}
 	}
 }

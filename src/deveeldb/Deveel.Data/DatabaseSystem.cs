@@ -40,7 +40,7 @@ namespace Deveel.Data {
 	public sealed class DatabaseSystem : EventSource, ISystem {
 		private IDictionary<string, IDatabase> databases; 
 
-		internal DatabaseSystem(ISystemContext context, IEnumerable<ModuleInfo> modules) {
+		internal DatabaseSystem(ISystemContext context, IEnumerable<FeatureInfo> modules) {
 			Context = context;
 			Modules = modules;
 			OnCreated();
@@ -72,7 +72,7 @@ namespace Deveel.Data {
 			}
 
 			foreach (var module in Modules) {
-				metadata[String.Format("[module]:{0}", module.ModuleName)] = module.Version;
+				metadata[String.Format("[module]:{0}", module.FeatureName)] = module.Version;
 			}
 		}
 
@@ -89,7 +89,7 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IEnumerable<ModuleInfo> Modules { get; private set; } 
+		public IEnumerable<FeatureInfo> Modules { get; private set; } 
 
 		public void Dispose() {
 			Dispose(true);
