@@ -9,7 +9,7 @@ using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CloseTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {

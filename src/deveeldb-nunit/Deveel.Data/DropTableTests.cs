@@ -18,14 +18,12 @@ using System.IO;
 using System.Text;
 
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Objects;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
-using Deveel.Data.Store;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	[TestFixture(StorageType.InMemory)]
 	[TestFixture(StorageType.SingleFile)]
 	[TestFixture(StorageType.JournaledFile)]

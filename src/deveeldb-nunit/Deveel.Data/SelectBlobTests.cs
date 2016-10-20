@@ -12,7 +12,7 @@ using Deveel.Data.Store;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	[TestFixture]
 	public sealed class SelectBlobTests : ContextBasedTest {
 		private readonly byte[] testData;

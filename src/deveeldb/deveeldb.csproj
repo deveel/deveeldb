@@ -172,6 +172,7 @@
     <Compile Include="Deveel.Data.Security\SecurityAssertionRegistrar.cs" />
     <Compile Include="Deveel.Data.Security\SecurityAssertionResult.cs" />
     <Compile Include="Deveel.Data.Security\SecurityContextExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Query\QueryAccessedResource.cs" />
     <Compile Include="Deveel.Data\IContextBased.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICounterRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />

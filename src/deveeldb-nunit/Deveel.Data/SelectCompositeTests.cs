@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
 
-namespace Deveel.Data.Deveel.Data {
+namespace Deveel.Data {
 	[TestFixture]
 	public class SelectCompositeTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
