@@ -22,7 +22,9 @@ namespace Deveel.Data.Sql.Tables {
 				throw new ArgumentException();
 
 			name = fullName.Name;
-			schema = fullName.ParentName;
+
+			if (String.IsNullOrEmpty(schema))
+				schema = fullName.ParentName;
 
 			return this;
 		}

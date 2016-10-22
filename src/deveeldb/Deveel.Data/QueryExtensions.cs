@@ -133,6 +133,14 @@ namespace Deveel.Data {
 			return query.ExecuteQuery(sqlSource, null);
 		}
 
+		private static void Result(StatementResult result) {
+			if (result.Type == StatementResultType.Exception)
+				throw result.Error;
+
+			if (result.Type != StatementResultType.Result)
+				throw new InvalidOperationException("Invalid response from statement");
+		}
+
 		#endregion
 
 		#region Statements
@@ -276,16 +284,15 @@ namespace Deveel.Data {
 
 		#region Create View
 
-		public static void CreateView(this IQuery query, ObjectName viewName, string querySource) {
-			CreateView(query, viewName, new string[0], querySource);
+		public static void CreateView(this IQuery query, ObjectName viewName, Action<IQueryExpressionBuilder> queryExpression) {
+			CreateView(query, viewName, new string[0], queryExpression);
 		}
 
-		public static void CreateView(this IQuery query, ObjectName viewName, IEnumerable<string> columnNames, string querySource) {
-			var expression = SqlExpression.Parse(querySource);
-			if (expression.ExpressionType != SqlExpressionType.Query)
-				throw new ArgumentException("The input query string is invalid.", "querySource");
+		public static void CreateView(this IQuery query, ObjectName viewName, IEnumerable<string> columnNames, Action<IQueryExpressionBuilder> queryExpression) {
+			var builder = new QueryExpressionBuilder();
+			queryExpression(builder);
 
-			query.CreateView(viewName, columnNames, (SqlQueryExpression)expression);
+			query.CreateView(viewName, columnNames, builder.Build());
 		}
 
 		public static void CreateView(this IQuery query, ObjectName viewName, SqlQueryExpression queryExpression) {
@@ -294,7 +301,7 @@ namespace Deveel.Data {
 
 		public static void CreateView(this IQuery query, ObjectName viewName, IEnumerable<string> columnNames,
 			SqlQueryExpression queryExpression) {
-			query.ExecuteStatement(new CreateViewStatement(viewName, columnNames, queryExpression));
+			Result(query.ExecuteStatement(new CreateViewStatement(viewName, columnNames, queryExpression)));
 		}
 
 		#endregion

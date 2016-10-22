@@ -307,6 +307,9 @@ namespace Deveel.Data.Sql.Expressions {
 		}
 
 		public static SqlConstantExpression Constant(Field value) {
+			if (Field.IsNullField(value))
+				value = Field.Null();
+
 			return new SqlConstantExpression(value);
 		}
 

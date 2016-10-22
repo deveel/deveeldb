@@ -33,6 +33,14 @@ namespace Deveel.Data {
 			return true;
 		}
 
+		protected override bool OnTearDown(string testName, IQuery query) {
+			var viewName = ObjectName.Parse("APP.text_view1");
+			query.Access().DropObject(DbObjectType.View, viewName);
+
+			query.Access().DropObject(DbObjectType.Table, ObjectName.Parse("APP.test_table"));
+			return true;
+		}
+
 		[Test]
 		public void SimpleView() {
 			var query = (SqlQueryExpression) SqlExpression.Parse("SELECT * FROM test_table WHERE a = 1");
@@ -41,6 +49,16 @@ namespace Deveel.Data {
 			AdminQuery.CreateView(viewName, query);
 
 			// TODO: Assert the view exists
+		}
+
+		[Test]
+		public void ViewFromBuilder() {
+			var viewName = ObjectName.Parse("APP.text_view1");
+
+			AdminQuery.CreateView(viewName, query => query
+				.AllColumns()
+				.From(from => from.Table("test_table"))
+				.Where(SqlExpression.Equal(SqlExpression.Reference(new ObjectName("a")), SqlExpression.Constant(1))));
 		}
 	}
 }
