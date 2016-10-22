@@ -17,7 +17,6 @@ using System;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -27,10 +26,10 @@ namespace Deveel.Data {
 	public sealed class RevokeTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
 
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn("id", PrimitiveTypes.Integer()));
 
 			query.Access().CreateUser("test_user", "0123456789");
 			query.Access().GrantOnTable(tableName, "test_user", Privileges.Alter);

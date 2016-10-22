@@ -12,14 +12,6 @@ namespace Deveel.Data.Sql.Tables {
 				.OnSystemBuild(OnBuild)
 				.OnTableCompositeCreate(OnCompositeCreate)
 				.OnTableCompositeSetup(OnCompositeSetup));
-
-			//return builder
-				//.Use<ITableCompositeSetupCallback>(options => options
-				//	.With<TablesInit>()
-				//	.InTransactionScope())
-				//.Use<ITableCompositeCreateCallback>(options => options
-				//	.With<TablesInit>()
-				//	.InTransactionScope());
 		}
 
 		private static void OnCompositeSetup(IQuery systemQuery) {
@@ -72,75 +64,68 @@ namespace Deveel.Data.Sql.Tables {
 
 		private static void OnCompositeCreate(IQuery systemQuery) {
 			// SYSTEM.PKEY_INFO
-			var tableInfo = new TableInfo(SystemSchema.PrimaryKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.PrimaryKeyInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("table", PrimitiveTypes.String())
+				.WithColumn("deferred", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.PKEY_COLS
-			tableInfo = new TableInfo(SystemSchema.PrimaryKeyColumnsTableName);
-			tableInfo.AddColumn("pk_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("column", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.PrimaryKeyColumnsTableName)
+				.WithColumn("pk_id", PrimitiveTypes.Numeric())
+				.WithColumn("column", PrimitiveTypes.String())
+				.WithColumn("seq_no", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.FKEY_INFO
-			tableInfo = new TableInfo(SystemSchema.ForeignKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("ref_schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("ref_table", PrimitiveTypes.String());
-			tableInfo.AddColumn("update_rule", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("delete_rule", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.ForeignKeyInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("table", PrimitiveTypes.String())
+				.WithColumn("ref_schema", PrimitiveTypes.String())
+				.WithColumn("ref_table", PrimitiveTypes.String())
+				.WithColumn("update_rule", PrimitiveTypes.Numeric())
+				.WithColumn("delete_rule", PrimitiveTypes.Numeric())
+				.WithColumn("deferred", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.FKEY_COLS
-			tableInfo = new TableInfo(SystemSchema.ForeignKeyColumnsTableName);
-			tableInfo.AddColumn("fk_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("fcolumn", PrimitiveTypes.String());
-			tableInfo.AddColumn("pcolumn", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.ForeignKeyColumnsTableName)
+				.WithColumn("fk_id", PrimitiveTypes.Numeric())
+				.WithColumn("fcolumn", PrimitiveTypes.String())
+				.WithColumn("pcolumn", PrimitiveTypes.String())
+				.WithColumn("seq_no", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.UNIQUE_INFO
-			tableInfo = new TableInfo(SystemSchema.UniqueKeyInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.UniqueKeyInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("table", PrimitiveTypes.String())
+				.WithColumn("deferred", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.UNIQUE_COLS
-			tableInfo = new TableInfo(SystemSchema.UniqueKeyColumnsTableName);
-			tableInfo.AddColumn("un_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("column", PrimitiveTypes.String());
-			tableInfo.AddColumn("seq_no", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.UniqueKeyColumnsTableName)
+				.WithColumn("un_id", PrimitiveTypes.Numeric())
+				.WithColumn("column", PrimitiveTypes.String())
+				.WithColumn("seq_no", PrimitiveTypes.Numeric()));
 
 			// SYSTEM.CHECK_INFO
-			tableInfo = new TableInfo(SystemSchema.CheckInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("table", PrimitiveTypes.String());
-			tableInfo.AddColumn("expression", PrimitiveTypes.String());
-			tableInfo.AddColumn("deferred", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("serialized_expression", PrimitiveTypes.Binary());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.CheckInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("table", PrimitiveTypes.String())
+				.WithColumn("expression", PrimitiveTypes.String())
+				.WithColumn("deferred", PrimitiveTypes.Numeric())
+				.WithColumn("serialized_expression", PrimitiveTypes.Binary()));
 		}
 
 		private static void OnBuild(ISystemBuilder builder) {

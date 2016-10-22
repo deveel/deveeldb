@@ -28,11 +28,11 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class PlSqlBlockTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 
-			query.Access().CreateTable(tableInfo);
 			return true;
 		}
 

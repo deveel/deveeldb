@@ -32,11 +32,12 @@ namespace Deveel.Data {
 
 		private static void CreateTestView(IQuery query) {
 			var tn1 = ObjectName.Parse("APP.test_table1");
-			var tableInfo1 = new TableInfo(tn1);
-			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
-			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
-			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
-			query.Session.Access().CreateTable(tableInfo1);
+			query.Access().CreateTable(table => table
+				.Named(tn1)
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("date", PrimitiveTypes.DateTime()));
+
 			query.Session.Access().AddPrimaryKey(tn1, "id");
 
 			var exp = SqlExpression.Parse("SELECT * FROM APP.test_table1");

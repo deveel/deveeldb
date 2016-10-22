@@ -191,7 +191,9 @@
     <Compile Include="Deveel.Data.Sql.Schemas\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\ColumnInfoBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Tables\TableInfoBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Triggers\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Types\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Variables\SystemBuilderExtensions.cs" />

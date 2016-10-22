@@ -26,11 +26,10 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CreateViewTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 			return true;
 		}
 

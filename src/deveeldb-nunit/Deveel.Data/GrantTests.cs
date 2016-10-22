@@ -14,12 +14,10 @@
 //    limitations under the License.
 
 using System;
-using System.Linq;
 
 using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -32,23 +30,26 @@ namespace Deveel.Data {
 		}
 
 		private static void CreateTestTable(IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+			var tableName1 = ObjectName.Parse("APP.test_table");
 
-			query.Session.Access().CreateTable(tableInfo);
-			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().CreateTable(table => table
+				.Named(tableName1)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableName1.FullName)})))
+				.WithColumn("first_name", PrimitiveTypes.String())
+				.WithColumn("last_name", PrimitiveTypes.String())
+				.WithColumn("birth_date", PrimitiveTypes.DateTime())
+				.WithColumn("active", PrimitiveTypes.Boolean()));
 
-			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
-			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
+			query.Access().AddPrimaryKey(tableName1, "id", "PK_TEST_TABLE");
 
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table2")
+				.WithColumn("person_id", PrimitiveTypes.Integer())
+				.WithColumn("value", PrimitiveTypes.Boolean()));
 		}
 
 		protected override bool OnSetUp(string testName, IQuery query) {

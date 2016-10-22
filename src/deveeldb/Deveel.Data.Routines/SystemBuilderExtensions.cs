@@ -28,26 +28,28 @@ namespace Deveel.Data.Routines {
 
 		private static void Create(IQuery systemQuery) {
 			// SYSTEM.ROUTINE
-			var tableInfo = new TableInfo(RoutineManager.RoutineTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			tableInfo.AddColumn("location", PrimitiveTypes.String());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("return_type", PrimitiveTypes.String());
-			tableInfo.AddColumn("username", PrimitiveTypes.String());
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access()
+				.CreateTable(table => table
+					.Named(RoutineManager.RoutineTableName)
+					.WithColumn("id", PrimitiveTypes.Numeric())
+					.WithColumn("schema", PrimitiveTypes.String())
+					.WithColumn("name", PrimitiveTypes.String())
+					.WithColumn("type", PrimitiveTypes.String())
+					.WithColumn("location", PrimitiveTypes.String())
+					.WithColumn("body", PrimitiveTypes.Binary())
+					.WithColumn("return_type", PrimitiveTypes.String())
+					.WithColumn("username", PrimitiveTypes.String()));
+
 
 			// SYSTEM.ROUTINE_PARAM
-			tableInfo = new TableInfo(RoutineManager.RoutineParameterTableName);
-			tableInfo.AddColumn("routine_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("arg_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("arg_type", PrimitiveTypes.String());
-			tableInfo.AddColumn("arg_attrs", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("in_out", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("offset", PrimitiveTypes.Integer());
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(RoutineManager.RoutineParameterTableName)
+				.WithColumn("routine_id", PrimitiveTypes.Numeric())
+				.WithColumn("arg_name", PrimitiveTypes.String())
+				.WithColumn("arg_type", PrimitiveTypes.String())
+				.WithColumn("arg_attrs", PrimitiveTypes.Numeric())
+				.WithColumn("in_out", PrimitiveTypes.Integer())
+				.WithColumn("offset", PrimitiveTypes.Integer()));
 		}
 
 		private static void AddForeignKeys(IQuery systemQuery) {

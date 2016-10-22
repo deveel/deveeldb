@@ -14,8 +14,6 @@
 //    limitations under the License.
 
 using System;
-using System.IO;
-using System.Text;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
@@ -39,21 +37,22 @@ namespace Deveel.Data {
 
 		private static void CreateTestTables(IQuery context) {
 			var tn1 = ObjectName.Parse("APP.test_table1");
-			var tableInfo1 = new TableInfo(tn1);
-			tableInfo1.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
-			tableInfo1.AddColumn(new ColumnInfo("name", PrimitiveTypes.String()));
-			tableInfo1.AddColumn(new ColumnInfo("date", PrimitiveTypes.DateTime()));
+			context.Access().CreateTable(table => table
+				.Named(tn1)
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("date", PrimitiveTypes.DateTime()));
 
-			context.Session.Access().CreateTable(tableInfo1);
 			context.Session.Access().AddPrimaryKey(tn1, "id");
 
 			var tn2 = ObjectName.Parse("APP.test_table2");
-			var tableInfo2 = new TableInfo(tn2);
-			tableInfo2.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()));
-			tableInfo2.AddColumn(new ColumnInfo("other_id", PrimitiveTypes.Integer()));
-			tableInfo2.AddColumn(new ColumnInfo("count", PrimitiveTypes.Integer()));
 
-			context.Session.Access().CreateTable(tableInfo2);
+			context.Access().CreateTable(table => table
+				.Named(tn2)
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("other_id", PrimitiveTypes.Integer())
+				.WithColumn("count", PrimitiveTypes.Integer()));
+
 			context.Session.Access().AddPrimaryKey(tn2, "id");
 			context.Session.Access().AddForeignKey(tn2, new[] { "other_id" }, tn1, new[] { "id" }, ForeignKeyAction.Cascade,
 				ForeignKeyAction.Cascade, null);

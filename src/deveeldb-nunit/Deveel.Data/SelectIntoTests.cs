@@ -34,19 +34,15 @@ namespace Deveel.Data {
 		}
 
 		private void CreateTables(IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String());
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 
-			query.Access().CreateTable(tableInfo);
-
-			tableName = ObjectName.Parse("APP.dest_table");
-			tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String());
-
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.dest_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 		}
 
 		private void InsertTestData(IQuery query) {

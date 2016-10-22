@@ -15,21 +15,21 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		private static void OnCompositeCreate(IQuery systemQuery) {
-			var tableInfo = new TableInfo(TypeManager.TypeTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("parent", PrimitiveTypes.String());
-			tableInfo.AddColumn("sealed", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("abstract", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("owner", PrimitiveTypes.String());
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(TypeManager.TypeTableName)
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("parent", PrimitiveTypes.String())
+				.WithColumn("sealed", PrimitiveTypes.Boolean())
+				.WithColumn("abstract", PrimitiveTypes.Boolean())
+				.WithColumn("owner", PrimitiveTypes.String()));
 
-			tableInfo = new TableInfo(TypeManager.TypeMemberTableName);
-			tableInfo.AddColumn("type_id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(TypeManager.TypeMemberTableName)
+				.WithColumn("type_id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("type", PrimitiveTypes.String()));
 
 			systemQuery.Access().AddPrimaryKey(TypeManager.TypeTableName, new[] { "id" }, "PK_TYPE");
 			systemQuery.Access()

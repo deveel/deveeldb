@@ -20,26 +20,44 @@ namespace Deveel.Data.Sql.Sequences {
 
 		private static void OnCompositeCreate(IQuery systemQuery) {
 			// SYSTEM.SEQUENCE_INFO
-			var tableInfo = new TableInfo(SequenceManager.SequenceInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SequenceManager.SequenceInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("type", PrimitiveTypes.Numeric()));
+
+			//var tableInfo = new TableInfo(SequenceManager.SequenceInfoTableName);
+			//tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("schema", PrimitiveTypes.String());
+			//tableInfo.AddColumn("name", PrimitiveTypes.String());
+			//tableInfo.AddColumn("type", PrimitiveTypes.Numeric());
+			//tableInfo = tableInfo.AsReadOnly();
+			//systemQuery.Access().CreateTable(tableInfo);
 
 			// SYSTEM.SEQUENCE
-			tableInfo = new TableInfo(SequenceManager.SequenceTableName);
-			tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("increment", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("minvalue", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("maxvalue", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("start", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SequenceManager.SequenceTableName)
+				.WithColumn("seq_id", PrimitiveTypes.Numeric())
+				.WithColumn("last_value", PrimitiveTypes.Numeric())
+				.WithColumn("increment", PrimitiveTypes.Numeric())
+				.WithColumn("minvalue", PrimitiveTypes.Numeric())
+				.WithColumn("maxvalue", PrimitiveTypes.Numeric())
+				.WithColumn("start", PrimitiveTypes.Numeric())
+				.WithColumn("cache", PrimitiveTypes.Numeric())
+				.WithColumn("cycle", PrimitiveTypes.Boolean()));
+
+			//tableInfo = new TableInfo(SequenceManager.SequenceTableName);
+			//tableInfo.AddColumn("seq_id", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("last_value", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("increment", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("minvalue", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("maxvalue", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("start", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("cache", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("cycle", PrimitiveTypes.Boolean());
+			//tableInfo = tableInfo.AsReadOnly();
+			//systemQuery.Access().CreateTable(tableInfo);
 		}
 
 		private static void OnBuild(ISystemBuilder builder) {

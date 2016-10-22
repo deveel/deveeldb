@@ -67,30 +67,27 @@ namespace Deveel.Data {
 		}
 
 		private void CreateTestTables(IQuery query) {
-			var tableInfo = CreateFirstTable();
-			query.Session.Access().CreateTable(tableInfo, false);
-			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "person_id");
-
-			tableInfo = CreateSecondTable();
-			query.Session.Access().CreateTable(tableInfo, false);
+			CreateFirstTable(query);
+			CreateSecondTable(query);
 		}
 
-		private TableInfo CreateSecondTable() {
-			var tableInfo = new TableInfo(new ObjectName(new ObjectName("APP"), "codes"));
-			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("code", PrimitiveTypes.String());
-			tableInfo.AddColumn("registered", PrimitiveTypes.DateTime());
-
-			return tableInfo;
+		private void CreateSecondTable(IQuery query) {
+			query.Access().CreateTable(table => table
+				.Named("APP.codes")
+				.WithColumn("person_id", PrimitiveTypes.Integer())
+				.WithColumn("code", PrimitiveTypes.String())
+				.WithColumn("registered", PrimitiveTypes.DateTime()));
 		}
 
-		private TableInfo CreateFirstTable() {
-			var tableInfo = new TableInfo(new ObjectName(new ObjectName("APP"), "persons"));
-			tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
+		private void CreateFirstTable(IQuery query) {
+			var tableName = ObjectName.Parse("APP.persons");
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn("person_id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("age", PrimitiveTypes.Integer()));
 
-			return tableInfo;
+			query.Session.Access().AddPrimaryKey(tableName, "person_id");
 		}
 
 		private ITable Execute(string s) {

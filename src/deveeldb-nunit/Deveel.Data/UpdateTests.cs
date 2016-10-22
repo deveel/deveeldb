@@ -36,39 +36,49 @@ namespace Deveel.Data {
 
 		private static void CreateTestTable(string testName, IQuery context) {
 			var tableName1 = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName1);
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)});
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
 
-			context.Session.Access().CreateTable(tableInfo);
-			context.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			context.Access().CreateTable(table => table
+				.Named(tableName1)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableName1.FullName)})))
+				.WithColumn("first_name", PrimitiveTypes.String())
+				.WithColumn("last_name", PrimitiveTypes.String())
+				.WithColumn("birth_date", PrimitiveTypes.DateTime())
+				.WithColumn("active", PrimitiveTypes.Boolean()));
+
+			context.Session.Access().AddPrimaryKey(tableName1, "id", "PK_TEST_TABLE");
 
 			if (testName.EndsWith("ConstraintCheck") ||
 			    testName.EndsWith("Violation")) {
-				tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
-				tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()) {
-					DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-						new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)})
+				var tableName2 = ObjectName.Parse("APP.test_table2");
+				context.Access().CreateTable(table => {
+					table
+						.Named(tableName2)
+						.WithColumn(column => column
+							.Named("id")
+							.HavingType(PrimitiveTypes.Integer())
+							.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+								new SqlExpression[] {SqlExpression.Constant(tableName2.FullName)})));
+
+					if (testName.StartsWith("SetDefault")) {
+						table.WithColumn(column => column
+							.Named("person_id")
+							.HavingType(PrimitiveTypes.Integer())
+							.WithDefault(SqlExpression.Constant(0)));
+					} else {
+						table.WithColumn(column => column
+							.Named("person_id")
+							.HavingType(PrimitiveTypes.Integer())
+							.NotNull(testName.EndsWith("Violation")));
+					}
+
+					table.WithColumn("dept_no", PrimitiveTypes.Integer());
 				});
-				if (testName.StartsWith("SetDefault")) {
-					tableInfo.AddColumn(new ColumnInfo("person_id", PrimitiveTypes.Integer()) {
-						DefaultExpression = SqlExpression.Constant(0)
-					});
-				} else if (testName.EndsWith("Violation")) {
-					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
-				} else {
-					tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), false);
-				}
 
-				tableInfo.AddColumn("dept_no", PrimitiveTypes.Integer());
-
-				context.Access().CreateTable(tableInfo);
-				context.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE2");
+				context.Access().AddPrimaryKey(tableName2, "id", "PK_TEST_TABLE2");
 
 				ForeignKeyAction? onUpdate = null;
 				if (testName.StartsWith("SetNull")) {
@@ -81,7 +91,7 @@ namespace Deveel.Data {
 
 				if (onUpdate != null)
 					context.Access()
-						.AddForeignKey(tableInfo.TableName, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.NoAction,
+						.AddForeignKey(tableName2, new[] {"person_id"}, tableName1, new[] {"id"}, ForeignKeyAction.NoAction,
 							onUpdate.Value, "FKEY_TEST_TABLE2");
 			}
 		}

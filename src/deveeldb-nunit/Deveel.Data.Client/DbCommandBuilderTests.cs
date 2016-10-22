@@ -13,12 +13,10 @@ namespace Deveel.Data.Client {
 		private DeveelDbConnection connection;
 
 		private void CreateTable(IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String());
-
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 		}
 
 		private void AddTestData(IQuery query) {

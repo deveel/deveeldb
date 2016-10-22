@@ -13,15 +13,13 @@ namespace Deveel.Data.Client {
 		private IDbConnection connection;
 
 		protected override bool OnSetUp(string testName, IQuery query) {
-			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String());
-
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 
 			if (testName.StartsWith("Update") ||
-				testName.StartsWith("Delete"))
+			    testName.StartsWith("Delete"))
 				AddTestData(query);
 
 			return true;

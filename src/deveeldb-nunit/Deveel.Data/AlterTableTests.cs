@@ -28,33 +28,35 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class AlterTableTests : ContextBasedTest {
 		protected override bool OnSetUp(string testName, IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+			var tableName1 = ObjectName.Parse("APP.test_table");
+			query.Access().CreateTable(table => table
+				.Named(tableName1)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableName1.FullName)})))
+				.WithColumn("first_name", PrimitiveTypes.String())
+				.WithColumn("last_name", PrimitiveTypes.String())
+				.WithColumn("birth_date", PrimitiveTypes.DateTime())
+				.WithColumn("active", PrimitiveTypes.Boolean()));
 
-			query.Access().CreateTable(tableInfo);
-			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().AddPrimaryKey(tableName1, "id", "PK_TEST_TABLE");
 
-			tableInfo = new TableInfo(ObjectName.Parse("APP.test_table2"));
-			if (testName.Equals("SetNullOnDeleteViolation")) {
-				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer(), true);
-			} else {
-				tableInfo.AddColumn("person_id", PrimitiveTypes.Integer());
-			}
+			var tableName2 = ObjectName.Parse("APP.test_table2");
 
-			tableInfo.AddColumn("value", PrimitiveTypes.Boolean());
-
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named(tableName2)
+				.WithColumn(column => column
+					.Named("person_id")
+					.HavingType(PrimitiveTypes.Integer())
+					.NotNull(testName.Equals("SetNullOnDeleteViolation")))
+				.WithColumn("value", PrimitiveTypes.Boolean()));
 
 			if (testName == "DropConstraint" ||
 				testName == "DropReferencedColumn") {
-				query.Session.Access().AddForeignKey(tableInfo.TableName, new string[] { "person_id" }, ObjectName.Parse("APP.test_table"),
-					new[] { "id" }, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
+				query.Session.Access().AddForeignKey(tableName2, new string[] {"person_id"}, tableName1,
+					new[] {"id"}, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, "FK_1");
 			}
 
 			return true;

@@ -47,29 +47,32 @@ namespace Deveel.Data {
 		}
 
 		private static void CreateTestTable(IQuery query, string testName) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
+			var tableName = ObjectName.Parse("APP.test_table");
 
-			if (testName.Equals("NotNullColumnViolation")) {
-				tableInfo.AddColumn("active", PrimitiveTypes.Boolean(), true);
-			} else {
-				tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
-			}
+			query.Access().CreateTable(table => {
+				table
+					.Named(tableName)
+					.WithColumn(column => column.Named("id")
+						.HavingType(PrimitiveTypes.Integer())
+						.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+							new SqlExpression[] {SqlExpression.Constant(tableName.FullName)})))
+					.WithColumn("first_name", PrimitiveTypes.String())
+					.WithColumn("last_name", PrimitiveTypes.String())
+					.WithColumn("birth_date", PrimitiveTypes.DateTime())
+					.WithColumn(column => column
+						.Named("active")
+						.HavingType(PrimitiveTypes.Boolean())
+						.NotNull(testName.Equals("NotNullColumnViolation")));
 
-			if (testName.EndsWith("WithLob")) {
-				tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
-			} else if (testName.EndsWith("WithUserType")) {
-				var userType = query.Access().ResolveUserType("type1");
-				tableInfo.AddColumn("user_obj", userType);
-			}
+				if (testName.EndsWith("WithLob")) {
+					table.WithColumn("bio", PrimitiveTypes.Clob(2048));
+				} else if (testName.EndsWith("WithUserType")) {
+					var userType = query.Access().ResolveUserType("type1");
+					table.WithColumn("user_obj", userType);
+				}
+			});
 
-			query.Access().CreateTable(tableInfo);
-			query.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().AddPrimaryKey(tableName, "id", "PK_TEST_TABLE");
 		}
 
 		protected override bool OnTearDown(string testName, IQuery query) {

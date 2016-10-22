@@ -3,7 +3,6 @@
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
@@ -20,15 +19,17 @@ namespace Deveel.Data {
 
 		private void CreateTable(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.Integer()) {
-				DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
-					SqlExpression.Constant(tableName.FullName)
-				})
-			});
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
+						SqlExpression.Constant(tableName.FullName)
+					})))
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
+
 			query.Access().AddPrimaryKey(tableName, "id", "PK_TEST_TABLE");
 		}
 

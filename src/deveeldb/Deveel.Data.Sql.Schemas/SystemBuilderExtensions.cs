@@ -255,14 +255,22 @@ namespace Deveel.Data.Sql.Schemas {
 
 		private static void OnCompositeCreate(IQuery systemQuery) {
 			// SYSTEM.SCHEMA_INFO
-			var tableInfo = new TableInfo(SystemSchema.SchemaInfoTableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.String());
-			tableInfo.AddColumn("culture", PrimitiveTypes.String());
-			tableInfo.AddColumn("other", PrimitiveTypes.String());
-			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(SystemSchema.SchemaInfoTableName)
+				.WithColumn("id", PrimitiveTypes.Numeric())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("type", PrimitiveTypes.String())
+				.WithColumn("culture", PrimitiveTypes.String())
+				.WithColumn("other", PrimitiveTypes.String()));
+
+			//var tableInfo = new TableInfo(SystemSchema.SchemaInfoTableName);
+			//tableInfo.AddColumn("id", PrimitiveTypes.Numeric());
+			//tableInfo.AddColumn("name", PrimitiveTypes.String());
+			//tableInfo.AddColumn("type", PrimitiveTypes.String());
+			//tableInfo.AddColumn("culture", PrimitiveTypes.String());
+			//tableInfo.AddColumn("other", PrimitiveTypes.String());
+			//tableInfo = tableInfo.AsReadOnly();
+			//systemQuery.Access().CreateTable(tableInfo);
 
 			// TODO: Move this to the setup phase?
 			CreateSystemSchema(systemQuery);

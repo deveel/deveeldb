@@ -55,13 +55,17 @@ namespace Deveel.Data {
 
 		private void CreateTestTable(IQuery query) {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			var id = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			id.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
-				SqlExpression.Constant("APP.test_table")
-			});
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			query.Access().CreateTable(tableInfo);
+
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
+						SqlExpression.Constant("APP.test_table")
+					})))
+				.WithColumn("name", PrimitiveTypes.String()));
+
 			query.Access().AddPrimaryKey(tableName, "id");
 		}
 

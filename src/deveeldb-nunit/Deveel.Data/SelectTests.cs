@@ -34,17 +34,21 @@ namespace Deveel.Data {
 		}
 
 		private static void CreateTestTable(IQuery context) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] {SqlExpression.Constant(tableInfo.TableName.FullName)});
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
+			var tableName = ObjectName.Parse("APP.test_table");
 
-			context.Session.Access().CreateTable(tableInfo);
-			context.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			context.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableName.FullName)})))
+				.WithColumn("first_name", PrimitiveTypes.String())
+				.WithColumn("last_name", PrimitiveTypes.String())
+				.WithColumn("birth_date", PrimitiveTypes.DateTime())
+				.WithColumn("active", PrimitiveTypes.Boolean()));
+
+			context.Session.Access().AddPrimaryKey(tableName, "id", "PK_TEST_TABLE");
 		}
 
 		private static void AddTestData(IQuery context) {

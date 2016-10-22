@@ -3,8 +3,6 @@
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Statements;
-using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
@@ -13,10 +11,11 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class CloseTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			AdminQuery.Access().CreateTable(tableInfo);
+			AdminQuery.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
+
 			DeclareCursors(AdminQuery);
 			OpenCursors(AdminQuery);
 		}

@@ -18,16 +18,18 @@ namespace Deveel.Data {
 
 		private void CreateTable(IQuery query) {
 			var tableName = ObjectName.Parse("APP.persons");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn(new ColumnInfo("id", PrimitiveTypes.BigInt()) {
-				IsNotNull = true,
-				DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
-					SqlExpression.Constant(tableName.FullName)
-				})
-			});
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("age", PrimitiveTypes.Integer());
-			query.Access().CreateTable(tableInfo);
+
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.BigInt())
+					.NotNull()
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
+						SqlExpression.Constant(tableName.FullName)
+					})))
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("age", PrimitiveTypes.Integer()));
 		}
 
 		private void InsertData(IQuery query) {

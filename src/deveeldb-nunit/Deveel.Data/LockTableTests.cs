@@ -17,11 +17,11 @@ namespace Deveel.Data {
 		}
 
 		protected override bool OnSetUp(string testName, IQuery query) {
-			var tableName = ObjectName.Parse("APP.test1");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			query.Access().CreateTable(tableInfo);
+			query.Access().CreateTable(table => table
+				.Named("APP.test1")
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String()));
+
 			return true;
 		}
 

@@ -16,18 +16,18 @@ namespace Deveel.Data.Sql.Triggers {
 		}
 
 		private static void OnCompositeCreate(IQuery systemQuery) {
-			var tableInfo = new TableInfo(TriggerManager.TriggerTableName);
-			tableInfo.AddColumn("schema", PrimitiveTypes.String());
-			tableInfo.AddColumn("name", PrimitiveTypes.String());
-			tableInfo.AddColumn("type", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("on_object", PrimitiveTypes.String());
-			tableInfo.AddColumn("time", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("action", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("procedure_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("args", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("body", PrimitiveTypes.Binary());
-			tableInfo.AddColumn("status", PrimitiveTypes.TinyInt());
-			systemQuery.Access().CreateTable(tableInfo);
+			systemQuery.Access().CreateTable(table => table
+				.Named(TriggerManager.TriggerTableName)
+				.WithColumn("schema", PrimitiveTypes.String())
+				.WithColumn("name", PrimitiveTypes.String())
+				.WithColumn("type", PrimitiveTypes.Integer())
+				.WithColumn("on_object", PrimitiveTypes.String())
+				.WithColumn("time", PrimitiveTypes.Integer())
+				.WithColumn("action", PrimitiveTypes.Integer())
+				.WithColumn("procedure_name", PrimitiveTypes.String())
+				.WithColumn("args", PrimitiveTypes.Binary())
+				.WithColumn("body", PrimitiveTypes.Binary())
+				.WithColumn("status", PrimitiveTypes.TinyInt()));
 		}
 
 		private static void OnBuild(ISystemBuilder builder) {
@@ -36,9 +36,6 @@ namespace Deveel.Data.Sql.Triggers {
 					.With<TriggerManager>()
 					.HavingKey(DbObjectType.Trigger)
 					.InTransactionScope())
-				//.Use<ITableCompositeCreateCallback>(options => options
-				//	.With<TriggersInit>()
-				//	.InQueryScope())
 				.Use<ITableContainer>(options => options
 					.With<OldAndNewTableContainer>()
 					.InTransactionScope())

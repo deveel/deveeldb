@@ -195,11 +195,18 @@ namespace Deveel.Data {
 			return Session.Transaction.GetTableType(tableName);
 		}
 
+		public void CreateTable(Action<TableInfoBuilder> table) {
+			var builder = new TableInfoBuilder();
+			table(builder);
+
+			CreateTable(builder.Build());
+		}
+
 		public void CreateTable(TableInfo tableInfo) {
 			CreateTable(tableInfo, false);
 		}
 
-		public virtual void CreateTable(TableInfo tableInfo, bool temporary) {
+		public void CreateTable(TableInfo tableInfo, bool temporary) {
 			Session.Transaction.CreateTable(tableInfo, temporary);
 		}
 
@@ -360,18 +367,6 @@ namespace Deveel.Data {
 
 		public bool TableExists(ObjectName tableName) {
 			return ObjectExists(DbObjectType.Table, tableName);
-		}
-
-		public void CreateSystemTable(TableInfo tableInfo) {
-			if (tableInfo == null)
-				throw new ArgumentNullException("tableInfo");
-
-			//var tableName = tableInfo.TableName;
-
-			//if (!Session.User.CanCreateTable(tableName))
-			//	throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Create);
-
-			CreateTable(tableInfo, false);
 		}
 
 		#endregion

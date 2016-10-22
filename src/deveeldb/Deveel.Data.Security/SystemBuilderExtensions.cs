@@ -54,7 +54,7 @@ namespace Deveel.Data.Security {
 			tableInfo.AddColumn("name", PrimitiveTypes.String());
 			// TODO: User table must be completed ...
 			tableInfo = tableInfo.AsReadOnly();
-			context.Access().CreateSystemTable(tableInfo);
+			context.Access().CreateTable(tableInfo);
 
 			context.Access().AddPrimaryKey(UserManager.UserTableName, new[] { "name" }, "SYSTEM_USER_PK");
 
@@ -64,19 +64,19 @@ namespace Deveel.Data.Security {
 			tableInfo.AddColumn("method_args", PrimitiveTypes.Binary());
 			tableInfo.AddColumn("identifier", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			context.Access().CreateSystemTable(tableInfo);
+			context.Access().CreateTable(tableInfo);
 
 			tableInfo = new TableInfo(UserManager.UserRoleTableName);
 			tableInfo.AddColumn("user", PrimitiveTypes.String());
 			tableInfo.AddColumn("role", PrimitiveTypes.String());
 			tableInfo.AddColumn("admin", PrimitiveTypes.Boolean());
 			tableInfo = tableInfo.AsReadOnly();
-			context.Access().CreateSystemTable(tableInfo);
+			context.Access().CreateTable(tableInfo);
 
 			tableInfo = new TableInfo(UserManager.RoleTableName);
 			tableInfo.AddColumn("name", PrimitiveTypes.String(), true);
 			tableInfo = tableInfo.AsReadOnly();
-			context.Access().CreateSystemTable(tableInfo);
+			context.Access().CreateTable(tableInfo);
 
 			context.Access().AddPrimaryKey(UserManager.RoleTableName, new[] { "name" }, "SYSTEM_ROLE_PK");
 
@@ -102,7 +102,7 @@ namespace Deveel.Data.Security {
 			tableInfo.AddColumn("grant_option", PrimitiveTypes.Boolean());
 			tableInfo.AddColumn("granter", PrimitiveTypes.String());
 			tableInfo = tableInfo.AsReadOnly();
-			systemQuery.Access().CreateSystemTable(tableInfo);
+			systemQuery.Access().CreateTable(tableInfo);
 		}
 
 		private static void OnSystemBuild(ISystemBuilder builder) {

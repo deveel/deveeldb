@@ -31,18 +31,22 @@ namespace Deveel.Data {
 		}
 
 		private static void CreateTable(IQuery query) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			var idColumn = tableInfo.AddColumn("id", PrimitiveTypes.Integer());
-			idColumn.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY",
-				new SqlExpression[] { SqlExpression.Constant(tableInfo.TableName.FullName) });
-			tableInfo.AddColumn("first_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("last_name", PrimitiveTypes.String());
-			tableInfo.AddColumn("birth_date", PrimitiveTypes.DateTime());
-			tableInfo.AddColumn("active", PrimitiveTypes.Boolean());
-			tableInfo.AddColumn("bio", PrimitiveTypes.Clob(2048));
+			var tableName = ObjectName.Parse("APP.test_table");
 
-			query.Session.Access().CreateTable(tableInfo);
-			query.Session.Access().AddPrimaryKey(tableInfo.TableName, "id", "PK_TEST_TABLE");
+			query.Access().CreateTable(table => table
+				.Named(tableName)
+				.WithColumn(column => column
+					.Named("id")
+					.HavingType(PrimitiveTypes.Integer())
+					.WithDefault(SqlExpression.FunctionCall("UNIQUEKEY",
+						new SqlExpression[] {SqlExpression.Constant(tableName.FullName)})))
+				.WithColumn("first_name", PrimitiveTypes.String())
+				.WithColumn("last_name", PrimitiveTypes.String())
+				.WithColumn("birth_date", PrimitiveTypes.DateTime())
+				.WithColumn("active", PrimitiveTypes.Boolean())
+				.WithColumn("bio", PrimitiveTypes.Clob(2048)));
+
+			query.Session.Access().AddPrimaryKey(tableName, "id", "PK_TEST_TABLE");
 		}
 
 		private static void InsertData(IQuery query) {

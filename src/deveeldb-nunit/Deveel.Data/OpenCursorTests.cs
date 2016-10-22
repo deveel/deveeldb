@@ -27,10 +27,11 @@ namespace Deveel.Data {
 	[TestFixture]
 	public sealed class OpenCursorTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
-			var tableInfo = new TableInfo(ObjectName.Parse("APP.test_table"));
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
-			AdminQuery.Access().CreateTable(tableInfo);
+			AdminQuery.Access().CreateTable(table => table
+				.Named("APP.test_table")
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
+
 			DeclareCursors(AdminQuery);
 		}
 

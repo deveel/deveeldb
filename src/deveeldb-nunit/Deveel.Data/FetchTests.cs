@@ -30,11 +30,11 @@ namespace Deveel.Data {
 	public sealed class FetchTests : ContextBasedTest {
 		protected override void OnAfterSetup(string testName) {
 			var tableName = ObjectName.Parse("APP.test_table");
-			var tableInfo = new TableInfo(tableName);
-			tableInfo.AddColumn("a", PrimitiveTypes.Integer());
-			tableInfo.AddColumn("b", PrimitiveTypes.String(), false);
 
-			AdminQuery.Access().CreateTable(tableInfo);
+			AdminQuery.Access().CreateTable(tableBuilder => tableBuilder
+				.Named(tableName)
+				.WithColumn("a", PrimitiveTypes.Integer())
+				.WithColumn("b", PrimitiveTypes.String()));
 
 			var table = AdminQuery.Access().GetMutableTable(tableName);
 			for (int i = 0; i < 10; i++) {
