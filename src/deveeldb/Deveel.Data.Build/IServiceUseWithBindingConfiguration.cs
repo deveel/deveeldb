@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Build {
 	public interface IServiceUseWithBindingConfiguration<TService, TImplementation> where TImplementation : class, TService {
 		IServiceUseWithBindingConfiguration<TService, TImplementation> HavingKey(object key);
 

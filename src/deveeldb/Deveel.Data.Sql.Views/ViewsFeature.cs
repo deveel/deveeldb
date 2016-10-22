@@ -14,12 +14,12 @@
 //    limitations under the License.
 //
 
-
+using Deveel.Data.Build;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Views {
-	public sealed class ViewsModule : ISystemFeature {
+	public sealed class ViewsFeature : ISystemFeature {
 		public string Name {
 			get { return "Views"; }
 		}
@@ -30,16 +30,20 @@ namespace Deveel.Data.Sql.Views {
 
 		public void OnBuild(ISystemBuilder builder) {
 			builder.Use<IObjectManager>(options => options
-					.To<ViewManager>()
+					.With<ViewManager>()
 					.InTransactionScope()
 					.HavingKey(DbObjectType.View))
 				.Use<ITableCompositeCreateCallback>(options => options
-					.To<ViewsInit>()
+					.With<ViewsInit>()
 					.HavingKey("Views")
 					.InTransactionScope())
 				.Use<ITableContainer>(options => options
-					.To<ViewTableContainer>()
+					.With<ViewTableContainer>()
 					.InTransactionScope());
+		}
+
+		public void OnSystemEvent(SystemEvent @event) {
+			throw new System.NotImplementedException();
 		}
 	}
 }

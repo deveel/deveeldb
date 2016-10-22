@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Deveel.Data.Build;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
@@ -225,33 +226,25 @@ namespace Deveel.Data {
 		public ITable SingleRowTable { get; private set; }
 
 		private void OnDatabaseCreate(IQuery context) {
-			var callbacks = context.Context.ResolveAllServices<IDatabaseCreateCallback>();
-			if (callbacks != null) {
-				foreach (var callback in callbacks) {
-					if (callback == null)
-						continue;
-
-					try {
-						callback.OnDatabaseCreate(context);
-					} catch (Exception ex) {
-						context.OnError(new Exception(String.Format("Database-Create callback '{0}' caused an error.", callback.GetType()), ex));
-					}
+			foreach (var feature in System.Features) {
+				try {
+					feature.OnSystemEvent(SystemEventType.DatabaseCreate, context);
+				} catch (Exception ex) {
+					context.OnError(new Exception(
+						String.Format("Feature '{0}' (v{1}) caused an error on Database-Create event.",
+							feature.FeatureName, feature.Version), ex));
 				}
 			}
 		}
 
 		private void OnDatabaseCreated(IQuery context) {
-			var callbacks = context.Context.ResolveAllServices<IDatabaseCreatedCallback>();
-			if (callbacks != null) {
-				foreach (var callback in callbacks) {
-					if (callback == null)
-						continue;
-
-					try {
-						callback.OnDatabaseCreated(context);
-					} catch (Exception ex) {
-						context.OnError(new Exception(String.Format("Database-Created callback '{0}' caused an error.", callback.GetType()), ex));
-					}
+			foreach (var feature in System.Features) {
+				try {
+					feature.OnSystemEvent(SystemEventType.DatabaseCreated, context);
+				} catch (Exception ex) {
+					context.OnError(new Exception(
+						String.Format("Feature '{0}' (v{1}) caused an error on Database-Created event.",
+							feature.FeatureName, feature.Version), ex));
 				}
 			}
 		}

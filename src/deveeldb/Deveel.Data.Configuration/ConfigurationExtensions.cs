@@ -220,20 +220,20 @@ namespace Deveel.Data.Configuration {
 
 #endregion
 
-#region Load / Save
+		#region Load / Save
 
-		public static void Load(this IConfiguration config, IConfigSource source) {
-			config.Load(source, new PropertiesConfigFormatter());
+		public static void Load(this IConfiguration config, IConfigurationSource source) {
+			config.Load(source, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Load(this IConfiguration config, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, IConfigurationFormatter formatter) {
 			if (config.Source == null)
 				throw new InvalidOperationException("Source was not configured");
 
 			config.Load(config.Source, formatter);
 		}
 
-		public static void Load(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
+		public static void Load(this IConfiguration config, IConfigurationSource source, IConfigurationFormatter formatter) {
 			try {
 				if (source != null) {
 					using (var sourceStream = source.InputStream) {
@@ -250,29 +250,29 @@ namespace Deveel.Data.Configuration {
 		}
 
 #if !PCL
-		public static void Load(this IConfiguration config, string fileName, IConfigFormatter formatter) {
-			config.Load(new FileConfigSource(fileName), formatter);
+		public static void Load(this IConfiguration config, string fileName, IConfigurationFormatter formatter) {
+			config.Load(new FileConfigurationSource(fileName), formatter);
 		}
 
 		public static void Load(this IConfiguration config, string fileName) {
-			config.Load(fileName, new PropertiesConfigFormatter());
+			config.Load(fileName, new PropertiesConfigurationFormatter());
 		}
 #endif
 
-		public static void Load(this IConfiguration config, Stream inputStream, IConfigFormatter formatter) {
-			config.Load(new StreamConfigSource(inputStream), formatter);
+		public static void Load(this IConfiguration config, Stream inputStream, IConfigurationFormatter formatter) {
+			config.Load(new StreamConfigurationSource(inputStream), formatter);
 		}
 
 		public static void Load(this IConfiguration config, Stream inputStream) {
-			config.Load(inputStream, new PropertiesConfigFormatter());
+			config.Load(inputStream, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, IConfigSource source, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigurationSource source, IConfigurationFormatter formatter) {
 			Save(config, source, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IConfiguration config, IConfigSource source, ConfigurationLevel level,
-			IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigurationSource source, ConfigurationLevel level,
+			IConfigurationFormatter formatter) {
 			try {
 				var outputStream = source.OutputStream;
 				if (!outputStream.CanWrite)
@@ -286,11 +286,11 @@ namespace Deveel.Data.Configuration {
 			}
 		}
 
-		public static void Save(this IConfiguration config, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, IConfigurationFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, formatter);
 		}
 
-		public static void Save(this IConfiguration config, ConfigurationLevel level, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, IConfigurationFormatter formatter) {
 			if (config.Source == null)
 				throw new DatabaseConfigurationException("The source was not configured in the configuration.");
 
@@ -302,7 +302,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IConfiguration config, ConfigurationLevel level) {
-			Save(config, level, new PropertiesConfigFormatter());
+			Save(config, level, new PropertiesConfigurationFormatter());
 		}
 
 #if !PCL
@@ -311,15 +311,15 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName) {
-			Save(config, level, fileName, new PropertiesConfigFormatter());
+			Save(config, level, fileName, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, string fileName, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, string fileName, IConfigurationFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, fileName, formatter);
 		}
 
-		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigFormatter formatter) {
-			using (var source = new FileConfigSource(fileName)) {
+		public static void Save(this IConfiguration config, ConfigurationLevel level, string fileName, IConfigurationFormatter formatter) {
+			using (var source = new FileConfigurationSource(fileName)) {
 				config.Save(source, level, formatter);
 			}
 		}
@@ -330,18 +330,18 @@ namespace Deveel.Data.Configuration {
 		}
 
 		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream) {
-			Save(config, level, outputStream, new PropertiesConfigFormatter());
+			Save(config, level, outputStream, new PropertiesConfigurationFormatter());
 		}
 
-		public static void Save(this IConfiguration config, Stream outputStream, IConfigFormatter formatter) {
+		public static void Save(this IConfiguration config, Stream outputStream, IConfigurationFormatter formatter) {
 			Save(config, ConfigurationLevel.Current, outputStream, formatter);
 		}
 
-		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream, IConfigFormatter formatter) {
-			config.Save(new StreamConfigSource(outputStream), level, formatter);
+		public static void Save(this IConfiguration config, ConfigurationLevel level, Stream outputStream, IConfigurationFormatter formatter) {
+			config.Save(new StreamConfigurationSource(outputStream), level, formatter);
 		}
 
-#endregion
+		#endregion
 
 		public static IConfiguration MergeWith(this IConfiguration configuration, IConfiguration other) {
 			var newConfig = new Configuration(configuration);

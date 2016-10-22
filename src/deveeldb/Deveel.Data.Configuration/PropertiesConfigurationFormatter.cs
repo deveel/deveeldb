@@ -22,7 +22,7 @@ using System.IO;
 using Deveel.Data.Util;
 
 namespace Deveel.Data.Configuration {
-	public sealed class PropertiesConfigFormatter : IConfigFormatter {
+	public sealed class PropertiesConfigurationFormatter : IConfigurationFormatter {
 		private void SetValue(IConfiguration config, string propKey, string value) {
 			config.SetValue(propKey, value);
 		}

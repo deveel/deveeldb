@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Build;
 using Deveel.Data.Index;
 using Deveel.Data.Mapping;
 using Deveel.Data.Security;

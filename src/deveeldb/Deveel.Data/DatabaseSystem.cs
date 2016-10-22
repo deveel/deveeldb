@@ -42,8 +42,8 @@ namespace Deveel.Data {
 
 		internal DatabaseSystem(ISystemContext context, IEnumerable<FeatureInfo> modules) {
 			Context = context;
-			Modules = modules;
-			OnCreated();
+			Features = modules;
+			// OnCreated();
 		}
 
 		~DatabaseSystem() {
@@ -71,7 +71,7 @@ namespace Deveel.Data {
 				metadata[key] = config.Value;
 			}
 
-			foreach (var module in Modules) {
+			foreach (var module in Features) {
 				metadata[String.Format("[module]:{0}", module.FeatureName)] = module.Version;
 			}
 		}
@@ -89,34 +89,34 @@ namespace Deveel.Data {
 			}
 		}
 
-		public IEnumerable<FeatureInfo> Modules { get; private set; } 
+		public IEnumerable<FeatureInfo> Features { get; private set; } 
 
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
-		private void OnCreated() {
-			var callbacks = Context.ResolveAllServices<ISystemCreateCallback>();
-			foreach (var callback in callbacks) {
-				try {
-					callback.OnCreated(this);
-				} catch (Exception ex) {
-					this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
-				}
-			}
-		}
+		//private void OnCreated() {
+		//	var callbacks = Context.ResolveAllServices<ISystemCreateCallback>();
+		//	foreach (var callback in callbacks) {
+		//		try {
+		//			callback.OnCreated(this);
+		//		} catch (Exception ex) {
+		//			this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
+		//		}
+		//	}
+		//}
 
-		private void OnDispose() {
-			var callbacks = Context.ResolveAllServices<ISystemDisposeCallback>();
-			foreach (var callback in callbacks) {
-				try {
-					callback.OnDispose(this);
-				} catch (Exception ex) {
-					this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
-				}
-			}
-		}
+		//private void OnDispose() {
+		//	var callbacks = Context.ResolveAllServices<ISystemDisposeCallback>();
+		//	foreach (var callback in callbacks) {
+		//		try {
+		//			callback.OnDispose(this);
+		//		} catch (Exception ex) {
+		//			this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
+		//		}
+		//	}
+		//}
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
@@ -130,7 +130,7 @@ namespace Deveel.Data {
 						databases.Clear();
 					}
 
-					OnDispose();
+					// OnDispose();
 
 					if (Context != null)
 						Context.Dispose();

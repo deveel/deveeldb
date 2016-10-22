@@ -403,15 +403,14 @@ namespace Deveel.Data {
 				try {
 					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 						using (var query = session.CreateQuery()) {
-							var callbacks = query.Context.ResolveAllServices<ITableCompositeSetupCallback>();
-							foreach (var callback in callbacks) {
-								if (callback == null)
-									continue;
-
+							foreach (var feature in Database.System.Features) {
 								try {
-									callback.OnTableCompositeSetup(query);
+									feature.OnSystemEvent(SystemEventType.TableCompositeSetup, query);
 								} catch (Exception ex) {
-									query.Context.OnError(new Exception(String.Format("Composite-Setup callback '{0}' caused an error.", callback.GetType()), ex));
+									query.Context.OnError(
+										new Exception(
+											String.Format("The feature {0} (v{1}) caused an error on Composite-Setup event.", feature.FeatureName,
+												feature.Version), ex));
 									throw;
 								}
 							}
@@ -432,9 +431,8 @@ namespace Deveel.Data {
 				try {
 					using (var session = new SystemSession(transaction, SystemSchema.Name)) {
 						using (var query = session.CreateQuery()) {
-							var callbacks = query.Context.ResolveAllServices<ITableCompositeCreateCallback>();
-							foreach (var callback in callbacks) {
-								callback.OnTableCompositeCreate(query);
+							foreach (var feature in Database.System.Features) {
+								feature.OnSystemEvent(SystemEventType.TableCompositeCreate, query);
 							}
 						}
 					}

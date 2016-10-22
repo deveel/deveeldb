@@ -28,7 +28,7 @@ namespace Deveel.Data.Configuration {
 	/// format to the data stored and retrieved (for example
 	/// an XML fragmanet, a key/value file, a binary file, etc.).
 	/// </remarks>
-	public interface IConfigFormatter {
+	public interface IConfigurationFormatter {
 		/// <summary>
 		/// Loads a stored configuration from the given stream
 		/// into the configuration argument.

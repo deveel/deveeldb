@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Build {
 	public static class ServiceBuilderExtensions {
 		public static ISystemBuilder Use<TService>(this ISystemBuilder builder, object key) where TService : class {
 			return builder.Use<TService>(config => config.ToSelf().HavingKey(key));
@@ -12,7 +12,7 @@ namespace Deveel.Data {
 
 		public static ISystemBuilder Use<TService, TImplementation>(this ISystemBuilder builder, object key)
 			where TImplementation : class, TService {
-			return builder.Use<TService>(config => config.To<TImplementation>().HavingKey(key));
+			return builder.Use<TService>(config => config.With<TImplementation>().HavingKey(key));
 		}
 
 		public static ISystemBuilder Use<TService, TImplementation>(this ISystemBuilder builder)
@@ -26,7 +26,7 @@ namespace Deveel.Data {
 		}
 
 		public static ISystemBuilder Use<TService>(this ISystemBuilder builder, object key, TService service) where TService : class {
-			return builder.Use<TService>(options => options.ToInstance(service).HavingKey(key));
+			return builder.Use<TService>(options => options.With(service).HavingKey(key));
 		}
 
 		public static ISystemBuilder Use<TService>(this ISystemBuilder builder, Action<IServiceUseConfiguration<TService>> options) {
@@ -34,6 +34,17 @@ namespace Deveel.Data {
 			options(provider);
 
 			return builder.Use(provider.Options);
+		}
+
+		public static ISystemBuilder UseFeature<TFeature>(this ISystemBuilder builder, TFeature feature) where TFeature : class, ISystemFeature {
+			return builder.Use<ISystemFeature>(options => options.With(feature));
+		}
+
+		public static ISystemBuilder UseFeature(this ISystemBuilder builder, Action<FeatureBuilder> feature) {
+			var featureBuilder = new FeatureBuilder();
+			feature(featureBuilder);
+
+			return builder.UseFeature(featureBuilder.Build());
 		}
 
 		#region ServiceUseConfigurationProvider
@@ -45,13 +56,13 @@ namespace Deveel.Data {
 				Options = new ServiceUseOptions(typeof(TService));
 			}
 
-			public IServiceUseWithBindingConfiguration<TService, TImplementation> To<TImplementation>() 
+			public IServiceUseWithBindingConfiguration<TService, TImplementation> With<TImplementation>() 
 				where TImplementation : class, TService {
 				Options.ImplementationType = typeof(TImplementation);
 				return new ServiceUseWithBindingConfigurationProvider<TService, TImplementation>(Options);
 			}
 
-			public IServiceUseWithBindingConfiguration<TService, TImplementation> ToInstance<TImplementation>(TImplementation instance) 
+			public IServiceUseWithBindingConfiguration<TService, TImplementation> With<TImplementation>(TImplementation instance) 
 				where TImplementation : class, TService {
 				Options.Instance = instance;
 				return new ServiceUseWithBindingConfigurationProvider<TService, TImplementation>(Options);

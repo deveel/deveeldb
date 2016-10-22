@@ -15,6 +15,7 @@
 
 using System;
 
+using Deveel.Data.Build;
 using Deveel.Data.Configuration;
 using Deveel.Data.Security;
 using Deveel.Data.Store;
@@ -40,7 +41,7 @@ namespace Deveel.Data {
 
 		[SetUp]
 		public void TestSetup() {
-			var systemBuilder = SystemBuilder.Default.UseDefaultConfiguration();
+			var systemBuilder = SystemBuilder.Default;
 			systemContext = systemBuilder.Build();
 
 			var test = TestContext.CurrentContext.Test.Name;

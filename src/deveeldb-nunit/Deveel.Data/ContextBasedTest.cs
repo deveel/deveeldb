@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Deveel.Data.Build;
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
 using Deveel.Data.Services;
@@ -69,7 +70,7 @@ namespace Deveel.Data {
 		}
 
 		protected virtual ISystem CreateSystem() {
-			var builder = SystemBuilder.Default.UseDefaultConfiguration();
+			var builder = SystemBuilder.Default;
 			RegisterServices(builder);
 			return builder.Build();
 		}

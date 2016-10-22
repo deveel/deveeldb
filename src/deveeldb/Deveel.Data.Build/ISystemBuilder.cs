@@ -1,11 +1,7 @@
 ﻿using System;
 
-using Deveel.Data.Services;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Build {
 	public interface ISystemBuilder {
-		ServiceContainer ServiceContainer { get; }
-
 		ISystemBuilder Use(ServiceUseOptions options);
 
 		ISystem Build();

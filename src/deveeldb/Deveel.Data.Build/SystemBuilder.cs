@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 
+using Deveel.Data.Configuration;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Services;
@@ -33,13 +34,13 @@ using Deveel.Data.Sql.Variables;
 using Deveel.Data.Sql.Views;
 using Deveel.Data.Store;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Build {
 	public class SystemBuilder : ISystemBuilder {
 		public SystemBuilder() {
 			ServiceContainer = new ServiceContainer();
 		}
 
-		public ServiceContainer ServiceContainer { get; private set; }
+		private ServiceContainer ServiceContainer { get; set; }
 
 		public static SystemBuilder Default {
 			get {
@@ -80,33 +81,34 @@ namespace Deveel.Data {
 				if (policy == ServiceUsePolicy.Replace) {
 					if (ServiceContainer.IsRegistered(type))
 						ServiceContainer.Unregister(type);
-
-					ServiceContainer.Register(registration);
 				}
+
+				ServiceContainer.Register(registration);
 			}
 
 			return this;
 		}
 
 		private static void RegisterDefaultServices(ISystemBuilder builder) {
-#if !MICRO
-			builder.UseSecurity();
+			builder.UseDefaultConfiguration()
 
-			builder.UseDefaultSqlCompiler()
-				.UseDefaultStatementCache();
+#if !MICRO
+				.UseSecurityFeature()
+				.UseDefaultSqlCompiler()
+				.UseDefaultStatementCache()
 #endif
 
-			builder.UseDefaultQueryPlanner();
+				.UseDefaultQueryPlanner()
 
-			builder.UseLocalFileSystem()
+				.UseLocalFileSystem()
 				.UseInMemoryStoreSystem()
 				.UseSingleFileStoreSystem()
 				.UseJournaledStoreSystem()
 				.UseScatteringFileDataFactory();
 		}
 
-		private ISystemContext BuildContext(out IEnumerable<FeatureInfo> modules) {
-			modules = LoadFeatures();
+		private ISystemContext BuildContext(out IEnumerable<FeatureInfo> features) {
+			features = LoadFeatures();
 
 			return new SystemContext(ServiceContainer);
 		}
@@ -118,7 +120,7 @@ namespace Deveel.Data {
 			foreach (var feature in features) {
 				feature.OnBuild(this);
 
-				featureInfos.Add(new FeatureInfo(feature.Name, feature.Version));
+				featureInfos.Add(feature.GetInfo());
 			}
 
 			ServiceContainer.Unregister<ISystemFeature>();
@@ -128,13 +130,13 @@ namespace Deveel.Data {
 		public ISystem Build() {
 			// ensure the required components are configured in the builder
 			// TODO: in a future revision they will be optional too
-			this.UseTables()
-				.UseRoutines()
-				.UseSchema()
-				.UseViews()
-				.UseSequences()
-				.UseTriggers()
-				.UseTypes()
+			this.UseTablesFeature()
+				.UseRoutinesFeature()
+				.UseSchemaFeature()
+				.UseViewsFeature()
+				.UseSequencesFeature()
+				.UseTriggersFeature()
+				.UseTypesFeature()
 				.UseVariables();
 
 			IEnumerable<FeatureInfo> modules;

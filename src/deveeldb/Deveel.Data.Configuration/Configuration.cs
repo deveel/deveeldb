@@ -42,7 +42,7 @@ namespace Deveel.Data.Configuration {
 		/// <param name="parent">The parent <see cref="Configuration"/> object that
 		/// will provide fallback configurations</param>
 		/// <param name="source"></param>
-		public Configuration(IConfiguration parent, IConfigSource source)
+		public Configuration(IConfiguration parent, IConfigurationSource source)
 			: this(parent == null) {
 			Parent = parent;
 			Source = source;
@@ -51,7 +51,7 @@ namespace Deveel.Data.Configuration {
 				this.Load(source);
 		}
 
-		public Configuration(IConfigSource source)
+		public Configuration(IConfigurationSource source)
 			: this(null, source) {
 		}
 
@@ -64,7 +64,7 @@ namespace Deveel.Data.Configuration {
 		}
 
 		/// <inheritdoc/>
-		public IConfigSource Source { get; set; }
+		public IConfigurationSource Source { get; set; }
 
 		/// <inheritdoc/>
 		public IConfiguration Parent { get; set; }

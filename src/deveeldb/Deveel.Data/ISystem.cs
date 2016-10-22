@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Configuration;
-using Deveel.Data.Diagnostics;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -35,7 +34,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets a list of the modules handled by the system.
 		/// </summary>
-		IEnumerable<FeatureInfo> Modules { get; }
+		IEnumerable<FeatureInfo> Features { get; }
 		 
 		/// <summary>
 		/// Gets a context that provides the state of the system.

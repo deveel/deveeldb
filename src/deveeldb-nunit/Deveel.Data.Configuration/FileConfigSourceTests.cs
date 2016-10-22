@@ -60,8 +60,8 @@ namespace Deveel.Data.Configuration {
 			var dbConfig = new Configuration();
 
 			var path = Path.Combine(Environment.CurrentDirectory, FileName);
-			using (var source = new FileConfigSource(path)) {
-				dbConfig.Load(source, new PropertiesConfigFormatter());
+			using (var source = new FileConfigurationSource(path)) {
+				dbConfig.Load(source, new PropertiesConfigurationFormatter());
 			}
 
 			Assert.AreEqual(2, dbConfig.GetKeys().Count());

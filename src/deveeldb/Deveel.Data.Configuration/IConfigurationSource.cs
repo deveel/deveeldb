@@ -26,13 +26,13 @@ namespace Deveel.Data.Configuration {
 	/// <remarks>
 	/// <para>
 	/// The streams returned from implementations of this interface
-	/// will be passed to <see cref="IConfigFormatter"/>
+	/// will be passed to <see cref="IConfigurationFormatter"/>
 	/// instances for constructing a <see cref="IConfiguration"/> object,
 	/// or to store the configurations of a <see cref="IConfiguration"/>
 	/// into a given output.
 	/// </para>
 	/// </remarks>
-	public interface IConfigSource {
+	public interface IConfigurationSource {
 		/// <summary>
 		/// Gets a <see cref="Stream"/> that is used to load the
 		/// configurations.

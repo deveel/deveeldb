@@ -16,10 +16,15 @@
 
 
 using System;
+using System.Reflection;
+
+using Deveel.Data.Build;
 
 namespace Deveel.Data {
 	public sealed class FeatureInfo {
-		public FeatureInfo(string featureName, string version) {
+		private Action<SystemEvent> systemEventHandler;
+
+		private FeatureInfo(string featureName, string version) {
 			if (String.IsNullOrEmpty(featureName))
 				throw new ArgumentNullException("featureName");
 
@@ -30,5 +35,15 @@ namespace Deveel.Data {
 		public string FeatureName { get; private set; }
 
 		public string Version { get; private set; }
+
+		internal static FeatureInfo BuildFrom(ISystemFeature feature) {
+			var info = new FeatureInfo(feature.Name, feature.Version);
+			info.systemEventHandler = feature.OnSystemEvent;
+			return info;
+		}
+
+		internal void OnSystemEvent(SystemEventType eventType, IQuery systemQuery) {
+			systemEventHandler(new SystemEvent(eventType, systemQuery));
+		}
 	}
 }

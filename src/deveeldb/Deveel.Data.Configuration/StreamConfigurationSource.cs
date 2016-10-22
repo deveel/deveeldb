@@ -20,11 +20,11 @@ using System.IO;
 
 namespace Deveel.Data.Configuration {
 	/// <summary>
-	/// An implementation of <see cref="IConfigSource"/>
+	/// An implementation of <see cref="IConfigurationSource"/>
 	/// that handles a single <see cref="Stream"/> as
 	/// source and destination of the configurations.
 	/// </summary>
-	public class StreamConfigSource : IConfigSource {
+	public class StreamConfigurationSource : IConfigurationSource {
 		/// <summary>
 		/// Constructs the source with the given stream.
 		/// </summary>
@@ -33,7 +33,7 @@ namespace Deveel.Data.Configuration {
 		/// <exception cref="ArgumentNullException">
 		/// If the given <paramref name="stream"/> is <c>null</c>.
 		/// </exception>
-		public StreamConfigSource(Stream stream) {
+		public StreamConfigurationSource(Stream stream) {
 			if (stream == null)
 				throw new ArgumentNullException("stream");
 
@@ -45,11 +45,11 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		public Stream Stream { get; private set; }
 
-		Stream IConfigSource.InputStream {
+		Stream IConfigurationSource.InputStream {
 			get { return Stream; }
 		}
 
-		Stream IConfigSource.OutputStream {
+		Stream IConfigurationSource.OutputStream {
 			get { return Stream; }
 		}
 	}

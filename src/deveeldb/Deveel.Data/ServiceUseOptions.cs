@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Deveel.Data.Build;
+
 namespace Deveel.Data {
 	public sealed class ServiceUseOptions {
 		private Type implType;

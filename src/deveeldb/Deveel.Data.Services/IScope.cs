@@ -24,8 +24,6 @@ namespace Deveel.Data.Services {
 
 		void Register(ServiceRegistration registration);
 
-		//IRegistrationConfiguration<TService> Bind<TService>(); 
-
 		bool Unregister(Type serviceType, object serviceKey);
 
 		bool IsRegistered(Type serviceType, object serviceKey);

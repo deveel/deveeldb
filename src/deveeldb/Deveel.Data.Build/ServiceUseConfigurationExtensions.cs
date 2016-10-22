@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Runtime.Remoting.Services;
 
-namespace Deveel.Data {
+namespace Deveel.Data.Build {
 	public static class ServiceUseConfigurationExtensions {
 		public static IServiceUseWithBindingConfiguration<TService, TService> ToSelf<TService>(this
 			IServiceUseConfiguration<TService> configuration)
 			where TService : class {
-			return configuration.To<TService>();
+			return configuration.With<TService>();
 		}
 
 		public static IServiceUseWithBindingConfiguration<TService, TImplementation> InSystemScope<TService, TImplementation>(

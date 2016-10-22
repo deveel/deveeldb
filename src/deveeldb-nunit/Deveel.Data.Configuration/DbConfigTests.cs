@@ -175,9 +175,9 @@ namespace Deveel.Data.Configuration {
 			properties.AppendLine("caching.type = Memory");
 
 			IConfiguration configuration = null;
-			Assert.DoesNotThrow(() => configuration = new Configuration(new StringConfigSource(properties.ToString())));
+			Assert.DoesNotThrow(() => configuration = new Configuration(new StringConfigurationSource(properties.ToString())));
 			Assert.IsNotNull(configuration);
-			Assert.DoesNotThrow(() => configuration.Load(new PropertiesConfigFormatter()));
+			Assert.DoesNotThrow(() => configuration.Load(new PropertiesConfigurationFormatter()));
 
 			Assert.DoesNotThrow(() => Assert.IsNotNull(configuration.GetValue("system.readOnly")));
 
@@ -202,8 +202,8 @@ namespace Deveel.Data.Configuration {
 			var filePath = Path.Combine(Environment.CurrentDirectory, "db.config");
 
 			var config = new Configuration();
-			using (var source = new FileConfigSource(filePath)) {
-				config.Load(source, new PropertiesConfigFormatter());
+			using (var source = new FileConfigurationSource(filePath)) {
+				config.Load(source, new PropertiesConfigurationFormatter());
 			}
 
 			Assert.AreEqual(2, config.Count());
@@ -226,7 +226,7 @@ namespace Deveel.Data.Configuration {
 			config.SetValue("system.configKey", 7679);
 			config.SetValue("db.name", "testdb");
 
-			config.Save(filePath, new PropertiesConfigFormatter());
+			config.Save(filePath, new PropertiesConfigurationFormatter());
 		}
 	}
 }

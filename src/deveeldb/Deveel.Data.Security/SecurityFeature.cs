@@ -17,6 +17,7 @@
 
 using System;
 
+using Deveel.Data.Build;
 using Deveel.Data.Services;
 using Deveel.Data.Sql;
 
@@ -33,25 +34,29 @@ namespace Deveel.Data.Security {
 		public void OnBuild(ISystemBuilder builder) {
 			builder
 				.Use<IUserManager>(options => options
-					.To<UserManager>()
+					.With<UserManager>()
 					.InSessionScope())
-				.Use<IDatabaseCreateCallback>(options => options
-					.To<UsersInit>()
-					.InQueryScope())
+				//.Use<IDatabaseCreateCallback>(options => options
+				//	.With<UsersInit>()
+				//	.InQueryScope())
 				.Use<IPrivilegeManager>(options => options
-					.To<PrivilegeManager>()
+					.With<PrivilegeManager>()
 					.InSessionScope())
 				.Use<ITableCompositeSetupCallback>(options => options
-					.To<PrivilegesInit>()
+					.With<PrivilegesInit>()
 					.InQueryScope())
 				.Use<IUserIdentifier>(options => options
-					.To<ClearTextUserIdentifier>());
+					.With<ClearTextUserIdentifier>());
 
 			// TODO: Add the system callbacks
 
 #if !PCL
 			builder.Use<IUserIdentifier, Pkcs12UserIdentifier>();
 #endif
+		}
+
+		public void OnSystemEvent(SystemEvent @event) {
+			throw new NotImplementedException();
 		}
 	}
 }

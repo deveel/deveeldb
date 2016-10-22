@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Deveel.Data.Build;
 using Deveel.Data.Services;
 using Deveel.Data.Store.Journaled;
 
@@ -7,7 +8,7 @@ namespace Deveel.Data.Store {
 	public static class SystemBuilderExtensions {
 		public static ISystemBuilder UseStoreSystem<T>(this ISystemBuilder builder, string key) where T : class, IStoreSystem {
 			return builder.Use<IStoreSystem>(options => options
-				.To<T>()
+				.With<T>()
 				.HavingKey(key)
 				.InDatabaseScope());
 
@@ -28,7 +29,7 @@ namespace Deveel.Data.Store {
 
 		public static ISystemBuilder UseFileSystem<T>(this ISystemBuilder builder, string key) where T : class, IFileSystem {
 			return builder.Use<IFileSystem>(options => options
-				.To<T>()
+				.With<T>()
 				.HavingKey(key)
 				.InSystemScope());
 		}
@@ -44,7 +45,7 @@ namespace Deveel.Data.Store {
 		public static ISystemBuilder UseStoreDataFactory<T>(this ISystemBuilder builder, string key)
 			where T : class, IStoreDataFactory {
 			return builder.Use<IStoreDataFactory>(options => options
-				.To<T>()
+				.With<T>()
 				.HavingKey(key)
 				.InDatabaseScope());
 		}

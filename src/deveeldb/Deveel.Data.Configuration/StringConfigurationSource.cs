@@ -16,13 +16,23 @@
 
 
 using System;
+using System.IO;
+using System.Text;
 
-namespace Deveel.Data.Services {
-	public interface IRegistrationConfiguration<TService> {
-		IRegistrationWithBindingConfiguration<TService, TImplementation> To<TImplementation>()
-			where TImplementation : class, TService;
+namespace Deveel.Data.Configuration {
+	public sealed class StringConfigurationSource : IConfigurationSource {
+		public StringConfigurationSource(string source) {
+			Source = source;
+		}
 
-		IRegistrationWithBindingConfiguration<TService, TImplementation> ToInstance<TImplementation>(TImplementation instance)
-			where TImplementation : class, TService;
+		public string Source { get; private set; }
+
+		public Stream InputStream {
+			get { return new MemoryStream(Encoding.UTF8.GetBytes(Source), false); }
+		}
+
+		public Stream OutputStream {
+			get { return new MemoryStream(Encoding.UTF8.GetBytes(Source), true);}
+		}
 	}
 }

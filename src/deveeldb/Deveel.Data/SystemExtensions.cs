@@ -16,6 +16,7 @@
 
 
 using System;
+using System.Linq;
 
 using Deveel.Data.Configuration;
 using Deveel.Data.Diagnostics;
@@ -23,6 +24,14 @@ using Deveel.Data.Security;
 
 namespace Deveel.Data {
 	public static class SystemExtensions {
+		public static bool HasFeature(this ISystem system, string name, string version) {
+			return system.Features.Any(x => x.FeatureName == name && x.Version == version);
+		}
+
+		public static bool HasFeature(this ISystem system, string name) {
+			return system.Features.Any(x => x.FeatureName == name);
+		}
+
 		public static IEventSource AsEventSource(this ISystem system) {
 			if (system == null)
 				return null;

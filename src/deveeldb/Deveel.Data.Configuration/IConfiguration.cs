@@ -40,8 +40,8 @@ namespace Deveel.Data.Configuration {
 		/// required to save or reload the values to/from the source, retaining
 		/// a reference to the origin.
 		/// </remarks>
-		/// <seealso cref="IConfigSource"/>
-		IConfigSource Source { get; set; }
+		/// <seealso cref="IConfigurationSource"/>
+		IConfigurationSource Source { get; set; }
 
 		/// <summary>
 		/// Gets or sets an optional parent object of this configuration.

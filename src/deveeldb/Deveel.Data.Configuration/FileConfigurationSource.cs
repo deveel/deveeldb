@@ -23,7 +23,7 @@ namespace Deveel.Data.Configuration {
 	/// A channel used to read from and write to a given file
 	/// in the underlying file-system.
 	/// </summary>
-	public sealed class FileConfigSource : IConfigSource, IDisposable {
+	public sealed class FileConfigurationSource : IConfigurationSource, IDisposable {
 		private Stream inputStream;
 		private Stream outputStream;
 
@@ -33,14 +33,14 @@ namespace Deveel.Data.Configuration {
 		/// </summary>
 		/// <param name="filePath">The string describing the path where
 		/// the file is located.</param>
-		public FileConfigSource(string filePath) {
+		public FileConfigurationSource(string filePath) {
 			if (filePath == null)
 				throw new ArgumentNullException("filePath");
 
 			FilePath = filePath;
 		}
 
-		~FileConfigSource() {
+		~FileConfigurationSource() {
 			Dispose(false);
 		}
 

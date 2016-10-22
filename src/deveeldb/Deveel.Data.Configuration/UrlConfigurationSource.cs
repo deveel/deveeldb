@@ -21,12 +21,12 @@ using System.IO;
 using System.Net;
 
 namespace Deveel.Data.Configuration {
-	public sealed class UrlConfigSource : IConfigSource {
-		public UrlConfigSource(Uri url) {
+	public sealed class UrlConfigurationSource : IConfigurationSource {
+		public UrlConfigurationSource(Uri url) {
 			Url = url;
 		}
 
-		public UrlConfigSource(string url)
+		public UrlConfigurationSource(string url)
 			: this(new Uri(url)) {
 		}
 

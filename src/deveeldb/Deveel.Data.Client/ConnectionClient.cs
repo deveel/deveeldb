@@ -19,6 +19,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using Deveel.Data.Build;
 using Deveel.Data.Configuration;
 using Deveel.Data.Protocol;
 using Deveel.Data.Sql;
