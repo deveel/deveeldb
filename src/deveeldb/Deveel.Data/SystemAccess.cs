@@ -195,7 +195,7 @@ namespace Deveel.Data {
 			return Session.Transaction.GetTableType(tableName);
 		}
 
-		public void CreateTable(Action<TableInfoBuilder> table) {
+		public void CreateTable(Action<ITableInfoBuilder> table) {
 			var builder = new TableInfoBuilder();
 			table(builder);
 

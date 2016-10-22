@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
-	public class TableInfoBuilder {
+	class TableInfoBuilder : ITableInfoBuilder {
 		private string name;
 		private string schema;
 		private readonly List<ColumnInfoBuilder> columns;
@@ -13,16 +13,7 @@ namespace Deveel.Data.Sql.Tables {
 			columns = new List<ColumnInfoBuilder>();
 		}
 
-		public TableInfoBuilder Named(ObjectName value) {
-			if (value == null)
-				throw new ArgumentNullException("value");
-
-			name = value.Name;
-			schema = value.ParentName;
-			return this;
-		}
-
-		public TableInfoBuilder Named(string value) {
+		public ITableInfoBuilder Named(string value) {
 			if (String.IsNullOrEmpty(value))
 				throw new ArgumentNullException("value");
 
@@ -36,7 +27,7 @@ namespace Deveel.Data.Sql.Tables {
 			return this;
 		}
 
-		public TableInfoBuilder InSchema(string value) {
+		public ITableInfoBuilder InSchema(string value) {
 			if (String.IsNullOrEmpty(value))
 				throw new ArgumentNullException("value");
 
@@ -44,16 +35,12 @@ namespace Deveel.Data.Sql.Tables {
 			return this;
 		}
 
-		public TableInfoBuilder WithColumn(Action<ColumnInfoBuilder> column) {
+		public ITableInfoBuilder WithColumn(Action<IColumnInfoBuilder> column) {
 			var builder = new ColumnInfoBuilder();
 			column(builder);
 			columns.Add(builder);
 
 			return this;
-		}
-
-		public TableInfoBuilder WithColumn(string columnName, SqlType type) {
-			return WithColumn(column => column.Named(columnName).HavingType(type));
 		}
 
 		public TableInfo Build() {

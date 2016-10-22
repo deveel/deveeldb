@@ -23,6 +23,7 @@ using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
 
 using NUnit.Framework;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data {
 	[TestFixture]
