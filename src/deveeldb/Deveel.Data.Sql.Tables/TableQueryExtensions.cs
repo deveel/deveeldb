@@ -1384,7 +1384,15 @@ namespace Deveel.Data.Sql.Tables {
 			var columnMap = new int[columnNames.Length];
 
 			for (int i = 0; i < columnMap.Length; i++) {
-				columnMap[i] = table.IndexOfColumn(columnNames[i]);
+				var columnName = columnNames[i];
+
+				var offset = table.IndexOfColumn(columnName);
+
+				if (offset < 0)
+					throw new InvalidOperationException(String.Format("The column '{0}' was not found in table '{1}'.", columnName,
+						table.TableInfo.TableName));
+
+				columnMap[i] = offset;
 			}
 
 			return new SubsetColumnTable(table, columnMap, aliases);

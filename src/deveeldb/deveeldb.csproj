@@ -186,12 +186,16 @@
     <Compile Include="Deveel.Data.Security\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Build\IServiceUseWithBindingConfiguration.cs" />
     <Compile Include="Deveel.Data.Sql.Compile\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\ExpressionBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\IExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IQueryExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IQueryExpressionSourceBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IQueryExpressionSourceJoinBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\IQueryExpressionItemBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\QueryExpressionBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\QueryExpressionBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Expressions\QueryExpressionItemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Expressions\QueryExpressionSourceBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Query\QueryAccessedResource.cs" />
     <Compile Include="Deveel.Data.Sql.Query\SystemBuilderExtensions.cs" />

@@ -233,10 +233,10 @@ namespace Deveel.Data.Sql.Expressions {
 
 				JoinPart joinPart = null;
 
-				if (i > 0) {
+				if (i > 0 && joinParts.Count > 0) {
 					joinPart = GetJoinPart(i - 1);
 					if (joinPart != null &&
-						joinPart.OnExpression != null) {
+					    joinPart.OnExpression != null) {
 						if (joinPart.JoinType == JoinType.Inner) {
 							builder.Append(" INNER JOIN ");
 						} else if (joinPart.JoinType == JoinType.Right) {

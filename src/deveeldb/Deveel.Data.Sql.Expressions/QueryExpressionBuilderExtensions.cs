@@ -88,5 +88,13 @@ namespace Deveel.Data.Sql.Expressions {
 		public static IQueryExpressionBuilder FromTable(this IQueryExpressionBuilder builder, string tableName, string alias) {
 			return builder.FromTable(ObjectName.Parse(tableName), alias);
 		}
+
+		public static IQueryExpressionBuilder Where(this IQueryExpressionBuilder builder,
+			Action<IExpressionBuilder> expression) {
+			var expBuilder = new ExpressionBuilder();
+			expression(expBuilder);
+
+			return builder.Where(expBuilder.Build());
+		}
 	}
 }

@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Sql.Types;
-
 namespace Deveel.Data.Sql.Expressions {
 	class QueryExpressionBuilder : IQueryExpressionBuilder {
 		private List<QueryExpressionItemBuilder> items;
-		private List<QueryExpressionSourceBuilder> sources;
+		private List<QueryExpressionSourceBuilder> querySources;
 		private SqlExpression filterExpression;
 		private List<SqlExpression> groupByExpressions;
 		private ObjectName groupMax;
@@ -18,8 +16,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public QueryExpressionBuilder() {
 			items = new List<QueryExpressionItemBuilder>();
-			sources = new List<QueryExpressionSourceBuilder>();
 			groupByExpressions = new List<SqlExpression>();
+			querySources = new List<QueryExpressionSourceBuilder>();
 		}
 
 		public IQueryExpressionBuilder Item(Action<IQueryExpressionItemBuilder> item) {
@@ -31,11 +29,13 @@ namespace Deveel.Data.Sql.Expressions {
 			return this;
 		}
 
-		public IQueryExpressionBuilder From(Action<IQueryExpressionSourceBuilder> source) {
-			var builder = new QueryExpressionSourceBuilder();
-			source(builder);
+		public IQueryExpressionBuilder From(params Action<IQueryExpressionSourceBuilder>[] sources) {
+			foreach (var source in sources) {
+				var querySource = new QueryExpressionSourceBuilder();
+				source(querySource);
 
-			sources.Add(builder);
+				querySources.Add(querySource);
+			}
 
 			return this;
 		}
@@ -75,8 +75,8 @@ namespace Deveel.Data.Sql.Expressions {
 		public SqlQueryExpression Build() {
 			var query = new SqlQueryExpression(items.Select(x => x.Build()));
 
-			if (sources.Count > 0) {
-				foreach (var source in sources) {
+			if (querySources.Count > 0) {
+				foreach (var source in querySources) {
 					source.BuildIn(query);
 				}
 			}
@@ -138,7 +138,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			public IQueryExpressionSourceBuilder Table(ObjectName tableName) {
 				if (sourceType != UnknownSource)
-					throw new ArgumentException();
+					throw new ArgumentException("A source was already set.");
 				if (tableName == null)
 					throw new ArgumentNullException("tableName");
 
@@ -176,6 +176,8 @@ namespace Deveel.Data.Sql.Expressions {
 				} else if (sourceType == QuerySource) {
 					var subQuery = sourceQuery.Build();
 					query.FromClause.AddSubQuery(aliasName, subQuery);
+				} else if (sourceType == UnknownSource) {
+					throw new InvalidOperationException("Unknown source type");
 				}
 
 				if (joinBuilder != null)

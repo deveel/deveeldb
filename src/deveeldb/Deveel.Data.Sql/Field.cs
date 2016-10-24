@@ -733,6 +733,10 @@ namespace Deveel.Data.Sql {
 			if (value == null)
 				return Null();
 
+			// Trivial case
+			if (value is Field)
+				return (Field) value;
+
 			throw new NotSupportedException("Cannot build an object from the given value.");
 		}
 

@@ -69,5 +69,17 @@ namespace Deveel.Data.Sql.Expressions {
 			info.AddValue("Value", ValueExpression);
 			base.GetData(info, context);
 		}
+
+		internal override void AppendTo(SqlStringBuilder builder) {
+			if (type == SqlExpressionType.Any) {
+				builder.Append("ANY");
+			} else if (type == SqlExpressionType.All) {
+				builder.Append("ALL");
+			}
+
+			builder.Append("(");
+			ValueExpression.AppendTo(builder);
+			builder.Append(")");
+		}
 	}
 }
