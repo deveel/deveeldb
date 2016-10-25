@@ -25,7 +25,9 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Cursors;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Expressions.Build;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Statements.Build;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
@@ -441,7 +443,11 @@ namespace Deveel.Data {
 		}
 
 		public static ICursor Select(this IRequest request, SqlQueryExpression query, QueryLimit limit, params SortColumn[] orderBy) {
-			var result = request.ExecuteStatement(new SelectStatement(query, limit, orderBy));
+			return request.Select(new SelectStatement(query, limit, orderBy));
+		}
+
+		public static ICursor Select(this IRequest request, SelectStatement statement) {
+			var result = request.ExecuteStatement(statement);
 			if (result.Type == StatementResultType.Exception)
 				throw result.Error;
 
@@ -449,6 +455,13 @@ namespace Deveel.Data {
 				throw new InvalidOperationException("The SELECT statement was not executed correctly.");
 
 			return result.Cursor;
+		}
+
+		public static ICursor Select(this IRequest request, Action<ISelectStatementBuilder> select) {
+			var selectBuilder = new SelectStatementBuilder();
+			select(selectBuilder);
+
+			return request.Select(selectBuilder.Build());
 		}
 
 		public static ICursor Select(this IRequest request, params SqlExpression[] args) {
@@ -467,6 +480,13 @@ namespace Deveel.Data {
 		public static IEnumerable<T> Select<T>(this IRequest request, string queryText) where T : class {
 			var query = (SqlQueryExpression) SqlExpression.Parse(queryText);
 			return request.Select<T>(query);
+		}
+
+		public static IEnumerable<T> Select<T>(this IRequest request, Action<IQueryExpressionBuilder> query) where T : class {
+			var builder = new QueryExpressionBuilder();
+			query(builder);
+
+			return request.Select<T>(builder.Build());
 		}
 
 		#region Select Function

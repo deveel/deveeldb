@@ -201,6 +201,14 @@
     <Compile Include="Deveel.Data.Sql.Query\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Schemas\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Sequences\SystemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\ISelectLimitBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\ISelectOrderBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\ISelectStatementBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SelectLimitBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SelectOrderItemBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SelectStatementBuilder.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SelectStatementBuilderExtensions.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SortDirection.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfoBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfoBuilderExtensions.cs" />
