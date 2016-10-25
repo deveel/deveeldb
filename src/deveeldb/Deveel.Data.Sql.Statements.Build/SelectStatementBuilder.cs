@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Statements.Build {
-	class SelectStatementBuilder : ISelectStatementBuilder {
+	class SelectStatementBuilder : ISelectStatementBuilder, IStatementBuilder {
 		private SqlQueryExpression queryExpression;
 		private List<SortColumn> sortColumns;
 		private QueryLimit queryLimit;
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Statements.Build {
 			return this;
 		}
 
-		public SelectStatement Build() {
+		public IEnumerable<SqlStatement> Build() {
 			if (queryExpression == null)
 				throw new InvalidOperationException("The query expression is required");
 
@@ -45,7 +45,7 @@ namespace Deveel.Data.Sql.Statements.Build {
 			if (queryLimit != null)
 				statement.Limit = queryLimit;
 
-			return statement;
+			return new[] {statement};
 		}
 	}
 }

@@ -28,6 +28,7 @@ using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Expressions.Build;
 using Deveel.Data.Sql.Statements;
+using Deveel.Data.Sql.Statements.Build;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;
 using Deveel.Data.Sql.Types;
@@ -177,7 +178,7 @@ namespace Deveel.Data {
 		public static void CreateTemporaryTable(this IQuery query, ObjectName tableName, params SqlTableColumn[] columns) {
 			var statement = new CreateTableStatement(tableName, columns);
 			statement.Temporary = true;
-			query.ExecuteStatement(statement);
+			Result(query.ExecuteStatement(statement));
 		}
 
 		public static void CreateTable(this IQuery query, Type type) {
@@ -191,6 +192,16 @@ namespace Deveel.Data {
 
 		public static void CreateTable<T>(this IQuery query) where T : class {
 			query.CreateTable(typeof(T));
+		}
+
+		public static void CreateTable(this IQuery query, Action<ICreateTableStatementBuilder> createTable) {
+			var builder = new CreateTableStatementBuilder();
+			createTable(builder);
+
+			var statements = builder.Build();
+			foreach (var statement in statements) {
+				Result(query.ExecuteStatement(statement));
+			}
 		}
 
 		#endregion

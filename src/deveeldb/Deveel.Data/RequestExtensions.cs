@@ -461,7 +461,7 @@ namespace Deveel.Data {
 			var selectBuilder = new SelectStatementBuilder();
 			select(selectBuilder);
 
-			return request.Select(selectBuilder.Build());
+			return request.Select((SelectStatement) selectBuilder.Build().First());
 		}
 
 		public static ICursor Select(this IRequest request, params SqlExpression[] args) {

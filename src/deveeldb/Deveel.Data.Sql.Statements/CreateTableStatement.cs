@@ -21,6 +21,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 
 using Deveel.Data.Security;
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
@@ -72,6 +73,12 @@ namespace Deveel.Data.Sql.Statements {
 
 			foreach (var column in Columns) {
 				var columnInfo = CreateColumnInfo(context, tableName.Name, column, columnChecker);
+
+				if (column.IsIdentity)
+					columnInfo.DefaultExpression = SqlExpression.FunctionCall("UNIQUEKEY", new SqlExpression[] {
+						SqlExpression.Constant(tableName.ToString())
+					});
+
 				tableInfo.AddColumn(columnInfo);
 			}
 
