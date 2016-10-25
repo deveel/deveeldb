@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Expressions.Build {
 	public static class ExpressionBuilderExtensions {
 		public static IExpressionBuilder Any(this IExpressionBuilder builder, Action<IExpressionBuilder> expression) {
 			return builder.Quantified(SqlExpressionType.Any, expression);

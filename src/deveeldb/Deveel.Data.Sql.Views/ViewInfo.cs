@@ -18,7 +18,6 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization;
-using System.Text;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Expressions;
@@ -72,45 +71,12 @@ namespace Deveel.Data.Sql.Views {
 			info.AddValue("QueryExpression", QueryExpression);
 		}
 
-		public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
-			var serializer = new BinarySerializer();
-			serializer.Serialize(writer, viewInfo);
+		public static ViewInfo FromBinary(ISqlBinary binary) {
+			using (var stream = binary.GetInput()) {
+				var serializer = new BinarySerializer();
+				return (ViewInfo) serializer.Deserialize(stream);
+			}
 		}
-
-		public static ViewInfo Deserialize(Stream stream) {
-			var serializer = new BinarySerializer();
-			return (ViewInfo) serializer.Deserialize(stream);
-		}
-
-		//public static void Serialize(ViewInfo viewInfo, BinaryWriter writer) {
-		//	TableInfo.Serialize(viewInfo.TableInfo, writer);
-		//	SqlExpression.Serialize(viewInfo.QueryExpression, writer);
-
-		//	var queryPlanType = viewInfo.QueryPlan.GetType();
-		//	writer.Write(queryPlanType.FullName);
-		//	QueryPlanSerializers.Serialize(viewInfo.QueryPlan, writer);
-		//}
-
-		//public static ViewInfo Deserialize(Stream stream, ITypeResolver resolver) {
-		//	var reader = new BinaryReader(stream, Encoding.Unicode);
-		//	return Deserialize(reader, resolver);
-		//}
-
-		//public static ViewInfo Deserialize(BinaryReader reader, ITypeResolver typeResolver) {
-		//	var tableInfo = TableInfo.Deserialize(reader, typeResolver);
-		//	var expression = SqlExpression.Deserialize(reader);
-
-		//	if (!(expression is SqlQueryExpression))
-		//		throw new InvalidOperationException();
-
-		//	var queryExpression = (SqlQueryExpression) expression;
-
-		//	var queryPlanTypeString = reader.ReadString();
-		//	var queryPlanType = Type.GetType(queryPlanTypeString, true);
-		//	var queryPlan = QueryPlanSerializers.Deserialize(queryPlanType, reader);
-
-		//	return new ViewInfo(tableInfo, queryExpression, queryPlan);
-		//}
 
 		public SqlBinary AsBinary() {
 			using (var stream = new MemoryStream()) {

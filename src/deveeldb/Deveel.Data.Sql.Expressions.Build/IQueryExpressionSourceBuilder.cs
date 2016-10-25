@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Expressions.Build {
 	public interface IQueryExpressionSourceBuilder {
 		IQueryExpressionSourceBuilder Table(ObjectName tableName);
 

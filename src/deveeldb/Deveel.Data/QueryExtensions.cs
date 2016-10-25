@@ -26,6 +26,7 @@ using Deveel.Data.Security;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Compile;
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Expressions.Build;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Sql.Triggers;

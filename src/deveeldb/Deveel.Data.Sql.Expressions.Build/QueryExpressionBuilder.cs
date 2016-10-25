@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Expressions.Build {
 	class QueryExpressionBuilder : IQueryExpressionBuilder {
 		private List<QueryExpressionItemBuilder> items;
 		private List<QueryExpressionSourceBuilder> querySources;

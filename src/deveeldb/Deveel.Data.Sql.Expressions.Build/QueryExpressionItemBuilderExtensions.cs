@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Expressions.Build {
 	public static class QueryExpressionItemBuilderExtensions {
 		public static IQueryExpressionItemBuilder Expression(this IQueryExpressionItemBuilder builder,
 			Action<IExpressionBuilder> expression) {

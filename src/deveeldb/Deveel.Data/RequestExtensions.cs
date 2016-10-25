@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Routines;
 using Deveel.Data.Security;
 using Deveel.Data.Sql;

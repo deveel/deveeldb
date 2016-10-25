@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Deveel.Data.Sql.Expressions {
+namespace Deveel.Data.Sql.Expressions.Build {
 	class ExpressionBuilder : IExpressionBuilder {
 		private SqlExpression expression;
 		private SqlExpressionType? prevUnaryType;
