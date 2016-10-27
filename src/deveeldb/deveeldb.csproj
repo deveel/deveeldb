@@ -218,6 +218,7 @@
     <Compile Include="Deveel.Data.Sql.Statements.Build\SelectStatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Build\SelectStatementBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Statements.Build\SortDirection.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SqlStatementBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\SystemBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfoBuilder.cs" />
     <Compile Include="Deveel.Data.Sql.Tables\ColumnInfoBuilderExtensions.cs" />

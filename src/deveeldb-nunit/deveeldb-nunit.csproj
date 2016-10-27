@@ -158,6 +158,8 @@
     <Compile Include="Deveel.Data.Sql.Objects\SqlIntervalTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlNullTests.cs" />
     <Compile Include="Deveel.Data.Sql.Objects\SqlUserObjectTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\CreateTableTests.cs" />
+    <Compile Include="Deveel.Data.Sql.Statements.Build\SelectTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTableStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\AlterTriggerStringFormatTests.cs" />
     <Compile Include="Deveel.Data.Sql.Statements\CallStringFormatTests.cs" />

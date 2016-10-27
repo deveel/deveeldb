@@ -9,6 +9,7 @@ namespace Deveel.Data.Sql.Expressions.Build {
 		private SqlExpression filterExpression;
 		private List<SqlExpression> groupByExpressions;
 		private ObjectName groupMax;
+		private bool distinct;
 		private byte filterType;
 
 		private const byte WhereFilter = 1;
@@ -18,6 +19,11 @@ namespace Deveel.Data.Sql.Expressions.Build {
 			items = new List<QueryExpressionItemBuilder>();
 			groupByExpressions = new List<SqlExpression>();
 			querySources = new List<QueryExpressionSourceBuilder>();
+		}
+
+		public IQueryExpressionBuilder Distinct(bool value = true) {
+			distinct = value;
+			return this;
 		}
 
 		public IQueryExpressionBuilder Item(Action<IQueryExpressionItemBuilder> item) {
@@ -81,9 +87,14 @@ namespace Deveel.Data.Sql.Expressions.Build {
 				}
 			}
 
+			query.Distinct = distinct;
+
 			if (groupByExpressions.Count > 0) {
 				query.GroupBy = groupByExpressions.AsEnumerable();
 			}
+
+			if (groupMax != null)
+				query.GroupMax = groupMax;
 
 			if (filterType == WhereFilter) {
 				query.WhereExpression = filterExpression;

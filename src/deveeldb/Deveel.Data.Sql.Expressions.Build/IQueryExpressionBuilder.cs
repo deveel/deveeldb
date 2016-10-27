@@ -2,6 +2,8 @@
 
 namespace Deveel.Data.Sql.Expressions.Build {
 	public interface IQueryExpressionBuilder {
+		IQueryExpressionBuilder Distinct(bool value = true);
+
 		IQueryExpressionBuilder Item(Action<IQueryExpressionItemBuilder> item);
 
 		IQueryExpressionBuilder From(params Action<IQueryExpressionSourceBuilder>[] source);

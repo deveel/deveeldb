@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Expressions.Build {
 	public static class QueryExpressionBuilderExtensions {
@@ -89,12 +90,31 @@ namespace Deveel.Data.Sql.Expressions.Build {
 			return builder.FromTable(ObjectName.Parse(tableName), alias);
 		}
 
+		public static IQueryExpressionBuilder GroupBy(this IQueryExpressionBuilder builder, params Action<IExpressionBuilder>[] groupBy) {
+			var expressions = new List<SqlExpression>();
+			foreach (var action in groupBy) {
+				var expBuilder = new ExpressionBuilder();
+				action(expBuilder);
+
+				expressions.Add(expBuilder.Build());
+			}
+
+			return builder.GroupBy(expressions.ToArray());
+		}
+
 		public static IQueryExpressionBuilder Where(this IQueryExpressionBuilder builder,
 			Action<IExpressionBuilder> expression) {
 			var expBuilder = new ExpressionBuilder();
 			expression(expBuilder);
 
 			return builder.Where(expBuilder.Build());
+		}
+
+		public static IQueryExpressionBuilder Having(this IQueryExpressionBuilder builder, Action<IExpressionBuilder> expression) {
+			var expBuilder = new ExpressionBuilder();
+			expression(expBuilder);
+
+			return builder.Having(expBuilder.Build());
 		}
 	}
 }

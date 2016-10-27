@@ -30,5 +30,9 @@ namespace Deveel.Data.Sql.Statements.Build {
 		public static ISelectOrderBuilder Column(this ISelectOrderBuilder builder, string parentName, string name) {
 			return builder.Column(ObjectName.Parse(parentName), name);
 		}
+
+		public static ISelectOrderBuilder Column(this ISelectOrderBuilder builder, string name) {
+			return builder.Column(ObjectName.Parse(name));
+		}
 	}
 }
