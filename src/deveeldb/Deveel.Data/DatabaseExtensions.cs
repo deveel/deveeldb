@@ -22,6 +22,14 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public static class DatabaseExtensions {
+		public static bool Close(this IDatabase database) {
+			return database.System.CloseDatabase(database.Name);
+		}
+
+		public static bool Delete(this IDatabase database) {
+			return database.System.DeleteDatabase(database.Name);
+		}
+
 		public static IEventSource AsEventSource(this IDatabase database) {
 			if (database == null)
 				return null;

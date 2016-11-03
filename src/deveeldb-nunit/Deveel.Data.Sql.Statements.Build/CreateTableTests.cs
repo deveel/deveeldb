@@ -123,7 +123,7 @@ namespace Deveel.Data.Sql.Statements.Build {
 
 			Assert.AreEqual("age", createTable.Columns[2].ColumnName);
 			Assert.IsInstanceOf<NumericType>(createTable.Columns[2].ColumnType);
-			Assert.IsFalse(createTable.Columns[2].IsNotNull);
+			Assert.IsTrue(createTable.Columns[2].IsNotNull);
 			Assert.IsTrue(createTable.Columns[2].HasDefaultExpression);
 			Assert.IsNotNull(createTable.Columns[2].DefaultExpression);
 		}

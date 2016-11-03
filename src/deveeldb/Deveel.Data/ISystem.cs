@@ -115,6 +115,8 @@ namespace Deveel.Data {
 		/// </exception>
 		IDatabase OpenDatabase(IConfiguration configuration);
 
+		bool CloseDatabase(string databaseName);
+
 		bool DeleteDatabase(string databaseName);
 	}
 }
