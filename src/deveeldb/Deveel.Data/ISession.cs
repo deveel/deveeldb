@@ -17,9 +17,7 @@
 
 using System;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -28,7 +26,20 @@ namespace Deveel.Data {
 	/// An isolated session to a given database for a given user,
 	/// encapsulating the transaction for operations.
 	/// </summary>
-	public interface ISession : IContextBased, IDisposable {
+	/// <remarks>
+	/// <para>
+	/// Sessions are an higher-level state of a transactional
+	/// system, since they carry more business information than
+	/// the inner transactions (for example the timezone, reference to
+	/// the user).
+	/// </para>
+	/// <para>
+	/// Relationships between sessions and transactions is direct,
+	/// that means one sessions handles only one transaction, and
+	/// its life is connected to the transaction life.
+	/// </para>
+	/// </remarks>
+	public interface ISession : IHasContext, IDisposable {
 		/// <summary>
 		/// Gets the name of the current schema of this session.
 		/// </summary>

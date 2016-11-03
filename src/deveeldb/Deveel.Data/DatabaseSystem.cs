@@ -38,7 +38,7 @@ namespace Deveel.Data {
 	/// <seealso cref="ISystemContext"/>
 	/// <seealso cref="SystemContext"/>
 	public sealed class DatabaseSystem : EventSource, ISystem {
-		private IDictionary<string, IDatabase> databases; 
+		private IDictionary<string, Database> databases; 
 
 		internal DatabaseSystem(ISystemContext context, IEnumerable<FeatureInfo> modules) {
 			Context = context;
@@ -81,7 +81,7 @@ namespace Deveel.Data {
 				if (databases == null)
 					return null;
 
-				IDatabase database;
+				Database database;
 				if (!databases.TryGetValue(databaseName, out database))
 					return null;
 
@@ -95,28 +95,6 @@ namespace Deveel.Data {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-
-		//private void OnCreated() {
-		//	var callbacks = Context.ResolveAllServices<ISystemCreateCallback>();
-		//	foreach (var callback in callbacks) {
-		//		try {
-		//			callback.OnCreated(this);
-		//		} catch (Exception ex) {
-		//			this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
-		//		}
-		//	}
-		//}
-
-		//private void OnDispose() {
-		//	var callbacks = Context.ResolveAllServices<ISystemDisposeCallback>();
-		//	foreach (var callback in callbacks) {
-		//		try {
-		//			callback.OnDispose(this);
-		//		} catch (Exception ex) {
-		//			this.OnError(new Exception(String.Format("Error while disposing: callback of type '{0}'.", callback.GetType()), ex));
-		//		}
-		//	}
-		//}
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
@@ -141,7 +119,7 @@ namespace Deveel.Data {
 			Context = null;
 		}
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 
@@ -182,7 +160,7 @@ namespace Deveel.Data {
 				database.Open();
 				
 				if (databases == null)
-					databases = new Dictionary<string, IDatabase>();
+					databases = new Dictionary<string, Database>();
 
 				databases[databaseName] = database;
 
@@ -199,7 +177,7 @@ namespace Deveel.Data {
 				if (String.IsNullOrEmpty(databaseName))
 					throw new ArgumentException("The configuration must specify a database name.");
 				
-				IDatabase database;
+				Database database;
 				if (databases == null || 
 					!databases.TryGetValue(databaseName, out database))
 					throw new InvalidOperationException(String.Format("Database '{0}' does not exist in the system.", databaseName));
@@ -231,16 +209,36 @@ namespace Deveel.Data {
 				if (databases == null)
 					return false;
 
-				IDatabase database;
+				Database database;
 				if (!databases.TryGetValue(databaseName, out database))
 					return false;
 
 				if (!database.Exists)
 					return false;
 
-				// TODO: Implement the delete function in the IDatabase
+				database.Delete();
 
 				return databases.Remove(databaseName);
+			}
+		}
+
+		public bool CloseDatabase(string databaseName) {
+			lock (this) {
+				if (String.IsNullOrEmpty(databaseName))
+					throw new ArgumentNullException("databaseName");
+
+				if (databases == null)
+					return false;
+
+				Database database;
+				if (!databases.TryGetValue(databaseName, out database))
+					return false;
+
+				if (!database.IsOpen)
+					return false;
+
+				database.Close();
+				return true;
 			}
 		}
 

@@ -87,7 +87,7 @@ namespace Deveel.Data {
 
 		public IBlockContext Context { get; private set; }
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

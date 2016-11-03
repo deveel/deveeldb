@@ -155,7 +155,10 @@ namespace Deveel.Data.Sql.Statements {
 				var table = QueryPlan.Evaluate(context.Request);
 				var tableInfo = table.TableInfo.Alias(ViewName);
 
-				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan);
+				var viewInfo = new ViewInfo(tableInfo, QueryExpression, QueryPlan) {
+					Owner = context.User.Name
+				};
+
 				DefineView(context, viewInfo, ReplaceIfExists);
 			}
 
@@ -174,7 +177,7 @@ namespace Deveel.Data.Sql.Statements {
 					context.Request.Access().DropObject(DbObjectType.View, viewInfo.ViewName);
 				}
 
-				context.Request.Access().CreateObject(viewInfo);
+				context.Request.Access().CreateView(viewInfo);
 
 				// The initial grants for a view is to give the user who created it
 				// full access.

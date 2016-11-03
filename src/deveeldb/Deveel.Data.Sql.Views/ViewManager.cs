@@ -211,7 +211,7 @@ namespace Deveel.Data.Sql.Views {
 					ViewInfo viewInfo;
 					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var blob = (SqlBinary) viewTable.GetValue(row, 3).Value;
-						viewInfo = ViewInfo.Deserialize(blob.GetInput());
+						viewInfo = ViewInfo.FromBinary(blob);
 
 						viewCache[row] = viewInfo;
 
@@ -262,7 +262,7 @@ namespace Deveel.Data.Sql.Views {
 					if (!viewCache.TryGetValue(row, out viewInfo)) {
 						var binary = (ISqlBinary)table.GetValue(row, 3).Value;
 
-						viewInfo = ViewInfo.Deserialize(binary.GetInput());
+						viewInfo = ViewInfo.FromBinary(binary);
 
 						viewCache[row] = viewInfo;
 					}

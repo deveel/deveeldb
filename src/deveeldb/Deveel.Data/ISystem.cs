@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// to existing <see cref="IDatabase">databases</see>.
 	/// </para>
 	/// </remarks>
-	public interface ISystem : IContextBased, IDatabaseHandler, IDisposable {
+	public interface ISystem : IHasContext, IDatabaseHandler, IDisposable {
 		/// <summary>
 		/// Gets a list of the modules handled by the system.
 		/// </summary>
@@ -114,6 +114,8 @@ namespace Deveel.Data {
 		/// If the database does not exist or if it was not possible to open it.
 		/// </exception>
 		IDatabase OpenDatabase(IConfiguration configuration);
+
+		bool CloseDatabase(string databaseName);
 
 		bool DeleteDatabase(string databaseName);
 	}

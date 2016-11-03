@@ -113,7 +113,7 @@ namespace Deveel.Data {
 		/// <seealso cref="ITransactionFactory" />
 		public ITransactionFactory TransactionFactory { get; private set; }
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 
@@ -128,7 +128,7 @@ namespace Deveel.Data {
 #if PCL
 			var dataVerion = typeof(Database).GetTypeInfo().Assembly.GetCustomAttribute<DataVersionAttribute>();
 #else
-			var dataVerion = Attribute.GetCustomAttribute(typeof (Database).Assembly, typeof (DataVersionAttribute))
+			var dataVerion = Attribute.GetCustomAttribute(typeof(Database).Assembly, typeof(DataVersionAttribute))
 				as DataVersionAttribute;
 #endif
 			if (dataVerion != null)
@@ -199,6 +199,7 @@ namespace Deveel.Data {
 		public bool Exists {
 			get {
 				if (IsOpen)
+
 					//throw new Exception("The database is initialized, so no point testing it's existence.");
 					return true;
 
@@ -249,38 +250,6 @@ namespace Deveel.Data {
 			}
 		}
 
-		/// <summary>
-		/// Creates the database in the context given, granting the administrative
-		/// control to the user identified by the given name and token.
-		/// </summary>
-		/// <param name="adminName">The name of the administrator.</param>
-		/// <param name="adminPassword">The password used to identify the administrator</param>
-		/// <exception cref="DatabaseSystemException">
-		/// If the database context is configured to be in read-only model, if it was not possible
-		/// to commit the initial information or if another unhanded error occurred while 
-		/// creating the database.
-		/// </exception>
-		/// <exception cref="ArgumentNullException">
-		/// If either one of <paramref name="adminName"/> or <paramref name="adminPassword"/>
-		/// are <c>null</c> or empty.
-		/// </exception>
-		/// <remarks>
-		/// <para>
-		/// The properties used to create the database are extracted from
-		/// the underlying context (<see cref="DatabaseContext" />).
-		/// </para>
-		/// <para>
-		/// This method does not automatically open the database: to make it accessible
-		/// a call to <see cref="Open" /> is required.
-		/// </para>
-		/// <para>
-		/// This overload of uses the <see cref="KnownUserIdentifications.ClearText"/> mechanism
-		/// to identify the user by the given <paramref name="adminPassword">password</paramref>
-		/// </para>
-		/// </remarks>
-		public void Create(string adminName, string adminPassword) {
-			Create(adminName, KnownUserIdentifications.ClearText, adminPassword);
-		}
 
 		/// <summary>
 		/// Creates the database in the context given, granting the administrative
@@ -378,7 +347,7 @@ namespace Deveel.Data {
 		/// is changed to <c>true</c>.
 		/// </para>
 		/// </remarks>
-		public void Open() {
+		internal void Open() {
 			if (IsOpen)
 				throw new DatabaseSystemException("The database was already initialized.");
 
@@ -386,6 +355,7 @@ namespace Deveel.Data {
 				// Check if the state file exists.  If it doesn't, we need to report
 				// incorrect version.
 				if (!TableComposite.Exists())
+
 					// If neither store or state file exist, assume database doesn't
 					// exist.
 					throw new DatabaseSystemException(String.Format("The database {0} does not exist.", Name));
@@ -419,7 +389,7 @@ namespace Deveel.Data {
 		/// Typical implementations of this interface will automatically
 		/// invoke the closure of the database on disposal (<see cref="IDisposable.Dispose" />.
 		/// </remarks>
-		public void Close() {
+		internal void Close() {
 			if (!IsOpen)
 				throw new DatabaseSystemException("The database is not initialized.");
 
@@ -438,6 +408,16 @@ namespace Deveel.Data {
 				throw new DatabaseSystemException("An error occurred during database shutdown.", e);
 			} finally {
 				IsOpen = false;
+			}
+		}
+
+		internal void Delete() {
+			try {
+				TableComposite.Delete();
+			} catch (DatabaseSystemException) {
+				throw;
+			} catch (Exception ex) {
+				throw new DatabaseSystemException("An error occurred while deleting the database", ex);
 			}
 		}
 
@@ -480,7 +460,7 @@ namespace Deveel.Data {
 			}
 		}
 
-#region DatabaseTransactionFactory
+		#region DatabaseTransactionFactory
 
 		class DatabaseTransactionFactory : ITransactionFactory, IDisposable {
 			private Database database;
@@ -534,6 +514,6 @@ namespace Deveel.Data {
 			}
 		}
 
-#endregion
+		#endregion
 	}
 }

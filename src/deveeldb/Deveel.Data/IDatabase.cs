@@ -38,7 +38,7 @@ namespace Deveel.Data {
 	/// </list>
 	/// </para>
 	/// </remarks>
-	public interface IDatabase : IContextBased, IDisposable {
+	public interface IDatabase : IHasContext, IDisposable {
 		/// <summary>
 		/// Gets the name of the database.
 		/// </summary>
@@ -50,6 +50,9 @@ namespace Deveel.Data {
 		/// <seealso cref="IDatabaseContext"/>
 		new IDatabaseContext Context { get; }
 
+		/// <summary>
+		/// Gets a reference to the system where this database belongs to.
+		/// </summary>
 		ISystem System { get; }
 
 		/// <summary>
@@ -99,8 +102,8 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Gets a boolean value that indicates if the database was open.
 		/// </summary>
-		/// <seealso cref="Open"/>
-		/// <seealso cref="Close"/>
+		///// <seealso cref="Open"/>
+		///// <seealso cref="Close"/>
 		bool IsOpen { get; }
 
 		/// <summary>
@@ -108,32 +111,6 @@ namespace Deveel.Data {
 		/// row and a single cell.
 		/// </summary>
 		ITable SingleRowTable { get; }
-
-		/// <summary>
-		/// Opens the database making it ready to be accessed.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This method ensures the system components and the data are
-		/// ready to allow any connection to be established.
-		/// </para>
-		/// <para>
-		/// After this method successfully exists, the state of <see cref="IsOpen"/>
-		/// is changed to <c>true</c>.
-		/// </para>
-		/// </remarks>
-		void Open();
-
-		/// <summary>
-		/// Closes the database making it not accessible to connections.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// Typical implementations of this interface will automatically
-		/// invoke the closure of the database on disposal (<see cref="IDisposable.Dispose"/>.
-		/// </para>
-		/// </remarks>
-		void Close();
 
 		ILargeObject CreateLargeObject(long objectSize, bool compressed);
 

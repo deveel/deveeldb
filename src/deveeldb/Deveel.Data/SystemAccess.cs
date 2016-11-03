@@ -219,7 +219,7 @@ namespace Deveel.Data {
 		}
 
 		public virtual void CacheTable(string key, ITable table) {
-			
+
 		}
 
 		public virtual ITable GetCachedTable(string key) {
@@ -236,14 +236,15 @@ namespace Deveel.Data {
 		}
 
 		public void AddPrimaryKey(ObjectName tableName, string column, string constraintName) {
-			AddPrimaryKey(tableName, new []{column}, constraintName);
+			AddPrimaryKey(tableName, new[] {column}, constraintName);
 		}
 
 		public void AddPrimaryKey(ObjectName tableName, string[] columns, string constraintName) {
 			AddPrimaryKey(tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
-		public void AddPrimaryKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferred, string constraintName) {
+		public void AddPrimaryKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferred,
+			string constraintName) {
 			//if (!Session.User.CanAlterTable(tableName))
 			//	throw new MissingPrivilegesException(Session.User.Name, tableName, Privileges.Alter);
 
@@ -253,13 +254,15 @@ namespace Deveel.Data {
 		public void AddForeignKey(ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns,
 			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, string constraintName) {
-			AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, ConstraintDeferrability.InitiallyImmediate, constraintName);
+			AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule,
+				ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
 		public void AddForeignKey(ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns,
 			ForeignKeyAction deleteRule, ForeignKeyAction updateRule, ConstraintDeferrability deferred, string constraintName) {
-			Session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred, constraintName);
+			Session.Transaction.AddForeignKey(table, columns, refTable, refColumns, deleteRule, updateRule, deferred,
+				constraintName);
 		}
 
 		public void AddForeignKey(ObjectName table, string[] columns,
@@ -269,14 +272,16 @@ namespace Deveel.Data {
 
 		public void AddForeignKey(ObjectName table, string[] columns,
 			ObjectName refTable, string[] refColumns, ConstraintDeferrability deferred, string constraintName) {
-			AddForeignKey(table, columns, refTable, refColumns, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, deferred, constraintName);
+			AddForeignKey(table, columns, refTable, refColumns, ForeignKeyAction.Cascade, ForeignKeyAction.Cascade, deferred,
+				constraintName);
 		}
 
 		public void AddUniqueKey(ObjectName tableName, string[] columns, string constraintName) {
 			AddUniqueKey(tableName, columns, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
-		public void AddUniqueKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferrability, string constraintName) {
+		public void AddUniqueKey(ObjectName tableName, string[] columns, ConstraintDeferrability deferrability,
+			string constraintName) {
 			Session.Transaction.AddUniqueKey(tableName, columns, deferrability, constraintName);
 		}
 
@@ -284,7 +289,8 @@ namespace Deveel.Data {
 			AddCheck(tableName, expression, ConstraintDeferrability.InitiallyImmediate, constraintName);
 		}
 
-		public void AddCheck(ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability, string constraintName) {
+		public void AddCheck(ObjectName tableName, SqlExpression expression, ConstraintDeferrability deferrability,
+			string constraintName) {
 			Session.Transaction.AddCheck(tableName, expression, deferrability, constraintName);
 		}
 
@@ -486,6 +492,10 @@ namespace Deveel.Data {
 		#endregion
 
 		#region Views
+
+		public void CreateView(ViewInfo viewInfo) {
+			CreateObject(viewInfo);
+		}
 
 		public bool ViewExists(ObjectName viewName) {
 			return ObjectExists(DbObjectType.View, viewName);

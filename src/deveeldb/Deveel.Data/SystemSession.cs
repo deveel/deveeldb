@@ -16,10 +16,8 @@
 
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Security;
-using Deveel.Data.Sql;
 using Deveel.Data.Store;
 using Deveel.Data.Transactions;
 
@@ -82,7 +80,7 @@ namespace Deveel.Data {
 
         public ISessionContext Context { get; private set; }
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

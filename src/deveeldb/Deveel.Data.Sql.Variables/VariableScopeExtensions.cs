@@ -39,11 +39,14 @@ namespace Deveel.Data.Sql.Variables {
 		}
 
 		public static bool DropVariable(this IVariableScope scope, string variableName) {
+			if (scope == null || scope.VariableManager == null)
+				throw new InvalidOperationException("The scope is invalid or the variable manager has been disposed");
+
 			return scope.VariableManager.DropVariable(variableName);
 		}
 
 		public static Variable GetVariable(this IVariableScope scope, string variableName) {
-			return scope.VariableManager.GetVariable(variableName);
+			return scope == null || scope.VariableManager == null ? null : scope.VariableManager.GetVariable(variableName);
 		}
 
 		public static Variable SetVariable(this IVariableScope scope, string variableName, Field value) {

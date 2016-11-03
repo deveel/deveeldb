@@ -1,6 +1,24 @@
-﻿using System;
+﻿// 
+//  Copyright 2010-2016 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
 
-namespace Deveel.Data.Sql.Expressions {
+
+using System;
+using System.Collections.Generic;
+
+namespace Deveel.Data.Sql.Expressions.Build {
 	public static class QueryExpressionBuilderExtensions {
 		public static IQueryExpressionBuilder AllColumns(this IQueryExpressionBuilder builder) {
 			return builder.Column(new ObjectName("*"));
@@ -89,12 +107,31 @@ namespace Deveel.Data.Sql.Expressions {
 			return builder.FromTable(ObjectName.Parse(tableName), alias);
 		}
 
+		public static IQueryExpressionBuilder GroupBy(this IQueryExpressionBuilder builder, params Action<IExpressionBuilder>[] groupBy) {
+			var expressions = new List<SqlExpression>();
+			foreach (var action in groupBy) {
+				var expBuilder = new ExpressionBuilder();
+				action(expBuilder);
+
+				expressions.Add(expBuilder.Build());
+			}
+
+			return builder.GroupBy(expressions.ToArray());
+		}
+
 		public static IQueryExpressionBuilder Where(this IQueryExpressionBuilder builder,
 			Action<IExpressionBuilder> expression) {
 			var expBuilder = new ExpressionBuilder();
 			expression(expBuilder);
 
 			return builder.Where(expBuilder.Build());
+		}
+
+		public static IQueryExpressionBuilder Having(this IQueryExpressionBuilder builder, Action<IExpressionBuilder> expression) {
+			var expBuilder = new ExpressionBuilder();
+			expression(expBuilder);
+
+			return builder.Having(expBuilder.Build());
 		}
 	}
 }

@@ -17,7 +17,6 @@
 
 using System;
 
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Views {

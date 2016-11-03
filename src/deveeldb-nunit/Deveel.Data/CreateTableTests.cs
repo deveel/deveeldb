@@ -28,6 +28,7 @@ using Deveel.Data.Sql.Types;
 using Moq;
 
 using NUnit.Framework;
+using Deveel.Data.Sql.Statements.Build;
 
 namespace Deveel.Data {
 	[TestFixture(StorageType.InMemory)]
@@ -202,6 +203,35 @@ namespace Deveel.Data {
 			};
 
 			AdminQuery.CreateTable(tableName, columns);
+
+			Assert.IsTrue(AdminQuery.Access().TableExists(tableName));
+		}
+
+		[Test]
+		public void Simple_UseBuilder() {
+			tableName = ObjectName.Parse("APP.test");
+
+			AdminQuery.CreateTable(table => table.Named("APP.test")
+				.WithColumn("id", PrimitiveTypes.Integer())
+				.WithColumn("name", PrimitiveTypes.String()));
+
+			Assert.IsTrue(AdminQuery.Access().TableExists(tableName));
+		}
+
+		[Test]
+		public void WithIdentity_UseBuilder() {
+			tableName = ObjectName.Parse("APP.test");
+
+			AdminQuery.CreateTable(table => table.Named(tableName)
+				.WithIdentityColumn("id", PrimitiveTypes.Integer())
+				.WithColumn(column => column.Named("name").OfType(PrimitiveTypes.String()).NotNull()));
+
+			var t = AdminQuery.Access().GetTable(tableName);
+			Assert.IsNotNull(t);
+			Assert.AreEqual(2, t.TableInfo.ColumnCount);
+			Assert.IsNotNull(t.TableInfo[0].DefaultExpression);
+
+			Assert.IsNotNull(AdminQuery.Access().QueryTablePrimaryKey(tableName));
 		}
 
 		[Test]
