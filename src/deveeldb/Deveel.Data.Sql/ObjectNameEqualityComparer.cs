@@ -31,11 +31,14 @@ namespace Deveel.Data.Sql {
 
 		static ObjectNameEqualityComparer() {
 			CaseInsensitive = new ObjectNameEqualityComparer(true);
+			Ordinal = new ObjectNameEqualityComparer(false);
 		}
 
 		public bool IgnoreCase { get; private set; }
 
 		public static ObjectNameEqualityComparer CaseInsensitive { get; private set; }
+
+		public static ObjectNameEqualityComparer Ordinal { get; private set; }
 
 		public bool Equals(ObjectName x, ObjectName y) {
 			if (x == null && y == null)

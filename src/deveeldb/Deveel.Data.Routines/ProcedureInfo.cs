@@ -36,11 +36,7 @@ namespace Deveel.Data.Routines {
 			if (invoke == null)
 				return false;
 
-			bool ignoreCase = true;
-			if (request != null)
-				ignoreCase = request.Query.IgnoreIdentifiersCase();
-
-			if (!RoutineName.Equals(invoke.RoutineName, ignoreCase))
+			if (!RoutineName.Equals(invoke.RoutineName))
 				return false;
 
 

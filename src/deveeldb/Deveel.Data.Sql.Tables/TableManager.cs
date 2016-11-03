@@ -27,10 +27,10 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
 	public sealed class TableManager : IObjectManager {
-		private readonly List<ITableSource> visibleTables;
+		private readonly Dictionary<ObjectName, ITableSource> visibleTables;
 		private List<IMutableTable> accessedTables;
 		private List<ITableSource> selectedTables;
-		private readonly List<IIndexSet> tableIndices;
+		private readonly Dictionary<ObjectName, IIndexSet> tableIndices;
 		private List<ITableContainer> internalTables;
 
 		private readonly Dictionary<ObjectName, IMutableTable> tableCache;
@@ -45,8 +45,8 @@ namespace Deveel.Data.Sql.Tables {
 
 			Composite = composite;
 
-			visibleTables = new List<ITableSource>();
-			tableIndices = new List<IIndexSet>();
+			visibleTables = new Dictionary<ObjectName, ITableSource>(ObjectNameEqualityComparer.Ordinal);
+			tableIndices = new Dictionary<ObjectName, IIndexSet>(ObjectNameEqualityComparer.Ordinal);
 			accessedTables = new List<IMutableTable>();
 			tableCache = new Dictionary<ObjectName, IMutableTable>();
 			selectedTables = new List<ITableSource>();
@@ -85,7 +85,7 @@ namespace Deveel.Data.Sql.Tables {
 			// Dispose all the IIndexSet for each table
 			try {
 				if (tableIndices != null) {
-					foreach (var tableIndex in tableIndices) {
+					foreach (var tableIndex in tableIndices.Values) {
 						tableIndex.Dispose();
 					}
 
@@ -156,13 +156,12 @@ namespace Deveel.Data.Sql.Tables {
 
 		public void CreateTable(TableInfo tableInfo, bool temporary) {
 			var tableName = tableInfo.TableName;
-			var source = FindVisibleTable(tableName, false);
-			if (source != null)
+			if (visibleTables.ContainsKey(tableName))
 				throw new InvalidOperationException(String.Format("Table '{0}' already exists.", tableName));
 
 			tableInfo = tableInfo.AsReadOnly();
 
-			source = Composite.CreateTableSource(tableInfo, temporary);
+			var source = Composite.CreateTableSource(tableInfo, temporary);
 
 			// Add this table (and an index set) for this table.
 			AddVisibleTable(source, source.CreateIndexSet());
@@ -182,8 +181,8 @@ namespace Deveel.Data.Sql.Tables {
 			if (IsDynamicTable(tableName))
 				return;
 
-			var source = FindVisibleTable(tableName, false);
-			if (source == null)
+			ITableSource source;
+			if (!visibleTables.TryGetValue(tableName, out source))
 				throw new ObjectNotFoundException(tableName);
 
 			lock (selectedTables) {
@@ -194,8 +193,8 @@ namespace Deveel.Data.Sql.Tables {
 
 		public void CompactTable(ObjectName tableName) {
 			// Find the master table.
-			var currentTable = FindVisibleTable(tableName, false);
-			if (currentTable == null)
+			ITableSource currentTable;
+			if (!visibleTables.TryGetValue(tableName, out currentTable))
 				throw new ObjectNotFoundException(tableName);
 
 			// If the table is worth compacting
@@ -214,12 +213,12 @@ namespace Deveel.Data.Sql.Tables {
 		private void CopyTable(ITableSource tableSource, IIndexSet indexSet) {
 			var tableInfo = tableSource.TableInfo;
 			var tableName = tableInfo.TableName;
-			var source = FindVisibleTable(tableName, false);
-			if (source != null)
+
+			if (visibleTables.ContainsKey(tableName))
 				throw new ObjectNotFoundException(tableName);
 
 			// Copy the table and add to the list of visible tables.
-			source = Composite.CopySourceTable(tableSource, indexSet);
+			var source = Composite.CopySourceTable(tableSource, indexSet);
 
 			AddVisibleTable(source, source.CreateIndexSet());
 
@@ -231,22 +230,21 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		internal IIndexSet GetIndexSetForTable(ITableSource tableSource) {
-			int sz = tableIndices.Count;
-			for (int i = 0; i < sz; ++i) {
-				if (visibleTables[i].TableId == tableSource.TableId) {
-					return tableIndices[i];
-				}
-			}
+			var tableName = tableSource.TableInfo.TableName;
+			IIndexSet indexSet;
+			if (!tableIndices.TryGetValue(tableName, out indexSet))
+				throw new Exception("Table source not found in this transaction.");
 
-			throw new Exception("Table source not found in this transaction.");
+			return indexSet;
 		}
 
 		private void AddVisibleTable(ITableSource table, IIndexSet indexSet) {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			visibleTables.Add(table);
-			tableIndices.Add(indexSet);
+			var tableName = table.TableInfo.TableName;
+			visibleTables.Add(tableName, table);
+			tableIndices.Add(tableName, indexSet);
 		}
 
 		private static int IndexOfTable(IList<ITableSource> sources, int tableId) {
@@ -263,11 +261,14 @@ namespace Deveel.Data.Sql.Tables {
 			if (Transaction.ReadOnly())
 				throw new Exception("Transaction is Read-only.");
 
-			var i = IndexOfTable(visibleTables, table.TableId);
-			if (i != -1) {
-				visibleTables.RemoveAt(i);
-				IIndexSet indexSet = tableIndices[i];
-				tableIndices.RemoveAt(i);
+			var tableName = table.TableInfo.TableName;
+			if (visibleTables.Remove(tableName)) {
+				IIndexSet indexSet;
+				if (!tableIndices.TryGetValue(tableName, out indexSet))
+					throw new InvalidOperationException("No index set was defined for table.");
+
+				tableIndices.Remove(tableName);
+
 				if (cleanupQueue == null)
 					cleanupQueue = new List<object>();
 
@@ -275,7 +276,6 @@ namespace Deveel.Data.Sql.Tables {
 				cleanupQueue.Add(indexSet);
 
 				// Remove from the table cache
-				var tableName = table.TableInfo.TableName;
 				tableCache.Remove(tableName);
 			}
 		}
@@ -289,14 +289,18 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private ITableSource FindVisibleTable(ObjectName tableName, bool ignoreCase) {
-			return visibleTables
-				.FirstOrDefault(source => source != null &&
-				                          source.TableInfo.TableName.Equals(tableName, ignoreCase));
+			var comparer = new ObjectNameEqualityComparer(ignoreCase);
+			var tables = visibleTables.ToDictionary(x => x.Key, y => y.Value, comparer);
+			ITableSource tableSource;
+			if (!tables.TryGetValue(tableName, out tableSource))
+				return null;
+
+			return tableSource;
 		}
 
 		public SqlNumber SetUniqueId(ObjectName tableName, SqlNumber value) {
-			var tableSource = FindVisibleTable(tableName, false);
-			if (tableSource == null)
+			ITableSource tableSource;
+			if (!visibleTables.TryGetValue(tableName, out tableSource))
 				throw new ObjectNotFoundException(tableName,
 					String.Format("Table with name '{0}' could not be found to set the unique id.", tableName));
 
@@ -305,8 +309,8 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public SqlNumber NextUniqueId(ObjectName tableName) {
-			var tableSource = FindVisibleTable(tableName, false);
-			if (tableSource == null)
+			ITableSource tableSource;
+			if (!visibleTables.TryGetValue(tableName, out tableSource))
 				throw new ObjectNotFoundException(tableName,
 					String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
 
@@ -315,8 +319,8 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public SqlNumber CurrentUniqueId(ObjectName tableName) {
-			var tableSource = FindVisibleTable(tableName, false);
-			if (tableSource == null)
+			ITableSource tableSource;
+			if (!visibleTables.TryGetValue(tableName, out tableSource))
 				throw new ObjectNotFoundException(tableName,
 					String.Format("Table with name '{0}' could not be found to retrieve unique id.", tableName));
 
@@ -360,7 +364,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public bool RealTableExists(ObjectName tableName) {
-			return FindVisibleTable(tableName, false) != null;
+			return visibleTables.ContainsKey(tableName);
 		}
 
 		bool IObjectManager.ObjectExists(ObjectName objName) {
@@ -382,13 +386,13 @@ namespace Deveel.Data.Sql.Tables {
 			if (tableCache.TryGetValue(tableName, out table))
 				return table;
 
-			var source = FindVisibleTable(tableName, false);
+			ITableSource source;
 
-			if (source == null) {
+			if (!visibleTables.TryGetValue(tableName, out source)) {
 				if (IsDynamicTable(tableName))
 					return GetDynamicTable(tableName);
 			} else {
-				// Otherwise make a view of tha master table data source and write it in
+				// Otherwise make a view of the master table data source and write it in
 				// the cache.
 				table = CreateTableAtCommit(source);
 
@@ -405,7 +409,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			if (IsDynamicTable(tableName))
 				return GetDynamicTableType(tableName);
-			if (FindVisibleTable(tableName, false) != null)
+			if (visibleTables.ContainsKey(tableName))
 				return TableTypes.Table;
 
 			// No table found so report the error.
@@ -459,9 +463,11 @@ namespace Deveel.Data.Sql.Tables {
 				return GetDynamicTableInfo(tableName);
 
 			// Otherwise return from the pool of visible tables
-			return visibleTables
-				.Select(table => table.TableInfo)
-				.FirstOrDefault(tableInfo => tableInfo.TableName.Equals(tableName));
+			ITableSource table;
+			if (!visibleTables.TryGetValue(tableName, out table))
+				return null;
+
+			return table.TableInfo;
 		}
 
 		private IMutableTable CreateTableAtCommit(ITableSource source) {
@@ -506,7 +512,7 @@ namespace Deveel.Data.Sql.Tables {
 					CreateTable(tableInfo);
 
 					var alteredTable = GetMutableTable(tableName);
-					var source = FindVisibleTable(tableName, false);
+					var source = visibleTables[tableName];
 					int alteredTableId = source.TableId;
 
 					// Set the sequence id of the table
@@ -576,15 +582,12 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private void SetIndexSetForTable(ITableSource source, IIndexSet indexSet) {
-			int sz = tableIndices.Count;
-			for (int i = 0; i < sz; ++i) {
-				if (visibleTables[i].TableId == source.TableId) {
-					tableIndices[i] = indexSet;
-					return;
-				}
-			}
+			var tableName = source.TableInfo.TableName;
 
-			throw new Exception("Table source not found in this transaction.");
+			if (!visibleTables.ContainsKey(tableName))
+				throw new Exception("Table source not found in this transaction.");
+
+			tableIndices[tableName] = indexSet;
 		}
 
 		bool IObjectManager.DropObject(ObjectName objName) {
@@ -615,8 +618,8 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public bool DropTable(ObjectName tableName) {
-			var source = FindVisibleTable(tableName, false);
-			if (source == null)
+			ITableSource source;
+			if (!visibleTables.TryGetValue(tableName, out source))
 				return false;
 
 			// Removes this table from the visible table list of this transaction
@@ -641,8 +644,8 @@ namespace Deveel.Data.Sql.Tables {
 			Transaction.CheckAddConstraintViolations(table, rows, ConstraintDeferrability.InitiallyImmediate);
 
 			// Add that we altered this table in the journal
-			var master = FindVisibleTable(tableName, false);
-			if (master == null)
+			ITableSource master;
+			if (!visibleTables.TryGetValue(tableName, out master))
 				throw new InvalidOperationException("Table '" + tableName + "' doesn't exist.");
 
 			// Log in the journal that this transaction touched the table_id.
@@ -662,7 +665,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		internal IEnumerable<ITableSource> GetVisibleTables() {
-			return visibleTables.ToArray();
+			return visibleTables.Values.ToArray();
 		}
 
 		internal void AddVisibleTables(IEnumerable<TableSource> tableSources, IEnumerable<IIndexSet> indexSets) {
@@ -674,9 +677,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public IEnumerable<ObjectName> GetTableNames() {
-			var result = (visibleTables
-				.Where(tableSource => tableSource != null)
-				.Select(tableSource => tableSource.TableInfo.TableName)).ToList();
+			var result = visibleTables.Keys.ToList();
 
 			var dynamicTables = GetDynamicTables();
 			if (dynamicTables != null)
