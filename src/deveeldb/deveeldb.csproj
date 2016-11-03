@@ -150,7 +150,7 @@
     <Compile Include="Deveel.Data.Configuration\StringConfigurationSource.cs" />
     <Compile Include="Deveel.Data.Configuration\UrlConfigurationSource.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ConsoleLogger.cs" />
-    <Compile Include="Deveel.Data.Diagnostics\ContextBasedExtensions.cs" />
+    <Compile Include="Deveel.Data.Diagnostics\HasContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ContextExtensions.cs" />
     <Compile Include="Deveel.Data.Diagnostics\Counter.cs" />
     <Compile Include="Deveel.Data.Diagnostics\CounterExtensions.cs" />
@@ -238,7 +238,7 @@
     <Compile Include="Deveel.Data.Build\ServiceBuilderExtensions.cs" />
     <Compile Include="Deveel.Data.Build\ServiceUseConfigurationExtensions.cs" />
     <Compile Include="Deveel.Data\ServiceUseOptions.cs" />
-    <Compile Include="Deveel.Data\IContextBased.cs" />
+    <Compile Include="Deveel.Data\IHasContext.cs" />
     <Compile Include="Deveel.Data.Diagnostics\ICounterRegistry.cs" />
     <Compile Include="Deveel.Data.Diagnostics\IEventScope.cs" />
     <Compile Include="Deveel.Data.Diagnostics\InformationEvent.cs" />

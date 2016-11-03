@@ -100,7 +100,7 @@ namespace Deveel.Data {
 			Session = null;
 		}
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

@@ -119,7 +119,7 @@ namespace Deveel.Data {
 			Context = null;
 		}
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

@@ -94,7 +94,7 @@ namespace Deveel.Data.Transactions {
 
 		public Database Database { get; private set; }
 			
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

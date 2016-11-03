@@ -17,10 +17,19 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 
 namespace Deveel.Data.Diagnostics {
 	public static class EventSourceExtensions {
+		public static EventSource Shadow(this IEventSource source) {
+			var parent = source.ParentSource;
+			if (parent != null)
+				parent = parent.Shadow();
+
+			var newSource = new EventSource(parent);
+			newSource.CopyFrom(source);
+			return newSource;
+		}
+
 		public static T GetMetadata<T>(this IEventSource source, string key, CultureInfo formatProvider) {
 			if (source == null || source.Metadata == null)
 				return default(T);

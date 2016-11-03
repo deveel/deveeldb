@@ -57,7 +57,7 @@ namespace Deveel.Data.Diagnostics {
 		}
 
 		protected virtual IEventSource OnSourceSet(IEventSource eventSource) {
-			return eventSource;
+			return eventSource.Shadow();
 		}
 
 		IDictionary<string, object> IEvent.EventData {

@@ -113,7 +113,7 @@ namespace Deveel.Data {
 		/// <seealso cref="ITransactionFactory" />
 		public ITransactionFactory TransactionFactory { get; private set; }
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

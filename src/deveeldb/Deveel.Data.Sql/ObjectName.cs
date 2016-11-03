@@ -52,6 +52,8 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public const char Separator = '.';
 
+		private readonly int hashCode;
+
 		/// <summary>
 		/// Constructs a name reference without a parent.
 		/// </summary>
@@ -85,11 +87,15 @@ namespace Deveel.Data.Sql {
 			
 			Name = name;
 			Parent = parent;
+
+			hashCode = ComputeHashCode();
 		}
 
 		private ObjectName(SerializationInfo info, StreamingContext context) {
 			Name = info.GetString("Name");
 			Parent = (ObjectName)info.GetValue("Parent", typeof(ObjectName));
+
+			hashCode = ComputeHashCode();
 		}
 
 		/// <summary>
@@ -119,6 +125,14 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		public bool IsGlob {
 			get { return Name.Equals(GlobName); }
+		}
+
+		private int ComputeHashCode() {
+			var code = Name.GetHashCode() ^ 5623;
+			if (Parent != null)
+				code ^= Parent.GetHashCode();
+
+			return code;
 		}
 
 		/// <summary>
@@ -156,7 +170,7 @@ namespace Deveel.Data.Sql {
 				return false;
 			}
 
-			var sp = s.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+			var sp = s.Split(new[] { Separator }, StringSplitOptions.RemoveEmptyEntries);
 			if (sp.Length == 0) {
 				error = new FormatException("At least one part of the name must be provided");
 				result = null;
@@ -266,7 +280,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public bool Equals(ObjectName other) {
-			return Equals(other, true);
+			return Equals(other, false);
 		}
 
 		/// <summary>
@@ -283,24 +297,23 @@ namespace Deveel.Data.Sql {
 			if (other == null)
 				return false;
 
+			if (!ignoreCase)
+				return hashCode == other.hashCode;
+
 			if (Parent != null && other.Parent == null)
 				return false;
 			if (Parent == null && other.Parent != null)
 				return false;
 
-			if (Parent != null && !Parent.Equals(other.Parent, ignoreCase))
+			if (Parent != null && !Parent.Equals(other.Parent, true))
 				return false;
 
-			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			var comparison = StringComparison.OrdinalIgnoreCase;
 			return String.Equals(Name, other.Name, comparison);
 		}
 
 		public override int GetHashCode() {
-			var code = Name.GetHashCode() ^ 5623;
-			if (Parent != null)
-				code ^= Parent.GetHashCode();
-
-			return code;
+			return hashCode;
 		}
 
 		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {

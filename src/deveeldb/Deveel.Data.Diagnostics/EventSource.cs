@@ -21,7 +21,7 @@ using System.Linq;
 
 namespace Deveel.Data.Diagnostics {
 	public class EventSource : IEventSource {
-		private Dictionary<string, object> metadata;
+		private Dictionary<string, object> sourceMetadata;
 
 		public EventSource() 
 			: this(null) {
@@ -43,7 +43,7 @@ namespace Deveel.Data.Diagnostics {
 
 		IEnumerable<KeyValuePair<string, object>> IEventSource.Metadata {
 			get {
-				if (metadata == null) {
+				if (sourceMetadata == null) {
 					var meta = new Dictionary<string, object>();
 
 					if (ParentSource != null) {
@@ -58,14 +58,20 @@ namespace Deveel.Data.Diagnostics {
 					if (!CacheMetadata)
 						return meta.AsEnumerable();
 
-					metadata = meta;
+					sourceMetadata = meta;
 				}
 
-				return metadata.AsEnumerable();
+				return sourceMetadata.AsEnumerable();
 			}
 		}
 
 		protected virtual void GetMetadata(Dictionary<string, object> metadata) {
+		}
+
+		internal void CopyFrom(IEventSource eventSource) {
+			if (eventSource != null && eventSource.Metadata != null) {
+				sourceMetadata = new Dictionary<string, object>(eventSource.Metadata.ToDictionary(x => x.Key, y => y.Value));
+			}
 		}
 	}
 }

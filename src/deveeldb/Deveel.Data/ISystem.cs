@@ -30,7 +30,7 @@ namespace Deveel.Data {
 	/// to existing <see cref="IDatabase">databases</see>.
 	/// </para>
 	/// </remarks>
-	public interface ISystem : IContextBased, IDatabaseHandler, IDisposable {
+	public interface ISystem : IHasContext, IDatabaseHandler, IDisposable {
 		/// <summary>
 		/// Gets a list of the modules handled by the system.
 		/// </summary>

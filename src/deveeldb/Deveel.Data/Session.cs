@@ -100,7 +100,7 @@ namespace Deveel.Data {
 			get { return access; }
 		}
 
-		IContext IContextBased.Context {
+		IContext IHasContext.Context {
 			get { return Context; }
 		}
 

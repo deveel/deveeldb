@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 
-using Deveel.Data.Diagnostics;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
@@ -29,7 +28,7 @@ namespace Deveel.Data.Transactions {
 	/// This contract allows implementors to define simple transactions
 	/// that can be eventually forbid any data write operation.
 	/// </remarks>
-	public interface ITransaction : IContextBased, IDisposable {
+	public interface ITransaction : IHasContext, IDisposable {
         new ITransactionContext Context { get; }
 
 		/// <summary>
