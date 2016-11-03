@@ -62,11 +62,13 @@ namespace Deveel.Data.Sql.Triggers {
 
 		public int FindByName(ObjectName name) {
 			if (HasOldTable &&
-				name.Equals(SystemSchema.OldTriggerTableName, transaction.IgnoreIdentifiersCase()))
+				name.Equals(SystemSchema.OldTriggerTableName))
 				return 0;
+
 			if (HasNewTable &&
-				name.Equals(SystemSchema.NewTriggerTableName, transaction.IgnoreIdentifiersCase()))
+				name.Equals(SystemSchema.NewTriggerTableName))
 				return HasOldTable ? 1 : 0;
+
 			return -1;
 		}
 

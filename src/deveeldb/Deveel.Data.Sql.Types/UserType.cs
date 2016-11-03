@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Types {
 				return false;
 
 			var otherType = (UserType)other;
-			if (!FullName.Equals(otherType.FullName, true))
+			if (!FullName.Equals(otherType.FullName))
 				return false;
 
 			if (MemberCount != otherType.MemberCount)

@@ -74,11 +74,10 @@ namespace Deveel.Data {
 		}
 
 		public int FindByName(ObjectName name) {
-			var ignoreCase = session.IgnoreIdentifiersCase();
 			for (int i = 0; i < IntTableInfo.Length; i++) {
 				var info = IntTableInfo[i];
 				if (info != null &&
-					info.TableName.Equals(name, ignoreCase))
+					info.TableName.Equals(name))
 					return i;
 			}
 

@@ -16,7 +16,6 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Objects;
@@ -34,7 +33,7 @@ namespace Deveel.Data.Sql.Sequences {
 		/// </summary>
 		private static readonly Field OneValue = Field.Integer(1);
 
-		private Dictionary<ObjectName, Sequence> sequenceKeyMap; 
+		private ObjectCache<ISequence> seqCache;
 
 		/// <summary>
 		/// Construct a new instance of <see cref="SequenceManager"/> that is backed by
@@ -43,7 +42,7 @@ namespace Deveel.Data.Sql.Sequences {
 		/// <param name="transaction"></param>
 		public SequenceManager(ITransaction transaction) {
 			Transaction = transaction;
-			sequenceKeyMap = new Dictionary<ObjectName, Sequence>();
+			seqCache = new ObjectCache<ISequence>();
 		}
 
 		~SequenceManager() {
@@ -60,11 +59,12 @@ namespace Deveel.Data.Sql.Sequences {
 
 		private void Dispose(bool disposing) {
 			if (disposing) {
-				if (sequenceKeyMap !=null)
-					sequenceKeyMap.Clear();
-
-				sequenceKeyMap = null;
+				if (seqCache != null)
+					seqCache.Dispose();
 			}
+
+			seqCache = null;
+			Transaction = null;
 		}
 
 		public void Dispose() {
@@ -142,10 +142,14 @@ namespace Deveel.Data.Sql.Sequences {
 				return null;
 			}
 
-			if (sequenceInfo.Type == SequenceType.Native)
-				return CreateNativeTableSequence(sequenceName);
+			try {
+				if (sequenceInfo.Type == SequenceType.Native)
+					return CreateNativeTableSequence(sequenceName);
 
-			return CreateCustomSequence(sequenceName, sequenceInfo);
+				return CreateCustomSequence(sequenceName, sequenceInfo);
+			} finally {
+				seqCache.Clear();
+			}
 		}
 
 		private Sequence CreateCustomSequence(ObjectName sequenceName, SequenceInfo sequenceInfo) {
@@ -197,6 +201,72 @@ namespace Deveel.Data.Sql.Sequences {
 			return new Sequence(this, uniqueId, SequenceInfo.Native(tableName));
 		}
 
+		internal int Offset(ObjectName sequenceName) {
+			return seqCache.Offset(sequenceName, FindByName);
+		}
+
+		private int FindByName(ObjectName sequenceName) {
+			if (sequenceName == null)
+				throw new ArgumentNullException("sequenceName");
+
+			if (sequenceName.Parent == null)
+				return -1;
+
+			var seqInfo = SequenceInfoTableName;
+			if (!Transaction.RealTableExists(seqInfo))
+				return -1;
+
+			// Search the table.
+			var table = Transaction.GetTable(seqInfo);
+			var name = Field.VarChar(sequenceName.Name);
+			var schema = Field.VarChar(sequenceName.Parent.FullName);
+
+			int p = 0;
+			foreach (var row in table) {
+				var seqType = row.GetValue(3);
+				if (!seqType.IsEqualTo(OneValue)) {
+					var obName = row.GetValue(2);
+					if (obName.IsEqualTo(name)) {
+						var obSchema = row.GetValue(1);
+						if (obSchema.IsEqualTo(schema)) {
+							// Match so return this
+							return p;
+						}
+					}
+
+					++p;
+				}
+			}
+
+			return -1;
+		}
+
+		internal ObjectName NameAt(int offset) {
+			return seqCache.NameAt(offset, GetTableName);
+		}
+
+		private ObjectName GetTableName(int offset) {
+			var seqInfo = SequenceInfoTableName;
+			if (Transaction.RealTableExists(seqInfo)) {
+				var table = Transaction.GetTable(seqInfo);
+				int p = 0;
+				foreach (var row in table) {
+					var seqType = row.GetValue(3);
+					if (!seqType.IsEqualTo(OneValue)) {
+						if (offset == p) {
+							var obSchema = row.GetValue(1);
+							var obName = row.GetValue(2);
+							return new ObjectName(ObjectName.Parse(obSchema.Value.ToString()), obName.Value.ToString());
+						}
+						++p;
+					}
+				}
+			}
+
+			return null;
+		}
+
+
 		bool IObjectManager.AlterObject(IObjectInfo objInfo) {
 			throw new NotImplementedException();
 		}
@@ -206,8 +276,7 @@ namespace Deveel.Data.Sql.Sequences {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			// TODO: Implement!!!
-			return null;
+			return seqCache.ResolveName(objName, ignoreCase);
 		}
 
 		public bool DropSequence(ObjectName sequenceName) {
@@ -218,8 +287,12 @@ namespace Deveel.Data.Sql.Sequences {
 				throw new Exception("System sequence tables do not exist.");
 			}
 
-			// Remove the table sequence (delete SEQUENCE_INFO and SEQUENCE entry)
-			return RemoveNativeTableSequence(sequenceName);
+			try {
+				// Remove the table sequence (delete SEQUENCE_INFO and SEQUENCE entry)
+				return RemoveNativeTableSequence(sequenceName);
+			} finally {
+				seqCache.Clear();
+			}
 		}
 
 		private bool RemoveNativeTableSequence(ObjectName tableName) {
@@ -344,9 +417,9 @@ namespace Deveel.Data.Sql.Sequences {
 
 		public ISequence GetSequence(ObjectName sequenceName) {
 			// Is the generator already in the cache?
-			Sequence sequence;
+			ISequence sequence;
 
-			if (!sequenceKeyMap.TryGetValue(sequenceName, out sequence)) {
+			if (!seqCache.TryGet(sequenceName, out sequence)) {
 				// This sequence generator is not in the cache so we need to query the
 				// sequence table for this.
 				var seqi = Transaction.GetTable(SequenceInfoTableName);
@@ -396,7 +469,7 @@ namespace Deveel.Data.Sql.Sequences {
 					sequence = new Sequence(this, (SqlNumber) sid.Value, lastValue, info);
 
 					// Put the generator in the cache
-					sequenceKeyMap[sequenceName] = sequence;
+					seqCache.Set(sequenceName, sequence);
 				}
 
 			}
