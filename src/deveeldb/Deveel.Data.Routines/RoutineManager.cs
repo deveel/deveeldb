@@ -37,13 +37,13 @@ namespace Deveel.Data.Routines {
 		internal const string ExtrernalFunctionType = "ext_function";
 
 		private ITransaction transaction;
-		private Dictionary<ObjectName, IRoutine> routinesCache;
+		private ObjectCache<IRoutine> routinesCache;
 
 		public RoutineManager(ITransaction transaction) {
 			if (transaction == null)
 				throw new ArgumentNullException("transaction");
 
-			routinesCache = new Dictionary<ObjectName, IRoutine>(ObjectNameEqualityComparer.CaseInsensitive);
+			routinesCache = new ObjectCache<IRoutine>();
 
 			this.transaction = transaction;
 			this.transaction.Context.RouteImmediate<TransactionEvent>(OnTransactionEnd, e => e.EventType != TransactionEventType.Begin);
@@ -79,6 +79,14 @@ namespace Deveel.Data.Routines {
 					return t;
 				}
 			}
+		}
+
+		internal ObjectName NameAt(int offset, Func<int, ObjectName> finder) {
+			return routinesCache.NameAt(offset, finder);
+		}
+
+		internal int OffsetOf(ObjectName name, Func<ObjectName, int> finder) {
+			return routinesCache.Offset(name, finder);
 		}
 
 		private ITable GetParameters(Field id) {
@@ -248,7 +256,7 @@ namespace Deveel.Data.Routines {
 
 		public IRoutine GetRoutine(ObjectName routineName) {
 			IRoutine result;
-			if (!routinesCache.TryGetValue(routineName, out result)) {
+			if (!routinesCache.TryGet(routineName, out result)) {
 				var t = FindEntry(routineName);
 				if (t == null || t.RowCount == 0)
 					return null;
@@ -316,7 +324,7 @@ namespace Deveel.Data.Routines {
 					result = new ExternalProcedure((ExternalProcedureInfo) info);
 				}
 
-				routinesCache[fullName] = result;
+				routinesCache.Set(fullName, result);
 			}
 
 			return result;
@@ -343,28 +351,29 @@ namespace Deveel.Data.Routines {
 		}
 
 		private bool RemoveRoutine(ObjectName routineName) {
-			var routine = transaction.GetMutableTable(RoutineTableName);
-			var routineParam = transaction.GetMutableTable(RoutineParameterTableName);
+			try {
+				var routine = transaction.GetMutableTable(RoutineTableName);
+				var routineParam = transaction.GetMutableTable(RoutineParameterTableName);
 
-			var list = routine.SelectRowsEqual(2, Field.VarChar(routineName.Name), 1, Field.VarChar(routineName.ParentName));
+				var list = routine.SelectRowsEqual(2, Field.VarChar(routineName.Name), 1, Field.VarChar(routineName.ParentName));
 
-			bool deleted = false;
+				bool deleted = false;
 
-			foreach (var rowIndex in list) {
-				var sid = routine.GetValue(rowIndex, 0);
-				var list2 = routineParam.SelectRowsEqual(0, sid);
-				foreach (int rowIndex2 in list2) {
-					routineParam.RemoveRow(rowIndex2);
+				foreach (var rowIndex in list) {
+					var sid = routine.GetValue(rowIndex, 0);
+					var list2 = routineParam.SelectRowsEqual(0, sid);
+					foreach (int rowIndex2 in list2) {
+						routineParam.RemoveRow(rowIndex2);
+					}
+
+					routine.RemoveRow(rowIndex);
+					deleted = true;
 				}
 
-				routine.RemoveRow(rowIndex);
-				deleted = true;
-			}
-
-			if (deleted)
+				return deleted;
+			} finally {
 				routinesCache.Remove(routineName);
-
-			return deleted;
+			}
 		}
 
 		public bool DropRoutine(ObjectName objName) {
@@ -372,20 +381,22 @@ namespace Deveel.Data.Routines {
 		}
 
 		public ObjectName ResolveName(ObjectName objName, bool ignoreCase) {
-			var routine = transaction.GetMutableTable(RoutineTableName);
+			return routinesCache.ResolveName(objName, ignoreCase);
 
-			var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			//var routine = transaction.GetMutableTable(RoutineTableName);
 
-			foreach (var row in routine) {
-				var schemaName = row.GetValue(1).Value.ToString();
-				var name = row.GetValue(2).Value.ToString();
+			//var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
-				if (String.Equals(schemaName, objName.ParentName, comparison) &&
-					String.Equals(name, objName.Name, comparison))
-					return	new ObjectName(ObjectName.Parse(schemaName), name);
-			}
+			//foreach (var row in routine) {
+			//	var schemaName = row.GetValue(1).Value.ToString();
+			//	var name = row.GetValue(2).Value.ToString();
 
-			return null;
+			//	if (String.Equals(schemaName, objName.ParentName, comparison) &&
+			//		String.Equals(name, objName.Name, comparison))
+			//		return	new ObjectName(ObjectName.Parse(schemaName), name);
+			//}
+
+			//return null;
 		}
 
 		public IRoutine ResolveRoutine(Invoke invoke, IRequest context) {

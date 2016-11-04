@@ -39,6 +39,10 @@ namespace Deveel.Data.Routines {
 			get { return 1; }
 		}
 
+		public RoutineManager Manager {
+			get { return Transaction.GetObjectManager(DbObjectType.Routine) as RoutineManager; }
+		}
+
 		private static TableInfo CreateTableInfo(string schema, string name) {
 			// Create the TableInfo that describes this entry
 			var info = new TableInfo(new ObjectName(new ObjectName(schema), name));
@@ -51,6 +55,14 @@ namespace Deveel.Data.Routines {
 			info.AddColumn("owner", PrimitiveTypes.String());
 
 			return info.AsReadOnly();
+		}
+
+		public override ObjectName GetTableName(int offset) {
+			return Manager.NameAt(offset, base.GetTableName);
+		}
+
+		public override int FindByName(ObjectName name) {
+			return Manager.OffsetOf(name, base.FindByName);
 		}
 
 		public override TableInfo GetTableInfo(int offset) {

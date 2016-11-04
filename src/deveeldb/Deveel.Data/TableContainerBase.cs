@@ -17,6 +17,7 @@
 
 using System;
 
+using Deveel.Data.Routines;
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Transactions;
@@ -68,24 +69,25 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public int FindByName(ObjectName name) {
+		public virtual int FindByName(ObjectName name) {
 			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
 				var table = Transaction.GetTable(TableName);
-				var rowE = table.GetEnumerator();
-				int p = 0;
-				while (rowE.MoveNext()) {
-					int rowIndex = rowE.Current.RowId.RowNumber;
-					var obName = table.GetValue(rowIndex, NameColumnOffset);
-					if (obName.Value.ToString().Equals(name.Name)) {
-						var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
-						if (obSchema.Value.ToString().Equals(name.ParentName)) {
-							// Match so return this
-							return p;
+				using (var rowE = table.GetEnumerator()) {
+					int p = 0;
+					while (rowE.MoveNext()) {
+						int rowIndex = rowE.Current.RowId.RowNumber;
+						var obName = table.GetValue(rowIndex, NameColumnOffset);
+						if (obName.Value.ToString().Equals(name.Name)) {
+							var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
+							if (obSchema.Value.ToString().Equals(name.ParentName)) {
+								// Match so return this
+								return p;
+							}
 						}
+						++p;
 					}
-					++p;
 				}
 			}
 
@@ -93,21 +95,22 @@ namespace Deveel.Data {
 		}
 
 		/// <inheritdoc/>
-		public ObjectName GetTableName(int offset) {
+		public virtual ObjectName GetTableName(int offset) {
 			if (Transaction.RealTableExists(TableName)) {
 				// Search the table.  We assume that the schema and name of the object
 				// are in columns 0 and 1 respectively.
 				var table = Transaction.GetTable(TableName);
-				var rowE = table.GetEnumerator();
-				int p = 0;
-				while (rowE.MoveNext()) {
-					int rowIndex = rowE.Current.RowId.RowNumber;
-					if (offset == p) {
-						var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
-						var obName = table.GetValue(rowIndex, NameColumnOffset);
-						return new ObjectName(new ObjectName(obSchema.Value.ToString()), obName.Value.ToString());
+				using (var rowE = table.GetEnumerator()) {
+					int p = 0;
+					while (rowE.MoveNext()) {
+						int rowIndex = rowE.Current.RowId.RowNumber;
+						if (offset == p) {
+							var obSchema = table.GetValue(rowIndex, SchemaColumnOffset);
+							var obName = table.GetValue(rowIndex, NameColumnOffset);
+							return new ObjectName(new ObjectName(obSchema.Value.ToString()), obName.Value.ToString());
+						}
+						++p;
 					}
-					++p;
 				}
 			}
 

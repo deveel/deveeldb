@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace Deveel.Data.Sql {
-	public class ObjectCache<TObject> : IDisposable {
+	class ObjectCache<TObject> : IDisposable {
 		private Dictionary<ObjectName, TObject> byName;
 		private Dictionary<ObjectName, ObjectName> nameMap;
 
@@ -52,14 +52,15 @@ namespace Deveel.Data.Sql {
 		}
 
 		public ObjectName ResolveName(ObjectName name, bool ignoreCase) {
-			ObjectName result = null;
-			if (ignoreCase && !nameMap.TryGetValue(name, out result)) {
-				return null;
-			} else if (byName.ContainsKey(name)) {
+			ObjectName result;
+			if (ignoreCase && nameMap.TryGetValue(name, out result)) {
+				return result;
+			}
+			if (byName.ContainsKey(name)) {
 				return name;
 			}
 
-			return result;
+			return null;
 		}
 
 		public int Offset(ObjectName name, Func<ObjectName, int> finder) {
