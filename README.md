@@ -1,4 +1,5 @@
-[![Build status][appveyor-image]][appveyor-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Coverity Scan Build Status][coverity-image]][coverity-url] [![Join the chat!][gitter-image]][gitter-url] [![Slack Status][slack-image]][slack-url]
+[![Build status][appveyor-image]][appveyor-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Coverity Scan Build Status][coverity-image]][coverity-url] [![MyGet][myget-image]][myget-url] [![NuGet][nuget-image]][nuget-url]
+ [![Join the chat!][gitter-image]][gitter-url] [![Slack Status][slack-image]][slack-url]
 
 DeveelDB 2.0
 ==========
@@ -106,3 +107,7 @@ If you wish to contribute, please feel free to get in touch with me, dropping an
 [gitter-url]:https://gitter.im/deveel/deveeldb
 [slack-image]:https://deveeldb-slackin.herokuapp.com/badge.svg
 [slack-url]:https://deveeldb-slackin.herokuapp.com/
+[myget-image]:https://img.shields.io/myget/deveeldb/v/deveeldb.svg?label=MyGet
+[myget-url]:https://www.myget.org/feed/deveeldb/package/nuget/deveeldb
+[nuget-image]:https://img.shields.io/nuget/vpre/deveeldb.svg?label=NuGet
+[nuget-url]:https://www.nuget.org/packages/deveeldb
