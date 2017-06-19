@@ -1,5 +1,5 @@
 [![Build status][appveyor-image]][appveyor-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Coverity Scan Build Status][coverity-image]][coverity-url] [![MyGet][myget-image]][myget-url] [![NuGet][nuget-image]][nuget-url]
- [![Join the chat!][gitter-image]][gitter-url] [![NuGet][nugetdt-img]][nugetdt-url] 
+ [![Join the chat!][gitter-image]][gitter-url] [![NuGet][nugetdt-image]][nugetdt-url] 
 
 _**NOTE**: The development of the library has been moved to the repository [https://github.com/deveel/deveeldb.core](https://github.com/deveel/deveeldb.core) targetting the .NET Standard frameworks: the project has been restarted from scratch and the idea is that in the future months this repository and the other will be merged_
 
