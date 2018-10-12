@@ -15,6 +15,11 @@
 
   <ItemGroup>
     <PackageReference Include="dmath.core" Version="1.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Sql\Methods\" />
   </ItemGroup>
 
 </Project>
