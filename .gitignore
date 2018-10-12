@@ -18,3 +18,4 @@
 *.zip
 .idea
 *.iml
+*/.vs/*
