@@ -16,12 +16,11 @@
 
 
 using System;
-using System.IO;
 
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Types {
-	public class SqlNumericType : SqlType {
+	public sealed class SqlNumericType : SqlType {
 		internal const int TinyIntPrecision = 3;
 		internal const int SmallIntPrecision = 5;
 		internal const int IntegerPrecision = 10;

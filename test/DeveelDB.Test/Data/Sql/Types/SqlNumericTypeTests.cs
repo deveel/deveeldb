@@ -176,5 +176,16 @@ namespace Deveel.Data.Sql.Types {
 
 			Assert.Equal(number, back);
 		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.BigInt, null, null, 50L, true)]
+		[InlineData(SqlTypeCode.Integer, null, null, 180000000000L, false)]
+		[InlineData(SqlTypeCode.Integer, null, null, 22, true)]
+		public static void IsInstanceOf(SqlTypeCode typeCode, int? precision, byte? scale, object value, bool expected) {
+			var type = new SqlNumericType(typeCode, precision ?? -1, scale ?? -1);
+			var number = SqlValueUtil.FromObject(value);
+
+			Assert.Equal(expected, type.IsInstanceOf(number));
+		}
 	}
 }
