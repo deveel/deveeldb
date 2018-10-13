@@ -412,7 +412,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Creates a new expression that matches a pattern against a given expression.
 		/// </summary>
 		/// <param name="expressionType">The type of string match expression</param>
-		/// <param name="left">The left as side that references or encapuslates the text to be matched</param>
+		/// <param name="left">The left as side that references or encapsulates the text to be matched</param>
 		/// <param name="pattern">The pattern to be matched</param>
 		/// <param name="escape">The optional escape sequence for the text</param>
 		/// <summary>
@@ -488,11 +488,9 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlVariableAssignExpression(name, value);
 		}
 
-		// TODO:
-		//public static SqlReferenceAssignExpression ReferenceAssign(ObjectName referenceName, SqlExpression value)
-		//{
-		//	return new SqlReferenceAssignExpression(referenceName, value);
-		//}
+		public static SqlReferenceAssignExpression ReferenceAssign(ObjectName referenceName, SqlExpression value) {
+			return new SqlReferenceAssignExpression(referenceName, value);
+		}
 
 		public static SqlConditionExpression Condition(SqlExpression test, SqlExpression ifTrue) {
 			return Condition(test, ifTrue, null);

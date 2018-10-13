@@ -58,10 +58,10 @@ namespace Deveel.Data.Sql.Expressions {
 					return VisitReference((SqlReferenceExpression)expression);
 				case SqlExpressionType.Variable:
 					return VisitVariable((SqlVariableExpression)expression);
-				//case SqlExpressionType.ReferenceAssign:
-				//	return VisitReferenceAssign((SqlReferenceAssignExpression) expression);
-				//case SqlExpressionType.VariableAssign:
-				//	return VisitVariableAssign((SqlVariableAssignExpression) expression);
+				case SqlExpressionType.ReferenceAssign:
+					return VisitReferenceAssign((SqlReferenceAssignExpression)expression);
+				case SqlExpressionType.VariableAssign:
+					return VisitVariableAssign((SqlVariableAssignExpression)expression);
 				//case SqlExpressionType.Function:
 				//	return VisitFunction((SqlFunctionExpression) expression);
 				case SqlExpressionType.Condition:
@@ -151,13 +151,13 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Condition(test, ifTrue, ifFalse);
 		}
 
-		//public virtual SqlExpression VisitVariableAssign(SqlVariableAssignExpression expression) {
-		//	var value = expression.Value;
-		//	if (value != null)
-		//		value = Visit(value);
+		public virtual SqlExpression VisitVariableAssign(SqlVariableAssignExpression expression) {
+			var value = expression.Value;
+			if (value != null)
+				value = Visit(value);
 
-		//	return SqlExpression.VariableAssign(expression.VariableName, value);
-		//}
+			return SqlExpression.VariableAssign(expression.VariableName, value);
+		}
 
 		public virtual SqlExpression VisitReference(SqlReferenceExpression expression) {
 			return expression;
@@ -167,13 +167,13 @@ namespace Deveel.Data.Sql.Expressions {
 			return expression;
 		}
 
-		//public virtual SqlExpression VisitReferenceAssign(SqlReferenceAssignExpression expression) {
-		//	var value = expression.Value;
-		//	if (value != null)
-		//		value = Visit(value);
+		public virtual SqlExpression VisitReferenceAssign(SqlReferenceAssignExpression expression) {
+			var value = expression.Value;
+			if (value != null)
+				value = Visit(value);
 
-		//	return SqlExpression.ReferenceAssign(expression.ReferenceName, value);
-		//}
+			return SqlExpression.ReferenceAssign(expression.ReferenceName, value);
+		}
 
 		public virtual SqlExpression VisitCast(SqlCastExpression expression) {
 			var value = expression.Value;

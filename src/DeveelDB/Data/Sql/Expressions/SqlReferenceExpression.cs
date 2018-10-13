@@ -24,10 +24,7 @@ namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlReferenceExpression : SqlExpression {
 		internal SqlReferenceExpression(ObjectName reference)
 			: base(SqlExpressionType.Reference) {
-			if (reference == null)
-				throw new ArgumentNullException(nameof(reference));
-
-			ReferenceName = reference;
+			ReferenceName = reference ?? throw new ArgumentNullException(nameof(reference));
 		}
 
 		public ObjectName ReferenceName { get; }
