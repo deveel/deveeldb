@@ -16,25 +16,16 @@
 
 using System;
 
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Types;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Deveel.Data.Sql.Expressions {
-	public sealed class SqlParameterExpression : SqlExpression {
-		internal SqlParameterExpression()
-			: base(SqlExpressionType.Parameter) {
+namespace Deveel.Data {
+	public static class ContextExtensions {
+		public static object GetService(this IContext context, Type serviceType) {
+			return context.Scope.GetService(serviceType);
 		}
 
-		public override SqlExpression Accept(SqlExpressionVisitor visitor) {
-			return visitor.VisitParameter(this);
-		}
-
-		public override SqlType GetSqlType(QueryContext context) {
-			throw new InvalidOperationException();
-		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("?");
+		public static T GetService<T>(this IContext context) {
+			return context.Scope.GetService<T>();
 		}
 	}
 }

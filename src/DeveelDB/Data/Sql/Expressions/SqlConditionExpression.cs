@@ -17,6 +17,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -45,11 +46,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitCondition(this);
 		}
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			return IfTrue.GetSqlType(context);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(IContext context) {
+		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
 			var returnType = Test.GetSqlType(context);
 			if (!(returnType is SqlBooleanType))
 				throw new InvalidOperationException("The expression test has not a BOOLEAN result");

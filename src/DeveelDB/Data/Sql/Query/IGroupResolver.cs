@@ -15,26 +15,16 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Query;
-using Deveel.Data.Sql.Types;
+namespace Deveel.Data.Sql.Query {
+	public interface IGroupResolver {
+		long Size { get; }
 
-namespace Deveel.Data.Sql.Expressions {
-	public sealed class SqlParameterExpression : SqlExpression {
-		internal SqlParameterExpression()
-			: base(SqlExpressionType.Parameter) {
-		}
+		int GroupId { get; }
 
-		public override SqlExpression Accept(SqlExpressionVisitor visitor) {
-			return visitor.VisitParameter(this);
-		}
+		Task<SqlObject> ResolveReferenceAsync(ObjectName reference, long index);
 
-		public override SqlType GetSqlType(QueryContext context) {
-			throw new InvalidOperationException();
-		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("?");
-		}
+		IReferenceResolver GetResolver(long index);
 	}
 }

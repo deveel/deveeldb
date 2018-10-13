@@ -20,6 +20,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -50,7 +51,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanReduce => true;
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			if (ExpressionType.IsRelational())
 				return PrimitiveTypes.Boolean();
 
@@ -63,7 +64,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitBinary(this);
 		}
 
-		private async Task<SqlExpression[]> ReduceSides(IContext context) {
+		private async Task<SqlExpression[]> ReduceSides(QueryContext context) {
 			var info = new List<BinaryEvaluateInfo> {
 				new BinaryEvaluateInfo {Expression = Left, Offset = 0},
 				new BinaryEvaluateInfo {Expression = Right, Offset = 1}
@@ -78,7 +79,7 @@ namespace Deveel.Data.Sql.Expressions {
 				.ToArray();
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(IContext context) {
+		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
 			var sides = await ReduceSides(context);
 
 			var left = sides[0];

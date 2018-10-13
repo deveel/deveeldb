@@ -18,6 +18,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -32,7 +33,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public SqlExpression Expression { get; }
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			return Expression.GetSqlType(context);
 		}
 
@@ -40,7 +41,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitGroup(this);
 		}
 
-		public override Task<SqlExpression> ReduceAsync(IContext context) {
+		public override Task<SqlExpression> ReduceAsync(QueryContext context) {
 			return Expression.ReduceAsync(context);
 		}
 

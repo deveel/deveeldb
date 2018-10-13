@@ -17,6 +17,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Text;
 
@@ -51,7 +52,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitStringMatch(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(IContext context) {
+		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
 			var left = await Left.ReduceAsync(context);
 			var pattern = await Pattern.ReduceAsync(context);
 
@@ -83,7 +84,7 @@ namespace Deveel.Data.Sql.Expressions {
 			ISqlStringSearch search = null;
 
 			if (context != null)
-				search = context.Scope.GetService<ISqlStringSearch>();
+				search = context.GetService<ISqlStringSearch>();
 
 			if (search == null)
 				search = new SqlDefaultStringSearch();
@@ -95,7 +96,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return Constant(SqlObject.Boolean(result));
 		}
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			return PrimitiveTypes.Boolean();
 		}
 

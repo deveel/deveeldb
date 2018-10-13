@@ -17,6 +17,7 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -37,7 +38,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitUnary(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(IContext context) {
+		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
 			var operand = await Operand.ReduceAsync(context);
 			if (operand.ExpressionType != SqlExpressionType.Constant)
 				throw new SqlExpressionException("Operand of a unary operator could not be reduced to a constant.");
@@ -77,7 +78,7 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 		}
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			return Operand.Type;
 		}
 	}

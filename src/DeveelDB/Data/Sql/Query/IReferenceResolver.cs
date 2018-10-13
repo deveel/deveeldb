@@ -15,26 +15,14 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Expressions {
-	public sealed class SqlParameterExpression : SqlExpression {
-		internal SqlParameterExpression()
-			: base(SqlExpressionType.Parameter) {
-		}
+namespace Deveel.Data.Sql.Query {
+	public interface IReferenceResolver {
+		Task<SqlObject> ResolveReferenceAsync(ObjectName referenceName);
 
-		public override SqlExpression Accept(SqlExpressionVisitor visitor) {
-			return visitor.VisitParameter(this);
-		}
-
-		public override SqlType GetSqlType(QueryContext context) {
-			throw new InvalidOperationException();
-		}
-
-		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("?");
-		}
+		SqlType ResolveType(ObjectName referenceName);
 	}
 }

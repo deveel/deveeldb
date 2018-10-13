@@ -16,9 +16,9 @@
 
 using System;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -180,10 +180,6 @@ namespace Deveel.Data.Sql.Expressions {
 
 		}
 
-		protected virtual void GetObjectData(SerializationInfo info) {
-
-		}
-
 		/// <summary>
 		/// Reduces synchronously this expression in a simpler form 
 		/// using the context given
@@ -197,7 +193,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// form of this expression.
 		/// </returns>
 		/// <seealso cref="ReduceAsync"/>
-		public SqlExpression Reduce(IContext context) {
+		public SqlExpression Reduce(QueryContext context) {
 			return ReduceAsync(context).Result;
 		}
 
@@ -222,7 +218,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns an instance of <see cref="SqlExpression"/> that represents a simpler
 		/// form of this expression.
 		/// </returns>
-		public virtual Task<SqlExpression> ReduceAsync(IContext context) {
+		public virtual Task<SqlExpression> ReduceAsync(QueryContext context) {
 			return Task.FromResult(this);
 		}
 
@@ -245,7 +241,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <returns>
 		/// Returns the <see cref="SqlType"/> that this expression will return from its reduction.
 		/// </returns>
-		public abstract SqlType GetSqlType(IContext context);
+		public abstract SqlType GetSqlType(QueryContext context);
 
 		/// <summary>
 		/// Accepts the visit of a SQL visitor
@@ -483,11 +479,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlCastExpression(value, targetType);
 		}
 
-		//TODO:
-		//public static SqlReferenceExpression Reference(ObjectName reference) {
-		//	return new SqlReferenceExpression(reference);
-		//}
+		public static SqlReferenceExpression Reference(ObjectName reference) {
+			return new SqlReferenceExpression(reference);
+		}
 
+		//TODO:
 		//public static SqlVariableExpression Variable(string name) {
 		//	return new SqlVariableExpression(name);
 		//}

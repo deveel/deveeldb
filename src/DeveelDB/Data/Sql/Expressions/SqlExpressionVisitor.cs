@@ -54,8 +54,8 @@ namespace Deveel.Data.Sql.Expressions {
 				//	return VisitQuantify((SqlQuantifyExpression) expression);
 				case SqlExpressionType.Cast:
 					return VisitCast((SqlCastExpression) expression);
-				//case SqlExpressionType.Reference:
-				//	return VisitReference((SqlReferenceExpression) expression);
+				case SqlExpressionType.Reference:
+					return VisitReference((SqlReferenceExpression)expression);
 				//case SqlExpressionType.Variable:
 				//	return VisitVariable((SqlVariableExpression) expression);
 				//case SqlExpressionType.ReferenceAssign:
@@ -159,9 +159,9 @@ namespace Deveel.Data.Sql.Expressions {
 		//	return SqlExpression.VariableAssign(expression.VariableName, value);
 		//}
 
-		//public virtual SqlExpression VisitReference(SqlReferenceExpression expression) {
-		//	return expression;
-		//}
+		public virtual SqlExpression VisitReference(SqlReferenceExpression expression) {
+			return expression;
+		}
 
 		//public virtual SqlExpression VisitVariable(SqlVariableExpression expression) {
 		//	return expression;

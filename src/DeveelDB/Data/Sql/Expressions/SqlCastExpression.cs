@@ -18,6 +18,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -39,7 +40,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanReduce => true;
 
-		public override SqlType GetSqlType(IContext context) {
+		public override SqlType GetSqlType(QueryContext context) {
 			return TargetType;
 		}
 
@@ -47,7 +48,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitCast(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(IContext context) {
+		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
 			var value = await Value.ReduceAsync(context);
 
 			if (!(value is SqlConstantExpression))
