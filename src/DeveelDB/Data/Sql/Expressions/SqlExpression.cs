@@ -15,8 +15,10 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Methods;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
@@ -389,7 +391,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Creates a new expression that matches a pattern against a given expression.
 		/// </summary>
 		/// <param name="expressionType">The type of string match expression</param>
-		/// <param name="left">The left as side that references or encapuslates the text to be matched</param>
+		/// <param name="left">The left as side that references or encapsulates the text to be matched</param>
 		/// <param name="pattern">The pattern to be matched</param>
 		/// <summary>
 		/// The most common name within the SQL syntax for this expression type is <c>LIKE</c>
@@ -521,25 +523,23 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#endregion
 
-		//TODO:
-		//public static SqlFunctionExpression Function(ObjectName functionName, params InvokeArgument[] args) {
-		//	return new SqlFunctionExpression(functionName, args);
-		//}
+		public static SqlFunctionExpression Function(ObjectName functionName, params InvokeArgument[] args)
+			=> new SqlFunctionExpression(functionName, args);
 
-		//public static SqlFunctionExpression Function(string functionName, params InvokeArgument[] args)
-		//	=> Function(ObjectName.Parse(functionName), args);
+		public static SqlFunctionExpression Function(string functionName, params InvokeArgument[] args)
+			=> Function(ObjectName.Parse(functionName), args);
 
-		//public static SqlFunctionExpression Function(ObjectName functionName, params SqlExpression[] args)
-		//	=> Function(functionName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
+		public static SqlFunctionExpression Function(ObjectName functionName, params SqlExpression[] args)
+			=> Function(functionName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
 
-		//public static SqlFunctionExpression Function(string functionName, params SqlExpression[] args)
-		//	=> Function(ObjectName.Parse(functionName), args);
+		public static SqlFunctionExpression Function(string functionName, params SqlExpression[] args)
+			=> Function(ObjectName.Parse(functionName), args);
 
-		//public static SqlFunctionExpression Function(ObjectName functionName)
-		//	=> Function(functionName, new InvokeArgument[0]);
+		public static SqlFunctionExpression Function(ObjectName functionName)
+			=> Function(functionName, new InvokeArgument[0]);
 
-		//public static SqlFunctionExpression Function(string functionName)
-		//	=> Function(ObjectName.Parse(functionName));
+		public static SqlFunctionExpression Function(string functionName)
+			=> Function(ObjectName.Parse(functionName));
 
 		#endregion
 

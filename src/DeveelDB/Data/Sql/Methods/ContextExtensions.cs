@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2018 Deveel
+//  Copyright 2010-2017 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,23 +14,22 @@
 //    limitations under the License.
 //
 
+
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Sql.Methods {
 	public static class ContextExtensions {
-		public static object GetService(this IContext context, Type serviceType) {
-			return context.Scope.GetService(serviceType);
-		}
+		public static bool IsSystemFunction(this IContext context, ObjectName name, params InvokeArgument[] arguments) {
+			var invoke = new Invoke(name, arguments);
+			var resolvers = context.GetServices<IMethodResolver>();
+			foreach (var resolver in resolvers) {
+				var method = resolver.ResolveMethod(context, invoke);
+				if (method != null && method.IsFunction && method.IsSystem)
+					return true;
+			}
 
-		public static T GetService<T>(this IContext context) {
-			return context.Scope.GetService<T>();
-		}
-
-		public static IEnumerable<T> GetServices<T>(this IContext context) {
-			return context.Scope.GetServices<T>();
+			return false;
 		}
 	}
 }

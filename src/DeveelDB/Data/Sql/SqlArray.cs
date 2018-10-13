@@ -101,8 +101,7 @@ namespace Deveel.Data.Sql {
 			builder.Append(")");
 		}
 
-		/// <inheritdoc/>
-		public void CopyTo(Array array, int index) {
+		void ICollection.CopyTo(Array array, int index) {
 			if (array == null)
 				throw new ArgumentNullException(nameof(array));
 			if (array.GetType().GetElementType() != typeof(SqlExpression))
@@ -167,6 +166,32 @@ namespace Deveel.Data.Sql {
 		/// <inheritdoc/>
 		public IEnumerator<SqlExpression> GetEnumerator() {
 			return new ArrayEnumerator(this);
+		}
+
+		public void CopyTo(SqlExpression[] array, int arrayIndex) {
+			if (array == null)
+				throw new ArgumentNullException(nameof(array));
+
+			if (expressions == null)
+				return;
+
+			if (Length + arrayIndex > array.Length)
+				throw new ArgumentException("Not enough capacity in the destination array");
+
+			Array.Copy(expressions, 0, array, arrayIndex, Length);
+		}
+
+		public void CopyTo(SqlArray array, int arrayIndex) {
+			if (array == null)
+				throw new ArgumentNullException(nameof(array));
+
+			if (expressions == null)
+				return;
+
+			if (Length + arrayIndex > array.Length)
+				throw new ArgumentException("Not enough capacity in the destination array");
+
+			Array.Copy(expressions, 0, array.expressions, arrayIndex, Length);
 		}
 
 		#region ArrayEnumerator

@@ -33,6 +33,18 @@ namespace Deveel.Data.Sql {
 			return context.GetValue<string>("currentSchema");
 		}
 
+		public static ObjectName QualifyName(this IContext context, ObjectName objectName) {
+			if (objectName.Parent == null) {
+				var currentSchema = context.CurrentSchema();
+				if (String.IsNullOrWhiteSpace(currentSchema))
+					throw new InvalidOperationException("None schema was set in context");
+
+				objectName = new ObjectName(new ObjectName(currentSchema), objectName.Name);
+			}
+
+			return objectName;
+		}
+
 		public static IDbObjectManager GetObjectManager(this IContext context, DbObjectType objectType) {
 			return context.Scope.GetServices<IDbObjectManager>().FirstOrDefault(x => x.ObjectType == objectType);
 		}
