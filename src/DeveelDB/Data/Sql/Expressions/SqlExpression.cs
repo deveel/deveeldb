@@ -15,13 +15,10 @@
 //
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Deveel.Data.Sql.Expressions {
 	/// <summary>
@@ -483,16 +480,17 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlReferenceExpression(reference);
 		}
 
-		//TODO:
-		//public static SqlVariableExpression Variable(string name) {
-		//	return new SqlVariableExpression(name);
-		//}
+		public static SqlVariableExpression Variable(string name) {
+			return new SqlVariableExpression(name);
+		}
 
-		//public static SqlVariableAssignExpression VariableAssign(string name, SqlExpression value) {
-		//	return new SqlVariableAssignExpression(name, value);
-		//}
+		public static SqlVariableAssignExpression VariableAssign(string name, SqlExpression value) {
+			return new SqlVariableAssignExpression(name, value);
+		}
 
-		//public static SqlReferenceAssignExpression ReferenceAssign(ObjectName referenceName, SqlExpression value) {
+		// TODO:
+		//public static SqlReferenceAssignExpression ReferenceAssign(ObjectName referenceName, SqlExpression value)
+		//{
 		//	return new SqlReferenceAssignExpression(referenceName, value);
 		//}
 
