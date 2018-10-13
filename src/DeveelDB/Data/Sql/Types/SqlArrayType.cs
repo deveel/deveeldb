@@ -17,7 +17,28 @@
 using System;
 
 namespace Deveel.Data.Sql.Types {
+	/// <summary>
+	/// Defines the type of an one-dimensions array of SQL expressions
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Arrays have a fixed length of elements and they are
+	/// immutable once defined.
+	/// </para>
+	/// <para>
+	/// It is possible to access the content of arrays through
+	/// zero-based indices
+	/// </para>
+	/// </remarks>
+	/// <seealso cref="SqlArray"/>
 	public sealed class SqlArrayType : SqlType {
+		/// <summary>
+		/// Constructs an array type with the given size
+		/// </summary>
+		/// <param name="length">The length of the array</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown if the <paramref name="length"/> is smaller than zero
+		/// </exception>
 		public SqlArrayType(int length)
 			: base(SqlTypeCode.Array) {
 			if (length < 0)
@@ -26,6 +47,9 @@ namespace Deveel.Data.Sql.Types {
 			Length = length;
 		}
 
+		/// <summary>
+		/// Gets the length of the array
+		/// </summary>
 		public int Length { get; }
 
 		public override bool IsInstanceOf(ISqlValue value) {
@@ -38,6 +62,10 @@ namespace Deveel.Data.Sql.Types {
 
 			var otherType = (SqlArrayType) other;
 			return Length == otherType.Length;
+		}
+
+		protected override void AppendTo(SqlStringBuilder sqlBuilder) {
+			sqlBuilder.Append($"ARRAY({Length})");
 		}
 	}
 }
