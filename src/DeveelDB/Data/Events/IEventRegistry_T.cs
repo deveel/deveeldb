@@ -16,20 +16,24 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
+namespace Deveel.Data.Events {
 	/// <summary>
-	/// The types of function results
+	/// Implementations of this interface handle the registration
+	/// of events fired within the system.
 	/// </summary>
-	public enum FunctionType {
+	/// <remarks>
+	/// <para>
+	/// It is delegated to the implementation of the registry to
+	/// handle the first instance of the event passed: this can be
+	/// the storage of given types of event data, or routing other
+	/// events.
+	/// </para>
+	/// </remarks>
+	public interface IEventRegistry<TEvent> : IEventRegistry where TEvent : class, IEvent {
 		/// <summary>
-		/// Defines a function that returns a single static value
+		/// Adds the specified event object to the registry.
 		/// </summary>
-		Scalar = 1,
-
-		/// <summary>
-		/// An aggregate function that is computed against
-		/// a definite set of data in a query context
-		/// </summary>
-		Aggregate = 2
+		/// <param name="event">The event object to be registered.</param>
+		void Register(TEvent @event);
 	}
 }

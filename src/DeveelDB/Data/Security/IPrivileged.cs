@@ -16,17 +16,15 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
-	public class MethodException : SqlException {
-		public MethodException(string message, Exception innerException)
-			: base(message, innerException) {
-		}
-
-		public MethodException(string message)
-			: base(message) {
-		}
-
-		public MethodException() {
-		}
+namespace Deveel.Data.Security {
+	/// <summary>
+	/// A security object that holds privileges over
+	/// database objects
+	/// </summary>
+	public interface IPrivileged {
+		/// <summary>
+		/// Gets the name of the object
+		/// </summary>
+		string Name { get; }
 	}
 }

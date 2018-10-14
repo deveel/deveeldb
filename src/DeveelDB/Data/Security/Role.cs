@@ -16,20 +16,32 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
+namespace Deveel.Data.Security {
 	/// <summary>
-	/// The types of function results
+	/// Represents a role of a system that can be granted with
+	/// privileges and assigned to users.
 	/// </summary>
-	public enum FunctionType {
+	/// <remarks>
+	/// <para>
+	/// When users are assigned with one or more roles, they
+	/// inherit the privileges of the role.
+	/// </para>
+	/// </remarks>
+	public sealed class Role : IPrivileged {
 		/// <summary>
-		/// Defines a function that returns a single static value
+		/// Constructs a <see cref="Role"/> identified by the given name.
 		/// </summary>
-		Scalar = 1,
+		/// <param name="name">The name of the role.</param>
+		public Role(string name) {
+			if (String.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException(nameof(name));
+
+			Name = name;
+		}
 
 		/// <summary>
-		/// An aggregate function that is computed against
-		/// a definite set of data in a query context
+		/// Gets the name of the role.
 		/// </summary>
-		Aggregate = 2
+		public string Name { get; }
 	}
 }

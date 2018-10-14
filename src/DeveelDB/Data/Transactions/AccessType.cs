@@ -16,17 +16,25 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
-	public class MethodException : SqlException {
-		public MethodException(string message, Exception innerException)
-			: base(message, innerException) {
-		}
+namespace Deveel.Data.Transactions {
+	/// <summary>
+	/// The access type to a lockable object in a database
+	/// </summary>
+	[Flags]
+	public enum AccessType {
+		/// <summary>
+		/// The resource is accessed to be read
+		/// </summary>
+		Read = 1,
 
-		public MethodException(string message)
-			: base(message) {
-		}
+		/// <summary>
+		/// The resource is accessed to be written
+		/// </summary>
+		Write = 2,
 
-		public MethodException() {
-		}
+		/// <summary>
+		/// The resource is accessed to be read and written
+		/// </summary>
+		ReadWrite = Read | Write
 	}
 }

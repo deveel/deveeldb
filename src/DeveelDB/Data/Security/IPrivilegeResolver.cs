@@ -16,17 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
-	public class MethodException : SqlException {
-		public MethodException(string message, Exception innerException)
-			: base(message, innerException) {
-		}
+namespace Deveel.Data.Security {
+	public interface IPrivilegeResolver {
+		Privilege ResolvePrivilege(string name);
 
-		public MethodException(string message)
-			: base(message) {
-		}
-
-		public MethodException() {
-		}
+		string[] ToString(Privilege privilege);
 	}
 }

@@ -16,17 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Methods {
-	public class MethodException : SqlException {
-		public MethodException(string message, Exception innerException)
-			: base(message, innerException) {
-		}
+namespace Deveel.Data.Events {
+	public interface IEventRegistry {
+		Type EventType { get; }
 
-		public MethodException(string message)
-			: base(message) {
-		}
-
-		public MethodException() {
-		}
+		void Register(IEvent @event);
 	}
 }

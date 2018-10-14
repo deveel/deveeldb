@@ -15,24 +15,29 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-namespace Deveel.Data.Sql.Methods {
+using Deveel.Data.Configurations;
+
+namespace Deveel.Data.Security {
 	/// <summary>
-	/// Provides an interface for resolving methods defined in a system
+	/// Provides mechanisms for the authentication of users
+	/// to the system, given a set of information
 	/// </summary>
-	public interface IMethodResolver {
+	public interface IAuthenticator {
 		/// <summary>
-		/// Attempts to resolve a method defined in the underlying system
-		/// from the specified invoke information.
+		/// Authenticates a user identified by the information
+		/// provided as argument 
 		/// </summary>
-		/// <param name="context">The context used to resolve the method</param>
-		/// <param name="invoke">The information of the invocation to the method
-		/// (the name of the method and the arguments).</param>
+		/// <param name="userInfo">The information used by this authenticator
+		/// to identify the User</param>
 		/// <returns>
-		/// Returns an instance of <see cref="SqlMethod"/> that corresponds to the
-		/// given information in the context given, or <c>null</c> if it was not
-		/// possible to resovle any method for the provided information.
+		/// Returns an instance of <see cref="User"/> identified by the information
+		/// provided as argument
 		/// </returns>
-		SqlMethod ResolveMethod(IContext context, Invoke invoke);
+		/// <exception cref="AuthenticationException">
+		/// Thrown when an error occurs during the authentication process
+		/// </exception>
+		Task<User> AuthenticateAsync(IConfiguration userInfo);
 	}
 }

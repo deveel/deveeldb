@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2018 Deveel
+//  Copyright 2010-2017 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
 //    limitations under the License.
 //
 
+
 using System;
+using System.Globalization;
 
-namespace Deveel.Data.Sql.Methods {
-	public class MethodException : SqlException {
-		public MethodException(string message, Exception innerException)
-			: base(message, innerException) {
+namespace Deveel.Data.Events {
+	public static class EventSourceExtensions {
+		public static T GetValue<T>(this IEventSource source, string key, CultureInfo formatProvider) {
+			if (source == null || source.Metadata == null)
+				return default(T);
+
+			return source.Metadata.GetValue<T>(key, formatProvider);
 		}
 
-		public MethodException(string message)
-			: base(message) {
-		}
-
-		public MethodException() {
+		public static T GetValue<T>(this IEventSource source, string key) {
+			return source.GetValue<T>(key, CultureInfo.InvariantCulture);
 		}
 	}
 }
