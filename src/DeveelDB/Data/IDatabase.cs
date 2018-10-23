@@ -17,7 +17,6 @@
 using System;
 
 using Deveel.Data.Configurations;
-using Deveel.Data.Events;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -35,7 +34,7 @@ namespace Deveel.Data {
 	/// </list>
 	/// </para>
 	/// </remarks>
-	public interface IDatabase : IContext, IEventSource, IConfigurationScope {
+	public interface IDatabase : IContext, IConfigurationScope {
 		/// <summary>
 		/// Gets the name of the database.
 		/// </summary>

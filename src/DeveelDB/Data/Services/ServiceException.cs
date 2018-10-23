@@ -16,24 +16,20 @@
 
 using System;
 
-namespace Deveel.Data.Events {
+namespace Deveel.Data.Services {
 	/// <summary>
-	/// Implementations of this interface handle the registration
-	/// of events fired within the system.
+	/// An exception thrown within the services domain
 	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// It is delegated to the implementation of the registry to
-	/// handle the first instance of the event passed: this can be
-	/// the storage of given types of event data, or routing other
-	/// events.
-	/// </para>
-	/// </remarks>
-	public interface IEventRegistry<TEvent> : IEventRegistry where TEvent : class, IEvent {
-		/// <summary>
-		/// Adds the specified event object to the registry.
-		/// </summary>
-		/// <param name="event">The event object to be registered.</param>
-		void Register(TEvent @event);
+	public class ServiceException : Exception {
+		public ServiceException(string message, Exception innerException)
+			: base(message, innerException) {
+		}
+
+		public ServiceException(string message)
+			: base(message) {
+		}
+
+		public ServiceException() {
+		}
 	}
 }

@@ -24,4 +24,8 @@
     <ProjectReference Include="..\..\src\DeveelDB\DeveelDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Sql\Statements\" />
+  </ItemGroup>
+
 </Project>

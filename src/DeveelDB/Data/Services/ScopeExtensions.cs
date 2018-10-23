@@ -16,25 +16,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-using Microsoft.Extensions.DependencyInjection;
+namespace Deveel.Data.Services {
+	public static class ScopeExtensions {
 
-namespace Deveel.Data {
-	public static class ContextExtensions {
-		public static object GetService(this IContext context, Type serviceType) {
-			return context.Scope.GetService(serviceType);
+		public static object Resolve(this IScope container, Type serviceType) {
+			return container.Resolve(serviceType, null);
 		}
 
-		public static T GetService<T>(this IContext context) {
-			return context.Scope.GetService<T>();
+		public static TService Resolve<TService>(this IScope container, object serviceKey) {
+			return (TService) container.Resolve(typeof(TService), serviceKey);
 		}
 
-		public static IEnumerable<T> GetServices<T>(this IContext context) {
-			return context.Scope.GetServices<T>();
+		public static TService Resolve<TService>(this IScope container) {
+			return container.Resolve<TService>(null);
 		}
 
-		public static IEnumerable<object> GetServices(this IContext context, Type serviceType) {
-			return context.Scope.GetServices(serviceType);
+		public static IEnumerable<TService> ResolveAll<TService>(this IScope container) {
+			if (container == null)
+				return new TService[0];
+
+			return container.ResolveAll(typeof (TService)).Cast<TService>();
 		}
 	}
 }
+

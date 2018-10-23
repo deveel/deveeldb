@@ -20,15 +20,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Deveel.Data {
 	public class Context : IContext {
-		private IServiceProvider scope;
-
 		public Context(IContext parent) {
 			Parent = parent;
 
 			if (parent == null) {
-				scope = new ServiceCollection().BuildServiceProvider();
+				Scope = new ServiceCollection().BuildServiceProvider();
 			} else {
-				scope = parent.Scope.CreateScope().ServiceProvider;
+				Scope = parent.Scope.CreateScope().ServiceProvider;
 			}
 		}
 

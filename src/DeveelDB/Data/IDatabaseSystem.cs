@@ -19,14 +19,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Deveel.Data.Configurations;
-using Deveel.Data.Events;
 
 namespace Deveel.Data {
 	/// <summary>
 	/// A system to manage database objects and provide
 	/// access to them
 	/// </summary>
-	public interface IDatabaseSystem : IContext, IConfigurationScope, IEventSource {
+	public interface IDatabaseSystem : IContext, IConfigurationScope {
 		/// <summary>
 		/// Starts the system making it possible to interact with it
 		/// </summary>
