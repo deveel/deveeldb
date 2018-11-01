@@ -16,13 +16,12 @@
 
 using System;
 
-namespace Deveel.Data.Diagnostics {
-	public enum LogLevel {
-		Trace = 1,
-		Debug = 2,
-		Information = 3,
-		Warning = 4,
-		Error = 5,
-		Fatal = 6
+namespace Deveel.Data.Services {
+	public static class KnownScopes {
+		public const string System = "system";
+		public const string Database = "database";
+		public const string Query = "query";
+		public const string Statement = "statement";
+		public const string Block = "block";
 	}
 }

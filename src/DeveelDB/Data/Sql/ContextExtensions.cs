@@ -20,8 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Configurations;
-
-using Microsoft.Extensions.DependencyInjection;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Sql {
 	public static class ContextExtensions {
@@ -46,7 +45,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static IDbObjectManager GetObjectManager(this IContext context, DbObjectType objectType) {
-			return context.Scope.GetServices<IDbObjectManager>().FirstOrDefault(x => x.ObjectType == objectType);
+			return context.Scope.ResolveAll<IDbObjectManager>().FirstOrDefault(x => x.ObjectType == objectType);
 		}
 
 		public static TManager GetObjectManager<TManager>(this IContext context, DbObjectType objectType)
@@ -55,7 +54,7 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static IEnumerable<IDbObjectManager> GetObjectManagers(this IContext context) {
-			return context.Scope.GetServices<IDbObjectManager>();
+			return context.Scope.ResolveAll<IDbObjectManager>();
 
 		}
 

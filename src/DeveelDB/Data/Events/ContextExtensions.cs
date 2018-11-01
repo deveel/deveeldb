@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2017 Deveel
+//  Copyright 2010-2018 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
 //    limitations under the License.
 //
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Microsoft.Extensions.DependencyInjection;
+using Deveel.Data.Services;
 
 namespace Deveel.Data.Events {
 	public static class ContextExtensions {
@@ -37,7 +36,7 @@ namespace Deveel.Data.Events {
 		}
 
 		private static IEnumerable<IEventRegistry> FindRegistries(this IContext context, Type eventType) {
-			return context.Scope.GetServices<IEventRegistry>()
+			return context.Scope.ResolveAll<IEventRegistry>()
 				.Where(x => x.EventType.GetTypeInfo().IsAssignableFrom(eventType.GetTypeInfo()));
 		}
 
@@ -51,7 +50,7 @@ namespace Deveel.Data.Events {
 
 		private static IEnumerable<IEventRegistry<TEvent>> FindRegistries<TEvent>(this IContext context)
 			where TEvent : class, IEvent {
-			return context.Scope.GetServices<IEventRegistry<TEvent>>();
+			return context.Scope.ResolveAll<IEventRegistry<TEvent>>();
 		}
 
 		public static void RegisterEvent<TEvent>(this IContext context, params object[] args)

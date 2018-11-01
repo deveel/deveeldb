@@ -15,9 +15,10 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
-using Microsoft.Extensions.DependencyInjection;
+using Deveel.Data.Services;
 
 namespace Deveel.Data {
 	public static class ContextExtensions {
@@ -26,15 +27,15 @@ namespace Deveel.Data {
 		}
 
 		public static T GetService<T>(this IContext context) {
-			return context.Scope.GetService<T>();
+			return context.Scope.Resolve<T>();
 		}
 
 		public static IEnumerable<T> GetServices<T>(this IContext context) {
-			return context.Scope.GetServices<T>();
+			return context.Scope.ResolveAll<T>();
 		}
 
-		public static IEnumerable<object> GetServices(this IContext context, Type serviceType) {
-			return context.Scope.GetServices(serviceType);
+		public static IEnumerable GetServices(this IContext context, Type serviceType) {
+			return context.Scope.ResolveAll(serviceType);
 		}
 	}
 }

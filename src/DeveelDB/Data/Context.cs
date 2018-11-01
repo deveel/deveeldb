@@ -16,17 +16,20 @@
 
 using System;
 
-using Microsoft.Extensions.DependencyInjection;
+using Deveel.Data.Services;
 
 namespace Deveel.Data {
-	public class Context : IContext {
-		public Context(IContext parent) {
+	public abstract class Context : IContext {
+		private readonly string contextName;
+
+		protected Context(IContext parent, string contextName) {
 			Parent = parent;
+			this.contextName = contextName;
 
 			if (parent == null) {
-				Scope = new ServiceCollection().BuildServiceProvider();
+				Scope = new ServiceContainer();
 			} else {
-				Scope = parent.Scope.CreateScope().ServiceProvider;
+				Scope = parent.Scope.OpenScope(contextName);
 			}
 		}
 
@@ -49,12 +52,10 @@ namespace Deveel.Data {
 
 		protected IContext Parent { get; }
 
-		string IContext.ContextName => Name;
+		string IContext.ContextName => contextName;
 
-		protected virtual string Name => "context";
+		IScope IContext.Scope => Scope;
 
-		IServiceProvider IContext.Scope => Scope;
-
-		protected IServiceProvider Scope { get; }
+		protected IScope Scope { get; }
 	}
 }

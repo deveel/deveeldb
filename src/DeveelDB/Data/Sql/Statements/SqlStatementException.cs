@@ -16,13 +16,17 @@
 
 using System;
 
-namespace Deveel.Data.Diagnostics {
-	public enum LogLevel {
-		Trace = 1,
-		Debug = 2,
-		Information = 3,
-		Warning = 4,
-		Error = 5,
-		Fatal = 6
+namespace Deveel.Data.Sql.Statements {
+	 public class SqlStatementException : SqlException {
+		 public SqlStatementException(string message, Exception innerException)
+			 : base(message, innerException) {
+		 }
+
+		 public SqlStatementException(string message)
+			 : base(message) {
+		 }
+
+		 public SqlStatementException() {
+		 }
 	}
 }

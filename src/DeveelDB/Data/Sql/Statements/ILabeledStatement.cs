@@ -16,13 +16,11 @@
 
 using System;
 
-namespace Deveel.Data.Diagnostics {
-	public enum LogLevel {
-		Trace = 1,
-		Debug = 2,
-		Information = 3,
-		Warning = 4,
-		Error = 5,
-		Fatal = 6
+namespace Deveel.Data.Sql.Statements {
+	/// <summary>
+	/// Marks an SQL Statement that is supporting labeling
+	/// </summary>
+	interface ILabeledStatement {
+		string Label { get; }
 	}
 }

@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Services;
+
 namespace Deveel.Data {
 	/// <summary>
 	/// Provides context for a given state of the system
@@ -84,6 +86,6 @@ namespace Deveel.Data {
 		/// Gets a named scope for this context.
 		/// </summary>
 		/// <seealso cref="IServiceProvider"/>
-		IServiceProvider Scope { get; }
+		IScope Scope { get; }
 	}
 }

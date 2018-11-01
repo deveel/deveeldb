@@ -15,14 +15,14 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-namespace Deveel.Data.Diagnostics {
-	public enum LogLevel {
-		Trace = 1,
-		Debug = 2,
-		Information = 3,
-		Warning = 4,
-		Error = 5,
-		Fatal = 6
+namespace Deveel.Data.Sql.Statements.Security {
+	class DelegatedRequirement : IRequirement {
+		public DelegatedRequirement(Func<IContext, Task<bool>> body) {
+			Body = body ?? throw new ArgumentNullException(nameof(body));
+		}
+
+		public Func<IContext, Task<bool>> Body { get; }
 	}
 }

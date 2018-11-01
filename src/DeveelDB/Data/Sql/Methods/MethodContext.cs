@@ -29,7 +29,7 @@ namespace Deveel.Data.Sql.Methods {
 		private Dictionary<string, SqlExpression> namedArgs;
 
 		internal MethodContext(QueryContext context, SqlMethod method, Invoke invoke)
-			: base(context) {
+			: base(context, method.Type == MethodType.Function ? "function" : "procedure") {
 			Invoke = invoke;
 			Method = method;
 
@@ -42,8 +42,6 @@ namespace Deveel.Data.Sql.Methods {
 		}
 
 		public SqlMethod Method { get; }
-
-		protected override string Name => $"Method({Method.MethodInfo.MethodName})";
 
 		public Invoke Invoke { get; private set; }
 

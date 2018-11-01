@@ -48,5 +48,15 @@ namespace Deveel.Data.Services {
 		/// </returns>
 		/// <seealso cref="IServiceContainer.Register"/>
 		IEnumerable ResolveAll(Type serviceType);
+
+		/// <summary>
+		/// Opens a child scope of this scope
+		/// </summary>
+		/// <param name="name">The name of the child scope</param>
+		/// <returns>
+		/// Returns an instance of <see cref="IScope"/> that is inheriting
+		/// the service definitions and instances from the parent scope
+		/// </returns>
+		IScope OpenScope(string name);
 	}
 }

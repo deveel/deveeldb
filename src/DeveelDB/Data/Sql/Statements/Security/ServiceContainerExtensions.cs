@@ -15,19 +15,26 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
 using Deveel.Data.Services;
 
-namespace Deveel.Data.Sql.Query {
-	public class QueryContext : Context {
-		public QueryContext(IContext parent, IGroupResolver group, IReferenceResolver resolver)
-			: base(parent, KnownScopes.Query) {
-			GroupResolver = group;
-			Resolver = resolver;
+namespace Deveel.Data.Sql.Statements.Security {
+	public static class ServiceContainerExtensions {
+		public static void AddDelegatedRequirementHandler(this IServiceContainer container) {
+			container.Register<IRequirementHandler<DelegatedRequirement>, DelegatedRequirementHandler>();
 		}
 
-		public  IGroupResolver GroupResolver { get; }
+		#region DelegatedRequirementHandler
 
-		public IReferenceResolver Resolver { get; }
+		class DelegatedRequirementHandler : IRequirementHandler<DelegatedRequirement> {
+			public async Task HandleRequirementAsync(IContext context, DelegatedRequirement requirement) {
+				var result = await requirement.Body(context);
+				if (!result)
+					throw new UnauthorizedAccessException();
+			}
+		}
+
+		#endregion
 	}
 }

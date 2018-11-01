@@ -17,9 +17,8 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
 
@@ -37,12 +36,12 @@ namespace Deveel.Data.Security {
 				It.Is<Privilege>(y => y.Permits(privilege))))
 				.Returns(Task.FromResult(true));
 
-			var services = new ServiceCollection();
-			services.AddSingleton<IAccessController>(accessController.Object);
+			var services = new ServiceContainer();
+			services.RegisterInstance<IAccessController>(accessController.Object);
 
 			var mock = new Mock<ISession>();
 			mock.SetupGet(x => x.Scope)
-				.Returns(services.BuildServiceProvider);
+				.Returns(services);
 			mock.SetupGet(x => x.User)
 				.Returns(new User(UserName));
 

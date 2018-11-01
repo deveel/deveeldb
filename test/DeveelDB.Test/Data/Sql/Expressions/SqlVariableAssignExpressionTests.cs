@@ -17,11 +17,10 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
 
@@ -32,7 +31,7 @@ namespace Deveel.Data.Sql.Expressions {
 		private QueryContext context;
 
 		public SqlVariableAssignExpressionTests() {
-			var scope = new ServiceCollection();
+			var scope = new ServiceContainer();
 
 			var manager = new VariableManager();
 			manager.CreateVariable(new VariableInfo("a", PrimitiveTypes.Boolean(), false, SqlExpression.Constant(SqlObject.Boolean(false))));
@@ -40,7 +39,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			var mock = new Mock<IContext>();
 			mock.SetupGet(x => x.Scope)
-				.Returns(scope.BuildServiceProvider);
+				.Returns(scope);
 			mock.As<IVariableScope>()
 				.SetupGet(x => x.Variables)
 				.Returns(manager);

@@ -21,8 +21,6 @@ using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Text;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlStringMatchExpression : SqlExpression {
 		internal SqlStringMatchExpression(SqlExpressionType expressionType, SqlExpression left, SqlExpression pattern,

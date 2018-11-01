@@ -15,16 +15,12 @@
 //
 
 using System;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
 
@@ -37,7 +33,7 @@ namespace Deveel.Data.Sql.Methods {
 		public SqlFunctionTests() {
 			var mock = new Mock<IContext>();
 			mock.SetupGet(x => x.Scope)
-				.Returns(new ServiceCollection().BuildServiceProvider);
+				.Returns(new ServiceContainer());
 			mock.SetupGet(x => x.ContextName)
 				.Returns("test");
 

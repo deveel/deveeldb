@@ -17,11 +17,11 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 using Xunit;
@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Variables {
 		public VariableManagerTests() {
 			var parent = new Mock<IContext>();
 			parent.SetupGet(x => x.Scope)
-				.Returns(new ServiceCollection().BuildServiceProvider);
+				.Returns(new ServiceContainer());
 
 			context = new QueryContext(parent.Object, null, null);
 

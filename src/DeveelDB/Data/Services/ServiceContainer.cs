@@ -53,7 +53,9 @@ namespace Deveel.Data.Services {
 		}
 
 		public IScope OpenScope(string name) {
-			return new Scope(this, name);
+			lock (this) {
+				return new Scope(container.OpenScope(name), name);
+			}
 		}
 
 
@@ -163,8 +165,8 @@ namespace Deveel.Data.Services {
 		class Scope : IScope {
 			private readonly IResolverContext context;
 
-			public Scope(ServiceContainer container, string name) {
-				context = container.container.OpenScope(name);
+			public Scope(IResolverContext context, string name) {
+				this.context = context;
 				Name = name;
 			}
 
@@ -192,7 +194,7 @@ namespace Deveel.Data.Services {
 
 			public IEnumerable ResolveAll(Type serviceType) {
 				if (serviceType == null)
-					throw new ArgumentNullException("serviceType");
+					throw new ArgumentNullException(nameof(serviceType));
 
 				if (context == null)
 					throw new InvalidOperationException("The container was not initialized.");
@@ -210,6 +212,9 @@ namespace Deveel.Data.Services {
 					}
 				}
 			}
+
+			public IScope OpenScope(string name)
+				=> new Scope(context.OpenScope(name), name);
 
 			public void Dispose() {
 				context?.Dispose();

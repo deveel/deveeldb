@@ -17,10 +17,9 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
 
@@ -39,7 +38,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			var parent = new Mock<IContext>();
 			parent.SetupGet(x => x.Scope)
-				.Returns(new ServiceCollection().BuildServiceProvider);
+				.Returns(new ServiceContainer());
 
 			context = new QueryContext(parent.Object, null, resolver.Object);
 		}

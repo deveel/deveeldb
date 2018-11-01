@@ -14,11 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\Sql\Statements\**" />
     <Compile Remove="_site\**" />
-    <EmbeddedResource Remove="Data\Sql\Statements\**" />
     <EmbeddedResource Remove="_site\**" />
-    <None Remove="Data\Sql\Statements\**" />
     <None Remove="_site\**" />
   </ItemGroup>
 
@@ -29,7 +26,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="DryIoc.dll" Version="3.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

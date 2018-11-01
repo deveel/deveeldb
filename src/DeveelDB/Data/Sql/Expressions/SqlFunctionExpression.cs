@@ -21,8 +21,6 @@ using Deveel.Data.Sql.Methods;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Deveel.Data.Sql.Expressions {
 	public sealed class SqlFunctionExpression : SqlExpression {
 		public ObjectName FunctionName { get; }

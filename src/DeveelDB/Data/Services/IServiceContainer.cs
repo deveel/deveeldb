@@ -21,7 +21,7 @@ namespace Deveel.Data.Services {
     /// Provides an isolated scope of the components for the system
     /// registered during the build
     /// </summary>
-	public interface IServiceContainer : IScope, IDisposable {
+	public interface IServiceContainer : IScope {
 	    /// <summary>
 	    /// Registers a service using the specifications for resolution
 	    /// </summary>
@@ -55,15 +55,5 @@ namespace Deveel.Data.Services {
 	    /// the given type within the underlying registry</param>
 	    /// <returns></returns>
 	    bool IsRegistered(Type serviceType, object serviceKey);
-
-		/// <summary>
-		/// Opens a child scope of this scope
-		/// </summary>
-		/// <param name="name">The name of the child scope</param>
-		/// <returns>
-		/// Returns an instance of <see cref="IScope"/> that is inheriting
-		/// the service definitions and instances from the parent scope
-		/// </returns>
-		IScope OpenScope(string name);
 	}
 }

@@ -17,11 +17,10 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Methods;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Moq;
 
@@ -44,12 +43,12 @@ namespace Deveel.Data.Sql.Expressions {
 			resolver.Setup(x => x.ResolveMethod(It.IsAny<IContext>(), It.IsAny<Invoke>()))
 				.Returns<IContext, Invoke>((context, invoke) => method);
 
-			var services = new ServiceCollection();
-			services.AddSingleton(resolver.Object);
+			var services = new ServiceContainer();
+			services.RegisterInstance(resolver.Object);
 
 			var mock = new Mock<IContext>();
 			mock.SetupGet(x => x.Scope)
-				.Returns(services.BuildServiceProvider);
+				.Returns(services);
 
 			context = new QueryContext(mock.Object, null, null);
 		}
