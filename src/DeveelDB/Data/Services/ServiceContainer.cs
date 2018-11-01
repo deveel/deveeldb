@@ -22,9 +22,16 @@ using DryIoc;
 namespace Deveel.Data.Services {
 	public class ServiceContainer : IServiceContainer {
 		private IContainer container;
+		private IResolverContext resolver;
+		private string scopeName;
 
 		public ServiceContainer() {
-			container = new Container(Rules.Default.WithTrackingDisposableTransients());
+			resolver = container = new Container(Rules.Default.WithTrackingDisposableTransients());
+		}
+
+		private ServiceContainer(IResolverContext resolver, string scopeName) {
+			this.resolver = resolver;
+			this.scopeName = scopeName;
 		}
 
 		~ServiceContainer() {
@@ -36,14 +43,14 @@ namespace Deveel.Data.Services {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				lock (this) {
-					if (container != null) {
-						container.Dispose();
-					}
+					resolver?.Dispose();
+					container?.Dispose();
 				}
 			}
 
 			lock (this) {
 				container = null;
+				resolver = null;
 			}
 		}
 
@@ -54,7 +61,7 @@ namespace Deveel.Data.Services {
 
 		public IScope OpenScope(string name) {
 			lock (this) {
-				return new Scope(container.OpenScope(name), name);
+				return new ServiceContainer(resolver.OpenScope(name), name);
 			}
 		}
 
@@ -92,7 +99,7 @@ namespace Deveel.Data.Services {
 
 		public bool Unregister(Type serviceType, object serviceName) {
 			if (serviceType == null)
-				throw new ArgumentNullException("serviceType");
+				throw new ArgumentNullException(nameof(serviceType));
 
 			if (container == null)
 				throw new InvalidOperationException("The container was not initialized.");
@@ -123,12 +130,12 @@ namespace Deveel.Data.Services {
 			if (serviceType == null)
 				throw new ArgumentNullException(nameof(serviceType));
 
-			if (container == null)
-				throw new InvalidOperationException("The container was not initialized.");
+			if (resolver == null)
+				throw new InvalidOperationException("The resolver was not initialized.");
 
 			lock (this) {
 				try {
-					return container.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
+					return resolver.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
 				} catch (Exception ex) {
 					throw new ServiceResolutionException(serviceType, "Error when resolving service", ex);
 				}
@@ -137,14 +144,14 @@ namespace Deveel.Data.Services {
 
 		public IEnumerable ResolveAll(Type serviceType) {
 			if (serviceType == null)
-				throw new ArgumentNullException("serviceType");
+				throw new ArgumentNullException(nameof(serviceType));
 
-			if (container == null)
-				throw new InvalidOperationException("The container was not initialized.");
+			if (resolver == null)
+				throw new InvalidOperationException("The resolver was not initialized.");
 
 			lock (this) {
 				try {
-					return container.ResolveMany<object>(serviceType);
+					return resolver.ResolveMany<object>(serviceType);
 				} catch (NullReferenceException) {
 					// this means that the container is out of sync in the dispose
 					return new object[0];
@@ -159,68 +166,5 @@ namespace Deveel.Data.Services {
 		object IServiceProvider.GetService(Type serviceType) {
 			return Resolve(serviceType, null);
 		}
-
-		#region Scope
-
-		class Scope : IScope {
-			private readonly IResolverContext context;
-
-			public Scope(IResolverContext context, string name) {
-				this.context = context;
-				Name = name;
-			}
-
-			public string Name { get; }
-
-			object IServiceProvider.GetService(Type serviceType) {
-				return Resolve(serviceType, null);
-			}
-
-			public object Resolve(Type serviceType, object name) {
-				if (serviceType == null)
-					throw new ArgumentNullException(nameof(serviceType));
-
-				if (context == null)
-					throw new InvalidOperationException("The container was not initialized.");
-
-				lock (this) {
-					try {
-						return context.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
-					} catch (Exception ex) {
-						throw new ServiceResolutionException(serviceType, "Error when resolving service", ex);
-					}
-				}
-			}
-
-			public IEnumerable ResolveAll(Type serviceType) {
-				if (serviceType == null)
-					throw new ArgumentNullException(nameof(serviceType));
-
-				if (context == null)
-					throw new InvalidOperationException("The container was not initialized.");
-
-				lock (this) {
-					try {
-						return context.ResolveMany<object>(serviceType);
-					} catch (NullReferenceException) {
-						// this means that the container is out of sync in the dispose
-						return new object[0];
-					} catch (ServiceResolutionException) {
-						throw;
-					} catch (Exception ex) {
-						throw new ServiceResolutionException(serviceType, "Error resolving all services", ex);
-					}
-				}
-			}
-
-			public IScope OpenScope(string name)
-				=> new Scope(context.OpenScope(name), name);
-
-			public void Dispose() {
-				context?.Dispose();
-			}
-		}
-
-		#endregion
 	}
 }
