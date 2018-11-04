@@ -15,10 +15,12 @@
 //
 
 using System;
+using System.Runtime.Serialization;
 
 using Deveel.Math;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlNumericType : SqlType {
 		internal const int TinyIntPrecision = 3;
 		internal const int SmallIntPrecision = 5;
@@ -41,6 +43,25 @@ namespace Deveel.Data.Sql.Types {
 
 			Precision = precision;
 			Scale = scale;
+		}
+
+		private SqlNumericType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			AssertIsNumeric(TypeCode);
+
+			var scale = info.GetInt32("scale");
+			var precision = info.GetInt32("precision");
+
+			AssertScale(TypeCode, scale);
+
+			if (precision < 0)
+				precision = DiscoverPrecision(TypeCode);
+
+			ValidatePrecision(precision);
+
+			Precision = precision;
+			Scale = scale;
+
 		}
 
 		public int Precision { get; }
@@ -498,6 +519,11 @@ namespace Deveel.Data.Sql.Types {
 					builder.Append(")");
 				}
 			}
+		}
+
+		protected override void GetObjectData(SerializationInfo info) {
+			info.AddValue("precision", Precision);
+			info.AddValue("scale", Scale);
 		}
 	}
 }

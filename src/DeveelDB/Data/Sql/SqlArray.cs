@@ -35,6 +35,7 @@ namespace Deveel.Data.Sql {
 	/// a sequence of expressions wrapped in parenthesis.
 	/// </para>
 	/// </remarks>
+	[Serializable]
 	public sealed class SqlArray : ISqlValue, ISqlFormattable, IList, IEnumerable<SqlExpression> {
 		private readonly SqlExpression[] expressions;
 

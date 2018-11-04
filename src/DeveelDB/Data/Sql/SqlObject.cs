@@ -21,9 +21,12 @@ using System.Runtime.Serialization;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql {
+	[Serializable]
 	public sealed class SqlObject : IComparable<SqlObject>, IComparable, ISqlFormattable, IEquatable<SqlObject> {
 		public static readonly SqlObject Unknown = new SqlObject(PrimitiveTypes.Boolean(), null);
 		public static readonly SqlObject Null = new SqlObject(PrimitiveTypes.Integer(), null);
+		public static readonly SqlObject True = new SqlObject(PrimitiveTypes.Boolean(), new SqlBoolean(true));
+		public static readonly SqlObject False = new SqlObject(PrimitiveTypes.Boolean(), new SqlBoolean(false));
 
 		public SqlObject(SqlType type, ISqlValue value) {
 			if (type == null)

@@ -217,10 +217,10 @@ namespace Deveel.Data.Sql.Types {
 
 		#region Array
 
-		// TODO:
-		//public static SqlArrayType Array(int length) {
-		//	return new SqlArrayType(length);
-		//}
+		public static SqlArrayType Array(int length)
+		{
+			return new SqlArrayType(length);
+		}
 
 		#endregion
 

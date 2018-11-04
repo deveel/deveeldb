@@ -15,7 +15,9 @@
 //
 
 using System;
+using System.Globalization;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
 
 using Xunit;
@@ -341,6 +343,17 @@ namespace Deveel.Data.Sql {
 			var sqlValue = SqlValueUtil.FromObject(value);
 			var sqlType = SqlTypeUtil.FromValue(value);
 			return new SqlObject(sqlType, sqlValue);
+		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.Integer, "223")]
+		[InlineData(SqlTypeCode.Boolean, "true")]
+		public static void Serialize(SqlTypeCode typeCode, string s) {
+			var type = PrimitiveTypes.Type(typeCode);
+			var obj = SqlObjectParseUtil.Parse(type, s, CultureInfo.InvariantCulture);
+			var result = BinarySerializeUtil.Serialize(obj);
+
+			Assert.Equal(obj, result);
 		}
 	}
 }

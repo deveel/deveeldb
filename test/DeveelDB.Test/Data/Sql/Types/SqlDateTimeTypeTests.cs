@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -236,6 +238,18 @@ namespace Deveel.Data.Sql.Types {
 			var expectedResult = SqlDateTime.Parse(expected);
 
 			Assert.Equal(expectedResult, result);
+		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.Time)]
+		[InlineData(SqlTypeCode.TimeStamp)]
+		[InlineData(SqlTypeCode.DateTime)]
+		[InlineData(SqlTypeCode.Date)]
+		public static void Serialize(SqlTypeCode typeCode) {
+			var type = new SqlDateTimeType(typeCode);
+			var result = BinarySerializeUtil.Serialize(type);
+
+			Assert.Equal(type, result);
 		}
 	}
 }

@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -100,6 +102,15 @@ namespace Deveel.Data.Sql.Types {
 			var exp = SqlYearToMonth.Parse(expected);
 
 			Assert.Equal(exp, result);
+		}
+
+		[Fact]
+		public static void Serialize() {
+			var type = PrimitiveTypes.YearToMonth();
+
+			var result = BinarySerializeUtil.Serialize(type);
+
+			Assert.Equal(type, result);
 		}
 	}
 }

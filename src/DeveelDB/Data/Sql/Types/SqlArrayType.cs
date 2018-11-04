@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
 	/// <summary>
@@ -31,6 +32,7 @@ namespace Deveel.Data.Sql.Types {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="SqlArray"/>
+	[Serializable]
 	public sealed class SqlArrayType : SqlType {
 		/// <summary>
 		/// Constructs an array type with the given size
@@ -45,6 +47,11 @@ namespace Deveel.Data.Sql.Types {
 				throw new ArgumentException("Invalid array length");
 
 			Length = length;
+		}
+
+		private SqlArrayType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			Length = info.GetInt32("length");
 		}
 
 		/// <summary>
@@ -66,6 +73,10 @@ namespace Deveel.Data.Sql.Types {
 
 		protected override void AppendTo(SqlStringBuilder sqlBuilder) {
 			sqlBuilder.Append($"ARRAY({Length})");
+		}
+
+		protected override void GetObjectData(SerializationInfo info) {
+			info.AddValue("length", Length);
 		}
 	}
 }

@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql {
@@ -469,6 +471,16 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var s = number.ToString();
 			Assert.Equal(expected, s);
+		}
+
+		[Theory]
+		[InlineData("56474993.00939994884757575")]
+		[InlineData("454")]
+		[InlineData("-8940455.011111111192929383334432224556")]
+		public static void Serialize(string s) {
+			var number = SqlNumber.Parse(s);
+			var result = BinarySerializeUtil.Serialize(number);
+			Assert.Equal(number, result);
 		}
 	}
 }

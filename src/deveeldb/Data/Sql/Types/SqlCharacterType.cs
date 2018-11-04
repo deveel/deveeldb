@@ -15,10 +15,13 @@
 //
 
 using System;
+using System.Data.SqlTypes;
 using System.Globalization;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlCharacterType : SqlType {
 		public const int DefaultMaxSize = Int16.MaxValue;
 
@@ -33,6 +36,23 @@ namespace Deveel.Data.Sql.Types {
 
 			MaxSize = maxSize;
 			Locale = locale;
+		}
+
+		private SqlCharacterType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MaxSize = info.GetInt32("maxSize");
+
+			var localeCode = info.GetString("locale");
+
+			if (!String.IsNullOrEmpty(localeCode)) {
+				try {
+					Locale = CultureInfo.GetCultureInfo(localeCode);
+				}
+				catch (Exception e) {
+					throw new SqlTypeException(
+						$"The CHARACTER TYPE was serialized with the locale code {localeCode} that is invalid");
+				}
+			}
 		}
 
 		/// <summary>
@@ -234,6 +254,11 @@ namespace Deveel.Data.Sql.Types {
 				return SqlNull.Value;
 
 			return ytm;
+		}
+
+		protected override void GetObjectData(SerializationInfo info) {
+			info.AddValue("maxSize", MaxSize);
+			info.AddValue("locale", Locale?.Name);
 		}
 	}
 }

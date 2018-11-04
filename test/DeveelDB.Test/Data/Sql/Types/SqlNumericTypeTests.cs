@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -202,6 +204,19 @@ namespace Deveel.Data.Sql.Types {
 			var number = SqlValueUtil.FromObject(value);
 
 			Assert.Equal(expected, type.IsInstanceOf(number));
+		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.Integer, 10, 0)]
+		[InlineData(SqlTypeCode.Numeric, 20, 15)]
+		[InlineData(SqlTypeCode.BigInt, 19, 0)]
+		[InlineData(SqlTypeCode.Numeric, 21, 10)]
+		[InlineData(SqlTypeCode.VarNumeric, -1, -1)]
+		public static void Serialize(SqlTypeCode typeCode, int precision, int scale) {
+			var type = new SqlNumericType(typeCode, precision, scale);
+			var result = BinarySerializeUtil.Serialize(type);
+
+			Assert.Equal(type, result);
 		}
 	}
 }

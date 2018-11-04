@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Serialization;
 using Deveel.Data.Sql.Types;
 
 using Xunit;
@@ -101,6 +102,13 @@ namespace Deveel.Data.Sql {
 		public static void IsComparableTo(object other, bool expected) {
 			var value = SqlValueUtil.FromObject(other);
 			Assert.Equal(expected, (SqlNull.Value as ISqlValue).IsComparableTo(value));
+		}
+
+		[Fact]
+		public static void Serialize() {
+			var nullObj = SqlNull.Value;
+			var result = BinarySerializeUtil.Serialize(nullObj);
+			Assert.Equal(nullObj, result);
 		}
 	}
 }

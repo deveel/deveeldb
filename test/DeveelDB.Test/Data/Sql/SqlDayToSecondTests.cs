@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql {
@@ -148,6 +150,15 @@ namespace Deveel.Data.Sql {
 			var result = d1.CompareTo(d2);
 
 			Assert.Equal(expected, result);
+		}
+
+		[Theory]
+		[InlineData(01, 22, 43, 33, 544)]
+		public static void Serialize(int days, int hours, int minutes, int seconds, int millis) {
+			var dts = new SqlDayToSecond(days, hours, minutes, seconds, millis);
+			var result = BinarySerializeUtil.Serialize(dts);
+
+			Assert.Equal(dts, result);
 		}
 	}
 }

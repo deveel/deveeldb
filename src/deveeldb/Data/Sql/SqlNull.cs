@@ -21,6 +21,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A value object that represents the absence of value (<c>NULL</c>).
 	/// </summary>
+	[Serializable]
 	public struct SqlNull : ISqlValue, IConvertible, ISqlFormattable {
 		/// <summary>
 		/// The default instance of a <c>NULL</c> value.

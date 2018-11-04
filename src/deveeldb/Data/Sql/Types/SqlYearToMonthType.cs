@@ -16,11 +16,17 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlYearToMonthType : SqlType {
 		public SqlYearToMonthType()
 			: base(SqlTypeCode.YearToMonth) {
+		}
+
+		private SqlYearToMonthType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		public override bool IsInstanceOf(ISqlValue value) {

@@ -21,6 +21,7 @@ namespace Deveel.Data.Sql {
 	/// The value of a SQL <c>DAY TO SECOND</c>, representing a span of
 	/// time expressed in days, hours, minutes, seconds and milliseconds
 	/// </summary>
+	[Serializable]
 	public struct SqlDayToSecond : ISqlValue, IComparable<SqlDayToSecond>, IEquatable<SqlDayToSecond>, ISqlFormattable {
 		private readonly TimeSpan value;
 

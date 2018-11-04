@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -275,6 +277,16 @@ namespace Deveel.Data.Sql.Types {
 			var type2 = new SqlBinaryType(SqlTypeCode.Binary);
 
 			Assert.False(type1.Equals(type2));
+		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.Bit)]
+		[InlineData(SqlTypeCode.Boolean)]
+		public void Serialize(SqlTypeCode typeCode) {
+			var type = new SqlBooleanType(typeCode);
+
+			var result = BinarySerializeUtil.Serialize(type);
+			Assert.Equal(type, result);
 		}
 	}
 }

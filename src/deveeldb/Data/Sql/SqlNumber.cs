@@ -16,12 +16,14 @@
 
 using System;
 using System.Globalization;
+using System.Runtime.Serialization;
 
 using Deveel.Data.Sql.Types;
 using Deveel.Math;
 
 namespace Deveel.Data.Sql {
-	public struct SqlNumber : ISqlValue, IComparable<SqlNumber>, IEquatable<SqlNumber>, IConvertible, ISqlFormattable {
+	[Serializable]
+	public struct SqlNumber : ISqlValue, IComparable<SqlNumber>, IEquatable<SqlNumber>, IConvertible, ISqlFormattable, ISerializable {
 		internal readonly BigDecimal innerValue;
 		private readonly int byteCount;
 		internal readonly long valueAsLong;
@@ -71,6 +73,32 @@ namespace Deveel.Data.Sql {
 
 		internal SqlNumber(BigInteger unscaled, int scale, int precision)
 			: this(new BigDecimal(unscaled, scale, new MathContext(precision))) {
+		}
+
+		private SqlNumber(SerializationInfo info, StreamingContext context) {
+			var unscaledBytes = (byte[]) info.GetValue("unscaled", typeof(byte[]));
+			var precision = info.GetInt32("precision");
+			var scale = info.GetInt32("scale");
+			
+			var value = new BigDecimal(new BigInteger(unscaledBytes), scale, new MathContext(precision));
+
+			valueAsLong = 0;
+			byteCount = 120;
+
+			if (value.Scale == 0) {
+				var bint = value.ToBigInteger();
+				int bitCount = bint.BitLength;
+				if (bitCount < 30) {
+					valueAsLong = bint.ToInt64();
+					byteCount = 4;
+				} else if (bitCount < 60) {
+					valueAsLong = bint.ToInt64();
+					byteCount = 8;
+				}
+			}
+
+			state = (NumericState) info.GetByte("state");
+			innerValue = value;
 		}
 
 		public bool CanBeInt64 => byteCount <= 8;
@@ -728,6 +756,17 @@ namespace Deveel.Data.Sql {
 			}
 
 			return new SqlNumber(state, null);
+		}
+
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			var unscaled = innerValue.UnscaledValue.ToByteArray();
+			var scale = innerValue.Scale;
+			var precision = innerValue.Precision;
+
+			info.AddValue("unscaled", unscaled, typeof(byte[]));
+			info.AddValue("scale", scale);
+			info.AddValue("precision", precision);
+			info.AddValue("state", (byte)state);
 		}
 
 		#region NumericState

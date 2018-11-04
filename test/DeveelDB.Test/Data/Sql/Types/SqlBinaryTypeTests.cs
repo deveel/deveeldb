@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -108,35 +110,37 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		// TODO:
-	    //[Theory]
-	    //[InlineData("VARBINARY", SqlTypeCode.VarBinary, -1)]
-	    //[InlineData("VARBINARY(1024)", SqlTypeCode.VarBinary, 1024)]
-	    //[InlineData("BINARY(2048)", SqlTypeCode.Binary, 2048)]
-	    //[InlineData("BLOB", SqlTypeCode.Blob, -1)]
-	    //[InlineData("BLOB(45644)", SqlTypeCode.Blob, 45644)]
-	    //[InlineData("BINARY(MAX)", SqlTypeCode.Binary, SqlBinaryType.DefaultMaxSize)]
-	    //[InlineData("LONG BINARY VARYING", SqlTypeCode.LongVarBinary, -1)]
-	    //public static void ParseString(string sql, SqlTypeCode typeCode, int size) {
-	    //    var type = SqlType.Parse(sql);
+		//[Theory]
+		//[InlineData("VARBINARY", SqlTypeCode.VarBinary, -1)]
+		//[InlineData("VARBINARY(1024)", SqlTypeCode.VarBinary, 1024)]
+		//[InlineData("BINARY(2048)", SqlTypeCode.Binary, 2048)]
+		//[InlineData("BLOB", SqlTypeCode.Blob, -1)]
+		//[InlineData("BLOB(45644)", SqlTypeCode.Blob, 45644)]
+		//[InlineData("BINARY(MAX)", SqlTypeCode.Binary, SqlBinaryType.DefaultMaxSize)]
+		//[InlineData("LONG BINARY VARYING", SqlTypeCode.LongVarBinary, -1)]
+		//public static void ParseString(string sql, SqlTypeCode typeCode, int size) {
+		//    var type = SqlType.Parse(sql);
 
-	    //    Assert.NotNull(type);
-	    //    Assert.Equal(typeCode, type.TypeCode);
-	    //    Assert.IsType<SqlBinaryType>(type);
+		//    Assert.NotNull(type);
+		//    Assert.Equal(typeCode, type.TypeCode);
+		//    Assert.IsType<SqlBinaryType>(type);
 
-	    //    var binType = (SqlBinaryType) type;
+		//    var binType = (SqlBinaryType) type;
 
-	    //    Assert.Equal(size, binType.MaxSize);
-	    //}
-
-	 //   [Theory]
-		//[InlineData(SqlTypeCode.VarBinary, -1)]
-		//[InlineData(SqlTypeCode.Binary, 4556)]
-		//public static void Serialize(SqlTypeCode typeCode, int size) {
-		//	var type = new SqlBinaryType(typeCode, size);
-		//	var result = BinarySerializeUtil.Serialize(type);
-
-		//	Assert.Equal(type, result);
+		//    Assert.Equal(size, binType.MaxSize);
 		//}
+
+		[Theory]
+		[InlineData(SqlTypeCode.VarBinary, -1)]
+		[InlineData(SqlTypeCode.Binary, 4556)]
+		public static void Serialize(SqlTypeCode typeCode, int size)
+		{
+			var type = new SqlBinaryType(typeCode, size);
+			var result = BinarySerializeUtil.Serialize(type);
+
+			Assert.Equal(type, result);
+			Assert.Equal(size, type.MaxSize);
+		}
 
 		[Theory]
 		[InlineData(SqlTypeCode.Binary, -1, SqlTypeCode.Binary, -1, true)]

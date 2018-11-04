@@ -26,9 +26,10 @@ namespace Deveel.Data.Sql {
 	/// <para>
 	/// This value has a variable handling of precision and it's not
 	/// by itself bound to certain limits, that are instead defined
-	/// by <see cref="SqlDateTimeType"/>.
+	/// by <see cref="Types.SqlDateTimeType"/>.
 	/// </para>
 	/// </remarks>
+	[Serializable]
 	public struct SqlDateTime : ISqlValue, IEquatable<SqlDateTime>, IComparable<SqlDateTime>, IFormattable, IConvertible {
 		private readonly DateTimeOffset value;
 

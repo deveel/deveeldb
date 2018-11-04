@@ -16,12 +16,18 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlDateTimeType : SqlType {
 		public SqlDateTimeType(SqlTypeCode sqlType)
 			: base(sqlType) {
 			AssertDateType(sqlType);
+		}
+
+		private SqlDateTimeType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		private static void AssertDateType(SqlTypeCode sqlType) {

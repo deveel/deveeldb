@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
 	/// <summary>
@@ -29,7 +30,8 @@ namespace Deveel.Data.Sql.Types {
 	/// runtime transposition, serialization of values, and other
 	/// operations.
 	/// </remarks>
-	public abstract class SqlType : IEquatable<SqlType>, IComparer, IComparer<ISqlValue>, ISqlFormattable {
+	[Serializable]
+	public abstract class SqlType : IEquatable<SqlType>, IComparer, IComparer<ISqlValue>, ISqlFormattable, ISerializable {
 		/// <summary>
 		/// Constructs the <see cref="SqlType"/> for the given specific
 		/// <see cref="SqlTypeCode">SQL TYPE</see>.
@@ -37,6 +39,10 @@ namespace Deveel.Data.Sql.Types {
 		/// <param name="typeCode">The code of the SQL Type this object will represent.</param>
 		protected SqlType(SqlTypeCode typeCode) {
 			TypeCode = typeCode;
+		}
+
+		protected SqlType(SerializationInfo info, StreamingContext context) {
+			TypeCode = (SqlTypeCode) info.GetInt32("typeCode");
 		}
 
 		/// <summary>
@@ -262,6 +268,19 @@ namespace Deveel.Data.Sql.Types {
 
 		public virtual ISqlValue NormalizeValue(ISqlValue value) {
 			return value;
+		}
+
+		#endregion
+
+		#region Serialization
+
+		protected virtual void GetObjectData(SerializationInfo info) {
+
+		}
+
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("typeCode", (int)TypeCode);
+			GetObjectData(info);
 		}
 
 		#endregion

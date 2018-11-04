@@ -16,12 +16,18 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlBooleanType : SqlType {
 		public SqlBooleanType(SqlTypeCode typeCode) 
 			: base(typeCode) {
 			AssertIsBoolean(typeCode);
+		}
+
+		private SqlBooleanType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
 		}
 
 		private static void AssertIsBoolean(SqlTypeCode sqlType) {

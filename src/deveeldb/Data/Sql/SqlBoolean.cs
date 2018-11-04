@@ -31,6 +31,7 @@ namespace Deveel.Data.Sql {
 	/// </para>
 	/// </remarks>
 	[DebuggerDisplay("{ToString()}")]
+	[Serializable]
 	public struct SqlBoolean : ISqlValue, IEquatable<SqlBoolean>, IComparable<SqlBoolean>, IConvertible {
 		private readonly byte value;
 

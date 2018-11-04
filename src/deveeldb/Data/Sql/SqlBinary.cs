@@ -22,8 +22,9 @@ using System.IO;
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Implements a <c>BINARY</c> object that handles a limited number
-	/// of bytes, not exceding <see cref="MaxLength"/>.
+	/// of bytes, not exceeding <see cref="MaxLength"/>.
 	/// </summary>
+	[Serializable]
 	public struct SqlBinary : ISqlBinary {
 		private byte[] bytes;
 

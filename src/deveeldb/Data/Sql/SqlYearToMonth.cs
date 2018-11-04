@@ -20,6 +20,7 @@ namespace Deveel.Data.Sql {
 	/// <summary>
 	/// A month span representation of time.
 	/// </summary>
+	[Serializable]
 	public struct SqlYearToMonth : ISqlValue, IComparable<SqlYearToMonth>, IEquatable<SqlYearToMonth>, ISqlFormattable {
 		private readonly int months;
 
@@ -56,20 +57,12 @@ namespace Deveel.Data.Sql {
 		/// <summary>
 		/// Gets the total number of months that represents the time span.
 		/// </summary>
-		public int TotalMonths {
-			get {
-				return months;
-			}
-		}
+		public int TotalMonths => months;
 
 		/// <summary>
 		/// Gets the total number of years that represents the time span.
 		/// </summary>
-		public double TotalYears {
-			get {
-				return ((double) months / 12);
-			}
-		}
+		public double TotalYears => ((double) months / 12);
 
 		bool ISqlValue.IsComparableTo(ISqlValue other) {
 			return other is SqlYearToMonth ||

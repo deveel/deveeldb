@@ -18,6 +18,7 @@ using System;
 
 namespace Deveel.Data.Services {
 	public static class KnownScopes {
+		public const string Serialization = "serialize";
 		public const string System = "system";
 		public const string Database = "database";
 		public const string Query = "query";

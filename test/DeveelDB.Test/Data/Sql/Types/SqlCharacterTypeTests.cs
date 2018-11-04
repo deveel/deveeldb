@@ -18,6 +18,8 @@ using System;
 using System.Globalization;
 using System.IO;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -297,6 +299,20 @@ namespace Deveel.Data.Sql.Types {
 		public static void CastToYearToMonth(string s, int expected) {
 			var exp = new SqlYearToMonth(expected);
 			Cast(s, SqlTypeCode.YearToMonth, -1, -1, exp);
+		}
+
+		[Theory]
+		[InlineData(SqlTypeCode.VarChar, -1, null)]
+		[InlineData(SqlTypeCode.VarChar, 255, "en-US")]
+		[InlineData(SqlTypeCode.String, -1, "nb-NO")]
+		[InlineData(SqlTypeCode.Char, 2, null)]
+		[InlineData(SqlTypeCode.LongVarChar, -1, null)]
+		public static void Serialize(SqlTypeCode typeCode, int maxSize, string locale) {
+			var culture = String.IsNullOrEmpty(locale) ? null : new CultureInfo(locale);
+			var type = new SqlCharacterType(typeCode, maxSize, culture);
+
+			var result = BinarySerializeUtil.Serialize(type);
+			Assert.Equal(type, result);
 		}
 	}
 }

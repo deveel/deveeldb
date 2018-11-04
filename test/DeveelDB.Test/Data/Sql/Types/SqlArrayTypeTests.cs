@@ -16,6 +16,8 @@
 
 using System;
 
+using Deveel.Data.Serialization;
+
 using Xunit;
 
 namespace Deveel.Data.Sql.Types {
@@ -46,6 +48,17 @@ namespace Deveel.Data.Sql.Types {
 			var type2 = new SqlArrayType(length2);
 
 			Assert.Equal(expected, type1.Equals(type2));
+		}
+
+		[Theory]
+		[InlineData(67)]
+		[InlineData(1024)]
+		[InlineData(65740000)]
+		public static void Serialize(int value) {
+			var type = PrimitiveTypes.Array(value);
+			var result = BinarySerializeUtil.Serialize(type);
+
+			Assert.Equal(type, result);
 		}
 	}
 }

@@ -17,8 +17,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Deveel.Data.Sql.Types {
+	[Serializable]
 	public sealed class SqlBinaryType : SqlType {
 		public const int DefaultMaxSize = Int16.MaxValue;
 
@@ -30,6 +32,11 @@ namespace Deveel.Data.Sql.Types {
 			: base(typeCode) {
 			MaxSize = maxSize;
 			AssertIsBinary(typeCode);
+		}
+
+		private SqlBinaryType(SerializationInfo info, StreamingContext context)
+			: base(info, context) {
+			MaxSize = info.GetInt32("maxSize");
 		}
 
 		public int MaxSize { get; private set; }
@@ -136,6 +143,10 @@ namespace Deveel.Data.Sql.Types {
 
 			return TypeCode == binType.TypeCode &&
 			       MaxSize == binType.MaxSize;
+		}
+
+		protected override void GetObjectData(SerializationInfo info) {
+			info.AddValue("maxSize", MaxSize);
 		}
 	}
 }

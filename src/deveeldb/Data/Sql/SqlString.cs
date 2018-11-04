@@ -31,12 +31,13 @@ namespace Deveel.Data.Sql {
 	/// objects and can handle a fixed length of characters.
 	/// </para>
 	/// <para>
-	/// The encoding of the string is dependent from the <see cref="SqlCharacterType"/> that
+	/// The encoding of the string is dependent from the <see cref="Types.SqlCharacterType"/> that
 	/// defines an object, but the default is <see cref="UnicodeEncoding"/>.
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="ISqlString"/>
 	[DebuggerDisplay("{ToString()}")]
+	[Serializable]
 	public sealed class SqlString : ISqlString, IEquatable<SqlString>, IConvertible {
 		/// <summary>
 		/// The maximum length of characters a <see cref="SqlString"/> can handle.

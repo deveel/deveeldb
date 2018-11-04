@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2018 Deveel
+//  Copyright 2010-2017 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,30 +14,22 @@
 //    limitations under the License.
 //
 
+
 using System;
-using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
-namespace Deveel.Data.Sql.Types {
-	[Serializable]
-	public sealed class SqlDeterministicType : SqlType {
-		public SqlDeterministicType()
-			: base(SqlTypeCode.Unknown) {
+namespace Deveel.Data.Sql.Statements {
+	public sealed class NullStatement : SqlStatement, IPlSqlStatement {
+		public NullStatement() {
+			
 		}
 
-		private SqlDeterministicType(SerializationInfo info, StreamingContext context)
-			: base(info, context) {
-		}
-
-		public override bool IsComparable(SqlType type) {
-			return false;
-		}
-
-		public override bool CanCastTo(ISqlValue value, SqlType destType) {
-			return false;
+		protected override Task ExecuteStatementAsync(StatementContext context) {
+			return Task.CompletedTask;
 		}
 
 		protected override void AppendTo(SqlStringBuilder builder) {
-			builder.Append("DETERMINISTIC");
+			builder.Append("NULL;");
 		}
 	}
 }
