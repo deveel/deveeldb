@@ -57,26 +57,25 @@ namespace Deveel.Data.Sql.Types {
 			Assert.Equal(expected, sql);
 		}
 
-		//TODO:
-	    //[Theory]
-	    //[InlineData("STRING", SqlTypeCode.String, -1)]
-	    //[InlineData("STRING(200)", SqlTypeCode.String, 200)]
-	    //[InlineData("VARCHAR", SqlTypeCode.VarChar, -1)]
-	    //[InlineData("VARCHAR(233)", SqlTypeCode.VarChar, 233)]
-	    //[InlineData("CHAR(11)", SqlTypeCode.Char, 11)]
-	    //[InlineData("LONG CHARACTER VARYING", SqlTypeCode.LongVarChar, -1)]
-	    //[InlineData("CLOB(30221)", SqlTypeCode.Clob, 30221)]
-	    //[InlineData("VARCHAR(MAX)", SqlTypeCode.VarChar, SqlCharacterType.DefaultMaxSize)]
-	    //public static void ParseString(string sql, SqlTypeCode typeCode, int size) {
-	    //    var type = SqlType.Parse(sql);
+		[Theory]
+		[InlineData("STRING", SqlTypeCode.String, -1)]
+		[InlineData("STRING(200)", SqlTypeCode.String, 200)]
+		[InlineData("VARCHAR", SqlTypeCode.VarChar, -1)]
+		[InlineData("VARCHAR(233)", SqlTypeCode.VarChar, 233)]
+		[InlineData("CHAR(11)", SqlTypeCode.Char, 11)]
+		[InlineData("LONG CHARACTER VARYING", SqlTypeCode.LongVarChar, -1)]
+		[InlineData("CLOB(30221)", SqlTypeCode.Clob, 30221)]
+		[InlineData("VARCHAR(MAX)", SqlTypeCode.VarChar, SqlCharacterType.DefaultMaxSize)]
+		public static void ParseString(string sql, SqlTypeCode typeCode, int size) {
+			var type = SqlType.Parse(sql);
 
-	    //    Assert.NotNull(type);
-	    //    Assert.Equal(typeCode, type.TypeCode);
-	    //    Assert.IsType<SqlCharacterType>(type);
+			Assert.NotNull(type);
+			Assert.Equal(typeCode, type.TypeCode);
+			Assert.IsType<SqlCharacterType>(type);
 
-	    //    var charType = (SqlCharacterType) type;
-	    //    Assert.Equal(size, charType.MaxSize);
-	    //}
+			var charType = (SqlCharacterType) type;
+			Assert.Equal(size, charType.MaxSize);
+		}
 
 
 		[Theory]

@@ -138,33 +138,32 @@ namespace Deveel.Data.Sql.Types {
 			Assert.Equal(expected, sqlString);
 		}
 
-		//TODO:
-	    //[Theory]
-	    //[InlineData("INT", SqlTypeCode.Integer, 10, 0)]
-	    //[InlineData("INTEGER", SqlTypeCode.Integer, 10, 0)]
-	    //[InlineData("BIGINT", SqlTypeCode.BigInt, 19, 0)]
-	    //[InlineData("SMALLINT", SqlTypeCode.SmallInt, 5, 0)]
-	    //[InlineData("TINYINT", SqlTypeCode.TinyInt, 3, 0)]
-	    //[InlineData("DOUBLE", SqlTypeCode.Double, 16, -1)]
-	    //[InlineData("FLOAT", SqlTypeCode.Float, 8, -1)]
-	    //[InlineData("REAL", SqlTypeCode.Float, 8, -1)]
-	    //[InlineData("DECIMAL", SqlTypeCode.Decimal, 24, -1)]
-     //   [InlineData("NUMERIC(22, 13)", SqlTypeCode.Numeric, 22, 13)]
-	    //public static void ParseString(string sql, SqlTypeCode typeCode, int precision, int scale) {
-	    //    var type = SqlType.Parse(sql);
+		[Theory]
+		[InlineData("INT", SqlTypeCode.Integer, 10, 0)]
+		[InlineData("INTEGER", SqlTypeCode.Integer, 10, 0)]
+		[InlineData("BIGINT", SqlTypeCode.BigInt, 19, 0)]
+		[InlineData("SMALLINT", SqlTypeCode.SmallInt, 5, 0)]
+		[InlineData("TINYINT", SqlTypeCode.TinyInt, 3, 0)]
+		[InlineData("DOUBLE", SqlTypeCode.Double, 16, -1)]
+		[InlineData("FLOAT", SqlTypeCode.Float, 8, -1)]
+		[InlineData("REAL", SqlTypeCode.Float, 8, -1)]
+		[InlineData("DECIMAL", SqlTypeCode.Decimal, 24, -1)]
+		[InlineData("NUMERIC(22, 13)", SqlTypeCode.Numeric, 22, 13)]
+		public static void ParseString(string sql, SqlTypeCode typeCode, int precision, int scale) {
+			var type = SqlType.Parse(sql);
 
-	    //    Assert.NotNull(type);
-	    //    Assert.Equal(typeCode, type.TypeCode);
-	    //    Assert.IsType<SqlNumericType>(type);
+			Assert.NotNull(type);
+			Assert.Equal(typeCode, type.TypeCode);
+			Assert.IsType<SqlNumericType>(type);
 
-	    //    var numericType = (SqlNumericType) type;
+			var numericType = (SqlNumericType) type;
 
-	    //    Assert.Equal(precision, numericType.Precision);
-	    //    Assert.Equal(scale, numericType.Scale);
-	    //}
+			Assert.Equal(precision, numericType.Precision);
+			Assert.Equal(scale, numericType.Scale);
+		}
 
 
-	    [Theory]
+		[Theory]
 		[InlineData(544667.002f, SqlTypeCode.VarBinary, 200)]
 		[InlineData(6734, SqlTypeCode.VarBinary, 56)]
 		[InlineData(900192299.9220, SqlTypeCode.VarBinary, 450)]

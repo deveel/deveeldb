@@ -15,20 +15,11 @@
 //
 
 using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Deveel.Data.Serialization {
-	static class BinarySerializeUtil {
-		public static T Serialize<T>(T obj) {
-			var serializer = new BinaryFormatter();
-			var stream = new MemoryStream();
-
-			serializer.Serialize(stream, obj);
-
-			stream.Seek(0, SeekOrigin.Begin);
-
-			return (T) serializer.Deserialize(stream);
+namespace Deveel.Data.Sql.Expressions {
+	public static class ExpressionPreparableExtensions {
+		public static T Prepare<T>(this T preparable, ISqlExpressionPreparer preparer) where T : ISqlExpressionPreparable<T> {
+			return preparable.Prepare(preparer);
 		}
 	}
 }

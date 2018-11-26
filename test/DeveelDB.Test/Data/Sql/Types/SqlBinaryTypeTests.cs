@@ -109,26 +109,26 @@ namespace Deveel.Data.Sql.Types {
 			Assert.Equal(expected, s);
 		}
 
-		// TODO:
-		//[Theory]
-		//[InlineData("VARBINARY", SqlTypeCode.VarBinary, -1)]
-		//[InlineData("VARBINARY(1024)", SqlTypeCode.VarBinary, 1024)]
-		//[InlineData("BINARY(2048)", SqlTypeCode.Binary, 2048)]
-		//[InlineData("BLOB", SqlTypeCode.Blob, -1)]
-		//[InlineData("BLOB(45644)", SqlTypeCode.Blob, 45644)]
-		//[InlineData("BINARY(MAX)", SqlTypeCode.Binary, SqlBinaryType.DefaultMaxSize)]
-		//[InlineData("LONG BINARY VARYING", SqlTypeCode.LongVarBinary, -1)]
-		//public static void ParseString(string sql, SqlTypeCode typeCode, int size) {
-		//    var type = SqlType.Parse(sql);
+		[Theory]
+		[InlineData("VARBINARY", SqlTypeCode.VarBinary, -1)]
+		[InlineData("VARBINARY(1024)", SqlTypeCode.VarBinary, 1024)]
+		[InlineData("BINARY(2048)", SqlTypeCode.Binary, 2048)]
+		[InlineData("BLOB", SqlTypeCode.Blob, -1)]
+		[InlineData("BLOB(45644)", SqlTypeCode.Blob, 45644)]
+		[InlineData("BINARY(MAX)", SqlTypeCode.Binary, SqlBinaryType.DefaultMaxSize)]
+		[InlineData("LONG BINARY VARYING", SqlTypeCode.LongVarBinary, -1)]
+		public static void ParseString(string sql, SqlTypeCode typeCode, int size)
+		{
+			var type = SqlType.Parse(sql);
 
-		//    Assert.NotNull(type);
-		//    Assert.Equal(typeCode, type.TypeCode);
-		//    Assert.IsType<SqlBinaryType>(type);
+			Assert.NotNull(type);
+			Assert.Equal(typeCode, type.TypeCode);
+			Assert.IsType<SqlBinaryType>(type);
 
-		//    var binType = (SqlBinaryType) type;
+			var binType = (SqlBinaryType)type;
 
-		//    Assert.Equal(size, binType.MaxSize);
-		//}
+			Assert.Equal(size, binType.MaxSize);
+		}
 
 		[Theory]
 		[InlineData(SqlTypeCode.VarBinary, -1)]

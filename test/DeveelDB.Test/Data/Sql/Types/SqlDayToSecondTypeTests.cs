@@ -65,7 +65,7 @@ namespace Deveel.Data.Sql.Types {
 			var dts = SqlDayToSecond.Parse(value);
 
 			var type = new SqlDayToSecondType();
-			var destType = PrimitiveTypes.Type(destTypeCode, new { size });
+			var destType = PrimitiveTypes.Type(destTypeCode, new {size});
 			var result = type.Cast(dts, destType);
 
 			Assert.IsType<SqlBinary>(result);
@@ -94,16 +94,15 @@ namespace Deveel.Data.Sql.Types {
 			Assert.Equal(exp, result);
 		}
 
-		//TODO:
-     //   [Theory]
-     //   [InlineData("INTERVAL DAY TO SECOND", SqlTypeCode.DayToSecond)]
-	    //public static void ParseString(string s, SqlTypeCode typeCode) {
-     //       var type = SqlType.Parse(s);
+		[Theory]
+		[InlineData("INTERVAL DAY TO SECOND", SqlTypeCode.DayToSecond)]
+		public static void ParseString(string s, SqlTypeCode typeCode) {
+			var type = SqlType.Parse(s);
 
-     //       Assert.NotNull(type);
-     //       Assert.Equal(typeCode, type.TypeCode);
+			Assert.NotNull(type);
+			Assert.Equal(typeCode, type.TypeCode);
 
-     //       Assert.IsType<SqlDayToSecondType>(type);
-     //   }
+			Assert.IsType<SqlDayToSecondType>(type);
+		}
 	}
 }

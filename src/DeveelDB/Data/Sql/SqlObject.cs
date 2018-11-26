@@ -18,6 +18,7 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql {
@@ -31,6 +32,7 @@ namespace Deveel.Data.Sql {
 		public SqlObject(SqlType type, ISqlValue value) {
 			if (type == null)
 				throw new ArgumentNullException(nameof(type));
+
 			if (value == null)
 				value = SqlNull.Value;
 
@@ -49,22 +51,25 @@ namespace Deveel.Data.Sql {
 
 		public bool IsUnknown => Type is SqlBooleanType && SqlNull.Value == Value;
 
-		public bool IsTrue => Type is SqlBooleanType && (SqlBoolean)Value == SqlBoolean.True;
+		public bool IsTrue => Type is SqlBooleanType && (SqlBoolean) Value == SqlBoolean.True;
 
 		public bool IsFalse => Type is SqlBooleanType && (SqlBoolean) Value == SqlBoolean.False;
 
 		private int CompareToNotNull(SqlObject other) {
 			var type = Type;
+
 			// Strings must be handled as a special case.
 			if (type is SqlCharacterType) {
 				// We must determine the locale to compare against and use that.
-				var stype = (SqlCharacterType)type;
+				var stype = (SqlCharacterType) type;
+
 				// If there is no locale defined for this type we use the locale in the
 				// given type.
 				if (stype.Locale == null) {
 					type = other.Type;
 				}
 			}
+
 			return type.Compare(Value, other.Value);
 
 		}
@@ -98,9 +103,11 @@ namespace Deveel.Data.Sql {
 		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
 			if (IsUnknown) {
 				builder.Append("UNKNOWN");
-			} else if (IsNull) {
+			}
+			else if (IsNull) {
 				builder.Append("NULL");
-			} else {
+			}
+			else {
 				builder.Append(Type.ToSqlString(Value));
 			}
 		}
@@ -113,6 +120,7 @@ namespace Deveel.Data.Sql {
 			unchecked {
 				var code = Type.GetHashCode() * 23;
 				code = code ^ Value.GetHashCode();
+
 				return code;
 			}
 		}
@@ -122,6 +130,7 @@ namespace Deveel.Data.Sql {
 				return false;
 
 			var other = (SqlObject) obj;
+
 			return Equals(other);
 		}
 
@@ -142,7 +151,8 @@ namespace Deveel.Data.Sql {
 			return Value.Equals(other.Value);
 		}
 
-		private SqlObject BinaryOperator(Func<SqlType, Func<ISqlValue, ISqlValue, ISqlValue>> selector, SqlObject other) {
+		private SqlObject BinaryOperator(Func<SqlType, Func<ISqlValue, ISqlValue, ISqlValue>> selector,
+			SqlObject other) {
 			if (IsNull || (other == null || other.IsNull))
 				return Null;
 			if (IsUnknown || other.IsUnknown)
@@ -150,6 +160,7 @@ namespace Deveel.Data.Sql {
 
 			if (!Type.IsComparable(other.Type))
 				throw new ArgumentException($"Type {Type} is not comparable to type {other.Type} of the argument");
+
 			// TODO: should instead return null?
 
 			var resultType = Type.Wider(other.Type);
@@ -163,7 +174,8 @@ namespace Deveel.Data.Sql {
 			return new SqlObject(resultType, result);
 		}
 
-		private SqlObject RelationalOperator(Func<SqlType, Func<ISqlValue, ISqlValue, SqlBoolean>> selector, SqlObject other) {
+		private SqlObject RelationalOperator(Func<SqlType, Func<ISqlValue, ISqlValue, SqlBoolean>> selector,
+			SqlObject other) {
 			if (IsNull || (other == null || other.IsNull))
 				return Unknown;
 			if (IsUnknown || other.IsUnknown)
@@ -171,6 +183,7 @@ namespace Deveel.Data.Sql {
 
 			if (!Type.IsComparable(other.Type))
 				throw new ArgumentException($"Type {Type} is not comparable to type {other.Type} of the argument");
+
 			// TODO: should instead return null?
 
 			var op = selector(Type);
@@ -216,6 +229,7 @@ namespace Deveel.Data.Sql {
 			    other.Type is SqlBooleanType) {
 				var b1 = (SqlBoolean) Value;
 				var b2 = (SqlBoolean) other.Value;
+
 				return New((SqlBoolean) (b1 == b2));
 			}
 
@@ -336,6 +350,7 @@ namespace Deveel.Data.Sql {
 				return new SqlObject(destType, null);
 
 			var result = Type.Cast(Value, destType);
+
 			return new SqlObject(destType, result);
 		}
 
@@ -349,7 +364,8 @@ namespace Deveel.Data.Sql {
 				throw new ArgumentException();
 
 			if (value is SqlNumber) {
-				var number = (SqlNumber)value;
+				var number = (SqlNumber) value;
+
 				if (number.CanBeInt32)
 					return PrimitiveTypes.Integer();
 				if (number.CanBeInt64)
@@ -367,13 +383,15 @@ namespace Deveel.Data.Sql {
 
 			if (value is ISqlString) {
 				// TODO: support the long string
-				var length = ((ISqlString)value).Length;
-				return PrimitiveTypes.VarChar((int)length);
+				var length = ((ISqlString) value).Length;
+
+				return PrimitiveTypes.VarChar((int) length);
 			}
 
 			if (value is SqlBinary) {
-				var bin = (SqlBinary)value;
-				return PrimitiveTypes.VarBinary((int)bin.Length);
+				var bin = (SqlBinary) value;
+
+				return PrimitiveTypes.VarBinary((int) bin.Length);
 			}
 
 			if (value is SqlDateTime) {
@@ -388,9 +406,8 @@ namespace Deveel.Data.Sql {
 			if (value is SqlDayToSecond)
 				return PrimitiveTypes.DayToSecond();
 
-			//TODO:
-			//if (value is SqlArray)
-			//	return PrimitiveTypes.Array(((SqlArray) value).Length);
+			if (value is SqlArray)
+				return PrimitiveTypes.Array(((SqlArray) value).Length);
 
 			throw new NotSupportedException();
 		}
@@ -420,23 +437,23 @@ namespace Deveel.Data.Sql {
 			return new SqlObject(PrimitiveTypes.String(), value);
 		}
 
-	    public static SqlObject String(string value)
-	        => String(new SqlString(value));
+		public static SqlObject String(string value)
+			=> String(new SqlString(value));
 
 		#endregion
 
 		#region Numeric
 
 		public static SqlObject Integer(int value) {
-			return new SqlObject(PrimitiveTypes.Integer(), (SqlNumber)value);
+			return new SqlObject(PrimitiveTypes.Integer(), (SqlNumber) value);
 		}
 
 		public static SqlObject BigInt(long value) {
-			return new SqlObject(PrimitiveTypes.BigInt(), (SqlNumber)value);
+			return new SqlObject(PrimitiveTypes.BigInt(), (SqlNumber) value);
 		}
 
 		public static SqlObject Double(double value) {
-			return new SqlObject(PrimitiveTypes.Double(), (SqlNumber)value);
+			return new SqlObject(PrimitiveTypes.Double(), (SqlNumber) value);
 		}
 
 		public static SqlObject Numeric(SqlNumber value) {
@@ -447,23 +464,23 @@ namespace Deveel.Data.Sql {
 
 		#region Array
 
-		// TODO:
-		//public static SqlObject Array(SqlArray array) {
-		//	return new SqlObject(PrimitiveTypes.Array(array.Length), array);
-		//}
+		public static SqlObject Array(SqlArray array) {
+			return new SqlObject(PrimitiveTypes.Array(array.Length), array);
+		}
 
-		//public static SqlObject Array(params SqlObject[] items) {
-		//	var array = items == null
-		//		? new SqlArray(new SqlExpression[0])
-		//		: new SqlArray(items.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray());
+		public static SqlObject Array(params SqlObject[] items) {
+			var array = items == null
+				? new SqlArray(new SqlExpression[0])
+				: new SqlArray(items.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray());
 
-		//	return Array(array);
-		//}
+			return Array(array);
+		}
 
-	 //   public static SqlObject Array(params SqlExpression[] expressions) {
-	 //       var array = expressions == null ? new SqlArray(new SqlExpression[0]) : new SqlArray(expressions);
-	 //       return Array(array);
-	 //   }
+		public static SqlObject Array(params SqlExpression[] expressions) {
+			var array = expressions == null ? new SqlArray(new SqlExpression[0]) : new SqlArray(expressions);
+
+			return Array(array);
+		}
 
 		#endregion
 

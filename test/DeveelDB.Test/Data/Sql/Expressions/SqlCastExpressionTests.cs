@@ -87,20 +87,19 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(expected, sql);
 		}
 
-		//TODO:
-		//[Theory]
-		//[InlineData("CAST(54 AS BIGINT)", "BIGINT")]
-		//[InlineData("CAST('test' AS VARCHAR(255))", "VARCHAR(255)")]
-		//public static void ParseString(string s, string castTypeString) {
-		//	var exp = SqlExpression.Parse(s);
+		[Theory]
+		[InlineData("CAST(54 AS BIGINT)", "BIGINT")]
+		[InlineData("CAST('test' AS VARCHAR(255))", "VARCHAR(255)")]
+		public static void ParseString(string s, string castTypeString) {
+			var exp = SqlExpression.Parse(s);
 
-		//	Assert.NotNull(exp);
-		//	Assert.IsType<SqlCastExpression>(exp);
+			Assert.NotNull(exp);
+			Assert.IsType<SqlCastExpression>(exp);
 
-		//	var cast = (SqlCastExpression) exp;
+			var cast = (SqlCastExpression) exp;
 
-		//	var castType = SqlType.Parse(castTypeString);
-		//	Assert.Equal(castType, cast.TargetType);
-		//}
+			var castType = SqlType.Parse(castTypeString);
+			Assert.Equal(castType, cast.TargetType);
+		}
 	}
 }

@@ -34,24 +34,23 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(expected, sql);
 		}
 
-		// TODO:
-		//[Theory]
-		//[InlineData("CASE a WHEN 1 THEN TRUE ELSE FALSE END")]
-		//[InlineData("CASE WHEN a = 1 THEN TRUE ELSE FALSE END")]
-		//[InlineData("CASE a WHEN 1 THEN TRUE WHEN 2 THEN TRUE ELSE FALSE END")]
-		//[InlineData("CASE WHEN a = 1 THEN TRUE WHEN b = 2 THEN FALSE END")]
-		//public static void ParseSipleCaseString(string s) {
-		//	var exp = SqlExpression.Parse(s);
+		[Theory]
+		[InlineData("CASE a WHEN 1 THEN TRUE ELSE FALSE END")]
+		[InlineData("CASE WHEN a = 1 THEN TRUE ELSE FALSE END")]
+		[InlineData("CASE a WHEN 1 THEN TRUE WHEN 2 THEN TRUE ELSE FALSE END")]
+		[InlineData("CASE WHEN a = 1 THEN TRUE WHEN b = 2 THEN FALSE END")]
+		public static void ParseSipleCaseString(string s) {
+			var exp = SqlExpression.Parse(s);
 
-		//	Assert.NotNull(exp);
-		//	Assert.IsType<SqlConditionExpression>(exp);
+			Assert.NotNull(exp);
+			Assert.IsType<SqlConditionExpression>(exp);
 
-		//	var condition = (SqlConditionExpression) exp;
+			var condition = (SqlConditionExpression) exp;
 
-		//	Assert.NotNull(condition.Test);
-		//	Assert.NotNull(condition.IfTrue);
-		//	Assert.NotNull(condition.IfFalse);
-		//}
+			Assert.NotNull(condition.Test);
+			Assert.NotNull(condition.IfTrue);
+			Assert.NotNull(condition.IfFalse);
+		}
 
 
 		[Theory]

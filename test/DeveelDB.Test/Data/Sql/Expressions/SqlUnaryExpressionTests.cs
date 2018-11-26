@@ -54,7 +54,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsType<SqlConstantExpression>(reduced);
 
 			var expectedResult = SqlObject.New(SqlValueUtil.FromObject(expected));
-			Assert.Equal(expectedResult, ((SqlConstantExpression)reduced).Value);
+			Assert.Equal(expectedResult, ((SqlConstantExpression) reduced).Value);
 		}
 
 		[Theory]
@@ -83,17 +83,16 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(obj.Type, sqlType);
 		}
 
-		//TODO:
-		//[Theory]
-		//[InlineData("+454.90", SqlExpressionType.UnaryPlus)]
-		//[InlineData("NOT TRUE", SqlExpressionType.Not)]
-		//[InlineData("-7849", SqlExpressionType.Negate)]
-		//public static void ParseString(string s, SqlExpressionType expressionType) {
-		//	var exp = SqlExpression.Parse(s);
+		[Theory]
+		[InlineData("+454.90", SqlExpressionType.UnaryPlus)]
+		[InlineData("NOT TRUE", SqlExpressionType.Not)]
+		[InlineData("-7849", SqlExpressionType.Negate)]
+		public static void ParseString(string s, SqlExpressionType expressionType) {
+			var exp = SqlExpression.Parse(s);
 
-		//	Assert.NotNull(exp);
-		//	Assert.Equal(expressionType, exp.ExpressionType);
-		//	Assert.IsType<SqlUnaryExpression>(exp);
-		//}
+			Assert.NotNull(exp);
+			Assert.Equal(expressionType, exp.ExpressionType);
+			Assert.IsType<SqlUnaryExpression>(exp);
+		}
 	}
 }

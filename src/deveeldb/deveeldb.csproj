@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -20,12 +20,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Antlr4" Version="4.6.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.5" />
     <PackageReference Include="dmath.core" Version="1.7.0" />
     <PackageReference Include="docfx.console" Version="2.40.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="DryIoc.dll" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\Sql\Parsing\PlSqlLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Deveel.Data.Sql.Parsing</CustomToolNamespace>
+      <Visitor>True</Visitor>
+      <Listener>False</Listener>
+    </None>
+    <None Update="Data\Sql\Parsing\PlSqlParser.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Deveel.Data.Sql.Parsing</CustomToolNamespace>
+      <Visitor>True</Visitor>
+      <Listener>False</Listener>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -15,20 +15,26 @@
 //
 
 using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Deveel.Data.Serialization {
-	static class BinarySerializeUtil {
-		public static T Serialize<T>(T obj) {
-			var serializer = new BinaryFormatter();
-			var stream = new MemoryStream();
+using Deveel.Data.Sql.Expressions;
 
-			serializer.Serialize(stream, obj);
+namespace Deveel.Data.Sql.Parsing {
+	class SqlParseFunctionArgument {
+		public string Id { get; set; }
 
-			stream.Seek(0, SeekOrigin.Begin);
+		public SqlExpression Expression { get; set; }
 
-			return (T) serializer.Deserialize(stream);
+		public static SqlParseFunctionArgument Form(IContext context, PlSqlParser.ArgumentContext argument) {
+			if (argument == null)
+				return null;
+
+			var id = SqlParseName.Simple(argument.id());
+			var exp = Parsing.SqlParseExpression.Build(context, argument.expressionWrapper());
+
+			return new SqlParseFunctionArgument {
+				Id = id,
+				Expression = exp
+			};
 		}
 	}
 }

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Methods;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -43,40 +44,55 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.And:
 				case SqlExpressionType.Or:
 				case SqlExpressionType.XOr:
+
 					return VisitBinary((SqlBinaryExpression) expression);
 				case SqlExpressionType.Like:
 				case SqlExpressionType.NotLike:
+
 					return VisitStringMatch((SqlStringMatchExpression) expression);
 				case SqlExpressionType.Not:
 				case SqlExpressionType.Negate:
 				case SqlExpressionType.UnaryPlus:
+
 					return VisitUnary((SqlUnaryExpression) expression);
-				//case SqlExpressionType.Any:
-				//case SqlExpressionType.All:
-				//	return VisitQuantify((SqlQuantifyExpression) expression);
+
+				case SqlExpressionType.Any:
+				case SqlExpressionType.All:
+					return VisitQuantify((SqlQuantifyExpression)expression);
 				case SqlExpressionType.Cast:
 					return VisitCast((SqlCastExpression) expression);
 				case SqlExpressionType.Reference:
-					return VisitReference((SqlReferenceExpression)expression);
+
+					return VisitReference((SqlReferenceExpression) expression);
 				case SqlExpressionType.Variable:
-					return VisitVariable((SqlVariableExpression)expression);
+
+					return VisitVariable((SqlVariableExpression) expression);
 				case SqlExpressionType.ReferenceAssign:
-					return VisitReferenceAssign((SqlReferenceAssignExpression)expression);
+
+					return VisitReferenceAssign((SqlReferenceAssignExpression) expression);
 				case SqlExpressionType.VariableAssign:
-					return VisitVariableAssign((SqlVariableAssignExpression)expression);
+
+					return VisitVariableAssign((SqlVariableAssignExpression) expression);
 				case SqlExpressionType.Function:
-					return VisitFunction((SqlFunctionExpression)expression);
+
+					return VisitFunction((SqlFunctionExpression) expression);
 				case SqlExpressionType.Condition:
+
 					return VisitCondition((SqlConditionExpression) expression);
 				case SqlExpressionType.Parameter:
+
 					return VisitParameter((SqlParameterExpression) expression);
 				case SqlExpressionType.Constant:
+
 					return VisitConstant((SqlConstantExpression) expression);
-				//case SqlExpressionType.Query:
-				//	return VisitQuery((SqlQueryExpression) expression);
+				case SqlExpressionType.Query:
+
+					return VisitQuery((SqlQueryExpression) expression);
 				case SqlExpressionType.Group:
+
 					return VisitGroup((SqlGroupExpression) expression);
 				default:
+
 					throw new SqlExpressionException($"Invalid expression type: {expression.ExpressionType}");
 			}
 		}
@@ -96,12 +112,12 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.StringMatch(expression.ExpressionType, left, pattern, escape);
 		}
 
-		public virtual InvokeArgument[] VisitInvokeArguments(IList<InvokeArgument> arguments)
-		{
+		public virtual InvokeArgument[] VisitInvokeArguments(IList<InvokeArgument> arguments) {
 			if (arguments == null)
 				return null;
 
 			var result = new InvokeArgument[arguments.Count];
+
 			for (int i = 0; i < arguments.Count; i++) {
 				result[i] = VisitInvokeArgument(arguments[i]);
 			}
@@ -109,8 +125,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return result;
 		}
 
-		public virtual InvokeArgument VisitInvokeArgument(InvokeArgument argument)
-		{
+		public virtual InvokeArgument VisitInvokeArgument(InvokeArgument argument) {
 			var value = argument.Value;
 			if (value != null)
 				value = Visit(value);
@@ -118,9 +133,9 @@ namespace Deveel.Data.Sql.Expressions {
 			return new InvokeArgument(argument.Name, value);
 		}
 
-		public virtual SqlExpression VisitFunction(SqlFunctionExpression expression)
-		{
+		public virtual SqlExpression VisitFunction(SqlFunctionExpression expression) {
 			var args = VisitInvokeArguments(expression.Arguments);
+
 			return SqlExpression.Function(expression.FunctionName, args);
 		}
 
@@ -132,13 +147,14 @@ namespace Deveel.Data.Sql.Expressions {
 			return SqlExpression.Group(child);
 		}
 
-		//public virtual SqlExpression VisitQuantify(SqlQuantifyExpression expression) {
-		//	var exp = expression.Expression;
-		//	if (exp != null)
-		//		exp = (SqlBinaryExpression) Visit(exp);
+		public virtual SqlExpression VisitQuantify(SqlQuantifyExpression expression)
+		{
+			var exp = expression.Expression;
+			if (exp != null)
+				exp = (SqlBinaryExpression)Visit(exp);
 
-		//	return SqlExpression.Quantify(expression.ExpressionType, exp);
-		//}
+			return SqlExpression.Quantify(expression.ExpressionType, exp);
+		}
 
 		public virtual SqlExpression VisitCondition(SqlConditionExpression expression) {
 			var test = expression.Test;
@@ -215,42 +231,42 @@ namespace Deveel.Data.Sql.Expressions {
 			return expression;
 		}
 
-		//public virtual SqlExpression VisitQuery(SqlQueryExpression expression) {
-		//	var items = VisitQueryItems(expression.Items);
+		public virtual SqlExpression VisitQuery(SqlQueryExpression expression) {
+			var items = VisitQueryItems(expression.Items);
 
-		//	var query = new SqlQueryExpression {
-		//		Distinct = expression.Distinct
-		//	};
+			var query = new SqlQueryExpression {
+				Distinct = expression.Distinct
+			};
 
-		//	if (items != null) {
-		//		foreach (var item in items) {
-		//			query.Items.Add(item);
-		//		}
-		//	}
+			if (items != null) {
+				foreach (var item in items) {
+					query.Items.Add(item);
+				}
+			}
 
-		//	var from = expression.From;
-		//	if (from != null)
-		//		from = VisitQueryFrom(from);
+			var from = expression.From;
+			if (from != null)
+				from = VisitQueryFrom(from);
 
-		//	query.From = from;
+			query.From = from;
 
-		//	var where = expression.Where;
-		//	if (where != null)
-		//		where = Visit(where);
+			var where = expression.Where;
+			if (where != null)
+				where = Visit(where);
 
-		//	query.Where = where;
+			query.Where = where;
 
-		//	var having = expression.Having;
-		//	if (having != null)
-		//		having = Visit(having);
+			var having = expression.Having;
+			if (having != null)
+				having = Visit(having);
 
-		//	query.Having = having;
+			query.Having = having;
 
-		//	query.GroupBy = VisitExpressionList(expression.GroupBy);
-		//	query.GroupMax = expression.GroupMax;
+			query.GroupBy = VisitExpressionList(expression.GroupBy);
+			query.GroupMax = expression.GroupMax;
 
-		//	return query;
-		//}
+			return query;
+		}
 
 		public virtual IList<SqlExpression> VisitExpressionList(IList<SqlExpression> list) {
 			if (list == null)
@@ -265,62 +281,65 @@ namespace Deveel.Data.Sql.Expressions {
 			return result;
 		}
 
-		//public virtual IList<SqlQueryExpressionItem> VisitQueryItems(IList<SqlQueryExpressionItem> items) {
-		//	List<SqlQueryExpressionItem> result = null;
-		//	if (items != null) {
-		//		result = new List<SqlQueryExpressionItem>(items.Count);
-		//		foreach (var item in items) {
-		//			result.Add(VisitQueryItem(item));
-		//		}
-		//	}
+		public virtual IList<SqlQueryExpressionItem> VisitQueryItems(IList<SqlQueryExpressionItem> items) {
+			List<SqlQueryExpressionItem> result = null;
 
-		//	return result;
-		//}
+			if (items != null) {
+				result = new List<SqlQueryExpressionItem>(items.Count);
 
-		//public virtual SqlQueryExpressionItem VisitQueryItem(SqlQueryExpressionItem item) {
-		//	var expression = item.Expression;
-		//	if (expression != null)
-		//		expression = Visit(expression);
+				foreach (var item in items) {
+					result.Add(VisitQueryItem(item));
+				}
+			}
 
-		//	return new SqlQueryExpressionItem(expression, item.Alias);
-		//}
+			return result;
+		}
 
-		//public virtual SqlQueryExpressionFrom VisitQueryFrom(SqlQueryExpressionFrom from) {
-		//	var result = new SqlQueryExpressionFrom();
+		public virtual SqlQueryExpressionItem VisitQueryItem(SqlQueryExpressionItem item) {
+			var expression = item.Expression;
+			if (expression != null)
+				expression = Visit(expression);
 
-		//	var sources = from.Sources.ToList();
-		//	for (int i = 0; i < sources.Count; i++) {
-		//		result.Source(VisitQuerySource(sources[i]));
+			return new SqlQueryExpressionItem(expression, item.Alias);
+		}
 
-		//		if (i > 0 && !from.IsNaturalJoin) {
-		//			var part = VisitJoinPart(from.GetJoinPart(i - 1));
-		//			result.Join(part.JoinType, part.OnExpression);
-		//		}
-		//	}
+		public virtual SqlQueryExpressionFrom VisitQueryFrom(SqlQueryExpressionFrom from) {
+			var result = new SqlQueryExpressionFrom();
 
-		//	return result;
-		//}
+			var sources = from.Sources.ToList();
 
-		//public virtual SqlQueryExpressionSource VisitQuerySource(SqlQueryExpressionSource source) {
-		//	if (source.IsTable)
-		//		return new SqlQueryExpressionSource(source.TableName, source.Alias);
+			for (int i = 0; i < sources.Count; i++) {
+				result.Source(VisitQuerySource(sources[i]));
 
-		//	var query = source.Query;
-		//	if (query != null)
-		//		query = (SqlQueryExpression) Visit(query);
+				if (i > 0 && !from.IsNaturalJoin) {
+					var part = VisitJoinPart(from.GetJoinPart(i - 1));
+					result.Join(part.JoinType, part.OnExpression);
+				}
+			}
 
-		//	return new SqlQueryExpressionSource(query, source.Alias);
-		//}
+			return result;
+		}
 
-		//public virtual JoinPart VisitJoinPart(JoinPart part) {
-		//	var onExpression = part.OnExpression;
-		//	if (onExpression != null)
-		//		onExpression = Visit(onExpression);
+		public virtual SqlQueryExpressionSource VisitQuerySource(SqlQueryExpressionSource source) {
+			if (source.IsTable)
+				return new SqlQueryExpressionSource(source.TableName, source.Alias);
 
-		//	if (part.IsQuery)
-		//		return new JoinPart(part.JoinType, part.Query, onExpression);
+			var query = source.Query;
+			if (query != null)
+				query = (SqlQueryExpression) Visit(query);
 
-		//	return new JoinPart(part.JoinType, part.TableName, onExpression);
-		//}
+			return new SqlQueryExpressionSource(query, source.Alias);
+		}
+
+		public virtual JoinPart VisitJoinPart(JoinPart part) {
+			var onExpression = part.OnExpression;
+			if (onExpression != null)
+				onExpression = Visit(onExpression);
+
+			if (part.IsQuery)
+				return new JoinPart(part.JoinType, part.Query, onExpression);
+
+			return new JoinPart(part.JoinType, part.TableName, onExpression);
+		}
 	}
 }

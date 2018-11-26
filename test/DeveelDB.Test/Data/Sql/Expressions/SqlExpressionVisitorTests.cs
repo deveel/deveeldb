@@ -16,6 +16,7 @@
 
 using System;
 
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Methods;
 using Deveel.Data.Sql.Types;
 
@@ -102,27 +103,29 @@ namespace Deveel.Data.Sql.Expressions {
 			Visit(exp, true);
 		}
 
-		//[Fact]
-		//public static void VisitQuery() {
-		//	var exp = new SqlQueryExpression();
-		//	exp.Items.Add(SqlExpression.Reference(new ObjectName("a")));
-		//	exp.From.Table(new ObjectName("b"));
-		//	exp.From.Join(JoinType.Left,
-		//		SqlExpression.Equal(SqlExpression.Reference(ObjectName.Parse("b.id")), SqlExpression.Reference(ObjectName.Parse("c.b_id"))));
-		//	exp.From.Table(new ObjectName("c"));
-		//	exp.Where = SqlExpression.GreaterThanOrEqual(SqlExpression.Reference(new ObjectName("a")), SqlExpression.Constant(SqlObject.BigInt(22)));
+		[Fact]
+		public static void VisitQuery()
+		{
+			var exp = new SqlQueryExpression();
+			exp.Items.Add(SqlExpression.Reference(new ObjectName("a")));
+			exp.From.Table(new ObjectName("b"));
+			exp.From.Join(JoinType.Left,
+				SqlExpression.Equal(SqlExpression.Reference(ObjectName.Parse("b.id")), SqlExpression.Reference(ObjectName.Parse("c.b_id"))));
+			exp.From.Table(new ObjectName("c"));
+			exp.Where = SqlExpression.GreaterThanOrEqual(SqlExpression.Reference(new ObjectName("a")), SqlExpression.Constant(SqlObject.BigInt(22)));
 
-		//	Visit(exp);
-		//}
+			Visit(exp);
+		}
 
-		//[Fact]
-		//public static void VisitQuantify() {
-		//	var exp = SqlExpression.Quantify(SqlExpressionType.All, 
-		//		SqlExpression.Equal(SqlExpression.Constant(SqlObject.BigInt(43)), 
-		//		SqlExpression.Constant(SqlObject.Array(SqlObject.BigInt(33), SqlObject.Integer(1222)))));
+		[Fact]
+		public static void VisitQuantify()
+		{
+			var exp = SqlExpression.Quantify(SqlExpressionType.All,
+				SqlExpression.Equal(SqlExpression.Constant(SqlObject.BigInt(43)),
+				SqlExpression.Constant(SqlObject.Array(SqlObject.BigInt(33), SqlObject.Integer(1222)))));
 
-		//	Visit(exp);
-		//}
+			Visit(exp);
+		}
 
 
 		[Fact]

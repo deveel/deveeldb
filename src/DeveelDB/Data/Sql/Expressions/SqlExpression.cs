@@ -18,7 +18,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Services;
 using Deveel.Data.Sql.Methods;
+using Deveel.Data.Sql.Parsing;
 using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
@@ -55,6 +57,7 @@ namespace Deveel.Data.Sql.Expressions {
 			switch (ExpressionType) {
 				// Group
 				case SqlExpressionType.Group:
+
 					return 151;
 
 				// References
@@ -64,27 +67,32 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.ReferenceAssign:
 				case SqlExpressionType.Variable:
 				case SqlExpressionType.Parameter:
+
 					return 150;
 
 				// Unary
 				case SqlExpressionType.UnaryPlus:
 				case SqlExpressionType.Negate:
 				case SqlExpressionType.Not:
+
 					return 140;
 
 				// Cast
 				case SqlExpressionType.Cast:
+
 					return 139;
 
 				// Multiplicative
 				case SqlExpressionType.Multiply:
 				case SqlExpressionType.Divide:
 				case SqlExpressionType.Modulo:
+
 					return 130;
 
 				// Additive
 				case SqlExpressionType.Add:
 				case SqlExpressionType.Subtract:
+
 					return 120;
 
 				// Relational
@@ -96,27 +104,34 @@ namespace Deveel.Data.Sql.Expressions {
 				case SqlExpressionType.IsNot:
 				case SqlExpressionType.Like:
 				case SqlExpressionType.NotLike:
+
 					return 110;
 
 				// Equality
 				case SqlExpressionType.Equal:
 				case SqlExpressionType.NotEqual:
+
 					return 100;
 
 				// Logical
 				case SqlExpressionType.And:
+
 					return 90;
 				case SqlExpressionType.Or:
+
 					return 89;
 				case SqlExpressionType.XOr:
+
 					return 88;
 
 				// Conditional
 				case SqlExpressionType.Condition:
+
 					return 80;
 
 				// Constant
 				case SqlExpressionType.Constant:
+
 					return 70;
 			}
 
@@ -256,6 +271,12 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.Visit(this);
 		}
 
+		public SqlExpression Prepare(ISqlExpressionPreparer preparer) {
+			var visitor = new SqlExpressionPrepareVisitor(preparer);
+
+			return visitor.Visit(this);
+		}
+
 		#region Factories
 
 		/// <summary>
@@ -330,7 +351,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <seealso cref="SqlExpressionType.IsNot"/>
 		/// <seealso cref="SqlExpressionType.Equal"/>
 		/// <seealso cref="SqlExpressionType.NotEqual"/>
-		public static SqlBinaryExpression Binary(SqlExpressionType expressionType, SqlExpression left, SqlExpression right) {
+		public static SqlBinaryExpression Binary(SqlExpressionType expressionType, SqlExpression left,
+			SqlExpression right) {
 			if (!expressionType.IsBinary())
 				throw new ArgumentException($"Expression type {expressionType} is not binary");
 
@@ -386,7 +408,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#region String Match
 
-		
+
 		/// <summary>
 		/// Creates a new expression that matches a pattern against a given expression.
 		/// </summary>
@@ -406,7 +428,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <paramref name="pattern"/> is <c>null</c></exception>
 		/// <exception cref="ArgumentException">If the given <paramref name="expressionType"/> is not a valid
 		/// string match expression type.</exception>
-		public static SqlStringMatchExpression StringMatch(SqlExpressionType expressionType, SqlExpression left, SqlExpression pattern) {
+		public static SqlStringMatchExpression StringMatch(SqlExpressionType expressionType, SqlExpression left,
+			SqlExpression pattern) {
 			return StringMatch(expressionType, left, pattern, null);
 		}
 
@@ -431,7 +454,8 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <exception cref="ArgumentException">If the given <paramref name="expressionType"/> is not a valid
 		/// string match expression type.</exception>
 		/// <seealso cref="SqlStringMatchExpression"/>
-		public static SqlStringMatchExpression StringMatch(SqlExpressionType expressionType, SqlExpression left, SqlExpression pattern, SqlExpression escape) {
+		public static SqlStringMatchExpression StringMatch(SqlExpressionType expressionType, SqlExpression left,
+			SqlExpression pattern, SqlExpression escape) {
 			return new SqlStringMatchExpression(expressionType, left, pattern, escape);
 		}
 
@@ -508,18 +532,18 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#region Quantify
 
-		//public static SqlQuantifyExpression Quantify(SqlExpressionType expressionType, SqlBinaryExpression expression) {
-		//	if (!expressionType.IsQuantify())
-		//		throw new ArgumentException($"The expression type {expressionType} is not a quantification expression");
+		public static SqlQuantifyExpression Quantify(SqlExpressionType expressionType, SqlBinaryExpression expression) {
+			if (!expressionType.IsQuantify())
+				throw new ArgumentException($"The expression type {expressionType} is not a quantification expression");
 
-		//	return new SqlQuantifyExpression(expressionType, expression);
-		//}
+			return new SqlQuantifyExpression(expressionType, expression);
+		}
 
-		//public static SqlQuantifyExpression Any(SqlBinaryExpression expression)
-		//	=> Quantify(SqlExpressionType.Any, expression);
+		public static SqlQuantifyExpression Any(SqlBinaryExpression expression)
+			=> Quantify(SqlExpressionType.Any, expression);
 
-		//public static SqlQuantifyExpression All(SqlBinaryExpression expression)
-		//	=> Quantify(SqlExpressionType.All, expression);
+		public static SqlQuantifyExpression All(SqlBinaryExpression expression)
+			=> Quantify(SqlExpressionType.All, expression);
 
 		#endregion
 
@@ -530,7 +554,8 @@ namespace Deveel.Data.Sql.Expressions {
 			=> Function(ObjectName.Parse(functionName), args);
 
 		public static SqlFunctionExpression Function(ObjectName functionName, params SqlExpression[] args)
-			=> Function(functionName, args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
+			=> Function(functionName,
+				args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray());
 
 		public static SqlFunctionExpression Function(string functionName, params SqlExpression[] args)
 			=> Function(ObjectName.Parse(functionName), args);
@@ -545,81 +570,84 @@ namespace Deveel.Data.Sql.Expressions {
 
 		#region Parse
 
-		//private static bool TryParse(IContext context, string text, out SqlExpression expression, out string[] errors) {
-		//	ISqlExpressionParser parser = null;
-		//	if (context != null)
-		//		parser = context.Scope.GetService<ISqlExpressionParser>();
-		//	//if (parser == null)
-		//	//	parser = new DefaultSqlExpressionParser();
+		private static bool TryParse(IContext context, string text, out SqlExpression expression, out string[] errors) {
+			ISqlExpressionParser parser = null;
+			if (context != null)
+				parser = context.Scope.Resolve<ISqlExpressionParser>();
 
-		//	var result = parser.Parse(context, text);
-		//	expression = result.Expression;
-		//	errors = result.Errors;
-		//	return result.Valid;
-		//}
+			if (parser == null)
+				parser = new DefaultSqlExpressionParser();
 
-		///// <summary>
-		///// Tries to parse the given string to a SQL expression and returns
-		///// a value indicating if the parsing was successful.
-		///// </summary>
-		///// <param name="text">The text to attempt to parse into a <see cref="SqlExpression"/></param>
-		///// <param name="expression">The result of a successful parse</param>
-		///// <remarks>
-		///// This is an overload of the method <see cref="TryParse(IContext,string,out SqlExpression)"/> that
-		///// passes a null context, to trigger the usage of the default SQL expression parser
-		///// </remarks>
-		///// <returns>
-		///// Returns <c>true</c> if the parse was successful or <c>false</c> if it was not possible to
-		///// parse the text into a valid expression.
-		///// </returns>
-		//public static bool TryParse(string text, out SqlExpression expression) {
-		//	return TryParse(null, text, out expression);
-		//}
+			var result = parser.Parse(context, text);
+			expression = result.Expression;
+			errors = result.Errors;
 
-		///// <summary>
-		///// Tries to parse the given string to a SQL expression and returns
-		///// a value indicating if the parsing was successful.
-		///// </summary>
-		///// <param name="context">The context used to resolve the <see cref="ISqlExpressionParser"/> to use for the
-		///// parsing of the text</param>
-		///// <param name="text">The text to attempt to parse into a <see cref="SqlExpression"/></param>
-		///// <param name="expression">The result of a successful parse</param>
-		///// <remarks>
-		///// If the passed <paramref name="context"/> is null of it does not provide any instance
-		///// of <see cref="ISqlExpressionParser"/>, the default internal SQL expression parser will be used.
-		///// </remarks>
-		///// <returns>
-		///// Returns <c>true</c> if the parse was successful or <c>false</c> if it was not possible to
-		///// parse the text into a valid expression.
-		///// </returns>
-		//public static bool TryParse(IContext context, string text, out SqlExpression expression) {
-		//	string[] errors;
-		//	return TryParse(context, text, out expression, out errors);
-		//}
+			return result.Valid;
+		}
 
-		//public static SqlExpression Parse(string text) {
-		//	return Parse(null, text);
-		//}
+		/// <summary>
+		/// Tries to parse the given string to a SQL expression and returns
+		/// a value indicating if the parsing was successful.
+		/// </summary>
+		/// <param name="text">The text to attempt to parse into a <see cref="SqlExpression"/></param>
+		/// <param name="expression">The result of a successful parse</param>
+		/// <remarks>
+		/// This is an overload of the method <see cref="TryParse(IContext,string,out SqlExpression)"/> that
+		/// passes a null context, to trigger the usage of the default SQL expression parser
+		/// </remarks>
+		/// <returns>
+		/// Returns <c>true</c> if the parse was successful or <c>false</c> if it was not possible to
+		/// parse the text into a valid expression.
+		/// </returns>
+		public static bool TryParse(string text, out SqlExpression expression) {
+			return TryParse(null, text, out expression);
+		}
 
-		//public static SqlExpression Parse(IContext context, string text) {
-		//	string[] errors;
-		//	SqlExpression result;
-		//	if (!TryParse(context, text, out result, out errors))
-		//		throw new AggregateException(errors.Select(x => new SqlExpressionException(x)));
+		/// <summary>
+		/// Tries to parse the given string to a SQL expression and returns
+		/// a value indicating if the parsing was successful.
+		/// </summary>
+		/// <param name="context">The context used to resolve the <see cref="ISqlExpressionParser"/> to use for the
+		/// parsing of the text</param>
+		/// <param name="text">The text to attempt to parse into a <see cref="SqlExpression"/></param>
+		/// <param name="expression">The result of a successful parse</param>
+		/// <remarks>
+		/// If the passed <paramref name="context"/> is null of it does not provide any instance
+		/// of <see cref="ISqlExpressionParser"/>, the default internal SQL expression parser will be used.
+		/// </remarks>
+		/// <returns>
+		/// Returns <c>true</c> if the parse was successful or <c>false</c> if it was not possible to
+		/// parse the text into a valid expression.
+		/// </returns>
+		public static bool TryParse(IContext context, string text, out SqlExpression expression) {
+			string[] errors;
 
-		//	return result;
-		//}
+			return TryParse(context, text, out expression, out errors);
+		}
+
+		public static SqlExpression Parse(string text) {
+			return Parse(null, text);
+		}
+
+		public static SqlExpression Parse(IContext context, string text) {
+			string[] errors;
+			SqlExpression result;
+
+			if (!TryParse(context, text, out result, out errors))
+				throw new AggregateException(errors.Select(x => new SqlExpressionException(x)));
+
+			return result;
+		}
 
 		#endregion
 
 		#region SqlDefaultExpressionParser
 
-		//class DefaultSqlExpressionParser : ISqlExpressionParser {
-		//	public SqlExpressionParseResult Parse(IContext context, string expression) {
-		//		var parser = new SqlParser();
-		//		return parser.ParseExpression(context, expression);
-		//	}
-		//}
+		class DefaultSqlExpressionParser : ISqlExpressionParser {
+			public SqlExpressionParseResult Parse(IContext context, string expression) {
+				return PlSqlParser.ParseExpression(context, expression);
+			}
+		}
 
 		#endregion
 	}

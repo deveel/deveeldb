@@ -23,17 +23,17 @@ using Xunit;
 
 namespace Deveel.Data.Sql.Types {
 	public static class SqlYearToMonthTypeTests {
-		// TODO:
-     //   [Theory]
-     //   [InlineData("INTERVAL YEAR TO MONTH", SqlTypeCode.YearToMonth)]
-	    //public static void ParseSring(string s, SqlTypeCode typeCode) {
-     //       var type = SqlType.Parse(s);
+		[Theory]
+		[InlineData("INTERVAL YEAR TO MONTH", SqlTypeCode.YearToMonth)]
+		public static void ParseSring(string s, SqlTypeCode typeCode)
+		{
+			var type = SqlType.Parse(s);
 
-     //       Assert.NotNull(type);
-     //       Assert.Equal(typeCode, type.TypeCode);
+			Assert.NotNull(type);
+			Assert.Equal(typeCode, type.TypeCode);
 
-     //       Assert.IsType<SqlYearToMonthType>(type);
-     //   }
+			Assert.IsType<SqlYearToMonthType>(type);
+		}
 
 		[Theory]
 		[InlineData("1.13", "2", "2.3")]

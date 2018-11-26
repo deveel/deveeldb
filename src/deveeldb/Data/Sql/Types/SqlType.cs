@@ -19,6 +19,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
+using Deveel.Data.Services;
+using Deveel.Data.Sql.Parsing;
+
 namespace Deveel.Data.Sql.Types {
 	/// <summary>
 	/// Defines the properties of a specific SQL Type and handles the
@@ -376,6 +379,47 @@ namespace Deveel.Data.Sql.Types {
 		}
 
 		#endregion
+
+		#endregion
+
+		#region Parse
+
+		public static SqlType Parse(IContext context, string sql) {
+			ISqlTypeParser parser = null;
+			if (context != null)
+				parser = context.Scope.Resolve<ISqlTypeParser>();
+
+			if (parser == null)
+				parser = new SqlDefaultTypeParser();
+
+			return parser.Parse(context, sql);
+		}
+
+		public static SqlType Parse(string sql)
+			=> Parse(null, sql);
+
+		#endregion
+
+		#region SqlDefaultTypeParser
+
+		class SqlDefaultTypeParser : ISqlTypeParser {
+			public SqlType Parse(IContext context, string s) {
+				var typeInfo = PlSqlParser.ParseType(s);
+
+				if (PrimitiveTypes.IsPrimitive(typeInfo.TypeName))
+					return PrimitiveTypes.Resolver.Resolve(typeInfo);
+
+				if (context == null)
+					throw new Exception($"Type {typeInfo.TypeName} is not primitive and no context is provided");
+
+				var resolver = context.Scope.Resolve<ISqlTypeResolver>();
+
+				if (resolver == null)
+					throw new InvalidOperationException($"The type {typeInfo.TypeName} is not primitive and no resolver was found in context");
+
+				return resolver.Resolve(typeInfo);
+			}
+		}
 
 		#endregion
 	}

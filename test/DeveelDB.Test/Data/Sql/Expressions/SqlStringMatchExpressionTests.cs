@@ -117,16 +117,16 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(expected, sql);
 		}
 
-		//TODO:
-		//[Theory]
-		//[InlineData("a LIKE 'anto%'", SqlExpressionType.Like)]
-		//[InlineData("a NOT LIKE '%hell%'", SqlExpressionType.NotLike)]
-		//public static void ParseString(string s, SqlExpressionType expressionType) {
-		//	var exp = SqlExpression.Parse(s);
+		[Theory]
+		[InlineData("a LIKE 'anto%'", SqlExpressionType.Like)]
+		[InlineData("a NOT LIKE '%hell%'", SqlExpressionType.NotLike)]
+		public static void ParseString(string s, SqlExpressionType expressionType)
+		{
+			var exp = SqlExpression.Parse(s);
 
-		//	Assert.NotNull(exp);
-		//	Assert.IsType<SqlStringMatchExpression>(exp);
-		//	Assert.Equal(expressionType, exp.ExpressionType);
-		//}
+			Assert.NotNull(exp);
+			Assert.IsType<SqlStringMatchExpression>(exp);
+			Assert.Equal(expressionType, exp.ExpressionType);
+		}
 	}
 }

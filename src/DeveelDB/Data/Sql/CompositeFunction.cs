@@ -15,20 +15,30 @@
 //
 
 using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Deveel.Data.Serialization {
-	static class BinarySerializeUtil {
-		public static T Serialize<T>(T obj) {
-			var serializer = new BinaryFormatter();
-			var stream = new MemoryStream();
+namespace Deveel.Data.Sql {
+	/// <summary>
+	/// The kind of composite function in a <see cref="CompositeTable"/>.
+	/// </summary>
+	public enum CompositeFunction {
+		/// <summary>
+		/// The composite function for finding the union of the tables.
+		/// </summary>
+		Union = 1,
 
-			serializer.Serialize(stream, obj);
+		/// <summary>
+		/// The composite function for finding the interestion of the tables.
+		/// </summary>
+		Intersect = 2,
 
-			stream.Seek(0, SeekOrigin.Begin);
+		/// <summary>
+		/// The composite function for finding the difference of the tables.
+		/// </summary>
+		Except = 3,
 
-			return (T) serializer.Deserialize(stream);
-		}
+		/// <summary>
+		/// An unspecified composite function.
+		/// </summary>
+		None = -1
 	}
 }

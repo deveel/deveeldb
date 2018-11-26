@@ -15,20 +15,15 @@
 //
 
 using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Deveel.Data.Serialization {
-	static class BinarySerializeUtil {
-		public static T Serialize<T>(T obj) {
-			var serializer = new BinaryFormatter();
-			var stream = new MemoryStream();
+using Antlr4.Runtime.Tree;
 
-			serializer.Serialize(stream, obj);
+using Deveel.Data.Sql.Expressions;
 
-			stream.Seek(0, SeekOrigin.Begin);
-
-			return (T) serializer.Deserialize(stream);
+namespace Deveel.Data.Sql.Parsing {
+	static class SqlParseExpression {
+		public static SqlExpression Build(IContext context, IParseTree tree) {
+			return new SqlExpressionVisitor(context).Visit(tree);
 		}
 	}
 }
