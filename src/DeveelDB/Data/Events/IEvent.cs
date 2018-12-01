@@ -39,7 +39,7 @@ namespace Deveel.Data.Events {
 		/// <summary>
 		/// Gets a globally unique identifier of the event
 		/// </summary>
-		long EventId { get; }
+		Guid EventId { get; }
 
 		/// <summary>
 		/// Gets additional event data that come with the event.

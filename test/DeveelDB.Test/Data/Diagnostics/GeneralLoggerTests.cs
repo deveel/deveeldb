@@ -65,20 +65,22 @@ namespace Deveel.Data.Diagnostics {
 					return Task.CompletedTask;
 				});
 
-			var registry = new Mock<LoggingEventRegistry>(logger.Object, transformer.Object);
-			registry.As<IEventRegistry>().SetupGet(x => x.EventType)
-				.Returns(typeof(IEvent));
+			var registry = new InMemoryEventRegistry();
+			var system = new Mock<IDatabaseSystem>();
+			system.As<IEventHandler>()
+				.SetupGet(x => x.Registry)
+				.Returns(registry);
 
+			var eventLogger = new SystemEventLogger(system.Object, logger.Object, transformer.Object);
 
-			var @event = new Event(EventSource.Environment, 34675) {
+			var @event = new Event(EventSource.Environment) {
 				Data = new Dictionary<string, object> {
 					{"message", "test message"}
 				}
 			};
 
-			var registryImpl = registry.Object;
-
-			registryImpl.Register(@event);
+			system.Object.RaiseEvent(@event);
+			registry.Dispose();
 
 			Assert.Single(entries);
 			Assert.Equal(LogLevel.Information, entries[0].Level);

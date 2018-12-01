@@ -18,8 +18,8 @@ using System;
 
 namespace Deveel.Data.Events {
 	public interface IEventRegistry {
-		Type EventType { get; }
-
 		void Register(IEvent @event);
+
+		void AddConsumer(IEventConsumer consumer);
 	}
 }

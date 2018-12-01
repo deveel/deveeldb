@@ -34,8 +34,6 @@ namespace Deveel.Data.Events {
 
 			if (!typeof(IEvent).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
 				throw new ArgumentException($"The type '{type}' is not assignable from '{typeof(IEvent)}'.");
-			if (!registry.EventType.GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
-				throw new ArgumentException($"The event type '{type}' is not assignable to the event type '{registry.EventType}' if the registry.");
 
 			var @event = CreateEvent(type, source, args);
 			registry.Register(@event);
@@ -44,15 +42,6 @@ namespace Deveel.Data.Events {
 		public static void Register<TEvent>(this IEventRegistry registry, IEventSource source, params object[] args)
 			where TEvent : class, IEvent {
 			registry.Register(typeof(TEvent), source, args);
-		}
-
-		public static void Register<TEvent>(this IEventRegistry<TEvent> registry, IEventSource source, params object[] args)
-			where TEvent : class, IEvent {
-			if (source == null)
-				throw new ArgumentNullException(nameof(source));
-
-			var @event = (TEvent) CreateEvent(typeof(TEvent), source, args);
-			registry.Register(@event);
 		}
 	}
 }

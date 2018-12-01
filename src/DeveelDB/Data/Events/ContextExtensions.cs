@@ -23,7 +23,7 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Events {
 	public static class ContextExtensions {
-		internal static IEventSource GetEventSource(this IContext context) {
+		private static IEventSource GetEventSource(this IContext context) {
 			var current = context;
 			while (current != null) {
 				if (current is IEventSource)
@@ -35,30 +35,35 @@ namespace Deveel.Data.Events {
 			return null;
 		}
 
-		private static IEnumerable<IEventRegistry> FindRegistries(this IContext context, Type eventType) {
-			return context.Scope.ResolveAll<IEventRegistry>()
-				.Where(x => x.EventType.GetTypeInfo().IsAssignableFrom(eventType.GetTypeInfo()));
+		public static void RaiseEvent<TEvent>(this IContext context, params object[] args)
+			where TEvent : class, IEvent {
+			RaiseEvent<TEvent>(context, context.GetEventSource(), args);
 		}
 
-		public static void RegisterEvent(this IContext context, Type eventType, params object[] args) {
-			var source = context.GetEventSource();
-			var registries = context.FindRegistries(eventType);
-			foreach (var registry in registries) {
-				registry.Register(eventType, source, args);
+		public static void RaiseEvent<TEvent>(this IContext context, IEventSource source, params object[] args)
+			where TEvent : class, IEvent {
+			var parent = context;
+
+			while (parent != null) {
+				if (parent is IEventHandler) {
+					var handler = (IEventHandler) parent;
+					handler.Registry.Register<TEvent>(source, args);
+				}
+
+				parent = parent.ParentContext;
 			}
 		}
 
-		private static IEnumerable<IEventRegistry<TEvent>> FindRegistries<TEvent>(this IContext context)
-			where TEvent : class, IEvent {
-			return context.Scope.ResolveAll<IEventRegistry<TEvent>>();
-		}
+		public static void RaiseEvent(this IContext context, IEvent @event) {
+			var parent = context;
 
-		public static void RegisterEvent<TEvent>(this IContext context, params object[] args)
-			where TEvent : class, IEvent {
-			var source = context.GetEventSource();
-			var registries = context.FindRegistries<TEvent>();
-			foreach (var registry in registries) {
-				registry.Register(source, args);
+			while (parent != null) {
+				if (parent is IEventHandler) {
+					var handler = (IEventHandler) parent;
+					handler.Registry.Register(@event);
+				}
+
+				parent = parent.ParentContext;
 			}
 		}
 	}

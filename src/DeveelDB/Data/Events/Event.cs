@@ -19,11 +19,15 @@ using System.Collections.Generic;
 
 namespace Deveel.Data.Events {
 	public class Event : IEvent {
-		public Event(IEventSource source, int id) 
+		public Event(IEventSource source, Guid id) 
 			: this(source, id, DateTimeOffset.UtcNow) {
 		}
 
-		public Event(IEventSource source, int id, DateTimeOffset timeStamp) {
+		public Event(IEventSource source)
+			: this(source, Guid.NewGuid()) {
+		}
+
+		public Event(IEventSource source, Guid id, DateTimeOffset timeStamp) {
 			EventSource = source ?? throw new ArgumentNullException(nameof(source));
 			EventId = id;
 			TimeStamp = timeStamp;
@@ -33,12 +37,31 @@ namespace Deveel.Data.Events {
 
 		public IEventSource EventSource { get; }
 
-		public long EventId { get; }
+		public Guid EventId { get; }
 
 		public DateTimeOffset TimeStamp { get; }
 
 		public IDictionary<string, object> Data { get; set; }
 
-		IDictionary<string, object> IEvent.EventData => Data;
+		IDictionary<string, object> IEvent.EventData {
+			get {
+				var data = new Dictionary<string, object>(Data);
+				data["id"] = EventId.ToString("N");
+				data["timeStamp"] = TimeStamp.ToUniversalTime().ToUnixTimeMilliseconds();
+
+				var metadata = EventSource.Metadata;
+
+				foreach (var pair in metadata) {
+					data[pair.Key] = pair.Value;
+				}
+
+				GetEventData(data);
+				return data;
+			}
+		}
+
+		protected virtual void GetEventData(IDictionary<string, object> data) {
+
+		}
 	}
 }

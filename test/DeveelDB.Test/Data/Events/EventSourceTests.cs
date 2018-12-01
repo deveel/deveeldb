@@ -58,12 +58,13 @@ namespace Deveel.Data.Events {
 
 		[Fact]
 		public void CreateEmptyEvent() {
-			var @event = new Event(EventSource.Environment, -1);
+			var id = Guid.NewGuid();
+			var @event = new Event(EventSource.Environment, id);
 
 			Assert.NotNull(@event.EventSource);
 			Assert.IsAssignableFrom<EventSource>(@event.EventSource);
 			Assert.Contains("Environment", @event.EventSource.GetType().Name);
-			Assert.Equal(-1, @event.EventId);
+			Assert.Equal(id, @event.EventId);
 		}
 	}
 }
