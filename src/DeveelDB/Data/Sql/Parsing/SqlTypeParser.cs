@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Parsing {
             }
 
             public override SqlTypeResolveInfo VisitUserDataType(PlSqlParser.UserDataTypeContext context) {
-                var name = SqlParseName.Object(context.objectName());
+                var name = SqlParseUtil.Name.Object(context.objectName());
                 var args = context.typeArgument();
                 if (args != null && args.typeArgumentSpec().Length > 0) {
                     throw new NotSupportedException("Arguments to user-defined type are not supported yet.");
@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Parsing {
             }
 
             public override SqlTypeResolveInfo VisitIntegerType(PlSqlParser.IntegerTypeContext context) {
-                var size = SqlParseNumber.PositiveInteger(context.numeric()) ?? -1;
+                var size = SqlParseUtil.PositiveInteger(context.numeric()) ?? -1;
                 SqlTypeCode typeCode;
                 if (context.BIGINT() != null) {
                     typeCode = SqlTypeCode.BigInt;
@@ -81,8 +81,8 @@ namespace Deveel.Data.Sql.Parsing {
             }
 
             public override SqlTypeResolveInfo VisitNumericType(PlSqlParser.NumericTypeContext context) {
-                var precision = SqlParseNumber.PositiveInteger(context.precision) ?? -1;
-                var scale = SqlParseNumber.PositiveInteger(context.scale) ?? -1;
+                var precision = SqlParseUtil.PositiveInteger(context.precision) ?? -1;
+                var scale = SqlParseUtil.PositiveInteger(context.scale) ?? -1;
 
                 if (scale > 0 && precision <= 0)
                     throw new ParseCanceledException("Invalid precision set.");
@@ -116,7 +116,7 @@ namespace Deveel.Data.Sql.Parsing {
             public override SqlTypeResolveInfo VisitStringType(PlSqlParser.StringTypeContext context) {
                 int? size = null;
                 if (context.numeric() != null) {
-                    size = SqlParseNumber.PositiveInteger(context.numeric());
+                    size = SqlParseUtil.PositiveInteger(context.numeric());
                 } else if (context.MAX() != null) {
                     size = SqlCharacterType.DefaultMaxSize;
                 }
@@ -156,7 +156,7 @@ namespace Deveel.Data.Sql.Parsing {
                 if (context.MAX() != null) {
                     maxSize = SqlBinaryType.DefaultMaxSize;
                 } else if (context.numeric() != null) {
-                    maxSize = SqlParseNumber.PositiveInteger(context.numeric());
+                    maxSize = SqlParseUtil.PositiveInteger(context.numeric());
                 }
 
                 SqlTypeCode typeCode;
@@ -208,13 +208,13 @@ namespace Deveel.Data.Sql.Parsing {
             }
 
             public override SqlTypeResolveInfo VisitColumnRefType(PlSqlParser.ColumnRefTypeContext context) {
-                var fieldName = SqlParseName.Object(context.objectName());
+                var fieldName = SqlParseUtil.Name.Object(context.objectName());
                 return new SqlTypeResolveInfo("%TYPE",
                     new Dictionary<string, object> {{"FieldName", fieldName.FullName}});
             }
 
             public override SqlTypeResolveInfo VisitRowRefType(PlSqlParser.RowRefTypeContext context) {
-                var objName = SqlParseName.Object(context.objectName());
+                var objName = SqlParseUtil.Name.Object(context.objectName());
                 return new SqlTypeResolveInfo("%ROWTYPE",
                     new Dictionary<string, object> {{"ObjectName", objName.FullName}});
             }

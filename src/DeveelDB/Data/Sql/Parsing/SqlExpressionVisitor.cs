@@ -217,7 +217,7 @@ namespace Deveel.Data.Sql.Parsing {
         #endregion
 
         public override SqlExpression VisitSubquery(PlSqlParser.SubqueryContext context) {
-            return SqlParseSubquery.Form(Context, context);
+            return SqlParseUtil.Subquery.Form(Context, context);
         }
 
         public override SqlExpression VisitQuantifiedExpression(PlSqlParser.QuantifiedExpressionContext context) {
@@ -508,7 +508,7 @@ namespace Deveel.Data.Sql.Parsing {
         }
 
         public override SqlExpression VisitBind_variable(PlSqlParser.Bind_variableContext context) {
-            var varRef = SqlParseName.Variable(context);
+            var varRef = SqlParseUtil.Name.Variable(context);
             return SqlExpression.Variable(varRef);
         }
 
@@ -531,7 +531,7 @@ namespace Deveel.Data.Sql.Parsing {
         }
 
         public override SqlExpression VisitInvokedFunction(PlSqlParser.InvokedFunctionContext context) {
-            var name = SqlParseName.Object(context.objectName());
+            var name = SqlParseUtil.Name.Object(context.objectName());
             InvokeArgument[] args = null;
 
             if (context.argument() != null) {
@@ -557,7 +557,7 @@ namespace Deveel.Data.Sql.Parsing {
         }
 
         public override SqlExpression VisitExtractFunction(PlSqlParser.ExtractFunctionContext context) {
-            var part = SqlParseName.Simple(context.regular_id());
+            var part = SqlParseUtil.Name.Simple(context.regular_id());
             var exp = Visit(context.concatenationWrapper());
 
             return SqlExpression.Function("SQL_EXTRACT", new[] {exp, SqlExpression.Constant(SqlObject.String(part))});
@@ -566,7 +566,7 @@ namespace Deveel.Data.Sql.Parsing {
         public override SqlExpression VisitTimeStampFunction(PlSqlParser.TimeStampFunctionContext context) {
             SqlExpression arg;
             if (context.bind_variable() != null) {
-                arg = SqlExpression.Variable(SqlParseName.Variable(context.bind_variable()));
+                arg = SqlExpression.Variable(SqlParseUtil.Name.Variable(context.bind_variable()));
             } else if (context.argString != null) {
                 arg = SqlExpression.Constant(SqlObject.String(SqlParseInputString.AsNotQuoted(context.argString)));
             } else {
@@ -586,7 +586,7 @@ namespace Deveel.Data.Sql.Parsing {
         }
 
         public override SqlExpression VisitNextValueFunction(PlSqlParser.NextValueFunctionContext context) {
-            var seqName = SqlParseName.Object(context.objectName());
+            var seqName = SqlParseUtil.Name.Object(context.objectName());
             return SqlExpression.Function("NEXTVAL",
                 new SqlExpression[] {SqlExpression.Constant(SqlObject.String(seqName.ToString()))});
         }

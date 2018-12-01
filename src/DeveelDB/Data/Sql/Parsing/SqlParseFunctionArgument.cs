@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Parsing {
 			if (argument == null)
 				return null;
 
-			var id = SqlParseName.Simple(argument.id());
+			var id = SqlParseUtil.Name.Simple(argument.id());
 			var exp = Parsing.SqlParseExpression.Build(context, argument.expressionWrapper());
 
 			return new SqlParseFunctionArgument {

@@ -25,7 +25,7 @@ namespace Deveel.Data.Sql.Parsing {
 		public SqlParseFunctionArgument[] Argument { get; set; }
 
 		public static SqlParseElementNode Form(IContext context, PlSqlParser.General_elementContext element) {
-			var id = SqlParseName.Object(element.objectName());
+			var id = SqlParseUtil.Name.Object(element.objectName());
 			var arg = element.function_argument();
 			IEnumerable<SqlParseFunctionArgument> argNodes = null;
 			if (arg != null) {
