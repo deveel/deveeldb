@@ -110,7 +110,6 @@ namespace Deveel.Data.Sql.Statements {
 		/// against the underlying system
 		/// </summary>
 		/// <param name="parent">The parent context of the execution</param>
-		/// <param name="name">The name of the context to be created</param>
 		/// <returns>
 		/// Returns an instance of <see cref="StatementContext"/> that represents
 		/// the context used for the execution of the statement, inheriting from
@@ -218,20 +217,6 @@ namespace Deveel.Data.Sql.Statements {
 			}
 		}
 
-		private static Task HandleRequirement(IContext context, Type handlerType, object handler, Type reqType,
-			IRequirement requirement) {
-			var method = handlerType.GetRuntimeMethod("HandleRequirementAsync", new[] {typeof(IContext), reqType});
-
-			if (method == null)
-				throw new InvalidOperationException();
-
-			try {
-				return (Task) method.Invoke(handler, new object[] {context, requirement});
-			}
-			catch (TargetInvocationException e) {
-				throw e.InnerException;
-			}
-		}
 
 		private async Task CheckRequirements(IContext context) {
 			//TODO: context.Debug(-1, "Collecting security requirements");
@@ -243,14 +228,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			try {
 				foreach (var requirement in registry) {
-					var reqType = requirement.GetType();
-					var handlerType = typeof(IRequirementHandler<>).MakeGenericType(reqType);
-
-					var handlers = context.Scope.ResolveAll(handlerType);
-
-					foreach (var handler in handlers) {
-						await HandleRequirement(context, handlerType, handler, reqType, requirement);
-					}
+					await requirement.HandleRequirementAsync(context);
 				}
 			}
 			catch (UnauthorizedAccessException ex) {

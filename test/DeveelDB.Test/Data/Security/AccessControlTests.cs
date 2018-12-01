@@ -30,7 +30,7 @@ namespace Deveel.Data.Security {
 
 		private static IContext SetupAccessContext(DbObjectType objType, ObjectName objName, Privilege privilege) {
 			var accessController = new Mock<IAccessController>();
-			accessController.Setup(x => x.HasPrivilegesAsync(It.Is<string>(u => u == UserName),
+			accessController.Setup(x => x.HasObjectPrivilegesAsync(It.Is<string>(u => u == UserName),
 				It.Is<DbObjectType>(y => y == objType),
 				It.Is<ObjectName>(y => y.Equals(objName)),
 				It.Is<Privilege>(y => y.Permits(privilege))))

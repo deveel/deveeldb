@@ -26,18 +26,23 @@ namespace Deveel.Data.Security {
 	/// </summary>
 	public interface IAuthenticator {
 		/// <summary>
-		/// Authenticates a user identified by the information
-		/// provided as argument 
+		/// Authenticates a user identified by the given name and the
+		/// information provided as argument 
 		/// </summary>
-		/// <param name="userInfo">The information used by this authenticator
-		/// to identify the User</param>
+		/// <param name="userName">The name of the user to authenticate</param>
+		/// <param name="identification">The information for the identification of
+		/// the user</param>
 		/// <returns>
-		/// Returns an instance of <see cref="User"/> identified by the information
-		/// provided as argument
+		/// Returns an instance of <see cref="User"/> identified by the given name and
+		/// the information provided as argument
 		/// </returns>
+		/// <exception cref="NotSupportedException">
+		/// Thrown if the provided <see cref="IUserIdentification"/> argument is not
+		/// supported by this instance of the authenticator service
+		/// </exception>
 		/// <exception cref="AuthenticationException">
 		/// Thrown when an error occurs during the authentication process
 		/// </exception>
-		Task<User> AuthenticateAsync(IConfiguration userInfo);
+		Task<User> AuthenticateAsync(string userName, IUserIdentification identification);
 	}
 }

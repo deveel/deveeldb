@@ -31,22 +31,20 @@ namespace Deveel.Data.Sql.Statements.Security {
 			}
 		}
 
-		public static void AddRequirement(this IRequirementCollection requirements, Func<IContext, Task<bool>> requirement) {
-			requirements.Require(new DelegatedRequirement(requirement));
-		}
-
-		public static void RequirePrivileges(this IRequirementCollection requirements,
-			DbObjectType objectType, ObjectName objName, Privilege privilege) {
-			requirements.AddRequirement(context => context.UserHasPrivileges(objectType, objName, privilege));
+		public static void Require(this IRequirementCollection requirements, DbObjectType objectType, ObjectName objName, Privilege privilege) {
+			requirements.Require(new PrivilegesRequirement(objectType, objName, privilege));
 		}
 
 		public static void RequireCreateInSchema(this IRequirementCollection collection, string schemaName)
-			=> collection.AddRequirement(context => context.UserCanCreateInSchema(schemaName));
+			=> collection.Require(DbObjectType.Schema, new ObjectName(schemaName), SqlPrivileges.Create);
 
 		public static void RequireSelectPrivilege(this IRequirementCollection requirements, ObjectName tableName)
-			=> requirements.AddRequirement(context => context.UserCanSelectFrom(tableName));
+			=> requirements.Require(DbObjectType.Table, tableName, SqlPrivileges.Select);
 
 		public static void RequireUpdatePrivilege(this IRequirementCollection requirements, ObjectName tableName)
-			=> requirements.AddRequirement(context => context.UserCanUpdate(tableName));
+			=> requirements.Require(DbObjectType.Table, tableName, SqlPrivileges.Update);
+
+		public static void Require(this IRequirementCollection collection, Func<IContext, Task<bool>> requirement)
+			=> collection.Require(new DelegatedRequirement(requirement));
 	}
 }

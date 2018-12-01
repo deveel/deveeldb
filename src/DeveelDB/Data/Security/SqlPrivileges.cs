@@ -21,6 +21,11 @@ namespace Deveel.Data.Security {
 	public static class SqlPrivileges {
 		public static IPrivilegeResolver Resolver => new PrivilegeResolver();
 
+		// System Privileges
+		public static readonly Privilege Admin = new Privilege(2048);
+		public static readonly Privilege Connect = new Privilege(4096);
+
+		// Object Privileges
 		public static readonly Privilege Create = new Privilege(1);
 		public static readonly Privilege Alter = new Privilege(2);
 		public static readonly Privilege Drop = new Privilege(4);
@@ -46,10 +51,6 @@ namespace Deveel.Data.Security {
 			SchemaRead = List;
 		}
 
-		public static Privilege NextPrivilege() {
-			return Execute.Next();
-		}
-
 		#region PrivilegeResolver		
 
 		class PrivilegeResolver : IPrivilegeResolver {
@@ -59,9 +60,12 @@ namespace Deveel.Data.Security {
 
 				foreach (var part in parts) {
 					var privName = part.Trim();
-					Privilege priv;
+					var priv = Privilege.None;
 
 					switch (privName.ToUpperInvariant()) {
+						case "ADMIN": priv = Admin; break;
+						case "CONNECT": priv = Connect; break;
+
 						case "SELECT": priv = Select; break;
 						case "INSERT": priv = Insert; break;
 						case "UPDATE": priv = Update; break;
@@ -73,8 +77,6 @@ namespace Deveel.Data.Security {
 						case "ALTER": priv = Alter; break;
 						case "LIST": priv = List; break;
 						case "EXECUTE": priv = Execute; break;
-						default:
-							throw new ArgumentException($"The name {privName} does not resolve to any valid SQL privilege");
 					}
 
 					result += priv;
@@ -85,6 +87,11 @@ namespace Deveel.Data.Security {
 
 			public string[] ToString(Privilege privilege) {
 				var result = new List<string>();
+
+				if (privilege.Permits(Admin))
+					result.Add("ADMIN");
+				if (privilege.Permits(Connect))
+					result.Add("CONNECT");
 
 				if (privilege.Permits(Select))
 					result.Add("SELECT");

@@ -22,44 +22,67 @@ using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
 	public sealed class PrivilegesCache : IAccessController, IDisposable {
-		private Dictionary<Key, Privilege> cache;
+		private Dictionary<ObjectKey, Privilege> cache;
+		private Dictionary<string, Privilege> systemCache;
 
 		~PrivilegesCache() {
 			Dispose(false);
 		}
 
-		async Task<bool> IAccessController.HasPrivilegesAsync(string grantee, DbObjectType objectType, ObjectName objectName, Privilege privileges) {
-			Privilege userPrivileges;
-			if (!TryGetPrivileges(objectType, objectName, grantee, out userPrivileges))
-				return false;
+		Task<bool> IAccessController.HasObjectPrivilegesAsync(string grantee, DbObjectType objectType, ObjectName objectName, Privilege privileges) {
+			if (!TryGetObjectPrivileges(objectType, objectName, grantee, out var userPrivileges))
+				return Task.FromResult(false);
 
-			return privileges.Permits(userPrivileges);
+			return Task.FromResult(userPrivileges.Permits(privileges));
 		}
 
-		public bool TryGetPrivileges(DbObjectType objectType, ObjectName objectName, string grantee, out Privilege privileges) {
+		Task<bool> IAccessController.HasSystemPrivilegesAsync(string grantee, Privilege privileges) {
+			if (!TryGetSystemPrivileges(grantee, out var userPrivileges))
+				return Task.FromResult(false);
+
+			return Task.FromResult(userPrivileges.Permits(privileges));
+		}
+
+		public bool TryGetObjectPrivileges(DbObjectType objectType, ObjectName objectName, string grantee, out Privilege privileges) {
 			if (cache == null) {
 				privileges = Privilege.None;
 				return false;
 			}
 
-			var key = new Key(objectType, objectName, grantee);
+			var key = new ObjectKey(objectType, objectName, grantee);
 			return cache.TryGetValue(key, out privileges);
 		}
 
-		public void SetPrivileges(DbObjectType objectType, ObjectName objectName, string grantee, Privilege privileges) {
-			var key = new Key(objectType, objectName, grantee);
+		public bool TryGetSystemPrivileges(string grantee, out Privilege privileges) {
+			if (systemCache == null) {
+				privileges = Privilege.None;
+				return false;
+			}
+
+			return systemCache.TryGetValue(grantee, out privileges);
+		}
+
+		public void SetObjectPrivileges(DbObjectType objectType, ObjectName objectName, string grantee, Privilege privileges) {
+			var key = new ObjectKey(objectType, objectName, grantee);
 			
 			if (cache == null)
-				cache = new Dictionary<Key, Privilege>();
+				cache = new Dictionary<ObjectKey, Privilege>();
 
 			cache[key] = privileges;
+		}
+
+		public void SetSystemPrivileges(string grantee, Privilege privilege) {
+			if (systemCache == null)
+				systemCache = new Dictionary<string, Privilege>();
+
+			systemCache[grantee] = privilege;
 		}
 
 		public bool ClearPrivileges(DbObjectType objectType, ObjectName objectName, string grantee) {
 			if (cache == null)
 				return false;
 
-			var key = new Key(objectType, objectName, grantee);
+			var key = new ObjectKey(objectType, objectName, grantee);
 			return cache.Remove(key);
 		}
 
@@ -77,30 +100,30 @@ namespace Deveel.Data.Security {
 			cache = null;
 		}
 
-		#region Key
+		#region ObjectKey
 
-		struct Key : IEquatable<Key> {
+		struct ObjectKey : IEquatable<ObjectKey> {
 			private readonly DbObjectType objectType;
 			private readonly ObjectName objectName;
 			private readonly string grantee;
 
-			public Key(DbObjectType objectType, ObjectName objectName, string grantee) {
+			public ObjectKey(DbObjectType objectType, ObjectName objectName, string grantee) {
 				this.objectType = objectType;
 				this.objectName = objectName;
 				this.grantee = grantee;
 			}
 
-			public bool Equals(Key other) {
+			public bool Equals(ObjectKey other) {
 				return objectType == other.objectType &&
 				       objectName.Equals(other.objectName) &&
 				       String.Equals(grantee, other.grantee, StringComparison.Ordinal);
 			}
 
 			public override bool Equals(object obj) {
-				if (!(obj is Key))
+				if (!(obj is ObjectKey))
 					return false;
 
-				return Equals((Key)obj);
+				return Equals((ObjectKey)obj);
 			}
 
 			public override int GetHashCode() {

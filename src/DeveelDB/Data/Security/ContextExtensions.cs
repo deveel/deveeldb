@@ -42,16 +42,16 @@ namespace Deveel.Data.Security {
 			// checks are required
 			var resolver = context.GetService<IAccessController>();
 			if (resolver == null)
-				return true;
+				return false;
 
-			if (!await resolver.HasPrivilegesAsync(user.Name, objectType, objectName, privilege)) {
+			if (!await resolver.HasObjectPrivilegesAsync(user.Name, objectType, objectName, privilege)) {
 				var securityManager = context.GetService<ISecurityManager>();
 				if (securityManager == null)
 					return false;
 
 				var roles = await securityManager.GetUserRolesAsync(user.Name);
 				foreach (var role in roles) {
-					if (await resolver.HasPrivilegesAsync(role.Name, objectType, objectName, privilege))
+					if (await resolver.HasObjectPrivilegesAsync(role.Name, objectType, objectName, privilege))
 						return true;
 				}
 
@@ -63,15 +63,6 @@ namespace Deveel.Data.Security {
 
 		public static Task<bool> UserCanCreateInSchema(this IContext context, string schemaName) {
 			return context.UserHasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), SqlPrivileges.Create);
-		}
-
-		public static bool UserCanCreateSchema(this IContext context) {
-			var user = context.User();
-			if (user.IsSystem)
-				return true;
-
-			// TODO: check if the user is in a role that can create
-			throw new NotImplementedException();
 		}
 
 		public static Task<bool> UserCanSelectFrom(this IContext context, ObjectName tableName)
@@ -97,5 +88,41 @@ namespace Deveel.Data.Security {
 
 		public static Task<bool> UserCanReference(this IContext context, ObjectName tableName)
 			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.References);
+
+		public static async Task<bool> UserHasSystemPrivilege(this IContext context, Privilege privilege) {
+			var user = context.User();
+			if (user == null)
+				return false;
+
+			// if no security resolver was registered this means no security
+			// checks are required
+			var resolver = context.GetService<IAccessController>();
+			if (resolver == null)
+				return false;
+
+			if (!await resolver.HasSystemPrivilegesAsync(user.Name, privilege)) {
+				var securityManager = context.GetService<ISecurityManager>();
+				if (securityManager == null)
+					return false;
+
+				var roles = await securityManager.GetUserRolesAsync(user.Name);
+				foreach (var role in roles) {
+					if (await resolver.HasSystemPrivilegesAsync(role.Name, privilege))
+						return true;
+				}
+
+				return false;
+			}
+
+			return true;
+		}
+
+		public static async Task<bool> UserIsAdmin(this IContext context) {
+			var user = context.User();
+			if (user.IsSystem)
+				return true;
+
+			return await context.UserHasSystemPrivilege(SqlPrivileges.Admin);
+		}
 	}
 }

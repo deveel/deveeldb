@@ -24,5 +24,11 @@ namespace Deveel.Data.Sql.Statements.Security {
 		}
 
 		public Func<IContext, Task<bool>> Body { get; }
+
+		public async Task HandleRequirementAsync(IContext context) {
+			var result = await Body(context);
+			if (!result)
+				throw new UnauthorizedAccessException();
+		}
 	}
 }

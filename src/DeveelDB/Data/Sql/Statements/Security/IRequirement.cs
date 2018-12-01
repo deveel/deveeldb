@@ -14,7 +14,10 @@
 //    limitations under the License.
 //
 
+using System.Threading.Tasks;
+
 namespace Deveel.Data.Sql.Statements.Security {
 	public interface IRequirement {
+		Task HandleRequirementAsync(IContext context);
 	}
 }

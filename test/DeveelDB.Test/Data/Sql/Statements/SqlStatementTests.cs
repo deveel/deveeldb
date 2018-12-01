@@ -33,10 +33,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		public SqlStatementTests() {
 			var container = new ServiceContainer();
-			container.AddDelegatedRequirementHandler();
 
 			var cache = new PrivilegesCache();
-			cache.SetPrivileges(DbObjectType.Table, ObjectName.Parse("sys.tab1"), "user1", SqlPrivileges.Insert);
+			cache.SetObjectPrivileges(DbObjectType.Table, ObjectName.Parse("sys.tab1"), "user1", SqlPrivileges.Insert);
 
 			container.RegisterInstance<IAccessController>(cache);
 
@@ -53,7 +52,7 @@ namespace Deveel.Data.Sql.Statements {
 		[Fact]
 		public async Task ExecuteWithBadprivileges() {
 			var requirements = new RequirementCollection();
-			requirements.RequirePrivileges(DbObjectType.Table, ObjectName.Parse("sys.tab1"), SqlPrivileges.Alter);
+			requirements.Require(DbObjectType.Table, ObjectName.Parse("sys.tab1"), SqlPrivileges.Alter);
 
 			SqlStatement statement = new TestStatement {
 				Requirements = requirements,
@@ -68,7 +67,7 @@ namespace Deveel.Data.Sql.Statements {
 		[Fact]
 		public async Task ExecutePrivileged() {
 			var requirements = new RequirementCollection();
-			requirements.RequirePrivileges(DbObjectType.Table, ObjectName.Parse("sys.tab1"), SqlPrivileges.Insert);
+			requirements.Require(DbObjectType.Table, ObjectName.Parse("sys.tab1"), SqlPrivileges.Insert);
 
 			SqlStatement statement = new TestStatement {
 				Requirements = requirements,
