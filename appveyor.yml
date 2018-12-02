@@ -1,0 +1,86 @@
+version: 3.0.1.{build}
+pull_requests:
+  do_not_increment_build_number: true
+branches:
+  only:
+  - master
+skip_tags: true
+image: Visual Studio 2017
+configuration: Release
+platform: 
+    - Any CPU
+    - x86
+    - x64
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+environment:
+  COVERALLS_REPO_TOKEN:
+    secure: 3Tbgu3I/ZvHZybhtJHPCCsXPSre4D0aAlBQZzDm7IR1lgNDmxuFrrBYXNz9VUb7o
+nuget:
+  disable_publish_on_pr: true
+before_build:
+    - cmd: dotnet restore deveeldb.sln
+build_script:
+    - cmd: >-
+        dotnet build -c $CONFIGURATION
+        dotnet pack -c $CONFIGURATION -o nupkg
+test_script:
+- cmd: >-
+    dotnet tool install coveralls.net --version 1.0.0 --tool-path tools
+
+    dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude="[*.tests?]*"
+
+
+    REM tools\coveralls.net\1.0.0\csmacnz.Coveralls.exe --opencover -i coverage.opencover.xml --useRelativePaths
+artifacts:
+- path: dist\$(platform)\deveeldb.dll
+  name: Library
+- path: nuget\packages\*.nupkg
+  name: NuGet Package
+- path: **\coverage.opencover.xml
+  name: Coverage Report
+- path: dist\$(platform)\deveeldb-$(platform).*.zip
+  name: ZipPackage
+- path: dist\anycpu\deveeldb.*.zip
+  name: ZipPackage
+- path: dist\anycpu\deveeldb.dll
+  name: Library
+- path: dist\$(platform)\deveeldb-$(platform).*.tar.gz
+  name: TarGzPackage
+- path: dist\anycpu\deveeldb.*.tar.gz
+  name: TarGzPackage
+- path: '**\*.nupkg'
+  name: NuGet Package
+deploy:
+- provider: NuGet
+  server: https://www.myget.org/F/deveeldb/api/v2/package
+  api_key:
+    secure: gpX+ptyJspEvR0alXYkofdXZm9BFOrhNsxRPHKFmRrFSBbpUvzOScvQmE95mXKt1
+  symbol_server: https://www.myget.org/F/deveeldb/api/v2/package
+- provider: GitHub
+  tag: v$(appveyor_build_version)
+  release: DeveelDB - $(appveyor_build_version)
+  auth_token:
+    secure: sCBMJHCnIuOmZRxQ4mbSaNpq0ztqHTIXx+zX6Yea2d4cwKIx7A5kR1LbiVGF9YeK
+  artifact: ZipPackage, TarGzPackage
+  draft: false
+  prerelease: false
+  force_update: true
+notifications:
+- provider: Slack
+  incoming_webhook: https://hooks.slack.com/services/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
+  channel: '#deveeldb'
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: false
+- provider: Webhook
+  url: https://webhooks.gitter.im/e/4ae1a480ed985b179422
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: false
