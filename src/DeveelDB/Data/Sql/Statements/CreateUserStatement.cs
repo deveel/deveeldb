@@ -19,7 +19,6 @@ using System.Threading.Tasks;
 
 using Deveel.Data.Events;
 using Deveel.Data.Security;
-using Deveel.Data.Security.Events;
 using Deveel.Data.Sql.Statements.Security;
 
 namespace Deveel.Data.Sql.Statements {
@@ -60,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 			builder.Append(" IDENTIFIED ");
 
 			if (IdentificationInfo is PasswordIdentificationInfo) {
-				builder.Append("BY '<password>'");
+				builder.Append("BY <password>");
 			} else {
 				throw new NotSupportedException();
 			}

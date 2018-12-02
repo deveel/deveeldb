@@ -101,6 +101,23 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.Equal(user, createdUser);
 		}
 
+		[Theory]
+		[InlineData("@system", "abc1234")]
+		[InlineData("@SYSTEM", "1234")]
+		[InlineData("PUBLIC", "2345")]
+		public async void CreateWithInvalidName(string user, string password) {
+			var statement = new CreateUserStatement(user, new PasswordIdentificationInfo(password));
+			await Assert.ThrowsAsync<SqlStatementException>(() => statement.ExecuteAsync(adminContext));
+		}
+
+		[Theory]
+		[InlineData("antonello", "abc1234", "CREATE USER antonello IDENTIFIED BY <password>")]
+		public void CreateUserWithPassword_AsString(string userName, string password, string expected) {
+			var statement = new CreateUserStatement(userName, new PasswordIdentificationInfo(password));
+
+			var sql = statement.ToSqlString();
+			Assert.Equal(expected, sql);
+		}
 
 		public void Dispose() {
 			adminContext?.Dispose();

@@ -107,6 +107,9 @@ namespace Deveel.Data.Security {
 			return String.Join(", ", result);
 		}
 
+		public string ToString(IPrivilegeResolver resolver)
+			=> ToString(new[] {resolver});
+
 		public override string ToString() {
 			return ToString(new[] {SqlPrivileges.Resolver});
 		}

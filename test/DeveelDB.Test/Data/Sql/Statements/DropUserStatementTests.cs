@@ -26,7 +26,7 @@ using Moq;
 using Xunit;
 
 namespace Deveel.Data.Sql.Statements {
-	public class DropUserStatementTests {
+	public class DropUserStatementTests : IDisposable {
 		private string droppedUser;
 
 		private IContext adminContext;
@@ -103,10 +103,19 @@ namespace Deveel.Data.Sql.Statements {
 			Assert.Equal(user, droppedUser);
 		}
 
+		[Theory]
+		[InlineData("anto", "DROP USER anto")]
+		public void DropUser_AsString(string user, string expected) {
+			var statement = new DropUserStatement(user);
+
+			Assert.Equal(expected, statement.ToSqlString());
+		}
+
 
 		public void Dispose() {
 			adminContext?.Dispose();
 			userContext?.Dispose();
+			userInAdminRoleContext?.Dispose();
 		}
 	}
 }

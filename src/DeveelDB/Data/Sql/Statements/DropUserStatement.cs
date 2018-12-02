@@ -19,7 +19,6 @@ using System.Threading.Tasks;
 
 using Deveel.Data.Events;
 using Deveel.Data.Security;
-using Deveel.Data.Security.Events;
 using Deveel.Data.Sql.Statements.Security;
 
 namespace Deveel.Data.Sql.Statements {
@@ -34,6 +33,28 @@ namespace Deveel.Data.Sql.Statements {
 			requirements.Require(x => x.UserIsAdmin());
 		}
 
+		private async Task<bool> RevokeAllGrantedPrivileges(IContext context, ISecurityManager securityManager) {
+			var user = context.User();
+
+			var grants = await securityManager.GetGrantedAsync(user.Name);
+
+			foreach (var grant in grants) {
+				if (await securityManager.RoleExistsAsync(grant.Grantee)) {
+					if (!await securityManager.RevokeFromRoleAsync(grant.Grantee, grant.ObjectName, grant.Privileges))
+						return false;
+				} else if (await securityManager.UserExistsAsync(grant.Grantee)) {
+					if (!await securityManager.RevokeFromUserAsync(user.Name, grant.Grantee, grant.ObjectName, grant.Privileges, grant.WithOption))
+						return false;
+				} else {
+					// TODO: log this error but not throw
+				}
+
+				context.RaiseEvent(new ObjectPrivilegesRevokedEvent(this, user.Name, grant.Grantee, grant.ObjectName, grant.Privileges));
+			}
+
+			return true;
+		}
+
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
 			var securityManager = context.GetService<ISecurityManager>();
 			if (securityManager == null)
@@ -42,10 +63,18 @@ namespace Deveel.Data.Sql.Statements {
 			if (!await securityManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"A user named '{UserName}' does not exist.");
 
+			if (!await RevokeAllGrantedPrivileges(context, securityManager))
+				throw new SqlStatementException($"It was not possible to revoke the privileges granted by '{UserName}'.");
+
 			if (!await securityManager.DropUserAsync(UserName))
 				throw new SqlStatementException($"It was not possible to delete the user '{UserName}' because of a system error");
 
 			context.RaiseEvent(new UserDroppedEvent(this, UserName));
+		}
+
+		protected override void AppendTo(SqlStringBuilder builder) {
+			builder.Append("DROP USER ");
+			builder.Append(UserName);
 		}
 	}
 }

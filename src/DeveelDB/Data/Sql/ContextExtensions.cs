@@ -84,6 +84,17 @@ namespace Deveel.Data.Sql {
 			return await manager.ObjectExistsAsync(objectName);
 		}
 
+		public static async Task<bool> ObjectExistsAsync(this IContext context, ObjectName objName) {
+			var managers = context.GetObjectManagers();
+
+			foreach (var manager in managers) {
+				if (await manager.ObjectExistsAsync(objName))
+					return true;
+			}
+
+			return false;
+		}
+
 		public static async Task<IDbObjectInfo> GetObjectInfoAsync(this IContext context, DbObjectType objectType, ObjectName objectName) {
 			var manager = context.GetObjectManager(objectType);
 			if (manager == null)

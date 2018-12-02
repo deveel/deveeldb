@@ -51,6 +51,11 @@ namespace Deveel.Data.Security {
 		/// </summary>
 		public const string SystemName = "@SYSTEM";
 
+		/// <summary>
+		/// The special name of the PUBLIC user
+		/// </summary>
+		public const string PublicName = "PUBLIC";
+
 		private static readonly char[] InvalidChars = "'@\"".ToCharArray();
 
 		private User(string name, bool validate) {
@@ -87,7 +92,12 @@ namespace Deveel.Data.Security {
 		/// <summary>
 		/// The special system user that has full access to any resource of the system
 		/// </summary>
-		public static User System = new User(SystemName, false);
+		public static readonly User System = new User(SystemName, false);
+
+		/// <summary>
+		/// The special PUBLIC user that represents the anonymous users
+		/// </summary>
+		public static readonly User Public = new User(PublicName, false);
 
 		/// <summary>
 		/// Safely asserts if a given name is valid for a user
@@ -99,6 +109,9 @@ namespace Deveel.Data.Security {
 		/// </returns>
 		public static bool IsValidName(string name) {
 			if (String.IsNullOrWhiteSpace(name))
+				return false;
+			if (SystemName.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+			    PublicName.Equals(name, StringComparison.OrdinalIgnoreCase))
 				return false;
 
 			return name.IndexOfAny(InvalidChars) < 0;

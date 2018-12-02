@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Sql;
@@ -123,6 +124,30 @@ namespace Deveel.Data.Security {
 				return true;
 
 			return await context.UserHasSystemPrivilege(SqlPrivileges.Admin);
+		}
+
+		public static async Task<bool> UserCanGrant(this IContext context, ObjectName objName, Privilege privileges, bool withOption) {
+			if (await context.UserIsAdmin())
+				return true;
+
+			var securityManager = context.GetSecurityManager();
+			var userGrants = await securityManager.GetGrantsAsync(context.User().Name);
+
+			foreach (var grant in userGrants.Where(x => x.ObjectName.Equals(objName, true))) {
+				if  (grant.Privileges.Permits(privileges)) {
+					return !withOption || grant.WithOption;
+				}
+			}
+
+			return false;
+		}
+
+		public static ISecurityManager GetSecurityManager(this IContext context) {
+			var securityManager = context.GetService<ISecurityManager>();
+			if (securityManager == null)
+				throw new SystemException("There is no security manager defined in the system");
+
+			return securityManager;
 		}
 	}
 }

@@ -51,6 +51,11 @@ namespace Deveel.Data.Security {
 			SchemaRead = List;
 		}
 
+		public static bool IsSystem(Privilege privilege) {
+			return privilege.Equals(Admin) ||
+			       privilege.Equals(Connect);
+		}
+
 		#region PrivilegeResolver		
 
 		class PrivilegeResolver : IPrivilegeResolver {
