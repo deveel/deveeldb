@@ -27,10 +27,7 @@ nuget:
 before_build:
     - cmd: dotnet restore deveeldb.sln
 build_script:
-    - cmd: >-
-        dotnet build -c %CONFIGURATION%
-
-        dotnet pack src/DeveelDB/DeveelDB.csproj -c %CONFIGURATION% -o nupkg --no-build
+    - cmd: dotnet build -c %CONFIGURATION% /p:GeneratePackageOnBuild=true
 test_script:
 - cmd: >-
     dotnet tool install coveralls.net --version 1.0.0 --tool-path tools
@@ -39,6 +36,8 @@ test_script:
 
 
     REM tools\coveralls.net\1.0.0\csmacnz.Coveralls.exe --opencover -i coverage.opencover.xml --useRelativePaths
+
+    REM dotnet pack src/DeveelDB/DeveelDB.csproj -c %CONFIGURATION% -o nupkg --no-build
 artifacts:
 - path: dist\$(platform)\deveeldb.dll
   name: Library
