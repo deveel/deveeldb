@@ -15,27 +15,9 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class LogEntry {
-		public LogEntry(object source, string message, LogLevel level) {
-			Source = source;
-			Message = message;
-			Level = level;
-			Data = new Dictionary<string, object>();
-		}
-
-		public LogEntry(object source, string message)
-			: this(source, message, LogLevel.Information) {
-		}
-
-		public object Source { get; }
-
-		public string Message { get; set; }
-
-		public LogLevel Level { get; set; }
-
-		public IDictionary<string, object> Data { get; set; }
+	public interface ILoggingContext : IContext {
+		ILogger Logger { get; }
 	}
 }

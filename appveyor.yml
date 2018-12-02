@@ -55,7 +55,7 @@ artifacts:
   name: TarGzPackage
 - path: dist\anycpu\deveeldb.*.tar.gz
   name: TarGzPackage
-- path: '**\*.nupkg'
+- path: 'src\**\*.nupkg'
   name: NuGet Package
 deploy:
 - provider: NuGet

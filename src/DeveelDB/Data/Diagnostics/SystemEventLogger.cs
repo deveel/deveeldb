@@ -19,39 +19,28 @@ using System;
 using Deveel.Data.Events;
 
 namespace Deveel.Data.Diagnostics {
-	public sealed class SystemEventLogger {
-		public SystemEventLogger(IDatabaseSystem system, ILogger logger, IEventTransformer transformer) {
+	public static class SystemEventLogger {
+		public static void Attach(IDatabaseSystem system, ILogger logger, IEventTransformer transformer) {
 			if (system == null)
 				throw new ArgumentNullException(nameof(system));
 			if (!(system is IEventHandler))
 				throw new ArgumentException("The database system is not handling events");
 
-			((IEventHandler)system).Consume(OnEvent);
+			((IEventHandler)system).Consume(@event => {
+				try {
+					var entry = transformer?.Transform(@event);
+					if (entry == null)
+						throw new LogException("It was not possible to generate a log entry from an event");
 
-			System = system;
-			Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			Transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
-		}
+					if (logger.IsInterestedIn(entry.Level))
+						logger.LogAsync(entry).ConfigureAwait(false).GetAwaiter().GetResult();
+				} catch(LogException) {
+					throw;
+				} catch (Exception ex) {
+					throw new LogException("An error occurred while logging an event", ex);
+				}
 
-		public IDatabaseSystem System { get; }
-
-		public ILogger Logger { get; }
-		public IEventTransformer Transformer { get; }
-
-		private void OnEvent(IEvent @event) {
-			try {
-				var entry = Transformer?.Transform(@event);
-				if (entry == null)
-					throw new LogException("It was not possible to generate a log entry from an event");
-
-				if (Logger.IsInterestedIn(entry.Level))
-					Logger.LogAsync(entry).ConfigureAwait(false).GetAwaiter().GetResult();
-			} catch(LogException) {
-				throw;
-			} catch (Exception ex) {
-				throw new LogException("An error occurred while logging an event", ex);
-			}
-
+			});
 		}
 	}
 }

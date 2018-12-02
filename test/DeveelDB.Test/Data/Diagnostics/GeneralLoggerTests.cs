@@ -35,19 +35,14 @@ namespace Deveel.Data.Diagnostics {
 			Assert.NotNull(emptyLogger);
 			Assert.True(emptyLogger.IsInterestedIn(level));
 
-			await emptyLogger.LogAsync(new LogEntry {
-				Level = level,
-				Message = "test"
-			});
+			await emptyLogger.LogAsync(new LogEntry(null, "test", level));
 		}
 
 		[Fact]
 		public static void InterceptEvent() {
 			var transformer = new Mock<IEventTransformer>();
 			transformer.Setup(x => x.Transform(It.IsAny<IEvent>()))
-				.Returns<IEvent>(e => new LogEntry {
-					Level = LogLevel.Information,
-					Message = e.EventData["message"].ToString(),
+				.Returns<IEvent>(e => new LogEntry(null, e.EventData["message"].ToString()) {
 					Data = new Dictionary<string, object> {
 						{"os", e.EventSource.Metadata["env.os"]}
 					}
@@ -71,7 +66,7 @@ namespace Deveel.Data.Diagnostics {
 				.SetupGet(x => x.Registry)
 				.Returns(registry);
 
-			var eventLogger = new SystemEventLogger(system.Object, logger.Object, transformer.Object);
+			SystemEventLogger.Attach(system.Object, logger.Object, transformer.Object);
 
 			var @event = new Event(EventSource.Environment) {
 				Data = new Dictionary<string, object> {
