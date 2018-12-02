@@ -29,7 +29,7 @@ before_build:
 build_script:
     - cmd: >-
         dotnet build -c $CONFIGURATION
-        dotnet pack -c $CONFIGURATION -o nupkg
+        dotnet pack src/DeveelDB/DeveelDB.csproj -c $CONFIGURATION -o nupkg
 test_script:
 - cmd: >-
     dotnet tool install coveralls.net --version 1.0.0 --tool-path tools
