@@ -43,7 +43,7 @@ artifacts:
   name: Library
 - path: nuget\packages\*.nupkg
   name: NuGet Package
-- path: **\coverage.opencover.xml
+- path: '**\coverage.opencover.xml'
   name: Coverage Report
 - path: dist\$(platform)\deveeldb-$(platform).*.zip
   name: ZipPackage
