@@ -30,14 +30,13 @@ namespace Deveel.Data.Security {
 		/// the indicated object
 		/// </summary>
 		/// <param name="grantee">The grantee to verify</param>
-		/// <param name="objType">The type of database object</param>
 		/// <param name="objName">The name of the database object to verify</param>
 		/// <param name="privilege">The privilege that needs to be verified</param>
 		/// <returns>
 		/// Returns a boolean value indicating if the given grantee owns
 		/// the specified privilege over the indicated object
 		/// </returns>
-		Task<bool> HasObjectPrivilegesAsync(string grantee, DbObjectType objType, ObjectName objName, Privilege privilege);
+		Task<bool> HasObjectPrivilegesAsync(string grantee, ObjectName objName, Privilege privilege);
 
 		/// <summary>
 		/// Checks if a given grantee owns a specific system privilege

@@ -36,8 +36,6 @@ test_script:
 
 
     REM tools\coveralls.net\1.0.0\csmacnz.Coveralls.exe --opencover -i coverage.opencover.xml --useRelativePaths
-
-    REM dotnet pack src/DeveelDB/DeveelDB.csproj -c %CONFIGURATION% -o nupkg --no-build
 artifacts:
 - path: dist\$(platform)\deveeldb.dll
   name: Library

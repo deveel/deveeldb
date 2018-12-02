@@ -34,7 +34,7 @@ namespace Deveel.Data.Security {
 			return null;
 		}
 
-		public static async Task<bool> UserHasPrivileges(this IContext context, DbObjectType objectType, ObjectName objectName, Privilege privilege) {
+		public static async Task<bool> UserHasPrivileges(this IContext context, ObjectName objectName, Privilege privilege) {
 			var user = context.User();
 			if (user == null)
 				return false;
@@ -45,14 +45,14 @@ namespace Deveel.Data.Security {
 			if (resolver == null)
 				return false;
 
-			if (!await resolver.HasObjectPrivilegesAsync(user.Name, objectType, objectName, privilege)) {
+			if (!await resolver.HasObjectPrivilegesAsync(user.Name, objectName, privilege)) {
 				var securityManager = context.GetService<ISecurityManager>();
 				if (securityManager == null)
 					return false;
 
 				var roles = await securityManager.GetUserRolesAsync(user.Name);
 				foreach (var role in roles) {
-					if (await resolver.HasObjectPrivilegesAsync(role.Name, objectType, objectName, privilege))
+					if (await resolver.HasObjectPrivilegesAsync(role.Name, objectName, privilege))
 						return true;
 				}
 
@@ -63,32 +63,29 @@ namespace Deveel.Data.Security {
 		}
 
 		public static Task<bool> UserCanCreateInSchema(this IContext context, string schemaName) {
-			return context.UserHasPrivileges(DbObjectType.Schema, new ObjectName(schemaName), SqlPrivileges.Create);
+			return context.UserHasPrivileges(new ObjectName(schemaName), SqlPrivileges.Create);
 		}
 
 		public static Task<bool> UserCanSelectFrom(this IContext context, ObjectName tableName)
-			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.Select);
+			=> context.UserHasPrivileges(tableName, SqlPrivileges.Select);
 
 		public static Task<bool> UserCanUpdate(this IContext context, ObjectName tableName)
-			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.Update);
+			=> context.UserHasPrivileges(tableName, SqlPrivileges.Update);
 
 		public static Task<bool> UserCanDelete(this IContext context, ObjectName tableName)
-			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.Delete);
+			=> context.UserHasPrivileges(tableName, SqlPrivileges.Delete);
 
 		public static Task<bool> UserCanInsert(this IContext context, ObjectName tableName)
-			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.Insert);
-
-		public static Task<bool> UserCanDrop(this IContext context, DbObjectType objectType, ObjectName objectName)
-			=> context.UserHasPrivileges(objectType, objectName, SqlPrivileges.Drop);
+			=> context.UserHasPrivileges(tableName, SqlPrivileges.Insert);
 
 		public static Task<bool> UserCanExecute(this IContext context, ObjectName methodName)
-			=> context.UserHasPrivileges(DbObjectType.Method, methodName, SqlPrivileges.Execute);
+			=> context.UserHasPrivileges(methodName, SqlPrivileges.Execute);
 
-		public static Task<bool> UserCanAlter(this IContext context, DbObjectType objectType, ObjectName objectName)
-			=> context.UserHasPrivileges(objectType, objectName, SqlPrivileges.Alter);
+		public static Task<bool> UserCanAlter(this IContext context, ObjectName objectName)
+			=> context.UserHasPrivileges(objectName, SqlPrivileges.Alter);
 
 		public static Task<bool> UserCanReference(this IContext context, ObjectName tableName)
-			=> context.UserHasPrivileges(DbObjectType.Table, tableName, SqlPrivileges.References);
+			=> context.UserHasPrivileges(tableName, SqlPrivileges.References);
 
 		public static async Task<bool> UserHasSystemPrivilege(this IContext context, Privilege privilege) {
 			var user = context.User();

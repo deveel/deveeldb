@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Statements {
 
 			container.RegisterInstance<ISecurityManager>(securityManager.Object);
 
-			var cache = new PrivilegesCache();
+			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);
 
 			container.RegisterInstance<IAccessController>(cache);

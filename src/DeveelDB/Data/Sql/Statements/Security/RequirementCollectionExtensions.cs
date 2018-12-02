@@ -31,18 +31,15 @@ namespace Deveel.Data.Sql.Statements.Security {
 			}
 		}
 
-		public static void Require(this IRequirementCollection requirements, DbObjectType objectType, ObjectName objName, Privilege privilege) {
-			requirements.Require(new PrivilegesRequirement(objectType, objName, privilege));
+		public static void Require(this IRequirementCollection requirements, ObjectName objName, Privilege privilege) {
+			requirements.Require(new PrivilegesRequirement(objName, privilege));
 		}
 
-		public static void RequireCreateInSchema(this IRequirementCollection collection, string schemaName)
-			=> collection.Require(DbObjectType.Schema, new ObjectName(schemaName), SqlPrivileges.Create);
-
 		public static void RequireSelectPrivilege(this IRequirementCollection requirements, ObjectName tableName)
-			=> requirements.Require(DbObjectType.Table, tableName, SqlPrivileges.Select);
+			=> requirements.Require(tableName, SqlPrivileges.Select);
 
 		public static void RequireUpdatePrivilege(this IRequirementCollection requirements, ObjectName tableName)
-			=> requirements.Require(DbObjectType.Table, tableName, SqlPrivileges.Update);
+			=> requirements.Require(tableName, SqlPrivileges.Update);
 
 		public static void Require(this IRequirementCollection collection, Func<IContext, Task<bool>> requirement)
 			=> collection.Require(new DelegatedRequirement(requirement));
