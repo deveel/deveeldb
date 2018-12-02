@@ -11,7 +11,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>deveel deveeldb database sql core</PackageTags>
     <AssemblyName>deveeldb.core</AssemblyName>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
