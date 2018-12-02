@@ -19,3 +19,4 @@
 .idea
 *.iml
 /.vs
+/src/DeveelDB/log.txt
