@@ -29,6 +29,7 @@ before_build:
 build_script:
     - cmd: >-
         dotnet build -c $CONFIGURATION
+
         dotnet pack src/DeveelDB/DeveelDB.csproj -c $CONFIGURATION -o nupkg
 test_script:
 - cmd: >-
