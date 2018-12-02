@@ -27,7 +27,7 @@ nuget:
 before_build:
     - cmd: dotnet restore deveeldb.sln
 build_script:
-    - cmd: dotnet build -c %CONFIGURATION% /p:GeneratePackageOnBuild=true
+    - cmd: dotnet build -c %CONFIGURATION% /p:GeneratePackageOnBuild=true /p:Version=%APPVEYOR_BUILD_VERSION%
 test_script:
 - cmd: >-
     dotnet tool install coveralls.net --version 1.0.0 --tool-path tools
