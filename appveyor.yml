@@ -5,12 +5,11 @@ branches:
   only:
   - master
 skip_tags: true
-image: Visual Studio 2017
+image: 
+    - Visual Studio 2017
+    - Ubuntu 16.04
 configuration: Release
-platform: 
-    - Any CPU
-    - x86
-    - x64
+platform: Any CPU
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -32,7 +31,7 @@ test_script:
 - cmd: >-
     dotnet tool install coveralls.net --version 1.0.0 --tool-path tools
 
-    dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude="[*.tests?]*"
+    dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude="[*.tests?]*" --no-build
 
 
     REM tools\coveralls.net\1.0.0\csmacnz.Coveralls.exe --opencover -i coverage.opencover.xml --useRelativePaths
@@ -61,15 +60,6 @@ deploy:
   api_key:
     secure: gpX+ptyJspEvR0alXYkofdXZm9BFOrhNsxRPHKFmRrFSBbpUvzOScvQmE95mXKt1
   symbol_server: https://www.myget.org/F/deveeldb/api/v2/package
-- provider: GitHub
-  tag: v$(appveyor_build_version)
-  release: DeveelDB - $(appveyor_build_version)
-  auth_token:
-    secure: sCBMJHCnIuOmZRxQ4mbSaNpq0ztqHTIXx+zX6Yea2d4cwKIx7A5kR1LbiVGF9YeK
-  artifact: ZipPackage, TarGzPackage
-  draft: false
-  prerelease: false
-  force_update: true
 notifications:
 - provider: Slack
   incoming_webhook: https://hooks.slack.com/services/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
