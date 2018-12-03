@@ -7,7 +7,8 @@ branches:
 skip_tags: true
 image: 
     - Visual Studio 2017
-    - Ubuntu 16.04
+    - Ubuntu1604
+    - Ubuntu1804
 configuration: Release
 platform: Any CPU
 dotnet_csproj:
