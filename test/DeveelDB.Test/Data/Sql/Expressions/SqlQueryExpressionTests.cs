@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Expressions {
 		public static void CreateNewQuerySource() {
 			var fromTable = ObjectName.Parse("table1");
 			var query = new SqlQueryExpression();
-			query.All = true;
+			query.AllItems = true;
 			query.From.Table(fromTable);
 			var source = new SqlQueryExpressionSource(query, "a");
 
@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.False(source.IsTable);
 			Assert.True(source.IsAliased);
 			Assert.Equal("a", source.Alias);
-			Assert.True(source.Query.All);
+			Assert.True(source.Query.AllItems);
 
 			var expected = new SqlStringBuilder();
 			expected.AppendLine("(SELECT *");
@@ -154,7 +154,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.NotNull(query.Where);
 			Assert.NotNull(query.From);
 			Assert.NotEmpty(query.From.Sources);
-			Assert.Equal(1, query.From.Sources.Count());
+			Assert.Single(query.From.Sources);
 			Assert.IsType<SqlQueryExpressionSource>(query.From.Sources.First());
 		}
 
@@ -176,7 +176,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(1, query.GroupBy.Count);
 			Assert.NotNull(query.From);
 			Assert.NotEmpty(query.From.Sources);
-			Assert.Equal(1, query.From.Sources.Count());
+			Assert.Single(query.From.Sources);
 		}
 
 		[Fact]
@@ -195,7 +195,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.NotNull(query.GroupMax);
 			Assert.NotNull(query.From);
 			Assert.NotEmpty(query.From.Sources);
-			Assert.Equal(1, query.From.Sources.Count());
+			Assert.Single(query.From.Sources);
 		}
 
 		[Fact]

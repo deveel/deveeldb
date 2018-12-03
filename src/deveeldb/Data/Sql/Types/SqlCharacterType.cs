@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Types {
 				try {
 					Locale = CultureInfo.GetCultureInfo(localeCode);
 				}
-				catch (Exception e) {
+				catch (Exception) {
 					throw new SqlTypeException(
 						$"The CHARACTER TYPE was serialized with the locale code {localeCode} that is invalid");
 				}

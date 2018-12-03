@@ -33,8 +33,8 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public IList<SqlQueryExpressionItem> Items { get; }
 
-		public bool All {
-			get { return Items.Count == 1 && Items[0].IsAll; }
+		public bool AllItems {
+			get => Items.Count == 1 && Items[0].IsAll;
 			set {
 				if (value) {
 					Items.Add(SqlQueryExpressionItem.All);

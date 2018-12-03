@@ -231,11 +231,11 @@ namespace Deveel.Data.Sql.Statements {
 					await requirement.HandleRequirementAsync(context);
 				}
 			}
-			catch (UnauthorizedAccessException ex) {
+			catch (UnauthorizedAccessException) {
 				//TODO: context.Error(-93884, $"User {context.User().Name} has not enough rights to execute", ex);
 				throw;
 			}
-			catch (Exception ex) {
+			catch (Exception) {
 				//TODO: context.Error(-83993, "Unknown error while checking requirements", ex);
 				throw;
 			}
@@ -287,7 +287,7 @@ namespace Deveel.Data.Sql.Statements {
 				try {
 					await ExecuteStatementAsync(statementContext);
 					return statementContext.Result;
-				} catch (SqlStatementException ex) {
+				} catch (SqlStatementException) {
 					//TODO: statementContext.Error(-670393, "The statement thrown an error", ex);
 					throw;
 				} catch (Exception ex) {
