@@ -28,8 +28,6 @@ namespace Deveel.Data.Sql {
 
 			var op = selector(type);
 			var result = op(x, y);
-
-			Assert.NotNull(result);
 			Assert.Equal(expected, (bool)result);
 		}
 

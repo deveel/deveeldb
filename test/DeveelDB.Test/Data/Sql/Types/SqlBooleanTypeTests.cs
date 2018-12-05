@@ -191,7 +191,6 @@ namespace Deveel.Data.Sql.Types {
 		[InlineData(SqlTypeCode.Boolean, true, SqlTypeCode.Float, -1, -1, 1f)]
 		[InlineData(SqlTypeCode.Boolean, false, SqlTypeCode.Float, -1, -1, 0f)]
 		[InlineData(SqlTypeCode.Boolean, true, SqlTypeCode.Double, -1, -1, (double)1)]
-		[InlineData(SqlTypeCode.Boolean, true, SqlTypeCode.Double, -1, -1, (double)1)]
 		public static void CastTo(SqlTypeCode srcTypeCode, bool value, SqlTypeCode destTypeCode, int p, int s, object expected) {
 			var b = (SqlBoolean) value;
 			var srcType = PrimitiveTypes.Boolean(srcTypeCode);
@@ -208,7 +207,6 @@ namespace Deveel.Data.Sql.Types {
 		[Theory]
 		[InlineData(SqlTypeCode.DateTime)]
 		[InlineData(SqlTypeCode.Time)]
-		[InlineData(SqlTypeCode.DateTime)]
 		[InlineData(SqlTypeCode.DayToSecond)]
 		[InlineData(SqlTypeCode.YearToMonth)]
 		public static void CastToInvalid(SqlTypeCode destTypeCode) {

@@ -109,7 +109,6 @@ namespace Deveel.Data.Sql {
 			var d2 = SqlDayToSecond.Parse(dts2);
 
 			var result = d1+ d2;
-			Assert.NotNull(result);
 
 			var expectedResult = SqlDayToSecond.Parse(expected);
 			Assert.Equal(expectedResult, result);
@@ -123,7 +122,6 @@ namespace Deveel.Data.Sql {
 			var d2 = SqlDayToSecond.Parse(dts2);
 
 			var result = d1 - d2;
-			Assert.NotNull(result);
 
 			var expectedResult = SqlDayToSecond.Parse(expected);
 			Assert.Equal(expectedResult, result);

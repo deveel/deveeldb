@@ -38,7 +38,6 @@ namespace Deveel.Data.Sql {
 		[InlineData(false)]
 		public void CreateFromBoolean(bool value) {
 			var b = (SqlBoolean) value;
-			Assert.NotNull(b);
 			Assert.Equal(value, (bool)b);
 		}
 
@@ -64,8 +63,6 @@ namespace Deveel.Data.Sql {
 			var value1 = SqlBoolean.True;
 			var value2 = SqlNull.Value;
 
-			Assert.NotNull(value1);
-
 			Assert.False((value1 as ISqlValue).IsComparableTo(value2));
 			Assert.Throws<ArgumentException>(() => value1.CompareTo(value2));
 		}
@@ -74,9 +71,6 @@ namespace Deveel.Data.Sql {
 		public void Compare_ToNumber_OutOfRange() {
 			var value1 = SqlBoolean.True;
 			var value2 = (SqlNumber)21;
-
-			Assert.NotNull(value1);
-			Assert.NotNull(value2);
 
 			Assert.False((value1 as ISqlValue).IsComparableTo(value2));
 

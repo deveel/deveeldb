@@ -5,10 +5,7 @@ branches:
   only:
   - master
 skip_tags: true
-image: 
-    - Visual Studio 2017
-    - Ubuntu1604
-    - Ubuntu1804
+image: Visual Studio 2017
 configuration: Release
 platform: Any CPU
 dotnet_csproj:
@@ -39,8 +36,6 @@ test_script:
 artifacts:
 - path: dist\$(platform)\deveeldb.dll
   name: Library
-- path: nuget\packages\*.nupkg
-  name: NuGet Package
 - path: '**\coverage.opencover.xml'
   name: Coverage Report
 - path: dist\$(platform)\deveeldb-$(platform).*.zip

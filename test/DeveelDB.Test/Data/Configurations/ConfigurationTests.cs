@@ -108,7 +108,7 @@ namespace Deveel.Data.Configurations {
 			var result = config.GetValue("a", (object) true);
 			Assert.NotNull(result);
 			Assert.IsType<bool>(result);
-			Assert.Equal(true, (bool)result);
+			Assert.True((bool)result);
 
 			result = config.GetValue("b", null);
 			Assert.Null(result);
@@ -236,7 +236,7 @@ namespace Deveel.Data.Configurations {
 			Assert.Equal(33L, aValue);
 
 			Assert.NotEmpty(config.Sections);
-			Assert.Equal(1, config.Sections.Count());
+			Assert.Single(config.Sections);
 		}
 	}
 }

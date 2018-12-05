@@ -36,7 +36,6 @@ namespace Deveel.Data.Sql.Types {
 			Assert.IsType<SqlNumber>(result);
 
 			var number = (SqlNumber) result;
-			Assert.NotNull(number);
 			Assert.False(number.CanBeInt32);
 			Assert.Equal(74445.4656, (double) number);
 		}

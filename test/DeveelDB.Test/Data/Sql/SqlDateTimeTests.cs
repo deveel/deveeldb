@@ -431,8 +431,6 @@ namespace Deveel.Data.Sql {
 		public static void Now() {
 			var sqlNow = SqlDateTime.Now;
 			var now = DateTime.Now;
-
-			Assert.NotNull(sqlNow);
 			Assert.Equal(now.Year, sqlNow.Year);
 			Assert.Equal(now.Month, sqlNow.Month);
 			Assert.Equal(now.Day, sqlNow.Day);

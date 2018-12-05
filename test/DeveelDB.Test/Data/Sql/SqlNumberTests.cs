@@ -289,8 +289,6 @@ namespace Deveel.Data.Sql {
 			var num2 = (SqlNumber)b;
 
 			var result = op(num1, num2);
-
-			Assert.NotNull(result);
 			var expectedNumber = (SqlNumber)expected;
 
 			Assert.Equal(expectedNumber, result);
@@ -301,8 +299,6 @@ namespace Deveel.Data.Sql {
 			var num2 = (SqlNumber)b;
 
 			var result = op(num1, num2);
-
-			Assert.NotNull(result);
 			var expectedResult = (SqlBoolean)expected;
 
 			Assert.Equal(expectedResult, result);
@@ -431,8 +427,6 @@ namespace Deveel.Data.Sql {
 
 			var result = op(number);
 			var expectedResult = (SqlNumber) expected;
-
-			Assert.NotNull(result);
 			Assert.Equal(expectedResult, result);
 		}
 

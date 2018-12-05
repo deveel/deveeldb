@@ -35,8 +35,6 @@ namespace Deveel.Data.Sql {
 		[InlineData(1, 12)]
 		public static void FromYear(int years, int expectedMonths) {
 			var ytm = new SqlYearToMonth(years, 0);
-
-			Assert.NotNull(ytm);
 			Assert.Equal(expectedMonths, ytm.TotalMonths);
 			Assert.Equal(years, ytm.TotalYears);
 		}
@@ -46,8 +44,6 @@ namespace Deveel.Data.Sql {
 		[InlineData(24, 2)]
 		public static void FromMonths(int months, double expectedYears) {
 			var ytm = new SqlYearToMonth(months);
-
-			Assert.NotNull(ytm);
 			Assert.Equal(expectedYears, ytm.TotalYears);
 			Assert.Equal(months, ytm.TotalMonths);
 			;
@@ -59,8 +55,6 @@ namespace Deveel.Data.Sql {
 		[InlineData(-2, 0, -24)]
 		public static void FromYearsAndMonths(int years, int months, int expectedMonths) {
 			var ytm = new SqlYearToMonth(years, months);
-
-			Assert.NotNull(ytm);
 			Assert.Equal(expectedMonths, ytm.TotalMonths);
 		}
 
@@ -201,7 +195,7 @@ namespace Deveel.Data.Sql {
 			Assert.Equal(expected, result);
 		}
 
-		public static void BinaryOp(Func<SqlYearToMonth, SqlYearToMonth, SqlYearToMonth> op,
+		private static void BinaryOp(Func<SqlYearToMonth, SqlYearToMonth, SqlYearToMonth> op,
 			int months1,
 			int months2,
 			int expected) {

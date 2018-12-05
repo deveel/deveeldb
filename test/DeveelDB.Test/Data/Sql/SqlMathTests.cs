@@ -26,8 +26,6 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Pow(number, (SqlNumber)exp);
 
-			Assert.NotNull(result);
-
 			var doubleResult = (double)result;
 
 			Assert.Equal(expected, doubleResult);
@@ -38,8 +36,6 @@ namespace Deveel.Data.Sql {
 		public static void Function_Log(int value, int newBase, double expected) {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Log(number, (SqlNumber)newBase);
-
-			Assert.NotNull(result);
 
 			var expectedResult = (SqlNumber) expected;
 
@@ -52,8 +48,6 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Cos(number);
 
-			Assert.NotNull(result);
-
 			var doubleResult = (double)result;
 
 			Assert.Equal(expected, doubleResult);
@@ -64,8 +58,6 @@ namespace Deveel.Data.Sql {
 		public static void Function_CosH(float value, double expected) {
 			var number = (SqlNumber)value;
 			var result = SqlMath.CosH(number);
-
-			Assert.NotNull(result);
 
 			var expectedResult = (SqlNumber)expected;
 
@@ -78,8 +70,6 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Abs(number);
 
-			Assert.NotNull(result);
-
 			var doubleResult = (double)result;
 
 			Assert.Equal(expected, doubleResult);
@@ -90,8 +80,6 @@ namespace Deveel.Data.Sql {
 		public static void Function_Tan(double value, double expected) {
 			var number =(SqlNumber)value;
 			var result = SqlMath.Tan(number);
-
-			Assert.NotNull(result);
 
 			var expectedResult = (SqlNumber) expected;
 
@@ -104,8 +92,6 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var result = SqlMath.TanH(number);
 
-			Assert.NotNull(result);
-
 			var doubleResult = (double)result;
 
 			Assert.Equal(expected, doubleResult);
@@ -117,8 +103,6 @@ namespace Deveel.Data.Sql {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Round(number);
 
-			Assert.NotNull(result);
-
 			var expectedNumber = (SqlNumber)expected;
 			Assert.Equal(expectedNumber, result);
 		}
@@ -128,8 +112,6 @@ namespace Deveel.Data.Sql {
 		public static void Function_RoundWithPrecision(double value, int precision, double expected) {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Round(number, precision);
-
-			Assert.NotNull(result);
 
 			var doubleResult = (double)result;
 
@@ -141,8 +123,6 @@ namespace Deveel.Data.Sql {
 		public static void Function_Sin(double value, double expected) {
 			var number = (SqlNumber)value;
 			var result = SqlMath.Sin(number);
-
-			Assert.NotNull(result);
 
 			var expectedResult = (SqlNumber)expected;
 

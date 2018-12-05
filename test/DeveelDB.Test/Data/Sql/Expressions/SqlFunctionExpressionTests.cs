@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(SqlExpressionType.Function, exp.ExpressionType);
 			Assert.NotNull(exp.Arguments);
 			Assert.NotEmpty(exp.Arguments);
-			Assert.Equal(1, exp.Arguments.Length);
+			Assert.Single(exp.Arguments);
 		}
 
 		[Fact]
@@ -121,7 +121,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			Assert.Equal(ObjectName.Parse(funcName), function.FunctionName);
 			Assert.NotEmpty(function.Arguments);
-			Assert.Equal(1, function.Arguments.Length);
+			Assert.Single(function.Arguments);
 
 			var param = function.Arguments[0];
 
@@ -235,7 +235,7 @@ namespace Deveel.Data.Sql.Expressions {
 			var func = (SqlFunctionExpression) exp;
 			Assert.Equal("TOTIMESTAMP", func.FunctionName.FullName);
 			Assert.NotEmpty(func.Arguments);
-			Assert.Equal(1, func.Arguments.Length);
+			Assert.Single(func.Arguments);
 		}
 
 		[Theory]
