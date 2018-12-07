@@ -3,6 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Deveel.Data.Sql</RootNamespace>
+    <Authors>Antonello Provenzano</Authors>
+    <Company>Deveel</Company>
+    <Product>DeveelDB SQL Parser</Product>
+    <Description>The default implementation of the PL/SQL parsing functionalities for the DeveelDB SQL database system</Description>
+    <Copyright>(c) 2018-2019 Deveel</Copyright>
+    <PackageTags>deveel deveeldb sql parser plsql</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
