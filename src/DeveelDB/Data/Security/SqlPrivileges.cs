@@ -60,6 +60,9 @@ namespace Deveel.Data.Security {
 
 		class PrivilegeResolver : IPrivilegeResolver {
 			public Privilege ResolvePrivilege(string name) {
+				if (String.Equals(name, "ALL", StringComparison.OrdinalIgnoreCase))
+					return TableAll;
+
 				var parts = name.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
 				var result = Privilege.None;
 
@@ -91,6 +94,9 @@ namespace Deveel.Data.Security {
 			}
 
 			public string[] ToString(Privilege privilege) {
+				if (privilege.Equals(TableAll))
+					return new []{"ALL"};
+
 				var result = new List<string>();
 
 				if (privilege.Permits(Admin))

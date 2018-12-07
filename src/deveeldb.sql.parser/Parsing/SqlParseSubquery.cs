@@ -138,11 +138,11 @@ namespace Deveel.Data.Sql.Parsing {
 
 				if (groupBy != null && !groupBy.IsEmpty) {
 					query.GroupBy = groupBy.groupByElements().expression()
-						.Select(x => new SqlExpressionVisitor(context).Visit(x)).ToList();
+						.Select(x => new PlSqlExpressionVisitor(context).Visit(x)).ToList();
 
 					var having = groupBy.havingClause();
 					if (having != null)
-						query.Having = new SqlExpressionVisitor(context).Visit(having.condition());
+						query.Having = new PlSqlExpressionVisitor(context).Visit(having.condition());
 				}
 
 				var groupMax = queryBlock.groupMaxClause();
@@ -163,7 +163,7 @@ namespace Deveel.Data.Sql.Parsing {
 						throw new NotImplementedException();
 					}
 					else {
-						query.Where = new SqlExpressionVisitor(context).Visit(whereClause.conditionWrapper());
+						query.Where = new PlSqlExpressionVisitor(context).Visit(whereClause.conditionWrapper());
 					}
 				}
 
@@ -290,7 +290,7 @@ namespace Deveel.Data.Sql.Parsing {
 					if (onPart.IsEmpty)
 						throw new ParseCanceledException("None ON expression found in JOIN clause");
 
-					var onExp = new SqlExpressionVisitor(context).Visit(onPart.condition());
+					var onExp = new PlSqlExpressionVisitor(context).Visit(onPart.condition());
 					var source = FormSource(context, joinClause.queryExpressionClause());
 
 					return new JoinNode {

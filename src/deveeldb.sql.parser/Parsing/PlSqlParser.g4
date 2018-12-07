@@ -4,6 +4,134 @@ options {
 	tokenVocab=PlSqlLexer;
 }
 
+
+compilationUnit
+    : unitStatement* EOF
+    ;
+
+unitStatement
+    : securityStatement
+    ;
+
+// $<Security 
+securityStatement
+    : createUserStatement
+	| dropUserStatement
+	| alterUserStatement
+	| dropUserStatement
+	| createRoleStatement
+	| dropRoleStatement
+	| grantStatement
+	| revokeStatement
+	;
+
+grantStatement
+    : grantPrivilegeStatement
+	| grantRoleStatement
+	;
+
+createUserStatement
+    : CREATE USER userName IDENTIFIED (byPassword | externalId | globalId) SEMICOLON?
+	;
+
+alterUserStatement
+    : ALTER USER userName alterUserAction* SEMICOLON?
+	;
+
+replacePassword
+    : REPLACE oldPass=CHAR_STRING
+	;
+
+alterUserAction
+    : alterUserIdAction
+	| setAccountAction
+	| setRoleAction
+	;
+
+alterUserIdAction
+    : IDENTIFIED (byPassword replacePassword? | externalId | globalId)
+	;
+
+setAccountAction
+    : ACCOUNT (LOCK | UNLOCK)
+	;
+
+setRoleAction
+    : SET ROLE regular_id
+	;
+
+granteeName
+    : (userName | roleName)
+	;
+
+userName
+    : id ( '@' CHAR_STRING)?
+	;
+
+roleName
+    : id
+	;
+
+createRoleStatement
+    : CREATE ROLE regular_id SEMICOLON?
+	;
+
+dropUserStatement
+    : DROP USER userName SEMICOLON?
+	;
+
+dropRoleStatement
+    : DROP ROLE regular_id SEMICOLON?
+	;
+
+byPassword
+    : BY PASSWORD CHAR_STRING
+	;
+
+externalId
+    : EXTERNALLY (AS '(' CHAR_STRING ')' )?
+	;
+
+globalId
+   : GLOBALLY ( AS '(' CHAR_STRING ')' )?
+   ;
+
+grantPrivilegeStatement
+    : GRANT (ALL PRIVILEGES? | privilegeName (',' privilegeName)* ) ON objectName TO granteeName (WITH GRANT OPTION)? SEMICOLON?
+	;
+
+grantRoleStatement
+    : GRANT roleName (',' roleName)* TO granteeName (WITH ADMIN)? SEMICOLON?
+	;
+
+revokeStatement
+    : revokePrivilegeStatement
+	| revokeRoleStatement
+	;
+
+revokePrivilegeStatement
+    : REVOKE (GRANT OPTION OF)? ( ALL PRIVILEGES? | privilegeName ( ',' privilegeName )*) ON objectName FROM granteeName SEMICOLON?
+	;
+
+revokeRoleStatement
+    : REVOKE roleName (',' roleName)* FROM granteeName SEMICOLON?
+	;
+
+privilegeName
+    : SELECT 
+	| CREATE
+	| DELETE
+	| INSERT
+	| UPDATE
+	| ALTER
+	| DROP
+	| EXECUTE
+	| REFERENCE
+	;
+
+
+// $>
+
 // $<Expression & Condition
 expressionUnit
     : expression EOF

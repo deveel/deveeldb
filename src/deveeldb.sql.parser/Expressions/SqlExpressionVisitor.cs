@@ -27,8 +27,8 @@ using Deveel.Data.Sql.Parsing;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
-    class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
-	    public SqlExpressionVisitor(IContext context) {
+    class PlSqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
+	    public PlSqlExpressionVisitor(IContext context) {
 		    Context = context;
 	    }
 

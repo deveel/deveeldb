@@ -71,29 +71,32 @@ namespace Deveel.Data.Sql.Parsing {
 				return Simple(context.id());
 			}
 
-			//[CLSCompliant(false)]
-			//public static string Simple(PlSqlParser.UserNameContext context) {
-			//	if (context == null)
-			//		return null;
+			[CLSCompliant(false)]
+			public static string Simple(PlSqlParser.UserNameContext context)
+			{
+				if (context == null)
+					return null;
 
-			//	return Simple(context.id());
-			//}
+				return Simple(context.id());
+			}
 
-			//[CLSCompliant(false)]
-			//public static string Simple(PlSqlParser.GranteeNameContext context) {
-			//	if (context.userName() != null)
-			//		return Simple(context.userName());
+			[CLSCompliant(false)]
+			public static string Simple(PlSqlParser.GranteeNameContext context)
+			{
+				if (context.userName() != null)
+					return Simple(context.userName());
 
-			//	return Simple(context.roleName());
-			//}
+				return Simple(context.roleName());
+			}
 
-			//[CLSCompliant(false)]
-			//public static string Simple(PlSqlParser.RoleNameContext context) {
-			//	if (context == null)
-			//		return null;
+			[CLSCompliant(false)]
+			public static string Simple(PlSqlParser.RoleNameContext context)
+			{
+				if (context == null)
+					return null;
 
-			//	return Simple(context.id());
-			//}
+				return Simple(context.id());
+			}
 
 			public static string Simple(PlSqlParser.ColumnNameContext context) {
 				if (context == null)

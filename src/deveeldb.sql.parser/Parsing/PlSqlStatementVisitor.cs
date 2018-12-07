@@ -16,14 +16,24 @@
 
 using System;
 
-using Antlr4.Runtime.Tree;
+using Antlr4.Runtime;
 
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Statements;
 
 namespace Deveel.Data.Sql.Parsing {
-	static class SqlParseExpression {
-		public static SqlExpression Build(IContext context, IParseTree tree) {
-			return new PlSqlExpressionVisitor(context).Visit(tree);
+	partial class PlSqlStatementVisitor : PlSqlParserBaseVisitor<SqlStatement> {
+		private readonly SqlParseResult result;
+
+		public PlSqlStatementVisitor(SqlParseResult result) {
+			this.result = result;
+		}
+
+		private void AddStatement(ParserRuleContext context, SqlStatement statement) {
+			if (statement != null && context != null) {
+				statement.Location = new LocationInfo(context.Start.Line, context.Start.Column);
+			}
+
+			result.Statements.Add(statement);
 		}
 	}
 }

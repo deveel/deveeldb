@@ -620,20 +620,11 @@ namespace Deveel.Data.Sql.Expressions {
 		/// parse the text into a valid expression.
 		/// </returns>
 		public static bool TryParse(IContext context, string text, out SqlExpression expression) {
-			string[] errors;
-
-			return TryParse(context, text, out expression, out errors);
-		}
-
-		public static SqlExpression Parse(string text) {
-			return Parse(null, text);
+			return TryParse(context, text, out expression, out _);
 		}
 
 		public static SqlExpression Parse(IContext context, string text) {
-			string[] errors;
-			SqlExpression result;
-
-			if (!TryParse(context, text, out result, out errors))
+			if (!TryParse(context, text, out var result, out var errors))
 				throw new AggregateException(errors.Select(x => new SqlExpressionException(x)));
 
 			return result;

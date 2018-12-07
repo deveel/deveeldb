@@ -51,7 +51,7 @@ namespace Deveel.Data.Sql.Parsing
 			//var plSqlParser = MakeParser(text, null);
 			var parseResult = plSqlParser.expressionUnit();
 
-			var visitor = new SqlExpressionVisitor(context);
+			var visitor = new PlSqlExpressionVisitor(context);
 			var result = visitor.Visit(parseResult);
 
 			var errors = messages.Where(x => x.Level == SqlParseMessageLevel.Error).Select(x => x.Message).ToArray();
@@ -68,6 +68,23 @@ namespace Deveel.Data.Sql.Parsing
 			var parseResult = plSqlParser.datatype();
 
 			return  SqlTypeParser.GetResolveInfo(parseResult);
+		}
+
+		internal static SqlParseResult ParsePlSql(string sql) {
+			var result = new SqlParseResult();
+
+			try {
+				var plSqlParser = MakeParser(sql, message => result.Messages.Add(message));
+
+				var tree = plSqlParser.compilationUnit();
+
+				var visitor = new PlSqlStatementVisitor(result);
+				visitor.Visit(tree);
+			} catch (Exception ex) {
+				result.Messages.Add(new SqlParseMessage($"Critical error while parsing: {ex.Message}", SqlParseMessageLevel.Error));
+			}
+
+			return result;
 		}
 
 		#region ErrorHandler
