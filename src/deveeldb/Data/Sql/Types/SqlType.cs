@@ -390,36 +390,13 @@ namespace Deveel.Data.Sql.Types {
 				parser = context.Scope.Resolve<ISqlTypeParser>();
 
 			if (parser == null)
-				parser = new SqlDefaultTypeParser();
+				throw new NotSupportedException("No data type parser was found in this context");
 
 			return parser.Parse(context, sql);
 		}
 
 		public static SqlType Parse(string sql)
 			=> Parse(null, sql);
-
-		#endregion
-
-		#region SqlDefaultTypeParser
-
-		class SqlDefaultTypeParser : ISqlTypeParser {
-			public SqlType Parse(IContext context, string s) {
-				var typeInfo = PlSqlParser.ParseType(s);
-
-				if (PrimitiveTypes.IsPrimitive(typeInfo.TypeName))
-					return PrimitiveTypes.Resolver.Resolve(typeInfo);
-
-				if (context == null)
-					throw new Exception($"Type {typeInfo.TypeName} is not primitive and no context is provided");
-
-				var resolver = context.Scope.Resolve<ISqlTypeResolver>();
-
-				if (resolver == null)
-					throw new InvalidOperationException($"The type {typeInfo.TypeName} is not primitive and no resolver was found in context");
-
-				return resolver.Resolve(typeInfo);
-			}
-		}
 
 		#endregion
 	}

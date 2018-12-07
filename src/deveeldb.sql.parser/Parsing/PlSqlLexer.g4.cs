@@ -16,7 +16,7 @@
 
 namespace Deveel.Data.Sql.Parsing
 {
-	partial  class PlSqlLexer
+	partial class PlSqlLexer
 	{
 	}
 }

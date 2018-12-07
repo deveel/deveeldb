@@ -18,45 +18,84 @@ using System;
 
 namespace Deveel.Data.Services {
 	public static class ServiceContainerExtensions {
-		public static void Register(this IServiceContainer container, Type serviceType, Type implementationType, object serviceKey) {
-			var registration = new ServiceRegistration(serviceType, implementationType);
-			registration.ServiceKey = serviceKey;
-			container.Register(registration);
+		#region Register
+
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType, Type implementationType, object serviceKey) {
+			return Register(container, serviceType, implementationType, null, serviceKey);
 		}
 
-		public static void Register(this IServiceContainer container, Type serviceType) {
-			Register(container, serviceType, null);
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType, Type implementationType, string scope, object serviceKey) {
+			container.Register(new ServiceRegistration(serviceType, implementationType) {
+				ServiceKey = serviceKey, 
+				Scope = scope
+			});
+
+			return container;
 		}
 
-		public static void Register(this IServiceContainer container, Type serviceType, object serviceKey) {
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType) {
+			return Register(container, serviceType, null);
+		}
+
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType, string scope) {
+			return Register(container, serviceType, scope, null);
+		}
+
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType, object serviceKey) {
+			return Register(container, serviceType, (string)null, serviceKey);
+		}
+
+		public static IServiceContainer Register(this IServiceContainer container, Type serviceType, string scope, object serviceKey) {
 			if (serviceType == null)
 				throw new ArgumentNullException(nameof(serviceType));
 
 			if (serviceType.IsValueType)
 				throw new ArgumentException($"The service type '{serviceType}' to register is not a class.");
 
-			container.Register(serviceType, serviceType, serviceKey);
+			return container.Register(serviceType, serviceType, scope, serviceKey);
 		}
 
-		public static void Register<TService, TImplementation>(this IServiceContainer container, object serviceKey)
+		public static IServiceContainer Register<TService, TImplementation>(this IServiceContainer container, object serviceKey)
 			where TImplementation : class, TService {
-			container.Register(typeof(TService), typeof(TImplementation), serviceKey);
+			return Register<TService, TImplementation>(container, null, serviceKey);
 		}
 
-		public static void Register<TService, TImplementation>(this IServiceContainer container)
+		public static IServiceContainer Register<TService, TImplementation>(this IServiceContainer container, string scope, object serviceKey)
 			where TImplementation : class, TService {
-			container.Register<TService, TImplementation>(null);
+			return container.Register(typeof(TService), typeof(TImplementation), scope, serviceKey);
 		}
 
-		public static void Register<TService>(this IServiceContainer container, object serviceKey)
-			where TService : class {
-			container.Register(typeof(TService), serviceKey);
+		public static IServiceContainer Register<TService, TImplementation>(this IServiceContainer container)
+			where TImplementation : class, TService {
+			return Register<TService, TImplementation>(container, null);
 		}
 
-		public static void Register<TService>(this IServiceContainer container)
-			where TService : class {
-			container.Register<TService>(null);
+		public static IServiceContainer Register<TService, TImplementation>(this IServiceContainer container, string scope)
+			where TImplementation : class, TService {
+			return container.Register<TService, TImplementation>(scope, null);
 		}
+
+		public static IServiceContainer Register<TService>(this IServiceContainer container, object serviceKey)
+			where TService : class {
+			return Register<TService>(container, null, serviceKey);
+		}
+
+		public static IServiceContainer Register<TService>(this IServiceContainer container, string scope, object serviceKey)
+			where TService : class {
+			return container.Register(typeof(TService), scope, serviceKey);
+		}
+
+		public static IServiceContainer Register<TService>(this IServiceContainer container)
+			where TService : class {
+			return Register<TService>(container, null);
+		}
+
+		public static IServiceContainer Register<TService>(this IServiceContainer container, string scope)
+			where TService : class {
+			return container.Register<TService>(scope, null);
+		}
+
+		#endregion
 
 		public static void RegisterInstance(this IServiceContainer container, Type serviceType, object instance) {
 			RegisterInstance(container, serviceType, instance, null);

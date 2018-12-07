@@ -143,7 +143,7 @@ namespace Deveel.Data.Services {
 		public void RegisterManyAndResolveOne() {
 			var provider = new ServiceContainer();
 			provider.Register<IService, ServiceOne>();
-			provider.Register<IService, ServiceTwo>("two");
+			provider.Register<IService, ServiceTwo>(null, "two");
 
 			var service = provider.Resolve<IService>("two");
 

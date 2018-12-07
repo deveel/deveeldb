@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeveelDB", "src\DeveelDB\DeveelDB.csproj", "{124BB02C-8B4B-4227-8162-670FBA4E90E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb", "src\DeveelDB\deveeldb.csproj", "{124BB02C-8B4B-4227-8162-670FBA4E90E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeveelDB.Test", "test\DeveelDB.Test\DeveelDB.Test.csproj", "{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb.test", "test\DeveelDB.Test\deveeldb.test.csproj", "{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb.sql.parser", "src\deveeldb.sql.parser\deveeldb.sql.parser.csproj", "{3A285179-9A1D-4483-9B98-596A9EAA8022}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deveeldb.sql.parser.test", "test\deveeldb.sql.parser.test\deveeldb.sql.parser.test.csproj", "{4D48E514-F196-413D-B5DF-1661C8AAC647}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +45,30 @@ Global
 		{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}.Release|x64.Build.0 = Release|x64
 		{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}.Release|x86.ActiveCfg = Release|x86
 		{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}.Release|x86.Build.0 = Release|x86
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|x64.Build.0 = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|x64.ActiveCfg = Release|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|x64.Build.0 = Release|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A285179-9A1D-4483-9B98-596A9EAA8022}.Release|x86.Build.0 = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|x64.Build.0 = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Debug|x86.Build.0 = Debug|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|x64.ActiveCfg = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|x64.Build.0 = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|x86.ActiveCfg = Release|Any CPU
+		{4D48E514-F196-413D-B5DF-1661C8AAC647}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

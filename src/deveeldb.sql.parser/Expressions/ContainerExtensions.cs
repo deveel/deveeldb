@@ -15,7 +15,15 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-[assembly: CLSCompliant(true)]
+using Deveel.Data.Services;
+
+namespace Deveel.Data.Sql.Expressions {
+	public static class ContainerExtensions {
+		public static IServiceContainer RegisterExpressionParser(this IServiceContainer container) {
+			container.Register<ISqlExpressionParser, DefaultSqlExpressionParser>(KnownScopes.System);
+
+			return container;
+		}
+	}
+}

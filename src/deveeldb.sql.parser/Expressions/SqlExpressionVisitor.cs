@@ -22,11 +22,11 @@ using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Methods;
+using Deveel.Data.Sql.Parsing;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Parsing {
+namespace Deveel.Data.Sql.Expressions {
     class SqlExpressionVisitor : PlSqlParserBaseVisitor<SqlExpression> {
 	    public SqlExpressionVisitor(IContext context) {
 		    Context = context;

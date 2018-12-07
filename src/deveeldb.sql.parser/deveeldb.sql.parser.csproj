@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Deveel.Data.Sql</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Expressions\SqlExpressionLexer.g4" />
+    <None Remove="Parsing\PlSqlLexer.g4" />
+    <None Remove="Parsing\PlSqlLexer.g4.bak" />
+    <None Remove="Parsing\PlSqlLexer.g4.cs.bak" />
+    <None Remove="Parsing\PlSqlParser.g4" />
+    <None Remove="Parsing\PlSqlParser.g4.bak" />
+    <None Remove="Parsing\PlSqlParser.g4.cs.bak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4" Version="4.6.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeveelDB\deveeldb.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Update="Parsing\PlSqlLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+    </Antlr4>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Antlr4 Update="Parsing\PlSqlParser.g4">
+      <Generator>MSBuild:Compile</Generator>
+    </Antlr4>
+  </ItemGroup>
+
+</Project>

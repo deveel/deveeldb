@@ -576,7 +576,7 @@ namespace Deveel.Data.Sql.Expressions {
 				parser = context.Scope.Resolve<ISqlExpressionParser>();
 
 			if (parser == null)
-				parser = new DefaultSqlExpressionParser();
+				throw new NotSupportedException("None expression parser was found in this context");
 
 			var result = parser.Parse(context, text);
 			expression = result.Expression;
@@ -637,16 +637,6 @@ namespace Deveel.Data.Sql.Expressions {
 				throw new AggregateException(errors.Select(x => new SqlExpressionException(x)));
 
 			return result;
-		}
-
-		#endregion
-
-		#region SqlDefaultExpressionParser
-
-		class DefaultSqlExpressionParser : ISqlExpressionParser {
-			public SqlExpressionParseResult Parse(IContext context, string expression) {
-				return PlSqlParser.ParseExpression(context, expression);
-			}
 		}
 
 		#endregion

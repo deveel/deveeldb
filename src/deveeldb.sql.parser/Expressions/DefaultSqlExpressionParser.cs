@@ -14,8 +14,12 @@
 //    limitations under the License.
 //
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Deveel.Data.Sql.Parsing;
 
-[assembly: CLSCompliant(true)]
+namespace Deveel.Data.Sql.Expressions {
+	class DefaultSqlExpressionParser : ISqlExpressionParser {
+		public SqlExpressionParseResult Parse(IContext context, string expression) {
+			return PlSqlParser.ParseExpression(context, expression);
+		}
+	}
+}

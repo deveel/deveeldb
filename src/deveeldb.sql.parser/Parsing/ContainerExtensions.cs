@@ -15,7 +15,13 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-[assembly: CLSCompliant(true)]
+using Deveel.Data.Services;
+
+namespace Deveel.Data.Sql.Parsing {
+	public static class ContainerExtensions {
+		public static IServiceContainer RegisterPlSqlParser(this IServiceContainer container) {
+			return container.Register<ISqlParser, DefaultSqlParser>(KnownScopes.System);
+		}
+	}
+}

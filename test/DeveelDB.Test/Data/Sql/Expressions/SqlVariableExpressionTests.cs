@@ -107,21 +107,6 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(type, varType);
 		}
 
-		[Theory]
-		[InlineData(":a", "a")]
-		[InlineData(":1", "1")]
-		public static void ParseString(string s, string varName)
-		{
-			var exp = SqlExpression.Parse(s);
-
-			Assert.NotNull(exp);
-			Assert.IsType<SqlVariableExpression>(exp);
-
-			var varExp = (SqlVariableExpression)exp;
-			Assert.NotNull(varExp.VariableName);
-			Assert.Equal(varName, varExp.VariableName);
-		}
-
 		public void Dispose() {
 			if (context != null)
 				context.Dispose();

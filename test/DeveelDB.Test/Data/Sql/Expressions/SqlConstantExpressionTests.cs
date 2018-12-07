@@ -46,23 +46,5 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.IsType<SqlConstantExpression>(reduced);
 			Assert.Equal(obj, ((SqlConstantExpression) reduced).Value);
 		}
-
-		[Theory]
-		[InlineData("TRUE")]
-		[InlineData("FALSE")]
-		[InlineData("UNKNOWN")]
-		[InlineData("NULL")]
-		[InlineData("'test string'")]
-		[InlineData("7859403.112")]
-		public static void ParseString(string s) {
-			var exp = SqlExpression.Parse(s);
-
-			Assert.NotNull(exp);
-			Assert.IsType<SqlConstantExpression>(exp);
-
-			var constantExp = (SqlConstantExpression) exp;
-			Assert.NotNull(constantExp.Value);
-			Assert.NotNull(constantExp.Value.Type);
-		}
 	}
 }

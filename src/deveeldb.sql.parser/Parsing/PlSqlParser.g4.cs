@@ -25,8 +25,10 @@ using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Statements;
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Parsing {
-	partial class PlSqlParser {
+namespace Deveel.Data.Sql.Parsing
+{
+	partial class PlSqlParser
+	{
 		private static PlSqlParser MakeParser(string input, Action<SqlParseMessage> messageReceiver) {
 			using (var reader = new StringReader(input)) {
 				var inputStream = new AntlrInputStream(reader);

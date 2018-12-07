@@ -34,24 +34,6 @@ namespace Deveel.Data.Sql.Expressions {
 			Assert.Equal(expected, sql);
 		}
 
-		[Theory]
-		[InlineData("CASE a WHEN 1 THEN TRUE ELSE FALSE END")]
-		[InlineData("CASE WHEN a = 1 THEN TRUE ELSE FALSE END")]
-		[InlineData("CASE a WHEN 1 THEN TRUE WHEN 2 THEN TRUE ELSE FALSE END")]
-		[InlineData("CASE WHEN a = 1 THEN TRUE WHEN b = 2 THEN FALSE END")]
-		public static void ParseSipleCaseString(string s) {
-			var exp = SqlExpression.Parse(s);
-
-			Assert.NotNull(exp);
-			Assert.IsType<SqlConditionExpression>(exp);
-
-			var condition = (SqlConditionExpression) exp;
-
-			Assert.NotNull(condition.Test);
-			Assert.NotNull(condition.IfTrue);
-			Assert.NotNull(condition.IfFalse);
-		}
-
 
 		[Theory]
 		[InlineData(true, "I am", "You are", "I am")]

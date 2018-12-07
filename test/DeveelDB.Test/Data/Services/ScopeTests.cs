@@ -24,8 +24,8 @@ namespace Deveel.Data.Services {
 
 		public ScopeTests() {
 			container = new ServiceContainer();
-			container.Register<IService, Service1>("one");
-			container.Register<IService, Service2>("two");
+			container.Register<IService, Service1>(null, "one");
+			container.Register<IService, Service2>(null, "two");
 		}
 
 		[Fact]

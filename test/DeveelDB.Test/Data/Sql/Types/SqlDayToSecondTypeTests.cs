@@ -93,16 +93,5 @@ namespace Deveel.Data.Sql.Types {
 
 			Assert.Equal(exp, result);
 		}
-
-		[Theory]
-		[InlineData("INTERVAL DAY TO SECOND", SqlTypeCode.DayToSecond)]
-		public static void ParseString(string s, SqlTypeCode typeCode) {
-			var type = SqlType.Parse(s);
-
-			Assert.NotNull(type);
-			Assert.Equal(typeCode, type.TypeCode);
-
-			Assert.IsType<SqlDayToSecondType>(type);
-		}
 	}
 }

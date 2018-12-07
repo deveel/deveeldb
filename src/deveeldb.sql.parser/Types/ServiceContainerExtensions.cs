@@ -15,7 +15,13 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-[assembly: CLSCompliant(true)]
+using Deveel.Data.Services;
+
+namespace Deveel.Data.Sql.Types {
+	public static class ServiceContainerExtensions {
+		public static IServiceContainer RegisterTypeParser(this IServiceContainer container) {
+			return container.Register<ISqlTypeParser, SqlDefaultTypeParser>(KnownScopes.System);
+		}
+	}
+}

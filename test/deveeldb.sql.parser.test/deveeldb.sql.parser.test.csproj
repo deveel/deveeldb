@@ -1,10 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>Deveel</RootNamespace>
-    <AssemblyName>deveeldb.core.tests</AssemblyName>
-    <Platforms>AnyCPU;x86;x64</Platforms>
+    <RootNamespace>Deveel.Data.Sql</RootNamespace>
+    <AssemblyName>deveeldb.sql.parser.test</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="Moq" Version="4.10.0" />
+    <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1">
@@ -27,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\deveeldb.sql.parser\deveeldb.sql.parser.csproj" />
     <ProjectReference Include="..\..\src\DeveelDB\deveeldb.csproj" />
   </ItemGroup>
 

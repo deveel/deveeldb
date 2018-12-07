@@ -46,20 +46,5 @@ namespace Deveel.Data.Sql.Expressions {
 
 			Assert.Equal(expected, sql);
 		}
-
-		[Theory]
-		[InlineData("(674)", SqlExpressionType.Constant)]
-		[InlineData("((a + b))", SqlExpressionType.Group)]
-		public static void ParseString(string s, SqlExpressionType innerType) {
-			var exp = SqlExpression.Parse(s);
-
-			Assert.NotNull(exp);
-			Assert.IsType<SqlGroupExpression>(exp);
-
-			var group = (SqlGroupExpression) exp;
-
-			Assert.NotNull(group.Expression);
-			Assert.Equal(innerType, group.Expression.ExpressionType);
-		}
 	}
 }

@@ -82,17 +82,5 @@ namespace Deveel.Data.Sql.Expressions {
 			var sqlType = exp.Type;
 			Assert.Equal(obj.Type, sqlType);
 		}
-
-		[Theory]
-		[InlineData("+454.90", SqlExpressionType.UnaryPlus)]
-		[InlineData("NOT TRUE", SqlExpressionType.Not)]
-		[InlineData("-7849", SqlExpressionType.Negate)]
-		public static void ParseString(string s, SqlExpressionType expressionType) {
-			var exp = SqlExpression.Parse(s);
-
-			Assert.NotNull(exp);
-			Assert.Equal(expressionType, exp.ExpressionType);
-			Assert.IsType<SqlUnaryExpression>(exp);
-		}
 	}
 }
