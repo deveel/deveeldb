@@ -15,12 +15,26 @@
 //
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.Query;
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+using Moq;
+
+namespace Deveel.Data.Sql.Tables {
+	static class TableUtil {
+		public static Mock<ITable> MockTable(string name, IDictionary<string, SqlType> columns) {
+			var tableInfo = new TableInfo(ObjectName.Parse(name));
+
+			foreach (var column in columns) {
+				tableInfo.Columns.Add(new ColumnInfo(column.Key, column.Value));
+			}
+
+			var table = new Mock<ITable>();
+			table.SetupGet(x => x.TableInfo)
+				.Returns(tableInfo);
+
+			return table;
+		}
 	}
 }

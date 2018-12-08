@@ -18,10 +18,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Query;
 using Deveel.Data.Services;
 using Deveel.Data.Sql.Methods;
 using Deveel.Data.Sql.Parsing;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {

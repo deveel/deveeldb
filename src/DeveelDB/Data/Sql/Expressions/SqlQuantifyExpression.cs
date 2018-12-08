@@ -17,7 +17,7 @@
 using System;
 using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Query;
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {

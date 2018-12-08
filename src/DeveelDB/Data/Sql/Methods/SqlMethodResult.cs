@@ -19,8 +19,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Methods {
 	public sealed class SqlMethodResult {

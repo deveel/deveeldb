@@ -15,19 +15,14 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-using Deveel.Data.Services;
+namespace Deveel.Data.Sql.Tables {
+	public interface IMutableTable : ITable {
+		Task AddRowAsync(Row row);
 
-namespace Deveel.Data.Sql.Query {
-	public class QueryContext : Context {
-		public QueryContext(IContext parent, IGroupResolver group, IReferenceResolver resolver)
-			: base(parent, KnownScopes.Query) {
-			GroupResolver = group;
-			Resolver = resolver;
-		}
+		Task UpdateRowAsync(Row row);
 
-		public  IGroupResolver GroupResolver { get; }
-
-		public IReferenceResolver Resolver { get; }
+		Task<bool> RemoveRowAsync(Row row);
 	}
 }

@@ -14,13 +14,18 @@
 //    limitations under the License.
 //
 
-using System;
+using Deveel.Data.Services;
 
-using Deveel.Data.Query;
-using Deveel.Data.Sql.Expressions;
+namespace Deveel.Data.Query {
+	public class QueryContext : Context {
+		public QueryContext(IContext parent, IGroupResolver group, IReferenceResolver resolver)
+			: base(parent, KnownScopes.Query) {
+			GroupResolver = group;
+			Resolver = resolver;
+		}
 
-namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+		public  IGroupResolver GroupResolver { get; }
+
+		public IReferenceResolver Resolver { get; }
 	}
 }

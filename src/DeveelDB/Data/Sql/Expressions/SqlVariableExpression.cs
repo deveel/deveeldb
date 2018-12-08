@@ -18,7 +18,7 @@ using System;
 using System.Threading.Tasks;
 
 using Deveel.Data.Configurations;
-using Deveel.Data.Sql.Query;
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 

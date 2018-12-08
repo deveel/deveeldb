@@ -14,13 +14,15 @@
 //    limitations under the License.
 //
 
-using System;
+using System.Threading.Tasks;
 
-using Deveel.Data.Query;
-using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql;
+using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+namespace Deveel.Data.Query {
+	public interface IReferenceResolver {
+		Task<SqlObject> ResolveReferenceAsync(ObjectName referenceName);
+
+		SqlType ResolveType(ObjectName referenceName);
 	}
 }

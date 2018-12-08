@@ -17,14 +17,12 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Deveel.Data.Sql.Query {
-	public interface IGroupResolver {
-		long Size { get; }
+namespace Deveel.Data.Sql.Tables {
+	public interface ITable : IDbObject, IDisposable {
+		TableInfo TableInfo { get; }
 
-		int GroupId { get; }
+		long RowCount { get; }
 
-		Task<SqlObject> ResolveReferenceAsync(ObjectName reference, long index);
-
-		IReferenceResolver GetResolver(long index);
+		Task<SqlObject> GetValueAsync(long row, int column);
 	}
 }

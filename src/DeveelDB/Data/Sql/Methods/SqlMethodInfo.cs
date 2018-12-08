@@ -20,7 +20,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using Deveel.Data.Configurations;
-using Deveel.Data.Sql.Query;
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Methods {

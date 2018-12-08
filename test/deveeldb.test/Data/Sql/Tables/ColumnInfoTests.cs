@@ -15,14 +15,27 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
 using Deveel.Data.Sql.Types;
 
-namespace Deveel.Data.Sql.Query {
-	public interface IReferenceResolver {
-		Task<SqlObject> ResolveReferenceAsync(ObjectName referenceName);
+using Xunit;
 
-		SqlType ResolveType(ObjectName referenceName);
+namespace Deveel.Data.Sql.Tables {
+	public sealed class ColumnInfoTests {
+		[Theory]
+		[InlineData("a", "VARCHAR", true)]
+		[InlineData("bin", "VARBINARY", false)]
+		public static void NewSimpleColumn(string name, string type, bool indexable) {
+			var column = new ColumnInfo(name, PrimitiveTypes.Type(type));
+
+			Assert.Equal(name, column.ColumnName);
+			Assert.Equal(name, column.FullName.ToString());
+			Assert.NotNull(column.ColumnType);
+			Assert.Equal(type, column.ColumnType.ToSqlString());
+			Assert.Equal(indexable, column.IsIndexable);
+			Assert.Null(column.TableInfo);
+			Assert.Null(column.DefaultValue);
+			Assert.False(column.HasDefault);
+		}
 	}
 }

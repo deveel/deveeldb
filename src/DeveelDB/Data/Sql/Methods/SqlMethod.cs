@@ -18,8 +18,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 
 namespace Deveel.Data.Sql.Methods {
 	public abstract class SqlMethod : ISqlFormattable {

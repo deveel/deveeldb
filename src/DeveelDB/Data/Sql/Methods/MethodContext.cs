@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Query;
 using Deveel.Data.Sql.Expressions;
-using Deveel.Data.Sql.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 

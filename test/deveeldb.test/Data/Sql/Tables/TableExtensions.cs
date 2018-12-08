@@ -16,11 +16,17 @@
 
 using System;
 
-using Deveel.Data.Query;
-using Deveel.Data.Sql.Expressions;
+namespace Deveel.Data.Sql.Tables {
+	public static class TableExtensions {
+		#region Rows
 
-namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+		public static Row NewRow(this IMutableTable table) {
+			return new Row(table);
+		}
+
+		public static Row GetRow(this ITable table, long row)
+			=> new Row(table, row);
+
+		#endregion
 	}
 }

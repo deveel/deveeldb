@@ -15,12 +15,18 @@
 //
 
 using System;
+using System.Collections.Generic;
 
-using Deveel.Data.Query;
-using Deveel.Data.Sql.Expressions;
+namespace Deveel.Data.Sql.Tables {
+	public interface IColumnList : IList<ColumnInfo> {
+		ColumnInfo this[string columnName] { get; }
 
-namespace Deveel.Data.Sql.Variables {
-	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+		ObjectName GetColumnName(int offset);
+
+		int IndexOf(string columnName);
+
+		int IndexOf(ObjectName columnName);
+
+		bool Remove(string columnName);
 	}
 }
