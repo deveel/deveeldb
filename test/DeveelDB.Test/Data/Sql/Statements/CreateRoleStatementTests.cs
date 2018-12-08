@@ -36,7 +36,7 @@ namespace Deveel.Data.Sql.Statements {
 		public CreateRoleStatementTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x =>
 					x.CreateRoleAsync(It.IsNotNull<string>()))
 				.Callback<string>(x => createdRole = x)
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Statements {
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

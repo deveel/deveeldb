@@ -36,8 +36,8 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
-			var securityManager = context.GetSecurityManager();
-			if (!await securityManager.UserExistsAsync(UserName))
+			var userManager = context.GetUserManager();
+			if (!await userManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"User {UserName} does not exist");
 
 			try {

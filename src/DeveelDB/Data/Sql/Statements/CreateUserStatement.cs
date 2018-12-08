@@ -36,14 +36,12 @@ namespace Deveel.Data.Sql.Statements {
 			if (!User.IsValidName(UserName))
 				throw new SqlStatementException($"The specified name '{UserName}' is invalid for a user");
 
-			var securityManager = context.GetService<ISecurityManager>();
-			if (securityManager == null)
-				throw new SystemException("There is no security manager defined in the system");
+			var userManager = context.GetUserManager();
 
-			if (await securityManager.UserExistsAsync(UserName))
+			if (await userManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"A user named '{UserName}' already exists.");
 
-			if (!await securityManager.CreateUserAsync(UserName, IdentificationInfo))
+			if (!await userManager.CreateUserAsync(UserName, IdentificationInfo))
 				throw new SqlStatementException($"It was not possible to create the user '{UserName}' because of a system error.");
 
 			context.RaiseEvent(new UserCreatedEvent(this, UserName));

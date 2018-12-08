@@ -17,25 +17,20 @@
 using System;
 using System.Threading.Tasks;
 
-using Deveel.Data.Security;
+using Deveel.Data.Sql;
 
-namespace Deveel.Data.Sql.Statements {
-	public sealed class SetAccountStatusAction : IAlterUserAction {
-		public SetAccountStatusAction(UserStatus newStatus) {
-			NewStatus = newStatus;
-		}
+namespace Deveel.Data.Security {
+	public interface IUserManager {
+		Task<bool> CreateUserAsync(string user, IUserIdentificationInfo identification);
 
-		public UserStatus NewStatus { get; }
+		Task<bool> SetIdentificationAsync(string user, IUserIdentificationInfo identification);
 
-		async Task<bool> IAlterUserAction.AlterUserAsync(string userName, StatementContext context) {
-			var securityManager = context.GetUserManager();
+		Task<bool> UserExistsAsync(string user);
 
-			return await securityManager.SetUserStatusAsync(userName, NewStatus);
-		}
+		Task<UserStatus> GetUserStatusAsync(string user);
 
-		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
-			builder.Append("SET ACCOUNT STATUS ");
-			builder.Append(NewStatus.ToString().ToUpperInvariant());
-		}
+		Task<bool> SetUserStatusAsync(string user, UserStatus status);
+
+		Task<bool> DropUserAsync(string user);
 	}
 }

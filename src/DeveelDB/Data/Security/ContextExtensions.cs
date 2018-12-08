@@ -46,11 +46,11 @@ namespace Deveel.Data.Security {
 				return false;
 
 			if (!await resolver.HasObjectPrivilegesAsync(user.Name, objectName, privilege)) {
-				var securityManager = context.GetService<ISecurityManager>();
-				if (securityManager == null)
+				var roleManager = context.GetService<IRoleManager>();
+				if (roleManager == null)
 					return false;
 
-				var roles = await securityManager.GetUserRolesAsync(user.Name);
+				var roles = await roleManager.GetUserRolesAsync(user.Name);
 				foreach (var role in roles) {
 					if (await resolver.HasObjectPrivilegesAsync(role.Name, objectName, privilege))
 						return true;
@@ -99,11 +99,11 @@ namespace Deveel.Data.Security {
 				return false;
 
 			if (!await resolver.HasSystemPrivilegesAsync(user.Name, privilege)) {
-				var securityManager = context.GetService<ISecurityManager>();
-				if (securityManager == null)
+				var roleManager = context.GetService<IRoleManager>();
+				if (roleManager == null)
 					return false;
 
-				var roles = await securityManager.GetUserRolesAsync(user.Name);
+				var roles = await roleManager.GetUserRolesAsync(user.Name);
 				foreach (var role in roles) {
 					if (await resolver.HasSystemPrivilegesAsync(role.Name, privilege))
 						return true;
@@ -127,8 +127,8 @@ namespace Deveel.Data.Security {
 			if (await context.UserIsAdmin())
 				return true;
 
-			var securityManager = context.GetSecurityManager();
-			var userGrants = await securityManager.GetGrantsAsync(context.User().Name);
+			var grantManager = context.GetGrantManager();
+			var userGrants = await grantManager.GetGrantsAsync(context.User().Name);
 
 			foreach (var grant in userGrants.Where(x => x.ObjectName.Equals(objName, true))) {
 				if  (grant.Privileges.Permits(privileges)) {
@@ -139,12 +139,28 @@ namespace Deveel.Data.Security {
 			return false;
 		}
 
-		public static ISecurityManager GetSecurityManager(this IContext context) {
-			var securityManager = context.GetService<ISecurityManager>();
-			if (securityManager == null)
+		public static IRoleManager GetRoleManager(this IContext context) {
+			var roleManager = context.GetService<IRoleManager>();
+			if (roleManager == null)
 				throw new SystemException("There is no security manager defined in the system");
 
-			return securityManager;
+			return roleManager;
+		}
+
+		public static IUserManager GetUserManager(this IContext context) {
+			var userManager = context.GetService<IUserManager>();
+			if (userManager == null)
+				throw new SystemException("There is no user manager defined in the system");
+
+			return userManager;
+		}
+
+		public static IGrantManager GetGrantManager(this IContext context) {
+			var grantManager = context.GetService<IGrantManager>();
+			if (grantManager == null)
+				throw new SystemException("There is no grant manager defined in the system");
+
+			return grantManager;
 		}
 	}
 }

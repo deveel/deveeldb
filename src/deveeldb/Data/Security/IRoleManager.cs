@@ -21,28 +21,12 @@ using System.Threading.Tasks;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Security {
-	public interface ISecurityManager : IAccessController {
+	public interface IRoleManager {
 		Task<bool> CreateRoleAsync(string role);
 
 		Task<bool> DropRoleAsync(string role);
 
 		Task<bool> RoleExistsAsync(string role);
-
-		Task<bool> GrantToRoleAsync(string role, ObjectName objName, Privilege privilege);
-
-		Task<bool> RevokeFromRoleAsync(string role, ObjectName objName, Privilege privilege);
-
-		Task<bool> CreateUserAsync(string user, IUserIdentificationInfo identification);
-
-		Task<bool> SetIdentificationAsync(string user, IUserIdentificationInfo identification);
-
-		Task<bool> UserExistsAsync(string user);
-
-		Task<UserStatus> GetUserStatusAsync(string user);
-
-		Task<bool> SetUserStatusAsync(string user, UserStatus status);
-
-		Task<bool> DropUserAsync(string user);
 
 		Task<bool> AddUserToRoleAsync(string user, string role);
 
@@ -51,13 +35,5 @@ namespace Deveel.Data.Security {
 		Task<bool> RemoveUserFromRoleAsync(string user, string role);
 
 		Task<IEnumerable<Role>> GetUserRolesAsync(string user);
-
-		Task<bool> GrantToUserAsync(string granter, string user, ObjectName objName, Privilege privileges, bool withOption);
-
-		Task<bool> RevokeFromUserAsync(string revoker, string user, ObjectName objName, Privilege privileges, bool option);
-
-		Task<IEnumerable<Grant>> GetGrantsAsync(string grantee);
-
-		Task<IEnumerable<Grant>> GetGrantedAsync(string granter);
 	}
 }

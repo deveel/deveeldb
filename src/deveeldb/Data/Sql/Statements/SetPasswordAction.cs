@@ -35,7 +35,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		async Task<bool> IAlterUserAction.AlterUserAsync(string userName, StatementContext context) {
-			var securityManager = context.GetSecurityManager();
+			var securityManager = context.GetUserManager();
 
 			return await securityManager.SetIdentificationAsync(userName, new PasswordIdentificationInfo(NewPassword));
 		}

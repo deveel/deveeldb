@@ -38,17 +38,18 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
-			var securityManager = context.GetSecurityManager();
+			var roleManager = context.GetRoleManager();
+			var userManager = context.GetUserManager();
 
-			if (!await securityManager.RoleExistsAsync(RoleName))
+			if (!await roleManager.RoleExistsAsync(RoleName))
 				throw new SqlStatementException($"The role '{RoleName}' does not exist.");
-			if (!await securityManager.UserExistsAsync(UserName))
+			if (!await userManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"The user '{UserName}' does not exist");
 
-			if (!await securityManager.IsUserInRoleAsync(UserName, RoleName))
+			if (!await roleManager.IsUserInRoleAsync(UserName, RoleName))
 				throw new SqlStatementException($"The user '{UserName}' is not in the role '{RoleName}'");
 
-			if (!await securityManager.RemoveUserFromRoleAsync(UserName, RoleName))
+			if (!await roleManager.RemoveUserFromRoleAsync(UserName, RoleName))
 				throw new SqlStatementException($"It was not possible to revoke the role '{RoleName}' from user '{UserName}'");
 
 			context.RaiseEvent<RoleRevokedEvent>(UserName, RoleName);

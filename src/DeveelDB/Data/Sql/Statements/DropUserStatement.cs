@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Deveel.Data.Events;
@@ -33,17 +34,18 @@ namespace Deveel.Data.Sql.Statements {
 			requirements.Require(x => x.UserIsAdmin());
 		}
 
-		private async Task<bool> RevokeAllGrantedPrivileges(IContext context, ISecurityManager securityManager) {
+		private async Task<bool> RevokeAllGrantedPrivileges(IContext context, IUserManager userManager, IRoleManager roleManager) {
 			var user = context.User();
+			var grantManager = context.GetGrantManager();
 
-			var grants = await securityManager.GetGrantedAsync(user.Name);
+			var grants = await grantManager.GetGrantedAsync(user.Name);
 
 			foreach (var grant in grants) {
-				if (await securityManager.RoleExistsAsync(grant.Grantee)) {
-					if (!await securityManager.RevokeFromRoleAsync(grant.Grantee, grant.ObjectName, grant.Privileges))
+				if (await roleManager.RoleExistsAsync(grant.Grantee)) {
+					if (!await grantManager.RevokeFromRoleAsync(grant.Grantee, grant.ObjectName, grant.Privileges))
 						return false;
-				} else if (await securityManager.UserExistsAsync(grant.Grantee)) {
-					if (!await securityManager.RevokeFromUserAsync(user.Name, grant.Grantee, grant.ObjectName, grant.Privileges, grant.WithOption))
+				} else if (await userManager.UserExistsAsync(grant.Grantee)) {
+					if (!await grantManager.RevokeFromUserAsync(user.Name, grant.Grantee, grant.ObjectName, grant.Privileges, grant.WithOption))
 						return false;
 				} else {
 					// TODO: log this error but not throw
@@ -56,17 +58,16 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
-			var securityManager = context.GetService<ISecurityManager>();
-			if (securityManager == null)
-				throw new SystemException("There is no security manager defined in the system");
+			var userManager = context.GetUserManager();
+			var roleManager = context.GetRoleManager();
 
-			if (!await securityManager.UserExistsAsync(UserName))
+			if (!await userManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"A user named '{UserName}' does not exist.");
 
-			if (!await RevokeAllGrantedPrivileges(context, securityManager))
+			if (!await RevokeAllGrantedPrivileges(context, userManager, roleManager))
 				throw new SqlStatementException($"It was not possible to revoke the privileges granted by '{UserName}'.");
 
-			if (!await securityManager.DropUserAsync(UserName))
+			if (!await userManager.DropUserAsync(UserName))
 				throw new SqlStatementException($"It was not possible to delete the user '{UserName}' because of a system error");
 
 			context.RaiseEvent(new UserDroppedEvent(this, UserName));

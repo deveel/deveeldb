@@ -59,16 +59,18 @@ namespace Deveel.Data.Sql.Statements {
 			if (!await context.ObjectExistsAsync(ObjectName))
 				throw new SqlStatementException($"The object '{ObjectName}' is not defined in this scope");
 
-			var securityManager = context.GetSecurityManager();
+			var userManager = context.GetUserManager();
+			var roleManager = context.GetRoleManager();
+			var grantManager = context.GetGrantManager();
 
-			if (await securityManager.UserExistsAsync(Grantee)) {
-				if (!await securityManager.GrantToUserAsync(context.User().Name, Grantee, ObjectName, Privileges, WithGrantOption))
+			if (await userManager.UserExistsAsync(Grantee)) {
+				if (!await grantManager.GrantToUserAsync(context.User().Name, Grantee, ObjectName, Privileges, WithGrantOption))
 					throw new SqlStatementException("It was not possible to grant to user because of a system error");
-			} else if (await securityManager.RoleExistsAsync(Grantee)) {
+			} else if (await roleManager.RoleExistsAsync(Grantee)) {
 				if (WithGrantOption)
 					throw new SqlStatementException("Cannot set a grant option to a role");
 
-				if (!await securityManager.GrantToRoleAsync(Grantee, ObjectName, Privileges))
+				if (!await grantManager.GrantToRoleAsync(Grantee, ObjectName, Privileges))
 					throw new SqlStatementException("It was not possible to grant to role because of a system error");
 			} else {
 				throw new SqlStatementException($"The grantee '{Grantee}' was not defined");

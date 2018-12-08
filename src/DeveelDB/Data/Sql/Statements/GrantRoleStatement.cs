@@ -37,19 +37,18 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
-			var securityManager = context.GetService<ISecurityManager>();
-			if (securityManager == null)
-				throw new SystemException("There is no security manager defined in the system");
+			var roleManager = context.GetRoleManager();
+			var userManager = context.GetUserManager();
 
-			if (!await securityManager.RoleExistsAsync(RoleName))
+			if (!await roleManager.RoleExistsAsync(RoleName))
 				throw new SqlStatementException($"The role '{RoleName}' does not exist.");
-			if (!await securityManager.UserExistsAsync(UserName))
+			if (!await userManager.UserExistsAsync(UserName))
 				throw new SqlStatementException($"The user '{UserName}' does not exist");
 
-			if (await securityManager.IsUserInRoleAsync(UserName, RoleName))
+			if (await roleManager.IsUserInRoleAsync(UserName, RoleName))
 				throw new SqlStatementException($"User '{UserName}' is already in role '{RoleName}'");
 
-			if (!await securityManager.AddUserToRoleAsync(UserName, RoleName))
+			if (!await roleManager.AddUserToRoleAsync(UserName, RoleName))
 				throw new SqlStatementException($"It was not possible to assign the role '{RoleName}' to "+
 				                                $"user '{UserName}' because of a system error");
 

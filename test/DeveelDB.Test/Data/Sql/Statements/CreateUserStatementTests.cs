@@ -36,15 +36,19 @@ namespace Deveel.Data.Sql.Statements {
 		public CreateUserStatementTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
-			securityManager.Setup(x =>
+			var userManager = new Mock<IUserManager>();
+			userManager.Setup(x =>
 					x.CreateUserAsync(It.IsNotNull<string>(), It.IsNotNull<IUserIdentificationInfo>()))
 				.Callback<string, IUserIdentificationInfo>((x, y) => createdUser = x)
 				.Returns<string, IUserIdentificationInfo>((x, y) => Task.FromResult(true));
+
+
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

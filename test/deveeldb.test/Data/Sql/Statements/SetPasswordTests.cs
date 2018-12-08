@@ -37,20 +37,24 @@ namespace Deveel.Data.Sql.Statements {
 		public SetPasswordTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
-			securityManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
+			var userManager = new Mock<IUserManager>();
+
+			userManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
 				.Returns(Task.FromResult(true));
-			securityManager.Setup(x => x.SetIdentificationAsync(It.IsNotNull<string>(), It.IsAny<PasswordIdentificationInfo>()))
+			userManager.Setup(x => x.SetIdentificationAsync(It.IsNotNull<string>(), It.IsAny<PasswordIdentificationInfo>()))
 				.Callback<string, IUserIdentificationInfo>((x, y) => {
 					userSet = x;
 					newPassword = ((PasswordIdentificationInfo) y).Password;
 				})
 				.Returns(Task.FromResult(true));
 
+
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

@@ -58,8 +58,8 @@ namespace Deveel.Data.Security {
 				cache.Remove(cacheKey);
 			}
 
-			var securityManager = database.GetSecurityManager();
-			var grants = await securityManager.GetGrantsAsync(grantee);
+			var grantManager = database.GetGrantManager();
+			var grants = await grantManager.GetGrantsAsync(grantee);
 
 			foreach (var grant in grants) {
 				SetObjectPrivileges(grant.ObjectName, grantee, grant.Privileges);

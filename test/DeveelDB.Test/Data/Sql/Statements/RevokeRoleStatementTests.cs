@@ -37,7 +37,12 @@ namespace Deveel.Data.Sql.Statements {
 		public RevokeRoleStatementTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
+			var userManager = new Mock<IUserManager>();
+			userManager.Setup(x => x.UserExistsAsync(It.IsAny<string>()))
+				.Returns<string>(x => Task.FromResult(true));
+
+
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x =>
 					x.RemoveUserFromRoleAsync(It.IsNotNull<string>(), It.IsAny<string>()))
 				.Callback<string, string>((x, y) => {
@@ -45,9 +50,6 @@ namespace Deveel.Data.Sql.Statements {
 					revokedRole = y;
 				})
 				.Returns<string, string>((x, y) => Task.FromResult(true));
-
-			securityManager.Setup(x => x.UserExistsAsync(It.IsAny<string>()))
-				.Returns<string>(x => Task.FromResult(true));
 
 			securityManager.Setup(x => x.RoleExistsAsync(It.IsAny<string>()))
 				.Returns<string>(x => Task.FromResult(true));
@@ -58,7 +60,8 @@ namespace Deveel.Data.Sql.Statements {
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

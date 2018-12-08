@@ -34,7 +34,7 @@ namespace Deveel.Data.Sql.Statements {
 		}
 
 		protected override async Task ExecuteStatementAsync(StatementContext context) {
-			var securityManager = context.GetService<ISecurityManager>();
+			var securityManager = context.GetService<IRoleManager>();
 			if (securityManager == null)
 				throw new SystemException("There is no security manager defined in the system");
 

@@ -37,20 +37,25 @@ namespace Deveel.Data.Sql.Statements {
 		public GrantObjectPrivilegesStatementTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
-			securityManager.Setup(x => x.GrantToUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsNotNull<ObjectName>(),
+			var userManager = new Mock<IUserManager>();
+			userManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
+				.Returns<string>(x => Task.FromResult(true));
+
+			var grantManager = new Mock<IGrantManager>();
+			grantManager.Setup(x => x.GrantToUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsNotNull<ObjectName>(),
 					It.IsAny<Privilege>(), It.IsAny<bool>()))
 				.Callback<string, string, ObjectName, Privilege, bool>((granter, grantee, obj, priv, option) =>
 					grant = new Grant(granter, grantee, obj, priv, option))
 				.Returns<string, string, ObjectName, Privilege, bool>((a, b, c, d, e) => Task.FromResult(true));
 
-			securityManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
-				.Returns<string>(x => Task.FromResult(true));
 
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
+			container.RegisterInstance<IGrantManager>(grantManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

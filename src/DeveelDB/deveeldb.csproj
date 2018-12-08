@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Deveel</RootNamespace>
+    <PackageId>deveeldb.core</PackageId>
+    <Authors>Antonello Provenzano</Authors>
+    <Company>Deveel</Company>
+    <Description>Kernel library of the DeveelDB system</Description>
+    <Copyright>(c) 2015-2018 Deveel</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>deveel deveeldb database sql core</PackageTags>
+    <AssemblyName>deveeldb.core</AssemblyName>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="_site\**" />
+    <EmbeddedResource Remove="_site\**" />
+    <None Remove="_site\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4" Version="4.6.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.5" />
+    <PackageReference Include="dmath.core" Version="1.7.0" />
+    <PackageReference Include="docfx.console" Version="2.40.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="DryIoc.dll" Version="3.0.2" />
+  </ItemGroup>
+
+</Project>

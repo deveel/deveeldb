@@ -36,17 +36,24 @@ namespace Deveel.Data.Sql.Statements {
 		public DropUserStatementTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
-			securityManager.Setup(x =>
+			var userManager = new Mock<IUserManager>();
+			userManager.Setup(x =>
 					x.DropUserAsync(It.IsNotNull<string>()))
 				.Callback<string>(x => droppedUser = x)
 				.Returns<string>(x => Task.FromResult(true));
-			securityManager.Setup(x => x.UserExistsAsync(It.IsAny<string>()))
+			userManager.Setup(x => x.UserExistsAsync(It.IsAny<string>()))
 				.Returns<string>(x => Task.FromResult(true));
+
+
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			var grantManager = new Mock<IGrantManager>();
+
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
+			container.RegisterInstance<IGrantManager>(grantManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

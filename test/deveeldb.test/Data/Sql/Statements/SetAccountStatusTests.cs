@@ -21,22 +21,25 @@ namespace Deveel.Data.Sql.Statements {
 		public SetAccountStatusTests() {
 			var container = new ServiceContainer();
 
-			var securityManager = new Mock<ISecurityManager>();
-			securityManager.Setup(x => x.GetUserStatusAsync(It.IsAny<string>()))
+			var userManager = new Mock<IUserManager>();
+			userManager.Setup(x => x.GetUserStatusAsync(It.IsAny<string>()))
 				.Returns<string>(x => Task.FromResult(UserStatus.Unlocked));
-			securityManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
+			userManager.Setup(x => x.UserExistsAsync(It.IsNotNull<string>()))
 				.Returns(Task.FromResult(true));
-			securityManager.Setup(x => x.SetUserStatusAsync(It.IsNotNull<string>(), It.IsAny<UserStatus>()))
+			userManager.Setup(x => x.SetUserStatusAsync(It.IsNotNull<string>(), It.IsAny<UserStatus>()))
 				.Callback<string, UserStatus>((x, y) => {
 					userSet = x;
 					newStatus = y;
 				})
 				.Returns(Task.FromResult(true));
 
+
+			var securityManager = new Mock<IRoleManager>();
 			securityManager.Setup(x => x.GetUserRolesAsync(It.Is<string>(u => u == "user2")))
 				.Returns<string>(x => Task.FromResult<IEnumerable<Role>>(new[] {new Role("admin_group")}));
 
-			container.RegisterInstance<ISecurityManager>(securityManager.Object);
+			container.RegisterInstance<IRoleManager>(securityManager.Object);
+			container.RegisterInstance<IUserManager>(userManager.Object);
 
 			var cache = new PrivilegesCache(null);
 			cache.SetSystemPrivileges("admin_group", SqlPrivileges.Admin);

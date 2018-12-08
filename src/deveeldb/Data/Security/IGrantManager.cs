@@ -15,27 +15,23 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Deveel.Data.Security;
+using Deveel.Data.Sql;
 
-namespace Deveel.Data.Sql.Statements {
-	public sealed class SetAccountStatusAction : IAlterUserAction {
-		public SetAccountStatusAction(UserStatus newStatus) {
-			NewStatus = newStatus;
-		}
+namespace Deveel.Data.Security {
+	public interface IGrantManager : IAccessController {
+		Task<bool> RevokeFromUserAsync(string revoker, string user, ObjectName objName, Privilege privileges, bool option);
 
-		public UserStatus NewStatus { get; }
+		Task<IEnumerable<Grant>> GetGrantsAsync(string grantee);
 
-		async Task<bool> IAlterUserAction.AlterUserAsync(string userName, StatementContext context) {
-			var securityManager = context.GetUserManager();
+		Task<IEnumerable<Grant>> GetGrantedAsync(string granter);
 
-			return await securityManager.SetUserStatusAsync(userName, NewStatus);
-		}
+		Task<bool> GrantToUserAsync(string granter, string user, ObjectName objName, Privilege privileges, bool withOption);
 
-		void ISqlFormattable.AppendTo(SqlStringBuilder builder) {
-			builder.Append("SET ACCOUNT STATUS ");
-			builder.Append(NewStatus.ToString().ToUpperInvariant());
-		}
+		Task<bool> GrantToRoleAsync(string role, ObjectName objName, Privilege privilege);
+
+		Task<bool> RevokeFromRoleAsync(string role, ObjectName objName, Privilege privilege);
 	}
 }
