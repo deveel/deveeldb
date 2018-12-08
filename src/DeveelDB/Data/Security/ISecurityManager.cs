@@ -34,7 +34,13 @@ namespace Deveel.Data.Security {
 
 		Task<bool> CreateUserAsync(string user, IUserIdentificationInfo identification);
 
+		Task<bool> SetIdentificationAsync(string user, IUserIdentificationInfo identification);
+
 		Task<bool> UserExistsAsync(string user);
+
+		Task<UserStatus> GetUserStatusAsync(string user);
+
+		Task<bool> SetUserStatusAsync(string user, UserStatus status);
 
 		Task<bool> DropUserAsync(string user);
 
