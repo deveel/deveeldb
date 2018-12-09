@@ -149,7 +149,7 @@ namespace Deveel.Data.Sql.Indexes {
 		}
 
 		private TableIndex CreateFullIndex(params string[] columnNames) {
-			var indexInfo = new IndexInfo(ObjectName.Parse("sys.idx1"), left.TableInfo.TableName, columnNames);
+			var indexInfo = new IndexInfo("idx1", left.TableInfo.TableName, columnNames);
 			var index = new InsertSearchIndex(indexInfo, left);
 
 			foreach (var row in left) {

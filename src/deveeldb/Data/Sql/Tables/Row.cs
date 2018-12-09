@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Deveel.Data.Query;
@@ -45,6 +44,16 @@ namespace Deveel.Data.Sql.Tables {
 		public bool IsAttached { get; private set; }
 
 		public ITable Table { get; }
+
+		public SqlObject this[int column] {
+			get => GetValue(column);
+			set => SetValue(column, value);
+		}
+
+		public SqlObject this[string columnName] {
+			get => GetValue(columnName);
+			set => SetValue(columnName, value);
+		}
 
 		public IReferenceResolver ReferenceResolver => new RowReferenceResolver(this);
 
@@ -91,6 +100,12 @@ namespace Deveel.Data.Sql.Tables {
 			return GetValueAsync(ColumnOffset(columnName));
 		}
 
+		public SqlObject GetValue(int column)
+			=> GetValueAsync(column).Result;
+
+		public SqlObject GetValue(string columnName)
+			=> GetValueAsync(columnName).Result;
+
 		public Task SetValueAsync(int column, SqlObject value) {
 			if (column < 0 || column > Table.TableInfo.Columns.Count)
 				throw new ArgumentOutOfRangeException(nameof(column), column,
@@ -115,6 +130,15 @@ namespace Deveel.Data.Sql.Tables {
 
 			return Task.CompletedTask;
 		}
+
+		public Task SetValueAsync(string columnName, SqlObject value)
+			=> SetValueAsync(ColumnOffset(columnName), value);
+
+		public void SetValue(int column, SqlObject value)
+			=> SetValueAsync(column, value).Wait();
+
+		public void SetValue(string columnName, SqlObject value)
+			=> SetValueAsync(columnName, value).Wait();
 
 		public async Task SetDefaultAsync(QueryContext context, int column) {
 			if (column < 0 || column > Table.TableInfo.Columns.Count)

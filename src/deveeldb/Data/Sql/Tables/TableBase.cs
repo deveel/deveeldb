@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		TableIndex ITable.GetIndex(int[] columns) {
-			if (columns.Length > 0)
+			if (columns.Length > 1)
 				throw new NotSupportedException("Multi-column indices not support in table");
 
 			return GetColumnIndex(columns[0]);

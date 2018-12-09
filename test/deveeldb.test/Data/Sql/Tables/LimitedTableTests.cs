@@ -34,11 +34,13 @@ namespace Deveel.Data.Sql.Tables {
 			leftInfo.Columns.Add(new ColumnInfo("b", PrimitiveTypes.Boolean()));
 			leftInfo.Columns.Add(new ColumnInfo("c", PrimitiveTypes.Double()));
 
-			left = new TestTable(leftInfo, new List<SqlObject[]> {
-				new[] {SqlObject.Integer(23), SqlObject.Boolean(true), SqlObject.Double(5563.22)},
-				new[] {SqlObject.Integer(54), SqlObject.Boolean(null), SqlObject.Double(921.001)},
-				new[] {SqlObject.Integer(23), SqlObject.Boolean(true), SqlObject.Double(2010.221)}
-			});
+			var temp = new TemporaryTable(leftInfo);
+			temp.AddRow(new[] {SqlObject.Integer(23), SqlObject.Boolean(true), SqlObject.Double(5563.22)});
+			temp.AddRow(new[] {SqlObject.Integer(54), SqlObject.Boolean(null), SqlObject.Double(921.001)});
+			temp.AddRow(new[] {SqlObject.Integer(23), SqlObject.Boolean(true), SqlObject.Double(2010.221)});
+			temp.BuildIndex();
+
+			left = temp;
 		}
 
 		[Fact]

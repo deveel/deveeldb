@@ -15,46 +15,44 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Sql.Types;
 
 using Xunit;
 
 namespace Deveel.Data.Sql.Tables {
-	public class VirtualTableTests {
-		private ITable left;
+	public class FilterTableTests : IDisposable {
+		private TemporaryTable left;
 
-		public VirtualTableTests() {
+		public FilterTableTests() {
 			var leftInfo = new TableInfo(ObjectName.Parse("tab1"));
 			leftInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.Integer()));
 			leftInfo.Columns.Add(new ColumnInfo("b", PrimitiveTypes.Boolean()));
+			left = new TemporaryTable(leftInfo);
 
-			var temp = new TemporaryTable(leftInfo);
-			temp.AddRow(new [] { SqlObject.Integer(23), SqlObject.Boolean(true) });
-			temp.AddRow(new [] { SqlObject.Integer(54),SqlObject.Boolean(null) });
+			left.AddRow(new[] { SqlObject.Integer(23), SqlObject.Boolean(true) });
+			left.AddRow(new[] { SqlObject.Integer(54), SqlObject.Boolean(null) });
 
-			left = temp;
+			left.BuildIndex();
 		}
 
 		[Fact]
-		public void NewVirtualTableFromOneTableSource() {
-			var table = new VirtualTable(ObjectName.Parse("#table#"), left, new long[]{1});
+		public void GetSubsetIndex() {
+			var table = new FilterTable(left);
+			var index = table.GetColumnIndex(0);
 
-			Assert.Equal(1, table.RowCount);
-			Assert.Equal(2, table.TableInfo.Columns.Count);
+			Assert.NotNull(index);
+
+			var rows = index.SelectGreater(new IndexKey(SqlObject.Integer(24)));
+
+			Assert.Single(rows);
 		}
 
-		[Fact]
-		public async Task GetLastValueOfOneTableSource() {
-			var table = new VirtualTable(ObjectName.Parse("#table#"), left, new long[] { 1 });
-
-			var value = await table.GetValueAsync(0, 1);
-
-			Assert.NotNull(value);
-			Assert.IsType<SqlBooleanType>(value.Type);
+		public void Dispose() {
+			
 		}
 	}
 }

@@ -18,21 +18,21 @@ using System;
 
 namespace Deveel.Data.Sql.Indexes {
 	public sealed class IndexInfo : IDbObjectInfo {
-		public IndexInfo(ObjectName indexName, ObjectName tableName, string columnName) 
+		public IndexInfo(string indexName, ObjectName tableName, string columnName) 
 			: this(indexName, tableName, new [] { columnName }) {
 		}
 
-		public IndexInfo(ObjectName indexName, ObjectName tableName, string[] columnNames) {
-			IndexName = indexName;
-			TableName = tableName;
+		public IndexInfo(string indexName, ObjectName tableName, string[] columnNames) {
+			IndexName = indexName ?? throw new ArgumentNullException(nameof(indexName));
+			TableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
 			ColumnNames = columnNames;
 		}
 
 		DbObjectType IDbObjectInfo.ObjectType => DbObjectType.Index;
 
-		public ObjectName IndexName { get; }
+		public string IndexName { get; }
 
-		ObjectName IDbObjectInfo.FullName => IndexName;
+		public ObjectName FullName => new ObjectName(TableName, IndexName);
 
 		public ObjectName TableName { get; }
 

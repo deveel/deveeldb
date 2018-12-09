@@ -22,6 +22,8 @@ using Deveel.Data.Sql.Indexes;
 
 namespace Deveel.Data.Sql.Tables {
 	public static class TableExtensions {
+		#region Internal Helpers
+
 		internal static RawTableInfo GetRawTableInfo(this ITable table, RawTableInfo rootInfo) {
 			if (table is IVirtualTable)
 				return ((IVirtualTable) table).GetRawTableInfo(rootInfo);
@@ -58,5 +60,19 @@ namespace Deveel.Data.Sql.Tables {
 
 			throw new NotSupportedException();
 		}
+
+		#endregion
+
+		#region Rows
+
+		public static Row NewRow(this IMutableTable table) {
+			return new Row(table);
+		}
+
+		public static Row GetRow(this ITable table, long row)
+			=> new Row(table, row);
+
+		#endregion
+
 	}
 }

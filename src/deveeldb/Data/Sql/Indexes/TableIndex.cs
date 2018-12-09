@@ -152,7 +152,7 @@ namespace Deveel.Data.Sql.Indexes {
 
 		protected virtual TableIndex CreateSubset(ITable table, int column, IEnumerable<long> rows) {
 			var columnName = table.TableInfo.Columns.GetColumnName(column);
-			var indexInfo = new IndexInfo(new ObjectName($"#SUBIDX_{column}"), table.TableInfo.TableName, new[] {columnName.Name});
+			var indexInfo = new IndexInfo($"#SUBIDX_{column}", table.TableInfo.TableName, new[] {columnName.Name});
 			return new InsertSearchIndex(indexInfo, table, rows);
 		}
 

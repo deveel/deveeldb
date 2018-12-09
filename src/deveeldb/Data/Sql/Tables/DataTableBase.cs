@@ -60,7 +60,8 @@ namespace Deveel.Data.Sql.Tables {
 			indexes = new TableIndex[TableInfo.Columns.Count];
 			for (int i = 0; i < TableInfo.Columns.Count; i++) {
 				var columnName = TableInfo.Columns[i].ColumnName;
-				var indexInfo = new IndexInfo(new ObjectName(TableInfo.TableName, $"#COLIDX_{i}"), TableInfo.TableName, columnName);
+				var indexInfo = new IndexInfo($"#COLIDX_{i}", TableInfo.TableName, columnName);
+
 				if (indexType == typeof(BlindSearchIndex)) {
 					indexes[i] = new BlindSearchIndex(indexInfo, this);
 				} else if (indexType == typeof(InsertSearchIndex)) {

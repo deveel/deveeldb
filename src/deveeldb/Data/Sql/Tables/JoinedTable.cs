@@ -149,7 +149,7 @@ namespace Deveel.Data.Sql.Tables {
 			if (SortColumn != -1 &&
 			    SortColumn == column) {
 				var columnName = JoinedTableInfo.Columns[column].ColumnName;
-				var indexInfo = new IndexInfo(new ObjectName(TableInfo.TableName, $"#COLIDX[{column}]"), TableInfo.TableName, columnName);
+				var indexInfo = new IndexInfo($"#COLIDX[{column}]", TableInfo.TableName, columnName);
 				index = new InsertSearchIndex(indexInfo, this, CalculateTableRows());
 
 				Indexes[column] = index;
