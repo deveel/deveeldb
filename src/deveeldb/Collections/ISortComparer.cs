@@ -15,16 +15,9 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Sql.Indexes;
-
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
-
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
-
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+namespace Deveel.Collections {
+	public interface ISortComparer<TKey, TValue> {
+		int Compare(TValue indexed, TKey key);
 	}
 }

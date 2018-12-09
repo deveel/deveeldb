@@ -15,16 +15,19 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Sql.Indexes;
+using Xunit;
 
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
+namespace Deveel.Data.Sql.Indexes {
+	public static class IndexInfoTests {
+		[Fact]
+		public static void CreateNewForOneColumn() {
+			var indexInfo = new IndexInfo(ObjectName.Parse("sys.table1_idx"), ObjectName.Parse("sys.table1"), new[] {"col1"});
 
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
-
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+			Assert.NotNull(indexInfo.IndexName);
+			Assert.NotNull(indexInfo.TableName);
+			Assert.NotNull(indexInfo.ColumnNames);
+			Assert.Equal(1, indexInfo.ColumnNames.Length);
+		}
 	}
 }

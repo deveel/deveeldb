@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
@@ -109,6 +110,14 @@ namespace Deveel.Data.Sql.Tables {
 			tableInfo.Columns.Add(new ColumnInfo(columnName, columnType));
 
 			return new TemporaryTable(tableInfo);
+		}
+
+		public void BuildIndex() {
+			SetupIndexes(typeof(BlindSearchIndex));
+
+			for (int i = 0; i < RowCount; i++) {
+				AddRowToIndex(i);
+			}
 		}
 	}
 }

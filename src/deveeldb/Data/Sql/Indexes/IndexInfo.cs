@@ -15,16 +15,27 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Sql.Indexes;
+namespace Deveel.Data.Sql.Indexes {
+	public sealed class IndexInfo : IDbObjectInfo {
+		public IndexInfo(ObjectName indexName, ObjectName tableName, string columnName) 
+			: this(indexName, tableName, new [] { columnName }) {
+		}
 
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
+		public IndexInfo(ObjectName indexName, ObjectName tableName, string[] columnNames) {
+			IndexName = indexName;
+			TableName = tableName;
+			ColumnNames = columnNames;
+		}
 
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+		DbObjectType IDbObjectInfo.ObjectType => DbObjectType.Index;
 
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+		public ObjectName IndexName { get; }
+
+		ObjectName IDbObjectInfo.FullName => IndexName;
+
+		public ObjectName TableName { get; }
+
+		public string[] ColumnNames { get; }
 	}
 }

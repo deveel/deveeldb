@@ -15,16 +15,25 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Sql.Indexes;
+using Xunit;
 
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
+namespace Deveel.Data.Sql.Indexes {
+	public static class IndexRangeTests {
+		[Fact]
+		public static void FullRangeEqual() {
+			var fullRange1 = IndexRange.FullRange;
+			var fullRange2 = IndexRange.FullRange;
 
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+			Assert.Equal(fullRange1, fullRange2);
+		}
 
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+		[Fact]
+		public static void IndexKeyNotEqualsFirstInSet() {
+			var firstInSet = IndexRange.FirstInSet;
+			var key = new IndexKey(new []{SqlObject.BigInt(33), SqlObject.Double(54) });
+
+			Assert.NotEqual(firstInSet, key);
+		}
 	}
 }

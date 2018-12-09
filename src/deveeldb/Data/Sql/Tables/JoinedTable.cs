@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Indexes;
+
 namespace Deveel.Data.Sql.Tables {
 	public abstract class JoinedTable : TableBase {
 		protected JoinedTable(ITable[] tables) 
@@ -39,6 +41,7 @@ namespace Deveel.Data.Sql.Tables {
 			JoinedTableInfo = new JoinedTableInfo(tableName, tableInfos);
 			Tables = tables;
 
+			Indexes = new TableIndex[JoinedTableInfo.Columns.Count];
 			SortColumn = sortColumn;
 		}
 
@@ -47,6 +50,8 @@ namespace Deveel.Data.Sql.Tables {
 		protected JoinedTableInfo JoinedTableInfo { get; }
 
 		protected ITable[] Tables { get; }
+
+		protected TableIndex[] Indexes { get; }
 
 		protected int SortColumn { get; }
 
@@ -124,6 +129,45 @@ namespace Deveel.Data.Sql.Tables {
 			}
 
 			return info;
+		}
+
+		protected override TableIndex GetColumnIndex(int column, int originalColumn, ITable ancestor) {
+			// First check if the given SelectableScheme is in the column_scheme array
+			var scheme = Indexes[column];
+			if (scheme != null) {
+				if (ancestor == this)
+					return scheme;
+
+				return scheme.Subset(ancestor, originalColumn);
+			}
+
+			// If it isn't then we need to calculate it
+			TableIndex index;
+
+			// Optimization: The table may be naturally ordered by a column.  If it
+			// is we don't try to generate an ordered set.
+			if (SortColumn != -1 &&
+			    SortColumn == column) {
+				var columnName = JoinedTableInfo.Columns[column].ColumnName;
+				var indexInfo = new IndexInfo(new ObjectName(TableInfo.TableName, $"#COLIDX[{column}]"), TableInfo.TableName, columnName);
+				index = new InsertSearchIndex(indexInfo, this, CalculateTableRows());
+
+				Indexes[column] = index;
+				if (ancestor != this) {
+					index = index.Subset(ancestor, originalColumn);
+				}
+
+			} else {
+				// Otherwise we must generate the ordered set from the information in
+				// a parent index.
+				var parentTable = Tables[JoinedTableInfo.GetTableOffset(column)];
+				index = parentTable.GetColumnIndex(JoinedTableInfo.GetColumnOffset(column), originalColumn, ancestor);
+				if (ancestor == this) {
+					Indexes[column] = index;
+				}
+			}
+
+			return index;
 		}
 	}
 }

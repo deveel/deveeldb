@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Deveel.Data.Sql.Indexes;
+
 namespace Deveel.Data.Sql.Tables {
 	public static class TableExtensions {
 		internal static RawTableInfo GetRawTableInfo(this ITable table, RawTableInfo rootInfo) {
@@ -50,5 +52,11 @@ namespace Deveel.Data.Sql.Tables {
 			return rows;
 		}
 
+		internal static TableIndex GetColumnIndex(this ITable table, int column, int originalColumn, ITable ancestor) {
+			if (table is IVirtualTable)
+				return ((IVirtualTable) table).GetColumnIndex(column, column, ancestor);
+
+			throw new NotSupportedException();
+		}
 	}
 }

@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 
 using Deveel.Data.Serialization;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Indexes;
 
 namespace Deveel.Data.Sql.Tables {
 	class TestTable : IRootTable {
@@ -69,6 +70,10 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public void Dispose() {
+		}
+
+		public TableIndex GetIndex(int[] columns) {
+			throw new NotImplementedException();
 		}
 	}
 }

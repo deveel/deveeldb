@@ -19,6 +19,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Indexes;
+
 namespace Deveel.Data.Sql.Tables {
 	public abstract class TableBase : IVirtualTable {
 		~TableBase() {
@@ -71,5 +73,22 @@ namespace Deveel.Data.Sql.Tables {
 			return false;
 		}
 
+		TableIndex ITable.GetIndex(int[] columns) {
+			if (columns.Length > 0)
+				throw new NotSupportedException("Multi-column indices not support in table");
+
+			return GetColumnIndex(columns[0]);
+		}
+
+		public virtual TableIndex GetColumnIndex(int column) {
+			return GetColumnIndex(column, column, this);
+		}
+
+		protected virtual TableIndex GetColumnIndex(int column, int originalColumn, ITable ancestor) {
+			return GetColumnIndex(column);
+		}
+
+		TableIndex IVirtualTable.GetColumnIndex(int column, int originalColumn, ITable ancestor)
+			=> GetColumnIndex(column, originalColumn, ancestor);
 	}
 }

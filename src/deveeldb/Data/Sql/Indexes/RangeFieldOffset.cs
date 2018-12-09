@@ -16,15 +16,33 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
-using Deveel.Data.Sql.Indexes;
+namespace Deveel.Data.Sql.Indexes
+{
+	/// <summary>
+	/// The absolute offset of a field in a range of a selection.
+	/// </summary>
+	/// <seealso cref="IndexRange"/>
+	public enum RangeFieldOffset {
+		/// <summary>
+		/// The offset of the first value of the range. 
+		/// </summary>
+		FirstValue = 1,
 
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
+		/// <summary>
+		/// The offset of the last value of the range.
+		/// </summary>
+		LastValue = 2,
 
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+		/// <summary>
+		/// The offset before the first value of the range.
+		/// </summary>
+		BeforeFirstValue = 3,
 
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+		/// <summary>
+		/// The offset after the last value of the range.
+		/// </summary>
+		AfterLastValue = 4
 	}
 }
