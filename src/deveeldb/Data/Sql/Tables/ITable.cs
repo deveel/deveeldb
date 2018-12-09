@@ -15,10 +15,11 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITable : IDbObject, IDisposable {
+	public interface ITable : IDbObject, IEnumerable<Row>, IDisposable {
 		TableInfo TableInfo { get; }
 
 		long RowCount { get; }
