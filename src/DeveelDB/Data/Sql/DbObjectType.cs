@@ -57,6 +57,12 @@ namespace Deveel.Data.Sql {
 		Column = 11,
 
 		/// <summary>
+		/// A <c>CONSTRAINT</c> object within a table in a database, enforcing
+		/// some given conditions at column level or table level
+		/// </summary>
+		Constraint = 13,
+
+		/// <summary>
 		/// A <c>TRIGGER</c> fired at provided write events (<c>INSERT</c>, <c>UPDATE</c> or
 		/// <c>DELETE</c>) over a table at a given moments (<c>BEFORE</c> or <c>AFTER</c>).
 		/// </summary>
