@@ -15,14 +15,27 @@
 //
 
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Sql.Tables {
+	public abstract class DataTableBase : TableBase, IRootTable {
+		bool IEquatable<ITable>.Equals(ITable table) {
+			return this == table;
+		}
 
-namespace Deveel.Data.Sql.Constraints {
-	public interface IConstraint : IDbObject {
-		ConstraintInfo ConstraintInfo { get; }
+		protected override IEnumerable<long> ResolveRows(int column, IEnumerable<long> rows, ITable ancestor) {
+			if (this != ancestor)
+				throw new Exception("Method routed to incorrect table ancestor.");
 
-		Task AssertAsync(ITransaction transaction);
+			return rows;
+		}
+
+		protected override RawTableInfo GetRawTableInfo(RawTableInfo rootInfo) {
+			var rows = this.Select(row => row.Number).ToBigList();
+			rootInfo.Add(this, rows);
+			return rootInfo;
+		}
+
 	}
 }

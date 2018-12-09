@@ -15,14 +15,39 @@
 //
 
 using System;
-using System.Threading.Tasks;
+using System.Collections;
+using System.Collections.Generic;
 
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Sql.Tables {
+	public class SimpleRowEnumerator : IEnumerator<Row> {
+		private long offset;
+		private long rowCount;
 
-namespace Deveel.Data.Sql.Constraints {
-	public interface IConstraint : IDbObject {
-		ConstraintInfo ConstraintInfo { get; }
+		public SimpleRowEnumerator(ITable table) {
+			Table = table;
+			Reset();
+		}
 
-		Task AssertAsync(ITransaction transaction);
+		public ITable Table { get; }
+
+
+		public bool MoveNext() {
+			return ++offset < rowCount;
+		}
+
+		public void Reset() {
+			offset = -1;
+			rowCount = Table.RowCount;
+		}
+
+		public Row Current => new Row(Table, offset);
+
+		object IEnumerator.Current {
+			get { return Current; }
+		}
+
+		public void Dispose() {
+
+		}
 	}
 }

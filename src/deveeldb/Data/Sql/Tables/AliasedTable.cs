@@ -15,14 +15,18 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Sql.Tables {
+	public class AliasedTable : FilterTable, IRootTable {
+		public AliasedTable(ITable table, ObjectName alias)
+			: base(table) {
+			TableInfo = table.TableInfo.As(alias);
+		}
 
-namespace Deveel.Data.Sql.Constraints {
-	public interface IConstraint : IDbObject {
-		ConstraintInfo ConstraintInfo { get; }
+		public override TableInfo TableInfo { get; }
 
-		Task AssertAsync(ITransaction transaction);
+		bool IEquatable<ITable>.Equals(ITable other) {
+			return this == other;
+		}
 	}
 }
