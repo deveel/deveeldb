@@ -18,10 +18,14 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Configurations;
+using Deveel.Data.Events;
 using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
-	public interface ITransaction : IContext, IConfigurationScope {
+	/// <summary>
+	/// An isolated transaction within the scope of a database
+	/// </summary>
+	public interface ITransaction : IContext, IConfigurationScope, IEventHandler {
 		/// <summary>
 		/// Gets a unique identifier of the transaction
 		/// </summary>
@@ -38,36 +42,37 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		IsolationLevel IsolationLevel { get; }
 
-		/// <summary>
-		/// Makes the transaction to access the objects with the type speficied
-		/// </summary>
-		/// <param name="objects">The list of objects to be accessed</param>
-		/// <param name="accessType">The type of access to the given objects</param>
-		/// <remarks>
-		/// <para>
-		/// This method makes the transaction to acquire a reference to the
-		/// given objects, locking them for access of the given type from
-		/// other transactions, until <see cref="Exit"/> is invoked or the
-		/// transaction is disposed 
-		/// </para>
-		/// <para>
-		/// The locking of the provided resources occurrs only ove those objects
-		/// that are <c>lockable</c> and according to the <see cref="IsolationLevel"/>
-		/// of the transaction.
-		/// </para>
-		/// </remarks>
-		/// <seealso cref="IsolationLevel"/>
-		/// <see cref="Exit"/>
-		void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
+		// TODO: this will be done through the event handling
+		///// <summary>
+		///// Makes the transaction to access the objects with the type specified
+		///// </summary>
+		///// <param name="objects">The list of objects to be accessed</param>
+		///// <param name="accessType">The type of access to the given objects</param>
+		///// <remarks>
+		///// <para>
+		///// This method makes the transaction to acquire a reference to the
+		///// given objects, locking them for access of the given type from
+		///// other transactions, until <see cref="Exit"/> is invoked or the
+		///// transaction is disposed 
+		///// </para>
+		///// <para>
+		///// The locking of the provided resources occurrs only ove those objects
+		///// that are <c>lockable</c> and according to the <see cref="IsolationLevel"/>
+		///// of the transaction.
+		///// </para>
+		///// </remarks>
+		///// <seealso cref="IsolationLevel"/>
+		///// <see cref="Exit"/>
+		//void Enter(IEnumerable<IDbObject> objects, AccessType accessType);
 
-		/// <summary>
-		/// Releases any lock acquired by this transaction over the
-		/// objects specified.
-		/// </summary>
-		/// <param name="objects">The list of objects to be released by this transaction</param>
-		/// <param name="accessType">The type of access to be released from
-		/// the given objects</param>
-		void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
+		///// <summary>
+		///// Releases any lock acquired by this transaction over the
+		///// objects specified.
+		///// </summary>
+		///// <param name="objects">The list of objects to be released by this transaction</param>
+		///// <param name="accessType">The type of access to be released from
+		///// the given objects</param>
+		//void Exit(IEnumerable<IDbObject> objects, AccessType accessType);
 
 
 		/// <summary>

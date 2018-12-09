@@ -17,6 +17,8 @@
 using System;
 using System.Threading.Tasks;
 
+using Deveel.Data.Transactions;
+
 namespace Deveel.Data.Sql {
 	/// <summary>
 	/// Defines the contract for the business managers of database objects of a given type.
@@ -41,6 +43,23 @@ namespace Deveel.Data.Sql {
 		/// </summary>
 		/// <seealso cref="DbObjectType"/>
 		DbObjectType ObjectType { get; }
+
+
+		/// <summary>
+		/// Gets a reference to the transaction that provides access to the manager
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Database Object Managers require the reference to the transaction
+		/// for signaling the creation, modification or deletion of objects
+		/// within the lifetime of the transaction
+		/// </para>
+		/// <para>
+		/// Some object managers also require accessing resources (e.g. tables, constraints)
+		/// for the correct operation.
+		/// </para>
+		/// </remarks>
+		ITransaction Transaction { get; }
 
 		/// <summary>
 		/// Create a new object of the <see cref="ObjectType"/> given the

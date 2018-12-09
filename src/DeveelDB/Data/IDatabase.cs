@@ -18,6 +18,7 @@ using System;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Events;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	/// <summary>
@@ -29,7 +30,7 @@ namespace Deveel.Data {
 	/// tables, views, types, etc.), organized in a relational model.
 	/// </para>
 	/// <para>
-	/// Implementations of this contract provide functionalities for
+	/// Implementations of this contract provide functions for
 	/// <list type="bullet">
 	/// <item>Assess the status (version</item>
 	/// </list>
@@ -47,7 +48,7 @@ namespace Deveel.Data {
 		IDatabaseSystem System { get; }
 
 		/// <summary>
-		/// Gets the version number of this database.
+		/// Gets the version number of the system in which the database was created.
 		/// </summary>
 		/// <remarks>
 		/// This value is useful for data compatibility between versions
@@ -67,6 +68,11 @@ namespace Deveel.Data {
 		/// <seealso cref="Open"/>
 		/// <seealso cref="Close"/>
 		bool IsOpen { get; }
+
+		/// <summary>
+		/// Gets a collection of all the open transactions within the database
+		/// </summary>
+		ITransactionCollection OpenTransactions { get; }
 
 
 		/// <summary>
@@ -94,5 +100,14 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		void Close();
+
+		/// <summary>
+		/// Creates a new transaction to the database with a given isolation level
+		/// </summary>
+		/// <param name="isolationLevel">The level of isolation of the transaction to open</param>
+		/// <returns>
+		/// Returns an instance of the <see cref="ITransaction"/> created
+		/// </returns>
+		ITransaction CreateTransaction(IsolationLevel isolationLevel);
 	}
 }

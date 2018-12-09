@@ -23,7 +23,7 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	/// <summary>
-	/// An authenticate session to a given database for a given user,
+	/// An authenticated session to a given database for a given user,
 	/// that wraps a transaction for operations.
 	/// </summary>
 	public interface ISession : IContext, IEventSource {

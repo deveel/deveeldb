@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Deveel.Data.Query;
 using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Types;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Variables {
 	public sealed class VariableManager : IVariableManager {
@@ -40,6 +41,9 @@ namespace Deveel.Data.Sql.Variables {
 			CreateVariable((VariableInfo)objInfo);
 			return Task.CompletedTask;
 		}
+
+		// TODO: Is it needed? Variables are not handled in transaction events ...
+		ITransaction IDbObjectManager.Transaction => null;
 
 		public void CreateVariable(VariableInfo variableInfo) {
 			variables.SetObject(new ObjectName(variableInfo.Name), new Variable(variableInfo));
