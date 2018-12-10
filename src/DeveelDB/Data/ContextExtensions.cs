@@ -22,6 +22,22 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data {
 	public static class ContextExtensions {
+		#region Internal Helpers
+
+		internal static ISession Session(this IContext context) {
+			var parent = context;
+
+			while (parent != null) {
+				if (parent is ISession)
+					return (ISession) parent;
+
+				parent = parent.ParentContext;
+			}
+
+			return null;
+		}
+
+		#endregion
 		public static object GetService(this IContext context, Type serviceType) {
 			return context.Scope.GetService(serviceType);
 		}
@@ -37,5 +53,6 @@ namespace Deveel.Data {
 		public static IEnumerable GetServices(this IContext context, Type serviceType) {
 			return context.Scope.ResolveAll(serviceType);
 		}
+
 	}
 }

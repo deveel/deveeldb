@@ -262,7 +262,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// </para>
 		/// <para>
 		/// The result of this method is polimorphic depending on the kind
-		/// of statement executed: for example executing a query statement will 
+		/// of statement executed: for example executing a command statement will 
 		/// return a reference to the cursor opened, while the selection of
 		/// single value (from a table, a function or a variable) will return
 		/// a constant result.

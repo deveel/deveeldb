@@ -20,21 +20,21 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// A single parameter value in a <see cref="SqlQuery"/>.
+	/// A single parameter value in a <see cref="SqlCommand"/>.
 	/// </summary>
 	/// <remarks>
 	/// <para>
 	/// Parameters carry a collateral value references by the command
-	/// text of a <see cref="SqlQuery"/>, specifying the type of value.
+	/// text of a <see cref="SqlCommand"/>, specifying the type of value.
 	/// </para>
 	/// <para>
 	/// The system will deference parameters while executing a
-	/// <see cref="SqlQuery"/> and substitute the references with
+	/// <see cref="SqlCommand"/> and substitute the references with
 	/// the value and type carried by a parameter during the execution
 	/// of the command.
 	/// </para>
 	/// </remarks>
-	public sealed class SqlQueryParameter {
+	public sealed class SqlParameter {
 		/// <summary>
 		/// Constructs a parameter of the given type and with
 		/// null value. 
@@ -43,10 +43,10 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// This overload of the constructor will set the <see cref="Name"/>
 		/// of the parameter to the <see cref="Marker"/>, implying
-		/// a <see cref="SqlQueryParameterNaming.Marker"/> naming convention
-		/// of the query.
+		/// a <see cref="SqlParameterNaming.Marker"/> naming convention
+		/// of the command.
 		/// </remarks>
-		public SqlQueryParameter(SqlType sqlType) 
+		public SqlParameter(SqlType sqlType) 
 			: this(sqlType, null) {
 		}
 
@@ -59,10 +59,10 @@ namespace Deveel.Data.Sql {
 		/// <remarks>
 		/// This overload of the constructor will set the <see cref="Name"/>
 		/// of the parameter to the <see cref="Marker"/>, implying
-		/// a <see cref="SqlQueryParameterNaming.Marker"/> naming convention
-		/// of the query.
+		/// a <see cref="SqlParameterNaming.Marker"/> naming convention
+		/// of the command.
 		/// </remarks>
-		public SqlQueryParameter(SqlType sqlType, ISqlValue value) 
+		public SqlParameter(SqlType sqlType, ISqlValue value) 
 			: this(Marker, sqlType, value) {
 		}
 
@@ -73,7 +73,7 @@ namespace Deveel.Data.Sql {
 		/// <param name="name">The name of the parameter. This can be
 		/// either a <see cref="Marker"/> value or a variable name.</param>
 		/// <param name="sqlType">The SQL type of the parameter</param>
-		public SqlQueryParameter(string name, SqlType sqlType) 
+		public SqlParameter(string name, SqlType sqlType) 
 			: this(name, sqlType, null) {
 		}
 
@@ -91,7 +91,7 @@ namespace Deveel.Data.Sql {
 		/// <exception cref="ArgumentException">If the specified <paramref name="name"/>
 		/// is one character long and the single character is not the <see cref="Marker"/>
 		/// or if the single character is the <see cref="NamePrefix"/>.</exception>
-		public SqlQueryParameter(string name, SqlType sqlType, ISqlValue value) {
+		public SqlParameter(string name, SqlType sqlType, ISqlValue value) {
 			if (sqlType == null)
 				throw new ArgumentNullException(nameof(sqlType));
 
@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql {
 			Direction = SqlParameterDirection.In;
 		}
 
-		public SqlQueryParameter(string name, SqlObject value)
+		public SqlParameter(string name, SqlObject value)
 			: this(name, value.Type, value.Value) {
 		}
 

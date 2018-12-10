@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Deveel.Data.Sql.Methods {
 	public class SqlFunctionTests {
-		private QueryContext context;
+		private IContext context;
 
 		public SqlFunctionTests() {
 			var mock = new Mock<IContext>();
@@ -37,7 +37,7 @@ namespace Deveel.Data.Sql.Methods {
 			mock.SetupGet(x => x.ContextName)
 				.Returns("test");
 
-			context = new QueryContext(mock.Object, null, null);
+			context = mock.Object;
 		}
 
 		[Fact]

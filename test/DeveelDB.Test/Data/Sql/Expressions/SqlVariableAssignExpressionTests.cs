@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Deveel.Data.Sql.Expressions {
 	public class SqlVariableAssignExpressionTests {
-		private QueryContext context;
+		private IContext context;
 
 		public SqlVariableAssignExpressionTests() {
 			var scope = new ServiceContainer();
@@ -44,7 +44,7 @@ namespace Deveel.Data.Sql.Expressions {
 				.SetupGet(x => x.Variables)
 				.Returns(manager);
 
-			context = new QueryContext(mock.Object, null, null);
+			context = mock.Object;
 		}
 
 		[Theory]

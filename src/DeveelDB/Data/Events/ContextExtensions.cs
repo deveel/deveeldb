@@ -23,7 +23,7 @@ using Deveel.Data.Services;
 
 namespace Deveel.Data.Events {
 	public static class ContextExtensions {
-		private static IEventSource GetEventSource(this IContext context) {
+		internal static IEventSource GetEventSource(this IContext context) {
 			var current = context;
 			while (current != null) {
 				if (current is IEventSource)

@@ -56,7 +56,7 @@ namespace Deveel.Data.Sql.Methods {
 			return true;
 		}
 
-		public async Task<SqlMethodResult> ExecuteAsync(QueryContext context, Invoke invoke) {
+		public async Task<SqlMethodResult> ExecuteAsync(IContext context, Invoke invoke) {
 			using (var methodContext = new MethodContext(context, this, invoke)) {
 				try {
 					await ExecuteContextAsync(methodContext);
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Methods {
 			}
 		}
 
-		public async Task<SqlMethodResult> ExecuteAsync(QueryContext context, params InvokeArgument[] args) {
+		public async Task<SqlMethodResult> ExecuteAsync(IContext context, params InvokeArgument[] args) {
 			var invoke = new Invoke(MethodInfo.MethodName);
 			foreach (var arg in args) {
 				invoke.Arguments.Add(arg);
@@ -83,12 +83,12 @@ namespace Deveel.Data.Sql.Methods {
 			return await ExecuteAsync(context, invoke);
 		}
 
-		public Task<SqlMethodResult> ExecuteAsync(QueryContext context, params SqlExpression[] args) {
+		public Task<SqlMethodResult> ExecuteAsync(IContext context, params SqlExpression[] args) {
 			var invokeArgs = args == null ? new InvokeArgument[0] : args.Select(x => new InvokeArgument(x)).ToArray();
 			return ExecuteAsync(context, invokeArgs);
 		}
 
-		public Task<SqlMethodResult> ExecuteAsync(QueryContext context, params SqlObject[] args) {
+		public Task<SqlMethodResult> ExecuteAsync(IContext context, params SqlObject[] args) {
 			var exps = args == null
 				? new SqlExpression[0]
 				: args.Select(SqlExpression.Constant).Cast<SqlExpression>().ToArray();
@@ -112,7 +112,7 @@ namespace Deveel.Data.Sql.Methods {
 			return this.ToSqlString();
 		}
 
-		public virtual bool Matches(QueryContext context, Invoke invoke) {
+		public virtual bool Matches(IContext context, Invoke invoke) {
 			return MethodInfo.Matches(context, ValidateInvoke, invoke);
 		}
 	}

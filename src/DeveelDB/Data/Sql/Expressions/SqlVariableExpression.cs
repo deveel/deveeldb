@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitVariable(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A context is required to reduce a variable expression");
 
@@ -60,7 +60,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return await variable.Evaluate(context);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A context is required to reduce a variable expression");
 

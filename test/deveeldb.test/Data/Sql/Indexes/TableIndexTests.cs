@@ -87,5 +87,30 @@ namespace Deveel.Data.Sql.Indexes {
 
 			Assert.Equal(0, result[0]);
 		}
+
+		[Fact]
+		public void SelectGreaterThanOrEqual() {
+			var index = table.GetIndex(new[] {0});
+
+			var result = index.SelectGreaterOrEqual(SqlObject.BigInt(100)).ToBigArray();
+
+			Assert.NotEmpty(result);
+			Assert.Equal(2, result.Length);
+
+			Assert.Equal(1, result[0]);
+			Assert.Equal(2, result[1]);
+		}
+
+		[Fact]
+		public void SelectLessThanOrEqual() {
+			var index = table.GetIndex(new[] {0});
+
+			var result = index.SelectLessOrEqual(SqlObject.BigInt(100)).ToBigArray();
+
+			Assert.NotEmpty(result);
+			Assert.Single(result);
+
+			Assert.Equal(0, result[0]);
+		}
 	}
 }

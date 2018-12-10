@@ -41,7 +41,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitQuantify(this);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return PrimitiveTypes.Boolean();
 		}
 
@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Expressions {
 				builder.Append(")");
 		}
 
-		public override Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override Task<SqlExpression> ReduceAsync(IContext context) {
 			if (Expression.Right is SqlQueryExpression)
 				return ReduceQuery(context);
 
@@ -77,7 +77,7 @@ namespace Deveel.Data.Sql.Expressions {
 			throw new NotImplementedException();
 		}
 
-		private async Task<SqlExpression> ReduceArray(QueryContext context) {
+		private async Task<SqlExpression> ReduceArray(IContext context) {
 			var rightResult = await Expression.Right.ReduceAsync(context);
 			if (!(rightResult is SqlConstantExpression))
 				throw new InvalidOperationException();
@@ -129,7 +129,7 @@ namespace Deveel.Data.Sql.Expressions {
 			}
 		}
 
-		private static async Task<SqlObject> ItemValue(SqlExpression item, QueryContext context) {
+		private static async Task<SqlObject> ItemValue(SqlExpression item, IContext context) {
 			var value = await item.ReduceAsync(context);
 			if (!(value is SqlConstantExpression))
 				return SqlObject.Unknown;
@@ -137,7 +137,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return ((SqlConstantExpression) value).Value;
 		}
 
-		private async Task<SqlExpression> IsArrayAll(SqlExpressionType opType, SqlObject value, SqlArray array, QueryContext context) {
+		private async Task<SqlExpression> IsArrayAll(SqlExpressionType opType, SqlObject value, SqlArray array, IContext context) {
 			foreach (var item in array) {
 				var itemValue = await ItemValue(item, context);
 				var result = Relational(opType, value, itemValue);
@@ -151,7 +151,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return Constant(SqlObject.Boolean(true));
 		}
 
-		private async Task<SqlExpression> IsArrayAny(SqlExpressionType opType, SqlObject value, SqlArray array, QueryContext context) {
+		private async Task<SqlExpression> IsArrayAny(SqlExpressionType opType, SqlObject value, SqlArray array, IContext context) {
 			foreach (var item in array) {
 				var itemValue = await ItemValue(item, context);
 				var result = Relational(opType, value, itemValue);

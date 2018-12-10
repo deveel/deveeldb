@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Methods {
 
 		public override MethodType Type => MethodType.Function;
 
-		public SqlType ReturnType(QueryContext context, Invoke invoke) {
+		public SqlType ReturnType(IContext context, Invoke invoke) {
 			var returnType = MethodInfo.ReturnType;
 			if (MethodInfo.IsDeterministic) {
 				var invokeInfo = MethodInfo.GetInvokeInfo(context, invoke);

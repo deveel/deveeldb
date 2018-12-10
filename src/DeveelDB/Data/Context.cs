@@ -22,6 +22,9 @@ namespace Deveel.Data {
 	public abstract class Context : IContext {
 		private readonly string contextName;
 
+		protected Context(IContext parent) : this(parent, null) {
+		}
+
 		protected Context(IContext parent, string contextName) {
 			Parent = parent;
 			this.contextName = contextName;

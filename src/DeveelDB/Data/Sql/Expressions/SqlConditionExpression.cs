@@ -46,11 +46,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitCondition(this);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return IfTrue.GetSqlType(context);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			var returnType = Test.GetSqlType(context);
 			if (!(returnType is SqlBooleanType))
 				throw new InvalidOperationException("The expression test has not a BOOLEAN result");

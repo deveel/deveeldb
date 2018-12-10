@@ -18,7 +18,7 @@ using System;
 
 namespace Deveel.Data.Query {
 	/// <summary>
-	/// Enumerates the kind of group join in a selection query.
+	/// Enumerates the kind of group join in a selection command.
 	/// </summary>
 	public enum JoinType {
 		/// <summary>

@@ -16,7 +16,6 @@
 
 using System;
 
-using Deveel.Data.Query;
 using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Expressions {
@@ -29,7 +28,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitParameter(this);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			throw new InvalidOperationException();
 		}
 

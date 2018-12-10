@@ -81,7 +81,7 @@ namespace Deveel.Data.Sql.Variables {
 			return null;
 		}
 
-		public static SqlExpression AssignVariable(this QueryContext context, string name, SqlExpression value) {
+		public static SqlExpression AssignVariable(this IContext context, string name, SqlExpression value) {
 			var ignoreCase = context.IgnoreCase();
 
 			IContext current = context;

@@ -14,12 +14,9 @@
 //    limitations under the License.
 //
 
-using System;
+using Deveel.Data.Sql.Statements;
 
-using Deveel.Data.Events;
-using Deveel.Data.Sql;
-
-namespace Deveel.Data {
+namespace Deveel.Data.Query {
 	/// <summary>
 	/// This is the <see cref="IContext">context</see> that
 	/// is the direct child of a <see cref="ISession"/>, as an isolated
@@ -40,17 +37,9 @@ namespace Deveel.Data {
 	/// </para>
 	/// </remarks>
 	/// <seealso cref="ISession"/>
-	public interface IQuery : IContext, IEventSource {
-		/// <summary>
-		/// Gets the SQL query that originated the context
-		/// </summary>
-		SqlQuery SourceQuery { get; }
+	public interface IQuery : IContext {
+		IGroupResolver GroupResolver { get; }
 
-		/// <summary>
-		/// The parent <see cref="ISession"/> object that
-		/// originated this query.
-		/// </summary>
-		/// <seealso cref="ISession.CreateQuery"/>
-		ISession Session { get; }
+		IReferenceResolver Resolver { get; }
 	}
 }

@@ -18,6 +18,7 @@ using System;
 using System.Threading.Tasks;
 
 using Deveel.Data.Events;
+using Deveel.Data.Query;
 using Deveel.Data.Security;
 using Deveel.Data.Transactions;
 
@@ -40,7 +41,7 @@ namespace Deveel.Data {
 
 
 		/// <summary>
-		/// Creates a new query object that can be used to execute commands
+		/// Creates a new command object that can be used to execute commands
 		/// towards the underlying database of this session.
 		/// </summary>
 		/// <returns>

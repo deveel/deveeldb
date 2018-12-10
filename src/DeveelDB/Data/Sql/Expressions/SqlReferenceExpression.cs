@@ -41,11 +41,11 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanReduce => true;
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A reference cannot be reduced outside a context.");
 
-			var resolver = context.Resolver;
+			var resolver = context.Resolver();
 			if (resolver == null)
 				throw new SqlExpressionException("No reference resolver was declared in this scope");
 
@@ -56,11 +56,11 @@ namespace Deveel.Data.Sql.Expressions {
 			return Constant(value);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A reference cannot be reduced outside a context.");
 
-			var resolver = context.Resolver;
+			var resolver = context.Resolver();
 			if (resolver == null)
 				throw new SqlExpressionException("No reference resolver was declared in this scope");
 

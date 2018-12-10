@@ -198,7 +198,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Reduces synchronously this expression in a simpler form 
 		/// using the context given
 		/// </summary>
-		/// <param name="context">The context for the reduction of the expression.</param>
+		/// <param name="context">The command context for the reduction of the expression.</param>
 		/// <remarks>
 		/// This method is a stub to the asynchronous <see cref="ReduceAsync"/>.
 		/// </remarks>
@@ -207,7 +207,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// form of this expression.
 		/// </returns>
 		/// <seealso cref="ReduceAsync"/>
-		public SqlExpression Reduce(QueryContext context) {
+		public SqlExpression Reduce(IContext context) {
 			return ReduceAsync(context).Result;
 		}
 
@@ -215,7 +215,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Reduces synchronously this expression in a simpler form 
 		/// using the context given
 		/// </summary>
-		/// <param name="context">The context for the reduction of the expression.</param>
+		/// <param name="context">The command context for the reduction of the expression.</param>
 		/// <remarks>
 		/// <para>
 		/// Reducing an expression is a process of simplification that produces a result
@@ -232,7 +232,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// Returns an instance of <see cref="SqlExpression"/> that represents a simpler
 		/// form of this expression.
 		/// </returns>
-		public virtual Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public virtual Task<SqlExpression> ReduceAsync(IContext context) {
 			return Task.FromResult(this);
 		}
 
@@ -240,7 +240,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// When overridden by a derived class, determines the type of the value
 		/// returned by the reduction of this expression
 		/// </summary>
-		/// <param name="context">The context used to evaluate the <see cref="SqlType"/> returned
+		/// <param name="context">The command context used to evaluate the <see cref="SqlType"/> returned
 		/// by this expression</param>
 		/// <summary>
 		/// <para>
@@ -255,7 +255,7 @@ namespace Deveel.Data.Sql.Expressions {
 		/// <returns>
 		/// Returns the <see cref="SqlType"/> that this expression will return from its reduction.
 		/// </returns>
-		public abstract SqlType GetSqlType(QueryContext context);
+		public abstract SqlType GetSqlType(IContext context);
 
 		/// <summary>
 		/// Accepts the visit of a SQL visitor

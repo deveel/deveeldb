@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Methods {
 		private Dictionary<string, SqlExpression> output;
 		private Dictionary<string, SqlExpression> namedArgs;
 
-		internal MethodContext(QueryContext context, SqlMethod method, Invoke invoke)
+		internal MethodContext(IContext context, SqlMethod method, Invoke invoke)
 			: base(context, method.Type == MethodType.Function ? "function" : "procedure") {
 			Invoke = invoke;
 			Method = method;
@@ -53,7 +53,7 @@ namespace Deveel.Data.Sql.Methods {
 
 		public IDictionary<string, object> Metadata { get; }
 
-		private QueryContext QueryContext => Parent as QueryContext;
+		private IQuery QueryContext => Parent as IQuery;
 
 		public SqlExpression Argument(string argName) {
 			SqlExpression value;

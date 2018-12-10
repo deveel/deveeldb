@@ -105,7 +105,7 @@ namespace Deveel.Data.Sql.Expressions {
 		Group,
 
 		/// <summary>
-		/// A query to the database to select data from
+		/// A command to the database to select data from
 		/// a set of tables and columns.
 		/// </summary>
 		Query,

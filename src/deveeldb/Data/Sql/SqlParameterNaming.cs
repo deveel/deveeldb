@@ -18,13 +18,13 @@ using System;
 
 namespace Deveel.Data.Sql {
 	/// <summary>
-	/// In a SQL query object, this is the form of
+	/// In a SQL command object, this is the form of
 	/// parameters passed from the client side to the
 	/// server side, defining the identification of
 	/// the single parameters passed.
 	/// </summary>
-	/// <seealso cref="SqlQuery.ParameterNaming"/>
-	public enum SqlQueryParameterNaming {
+	/// <seealso cref="SqlCommand.ParameterNaming"/>
+	public enum SqlParameterNaming {
 		/// <summary>
 		/// No specific form of the parameter was given:
 		/// this default to the system default parameter
@@ -34,14 +34,14 @@ namespace Deveel.Data.Sql {
 
 		/// <summary>
 		/// Defines parameters uniquely identified within the
-		/// query context by a name. In this form query parameter
+		/// command context by a name. In this form command parameter
 		/// names must be prefixed by the <c>@</c> character.
 		/// </summary>
 		Named = 1,
 
 		/// <summary>
 		/// Parameters that are replaced on a zero-based index of
-		/// the input parameters of a query. These parameters are not
+		/// the input parameters of a command. These parameters are not
 		/// identified by a unique name, but by a <c>?</c> character
 		/// that acts as a place-holder for an input parameter.
 		/// </summary>

@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 			if (source.IsAliased &&
 				aliases.Contains(source.Alias)) {
-				throw new ArgumentException($"Another source defined the alias {source.Alias} in this query expression");
+				throw new ArgumentException($"Another source defined the alias {source.Alias} in this command expression");
 			}
 
 			if (source.IsAliased)

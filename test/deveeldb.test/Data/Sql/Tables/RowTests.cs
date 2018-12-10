@@ -104,7 +104,11 @@ namespace Deveel.Data.Sql.Tables {
 
 			var row = table.GetRow(rowNumber);
 
-			var resolved = await expression.ReduceAsync(new QueryContext(null, null, row.ReferenceResolver));
+			var context = new Mock<IQuery>();
+			context.SetupGet(x => x.Resolver)
+				.Returns(row.ReferenceResolver);
+
+			var resolved = await expression.ReduceAsync(context.Object);
 
 			Assert.NotNull(resolved);
 			Assert.IsType<SqlConstantExpression>(resolved);

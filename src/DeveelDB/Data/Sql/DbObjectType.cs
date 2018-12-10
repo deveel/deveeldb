@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql {
 		Table = 1,
 
 		/// <summary>
-		/// A <c>VIEW</c> object obtained by a source query.
+		/// A <c>VIEW</c> object obtained by a source command.
 		/// </summary>
 		View = 2,
 
@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql {
 		Type = 4,
 
 		/// <summary>
-		/// A single variable within a query context or in the system
+		/// A single variable within a command context or in the system
 		/// global context.
 		/// </summary>
 		Variable = 8,
@@ -81,8 +81,8 @@ namespace Deveel.Data.Sql {
 		Method = 20,
 
 		/// <summary>
-		/// A cursor is a named, precomputed, query, that accepts optional parameters and
-		/// handles a state of the iteration over the query.
+		/// A cursor is a named, precomputed, command, that accepts optional parameters and
+		/// handles a state of the iteration over the command.
 		/// </summary>
 		Cursor = 25,
 

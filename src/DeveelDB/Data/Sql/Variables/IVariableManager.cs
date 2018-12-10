@@ -21,6 +21,6 @@ using Deveel.Data.Sql.Expressions;
 
 namespace Deveel.Data.Sql.Variables {
 	public interface IVariableManager : IDbObjectManager, IVariableResolver {
-		SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value);
+		SqlExpression AssignVariable(IContext context, string name, bool ignoreCase, SqlExpression value);
 	}
 }

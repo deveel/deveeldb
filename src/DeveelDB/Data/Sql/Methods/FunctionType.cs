@@ -28,7 +28,7 @@ namespace Deveel.Data.Sql.Methods {
 
 		/// <summary>
 		/// An aggregate function that is computed against
-		/// a definite set of data in a query context
+		/// a definite set of data in a command context
 		/// </summary>
 		Aggregate = 2
 	}

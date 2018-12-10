@@ -29,14 +29,14 @@ using Xunit;
 namespace Deveel.Data.Sql.Variables {
 	public class VariableManagerTests : IDisposable {
 		private VariableManager manager;
-		private QueryContext context;
+		private IContext context;
 
 		public VariableManagerTests() {
 			var parent = new Mock<IContext>();
 			parent.SetupGet(x => x.Scope)
 				.Returns(new ServiceContainer());
 
-			context = new QueryContext(parent.Object, null, null);
+			context = parent.Object;
 
 			manager = new VariableManager();
 

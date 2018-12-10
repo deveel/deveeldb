@@ -140,14 +140,14 @@ namespace Deveel.Data.Sql.Tables {
 		public void SetValue(string columnName, SqlObject value)
 			=> SetValueAsync(columnName, value).Wait();
 
-		public async Task SetDefaultAsync(QueryContext context, int column) {
+		public async Task SetDefaultAsync(IContext context, int column) {
 			if (column < 0 || column > Table.TableInfo.Columns.Count)
 				throw new ArgumentOutOfRangeException(nameof(column), column,
 					$"Column is out of range of the columns of table '{Table.TableInfo.TableName}'");
 
 			SqlObject value;
 
-			using (var rowContext = new QueryContext(context, context.GroupResolver, ReferenceResolver)) {
+			using (var rowContext = context.CreateQuery(context.GroupResolver(), ReferenceResolver)) {
 				var columnInfo = Table.TableInfo.Columns[column];
 
 				if (columnInfo.HasDefault) {
@@ -167,7 +167,7 @@ namespace Deveel.Data.Sql.Tables {
 			await SetValueAsync(column, value);
 		}
 
-		public async Task SetDefaultAsync(QueryContext context) {
+		public async Task SetDefaultAsync(IQuery context) {
 			if (values == null)
 				values = new SqlObject[Table.TableInfo.Columns.Count];
 

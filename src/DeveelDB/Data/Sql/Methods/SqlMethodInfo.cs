@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Methods {
 			return this.ToSqlString();
 		}
 
-		internal bool Matches(QueryContext context, Func<InvokeInfo, bool> validator, Invoke invoke) {
+		internal bool Matches(IContext context, Func<InvokeInfo, bool> validator, Invoke invoke) {
 			var ignoreCase = context.IgnoreCase();
 
 			if (!MethodName.Equals(invoke.MethodName, ignoreCase))
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql.Methods {
 			return true;
 		}
 
-		internal InvokeInfo GetInvokeInfo(QueryContext context, Invoke invoke) {
+		internal InvokeInfo GetInvokeInfo(IContext context, Invoke invoke) {
 			var argTypes = new Dictionary<string, SqlType>();
 			var ignoreCase = context.IgnoreCase();
 

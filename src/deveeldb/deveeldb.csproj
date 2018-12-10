@@ -37,6 +37,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Query\QueryContext.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Antlr4" Version="4.6.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

@@ -61,7 +61,7 @@ namespace Deveel.Data.Sql.Expressions {
 			builder.Append(")");
 		}
 
-		private SqlFunctionBase ResolveFunction(QueryContext context) {
+		private SqlFunctionBase ResolveFunction(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A context is required to reduce a function invoke");
 
@@ -88,12 +88,12 @@ namespace Deveel.Data.Sql.Expressions {
 			return ((SqlFunctionBase) method);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			var function = ResolveFunction(context);
 			return function.ReturnType(context, new Invoke(function.MethodInfo.MethodName, Arguments));
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			var function = ResolveFunction(context);
 
 			var result = await function.ExecuteAsync(context, Arguments);

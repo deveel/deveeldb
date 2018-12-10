@@ -120,7 +120,7 @@ namespace Deveel.Data.Sql.Variables {
 			return variable;
 		}
 
-		public SqlExpression AssignVariable(QueryContext context, string name, bool ignoreCase, SqlExpression value) {
+		public SqlExpression AssignVariable(IContext context, string name, bool ignoreCase, SqlExpression value) {
 			Variable variable;
 			if (!variables.TryGetObject(new ObjectName(name), out variable)) {
 				var type = value.GetSqlType(context);

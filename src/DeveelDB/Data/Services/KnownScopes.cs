@@ -22,7 +22,7 @@ namespace Deveel.Data.Services {
 		public const string System = "system";
 		public const string Database = "database";
 		public const string Session = "session";
-		public const string Query = "query";
+		public const string Query = "command";
 		public const string Statement = "statement";
 		public const string Block = "block";
 	}

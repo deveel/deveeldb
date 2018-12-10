@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Deveel.Data.Sql.Expressions {
 	public class SqlFunctionExpressionTests : IDisposable {
-		private QueryContext context;
+		private IContext context;
 
 		public SqlFunctionExpressionTests() {
 			var methodInfo = new SqlFunctionInfo(ObjectName.Parse("sys.func1"), PrimitiveTypes.Integer());
@@ -49,7 +49,7 @@ namespace Deveel.Data.Sql.Expressions {
 			mock.SetupGet(x => x.Scope)
 				.Returns(services);
 
-			context = new QueryContext(mock.Object, null, null);
+			context = mock.Object;
 		}
 
 		[Fact]

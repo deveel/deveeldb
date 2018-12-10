@@ -27,7 +27,7 @@ using Xunit;
 
 namespace Deveel.Data.Sql.Expressions {
 	public class SqlReferenceExpressionTests : IDisposable {
-		private QueryContext context;
+		private IQuery context;
 
 		public SqlReferenceExpressionTests() {
 			var resolver = new Mock<IReferenceResolver>();
@@ -40,7 +40,13 @@ namespace Deveel.Data.Sql.Expressions {
 			parent.SetupGet(x => x.Scope)
 				.Returns(new ServiceContainer());
 
-			context = new QueryContext(parent.Object, null, resolver.Object);
+			var query = new Mock<IQuery>();
+			query.SetupGet(x => x.ParentContext)
+				.Returns(parent.Object);
+			query.SetupGet(x => x.Resolver)
+				.Returns(resolver.Object);
+
+			context = query.Object;
 		}
 
 		[Theory]

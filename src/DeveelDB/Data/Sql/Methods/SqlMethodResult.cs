@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Methods {
 
 		public IDictionary<string, SqlExpression> Output { get; }
 
-		internal void Validate(SqlMethod method, QueryContext context) {
+		internal void Validate(SqlMethod method, IContext context) {
 			var methodInfo = method.MethodInfo;
 
 			if (method.IsFunction && !HasReturnedValue)

@@ -50,11 +50,11 @@ namespace Deveel.Data {
 	///		</item>
 	///		<item>
 	///			<term>Query</term>
-	///			<description>The context of a single command/query within a transaction.</description>
+	///			<description>The context of a single command/command within a transaction.</description>
 	///		</item>
 	///		<item>
 	///			<term>Block</term>
-	///         <description>The context of a single execution block within a query execution plan.s</description>
+	///         <description>The context of a single execution block within a command execution plan.s</description>
 	///		</item>
 	/// </list>
 	/// </para>

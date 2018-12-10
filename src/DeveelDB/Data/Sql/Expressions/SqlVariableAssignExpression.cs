@@ -17,7 +17,6 @@
 using System;
 using System.Threading.Tasks;
 
-using Deveel.Data.Query;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Sql.Variables;
 
@@ -45,7 +44,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool IsReference => true;
 
-		public override Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override Task<SqlExpression> ReduceAsync(IContext context) {
 			if (context == null)
 				throw new SqlExpressionException("A context is required to reduce a variable expression");
 
@@ -62,7 +61,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return Task.FromResult(result);
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return Value.GetSqlType(context);
 		}
 

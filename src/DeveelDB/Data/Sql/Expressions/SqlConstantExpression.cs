@@ -55,7 +55,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanReduce => false;
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return Value.Type;
 		}
 

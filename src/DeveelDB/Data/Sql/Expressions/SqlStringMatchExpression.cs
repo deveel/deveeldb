@@ -50,7 +50,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitStringMatch(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			var left = await Left.ReduceAsync(context);
 			var pattern = await Pattern.ReduceAsync(context);
 
@@ -94,7 +94,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return Constant(SqlObject.Boolean(result));
 		}
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return PrimitiveTypes.Boolean();
 		}
 

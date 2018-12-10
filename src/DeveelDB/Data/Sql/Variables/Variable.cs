@@ -23,7 +23,7 @@ using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Variables {
 	/// <summary>
-	/// A volatile variable that is defined in the scope of a query 
+	/// A volatile variable that is defined in the scope of a command 
 	/// </summary>
 	/// <remarks>
 	/// <para>
@@ -33,7 +33,7 @@ namespace Deveel.Data.Sql.Variables {
 	/// </para>
 	/// <para>
 	/// A variable is intended to live only within a certain scope of execution
-	/// of a query to the system
+	/// of a command to the system
 	/// </para>
 	/// </remarks>
 	public sealed class Variable : IDbObject, ISqlFormattable {
@@ -133,7 +133,7 @@ namespace Deveel.Data.Sql.Variables {
 		/// If the <see cref="SqlType"/> of the value to be set is not compatible
 		/// with the <see cref="SqlType"/> of the variable
 		/// </exception>
-		public SqlExpression SetValue(SqlExpression value, QueryContext context) {
+		public SqlExpression SetValue(SqlExpression value, IContext context) {
 			if (value == null)
 				throw new ArgumentNullException(nameof(value));
 
@@ -159,7 +159,7 @@ namespace Deveel.Data.Sql.Variables {
 		/// Returns an instance of <see cref="SqlExpression"/> that represents
 		/// the version of the value of the variable
 		/// </returns>
-		public Task<SqlExpression> Evaluate(QueryContext context) {
+		public Task<SqlExpression> Evaluate(IContext context) {
 			var value = Value;
 			if (value == null)
 				value = VariableInfo.DefaultValue;

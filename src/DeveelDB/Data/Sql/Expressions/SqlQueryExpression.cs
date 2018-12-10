@@ -58,7 +58,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 	    public SqlQueryExpressionComposite NextComposite { get; set; }
 
-        public override SqlType GetSqlType(QueryContext context) {
+        public override SqlType GetSqlType(IContext context) {
 			throw new NotImplementedException();
 		}
 
@@ -143,7 +143,7 @@ namespace Deveel.Data.Sql.Expressions {
 		class ItemList : Collection<SqlQueryExpressionItem> {
 			protected override void InsertItem(int index, SqlQueryExpressionItem item) {
 				if (item.IsAll && Items.Any(x => x.IsAll))
-					throw new ArgumentException("A query expression cannot contain more than one ALL item");
+					throw new ArgumentException("A command expression cannot contain more than one ALL item");
 
 				base.InsertItem(index, item);
 			}
@@ -152,7 +152,7 @@ namespace Deveel.Data.Sql.Expressions {
 				if (item.IsAll) {
 					var other = Items[index];
 					if (!other.IsAll)
-						throw new ArgumentException("Trying to set an ALL item in a query that has already one.");
+						throw new ArgumentException("Trying to set an ALL item in a command that has already one.");
 				}
 
 				base.SetItem(index, item);

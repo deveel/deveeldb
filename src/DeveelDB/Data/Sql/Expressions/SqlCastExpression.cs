@@ -40,7 +40,7 @@ namespace Deveel.Data.Sql.Expressions {
 
 		public override bool CanReduce => true;
 
-		public override SqlType GetSqlType(QueryContext context) {
+		public override SqlType GetSqlType(IContext context) {
 			return TargetType;
 		}
 
@@ -48,7 +48,7 @@ namespace Deveel.Data.Sql.Expressions {
 			return visitor.VisitCast(this);
 		}
 
-		public override async Task<SqlExpression> ReduceAsync(QueryContext context) {
+		public override async Task<SqlExpression> ReduceAsync(IContext context) {
 			var value = await Value.ReduceAsync(context);
 
 			if (!(value is SqlConstantExpression))
