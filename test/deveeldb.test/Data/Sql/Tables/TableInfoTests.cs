@@ -18,6 +18,7 @@ using System;
 using System.Text;
 
 using Deveel.Data.Sql.Expressions;
+using Deveel.Data.Sql.Tables.Model;
 using Deveel.Data.Sql.Types;
 
 using Xunit;

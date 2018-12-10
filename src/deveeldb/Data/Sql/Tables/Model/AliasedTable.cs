@@ -15,16 +15,18 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Sql.Indexes;
+namespace Deveel.Data.Sql.Tables.Model {
+	public class AliasedTable : FilterTable, IRootTable {
+		public AliasedTable(ITable table, ObjectName alias)
+			: base(table) {
+			TableInfo = table.TableInfo.As(alias);
+		}
 
-namespace Deveel.Data.Sql.Tables {
-	interface IVirtualTable : ITable {
-		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
+		public override TableInfo TableInfo { get; }
 
-		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
-
-		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
+		bool IEquatable<ITable>.Equals(ITable other) {
+			return this == other;
+		}
 	}
 }

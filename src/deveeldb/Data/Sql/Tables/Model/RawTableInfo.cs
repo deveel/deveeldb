@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Deveel.Data.Sql.Tables
+namespace Deveel.Data.Sql.Tables.Model
 {
 	public sealed class RawTableInfo {
 		private readonly List<RawTableItem> tableItems;

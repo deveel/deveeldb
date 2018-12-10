@@ -14,19 +14,16 @@
 //    limitations under the License.
 //
 
-using System;
+using System.Collections.Generic;
 
-namespace Deveel.Data.Sql.Tables {
-	public class AliasedTable : FilterTable, IRootTable {
-		public AliasedTable(ITable table, ObjectName alias)
-			: base(table) {
-			TableInfo = table.TableInfo.As(alias);
-		}
+using Deveel.Data.Sql.Indexes;
 
-		public override TableInfo TableInfo { get; }
+namespace Deveel.Data.Sql.Tables.Model {
+	interface IVirtualTable : ITable {
+		IEnumerable<long> ResolveRows(int column, IEnumerable<long> rowSet, ITable ancestor);
 
-		bool IEquatable<ITable>.Equals(ITable other) {
-			return this == other;
-		}
+		RawTableInfo GetRawTableInfo(RawTableInfo rootInfo);
+
+		TableIndex GetColumnIndex(int column, int originalColumn, ITable table);
 	}
 }

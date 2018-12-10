@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
+using Deveel.Data.Sql.Tables.Model;
 using Deveel.Data.Sql.Types;
 
 using Xunit;

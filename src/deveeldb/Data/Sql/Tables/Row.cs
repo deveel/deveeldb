@@ -195,7 +195,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		#endregion
 
-		#region RowVariableResolver
+		#region RowReferenceResolver
 
 		class RowReferenceResolver : IReferenceResolver {
 			private readonly Row row;

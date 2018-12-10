@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Tables.Model;
 using Deveel.Data.Sql.Types;
 
 using Xunit;

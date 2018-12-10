@@ -18,7 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql.Tables.Model {
 	public class JoinedTableInfo : TableInfo {
 		private readonly TableInfo[] tableInfos;
 		private int[] columnTable;

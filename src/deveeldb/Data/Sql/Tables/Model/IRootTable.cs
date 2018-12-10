@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql.Tables.Model {
 	/// <summary>
 	/// Marks a table implementation to be the root of analysis of the model
 	/// </summary>

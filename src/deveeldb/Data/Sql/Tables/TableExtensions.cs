@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Deveel.Data.Sql.Indexes;
+using Deveel.Data.Sql.Tables.Model;
 
 namespace Deveel.Data.Sql.Tables {
 	public static class TableExtensions {
@@ -56,10 +57,11 @@ namespace Deveel.Data.Sql.Tables {
 
 		internal static TableIndex GetColumnIndex(this ITable table, int column, int originalColumn, ITable ancestor) {
 			if (table is IVirtualTable)
-				return ((IVirtualTable) table).GetColumnIndex(column, column, ancestor);
+				return ((IVirtualTable) table).GetColumnIndex(column, originalColumn, ancestor);
 
 			throw new NotSupportedException();
 		}
+
 
 		#endregion
 
@@ -72,7 +74,76 @@ namespace Deveel.Data.Sql.Tables {
 		public static Row GetRow(this ITable table, long row)
 			=> new Row(table, row);
 
+		public static IEnumerable<long> SelectAllRows(this ITable table, int column) {
+			return table.GetIndex(new[] {column}).SelectAll();
+		}
+
 		#endregion
 
+		#region Values
+
+		public static SqlObject GetValue(this ITable table, long row, int column)
+			=> table.GetValueAsync(row, column).Result;
+
+		#endregion
+
+		#region Alias
+
+		public static ITable As(this ITable table, ObjectName alias) {
+			return new AliasedTable(table, alias);
+		}
+
+		#endregion
+
+		#region Order By
+
+		public static IEnumerable<long> OrderRowsByColumns(this ITable table, int[] columns) {
+			var work = table.OrderBy(columns);
+			// 'work' is now sorted by the columns,
+			// Get the rows in this tables domain,
+			var rowList = work.Select(row => row.Number);
+
+			return work.ResolveRows(0, rowList, table);
+		}
+
+		public static ITable OrderBy(this ITable table, int[] columns) {
+			// Sort by the column list.
+			ITable resultTable = table;
+			for (int i = columns.Length - 1; i >= 0; --i) {
+				resultTable = resultTable.OrderBy(columns[i], true);
+			}
+
+			// A nice post condition to check on.
+			if (resultTable.RowCount != table.RowCount)
+				throw new InvalidOperationException("The final row count mismatches.");
+
+			return resultTable;
+		}
+
+		public static ITable OrderBy(this ITable table, int columnIndex, bool ascending) {
+			if (table == null)
+				return null;
+
+			var rows = table.SelectAllRows(columnIndex);
+
+			// Reverse the list if we are not ascending
+			if (@ascending == false)
+				rows = rows.Reverse();
+
+			return new VirtualTable(new[] {table}, new IEnumerable<long>[] {rows});
+		}
+
+		#endregion
+
+		#region Outer
+
+		public static ITable Outer(this ITable table, ITable outside) {
+			var tableInfo = table.GetRawTableInfo(new RawTableInfo());
+			var baseTables = tableInfo.Tables;
+			var baseRows = tableInfo.Rows;
+			return new OuterTable(baseTables, baseRows, outside);
+		}
+
+		#endregion
 	}
 }

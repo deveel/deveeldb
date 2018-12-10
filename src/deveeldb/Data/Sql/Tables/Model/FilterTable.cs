@@ -14,13 +14,12 @@
 //    limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Deveel.Data.Sql.Indexes;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql.Tables.Model {
 	public class FilterTable : TableBase {
 		private TableIndex[] columnIndices;
 

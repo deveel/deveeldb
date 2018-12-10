@@ -14,11 +14,10 @@
 //    limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql.Tables.Model {
 	public class CrossJoinedTable : JoinedTable {
 		private readonly long leftRowCount;
 		private readonly long rightRowCount;

@@ -19,6 +19,7 @@ using System.Linq;
 
 using Deveel.Data.Sql;
 using Deveel.Data.Sql.Indexes;
+using Deveel.Data.Sql.Tables.Model;
 using Deveel.Data.Sql.Types;
 
 using Xunit;

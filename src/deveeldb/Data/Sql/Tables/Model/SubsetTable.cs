@@ -16,10 +16,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Deveel.Data.Sql.Tables {
+namespace Deveel.Data.Sql.Tables.Model {
 	public class SubsetTable : FilterTable, IRootTable {
 		private readonly int[] columns;
 		private readonly ObjectName[] aliases;
