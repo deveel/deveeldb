@@ -18,9 +18,8 @@ using System;
 using System.Collections.Generic;
 
 using Deveel.Data.Events;
-using Deveel.Data.Sql;
 
-namespace Deveel.Data.Transactions {
+namespace Deveel.Data.Sql {
 	public class ObjectCreatedEvent : Event {
 		public ObjectCreatedEvent(IEventSource source, DbObjectType objectType, ObjectName objectName) : base(source) {
 			if (ObjectName.IsNullOrEmpty(objectName))

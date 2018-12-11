@@ -15,15 +15,25 @@
 //
 
 using System;
+using System.Threading.Tasks;
+
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableFieldCache {
-		void SetValue(ObjectName tableName, long row, int column, SqlObject value);
+	public interface ITableSource : IDisposable {
+		int TableId { get; }
 
-		bool TryGetValue(ObjectName tableName, long row, int column, out SqlObject value);
+		TableInfo TableInfo { get; }
 
-		void Remove(ObjectName tableName, long row, int column);
 
-		void Clear();
+		Task<long> GetCurrentUniqueIdAsync();
+
+		Task SetUniqueIdAsync(long value);
+
+		Task<long> GetNextUniqueIdAsync();
+
+		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction);
+
+		Task<long> AddRowAsync(Row row);
 	}
 }

@@ -15,17 +15,15 @@
 //
 
 using System;
-using System.Collections.Generic;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Events;
-using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
 	/// An isolated transaction within the scope of a database
 	/// </summary>
-	public interface ITransaction : IContext, IConfigurationScope, IEventHandler {
+	public interface ITransaction : IContext, IConfigurationScope, IEventHandler, IEventSource {
 		/// <summary>
 		/// Gets a unique identifier of the transaction
 		/// </summary>
@@ -41,6 +39,11 @@ namespace Deveel.Data.Transactions {
 		/// Gets the level of isolation of this transaction
 		/// </summary>
 		IsolationLevel IsolationLevel { get; }
+
+		/// <summary>
+		/// Gets the current state of the transaction
+		/// </summary>
+		TransactionState State { get; }
 
 		// TODO: this will be done through the event handling
 		///// <summary>

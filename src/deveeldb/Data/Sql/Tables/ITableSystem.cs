@@ -15,15 +15,12 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableFieldCache {
-		void SetValue(ObjectName tableName, long row, int column, SqlObject value);
+	public interface ITableSystem {
+		Task<ITableSource> CreateTableSourceAsync(TableInfo tableInfo, bool temporary);
 
-		bool TryGetValue(ObjectName tableName, long row, int column, out SqlObject value);
-
-		void Remove(ObjectName tableName, long row, int column);
-
-		void Clear();
+		Task<ITableSource> GetTableSourceAsync(int tableId);
 	}
 }

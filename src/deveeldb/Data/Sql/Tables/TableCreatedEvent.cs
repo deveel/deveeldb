@@ -16,14 +16,17 @@
 
 using System;
 
+using Deveel.Data.Events;
+
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableFieldCache {
-		void SetValue(ObjectName tableName, long row, int column, SqlObject value);
+	public sealed class TableCreatedEvent : ObjectCreatedEvent, ITableEvent {
+		public TableCreatedEvent(IEventSource source, int tableId, ObjectName tableName)
+			: base(source, DbObjectType.Table, tableName) {
+			TableId = tableId;
+		}
 
-		bool TryGetValue(ObjectName tableName, long row, int column, out SqlObject value);
+		public int TableId { get; }
 
-		void Remove(ObjectName tableName, long row, int column);
-
-		void Clear();
+		public ObjectName TableName => ObjectName;
 	}
 }

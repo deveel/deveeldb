@@ -36,7 +36,9 @@ namespace Deveel.Data.Events {
 				throw new ArgumentException($"The type '{type}' is not assignable from '{typeof(IEvent)}'.");
 
 			var @event = CreateEvent(type, source, args);
-			registry.Register(@event);
+
+			if (registry != null)
+				registry.Register(@event);
 		}
 
 		public static void Register<TEvent>(this IEventRegistry registry, IEventSource source, params object[] args)
