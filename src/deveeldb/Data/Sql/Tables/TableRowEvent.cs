@@ -15,21 +15,19 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
 using Deveel.Data.Events;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface IMutableTable : ITable {
-		ITableEventRegistry EventRegistry { get; }
+	public sealed class TableRowEvent : TableEventBase {
+		public TableRowEvent(IEventSource source, ObjectName tableName, int tableId, long rowNumber, TableRowEventType eventType) 
+			: base(source, tableName, tableId) {
+			RowNumber = rowNumber;
+			EventType = eventType;
+		}
 
-		int TableId { get; }
+		public long RowNumber { get; }
 
-		Task AddRowAsync(Row row);
-
-		Task UpdateRowAsync(Row row);
-
-		Task<bool> RemoveRowAsync(Row row);
+		public TableRowEventType EventType { get; }
 	}
 }

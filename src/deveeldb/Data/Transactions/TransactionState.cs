@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Deveel.Data.Events;
 using Deveel.Data.Sql;
+using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Transactions {
@@ -27,16 +27,23 @@ namespace Deveel.Data.Transactions {
 		private List<ITable> accessedTables;
 		private List<ITableSource> selectedTables;
 		private Dictionary<ObjectName, ITableSource> visibleTables;
+		private readonly Dictionary<ObjectName, IRowIndexSet> tableIndices;
+
+		private List<object> cleanupQueue;
+
 		private bool disposed;
 
-		public TransactionState(IEnumerable<ITableSource> visibleTables) {
+		public TransactionState(ITableSource[] visibleTables, IRowIndexSet[] indexSets) {
 			accessedTables = new List<ITable>();
 			this.visibleTables = new Dictionary<ObjectName, ITableSource>();
+			tableIndices = new Dictionary<ObjectName, IRowIndexSet>();
 			selectedTables = new List<ITableSource>();
 
 			if (visibleTables != null) {
-				foreach (var table in visibleTables) {
-					this.visibleTables[table.TableInfo.TableName] = table;
+				for (int i = 0; i < visibleTables.Length; i++) {
+					var tableName = visibleTables[i].TableInfo.TableName;
+					this.visibleTables[tableName] = visibleTables[i];
+					tableIndices[tableName] = indexSets[i];
 				}
 			}
 		}
@@ -77,8 +84,10 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void AddVisibleTable(ITableSource source) {
-			visibleTables[source.TableInfo.TableName] = source;
+		internal void AddVisibleTable(ITableSource source, IRowIndexSet indexSet) {
+			var tableName = source.TableInfo.TableName;
+			visibleTables[tableName] = source;
+			tableIndices[tableName] = indexSet;
 		}
 
 		internal void RemoveVisibleTable(ITableSource source) {
@@ -86,8 +95,24 @@ namespace Deveel.Data.Transactions {
 
 			var tableName = source.TableInfo.TableName;
 			if (visibleTables.Remove(tableName)) {
-				// TODO:
+				if (!tableIndices.TryGetValue(tableName, out var indexSet))
+					throw new InvalidOperationException("No index set was defined for table.");
+
+				tableIndices.Remove(tableName);
+
+				if (cleanupQueue == null)
+					cleanupQueue = new List<object>();
+
+				cleanupQueue.Add(source);
+				cleanupQueue.Add(indexSet);
 			}
+		}
+
+		internal void UpdateVisibleTable(ITableSource table, IRowIndexSet indexSet) {
+			// TODO: verify if the transaction is read-only
+
+			RemoveVisibleTable(table);
+			AddVisibleTable(table, indexSet);
 		}
 
 		private void DisposeTouchedTables() {
@@ -106,9 +131,42 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
+		private void DisposeAllIndices() {
+			// Dispose all the IIndexSet for each table
+			try {
+				if (tableIndices != null) {
+					foreach (var tableIndex in tableIndices.Values) {
+						tableIndex.Dispose();
+					}
+
+					tableIndices.Clear();
+				}
+			} catch (Exception ex) {
+				// TODO: ? Transaction.OnError(ex);
+			}
+
+			// Dispose all tables we dropped (they will be in the cleanup_queue.
+			try {
+				if (cleanupQueue != null) {
+					foreach (var indexSet in cleanupQueue.OfType<IRowIndexSet>()) {
+						indexSet.Dispose();
+					}
+
+					cleanupQueue.Clear();
+				}
+			} catch (Exception ex) {
+				// TODO: ? Transaction.OnError(ex);
+			} finally { 
+				cleanupQueue = null;
+			}
+		}
+
 		public void Dispose() {
-			if (!disposed)
+			if (!disposed) {
 				DisposeTouchedTables();
+				DisposeAllIndices();
+			}
+
 
 			disposed = true;
 		}

@@ -16,35 +16,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 using Deveel.Collections;
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
-
-		TableInfo TableInfo { get; }
-
-		VersionedTableEventRegistry Registries { get; }
-
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction);
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+namespace Deveel.Data.Sql.Indexes {
+	/// <summary>
+	/// An object that access to a set of indexes.
+	/// </summary>
+	/// <remarks>
+	/// This will often expose an isolated snapshot of a set of indices 
+	/// for a table.
+	/// </remarks>
+	public interface IRowIndexSet : IEnumerable<IRowIndex>, IDisposable {
+		/// <summary>
+		/// Gets a mutable implementation of <see cref="ISortedCollection{TKey,TValue}"/>
+		/// for the given index number in this set of indices.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		IRowIndex GetIndex(int index);
 	}
 }

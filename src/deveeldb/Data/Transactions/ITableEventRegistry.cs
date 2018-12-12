@@ -16,35 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-using Deveel.Collections;
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+using Deveel.Data.Sql.Tables;
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
+namespace Deveel.Data.Transactions {
+	public interface ITableEventRegistry : IEnumerable<ITableEvent> {
 		int TableId { get; }
 
-		TableInfo TableInfo { get; }
-
-		VersionedTableEventRegistry Registries { get; }
+		long CommitId { get; }
 
 
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction);
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		void Rollback(int count);
 	}
 }

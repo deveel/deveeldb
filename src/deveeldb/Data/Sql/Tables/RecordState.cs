@@ -15,21 +15,31 @@
 //
 
 using System;
-using System.Threading.Tasks;
-
-using Deveel.Data.Events;
-using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface IMutableTable : ITable {
-		ITableEventRegistry EventRegistry { get; }
+	/// <summary>
+	/// An enumeration that represents the various states of a record.
+	/// </summary>
+	public enum RecordState {
+		///<summary>
+		///</summary>
+		Uncommitted = 0,
 
-		int TableId { get; }
+		///<summary>
+		///</summary>
+		CommittedAdded = 0x010,
 
-		Task AddRowAsync(Row row);
+		///<summary>
+		///</summary>
+		CommittedRemoved = 0x020,
 
-		Task UpdateRowAsync(Row row);
+		///<summary>
+		///</summary>
+		Deleted = 0x020000, // ie. available for reclaimation.
 
-		Task<bool> RemoveRowAsync(Row row);
+		///<summary>
+		/// Denotes an erroneous record state.
+		///</summary>
+		Error = -1
 	}
 }

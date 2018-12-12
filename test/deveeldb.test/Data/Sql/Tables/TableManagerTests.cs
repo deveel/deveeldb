@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Events;
+using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Sql.Types;
 using Deveel.Data.Transactions;
 
@@ -55,7 +56,7 @@ namespace Deveel.Data.Sql.Tables {
 			tableSource1.SetupGet(x => x.TableId)
 				.Returns(2);
 
-			state = new TransactionState(new[] {tableSource1.Object});
+			state = new TransactionState(new[] {tableSource1.Object}, new IRowIndexSet[]{null});
 
 			events = new List<ITableEvent>();
 

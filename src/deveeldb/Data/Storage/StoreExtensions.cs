@@ -1,5 +1,5 @@
 ﻿// 
-//  Copyright 2010-2018 Deveel
+//  Copyright 2010-2017 Deveel
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@
 //    limitations under the License.
 //
 
+
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Events;
-using Deveel.Data.Transactions;
-
-namespace Deveel.Data.Sql.Tables {
-	public interface IMutableTable : ITable {
-		ITableEventRegistry EventRegistry { get; }
-
-		int TableId { get; }
-
-		Task AddRowAsync(Row row);
-
-		Task UpdateRowAsync(Row row);
-
-		Task<bool> RemoveRowAsync(Row row);
+namespace Deveel.Data.Storage {
+	public static class StoreExtensions {
+		public static IArea GetArea(this IStore store, long id)
+			=> store.GetArea(id, false);
 	}
 }

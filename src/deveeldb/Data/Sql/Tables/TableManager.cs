@@ -192,7 +192,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			var source = await TableSystem.CreateTableSourceAsync(tableInfo, temporary);
 
-			Transaction.State.AddVisibleTable(source);
+			Transaction.State.AddVisibleTable(source, source.CreateRowIndexSet());
 
 			Transaction.RaiseEvent<TableCreatedEvent>(source.TableId, tableInfo.TableName);
 
@@ -218,12 +218,12 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		public async Task<bool> DropTableAsync(ObjectName tableName) {
-			ITableSource source;
-			if (!Transaction.State.TryGetVisibleTable(tableName, out source))
+			if (!Transaction.State.TryGetVisibleTable(tableName, out var source))
 				return false;
 
 			// Removes this table from the visible table list of this transaction
 			Transaction.State.RemoveVisibleTable(source);
+			tableCache.Remove(tableName);
 
 			// Log in the journal that this transaction touched the table_id.
 			int tableId = source.TableId;
@@ -243,6 +243,35 @@ namespace Deveel.Data.Sql.Tables {
 
 			Transaction.State.SelectTable(source);
 		}
+
+		#region Native Sequences
+
+		public async Task<SqlNumber> SetUniqueIdAsync(ObjectName tableName, SqlNumber value) {
+			if (!Transaction.State.TryGetVisibleTable(tableName, out var tableSource))
+				throw new InvalidOperationException($"Table with name '{tableName}' could not be found.");
+
+			await tableSource.SetUniqueIdAsync((long) value);
+			return value;
+		}
+
+		public async Task<SqlNumber> GetNextUniqueIdAsync(ObjectName tableName) {
+			if (!Transaction.State.TryGetVisibleTable(tableName, out var tableSource))
+				throw new InvalidOperationException($"Table with name '{tableName}' could not be found.");
+
+			var value = await tableSource.GetNextUniqueIdAsync();
+			return new SqlNumber(value);
+		}
+
+		public async Task<SqlNumber> GetCurrentUniqueIdAsync(ObjectName tableName) {
+			if (!Transaction.State.TryGetVisibleTable(tableName, out var tableSource))
+				throw new InvalidOperationException($"Table with name '{tableName}' could not be found.");
+
+			var value = await tableSource.GetCurrentUniqueIdAsync();
+			return new SqlNumber(value);
+		}
+
+
+		#endregion
 
 		public void Dispose() {
 			

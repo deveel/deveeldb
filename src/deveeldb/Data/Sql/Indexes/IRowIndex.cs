@@ -14,22 +14,9 @@
 //    limitations under the License.
 //
 
-using System;
-using System.Threading.Tasks;
+using Deveel.Collections;
 
-using Deveel.Data.Events;
-using Deveel.Data.Transactions;
-
-namespace Deveel.Data.Sql.Tables {
-	public interface IMutableTable : ITable {
-		ITableEventRegistry EventRegistry { get; }
-
-		int TableId { get; }
-
-		Task AddRowAsync(Row row);
-
-		Task UpdateRowAsync(Row row);
-
-		Task<bool> RemoveRowAsync(Row row);
+namespace Deveel.Data.Sql.Indexes {
+	public interface IRowIndex : ISortedCollection<SqlObject, long> {
 	}
 }

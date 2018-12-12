@@ -15,21 +15,16 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Events;
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Transactions {
+	public struct RowRemoveConflict {
+		public RowRemoveConflict(int tableId, long rowId) {
+			TableId = tableId;
+			RowId = rowId;
+		}
 
-namespace Deveel.Data.Sql.Tables {
-	public interface IMutableTable : ITable {
-		ITableEventRegistry EventRegistry { get; }
+		public long RowId { get; }
 
-		int TableId { get; }
-
-		Task AddRowAsync(Row row);
-
-		Task UpdateRowAsync(Row row);
-
-		Task<bool> RemoveRowAsync(Row row);
+		public int TableId { get; }
 	}
 }

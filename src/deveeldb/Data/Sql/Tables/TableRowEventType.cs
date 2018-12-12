@@ -16,35 +16,34 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-
-using Deveel.Collections;
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+using System.Text;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+	/// <summary>
+	/// The kind of events that can happen on a table row during 
+	/// the life-time of a transaction.
+	/// </summary>
+	public enum TableRowEventType {
+		/// <summary>
+		/// A new row was added to the table.
+		/// </summary>
+		Add = 1,
 
-		TableInfo TableInfo { get; }
+		/// <summary>
+		/// A row was removed from a table.
+		/// </summary>
+		Remove = 2,
 
-		VersionedTableEventRegistry Registries { get; }
+		/// <summary>
+		/// During an update of values of a row, this was
+		/// added again to a table.
+		/// </summary>
+		UpdateAdd = 3,
 
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction);
-
-		Task<IMutableTable> GetMutableTableAsync(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		/// <summary>
+		/// During an update of values of a row, this
+		/// was removed before the value are update.
+		/// </summary>
+		UpdateRemove = 4,
 	}
 }
