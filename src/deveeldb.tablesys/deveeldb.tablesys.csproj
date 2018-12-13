@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\DeveelDB\deveeldb.csproj" />
+    <ProjectReference Include="..\DeveelDB\deveeldb.csproj" />
   </ItemGroup>
 
 </Project>

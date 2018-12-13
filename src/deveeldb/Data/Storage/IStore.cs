@@ -18,7 +18,14 @@ using System;
 using System.IO;
 
 namespace Deveel.Data.Storage {
+	/// <summary>
+	/// A single store of data that provides access to areas for low-level
+	/// data management
+	/// </summary>
 	public interface IStore : IDisposable {
+		/// <summary>
+		/// Gets the current state of the store
+		/// </summary>
 		StoreState State { get; }
 
 		/// <summary>
