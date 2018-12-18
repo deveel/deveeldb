@@ -36,7 +36,7 @@ namespace Deveel.Data.Storage {
 		/// <summary>
 		/// Gets the unique identifier of the object within the system.
 		/// </summary>
-		ObjectId Id { get; }
+		long Id { get; }
 
 		/// <summary>
 		/// Gets the raw byte size of the object.

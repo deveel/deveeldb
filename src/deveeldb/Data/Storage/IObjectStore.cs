@@ -41,6 +41,6 @@ namespace Deveel.Data.Storage {
 		/// Returns an instance of <see cref="ILargeObject"/> representing the large
 		/// object identified
 		/// </returns>
-		ILargeObject GetObject(ObjectId objId);
+		ILargeObject GetObject(long objId);
 	}
 }

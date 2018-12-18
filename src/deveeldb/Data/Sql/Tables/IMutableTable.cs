@@ -17,7 +17,6 @@
 using System;
 using System.Threading.Tasks;
 
-using Deveel.Data.Events;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
@@ -31,5 +30,9 @@ namespace Deveel.Data.Sql.Tables {
 		Task UpdateRowAsync(Row row);
 
 		Task<bool> RemoveRowAsync(Row row);
+
+		void FlushIndexes();
+
+		void CheckConstraintIntegrity();
 	}
 }

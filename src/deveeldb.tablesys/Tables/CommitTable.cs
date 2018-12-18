@@ -44,6 +44,14 @@ namespace Deveel.Data.Sql.Tables {
 			throw new NotImplementedException();
 		}
 
+		public void FlushIndexes() {
+			throw new NotImplementedException();
+		}
+
+		public void CheckConstraintIntegrity() {
+			throw new NotImplementedException();
+		}
+
 		public IEnumerator<Row> GetEnumerator() {
 			throw new NotImplementedException();
 		}

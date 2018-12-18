@@ -15,10 +15,8 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Deveel.Collections;
 using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Transactions;
 
