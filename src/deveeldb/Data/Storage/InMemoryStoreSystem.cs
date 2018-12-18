@@ -31,17 +31,17 @@ namespace Deveel.Data.Storage {
 
 		public string SystemId => "memory";
 
-		public Task<bool> StoreExistsAsync(string name) {
+		public bool StoreExists(string name) {
 			lock (this) {
-				return Task.FromResult(nameStoreMap.ContainsKey(name));
+				return nameStoreMap.ContainsKey(name);
 			}
 		}
 
-		async Task<IStore> IStoreSystem.CreateStoreAsync(string name, IConfiguration configuration) {
-			return await CreateStoreAsync(name, configuration);
+		IStore IStoreSystem.CreateStore(string name, IConfiguration configuration) {
+			return CreateStore(name, configuration);
 		}
 
-		public Task<InMemoryStore> CreateStoreAsync(string name, IConfiguration configuration) {
+		public InMemoryStore CreateStore(string name, IConfiguration configuration) {
 			var hashSize = configuration.GetInt32("hashSize", 1024);
 
 			lock (this) {
@@ -50,61 +50,58 @@ namespace Deveel.Data.Storage {
 
 				var store = new InMemoryStore(name, hashSize);
 				nameStoreMap[name] = store;
-				return Task.FromResult(store);
+				return store;
 			}
 		}
 
-		async Task<IStore> IStoreSystem.OpenStoreAsync(string name, IConfiguration configuration) {
-			return await OpenStoreAsync(name, configuration);
+		IStore IStoreSystem.OpenStore(string name, IConfiguration configuration) {
+			return OpenStore(name, configuration);
 		}
 
-		public Task<InMemoryStore> OpenStoreAsync(string name, IConfiguration configuration) {
+		public InMemoryStore OpenStore(string name, IConfiguration configuration) {
 			lock (this) {
 				InMemoryStore store;
 				if (!nameStoreMap.TryGetValue(name, out store))
 					throw new IOException($"No store with name '{name}' was found in the system");
 
-				return Task.FromResult(store);
+				return store;
 			}
 		}
 
-		Task<bool> IStoreSystem.CloseStoreAsync(IStore store) {
-			return CloseStoreAsync((InMemoryStore) store);
+		bool IStoreSystem.CloseStore(IStore store) {
+			return CloseStore((InMemoryStore) store);
 		}
 
-		public Task<bool> CloseStoreAsync(InMemoryStore store) {
+		public bool CloseStore(InMemoryStore store) {
 			lock (this) {
 				if (!nameStoreMap.ContainsKey(store.Name))
 					throw new IOException($"The store '{store.Name}' was not found in the system");
 
-				return Task.FromResult(true);
+				return true;
 			}
 		}
 
-		Task<bool> IStoreSystem.DeleteStoreAsync(IStore store) {
-			return DeleteStoreAsync((InMemoryStore) store);
+		bool IStoreSystem.DeleteStore(IStore store) {
+			return DeleteStore((InMemoryStore) store);
 		}
 
-		public Task<bool> DeleteStoreAsync(InMemoryStore store) {
+		public bool DeleteStore(InMemoryStore store) {
 			lock (this) {
 				try {
-					return Task.FromResult(nameStoreMap.Remove(store.Name));
+					return nameStoreMap.Remove(store.Name);
 				} finally {
 					store.Dispose();
 				}
 			}
 		}
 
-		public Task SetCheckPointAsync() {
-			return Task.CompletedTask;
+		public void SetCheckPoint() {
 		}
 
-		public Task LockAsync(string lockKey) {
-			return Task.CompletedTask;
+		public void Lock(string lockKey) {
 		}
 
-		public Task UnlockAsync(string lockKey) {
-			return Task.CompletedTask;
+		public void Unlock(string lockKey) {
 		}
 
 		private void Clean() {

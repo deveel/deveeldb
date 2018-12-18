@@ -23,20 +23,20 @@ namespace Deveel.Data.Storage {
 	public interface IStoreSystem : IDisposable {
 		string SystemId { get; }
 
-		Task<bool> StoreExistsAsync(string name);
+		bool StoreExists(string name);
 
-		Task<IStore> CreateStoreAsync(string name, IConfiguration configuration);
+		IStore CreateStore(string name, IConfiguration configuration);
 
-		Task<IStore> OpenStoreAsync(string name, IConfiguration configuration);
+		IStore OpenStore(string name, IConfiguration configuration);
 
-		Task<bool> CloseStoreAsync(IStore store);
+		bool CloseStore(IStore store);
 
-		Task<bool> DeleteStoreAsync(IStore store);
+		bool DeleteStore(IStore store);
 
-		Task SetCheckPointAsync();
+		void SetCheckPoint();
 
-		Task LockAsync(string lockKey);
+		void  Lock(string lockKey);
 
-		Task UnlockAsync(string lockKey);
+		void Unlock(string lockKey);
 	}
 }

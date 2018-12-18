@@ -30,29 +30,29 @@ namespace Deveel.Data.Storage {
 		}
 
 		[Fact]
-		public async void CreateAndDeleteStore() {
-			await storeSystem.LockAsync("lock1");
+		public void CreateAndDeleteStore() {
+			storeSystem.Lock("lock1");
 
-			var store = await storeSystem.CreateStoreAsync("test", new Configuration());
+			var store = storeSystem.CreateStore("test", new Configuration());
 
 			Assert.NotNull(store);
 			Assert.IsType<InMemoryStore>(store);
 
-			Assert.True(await storeSystem.StoreExistsAsync("test"));
+			Assert.True(storeSystem.StoreExists("test"));
 
-			Assert.True(await storeSystem.DeleteStoreAsync(store));
-			Assert.False(await storeSystem.StoreExistsAsync("test"));
+			Assert.True(storeSystem.DeleteStore(store));
+			Assert.False(storeSystem.StoreExists("test"));
 
-			await Assert.ThrowsAsync<IOException>(() => storeSystem.OpenStoreAsync("test", new Configuration()));
+			Assert.Throws<IOException>(() => storeSystem.OpenStore("test", new Configuration()));
 
-			await storeSystem.UnlockAsync("lock1");
+			storeSystem.Unlock("lock1");
 		}
 
 		[Fact]
-		public async void CreateStoreAndWriteData() {
-			await storeSystem.LockAsync("lock1");
+		public void CreateStoreAndWriteData() {
+			storeSystem.Lock("lock1");
 
-			var store = await storeSystem.CreateStoreAsync("test", new Configuration());
+			var store = storeSystem.CreateStore("test", new Configuration());
 
 			var area = store.CreateArea(1024);
 			Assert.NotNull(area);
@@ -66,9 +66,9 @@ namespace Deveel.Data.Storage {
 
 			Assert.Equal(13, area.Position);
 
-			Assert.True(await storeSystem.CloseStoreAsync(store));
+			Assert.True(storeSystem.CloseStore(store));
 
-			await storeSystem.UnlockAsync("lock1");
+			storeSystem.Unlock("lock1");
 		}
 
 		public void Dispose() {
