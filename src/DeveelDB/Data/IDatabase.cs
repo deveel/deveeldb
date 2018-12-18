@@ -62,12 +62,8 @@ namespace Deveel.Data {
 		/// </summary>
 		bool Exists { get; }
 
-		/// <summary>
-		/// Gets a boolean value that indicates if the database was open.
-		/// </summary>
-		/// <seealso cref="Open"/>
-		/// <seealso cref="Close"/>
-		bool IsOpen { get; }
+
+		DatabaseStatus Status { get; }
 
 		/// <summary>
 		/// Gets a collection of all the open transactions within the database
@@ -100,6 +96,8 @@ namespace Deveel.Data {
 		/// </para>
 		/// </remarks>
 		void Close();
+
+		void Shutdown();
 
 		/// <summary>
 		/// Creates a new transaction to the database with a given isolation level

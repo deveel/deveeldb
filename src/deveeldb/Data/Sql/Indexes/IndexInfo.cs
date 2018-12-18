@@ -19,13 +19,22 @@ using System;
 namespace Deveel.Data.Sql.Indexes {
 	public sealed class IndexInfo : IDbObjectInfo {
 		public IndexInfo(string indexName, ObjectName tableName, string columnName) 
-			: this(indexName, tableName, new [] { columnName }) {
+			: this(indexName, tableName, columnName, false) {
 		}
 
-		public IndexInfo(string indexName, ObjectName tableName, string[] columnNames) {
+		public IndexInfo(string indexName, ObjectName tableName, string columnName, bool unique) 
+			: this(indexName, tableName, new [] { columnName }, unique) {
+		}
+
+		public IndexInfo(string indexName, ObjectName tableName, string[] columnNames) 
+			: this(indexName, tableName, columnNames, false) {
+		}
+
+		public IndexInfo(string indexName, ObjectName tableName, string[] columnNames, bool unique) {
 			IndexName = indexName ?? throw new ArgumentNullException(nameof(indexName));
 			TableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
 			ColumnNames = columnNames;
+			Unique = unique;
 		}
 
 		DbObjectType IDbObjectInfo.ObjectType => DbObjectType.Index;
@@ -37,5 +46,7 @@ namespace Deveel.Data.Sql.Indexes {
 		public ObjectName TableName { get; }
 
 		public string[] ColumnNames { get; }
+
+		public bool Unique { get; }
 	}
 }

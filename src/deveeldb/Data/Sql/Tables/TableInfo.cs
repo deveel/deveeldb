@@ -34,6 +34,25 @@ namespace Deveel.Data.Sql.Tables {
 
 		public ObjectName TableName { get; }
 
+		/// <summary>
+		/// Gets the name part of the table name.
+		/// </summary>
+		/// <seealso cref="TableName"/>
+		/// <seealso cref="ObjectName.Name"/>
+		public string Name => TableName.Name;
+
+		/// <summary>
+		/// Gets the schema name part of the table name.
+		/// </summary>
+		/// <seealso cref="TableName"/>
+		/// <seealso cref="ObjectName.Parent"/>
+		public ObjectName SchemaName => TableName.Parent;
+
+		/// <summary>
+		/// Gets the name of the catalog containing the table, if defined.
+		/// </summary>
+		public string CatalogName => SchemaName != null && SchemaName.Parent != null ? SchemaName.Parent.Name : null;
+
 		public virtual bool IsReadOnly => false;
 
 		public virtual IColumnList Columns { get; }

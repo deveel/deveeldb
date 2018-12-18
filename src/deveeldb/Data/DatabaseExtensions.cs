@@ -21,6 +21,14 @@ using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
  	public static class DatabaseExtensions {
+		 #region Configurations
+
+		 public static bool IsReadOnly(this IDatabase database) {
+			 return database.Configuration.GetBoolean("readOnly");
+		 }
+
+		 #endregion
+		 
 		 #region Transactions
 
 		 public static ITransaction CreateTransaction(this IDatabase database) {

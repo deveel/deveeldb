@@ -385,18 +385,16 @@ namespace Deveel.Data.Sql.Types {
 		#region Parse
 
 		public static SqlType Parse(IContext context, string sql) {
-			ISqlTypeParser parser = null;
-			if (context != null)
-				parser = context.Scope.Resolve<ISqlTypeParser>();
+			if (context == null) 
+				throw new ArgumentNullException(nameof(context));
+
+			var parser = context.Scope.Resolve<ISqlTypeParser>();
 
 			if (parser == null)
 				throw new NotSupportedException("No data type parser was found in this context");
 
 			return parser.Parse(context, sql);
 		}
-
-		public static SqlType Parse(string sql)
-			=> Parse(null, sql);
 
 		#endregion
 	}

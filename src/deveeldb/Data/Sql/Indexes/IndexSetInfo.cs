@@ -17,20 +17,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Deveel.Data.Sql.Indexes {
-	public sealed class IndexSetInfo : IEnumerable<IndexInfo> {
-		private readonly List<IndexInfo> indexes;
-
+	public sealed class IndexSetInfo {
 		private IndexSetInfo(ObjectName tableName, IEnumerable<IndexInfo> indexes, bool readOnly) {
 			TableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
-			this.indexes = new List<IndexInfo>();
-
-			if (indexes != null)
-				this.indexes.AddRange(indexes);
-
 			IsReadOnly = readOnly;
+			Indexes = new IndexList(this, indexes);
 		}
 
 		public IndexSetInfo(ObjectName tableName)
@@ -41,61 +34,18 @@ namespace Deveel.Data.Sql.Indexes {
 
 		public bool IsReadOnly { get; }
 
-		public int IndexCount => indexes.Count;
+		public IIndexList Indexes { get; }
 
 		private void AssertNotReadOnly() {
 			if (IsReadOnly)
 				throw new ArgumentException("The set is read-only.");
 		}
 
-		public void AddIndex(IndexInfo indexInfo) {
-			AssertNotReadOnly();
-
-			indexes.Add(indexInfo);
-		}
-
-		public IndexInfo GetIndex(int offset) {
-			return indexes[offset];
-		}
-
-		public void RemoveIndexAt(int offset) {
-			AssertNotReadOnly();
-
-			indexes.RemoveAt(offset);
-		}
-
-		public IndexInfo FindNamedIndex(string indexName) {
-			return FindNamedIndex(indexName, true);
-		}
-
-		public IndexInfo FindNamedIndex(string indexName, bool ignoreCase) {
-			var compare = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-			return indexes.FirstOrDefault(x => x.IndexName.Equals(indexName, compare));
-		}
-
-		public int FindIndexOffset(string name) {
-			return FindIndexOffset(name, true);
-		}
-
-		public int FindIndexOffset(string name, bool ignoreCase) {
-			var compare = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-			for (int i = 0; i < indexes.Count; i++) {
-				var indexInfo = indexes[i];
-
-				if (indexInfo.IndexName.Equals(name, compare))
-					return i;
-			}
-
-			return -1;
-		}
-
 		public int FindIndexForColumns(string[] columnNames) {
-			int sz = IndexCount;
+			int sz = Indexes.Count;
 
 			for (int i = 0; i < sz; ++i) {
-				string[] columns = indexes[i].ColumnNames;
+				var columns = Indexes[i].ColumnNames;
 
 				if (columns.Length == columnNames.Length) {
 					bool passed = true;
@@ -117,67 +67,127 @@ namespace Deveel.Data.Sql.Indexes {
 
 
 		public IndexSetInfo AsReadOnly() {
-			return new IndexSetInfo(TableName, indexes.ToArray(), true);
+			return new IndexSetInfo(TableName, Indexes, true);
 		}
 
-		public IEnumerator<IndexInfo> GetEnumerator() {
-			return indexes.GetEnumerator();
+		#region IndexList
+
+		class IndexList : IIndexList {
+			private readonly List<IndexInfo> indexes;
+			private readonly IndexSetInfo indexSetInfo;
+
+			public IndexList(IndexSetInfo indexSetInfo, IEnumerable<IndexInfo> indexes) {
+				this.indexSetInfo = indexSetInfo;
+
+				this.indexes = new List<IndexInfo>();
+
+				if (indexes != null)
+					this.indexes.AddRange(indexes);
+			}
+
+			private void AssertMatchesTable(IndexInfo indexInfo) {
+				if (indexInfo.TableName != null &&
+				    !indexInfo.TableName.Equals(indexSetInfo.TableName))
+					throw new ArgumentException($"The index is referencing the table '{indexInfo.TableName}' that is not in scope for the set");
+			}
+
+			public IEnumerator<IndexInfo> GetEnumerator() {
+				return indexes.GetEnumerator();
+			}
+
+			IEnumerator IEnumerable.GetEnumerator() {
+				return GetEnumerator();
+			}
+
+			public void Add(IndexInfo item) {
+				indexSetInfo.AssertNotReadOnly();
+				AssertMatchesTable(item);
+
+				indexes.Add(item);
+			}
+
+			public void Clear() {
+				indexSetInfo.AssertNotReadOnly();
+				indexes.Clear();
+			}
+
+			public bool Contains(IndexInfo item) {
+				if (item == null) throw new ArgumentNullException(nameof(item));
+
+				return Contains(item.IndexName);
+			}
+
+			public void CopyTo(IndexInfo[] array, int arrayIndex) {
+				throw new NotImplementedException();
+			}
+
+			public bool Remove(IndexInfo item) {
+				if (item == null) throw new ArgumentNullException(nameof(item));
+
+				indexSetInfo.AssertNotReadOnly();
+
+				return Remove(item.IndexName);
+			}
+
+			public int Count => indexes.Count;
+
+			public bool IsReadOnly => indexSetInfo.IsReadOnly;
+
+			public int IndexOf(IndexInfo item) {
+				if (item == null) throw new ArgumentNullException(nameof(item));
+
+				return IndexOf(item.IndexName);
+			}
+
+			public void Insert(int index, IndexInfo item) {
+				indexSetInfo.AssertNotReadOnly();
+				AssertMatchesTable(item);
+
+				throw new NotImplementedException();
+			}
+
+			public void RemoveAt(int index) {
+				indexSetInfo.AssertNotReadOnly();
+				indexes.RemoveAt(index);
+			}
+
+			public IndexInfo this[int index] {
+				get => indexes[index];
+				set {
+					indexSetInfo.AssertNotReadOnly();
+					AssertMatchesTable(value);
+					indexes[index] = value;
+				}
+			}
+
+			public IndexInfo this[string indexName] {
+				get => this[IndexOf(indexName)];
+				set => this[IndexOf(indexName)] = value;
+			}
+
+			public int IndexOf(string indexName) {
+				return indexes.FindIndex(x =>
+					String.Equals(x.IndexName, indexName, StringComparison.OrdinalIgnoreCase));
+			}
+
+			public bool Contains(string indexName) {
+				return IndexOf(indexName) != -1;
+			}
+
+			public bool Remove(string indexName) {
+				indexSetInfo.AssertNotReadOnly();
+
+				var index = IndexOf(indexName);
+
+				if (index == -1)
+					return false;
+
+				RemoveAt(index);
+
+				return true;
+			}
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() {
-			return GetEnumerator();
-		}
-
-		//public void SerialiazeTo(Stream stream) {
-		//	var schemaName = TableName.Parent;
-		//	var catName = schemaName != null && schemaName.Parent != null ? schemaName.Parent.Name : String.Empty;
-		//	var schema = schemaName != null ? schemaName.Name : String.Empty;
-
-		//	var writer = new BinaryWriter(stream, Encoding.Unicode);
-		//	writer.Write(2);		// Version
-		//	writer.Write(catName);
-		//	writer.Write(schema);
-		//	writer.Write(TableName.Name);
-
-		//	int indexCount = indexes.Count;
-
-		//	writer.Write(indexCount);
-
-		//	for (int i = 0; i < indexCount; i++) {
-		//		var index = indexes[i];
-		//		index.SerializeTo(stream);
-		//	}
-		//}
-
-		//public static IndexSetInfo DeserializeFrom(Stream stream) {
-		//	var reader = new BinaryReader(stream, Encoding.Unicode);
-
-		//	var version = reader.ReadInt32();
-		//	if (version != 2)
-		//		throw new FormatException("Invalid version number of the Index-Set Info");
-
-		//	var catName = reader.ReadString();
-		//	var schemaName = reader.ReadString();
-		//	var tableName = reader.ReadString();
-
-		//	ObjectName objSchemaName;
-		//	if (String.IsNullOrEmpty(catName)) {
-		//		objSchemaName = new ObjectName(schemaName);
-		//	} else {
-		//		objSchemaName = new ObjectName(new ObjectName(catName), schemaName);
-		//	}
-
-		//	var objTableName = new ObjectName(objSchemaName, tableName);
-
-		//	var indexCount = reader.ReadInt32();
-
-		//	var indices = new List<IndexInfo>();
-		//	for (int i = 0; i < indexCount; i++) {
-		//		var indexInfo = IndexInfo.DeserializeFrom(stream);
-		//		indices.Add(indexInfo);
-		//	}
-
-		//	return new IndexSetInfo(objTableName, indices.ToArray(), false);
-		//}
+		#endregion
 	}
 }

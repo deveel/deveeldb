@@ -17,7 +17,6 @@
 using System;
 using System.Text;
 
-using Deveel.Data.Sql.Expressions;
 using Deveel.Data.Sql.Tables.Model;
 using Deveel.Data.Sql.Types;
 
@@ -66,6 +65,42 @@ namespace Deveel.Data.Sql.Tables {
 
 			Assert.True(tableInfo.Columns.Remove(col));
 			Assert.False(tableInfo.Columns.Remove(col));
+		}
+
+		[Fact]
+		public static void RemoveColumnAt() {
+			var tableName = new ObjectName("tab1");
+			var tableInfo = new TableInfo(tableName);
+			tableInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.BigInt()));
+			tableInfo.Columns.Add(new ColumnInfo("b", PrimitiveTypes.VarChar(22)));
+
+			tableInfo.Columns.RemoveAt(0);
+
+			Assert.Single(tableInfo.Columns);
+			Assert.Equal("b", tableInfo.Columns[0].ColumnName);
+		}
+
+		[Fact]
+		public static void RemoveNamed() {
+			var tableName = new ObjectName("tab1");
+			var tableInfo = new TableInfo(tableName);
+			tableInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.BigInt()));
+			tableInfo.Columns.Add(new ColumnInfo("b", PrimitiveTypes.VarChar(22)));
+
+			Assert.True(tableInfo.Columns.Remove("b"));
+			Assert.Single(tableInfo.Columns);
+		}
+
+		[Fact]
+		public static void ClearColumns() {
+			var tableName = new ObjectName("tab1");
+			var tableInfo = new TableInfo(tableName);
+			tableInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.BigInt()));
+			tableInfo.Columns.Add(new ColumnInfo("b", PrimitiveTypes.VarChar(22)));
+
+			tableInfo.Columns.Clear();
+
+			Assert.Empty(tableInfo.Columns);
 		}
 
 		[Fact]

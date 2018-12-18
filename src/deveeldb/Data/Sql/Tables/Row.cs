@@ -167,7 +167,7 @@ namespace Deveel.Data.Sql.Tables {
 			await SetValueAsync(column, value);
 		}
 
-		public async Task SetDefaultAsync(IQuery context) {
+		public async Task SetDefaultAsync(IContext context) {
 			if (values == null)
 				values = new SqlObject[Table.TableInfo.Columns.Count];
 
