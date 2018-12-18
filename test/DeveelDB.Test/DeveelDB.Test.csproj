@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\deveeldb.tablesys\deveeldb.tablesys.csproj" />
     <ProjectReference Include="..\..\src\DeveelDB\deveeldb.csproj" />
   </ItemGroup>
 

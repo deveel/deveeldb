@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Deveel.Data.Storage;
+
 namespace Deveel.Data.Sql.Tables {
 	public interface ITableSystem {
 		void Create();
