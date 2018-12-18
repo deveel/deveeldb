@@ -102,7 +102,8 @@ namespace Deveel.Data.Sql.Tables {
 		#region IDbObjectManager
 
 		Task IDbObjectManager.CreateObjectAsync(IDbObjectInfo objInfo) {
-			return CreateTableAsync(AssertTableInfo(objInfo));
+			CreateTable(AssertTableInfo(objInfo));
+			return Task.CompletedTask;
 		}
 
 		Task<bool> IDbObjectManager.RealObjectExistsAsync(ObjectName objName) {
@@ -180,17 +181,17 @@ namespace Deveel.Data.Sql.Tables {
 			return table;
 		}
 
-		public Task CreateTableAsync(TableInfo tableInfo) {
-			return CreateTableAsync(tableInfo, false);
+		public void CreateTable(TableInfo tableInfo) {
+			CreateTable(tableInfo, false);
 		}
 
-		public async Task CreateTableAsync(TableInfo tableInfo, bool temporary) {
+		public void CreateTable(TableInfo tableInfo, bool temporary) {
 			if (tableInfo == null) throw new ArgumentNullException(nameof(tableInfo));
 
 			if (Transaction.State.IsTableVisible(tableInfo.TableName))
 				throw new ArgumentException($"Table '{tableInfo.TableName}' already exists");
 
-			var source = await TableSystem.CreateTableSourceAsync(tableInfo, temporary);
+			var source = TableSystem.CreateTableSource(tableInfo, temporary);
 
 			Transaction.State.AddVisibleTable(source, source.CreateRowIndexSet());
 

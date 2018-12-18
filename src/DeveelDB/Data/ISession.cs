@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Deveel.Data.Events;
 using Deveel.Data.Query;
 using Deveel.Data.Security;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
@@ -34,32 +35,43 @@ namespace Deveel.Data {
 		User User { get; }
 
 		/// <summary>
+		/// Gets the instance of the database that this session is connected to
+		/// </summary>
+		IDatabase Database { get; }
+
+		/// <summary>
 		/// Gets the instance of <see cref="ITransaction"/> that handles the
 		/// transactional operations of this session.
 		/// </summary>
 		ITransaction Transaction { get; }
+
+		/// <summary>
+		/// Gets the current schema of the session
+		/// </summary>
+		string CurrentSchema { get; }
 
 
 		/// <summary>
 		/// Creates a new command object that can be used to execute commands
 		/// towards the underlying database of this session.
 		/// </summary>
+		/// <param name="command">The SQL command for the context</param>
 		/// <returns>
-		/// Returns an instance of <see cref="IQuery"/> that is used
+		/// Returns an instance of <see cref="ICommand"/> that is used
 		/// to execute commands towards the underlying database.
 		/// </returns>
-		IQuery CreateQuery();
+		ICommand CreateCommand(SqlCommand command);
 
-		/// <summary>
-		/// Commits the latest changes made by the user in the session.
-		/// </summary>
-		/// <seealso cref="ITransaction"/>
-		Task CommitAsync();
+		///// <summary>
+		///// Commits the latest changes made by the user in the session.
+		///// </summary>
+		///// <seealso cref="ITransaction"/>
+		//Task CommitAsync();
 
-		/// <summary>
-		/// Rolls-back all the modifications made by the user in this session
-		/// </summary>
-		/// <seealse cref="ITransaction"/>
-		Task RollbackAsync();
+		///// <summary>
+		///// Rolls-back all the modifications made by the user in this session
+		///// </summary>
+		///// <seealse cref="ITransaction"/>
+		//Task RollbackAsync();
 	}
 }

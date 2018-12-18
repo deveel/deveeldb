@@ -36,14 +36,14 @@ namespace Deveel.Data.Sql.Tables {
 
 		public TableManagerTests() {
 			var tableSystem = new Mock<ITableSystem>();
-			tableSystem.Setup(x => x.CreateTableSourceAsync(It.IsAny<TableInfo>(), It.IsAny<bool>()))
+			tableSystem.Setup(x => x.CreateTableSource(It.IsAny<TableInfo>(), It.IsAny<bool>()))
 				.Returns<TableInfo, bool>((info, temp) => {
 					var source = new Mock<ITableSource>();
 					source.SetupGet(x => x.TableInfo)
 						.Returns(info);
 					source.SetupGet(x => x.TableId)
 						.Returns(1);
-					return Task.FromResult<ITableSource>(source.Object);
+					return source.Object;
 				});
 
 			var tableSource1 = new Mock<ITableSource>();
@@ -76,11 +76,11 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		[Fact]
-		public async void CreateNewTable() {
+		public void CreateNewTable() {
 			var tableInfo = new TableInfo(ObjectName.Parse("sys.table1"));
 			tableInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.BigInt()));
 
-			await manager.CreateTableAsync(tableInfo);
+			manager.CreateTable(tableInfo);
 
 			Assert.NotEmpty(manager.Transaction.State.VisibleTables);
 			Assert.Equal(2, manager.Transaction.State.VisibleTables.Count());

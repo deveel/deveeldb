@@ -15,12 +15,23 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Deveel.Data.Sql.Tables {
 	public interface ITableSystem {
-		Task<ITableSource> CreateTableSourceAsync(TableInfo tableInfo, bool temporary);
+		void Create();
 
-		Task<ITableSource> GetTableSourceAsync(int tableId);
+		void Delete();
+
+		void Open();
+
+		void Close();
+
+		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
+
+		ITableSource GetTableSource(int tableId);
+
+		IEnumerable<ITableSource> GetTableSources();
 	}
 }

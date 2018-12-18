@@ -16,12 +16,12 @@
 
 using System;
 
-using Deveel.Data.Events;
+namespace Deveel.Data {
+	public interface IDatabaseFeature {
+		string Name { get; }
 
-namespace Deveel.Data.Sql {
-	public interface ICommand : IContext, IEventSource {
-		ISession Session { get; }
+		Version Version { get; }
 
-		SqlCommand SourceCommand { get; }
+		void OnDatabaseCreate(ISession session);
 	}
 }
