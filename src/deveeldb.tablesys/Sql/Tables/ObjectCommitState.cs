@@ -14,35 +14,20 @@
 //    limitations under the License.
 //
 
-using System;
-using System.Threading.Tasks;
-
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+using System.Collections.Generic;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+	class ObjectCommitState {
+		public ObjectCommitState(long commitId, IEnumerable<ObjectName> createdObjects, IEnumerable<ObjectName> droppedObjects) {
+			CommitId = commitId;
+			CreatedObjects = createdObjects;
+			DroppedObjects = droppedObjects;
+		}
 
-		TableInfo TableInfo { get; }
+		public long CommitId { get; }
 
-		VersionedTableEventRegistry Registries { get; }
+		public IEnumerable<ObjectName> CreatedObjects { get; }
 
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public IEnumerable<ObjectName> DroppedObjects { get; } 
 	}
 }

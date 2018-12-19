@@ -15,11 +15,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-
-using Deveel.Data.Services;
 
 namespace Deveel.Data.Events {
 	public static class ContextExtensions {

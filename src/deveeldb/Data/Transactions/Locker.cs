@@ -67,7 +67,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void Release(LockHandle handle) {
+		public void Release(LockHandle handle) {
 			lock (this) {
 				if (openHandles != null) {
 					var index = openHandles.IndexOf(handle);
@@ -98,6 +98,18 @@ namespace Deveel.Data.Transactions {
 					}
 
 					openHandles.Clear();
+				}
+			}
+		}
+
+		public void Wait(ILockable[] lockables, AccessType accessType, int timeout) {
+			if (openHandles == null || lockables == null)
+				return;
+
+			foreach (var handle in openHandles) {
+				foreach (var lockable in lockables) {
+					if (handle.IsHandled(lockable))
+						handle.Wait(lockable, accessType, timeout);
 				}
 			}
 		}

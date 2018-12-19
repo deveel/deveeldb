@@ -54,4 +54,8 @@
     <PackageReference Include="DryIoc.dll" Version="3.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Sql\Schemata\" />
+  </ItemGroup>
+
 </Project>

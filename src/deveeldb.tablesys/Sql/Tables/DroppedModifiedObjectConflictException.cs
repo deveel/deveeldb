@@ -15,34 +15,21 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+	public sealed class DroppedModifiedObjectConflictException : TransactionException {
+		public DroppedModifiedObjectConflictException(ObjectName objectName, string message)
+			: base(message) {
+			ObjectName = objectName;
+		}
 
-		TableInfo TableInfo { get; }
+		public DroppedModifiedObjectConflictException(ObjectName objectName)
+			: this(objectName, $"Object '{objectName}' was dropped and modified") {
+		}
 
-		VersionedTableEventRegistry Registries { get; }
-
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public ObjectName ObjectName { get; }
 	}
 }

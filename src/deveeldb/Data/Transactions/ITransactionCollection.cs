@@ -21,6 +21,11 @@ namespace Deveel.Data.Transactions {
 	public interface ITransactionCollection : IEnumerable<ITransaction> {
 		int Count { get; }
 
+		long CurrentCommitId { get; }
+
+
 		ITransaction FindById(long commitId);
+
+		long MinimumCommitId(ITransaction transaction);
 	}
 }

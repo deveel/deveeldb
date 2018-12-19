@@ -20,12 +20,13 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Deveel.Data.Events;
+using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
 	public sealed class TableManager : IDbObjectManager {
 		private readonly List<ITableContainer> tableContainers;
-		private readonly Dictionary<ObjectName, ITable> tableCache;
+		private readonly Dictionary<ObjectName, IMutableTable> tableCache;
 
 		public TableManager(ITransaction transaction, ITableSystem tableSystem) {
 			Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
@@ -33,7 +34,7 @@ namespace Deveel.Data.Sql.Tables {
 
 			tableContainers = transaction.GetServices<ITableContainer>().ToList();
 
-			tableCache = new Dictionary<ObjectName, ITable>();
+			tableCache = new Dictionary<ObjectName, IMutableTable>();
 		}
 
 		DbObjectType IDbObjectManager.ObjectType => DbObjectType.Table;
@@ -118,8 +119,8 @@ namespace Deveel.Data.Sql.Tables {
 			return Task.FromResult<IDbObjectInfo>(GetTableInfo(objectName));
 		}
 
-		async Task<IDbObject> IDbObjectManager.GetObjectAsync(ObjectName objName) {
-			return await GetTableAsync(objName);
+		Task<IDbObject> IDbObjectManager.GetObjectAsync(ObjectName objName) {
+			return Task.FromResult<IDbObject>(GetTable(objName));
 		}
 
 		Task<bool> IDbObjectManager.AlterObjectAsync(IDbObjectInfo objInfo) {
@@ -161,7 +162,7 @@ namespace Deveel.Data.Sql.Tables {
 			return source.TableInfo;
 		}
 
-		public async Task<ITable> GetTableAsync(ObjectName tableName) {
+		public ITable GetTable(ObjectName tableName) {
 			if (tableCache.TryGetValue(tableName, out var table))
 				return table;
 
@@ -169,7 +170,7 @@ namespace Deveel.Data.Sql.Tables {
 				if (IsDynamic(tableName))
 					return GetDynamicTable(tableName);
 			} else {
-				table = await source.GetMutableTableAsync(Transaction);
+				table = source.GetMutableTable(Transaction);
 
 				Transaction.State.AccessTable(table);
 
@@ -235,7 +236,7 @@ namespace Deveel.Data.Sql.Tables {
 			return true;
 		}
 
-		public void SelectTable(ObjectName tableName) {
+		internal void SelectTable(ObjectName tableName) {
 			if (IsDynamic(tableName))
 				return;
 
@@ -243,6 +244,29 @@ namespace Deveel.Data.Sql.Tables {
 				throw new InvalidOperationException();
 
 			Transaction.State.SelectTable(source);
+		}
+
+		internal IRowIndexSet GetIndexSetForTable(ITableSource tableSource) {
+			var tableName = tableSource.TableInfo.TableName;
+
+			if (!Transaction.State.TryGetRowIndexSet(tableName, out IRowIndexSet indexSet))
+				throw new Exception("Table source not found in this transaction.");
+
+			return indexSet;
+		}
+
+		internal void UpdateVisibleTable(ITableSource table, IRowIndexSet indexSet) {
+			if (Transaction.ReadOnly())
+				throw new Exception("Transaction is Read-only.");
+
+			Transaction.State.UpdateVisibleTable(table, indexSet);
+		}
+
+		internal void RemoveVisibleTable(ITableSource table) {
+			if (Transaction.ReadOnly())
+				throw new Exception("Transaction is Read-only.");
+
+			Transaction.State.RemoveVisibleTable(table);
 		}
 
 		#region Native Sequences

@@ -63,11 +63,13 @@ namespace Deveel.Data.Sql.Tables {
 			var transaction = new Mock<ITransaction>();
 			transaction.SetupGet(x => x.State)
 				.Returns(state);
-			transaction.SetupGet(x => x.Registry)
+			transaction.As<IEventHandler>().SetupGet(x => x.Registry)
 				.Returns(() => {
-					var registry = new Mock<IEventRegistry>();
+					var registry = new Mock<ITransactionEventRegistry>();
 					registry.Setup(x => x.Register(It.IsAny<ITableEvent>()))
-						.Callback<IEvent>(e => events.Add((ITableEvent) e));
+						.Callback<IEvent>(e => {
+							events.Add((ITableEvent) e);
+						});
 
 					return registry.Object;
 				});

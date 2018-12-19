@@ -16,16 +16,10 @@
 
 using System;
 
-namespace Deveel.Data.Services {
-	public static class KnownScopes {
-		public const string Serialization = "serialize";
-		public const string System = "system";
-		public const string Database = "database";
-		public const string Session = "session";
-		public const string Transaction = "transaction";
-		public const string Command = "command";
-		public const string Query = "query";
-		public const string Statement = "statement";
-		public const string Block = "block";
+namespace Deveel.Data.Transactions {
+	public enum TransactionStatus {
+		Started = 1,
+		Commit = 2,
+		Rollback = 3
 	}
 }

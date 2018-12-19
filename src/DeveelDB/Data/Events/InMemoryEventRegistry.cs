@@ -21,7 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Deveel.Data.Events {
-	public sealed class InMemoryEventRegistry : IEventRegistry, IDisposable {
+	public class InMemoryEventRegistry : IEventRegistry, IDisposable {
 		private readonly List<IEventConsumer> consumers;
 		private ConcurrentQueue<IEvent> queue;
 		private Task[] threads;
@@ -58,8 +58,13 @@ namespace Deveel.Data.Events {
 
 		public void Register(IEvent @event) {
 			queue.Enqueue(@event);
+			OnEventRegistered(@event);
 		}
 
+		protected virtual void OnEventRegistered(IEvent @event) {
+
+		}
+ 
 		public void AddConsumer(IEventConsumer consumer) {
 			lock (consumers) {
 				consumers.Add(consumer);

@@ -15,34 +15,19 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+using Deveel.Data.Events;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+	public sealed class TableCommitEvent : TableEventBase {
+		public TableCommitEvent(IEventSource source, ObjectName tableName, int tableId, long[] addedRows, long[] removedRows) 
+			: base(source, tableName, tableId) {
+			AddedRows = addedRows;
+			RemovedRows = removedRows;
+		}
 
-		TableInfo TableInfo { get; }
+		public long[] AddedRows { get; }
 
-		VersionedTableEventRegistry Registries { get; }
-
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public long[] RemovedRows { get; }
 	}
 }

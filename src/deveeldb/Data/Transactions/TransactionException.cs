@@ -15,34 +15,21 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Transactions {
+	public class TransactionException : DatabaseException {
+		public TransactionException(string message, Exception innerException)
+			: base(message, innerException) {
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+		}
 
-		TableInfo TableInfo { get; }
+		public TransactionException(string message)
+			: base(message) {
 
-		VersionedTableEventRegistry Registries { get; }
+		}
 
+		public TransactionException() {
 
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		}
 	}
 }

@@ -15,34 +15,25 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
 using Deveel.Data.Transactions;
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+namespace Deveel.Data.Sql.Tables
+{
+	public sealed class ObjectDuplicatedConflictException : TransactionException
+	{
+		public ObjectDuplicatedConflictException(ObjectName objectName, string conflictType)
+			: this(objectName, conflictType, $"Duplication conflict of type '{conflictType}' on object '{objectName}'") {
+		}
 
-		TableInfo TableInfo { get; }
+		public ObjectDuplicatedConflictException(ObjectName objectName, string conflictType, string message)
+			: base(message) {
+			ObjectName = objectName;
+			ConflictType = conflictType;
+		}
 
-		VersionedTableEventRegistry Registries { get; }
+		public ObjectName ObjectName { get; }
 
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public string ConflictType { get; }
 	}
 }

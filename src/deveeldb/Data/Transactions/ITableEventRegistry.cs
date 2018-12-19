@@ -25,6 +25,8 @@ namespace Deveel.Data.Transactions {
 
 		long CommitId { get; }
 
+		int EventCount { get; }
+
 
 		void Rollback(int count);
 	}

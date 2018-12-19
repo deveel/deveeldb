@@ -16,9 +16,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-using Deveel.Data.Storage;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
 	public interface ITableSystem {
@@ -35,5 +34,9 @@ namespace Deveel.Data.Sql.Tables {
 		ITableSource GetTableSource(int tableId);
 
 		IEnumerable<ITableSource> GetTableSources();
+
+		void Commit(ITransaction transaction);
+
+		void Rollback(ITransaction transaction);
 	}
 }

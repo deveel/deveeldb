@@ -37,6 +37,14 @@ namespace Deveel.Data.Sql.Tables {
 
 		public long CommitId { get; }
 
+		public int EventCount {
+			get {
+				lock (this) {
+					return events.Count;
+				}
+			}
+		}
+
 		public void Rollback(int count) {
 			lock (this) {
 				if (count > events.Count)

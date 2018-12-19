@@ -24,7 +24,7 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Transactions {
 	public sealed class TransactionState : IDisposable {
-		private List<ITable> accessedTables;
+		private List<IMutableTable> accessedTables;
 		private List<ITableSource> selectedTables;
 		private Dictionary<ObjectName, ITableSource> visibleTables;
 		private readonly Dictionary<ObjectName, IRowIndexSet> tableIndices;
@@ -34,7 +34,7 @@ namespace Deveel.Data.Transactions {
 		private bool disposed;
 
 		public TransactionState(ITableSource[] visibleTables, IRowIndexSet[] indexSets) {
-			accessedTables = new List<ITable>();
+			accessedTables = new List<IMutableTable>();
 			this.visibleTables = new Dictionary<ObjectName, ITableSource>();
 			tableIndices = new Dictionary<ObjectName, IRowIndexSet>();
 			selectedTables = new List<ITableSource>();
@@ -48,15 +48,15 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public IEnumerable<int> SelectedTables {
+		public IEnumerable<ITableSource> SelectedTables {
 			get {
 				lock (selectedTables) {
-					return selectedTables.Select(x => x.TableId);
+					return selectedTables;
 				}
 			}
 		}
 
-		public IEnumerable<ITable> AccessedTables {
+		public IEnumerable<IMutableTable> AccessedTables {
 			get {
 				lock (accessedTables) {
 					return accessedTables;
@@ -72,13 +72,16 @@ namespace Deveel.Data.Transactions {
 		internal bool IsTableVisible(ObjectName tableName)
 			=> visibleTables.ContainsKey(tableName);
 
+		internal bool TryGetRowIndexSet(ObjectName tableName, out IRowIndexSet indexSet)
+			=> tableIndices.TryGetValue(tableName, out indexSet);
+
 		internal void SelectTable(ITableSource source) {
 			lock (selectedTables) {
 				selectedTables.Add(source);
 			}
 		}
 
-		internal void AccessTable(ITable table) {
+		internal void AccessTable(IMutableTable table) {
 			lock (accessedTables) {
 				accessedTables.Add(table);
 			}

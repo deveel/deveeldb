@@ -39,7 +39,7 @@ namespace Deveel.Data.Sql.Tables {
 			// lastTry = null;
 		}
 
-		public void DeleteRow(int rowIndex) {
+		public void DeleteRow(long rowIndex) {
 			if (!fullSweep) {
 				if (!deletedRows.UniqueInsertSort(rowIndex))
 					throw new InvalidOperationException("Row marked twice for deletion.");

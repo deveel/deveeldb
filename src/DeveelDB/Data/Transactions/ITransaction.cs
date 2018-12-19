@@ -15,9 +15,11 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Events;
+using Deveel.Data.Sql;
 
 namespace Deveel.Data.Transactions {
 	/// <summary>
@@ -45,7 +47,10 @@ namespace Deveel.Data.Transactions {
 		/// </summary>
 		TransactionState State { get; }
 
-		// TODO: this will be done through the event handling
+		TransactionStatus Status { get; }
+
+		new ITransactionEventRegistry Registry { get; }
+
 		///// <summary>
 		///// Makes the transaction to access the objects with the type specified
 		///// </summary>

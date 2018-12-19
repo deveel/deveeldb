@@ -22,7 +22,7 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Transactions {
 	public static class TableEventRegistryExtensions {
-		public static IEnumerable<long> GetAddedRows(this ITableEventRegistry registry) {
+		public static long[] GetAddedRows(this ITableEventRegistry registry) {
 			lock (registry) {
 				var list = new List<long>();
 
@@ -43,7 +43,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public static IEnumerable<long> GetRemovedRows(this ITableEventRegistry registry) {
+		public static long[] GetRemovedRows(this ITableEventRegistry registry) {
 			lock (registry) {
 				var list = new List<long>();
 
@@ -58,13 +58,13 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		public static bool TestCommitClash(this ITableEventRegistry registry, out RowRemoveConflict conflict) {
+		public static bool TestCommitClash(this ITableEventRegistry registry, ITableEventRegistry other, out RowRemoveConflict conflict) {
 			lock (registry) {
 				// Very nasty search here...
 				foreach (var rowEvent in registry.OfType<TableRowEvent>()) {
 					if (rowEvent.EventType == TableRowEventType.Remove) {
 						var rowNum = rowEvent.RowNumber;
-						foreach (var otherRowEvent in registry.OfType<TableRowEvent>()) {
+						foreach (var otherRowEvent in other.OfType<TableRowEvent>()) {
 							if (otherRowEvent.RowNumber == rowNum &&
 							    otherRowEvent.EventType == TableRowEventType.Remove) {
 								conflict = new RowRemoveConflict(registry.TableId, rowNum);

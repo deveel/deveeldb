@@ -15,34 +15,24 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
+using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+	public sealed class RowRemoveConflictException : TransactionException {
+		public RowRemoveConflictException(ObjectName tableName, long row)
+			: this(tableName, row, $"Row {row} was removed from table '{tableName}'") {
+		}
 
-		TableInfo TableInfo { get; }
+		public RowRemoveConflictException(ObjectName tableName, long row, string message)
+			: base(message) {
+			TableName = tableName;
+			RowNumber = row;
+		}
 
-		VersionedTableEventRegistry Registries { get; }
+		public ObjectName TableName { get; }
 
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public long RowNumber { get; }
 	}
 }

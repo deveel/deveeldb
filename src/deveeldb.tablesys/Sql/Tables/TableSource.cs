@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,6 +62,8 @@ namespace Deveel.Data.Sql.Tables {
 
 		public TableInfo TableInfo { get; private set; }
 
+		public ObjectName TableName => TableInfo.TableName;
+
 		public IndexSetInfo IndexSetInfo { get; private set; }
 
 		private bool HasShutdown => Database.Status == DatabaseStatus.InShutdown;
@@ -79,11 +82,11 @@ namespace Deveel.Data.Sql.Tables {
 			throw new NotImplementedException();
 		}
 
-		public Task<IMutableTable> GetMutableTableAsync(ITransaction transaction) {
+		public IMutableTable GetMutableTable(ITransaction transaction) {
 			throw new NotImplementedException();
 		}
 
-		public Task<IMutableTable> GetMutableTableAsync(ITransaction transaction, ITableEventRegistry registry) {
+		public IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry) {
 			throw new NotImplementedException();
 		}
 
@@ -144,8 +147,10 @@ namespace Deveel.Data.Sql.Tables {
 			// underlying OS may not like.
 			var name = new StringBuilder();
 			int count = 0;
+
 			for (int i = 0; i < str.Length || count > 64; ++i) {
 				char c = str[i];
+
 				if ((c >= 'a' && c <= 'z') ||
 				    (c >= 'A' && c <= 'Z') ||
 				    (c >= '0' && c <= '9') ||
@@ -184,10 +189,12 @@ namespace Deveel.Data.Sql.Tables {
 			lock (this) {
 				// Create the initial DataIndexSetInfo object.
 				IndexSetInfo = new IndexSetInfo(TableInfo.TableName);
+
 				foreach (var colInfo in TableInfo.Columns) {
 					if (colInfo.IsIndexable) {
 						var indexName = $"IDX_{colInfo.ColumnName}";
-						IndexSetInfo.Indexes.Add(new IndexInfo(indexName, TableInfo.TableName, new[] {colInfo.ColumnName}, false));
+						IndexSetInfo.Indexes.Add(new IndexInfo(indexName, TableInfo.TableName,
+							new[] {colInfo.ColumnName}, false));
 					}
 				}
 			}
@@ -196,9 +203,11 @@ namespace Deveel.Data.Sql.Tables {
 		private void ReleaseObjects() {
 			lock (recordList) {
 				long elements = recordList.NodeCount;
+
 				for (long rowNumber = 0; rowNumber < elements; ++rowNumber) {
 					var a = recordList.GetRecord(rowNumber);
 					var status = (RecordState) a.ReadInt32();
+
 					// Is the record not deleted?
 					if (status != RecordState.Deleted) {
 						// Get the record pointer
@@ -212,7 +221,7 @@ namespace Deveel.Data.Sql.Tables {
 		private void ReleaseRowObjects(long recordPointer) {
 			// NOTE: Does this need to be optimized?
 			IArea recordArea = Store.GetArea(recordPointer);
-			recordArea.ReadInt32();  // reserved
+			recordArea.ReadInt32(); // reserved
 
 			// Look for any blob references input the row
 			for (int i = 0; i < TableInfo.Columns.Count; ++i) {
@@ -226,7 +235,7 @@ namespace Deveel.Data.Sql.Tables {
 					recordArea.Position = cellOffset + 4 + (TableInfo.Columns.Count * 8);
 
 					int btype = recordArea.ReadInt32();
-					recordArea.ReadInt32();    // (reserved)
+					recordArea.ReadInt32(); // (reserved)
 
 					if (btype == 0) {
 						long blobRefId = recordArea.ReadInt64();
@@ -321,6 +330,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		private void SetupInitialStore() {
 			byte[] tableInfoBuf;
+
 			using (var stream = new MemoryStream()) {
 				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
@@ -330,12 +340,13 @@ namespace Deveel.Data.Sql.Tables {
 			}
 
 			byte[] indexSetInfoBuf;
+
 			using (var stream = new MemoryStream()) {
 				var writer = new BinaryWriter(stream, Encoding.Unicode);
 				writer.Write(1);
 
 				IndexSetInfoSerializer.Serialize(IndexSetInfo, writer);
-				
+
 				indexSetInfoBuf = stream.ToArray();
 			}
 
@@ -345,9 +356,11 @@ namespace Deveel.Data.Sql.Tables {
 				// Allocate an 80 byte header
 				using (var headerWriter = Store.CreateArea(80)) {
 					long headerPointer = headerWriter.Id;
+
 					// Allocate space to store the DataTableInfo serialization
 					using (var dataTableDefWriter = Store.CreateArea(tableInfoBuf.Length)) {
 						long tableInfoOffset = dataTableDefWriter.Id;
+
 						// Allocate space to store the DataIndexSetInfo serialization
 						using (var indexSetWriter = Store.CreateArea(indexSetInfoBuf.Length)) {
 							long indexSetInfoPointer = indexSetWriter.Id;
@@ -362,7 +375,7 @@ namespace Deveel.Data.Sql.Tables {
 							indexHeaderOffset = indexSetStore.Create();
 
 							// Write the main header
-							headerWriter.Write((int)1); // Version
+							headerWriter.Write((int) 1); // Version
 							headerWriter.Write(TableId); // table id
 							headerWriter.Write(sequenceId); // initial sequence id
 							headerWriter.Write(tableInfoOffset); // pointer to DataTableInfo
@@ -399,13 +412,47 @@ namespace Deveel.Data.Sql.Tables {
 			lock (recordList) {
 				// Find the record entry input the block list.
 				var blockArea = recordList.GetRecord(rowNumber);
+
 				// Get the status.
 				return (RecordState) blockArea.ReadInt32();
 			}
 		}
 
+		private RecordState WriteRecordState(long rowNumber, RecordState state) {
+			lock (recordList) {
+				if (HasShutdown)
+					throw new IOException("IO operation while shutting down.");
+
+				// Find the record entry input the block list.
+				var blockArea = recordList.GetRecord(rowNumber);
+				var pos = blockArea.Position;
+				// Get the status.
+				var oldStatus = (RecordState) blockArea.ReadInt32();
+
+				// Write the new status
+				try {
+					Store.Lock();
+
+					blockArea.Position = pos;
+					blockArea.Write((int)state);
+					blockArea.Flush();
+				} finally {
+					Store.Unlock();
+				}
+
+				return oldStatus;
+			}
+		}
+
+		private void CheckForCleanup() {
+			lock (this) {
+				GC.Collect(false);
+			}
+		}
+
 		private bool IsRecordDeleted(long rowNumber) {
 			var state = ReadRecordState(rowNumber);
+
 			return state == RecordState.Deleted;
 		}
 
@@ -440,7 +487,7 @@ namespace Deveel.Data.Sql.Tables {
 					Store.Lock();
 
 					blockArea.Position = p;
-					blockArea.Write((int)RecordState.Deleted);
+					blockArea.Write((int) RecordState.Deleted);
 					blockArea.Write(firstDeleteChainRecord);
 					blockArea.Flush();
 					firstDeleteChainRecord = rowIndex;
@@ -464,9 +511,92 @@ namespace Deveel.Data.Sql.Tables {
 		private void RemoveRowFromCache(long rowIndex) {
 			if (CacheFields) {
 				var colCount = TableInfo.Columns.Count;
+
 				for (int i = 0; i < colCount; i++) {
 					FieldCache.Remove(TableInfo.TableName, rowIndex, i);
 				}
+			}
+		}
+
+		private void CommitIndexSet(IRowIndexSet indexSet) {
+			indexSetStore.CommitIndexSet(indexSet);
+			indexSet.Dispose();
+		}
+
+		internal IEnumerable<ITableEventRegistry> FindChangesSinceCommit(long commitId) {
+			lock (this) {
+				return Registries.FindSinceCommit(commitId);
+			}
+		}
+
+		internal void CommitTransactionChange(long commitId, ITableEventRegistry change, IRowIndexSet indexSet) {
+			lock (this) {
+				// ASSERT: Can't do this if source is Read only.
+				if (IsReadOnly)
+					throw new InvalidOperationException("Can't commit transaction journal, table is Read only.");
+
+				// CHECK!
+				// TODO: change.CommitId = commitId;
+
+				try {
+					// Add this registry to the multi version table indices log
+					Registries.AddRegistry(change);
+
+					// Write the modified index set to the index store
+					// (Updates the index file)
+					CommitIndexSet(indexSet);
+
+					// Update the state of the committed added data to the file system.
+					// (Updates data to the allocation file)
+					//
+					// ISSUE: This can add up to a lot of changes to the allocation file and
+					//   the runtime could potentially be terminated in the middle of
+					//   the update.  If an interruption happens the allocation information
+					//   may be incorrectly flagged.  The type of corruption this would
+					//   result in would be;
+					//   + From an 'update' the updated record may disappear.
+					//   + From a 'delete' the deleted record may not delete.
+					//   + From an 'insert' the inserted record may not insert.
+					//
+					// Note, the possibility of this type of corruption occuring has been
+					// minimized as best as possible given the current architecture.
+					// Also note that is not possible for a table file to become corrupted
+					// beyond recovery from this issue.
+
+					foreach (var entry in change) {
+						if (entry is TableRowEvent) {
+							var rowEvent = (TableRowEvent) entry;
+							var rowIndex = rowEvent.RowNumber;
+
+							if (rowEvent.EventType == TableRowEventType.Add) {
+								// Record commit added
+								var oldType = WriteRecordState(rowIndex, RecordState.CommittedAdded);
+
+								// Check the record was in an uncommitted state before we changed
+								// it.
+								if (oldType != RecordState.Uncommitted) {
+									WriteRecordState(rowIndex, oldType);
+									throw new InvalidOperationException($"Record {rowIndex} of table {TableName} was not in an uncommitted state!");
+								}
+							} else if (rowEvent.EventType == TableRowEventType.Remove) {
+								// Record commit removed
+								var oldType = WriteRecordState(rowIndex, RecordState.CommittedRemoved);
+
+								// Check the record was in an added state before we removed it.
+								if (oldType != RecordState.CommittedAdded) {
+									WriteRecordState(rowIndex, oldType);
+									throw new InvalidOperationException($"Record {rowIndex} of table {TableName} was not in an added state!");
+								}
+
+								// Notify collector that this row has been marked as deleted.
+								GC.DeleteRow(rowIndex);
+							}
+						}
+					}
+				} catch (IOException e) {
+					throw new InvalidOperationException("IO Error: " + e.Message, e);
+				}
+
 			}
 		}
 
@@ -477,6 +607,7 @@ namespace Deveel.Data.Sql.Tables {
 					throw new InvalidOperationException("Cannot remove row, table is locked");
 
 				var typeKey = ReadRecordState(rowIndex);
+
 				// Check this record is marked as committed removed.
 				if (typeKey != RecordState.CommittedRemoved)
 					throw new InvalidOperationException($"The row {rowIndex} is not marked as committed removed");
@@ -489,7 +620,8 @@ namespace Deveel.Data.Sql.Tables {
 			lock (this) {
 				// ASSERTION: We are not under a root Lock.
 				if (IsRootLocked)
-					throw new InvalidOperationException("Assertion failed: Can't remove row, table is under a root lock.");
+					throw new InvalidOperationException(
+						"Assertion failed: Can't remove row, table is under a root lock.");
 
 				// Row already deleted?
 				if (IsRecordDeleted(recordIndex))
@@ -502,6 +634,7 @@ namespace Deveel.Data.Sql.Tables {
 					return false;
 
 				DoHardRowRemove(recordIndex);
+
 				return true;
 			}
 		}
@@ -563,6 +696,50 @@ namespace Deveel.Data.Sql.Tables {
 			Registries = null;
 			indexSetStore = null;
 
+		}
+
+		internal void RollbackTransactionChange(ITableEventRegistry registry) {
+			lock (this) {
+				// ASSERT: Can't do this is source is Read only.
+				if (IsReadOnly)
+					throw new InvalidOperationException("Can't rollback transaction journal, table is Read only.");
+
+				// Any rows added in the journal are marked as committed deleted and the
+				// journal is then discarded.
+
+				try {
+					// Mark all rows in the data_store as appropriate to the changes.
+					foreach (var tableEvent in registry) {
+						if (tableEvent is TableRowEvent) {
+							var rowEvent = (TableRowEvent) tableEvent;
+
+							if (rowEvent.EventType == TableRowEventType.Add) {
+								var oldState = WriteRecordState(rowEvent.RowNumber, RecordState.CommittedRemoved);
+
+								if (oldState != RecordState.Uncommitted) {
+									WriteRecordState(rowEvent.RowNumber, oldState);
+
+									throw new InvalidOperationException($"Record {rowEvent.RowNumber} was not in an uncommitted state.");
+								}
+
+								GC.DeleteRow(rowEvent.RowNumber);
+							}
+						}
+					}
+				} catch (IOException e) {
+					throw new InvalidOperationException("IO Error: " + e.Message, e);
+				}
+			}
+		}
+
+		internal void MergeChanges(long commitId) {
+			lock (this) {
+				bool allMerged = Registries.MergeChanges(commitId);
+				// If all journal entries merged then schedule deleted row collection.
+				if (allMerged && !IsReadOnly) {
+					CheckForCleanup();
+				}
+			}
 		}
 	}
 }

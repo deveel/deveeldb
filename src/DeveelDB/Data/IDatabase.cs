@@ -47,6 +47,8 @@ namespace Deveel.Data {
 		/// </summary>
 		IDatabaseSystem System { get; }
 
+		Locker Locker { get; }
+
 		/// <summary>
 		/// Gets the version number of the system in which the database was created.
 		/// </summary>
@@ -107,5 +109,7 @@ namespace Deveel.Data {
 		/// Returns an instance of the <see cref="ITransaction"/> created
 		/// </returns>
 		ITransaction CreateTransaction(IsolationLevel isolationLevel);
+
+		bool CloseTransaction(ITransaction transaction);
 	}
 }

@@ -22,6 +22,7 @@ using System.Linq;
 using Deveel.Data.Configurations;
 using Deveel.Data.Services;
 using Deveel.Data.Storage;
+using Deveel.Data.Transactions;
 
 namespace Deveel.Data.Sql.Tables {
 	public sealed class TableSystemV2 : ITableSystem, IDisposable {
@@ -235,6 +236,38 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
+		internal bool ContainsVisibleResource(int resourceId) {
+			return StateStore.ContainsVisibleResource(resourceId);
+		}
+
+		internal void CommitToTables(IEnumerable<int> createdTables, IEnumerable<int> droppedTables) {
+			// Add created tables to the committed tables list.
+			foreach (int createdTable in createdTables) {
+				// For all created tables, add to the visible list and remove from the
+				// delete list in the state store.
+				var t = GetTableSource(createdTable);
+				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
+				StateStore.AddVisibleResource(resource);
+				StateStore.RemoveDeleteResource(resource.SourceName);
+			}
+
+			// Remove dropped tables from the committed tables list.
+			foreach (int droppedTable in droppedTables) {
+				// For all dropped tables, add to the delete list and remove from the
+				// visible list in the state store.
+				var t = GetTableSource(droppedTable);
+				var resource = new TableStateStore.TableState(t.TableId, t.SourceName);
+				StateStore.AddDeleteResource(resource);
+				StateStore.RemoveVisibleResource(resource.SourceName);
+			}
+
+			try {
+				StateStore.Flush();
+			} catch (IOException e) {
+				throw new InvalidOperationException("IO Error: " + e.Message, e);
+			}
+		}
+
 		public void Create() {
 			MinimalCreate();
 
@@ -324,6 +357,99 @@ namespace Deveel.Data.Sql.Tables {
 
 		public IEnumerable<ITableSource> GetTableSources() {
 			throw new NotImplementedException();
+		}
+
+		public void Commit(ITransaction transaction) {
+			var selectedFromTables = transaction.State.SelectedTables;
+			var touchedTables = transaction.State.AccessedTables;
+
+			var commit = new TransactionCommit(this, transaction, selectedFromTables, touchedTables, transaction.Registry);
+
+			if (!commit.HasTableChanges) {
+				CloseTransaction(transaction);
+				return;
+			}
+
+			lock (commitLock) {
+				var objectStates = new List<ObjectCommitState>();
+				var changedTablesList = commit.Execute(objectStates);
+
+				// Flush the journals up to the minimum commit id for all the tables
+				// that this transaction changed.
+				long minCommitId = Database.OpenTransactions.MinimumCommitId(null);
+				foreach (var master in changedTablesList) {
+					master.MergeChanges(minCommitId);
+				}
+
+				int nsjsz = objectStates.Count;
+				for (int i = nsjsz - 1; i >= 0; --i) {
+					var namespaceJournal = objectStates[i];
+					// Remove if the commit id for the journal is less than the minimum
+					// commit id
+					if (namespaceJournal.CommitId < minCommitId) {
+						objectStates.RemoveAt(i);
+					}
+				}
+
+				// Set a check point in the store system.  This means that the
+				// persistance state is now stable.
+				StoreSystem.SetCheckPoint();
+
+			}
+		}
+
+		public void Rollback(ITransaction transaction) {
+			var touchedTables = transaction.State.AccessedTables.ToArray();
+
+			// Go through the journal.  Any rows added should be marked as deleted
+			// in the respective master table.
+
+			// Get individual journals for updates made to tables in this
+			// transaction.
+			// The list MasterTableJournal
+			var journalList = new List<ITableEventRegistry>();
+			for (int i = 0; i < touchedTables.Length; ++i) {
+				var tableJournal = touchedTables[i].EventRegistry;
+				if (tableJournal.EventCount > 0) // Check the journal has entries.
+					journalList.Add(tableJournal);
+			}
+
+			var changedTables = journalList.ToArray();
+
+			lock (commitLock) {
+				try {
+					// For each change to each table,
+					foreach (var changeJournal in changedTables) {
+						// The table the changes were made to.
+						int tableId = changeJournal.TableId;
+						// Get the master table with this table id.
+						var source = GetTableSource(tableId);
+						// Commit the rollback on the table.
+						source.RollbackTransactionChange(changeJournal);
+					}
+				} finally {
+					// Notify the system that this transaction has closed.
+					CloseTransaction(transaction);
+				}
+			}
+		}
+
+		internal void CloseTransaction(ITransaction transaction) {
+			bool last = false;
+
+			lock (commitLock) {
+				if (transaction.Database.CloseTransaction(transaction)) {
+					last = transaction.Database.OpenTransactions.Count == 0;
+				}				
+			}
+
+			if (last) {
+				try {
+					CleanUp();
+				} catch (Exception ex) {
+					// TODO: log this
+				}
+			}
 		}
 
 		public void Dispose() {

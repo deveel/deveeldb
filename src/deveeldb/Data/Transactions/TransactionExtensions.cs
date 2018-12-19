@@ -15,34 +15,24 @@
 //
 
 using System;
-using System.Threading.Tasks;
 
-using Deveel.Data.Sql.Indexes;
-using Deveel.Data.Transactions;
+using Deveel.Data.Configurations;
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSource : IDisposable {
-		int TableId { get; }
+namespace Deveel.Data.Transactions {
+	public static class TransactionExtensions {
+		public static bool ReadOnly(this ITransaction transaction)
+			=> transaction.Configuration.GetBoolean("readOnly");
 
-		TableInfo TableInfo { get; }
+		public static void ReadOnly(this ITransaction transaction, bool value) {
+			throw new NotSupportedException();
+		}
 
-		VersionedTableEventRegistry Registries { get; }
+		public static int LockTimeout(this ITransaction transaction) {
+			return transaction.Configuration.GetInt32("lockTimeout");
+		}
 
-
-		Task<long> GetCurrentUniqueIdAsync();
-
-		Task SetUniqueIdAsync(long value);
-
-		Task<long> GetNextUniqueIdAsync();
-
-		IMutableTable GetMutableTable(ITransaction transaction);
-
-		IMutableTable GetMutableTable(ITransaction transaction, ITableEventRegistry registry);
-
-		IRowIndexSet CreateRowIndexSet();
-
-		void BuildIndex();
-
-		void Rollback(ITableEventRegistry registry);
+		public static bool ErrorOnDirtySelect(this ITransaction transaction) {
+			return transaction.Configuration.GetBoolean("errorOnDirtySelect");
+		}
 	}
 }
