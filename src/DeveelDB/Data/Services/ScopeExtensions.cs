@@ -20,6 +20,12 @@ using System.Linq;
 
 namespace Deveel.Data.Services {
 	public static class ScopeExtensions {
+		public static IServiceContainer AsContainer(this IScope scope) {
+			if (!(scope is IServiceContainer))
+				throw new InvalidOperationException("The given scope is not a container");
+
+			return (IServiceContainer) scope;
+		}
 
 		public static object Resolve(this IScope container, Type serviceType) {
 			return container.Resolve(serviceType, null);

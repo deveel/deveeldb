@@ -72,13 +72,12 @@ namespace Deveel.Data.Events {
 		}
 
 		public void Dispose() {
-			while (!queue.IsEmpty) {
-				Thread.Sleep(200);
-			}
-
 			if (tokenSource != null)
 				tokenSource.Cancel();
 
+			while (!queue.IsEmpty) {
+				Thread.Sleep(200);
+			}
 
 			foreach (var thread in threads) {
 				while (!thread.IsCompleted) {

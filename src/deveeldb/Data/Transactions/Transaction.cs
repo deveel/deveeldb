@@ -14,25 +14,24 @@ namespace Deveel.Data.Transactions {
 	public sealed class Transaction : Context, ITransaction {
 		private List<LockHandle> lockHandles;
 
-		internal Transaction(IDatabase database, ITableSystem tableSystem, long commitId, IsolationLevel isolationLevel, ITableSource[] visibleTables, IRowIndexSet[] indexSets)
+		internal Transaction(IDatabase database, ITableSystem tableSystem, long commitId, ITableSource[] visibleTables, IRowIndexSet[] indexSets)
 			: base(database, KnownScopes.Transaction) {
 			Database = database;
 			TableSystem = tableSystem;
 			CommitId = commitId;
-
-			if (isolationLevel == IsolationLevel.Unspecified)
-				throw new ArgumentException("Unspecified transaction isolation level");
-
-			IsolationLevel = isolationLevel;
 
 			Configuration = new Configuration();
 
 			if (database.Configuration != null)
 				Configuration = Configuration.MergeWith(database.Configuration);
 
+			Scope.AsContainer().RegisterInstance<ITransaction>(this);
+
 			TableManager = this.GetTableManager();
+			Registry = new TransactionEventRegistry();
 
 			State = new TransactionState(visibleTables, indexSets);
+			State.AddVisibleTables(visibleTables, indexSets);
 
 			Status = TransactionStatus.Started;
 		}
@@ -41,7 +40,7 @@ namespace Deveel.Data.Transactions {
 
 		public long CommitId { get; }
 
-		public IsolationLevel IsolationLevel { get; }
+		IsolationLevel ITransaction.IsolationLevel => IsolationLevel.Serializable;
 
 		IEventRegistry IEventHandler.Registry => Registry;
 
@@ -69,7 +68,6 @@ namespace Deveel.Data.Transactions {
 			// TODO: more data?
 			return new Dictionary<string, object> {
 				{"commit.id", CommitId},
-				{"isolationLevel", IsolationLevel.ToString().ToUpperInvariant()},
 				{"readOnly", IsReadOnly}
 			};
 		}

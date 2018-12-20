@@ -25,12 +25,18 @@ namespace Deveel.Data.Services {
 		private IResolverContext resolver;
 		private string scopeName;
 
-		public ServiceContainer() {
-			resolver = container = new Container(Rules.Default.WithTrackingDisposableTransients());
+		public ServiceContainer()
+			: this(null, null) {
 		}
 
-		private ServiceContainer(IResolverContext resolver, string scopeName) {
-			this.resolver = resolver;
+		private ServiceContainer(ServiceContainer parent, string scopeName) {
+			if (parent != null) {
+				resolver = parent.resolver.OpenScope(scopeName, true);
+			} else {
+				resolver = container = new Container(Rules.Default.WithConcreteTypeDynamicRegistrations()
+					.WithTrackingDisposableTransients());
+			}
+
 			this.scopeName = scopeName;
 		}
 
@@ -38,7 +44,9 @@ namespace Deveel.Data.Services {
 			Dispose(false);
 		}
 
-		string IScope.Name => null;
+		string IScope.Name => scopeName;
+
+		private bool IsScoped => !String.IsNullOrEmpty(scopeName);
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
@@ -49,8 +57,8 @@ namespace Deveel.Data.Services {
 			}
 
 			lock (this) {
-				container = null;
 				resolver = null;
+				container = null;
 			}
 		}
 
@@ -61,36 +69,47 @@ namespace Deveel.Data.Services {
 
 		public IScope OpenScope(string name) {
 			lock (this) {
-				return new ServiceContainer(resolver.OpenScope(name), name);
+				return new ServiceContainer(this, name);
 			}
 		}
-
 
 		public void Register(ServiceRegistration registration) {
 			if (registration == null)
 				throw new ArgumentNullException(nameof(registration));
 
-			if (container == null)
+			if (!IsScoped && container == null)
 				throw new InvalidOperationException("The container was not initialized.");
+			
+			if (IsScoped && registration.Instance == null)
+				throw new ArgumentException("Cannot register a service in a scope");
 
 			try {
 				lock (this) {
+
 					var serviceType = registration.ServiceType;
 					var service = registration.Instance;
 					var serviceName = registration.ServiceKey;
 					var implementationType = registration.ImplementationType;
 
 					var reuse = Reuse.Transient;
-					if (!String.IsNullOrEmpty(registration.Scope))
+
+					if (!String.IsNullOrEmpty(registration.Scope)) {
 						reuse = Reuse.InCurrentNamedScope(registration.Scope);
+					} else if (!String.IsNullOrEmpty(scopeName)) {
+						reuse = Reuse.InCurrentNamedScope(scopeName);
+					}
 
 					if (service == null) {
-						container.Register(serviceType, implementationType, serviceKey: serviceName, reuse:reuse);
+						container.Register(serviceType, implementationType, serviceKey: serviceName, reuse: reuse);
+					} else if (!String.IsNullOrEmpty(scopeName)) {
+						resolver.UseInstance(serviceType, service, IfAlreadyRegistered.Replace,
+							serviceKey: serviceName);
 					} else {
-						container.UseInstance(serviceType, service, serviceKey: serviceName, ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+						container.UseInstance(serviceType, service, serviceKey: serviceName,
+							ifAlreadyRegistered: IfAlreadyRegistered.Replace);
 					}
 				}
-			} catch(ServiceException) {
+			} catch (ServiceException) {
 				throw;
 			} catch (Exception ex) {
 				throw new ServiceException("Error when registering service.", ex);
@@ -100,6 +119,8 @@ namespace Deveel.Data.Services {
 		public bool Unregister(Type serviceType, object serviceName) {
 			if (serviceType == null)
 				throw new ArgumentNullException(nameof(serviceType));
+			if (IsScoped)
+				throw new NotSupportedException("Cannot unregister services from scopes");
 
 			if (container == null)
 				throw new InvalidOperationException("The container was not initialized.");
@@ -107,6 +128,7 @@ namespace Deveel.Data.Services {
 			lock (this) {
 				try {
 					container.Unregister(serviceType, serviceName);
+
 					return true;
 				} catch (Exception ex) {
 					throw new ServiceException("Error when unregistering service", ex);
@@ -135,7 +157,7 @@ namespace Deveel.Data.Services {
 
 			lock (this) {
 				try {
-					return resolver.Resolve(serviceType, name, IfUnresolved.ReturnDefault);
+					return resolver.Resolve(serviceType, name, IfUnresolved.ReturnDefaultIfNotRegistered);
 				} catch (Exception ex) {
 					throw new ServiceResolutionException(serviceType, "Error when resolving service", ex);
 				}

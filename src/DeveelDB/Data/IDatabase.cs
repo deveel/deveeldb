@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Events;
@@ -72,6 +73,8 @@ namespace Deveel.Data {
 		/// </summary>
 		ITransactionCollection OpenTransactions { get; }
 
+
+		void Create(IEnumerable<IDatabaseFeature> features);
 
 		/// <summary>
 		/// Opens the database making it ready to be accessed.

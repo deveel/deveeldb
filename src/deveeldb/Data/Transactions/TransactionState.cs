@@ -93,6 +93,12 @@ namespace Deveel.Data.Transactions {
 			tableIndices[tableName] = indexSet;
 		}
 
+		internal void AddVisibleTables(ITableSource[] sources, IRowIndexSet[] indexSets) {
+			for (int i = 0; i < sources.Length; i++) {
+				AddVisibleTable(sources[i], indexSets[i]);
+			}
+		}
+
 		internal void RemoveVisibleTable(ITableSource source) {
 			// TODO: verify if the transaction is read-only
 

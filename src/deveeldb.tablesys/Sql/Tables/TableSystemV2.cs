@@ -356,7 +356,11 @@ namespace Deveel.Data.Sql.Tables {
 			=> GetTableSource(tableId);
 
 		public IEnumerable<ITableSource> GetTableSources() {
-			throw new NotImplementedException();
+			lock (commitLock) {
+				var list = StateStore.GetVisibleList();
+
+				return list.Select(x => GetTableSource(x.TableId));
+			}
 		}
 
 		public void Commit(ITransaction transaction) {

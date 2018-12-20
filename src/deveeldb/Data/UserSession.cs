@@ -19,13 +19,14 @@ using System.Collections.Generic;
 
 using Deveel.Data.Events;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class UserSession : Context, ISession {
 		public UserSession(IDatabase database, ITransaction transaction, User user)
-			: base(database) {
+			: base(database, KnownScopes.Session) {
 			if (user == null)
 				throw new ArgumentNullException(nameof(user));
 

@@ -19,13 +19,14 @@ using System.Collections.Generic;
 
 using Deveel.Data.Events;
 using Deveel.Data.Security;
+using Deveel.Data.Services;
 using Deveel.Data.Sql;
 using Deveel.Data.Transactions;
 
 namespace Deveel.Data {
 	public sealed class SystemSession : Context, ISession {
 		public SystemSession(IDatabase database, ITransaction transaction, string currentSchema)
-			: base(database) {
+			: base(database, KnownScopes.Session) {
 			Database = database ?? throw new ArgumentNullException(nameof(database));
 			Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
 			CurrentSchema = currentSchema;

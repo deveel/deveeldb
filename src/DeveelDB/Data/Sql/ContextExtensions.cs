@@ -45,7 +45,11 @@ namespace Deveel.Data.Sql {
 		}
 
 		public static IDbObjectManager GetObjectManager(this IContext context, DbObjectType objectType) {
-			return context.Scope.ResolveAll<IDbObjectManager>().FirstOrDefault(x => x.ObjectType == objectType);
+			var manager = context.Scope.Resolve<IDbObjectManager>(objectType);
+			if (manager == null)
+				manager = context.Scope.ResolveAll<IDbObjectManager>().FirstOrDefault(x => x.ObjectType == objectType);
+
+			return manager;
 		}
 
 		public static TManager GetObjectManager<TManager>(this IContext context, DbObjectType objectType)
