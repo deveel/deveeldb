@@ -15,30 +15,9 @@
 //
 
 using System;
-using System.Collections.Generic;
 
-using Deveel.Data.Transactions;
-
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSystem : IDisposable {
-		bool Exists();
-
-		void Create();
-
-		void Delete();
-
-		void Open();
-
-		void Close();
-
-		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
-
-		ITableSource GetTableSource(int tableId);
-
-		IEnumerable<ITableSource> GetTableSources();
-
-		void Commit(ITransaction transaction);
-
-		void Rollback(ITransaction transaction);
+namespace Deveel.Data.Configurations {
+	public interface IMutableConfiguration : IConfiguration {
+		void SetValue(string key, object value);
 	}
 }

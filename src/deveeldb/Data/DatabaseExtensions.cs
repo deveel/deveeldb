@@ -27,6 +27,18 @@ namespace Deveel.Data {
 			 return database.Configuration.GetBoolean("readOnly");
 		 }
 
+		 public static bool DeleteOnClose(this IDatabase database) {
+			 return database.Configuration.GetBoolean("deleteOnClose");
+		 }
+
+		 public static string StoreSystemTypeName(this IDatabase database) {
+			 return database.Configuration.GetString("store.type");
+		 }
+
+		 public static string TableSystemTypeName(this IDatabase database) {
+			 return database.Configuration.GetString("tables.type");
+		 }
+
 		 #endregion
 		 
 		 #region Transactions
@@ -43,8 +55,10 @@ namespace Deveel.Data {
 
 		 #region Sessions
 
-		 public static SystemSession CreateSystemSession(this IDatabase database, string currentSchema)
-			 => new SystemSession(database, database.CreateTransaction(), currentSchema);
+		 public static SystemSession CreateSystemSession(this IDatabase database, string currentSchema) {
+			 var transaction = database.CreateTransaction();
+			 return new SystemSession(database, transaction, currentSchema);
+		 }
 
 		 #endregion
 	 }

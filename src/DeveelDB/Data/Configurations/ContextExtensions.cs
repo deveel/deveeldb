@@ -33,5 +33,20 @@ namespace Deveel.Data.Configurations {
 
 		public static T GetValue<T>(this IContext context, string key)
 			=> context.GetValue<T>(key, default(T));
+
+		public static void SetValue<T>(this IContext context, string key, T value) {
+			var current = context;
+
+			while (current != null) {
+				if (current is IConfigurationScope) {
+					var scope = (IConfigurationScope) current;
+					var config = scope.Configuration;
+					config.SetValue(key, value);
+					return;
+				}
+
+				current = current.ParentContext;
+			}
+		}
 	}
 }

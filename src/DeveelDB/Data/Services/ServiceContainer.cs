@@ -33,8 +33,10 @@ namespace Deveel.Data.Services {
 			if (parent != null) {
 				resolver = parent.resolver.OpenScope(scopeName, true);
 			} else {
-				resolver = container = new Container(Rules.Default.WithConcreteTypeDynamicRegistrations()
-					.WithTrackingDisposableTransients());
+				resolver = container = new Container(Rules.Default
+					.WithConcreteTypeDynamicRegistrations()
+					.WithTrackingDisposableTransients()
+					.WithDefaultIfAlreadyRegistered(IfAlreadyRegistered.AppendNotKeyed));
 			}
 
 			this.scopeName = scopeName;
@@ -102,11 +104,9 @@ namespace Deveel.Data.Services {
 					if (service == null) {
 						container.Register(serviceType, implementationType, serviceKey: serviceName, reuse: reuse);
 					} else if (!String.IsNullOrEmpty(scopeName)) {
-						resolver.UseInstance(serviceType, service, IfAlreadyRegistered.Replace,
-							serviceKey: serviceName);
+						resolver.UseInstance(serviceType, service, serviceKey: serviceName);
 					} else {
-						container.UseInstance(serviceType, service, serviceKey: serviceName,
-							ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+						container.UseInstance(serviceType, service, serviceKey: serviceName);
 					}
 				}
 			} catch (ServiceException) {

@@ -19,7 +19,7 @@ using System;
 namespace Deveel.Data {
 	public enum DatabaseStatus {
 		Open = 1,
-		Close = 2,
+		Closed = 2,
 		InShutdown = 3
 	}
 }

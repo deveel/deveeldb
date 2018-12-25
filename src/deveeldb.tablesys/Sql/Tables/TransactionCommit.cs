@@ -166,7 +166,7 @@ namespace Deveel.Data.Sql.Tables {
 
 					// Set the 'check_transaction' object with the latest version of the
 					// table.
-					checkTransaction.UpdateVisibleTable(tableInfo.Master, tableInfo.IndexSet);
+					checkTransaction.State.UpdateVisibleTable(tableInfo.Master, tableInfo.IndexSet);
 				} else {
 					// There were changes so we need to merge the changes with the
 					// current view of the table.
@@ -412,7 +412,7 @@ namespace Deveel.Data.Sql.Tables {
 				// this view.
 				foreach (TableSource masterTable in normalizedDroppedTables) {
 					// Drop this table in the current view
-					checkTransaction.RemoveVisibleTable(masterTable);
+					checkTransaction.State.RemoveVisibleTable(masterTable);
 				}
 
 				// Now add any changed tables to the view.

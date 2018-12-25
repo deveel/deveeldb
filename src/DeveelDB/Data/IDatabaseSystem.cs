@@ -30,7 +30,7 @@ namespace Deveel.Data {
 		/// <summary>
 		/// Starts the system making it possible to interact with it
 		/// </summary>
-		Task StartAsync();
+		void Start();
 
 		/// <summary>
 		/// Gets a list of the names of all the databases handled
@@ -49,6 +49,7 @@ namespace Deveel.Data {
 		/// <param name="databaseName">The name of the database to create</param>
 		/// <param name="configuration">A configuration specific for the
 		/// database to be created.</param>
+		/// <param name="features">An optional list of <see cref="IDatabaseFeature"/> used by the database</param>
 		/// <returns>
 		/// Returns an instance of <see cref="IDatabase"/> that is inheriting
 		/// the state of this system and is administered by the given user.
@@ -59,7 +60,7 @@ namespace Deveel.Data {
 		/// <exception cref="SystemException">
 		/// If any error occurred that prohibited the creation of the database.
 		/// </exception>
-		Task<IDatabase> CreateDatabaseAsync(string databaseName, IConfiguration configuration);
+		IDatabase CreateDatabase(string databaseName, IConfiguration configuration, IEnumerable<IDatabaseFeature> features);
 
 		/// <summary>
 		/// Checks if any database with the given name exists 
@@ -76,7 +77,7 @@ namespace Deveel.Data {
 		/// Returns <c>true</c> if a database with the given name is handled by
 		/// this system and exists in the underlying storage.
 		/// </returns>
-		Task<bool> DatabaseExistsAsync(string databaseName);
+		bool DatabaseExists(string databaseName);
 
 		/// <summary>
 		/// Opens an existing database handled by this system.
@@ -92,7 +93,7 @@ namespace Deveel.Data {
 		/// <exception cref="SystemException">
 		/// If the database does not exist or if it was not possible to open it.
 		/// </exception>
-		Task<IDatabase> OpenDatabaseAsync(string databaseName);
+		IDatabase OpenDatabase(string databaseName);
 
 		/// <summary>
 		/// Removes a database from the system and deletes it from the underlying
@@ -107,6 +108,6 @@ namespace Deveel.Data {
 		/// the database with the given name</exception>
 		/// <exception cref="ArgumentNullException">If the specified <paramref name="databaseName"/>
 		/// is <c>null</c> or empty</exception>
-		Task<bool> DeleteDatabaseAsync(string databaseName);
+		bool DeleteDatabase(string databaseName);
 	}
 }

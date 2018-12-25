@@ -63,7 +63,7 @@ namespace Deveel.Data {
 		/// Gets a boolean value indicating if the database exists within the
 		/// context given.
 		/// </summary>
-		bool Exists { get; }
+		//bool Exists { get; }
 
 
 		DatabaseStatus Status { get; }
@@ -74,35 +74,35 @@ namespace Deveel.Data {
 		ITransactionCollection OpenTransactions { get; }
 
 
-		void Create(IEnumerable<IDatabaseFeature> features);
+		//void Create(IEnumerable<IDatabaseFeature> features);
 
-		/// <summary>
-		/// Opens the database making it ready to be accessed.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// This method ensures the system components and the data are
-		/// ready to allow any connection to be established.
-		/// </para>
-		/// <para>
-		/// After this method successfully exists, the state of <see cref="IsOpen"/>
-		/// is changed to <c>true</c>.
-		/// </para>
-		/// </remarks>
-		void Open();
+		///// <summary>
+		///// Opens the database making it ready to be accessed.
+		///// </summary>
+		///// <remarks>
+		///// <para>
+		///// This method ensures the system components and the data are
+		///// ready to allow any connection to be established.
+		///// </para>
+		///// <para>
+		///// After this method successfully exists, the state of <see cref="IsOpen"/>
+		///// is changed to <c>true</c>.
+		///// </para>
+		///// </remarks>
+		//void Open();
 
-		/// <summary>
-		/// Closes the database making it not accessible to connections.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// Typical implementations of this interface will automatically
-		/// invoke the closure of the database on disposal (<see cref="IDisposable.Dispose"/>.
-		/// </para>
-		/// </remarks>
-		void Close();
+		///// <summary>
+		///// Closes the database making it not accessible to connections.
+		///// </summary>
+		///// <remarks>
+		///// <para>
+		///// Typical implementations of this interface will automatically
+		///// invoke the closure of the database on disposal (<see cref="IDisposable.Dispose"/>.
+		///// </para>
+		///// </remarks>
+		//void Close();
 
-		void Shutdown();
+		//void Shutdown();
 
 		/// <summary>
 		/// Creates a new transaction to the database with a given isolation level

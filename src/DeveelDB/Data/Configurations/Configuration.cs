@@ -22,7 +22,7 @@ using System.Linq;
 using Deveel.Data;
 
 namespace Deveel.Data.Configurations {
-	public class Configuration : IConfiguration {
+	public class Configuration : IMutableConfiguration {
 		private readonly Dictionary<string, object> values;
 		private readonly Dictionary<string, IConfiguration> childConfigurations;
 
@@ -34,18 +34,21 @@ namespace Deveel.Data.Configurations {
 		/// <summary>
 		/// Constructs the <see cref="Configuration"/>.
 		/// </summary>
-		public Configuration() {
+		public Configuration()
+			: this(null) {
+		}
+
+		public Configuration(IConfiguration parent) {
+			Parent = parent;
 			values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 			childConfigurations = new Dictionary<string, IConfiguration>(StringComparer.OrdinalIgnoreCase);
 		}
 
 		/// <inheritdoc/>
-		public IConfiguration Parent { get; set; }
+		public IConfiguration Parent { get; }
 
 		/// <inheritdoc/>
-		public IEnumerable<string> Keys {
-			get { return values.Keys; }
-		}
+		public IEnumerable<string> Keys => values.Keys;
 
 		/// <inheritdoc/>
 		public IEnumerator<ConfigurationValue> GetEnumerator() {
@@ -147,6 +150,9 @@ namespace Deveel.Data.Configurations {
 					return null;
 			}
 
+			if (Parent != null)
+				return Parent.GetValue(key);
+
 			return null;
 		}
 
@@ -158,16 +164,11 @@ namespace Deveel.Data.Configurations {
 		public void AddSection(string key, IConfiguration configuration) {
 			if (String.IsNullOrEmpty(key))
 				throw new ArgumentNullException(nameof(key));
-			if (configuration == null)
-				throw new ArgumentNullException(nameof(configuration));
-
-			childConfigurations[key] = configuration;
+			childConfigurations[key] = configuration ?? throw new ArgumentNullException(nameof(configuration));
 		}
 
 		/// <inheritdoc cref="IConfiguration.Sections"/>
-		public IEnumerable<KeyValuePair<string, IConfiguration>> Sections {
-			get { return childConfigurations.AsEnumerable(); }
-		}
+		public IEnumerable<KeyValuePair<string, IConfiguration>> Sections => childConfigurations.AsEnumerable();
 
 		public static IConfiguration Build(Action<IConfigurationBuilder> config) {
 			var builder = new ConfigurationBuilder();

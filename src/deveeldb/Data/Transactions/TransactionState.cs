@@ -99,7 +99,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void RemoveVisibleTable(ITableSource source) {
+		public void RemoveVisibleTable(ITableSource source) {
 			// TODO: verify if the transaction is read-only
 
 			var tableName = source.TableInfo.TableName;
@@ -117,7 +117,7 @@ namespace Deveel.Data.Transactions {
 			}
 		}
 
-		internal void UpdateVisibleTable(ITableSource table, IRowIndexSet indexSet) {
+		public void UpdateVisibleTable(ITableSource table, IRowIndexSet indexSet) {
 			// TODO: verify if the transaction is read-only
 
 			RemoveVisibleTable(table);

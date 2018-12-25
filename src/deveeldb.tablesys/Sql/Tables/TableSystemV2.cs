@@ -21,6 +21,7 @@ using System.Linq;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Schemata;
 using Deveel.Data.Storage;
 using Deveel.Data.Transactions;
 
@@ -66,7 +67,7 @@ namespace Deveel.Data.Sql.Tables {
 
 		internal ITableFieldCache FieldCache => Database.Scope.Resolve<ITableFieldCache>();
 
-		public bool Exists => StoreSystem.StoreExists(StateStoreName);
+		public bool Exists() => StoreSystem.StoreExists(StateStoreName);
 
 		private void Setup() {
 			lock (this) {
@@ -76,7 +77,7 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private void MinimalCreate() {
-			if (Exists)
+			if (Exists())
 				throw new IOException("Composite already exists");
 
 			// Lock the store system (generates an IOException if exclusive Lock
@@ -151,11 +152,11 @@ namespace Deveel.Data.Sql.Tables {
 		}
 
 		private void CreateSystem() {
-			// TODO: Configure the System Schema
+			SystemSchema.Create(Database);
 		}
 
 		private void SetupSystem() {
-			// TODO: Setup the System Schema
+			SystemSchema.Setup(Database);
 		}
 
 		private int NextTableId() {

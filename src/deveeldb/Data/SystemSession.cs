@@ -47,5 +47,12 @@ namespace Deveel.Data {
 		ICommand ISession.CreateCommand(SqlCommand command) {
 			throw new NotSupportedException();
 		}
+
+		protected override void Dispose(bool disposing) {
+			if (disposing)
+				Transaction?.Dispose();
+
+			base.Dispose(disposing);
+		}
 	}
 }

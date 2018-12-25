@@ -10,35 +10,23 @@ using Moq;
 using Xunit;
 
 namespace Deveel.Data.Sql.Tables {
-	public class TableSystemV2Tests {
-		private IDatabase database;
-		private InMemoryStoreSystem storeSystem;
+	public class TableSystemV2Tests : IDisposable {
+		private Database database;
 
 		public TableSystemV2Tests() {
-			var db = new Mock<IDatabase>();
-			db.SetupGet(x => x.Scope)
-				.Returns(new ServiceContainer());
-			db.SetupGet(x => x.Configuration)
-				.Returns(new Configuration());
+			var container = new ServiceContainer();
+			container.Register<ITableSystem, TableSystemV2>();
+			container.Register<IStoreSystem, InMemoryStoreSystem>();
 
-			database = db.Object;
+			var system = new DatabaseSystem(container, new Configuration());
+			system.Start();
 
-			storeSystem = new InMemoryStoreSystem();
-		}
-
-		[Fact]
-		public void CreateNew() {
-			var sys = new TableSystemV2(database, storeSystem);
-			sys.Create();
-
-			Assert.False(sys.IsClosed);
-			Assert.False(sys.IsReadOnly);
+			database = system.CreateDatabase("testdb", new Configuration(), new IDatabaseFeature[0]);
 		}
 
 		[Fact]
 		public void CreateTableSource() {
-			var sys = new TableSystemV2(database, storeSystem);
-			sys.Create();
+			var sys = database.TableSystem;
 
 			var tableInfo = new TableInfo(ObjectName.Parse("sys.tab1"));
 			tableInfo.Columns.Add(new ColumnInfo("a", PrimitiveTypes.Integer()));
@@ -48,8 +36,10 @@ namespace Deveel.Data.Sql.Tables {
 
 			Assert.NotNull(source);
 			Assert.Equal(tableInfo.TableName, source.TableInfo.TableName);
+		}
 
-			sys.Dispose();
+		public void Dispose() {
+			database?.Dispose();
 		}
 	}
 }

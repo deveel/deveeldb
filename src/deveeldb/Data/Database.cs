@@ -1,4 +1,20 @@
-﻿using System;
+﻿// 
+//  Copyright 2010-2018 Deveel
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -17,8 +33,9 @@ namespace Deveel.Data {
 	public sealed class Database : Context, IDatabase {
 		private readonly OpenTransactionCollection transactions;
 		private IStoreSystem storeSystem;
+		private ITableSystem tableSystem;
 
-		public Database(IDatabaseSystem system, string name, IConfiguration configuration) 
+		internal Database(DatabaseSystem system, string name, IConfiguration configuration) 
 			: base(system, KnownScopes.Database) {
 			System = system;
 			Name = name;
@@ -27,9 +44,6 @@ namespace Deveel.Data {
 			Locker = new Locker(this);
 
 			Scope.AsContainer().RegisterInstance<IDatabase>(this);
-			Scope.AsContainer().RegisterInstance<IStoreSystem>(StoreSystem);
-
-			TableSystem = Scope.Resolve<ITableSystem>();
 
 			transactions = new OpenTransactionCollection();
 		}
@@ -46,7 +60,18 @@ namespace Deveel.Data {
 
 		public Version Version { get; }
 
-		public bool Exists { get; }
+		internal bool Exists {
+			get {
+				if (Status == DatabaseStatus.Open)
+					return true;
+
+				try {
+					return TableSystem.Exists();
+				} catch (Exception ex) {
+					throw new DatabaseException("An error occurred while verifying the database existence", ex);
+				}
+			}
+		}
 
 		public DatabaseStatus Status { get; private set; }
 
@@ -54,11 +79,13 @@ namespace Deveel.Data {
 
 		public ITransactionCollection OpenTransactions => transactions;
 
-		public ITableSystem TableSystem { get; }
+		public IConfiguration Configuration { get; }
+
+		public ITableSystem TableSystem => DiscoverTableSystem();
 
 		private IStoreSystem DiscoverStoreSystem() {
 			if (storeSystem == null) {
-				var typeString = Configuration.GetString("store.type");
+				var typeString = this.StoreSystemTypeName();
 
 				if (String.IsNullOrEmpty(typeString)) {
 					storeSystem = Scope.Resolve<IStoreSystem>();
@@ -68,15 +95,36 @@ namespace Deveel.Data {
 						throw new InvalidOperationException($"Type '{typeString}' is not valid for a store system");
 
 					storeSystem = Scope.Resolve(type) as IStoreSystem;
+					Scope.AsContainer().RegisterInstance<IStoreSystem>(storeSystem);
 				}
 			}
 
 			return storeSystem;
 		}
 
+		private ITableSystem DiscoverTableSystem() {
+			if (tableSystem == null) {
+				var typeString = this.TableSystemTypeName();
+
+				if (String.IsNullOrEmpty(typeString)) {
+					tableSystem = Scope.Resolve<ITableSystem>();
+				} else {
+					var type = Type.GetType(typeString, false);
+					if (type == null || !typeof(ITableSystem).IsAssignableFrom(type))
+						throw new InvalidOperationException($"Type '{typeString}' is not valid for a table system");
+
+					tableSystem = Scope.Resolve(type) as ITableSystem;
+					Scope.AsContainer().RegisterInstance<ITableSystem>(tableSystem);
+				}
+			}
+
+			return tableSystem;
+		}
+
 		private IDictionary<string, object> GetMetadata() {
 			return new Dictionary<string, object>();
 		}
+
 
 		private IEnumerable<IDatabaseFeature> GetAllFeatures(IEnumerable<IDatabaseFeature> features) {
 			var result = new List<IDatabaseFeature>();
@@ -94,16 +142,21 @@ namespace Deveel.Data {
 			return result;
 		}
 
-		public void Create(IEnumerable<IDatabaseFeature> features) {
-			try {
-				features = GetAllFeatures(features);
+		private void AssertDataVersion() {
+			// TODO:
+		}
 
+
+		internal void Create(IEnumerable<IDatabaseFeature> features) {
+			try {
 				TableSystem.Create();
+
+				features = GetAllFeatures(features);
 
 				using (var session = this.CreateSystemSession("sys")) {
 					try {
 						foreach (var feature in features) {
-							// TODO: configure the System Schema
+							feature.OnDatabaseCreate(session);
 						}
 
 						session.Transaction.Commit(null);
@@ -118,15 +171,57 @@ namespace Deveel.Data {
 			}
 		}
 
-		public void Open() {
-			throw new NotImplementedException();
+		internal void Open() {
+			if (Status == DatabaseStatus.Open)
+				throw new DatabaseException("The database was already open.");
+
+			try {
+				// Check if the state file exists.  If it doesn't, we need to report
+				// incorrect version.
+				if (!TableSystem.Exists())
+
+					// If neither store or state file exist, assume database doesn't
+					// exist.
+					throw new DatabaseException($"The database {Name} does not exist.");
+
+				// Open the conglomerate
+				TableSystem.Open();
+
+				AssertDataVersion();
+			} catch (DatabaseException) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseException("An error occurred when initializing the database.", e);
+			}
+
+			Status = DatabaseStatus.Open;
 		}
 
-		public void Close() {
-			throw new NotImplementedException();
+		internal void Close() {
+			if (Status == DatabaseStatus.Closed)
+				throw new DatabaseException("The database is not open");
+			if (Status == DatabaseStatus.InShutdown)
+				throw new DatabaseException("The database is in shutdown");
+
+			try {
+				if (this.DeleteOnClose()) {
+					// Delete the tables if the database is set to delete on
+					// shutdown.
+					TableSystem.Delete();
+				} else {
+					// Otherwise close the conglomerate.
+					TableSystem.Close();
+				}
+			} catch (DatabaseException) {
+				throw;
+			} catch (Exception e) {
+				throw new DatabaseException("An error occurred during database shutdown.", e);
+			}
+
+			Status = DatabaseStatus.Closed;
 		}
 
-		public void Shutdown() {
+		internal void Shutdown() {
 			throw new NotImplementedException();
 		}
 
@@ -159,9 +254,6 @@ namespace Deveel.Data {
 				return transaction;
 			}
 		}
-
-
-		public IConfiguration Configuration { get; }
 
 		#region OpenTransactionCollection
 

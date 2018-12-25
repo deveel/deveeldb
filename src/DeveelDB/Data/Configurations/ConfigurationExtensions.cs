@@ -251,6 +251,18 @@ namespace Deveel.Data.Configurations {
 
 		#endregion
 
+		#region Set Values
+
+		public static void SetValue(this IConfiguration configuration, string key, object value) {
+			if (!(configuration is IMutableConfiguration))
+				throw new NotSupportedException("The Configuration is read-only");
+
+			var mutable = (IMutableConfiguration) configuration;
+			mutable.SetValue(key, value);
+		}
+
+		#endregion
+
 		public static IConfiguration MergeWith(this IConfiguration configuration, IConfiguration other) {
 			var newConfig = new Configuration();
 			foreach (var pair in configuration) {
@@ -261,6 +273,13 @@ namespace Deveel.Data.Configurations {
 			}
 
 			return newConfig;
+		}
+
+		public static IConfiguration AsReadOnly(this IConfiguration configuration) {
+			if (configuration is ReadOnlyConfiguration)
+				return configuration;
+
+			return new ReadOnlyConfiguration(configuration);
 		}
 	}
 }

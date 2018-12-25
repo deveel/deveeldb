@@ -255,20 +255,6 @@ namespace Deveel.Data.Sql.Tables {
 			return indexSet;
 		}
 
-		internal void UpdateVisibleTable(ITableSource table, IRowIndexSet indexSet) {
-			if (Transaction.ReadOnly())
-				throw new Exception("Transaction is Read-only.");
-
-			Transaction.State.UpdateVisibleTable(table, indexSet);
-		}
-
-		internal void RemoveVisibleTable(ITableSource table) {
-			if (Transaction.ReadOnly())
-				throw new Exception("Transaction is Read-only.");
-
-			Transaction.State.RemoveVisibleTable(table);
-		}
-
 		#region Native Sequences
 
 		public async Task<SqlNumber> SetUniqueIdAsync(ObjectName tableName, SqlNumber value) {

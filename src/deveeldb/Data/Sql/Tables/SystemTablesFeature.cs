@@ -15,30 +15,23 @@
 //
 
 using System;
-using System.Collections.Generic;
+using System.Reflection;
 
-using Deveel.Data.Transactions;
+using Deveel.Data.Sql.Schemata;
+using Deveel.Data.Sql.Types;
 
 namespace Deveel.Data.Sql.Tables {
-	public interface ITableSystem : IDisposable {
-		bool Exists();
+	class SystemTablesFeature : ISystemFeature {
+		public string Name => "tables";
 
-		void Create();
+		public Version Version => Assembly.GetAssembly(typeof(Database)).GetName().Version;
 
-		void Delete();
+		public void OnSystemCreate(ISession session) {
+			// TODO:
+		}
 
-		void Open();
-
-		void Close();
-
-		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
-
-		ITableSource GetTableSource(int tableId);
-
-		IEnumerable<ITableSource> GetTableSources();
-
-		void Commit(ITransaction transaction);
-
-		void Rollback(ITransaction transaction);
+		public void OnSystemSetup(ISession session) {
+			// TODO:
+		}
 	}
 }

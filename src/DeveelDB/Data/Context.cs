@@ -47,7 +47,7 @@ namespace Deveel.Data {
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-
+				Scope?.Dispose();
 			}
 		}
 

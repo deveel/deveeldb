@@ -193,8 +193,10 @@ namespace Deveel.Data.Transactions {
 				TableSystem.Commit(this);
 
 				// TODO: fire an event
-			} catch (Exception e) {
+			} catch (TransactionException) {
 				throw;
+			} catch (Exception ex) {
+				throw new TransactionException("An error occurred while committing the transaction", ex);
 			} finally {
 				Finish();
 			}
@@ -213,8 +215,10 @@ namespace Deveel.Data.Transactions {
 				TableSystem.Rollback(this);
 
 				// TODO: fire an event
-			} catch (Exception e) {
+			} catch(TransactionException) {
 				throw;
+			} catch (Exception ex) {
+				throw new TransactionException("An error occurred while rolling back the transaction", ex);
 			} finally {
 				Finish();
 			}

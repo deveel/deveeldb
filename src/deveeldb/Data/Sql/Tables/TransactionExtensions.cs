@@ -46,14 +46,6 @@ namespace Deveel.Data.Sql.Tables {
 			return transaction.GetTableManager().GetIndexSetForTable(tableSource);
 		}
 
-		public static void RemoveVisibleTable(this ITransaction transaction, ITableSource table) {
-			transaction.GetTableManager().RemoveVisibleTable(table);
-		}
-
-		public static void UpdateVisibleTable(this ITransaction transaction, ITableSource tableSource, IRowIndexSet indexSet) {
-			transaction.GetTableManager().UpdateVisibleTable(tableSource, indexSet);
-		}
-
 
 		/// <summary>
 		/// Tries to get an object with the given name formed as table.

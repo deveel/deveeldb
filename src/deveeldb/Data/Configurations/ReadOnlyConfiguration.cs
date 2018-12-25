@@ -15,30 +15,31 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
-using Deveel.Data.Transactions;
+namespace Deveel.Data.Configurations {
+	sealed class ReadOnlyConfiguration : IConfiguration {
+		private readonly IConfiguration configuration;
 
-namespace Deveel.Data.Sql.Tables {
-	public interface ITableSystem : IDisposable {
-		bool Exists();
+		public ReadOnlyConfiguration(IConfiguration configuration) {
+			this.configuration = configuration;
+		}
 
-		void Create();
+		public IEnumerator<ConfigurationValue> GetEnumerator() {
+			return configuration.GetEnumerator();
+		}
 
-		void Delete();
+		IEnumerator IEnumerable.GetEnumerator() {
+			return GetEnumerator();
+		}
 
-		void Open();
+		public IEnumerable<string> Keys => configuration.Keys;
 
-		void Close();
+		public IEnumerable<KeyValuePair<string, IConfiguration>> Sections => configuration.Sections;
 
-		ITableSource CreateTableSource(TableInfo tableInfo, bool temporary);
-
-		ITableSource GetTableSource(int tableId);
-
-		IEnumerable<ITableSource> GetTableSources();
-
-		void Commit(ITransaction transaction);
-
-		void Rollback(ITransaction transaction);
+		public object GetValue(string key) {
+			return configuration.GetValue(key);
+		}
 	}
 }
