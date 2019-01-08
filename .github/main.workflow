@@ -1,15 +1,9 @@
 workflow "Build" {
   on = "push"
-  resolves = ["test"]
+  resolves = ["Build and Test"]
 }
 
-action "restore" {
+action "Build and Test" {
   uses = "./.github/actions/dotnetcore-cli"
-  args = "restore"
-}
-
-action "test" {
-  uses = "./.github/actions/dotnetcore-cli"
-  args = "test"
-  needs = ["restore"]
+  runs = "build.sh"
 }
