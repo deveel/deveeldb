@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb", "src\DeveelDB\deveeldb.csproj", "{124BB02C-8B4B-4227-8162-670FBA4E90E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb", "src\deveeldb\deveeldb.csproj", "{124BB02C-8B4B-4227-8162-670FBA4E90E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb.test", "test\DeveelDB.Test\deveeldb.test.csproj", "{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb.test", "test\deveeldb.test\deveeldb.test.csproj", "{0AABD3C9-AFB7-47F1-8180-0D30A129AE88}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "deveeldb.sql.parser", "src\deveeldb.sql.parser\deveeldb.sql.parser.csproj", "{3A285179-9A1D-4483-9B98-596A9EAA8022}"
 EndProject
