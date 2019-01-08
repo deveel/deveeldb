@@ -1,6 +1,6 @@
 workflow "Build" {
   on = "push"
-  resolves = ["test"]
+  resolves = ["test"],
 }
 
 action "restore" {
@@ -11,7 +11,7 @@ action "restore" {
 action "build" {
   uses = "./.github/actions/dotnetcore-cli"
   needs = ["restore"]
-  args = "build /p:GeneratePackageOnBuild=true /p:Version=$env.GITHUB_SHA /p:DebugType=Full"
+  args = "build /p:GeneratePackageOnBuild=true /p:VersionPostfix=$GITHUB_SHA /p:DebugType=Full"
 }
 
 action "install coveralls.net" {
