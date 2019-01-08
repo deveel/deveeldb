@@ -23,12 +23,13 @@ using Deveel.Data.Events;
 using Deveel.Data.Services;
 
 namespace Deveel.Data {
-	public sealed class DatabaseSystem : IContext, IDatabaseSystem {
+	public sealed class DatabaseSystem : IDatabaseSystem, IEventHandler {
 		private Dictionary<string, IDatabase> databases;
 		private bool started;
 		private ServiceContainer container;
 		private bool ownsContainer;
 		private IScope scope;
+		private InMemoryEventRegistry eventRegistry;
 
 		private DatabaseSystem(ServiceContainer container, bool ownsContainer, IConfiguration configuration) {
 			this.container = container;
@@ -39,6 +40,8 @@ namespace Deveel.Data {
 			this.ownsContainer = ownsContainer;
 
 			scope = container.OpenScope(KnownScopes.System);
+
+			eventRegistry = new InMemoryEventRegistry();
 		}
 
 		public DatabaseSystem(ServiceContainer container, IConfiguration configuration)
@@ -60,6 +63,13 @@ namespace Deveel.Data {
 		IContext IContext.ParentContext => null;
 
 		string IContext.ContextName => KnownScopes.System;
+
+		IEventRegistry IEventHandler.Registry => DiscoverRegistry();
+
+		private IEventRegistry DiscoverRegistry() {
+			// TODO:
+			return eventRegistry;
+		}
 
 		private void AssertStarted() {
 			if (!started)
@@ -142,6 +152,7 @@ namespace Deveel.Data {
 			if (ownsContainer)
 				container?.Dispose();
 
+			eventRegistry?.Dispose();
 			started = false;
 		}
 	}

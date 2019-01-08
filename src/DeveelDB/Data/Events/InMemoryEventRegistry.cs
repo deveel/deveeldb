@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -23,13 +24,14 @@ using System.Threading.Tasks;
 namespace Deveel.Data.Events {
 	public class InMemoryEventRegistry : IEventRegistry, IDisposable {
 		private readonly List<IEventConsumer> consumers;
-		private ConcurrentQueue<IEvent> queue;
+		private Queue<IEvent> queue;
+		private readonly AutoResetEvent semaphore;
 		private Task[] threads;
 		private CancellationTokenSource tokenSource;
 
 		public InMemoryEventRegistry() {
 			consumers = new List<IEventConsumer>();
-			queue = new ConcurrentQueue<IEvent>();
+			queue = new Queue<IEvent>();
 
 			tokenSource = new CancellationTokenSource();
 
@@ -38,11 +40,19 @@ namespace Deveel.Data.Events {
 			for (int i = 0; i < threads.Length; i++) {
 				threads[i] = Task.Run(() => Listen(), tokenSource.Token);
 			}
+
+			semaphore = new AutoResetEvent(false);
 		}
 
 		private void Listen() {
 			while (!tokenSource.IsCancellationRequested) {
-				if (queue.TryDequeue(out var @event)) {
+				if (semaphore.WaitOne(100)) {
+					IEvent @event;
+
+					lock (((ICollection)queue).SyncRoot) {
+						@event = queue.Dequeue();
+					}
+
 					IEnumerable<IEventConsumer> currentConsumers;
 
 					lock (consumers) {
@@ -57,7 +67,12 @@ namespace Deveel.Data.Events {
 		}
 
 		public void Register(IEvent @event) {
-			queue.Enqueue(@event);
+			lock (((ICollection)queue).SyncRoot) {
+				queue.Enqueue(@event);
+			}
+
+			semaphore.Set();
+
 			OnEventRegistered(@event);
 		}
 
@@ -75,9 +90,7 @@ namespace Deveel.Data.Events {
 			if (tokenSource != null)
 				tokenSource.Cancel();
 
-			while (!queue.IsEmpty) {
-				Thread.Sleep(200);
-			}
+			semaphore?.Dispose();
 
 			foreach (var thread in threads) {
 				while (!thread.IsCompleted) {
