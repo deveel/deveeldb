@@ -26,13 +26,14 @@ namespace Deveel.Data.Sql.Statements {
 		public StatementContext(IContext parent, SqlStatement statement) 
 			: base(parent, KnownScopes.Statement) {
 			Statement = statement ?? throw new ArgumentNullException(nameof(statement));
+			Result = new EmptyStatementResult();
 		}
 
 		public SqlStatement Statement { get; }
 
 		public IStatementResult Result { get; private set; }
 
-		public bool HasResult { get; private set; }
+		public bool HasResult => !(Result is EmptyStatementResult);
 
 		internal bool WasTerminated { get; set; }
 
@@ -43,7 +44,6 @@ namespace Deveel.Data.Sql.Statements {
 				Parent is StatementContext) {
 				var context = (StatementContext) Parent;
 				context.Result = Result;
-				context.HasResult = HasResult;
 				context.Terminate();
 			}
 		}
@@ -58,7 +58,6 @@ namespace Deveel.Data.Sql.Statements {
 			ThrowIfTerminated();
 
 			Result = result;
-			HasResult = true;
 		}
 
 		public void SetResult(SqlObject value)

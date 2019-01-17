@@ -23,6 +23,7 @@ using System.Linq;
 using Deveel.Data.Configurations;
 using Deveel.Data.Events;
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Schemata;
 using Deveel.Data.Sql.Tables;
 using Deveel.Data.Storage;
 using Deveel.Data.Transactions;
@@ -149,24 +150,28 @@ namespace Deveel.Data {
 
 		internal void Create(IEnumerable<IDatabaseFeature> features) {
 			try {
-				TableSystem.Create();
+				var systemFeatures = Scope.ResolveAll<ISystemFeature>();
+				TableSystem.Create(systemFeatures);
 
 				features = GetAllFeatures(features);
 
-				using (var session = this.CreateSystemSession("sys")) {
+				using (var session = this.CreateSystemSession(SystemSchema.Name)) {
 					try {
 						foreach (var feature in features) {
 							feature.OnDatabaseCreate(session);
 						}
 
 						session.Transaction.Commit(null);
-					} catch (Exception ex) {
+					}
+					catch (Exception ex) {
 						throw new DataException("An error occurred while setting up one of the database features", ex);
-					} finally {
+					}
+					finally {
 						TableSystem.Close();
 					}
 				}
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw new DatabaseException("Could not create the database", ex);
 			}
 		}

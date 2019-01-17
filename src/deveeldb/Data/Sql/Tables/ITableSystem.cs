@@ -23,7 +23,7 @@ namespace Deveel.Data.Sql.Tables {
 	public interface ITableSystem : IDisposable {
 		bool Exists();
 
-		void Create();
+		void Create(IEnumerable<ISystemFeature> features);
 
 		void Delete();
 

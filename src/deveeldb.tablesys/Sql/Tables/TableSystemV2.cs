@@ -76,7 +76,7 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		private void MinimalCreate() {
+		private void MinimalCreate(IEnumerable<ISystemFeature> features) {
 			if (Exists())
 				throw new IOException("Composite already exists");
 
@@ -108,7 +108,7 @@ namespace Deveel.Data.Sql.Tables {
 			InitObjectStore();
 
 			// Create the system table (but don't initialize)
-			CreateSystem();
+			CreateSystem(features);
 		}
 
 		private void InitObjectStore() {
@@ -151,12 +151,12 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		private void CreateSystem() {
-			SystemSchema.Create(Database);
+		private void CreateSystem(IEnumerable<ISystemFeature> features) {
+			SystemSchema.Create(Database, features);
 		}
 
-		private void SetupSystem() {
-			SystemSchema.Setup(Database);
+		private void SetupSystem(IEnumerable<ISystemFeature> features) {
+			SystemSchema.Setup(Database, features);
 		}
 
 		private int NextTableId() {
@@ -269,11 +269,11 @@ namespace Deveel.Data.Sql.Tables {
 			}
 		}
 
-		public void Create() {
-			MinimalCreate();
+		public void Create(IEnumerable<ISystemFeature> features) {
+			MinimalCreate(features);
 
 			// Initialize the conglomerate system tables.
-			SetupSystem();
+			SetupSystem(features);
 
 			// Commit the state
 			StateStore.Flush();
