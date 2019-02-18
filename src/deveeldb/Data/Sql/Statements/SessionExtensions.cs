@@ -5,11 +5,11 @@ using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql.Statements {
 	public static class SessionExtensions {
-		public static Task<IStatementResult> ExecuteStatementAsync(this ISession session, SqlStatement statement) {
+		public static async Task<IStatementResult> ExecuteStatementAsync(this ISession session, SqlStatement statement) {
 			if (statement.CanPrepare)
-				statement = statement.Prepare(session);
+				statement = await statement.PrepareAsync(session);
 
-			return statement.ExecuteAsync(session);
+			return await statement.ExecuteAsync(session);
 		}
 
 		public static IStatementResult ExecuteStatement(this ISession session, SqlStatement statement) {

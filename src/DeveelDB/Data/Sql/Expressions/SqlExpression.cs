@@ -295,6 +295,9 @@ namespace Deveel.Data.Sql.Expressions {
 			return new SqlConstantExpression(value);
 		}
 
+		public static SqlConstantExpression Constant(string value)
+			=> Constant(SqlObject.String(value));
+
 		#region Binary
 
 

@@ -84,7 +84,8 @@ namespace Deveel.Data.Sql.Statements {
 				ObjectName.Parse(objName), withOption, new string[0]);
 			var result = await statement.ExecuteAsync(adminContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(adminContext.User().Name, grant.Granter);
 			Assert.Equal(user, grant.Grantee);
 			Assert.Equal(objName, grant.ObjectName.FullName);
@@ -108,7 +109,8 @@ namespace Deveel.Data.Sql.Statements {
 				ObjectName.Parse(objName), withOption, new string[0]);
 			var result = await statement.ExecuteAsync(userInAdminRoleContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(userInAdminRoleContext.User().Name, grant.Granter);
 			Assert.Equal(user, grant.Grantee);
 			Assert.Equal(objName, grant.ObjectName.FullName);

@@ -96,7 +96,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new RevokeRoleStatement(user, role);
 			var result = await statement.ExecuteAsync(adminContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(user, revokedUser);
 			Assert.Equal(role, revokedRole);
 		}
@@ -116,7 +117,8 @@ namespace Deveel.Data.Sql.Statements {
 			var result = await statement.ExecuteAsync(userInAdminRoleContext);
 
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(user, revokedUser);
 			Assert.Equal(role, revokedRole);
 		}

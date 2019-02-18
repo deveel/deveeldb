@@ -59,7 +59,7 @@ namespace Deveel.Data.Sql.Statements {
 				Location = new LocationInfo(0, 0)
 			};
 
-			statement = statement.Prepare(context);
+			statement = await statement.PrepareAsync(context);
 
 			await Assert.ThrowsAnyAsync<UnauthorizedAccessException>(() => statement.ExecuteAsync(context));
 		}
@@ -74,7 +74,7 @@ namespace Deveel.Data.Sql.Statements {
 				Location = new LocationInfo(0, 0)
 			};
 
-			statement = statement.Prepare(context);
+			statement = await statement.PrepareAsync(context);
 
 			await statement.ExecuteAsync(context);
 		}

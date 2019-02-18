@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 
 using Deveel.Data.Configurations;
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Tables;
 
 namespace Deveel.Data.Sql {
 	public static class ContextExtensions {
@@ -43,6 +44,26 @@ namespace Deveel.Data.Sql {
 
 			return objectName;
 		}
+
+		public static async Task<ObjectName> ResolveObjectNameAsync(this IContext context, DbObjectType objectType, ObjectName objectName) {
+			var manager = context.GetObjectManager(objectType);
+			if (manager == null)
+				return objectName;
+
+			if (objectName.Parent == null) {
+				var currentSchema = context.CurrentSchema();
+				objectName = new ObjectName(new ObjectName(currentSchema), objectName.Name);
+			}
+
+			var resolved = await manager.ResolveNameAsync(objectName, context.IgnoreCase());
+			if (resolved == null)
+				resolved = objectName;
+
+			return resolved;
+		}
+
+		public static Task<ObjectName> ResolveTableNameAsync(this IContext context, ObjectName tableName)
+			=> context.ResolveObjectNameAsync(DbObjectType.Table, tableName);
 
 		public static IDbObjectManager GetObjectManager(this IContext context, DbObjectType objectType) {
 			var manager = context.Scope.Resolve<IDbObjectManager>(objectType);
@@ -68,6 +89,10 @@ namespace Deveel.Data.Sql {
 				return null;
 
 			return await manager.GetObjectAsync(objectName);
+		}
+
+		public static async Task<ITable> GetTableAsync(this IContext context, ObjectName tableName) {
+			return await GetObjectAsync(context, DbObjectType.Table, tableName) as ITable;
 		}
 
 		public static async Task<DbObjectType> GetObjectType(this IContext context, ObjectName objectName) {

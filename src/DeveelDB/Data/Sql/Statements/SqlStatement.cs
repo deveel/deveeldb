@@ -166,8 +166,8 @@ namespace Deveel.Data.Sql.Statements {
 			return this;
 		}
 
-		protected virtual SqlStatement PrepareStatement(IContext context) {
-			return this;
+		protected virtual Task<SqlStatement> PrepareStatementAsync(IContext context) {
+			return Task.FromResult(this);
 		}
 
 		protected virtual void Require(IRequirementCollection requirements) {
@@ -201,7 +201,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// <exception cref="SqlStatementException">If an error occurred while preparing
 		/// the statement.</exception>
 		/// <seealso cref="CanPrepare"/>
-		public SqlStatement Prepare(IContext context) {
+		public async Task<SqlStatement> PrepareAsync(IContext context) {
 			using (var statementContext = CreateContext(context)) {
 				var preparers = (statementContext as IContext).Scope.ResolveAll<ISqlExpressionPreparer>();
 				var result = this;
@@ -211,7 +211,7 @@ namespace Deveel.Data.Sql.Statements {
 				}
 
 				if (CanPrepare)
-					result = result.PrepareStatement(statementContext);
+					result = await result.PrepareStatementAsync(statementContext);
 
 				return result;
 			}

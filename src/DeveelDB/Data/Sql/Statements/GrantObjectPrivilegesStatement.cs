@@ -46,9 +46,9 @@ namespace Deveel.Data.Sql.Statements {
 
 		public IEnumerable<string> Columns { get; }
 
-		protected override SqlStatement PrepareStatement(IContext context) {
+		protected override Task<SqlStatement> PrepareStatementAsync(IContext context) {
 			var objName = context.QualifyName(ObjectName);
-			return new GrantObjectPrivilegesStatement(Grantee, Privileges, objName, WithGrantOption, Columns);
+			return Task.FromResult<SqlStatement>(new GrantObjectPrivilegesStatement(Grantee, Privileges, objName, WithGrantOption, Columns));
 		}
 
 		protected override void Require(IRequirementCollection requirements) {

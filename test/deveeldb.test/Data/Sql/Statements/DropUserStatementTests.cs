@@ -87,7 +87,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new DropUserStatement(user);
 			var result = await statement.ExecuteAsync(adminContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(user, droppedUser);
 		}
 
@@ -105,8 +106,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new DropUserStatement(user);
 			var result = await statement.ExecuteAsync(userInAdminRoleContext);
 
-
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(user, droppedUser);
 		}
 

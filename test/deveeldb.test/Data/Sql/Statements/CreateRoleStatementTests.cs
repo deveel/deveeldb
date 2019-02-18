@@ -66,7 +66,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new CreateRoleStatement(role);
 			var result = await statement.ExecuteAsync(adminContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(role, createdRole);
 		}
 
@@ -85,7 +86,8 @@ namespace Deveel.Data.Sql.Statements {
 			var result = await statement.ExecuteAsync(userInAdminRoleContext);
 
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(role, createdRole);
 		}
 

@@ -76,7 +76,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new AlterUserStatement(userName, new SetPasswordAction(password));
 			var result = await statement.ExecuteAsync(adminContext);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(userName, userSet);
 			Assert.Equal(password, newPassword);
 		}
@@ -96,7 +97,8 @@ namespace Deveel.Data.Sql.Statements {
 			var result = await statement.ExecuteAsync(userInAdminRoleContext);
 
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 			Assert.Equal(userName, userSet);
 			Assert.Equal(password, newPassword);
 		}

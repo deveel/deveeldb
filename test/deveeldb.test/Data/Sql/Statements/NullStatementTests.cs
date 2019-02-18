@@ -39,7 +39,8 @@ namespace Deveel.Data.Sql.Statements {
 			var statement = new NullStatement();
 			var result = await statement.ExecuteAsync(context);
 
-			Assert.Null(result);
+			Assert.NotNull(result);
+			Assert.True(result.IsEmpty());
 		}
 
 		[Fact]

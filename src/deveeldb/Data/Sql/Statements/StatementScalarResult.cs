@@ -21,14 +21,14 @@ namespace Deveel.Data.Sql.Statements {
 	/// The result of the execution of a statement that
 	/// encapsulates a static value.
 	/// </summary>
-	public sealed class StatementExpressionResult : IStatementResult {
+	public sealed class StatementScalarResult : IStatementResult {
 		/// <summary>
 		/// Constructs the result with the given value.
 		/// </summary>
 		/// <param name="value">The value to be returned from the result</param>
 		/// <exception cref="ArgumentNullException">If the given <paramref name="value"/>
 		/// is <c>null</c>.</exception>
-		public StatementExpressionResult(SqlObject value) {
+		public StatementScalarResult(SqlObject value) {
 			if (value == null)
 				throw new ArgumentNullException(nameof(value));
 
