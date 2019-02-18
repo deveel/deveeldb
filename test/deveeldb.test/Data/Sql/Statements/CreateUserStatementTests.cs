@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 using Deveel.Data.Security;
 using Deveel.Data.Services;
+using Deveel.Data.Sql.Statements.Security;
 
 using Moq;
 
@@ -113,7 +114,11 @@ namespace Deveel.Data.Sql.Statements {
 		[InlineData("PUBLIC", "2345")]
 		public async void CreateWithInvalidName(string user, string password) {
 			var statement = new CreateUserStatement(user, new PasswordIdentificationInfo(password));
-			await Assert.ThrowsAsync<SqlStatementException>(() => statement.ExecuteAsync(adminContext));
+			var result = await statement.ExecuteAsync(adminContext);
+
+			Assert.NotNull(result);
+			Assert.True(result.IsError());
+			Assert.IsType<SqlStatementException>(result.Error());
 		}
 
 		[Theory]

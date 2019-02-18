@@ -47,7 +47,7 @@ namespace Deveel.Data.Sql.Statements {
 		/// Gets a boolean value indicating if this statement is preparable
 		/// for execution.
 		/// </summary>
-		/// <seealso cref="Prepare(IContext)"/>
+		/// <seealso cref="PrepareAsync(IContext)"/>
 		public virtual bool CanPrepare => true;
 
 		/// <summary>
@@ -254,14 +254,14 @@ namespace Deveel.Data.Sql.Statements {
 		/// <para>
 		/// Before proceeding to the execution of the statement, this method
 		/// assesses the privileges of the invoking user, throwing an exception
-		/// if unhauthorized to execute this statement, child statements or to
+		/// if unauthorized to execute this statement, child statements or to
 		/// access any referenced resource in the tree. For example, a user can
 		/// be authorized to execute a <c>SELECT</c> statement from a given set
 		/// of tables but not from other tables in the statement, and this will 
 		/// trigger an exception. 
 		/// </para>
 		/// <para>
-		/// The result of this method is polimorphic depending on the kind
+		/// The result of this method is polymorphic depending on the kind
 		/// of statement executed: for example executing a command statement will 
 		/// return a reference to the cursor opened, while the selection of
 		/// single value (from a table, a function or a variable) will return
@@ -270,29 +270,29 @@ namespace Deveel.Data.Sql.Statements {
 		/// </remarks>
 		/// <returns>
 		/// Returns an instance of <see cref="IStatementResult"/> that describes the
-		/// result of the exeuction of the statement.
+		/// result of the execution of the statement.
 		/// </returns>
-		/// <exception cref="SqlStatementException">If an unhandled error occurred
-		/// while executing the statement.</exception>
-		/// <exception cref="UnauthorizedAccessException">If the user owner of the
-		/// context is not authorized to execute the statement, or if has not the
-		/// rights to access any referenced resource.</exception>
 		/// <seealso cref="ExecuteStatementAsync"/>
 		public async Task<IStatementResult> ExecuteAsync(IContext context) {
 			using (var statementContext = CreateContext(context)) {
 				//TODO: statementContext.Information(201, "Executing statement");
 
-				await CheckRequirements(statementContext);
+				try {
+					await CheckRequirements(statementContext);
+				} catch (SecurityException ex) {
+					return new StatementErrorResult(ex);
+				}
+
 
 				try {
 					await ExecuteStatementAsync(statementContext);
 					return statementContext.Result;
-				} catch (SqlStatementException) {
+				} catch (SqlStatementException ex) {
 					//TODO: statementContext.Error(-670393, "The statement thrown an error", ex);
-					throw;
+					return new StatementErrorResult(ex);
 				} catch (Exception ex) {
 					//TODO: statementContext.Error(-1, "Could not execute the statement", ex);
-					throw new SqlStatementException("Could not execute the statement because of an error", ex);
+					return new StatementErrorResult(ex);
 				} finally {
 					//TODO: statementContext.Information(202, "The statement was executed");
 				}
